@@ -1,0 +1,80 @@
+#define TASK_CREATE(a) StartTask(a)
+#define TASK_CANCEL(a) StopTask(a)
+#define exit(EXIT_FAILURE) StopAllTasks()
+
+#define THREAD_TYPE void
+#define MUTEX_TYPE TSemaphore
+#define COND_TYPE int*
+
+#define MUTEX_LOCK(a) my_semaphore_lock(a)
+#define MUTEX_UNLOCK(a) my_semaphore_unlock(a)
+
+#define COND_WAIT(a, b) my_cond_wait(a, b)
+#define COND_BROADCAST(a) my_cond_broadcast(a)
+
+#define MUTEX_INIT(a)   my_semaphore_init(a)
+#define MUTEX_WRAPUP(a) my_semaphore_wrapup(a)
+
+#define COND_INIT(a)    my_cond_init(a)
+#define COND_WRAPUP(a)  my_cond_wrapup(a)
+
+#define SCHED_YIELD()   my_sched_yield()
+
+#define THREAD_JOIN(a)      my_thread_join(a)
+
+void my_semaphore_lock(MUTEX_TYPE *a)
+{
+	SemaphoreLock(*a);
+}
+
+void my_semaphore_unlock(MUTEX_TYPE *a)
+{
+	SemaphoreUnlock(*a);
+}
+
+void my_cond_wait(COND_TYPE cond_id, MUTEX_TYPE* sema)
+{
+	*cond_id = 0;
+	SemaphoreUnlock(*sema);
+	while(*cond_id == 0)
+	{
+		wait1Msec(10);
+	}
+	//nxtDisplayString(6, "WaitL");
+	SemaphoreLock(*sema);
+}
+
+void my_cond_broadcast(COND_TYPE cond_id)
+{
+	*cond_id = 1;
+}
+
+void my_semaphore_init(MUTEX_TYPE *a)
+{
+	SemaphoreInitialize(*a);
+}
+
+void my_semaphore_wrapup(MUTEX_TYPE a)
+{
+
+}
+
+void my_cond_init()
+{
+
+}
+
+void my_cond_wrapup(COND_TYPE *a)
+{
+
+}
+
+void my_thread_join(THREAD_TYPE a)
+{
+
+}
+
+void my_sched_yield()
+{
+	wait1Msec(1);
+}

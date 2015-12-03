@@ -1,0 +1,77 @@
+##MAIN_FUNCTION_START
+int main(int argc, char *argv[])
+{
+    INT8U err;
+
+    OSInit();
+
+    err = OSTaskCreate(runner, NULL, &runner_stack[1024-4], 0);
+    if(err != OS_NO_ERR)	printf("Something wrong!\n");
+
+    OSStart();
+
+    printf("main(): this should be not reachable!\n");
+}
+
+static  void  runner(void  *p_arg)
+##MAIN_FUNCTION_END
+
+##TARGET_DEPENDENT_START
+static esim_mutex_t shared_lock;
+static esim_bar_t shared_barrier;
+static unsigned int c_gap = 0;
+
+static void interrupt_enable(void);
+
+static void init_peripherals(void){
+    my_proc_id = esim_get_pid();
+    interrupt_enable();
+}
+
+static void target_dependent_init(void){
+    int i=0;
+    
+    init_peripherals();
+
+    esim_mutex_init(&shared_lock, NULL);
+    esim_barrier_init(&shared_barrier);
+
+    for(i=0; i<num_tasks;i++){
+      tasks[i].thread.prio = i + PRIO_START;
+      tasks[i].p_mutex = OSSemCreate(1);
+      COND_INIT(&tasks[i].p_cond);
+    }
+#ifdef LIB_CONN
+    for(; i<num_tasks + num_libwrappers;i++){
+      lib_wrappers[i - num_tasks].th.prio = i + PRIO_START;
+    }
+#endif
+
+	for(i=0; i<num_channels; i++){
+		waiting_reader_task_list[i] = (int*)malloc(waiting_reader_task_list_size[i] * sizeof(int));
+		waiting_writer_task_list[i] = (int*)malloc(waiting_writer_task_list_size[i] * sizeof(int));
+	}
+	for(i=0; i<num_libchannels; i++){
+		waiting_reader_library_list[i] = (int*)malloc(waiting_reader_library_list_size[i] * sizeof(int));
+		waiting_writer_library_list[i] = (int*)malloc(waiting_writer_library_list_size[i] * sizeof(int));
+	}
+}
+
+static void target_dependent_wrapup(void){
+    int i=0;
+    
+    for(i=0; i<num_tasks;i++){
+       MUTEX_WRAPUP(&tasks[i].p_mutex);
+       COND_WRAPUP(&tasks[i].p_cond);
+    }
+    
+    for(i=0; i<num_channels; i++){
+		free(waiting_reader_task_list[i]);
+		free(waiting_writer_task_list[i]);
+	}
+	for(i=0; i<num_libchannels; i++){
+		free(waiting_reader_library_list[i]);
+		free(waiting_writer_library_list[i]);
+	}
+}
+##TARGET_DEPENDENT_END

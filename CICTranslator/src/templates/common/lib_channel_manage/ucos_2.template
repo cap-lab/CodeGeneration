@@ -1,0 +1,220 @@
+##INIT_WRAPUP_LIBRARY_CHANNELS_START
+static void init_lib_channel(void)
+{
+    int i;
+    volatile unsigned int *init_flag = (unsigned int *)(SHARED_BASE + SHARED_SIZE - 4);
+
+    if((unsigned int)init_flag % 4 != 0)
+    {
+        printf(PROC_NAME ":init_channel(): init_flag should be 4-byte aligned!\n");
+        EXIT(1);
+    }
+
+    for(i=0; i<ARRAYLEN(lib_channels); ++i)
+    {
+        volatile unsigned int *ptr;
+
+        ptr = (unsigned int *)(SHARED_BASE + c_gap);
+        if((unsigned int)ptr % 4 != 0)
+        {
+            printf(PROC_NAME ":init_channel(): ptr should be 4-byte aligned!\n");
+            EXIT(1);
+        }
+
+        {
+            if(channels[i].max_size <= 0)
+            {
+                printf("init_channel(): size should be positive!\n");
+                EXIT(1);
+            }
+
+            c_gap += 3*sizeof(int) + SIZE_ALIGN(lib_channels[i].max_size);
+
+            waiting_reader_library_list[i] = (int *)(unsigned int *)(SHARED_BASE + c_gap);
+            c_gap += waiting_reader_library_list_size[i]*sizeof(int);
+
+            waiting_writer_library_list[i] = (int *)(unsigned int *)(SHARED_BASE + c_gap);
+            c_gap += waiting_writer_library_list_size[i]*sizeof(int);
+        }
+
+        {
+            ptr[0] = 0;
+            ptr[1] = 0;
+            waiting_reader_library_list[i][0] = waiting_writer_library_list[i][0] = -1;
+        }
+        lib_channels[i].buf = &ptr[0];
+    }
+}
+
+static void wrapup_lib_channel(void)
+{
+    // do nothing....
+}
+##INIT_WRAPUP_LIBRARY_CHANNELS_END
+
+##READ_WRITE_LIB_PORT_START
+int init_lib_port(int library_id, const char op)
+{
+    unsigned int i;
+    for(i=0; i<num_libchannels; i++)
+    {
+        if(lib_channels[i].channel_id == library_id && lib_channels[i].op == op)
+        {
+            return i;
+        }
+    }
+
+    PRINT("Warning : init_lib_port(): No port is available or connected\n");
+    return -1;
+}
+
+// We know that arg_sender , return_receiver will be run at atomic area
+int write_lib_port(int channel_id, unsigned char *buf, int len) {
+    volatile unsigned int *base;
+    unsigned int c_head;
+    unsigned int c_tail;
+    unsigned int c_size;
+    int target_stub_task_idx;
+
+    LIB_CHANNEL *channel;
+    channel = &lib_channels[channel_id];
+    //printf("arg_sender ch_id: %d started\n", channel_id);
+
+    base = channel->buf;
+    c_head = base[0];
+
+    do {
+        c_tail = base[1];
+        if (c_head >= c_tail) {
+            c_size = c_head - c_tail;
+        } else {
+            c_size = c_head + channel->max_size + sizeof(int) - c_tail;
+        }
+        if ((c_size + len) >= channel->max_size + sizeof(int)) {
+            // busy waiting // we know this will not happen
+            printf("THIS should not happen! waiting for arg reading from target task (%d %d %d)\n", c_size, len, channel->max_size);
+        }
+        else
+            break;
+    } while (1);
+
+    if ((c_head + len) > channel->max_size + sizeof(int)) {
+        unsigned int s1, s2;
+        s1 = channel->max_size + sizeof(int) - c_head;
+        s2 = len - s1;
+
+        memcpy((char *)(base + 2) + c_head, buf, s1);
+        memcpy((char *)(base + 2), buf + s1, s2);
+    } else {
+        memcpy((char *)(base + 2) + c_head, buf, len);
+    }
+
+    c_head += len;
+    if (c_head >= channel->max_size + sizeof(int))
+        c_head -= channel->max_size + sizeof(int);
+
+    base[0] = c_head;
+
+    // send interrupt to waiting stub task
+    OS_ENTER_CRITICAL();
+    lock_acquire();
+    target_stub_task_idx = waiting_reader_library_list[channel_id][0];
+    if(target_stub_task_idx != -1 ) 
+    {
+        waiting_reader_library_list[channel_id][0] = -1;
+        if(task_wakeup_list[target_stub_task_idx] != 1){
+            //printf("sending interrupt arg (%d)\n", target_stub_task_idx);
+            interrupt_send(lib_wrappers[target_stub_task_idx - num_tasks].proc_id, target_stub_task_idx);
+            //interrupt_send(target_stub_task_idx);
+        }
+    }
+    lock_release();
+    OS_EXIT_CRITICAL();
+
+//printf("arg_sender ch_id: %d ended\n", channel_id);
+    return len;
+
+}
+
+int read_lib_port(int channel_id, unsigned char *buf, int len)
+{
+    volatile unsigned int *base;
+    unsigned int c_head;
+    unsigned int c_tail;
+    unsigned int c_size;
+
+    LIB_CHANNEL *channel;
+    channel = &lib_channels[channel_id];
+
+    base = channel->buf;
+    c_tail = base[1];
+
+    do {
+        c_head = base[0];
+        if (c_head >= c_tail) {
+            c_size = c_head - c_tail;
+        } else {
+            c_size = c_head + channel->max_size + sizeof(int) - c_tail;
+        }
+        if (c_size < len) {
+            // sleep 
+            int idx = OSPrioCur - PRIO_START; // index of the current task in the 'tasks' array
+            INT8U err;
+            OS_ENTER_CRITICAL();
+            lock_acquire();
+            if(waiting_reader_library_list[channel_id][0] == -1) {
+                //printf("waiting reader task added t_id: %d, at channel:%d\n",idx,channel_id);
+                waiting_reader_library_list[channel_id][0] = idx;
+            }
+
+            lock_release();
+            OS_EXIT_CRITICAL();
+            OSSchedUnlock();
+            OSFlagPend(flag_intr[idx], 0x1, OS_FLAG_WAIT_SET_ANY + OS_FLAG_CONSUME, 0, &err);
+            if(err != OS_NO_ERR) printf("return_receiver OSFlagPend error %d %d\n",err, idx);
+            OSSchedLock();
+        }
+        else
+            break;
+    } while (1);
+
+    if ((c_tail + len) > channel->max_size + sizeof(int)) {
+        unsigned int s1, s2;
+        s1 = channel->max_size + sizeof(int) - c_tail;
+        s2 = len - s1;
+
+        memcpy(buf, (char *)(base + 2) + c_tail, s1);
+        memcpy(buf + s1, (char *)(base + 2), s2);
+    } else {
+        memcpy(buf, (char *)(base + 2) + c_tail, len);
+    }
+
+    c_tail += len;
+    if (c_tail >= channel->max_size + sizeof(int))
+        c_tail -= channel->max_size + sizeof(int);
+
+    base[1] = c_tail;
+//printf("return_receiver ch_id: %d ended\n",channel_id);
+
+    return len;
+}
+
+int lib_available(int channel_index) // non-blocking
+{
+    int ret;
+
+    LIB_CHANNEL *channel = &lib_channels[channel_index];
+
+    //MUTEX_LOCK(&(channel->mutex));
+
+    if(channel->start <= channel->end) {
+    	ret = (unsigned int)(channel->end - channel->start);
+    	if(ret == 0 && channel->isFull == true)	ret = channel->max_size + sizeof(int);
+    }
+    else  	ret = (unsigned int)(channel->end + channel->max_size + sizeof(int) - channel->start);
+
+    //MUTEX_UNLOCK(&(channel->mutex));
+
+    return ret;
+}
+##READ_WRITE_LIB_PORT_END

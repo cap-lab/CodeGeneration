@@ -1,0 +1,459 @@
+##WRAPUP_TASK_ROUTINE_START
+static void call_wrapup_task(void *pdata)
+{
+	int task_index = (int)pdata;
+
+  	TASK_WRAPUP_CALLER(task_index);
+    tasks[task_index].state = Stop;
+}
+##WRAPUP_TASK_ROUTINE_END
+
+##DATA_TASK_ROUTINE_START
+static void data_task_routine(int pdata)
+{
+	int task_index = (int)pdata;
+
+    //int old_state;
+
+	if(tasks[task_index].task_type != Control){
+		while(!all_threads_created) {
+			SCHED_YIELD();
+		}
+	}
+
+	if(TASK_PREINIT != NULL) TASK_PREINIT;
+        TASK_INIT_CALLER(task_index);
+
+
+	if(tasks[task_index].task_type == Control){
+		MUTEX_LOCK(control_task_count_lock);
+		control_task_count++;
+		if(control_task_count == control_task_total_count)	all_control_tasks_initiated = true;
+		MUTEX_UNLOCK(control_task_count_lock);
+	}
+
+	while(true) {
+		if(tasks[task_index].state == Wait){
+            MUTEX_LOCK((tasks[task_index].p_mutex));
+            COND_WAIT((tasks[task_index].p_cond), (tasks[task_index].p_mutex));
+            MUTEX_UNLOCK((tasks[task_index].p_mutex));
+        }
+        if(global_sync){
+            MUTEX_LOCK((global_mutex));
+            COND_WAIT((global_cond), (global_mutex));
+            MUTEX_UNLOCK((global_mutex));
+        }
+
+		if(tasks[task_index].hasMTM == true){
+            int i=0;
+            for(i=0; i<num_mtms; i++)
+                if(task_index == mtms[i].task_id)  break;
+            MTM_TRANSITION;//mtms[i].transition();
+        }
+
+        if(TASK_PREGO != NULL) TASK_PREGO;
+		TASK_GO_CALLER(task_index);
+		if(TASK_POSTGO != NULL) TASK_POSTGO;
+
+		if(channel_empty)	tasks[task_index].run_state = None;
+
+        if(exit_signal == 1 || tasks[task_index].state == Stop)    break;
+	}
+
+	TASK_WRAPUP_CALLER(task_index);
+	if(TASK_POSTWRAPUP != NULL) TASK_POSTWRAPUP;
+	tasks[task_index].state = Stop;
+
+	//return NULL;
+}
+##DATA_TASK_ROUTINE_END
+
+##CONTROL_ONCE_TASK_ROUTINE_START
+//Added by hsh for once Control driven task
+static void ControlOnce_task_routine(int pdata)
+{
+   int task_index = (int)pdata;
+
+    if(TASK_PREINIT != NULL) TASK_PREINIT;
+    TASK_INIT_CALLER(task_index);
+
+    if(TASK_PREGO != NULL) TASK_PREGO;
+    TASK_GO_CALLER(task_index);
+    if(TASK_POSTGO != NULL) TASK_POSTGO;
+
+    if(channel_empty)   tasks[task_index].run_state = None;
+
+    TASK_WRAPUP_CALLER(task_index);
+    if(TASK_POSTWRAPUP != NULL) TASK_POSTWRAPUP;
+    tasks[task_index].state = Stop;
+}
+##CONTROL_ONCE_TASK_ROUTINE_END
+
+##TIME_TASK_ROUTINE_START
+// Added by jhw for time driven task
+static void time_task_routine(int pdata)
+{
+	int task_index = (int)pdata;
+	//nxtDisplayString(1, "TTR1===%d", task_index);
+	//wait1Msec(100);
+	//int iteration_count, count;
+
+	if(tasks[task_index].period <= 0)
+	{
+		nxtDisplayString(1, "%d, PERIOD ERROR!", tasks[task_index].period);
+		wait1Msec(100);
+		return;//NULL;
+	}
+
+	if(tasks[task_index].task_type != Control){
+		while(!all_threads_created) {
+			SCHED_YIELD();
+		}
+	}
+
+//##SET_PROC
+
+    if(TASK_PREINIT != NULL) TASK_PREINIT;
+        TASK_INIT_CALLER(task_index);
+
+	if(tasks[task_index].task_type == Control){
+		MUTEX_LOCK(control_task_count_lock);
+		control_task_count++;
+		if(control_task_count == control_task_total_count)	all_control_tasks_initiated = true;
+		MUTEX_UNLOCK(control_task_count_lock);
+	}
+
+task_continue:
+		//nxtDisplayString(1, "%d TASJ)CONTINUE",task_index);
+		//wait1Msec(100);
+	//iteration_count = tasks[task_index].run_count;
+
+    //for(int i = 0; i < iteration_count; i++){
+	while(true){
+		if(tasks[task_index].state == Wait){
+            MUTEX_LOCK((tasks[task_index].p_mutex));
+            COND_WAIT((tasks[task_index].p_cond), (tasks[task_index].p_mutex));
+            MUTEX_UNLOCK((tasks[task_index].p_mutex));
+        }
+        if(global_sync){
+            MUTEX_LOCK((global_mutex));
+            COND_WAIT((global_cond), (global_mutex));
+            MUTEX_UNLOCK((global_mutex));
+        }
+
+        if(tasks[task_index].hasMTM == true){
+            int i=0;
+            for(i=0; i<num_mtms; i++)
+                if(task_index == mtms[i].task_id)  break;
+            MTM_TRANSITION;//mtms[i].transition();
+        }
+
+		if(TASK_PREGO != NULL) TASK_PREGO;
+        ClearTimer(T2);
+
+		TASK_GO_CALLER(task_index);
+		//hsh addition: period
+        switch(tasks[task_index].p_metric)
+        {
+            case H:
+                tasks[task_index].period = tasks[task_index].period*1000*3600;
+                break;
+            case M:
+                tasks[task_index].period = tasks[task_index].period*1000*60;
+                break;
+            case S:
+                tasks[task_index].period = tasks[task_index].period*1000;
+                break;
+            case MS:
+                break;
+            case US:
+                break;
+            default:
+                break;
+        }
+        if((unsigned int)time1[T2] < tasks[task_index].period)
+        {
+            wait1Msec((unsigned int)tasks[task_index].period-time1[T2]);
+        }
+
+
+		if(TASK_POSTGO != NULL) TASK_POSTGO;
+
+        if(exit_signal == 1 || tasks[task_index].state == Stop)    break;
+	}
+
+
+	MUTEX_LOCK(time_mutex);
+	time_task_count++;
+	COND_WAIT(time_cond, time_mutex);
+#if defined(RESUME) //&& (RESUME==1)
+	if(resume == true){
+		MUTEX_UNLOCK(time_mutex);
+		goto task_continue;
+	}
+#endif
+   MUTEX_UNLOCK(time_mutex);
+
+
+	TASK_WRAPUP_CALLER(task_index);
+	if(TASK_POSTWRAPUP != NULL) TASK_POSTWRAPUP;
+	tasks[task_index].state = Stop;
+
+	//return NULL;
+}
+##TIME_TASK_ROUTINE_END
+
+##EXECUTE_TASKS_START
+static void execute_tasks(void)
+{
+	int i=0;
+    //TASK_CREATE(control_scheduler_task);
+
+    //printf("\n------ Task thread create information ------\n");
+    for(i=0; i<num_tasks; i++)
+    {
+        if(tasks[i].task_type == Control)
+        {
+            control_task_total_count++;
+		    if(tasks[i].driven_type == TimeDriven)
+		    {
+	            TASK_CREATER(i);
+	            num_time_task++;
+	        }
+   		    else if(tasks[i].driven_type == DataDriven || tasks[i].driven_type == ControlDriven )
+   		    {
+	            TASK_CREATER(i);
+	        }
+	        else
+	            continue;
+		}
+    }
+
+
+    if(control_task_total_count != 0)
+		while(!all_control_tasks_initiated) {}
+
+    //int count = 0;
+    for(i=0; i<num_tasks; i++)
+    {
+        if(tasks[i].task_type != Control){
+	        int create_thread = 0;
+
+	        if(tasks[i].parent_task_id == i)    create_thread = 1;
+            else                                create_thread = 0;
+
+	        if(create_thread == 1 && tasks[i].state == Run && tasks[i].driven_type != ControlDriven){
+                //count++;
+                //nxtDisplayString(4, "count: %d %d K", count, i);
+                //wait1Msec(1);
+	            //printf("%s task thread is created!\n", tasks[i].name);
+		        if(tasks[i].driven_type == TimeDriven){
+                    TASK_CREATER(i);
+		            num_time_task++;
+		        }
+		        else if(tasks[i].driven_type == DataDriven || tasks[i].driven_type == ControlDriven ){
+		            TASK_CREATER(i);
+		        }
+		        else
+		            continue;
+			}
+	    }
+    }
+
+    //printf("--------------------------------------------\n");
+
+    all_threads_created = true;
+
+    // Tasks are Running
+go_continue:
+	while(1){
+		if(time_task_count == num_time_task){
+			//wait_data_tasks_end(); //due to buffer channel: no need
+#if defined(RESUME) //&& (RESUME==1)
+			fflush(stdout);
+			SLEEP(1);
+			resume = wait_from_gui_resume();
+			if(resume == true){
+				COND_BROADCAST(time_cond);
+				time_task_count = 0;
+				channel_empty = false;
+				goto go_continue;
+			}
+			else{
+				COND_BROADCAST(time_cond);
+				break;
+			}
+#else
+			COND_BROADCAST(time_cond);
+			break;
+#endif
+		}
+	}
+
+
+    for(i=0; i<num_tasks; i++)
+    {
+        //THREAD_JOIN(tasks[i].thread);
+ 		//StopTask
+        if(tasks[i].state != Stop)
+            continue;
+        else
+            TASK_CANCELER(i);
+    }
+
+	return;
+}
+##EXECUTE_TASKS_END
+
+##GET_CURRENT_TIME_BASE_START
+static unsigned int get_current_time_base()
+{
+	unsigned int time;
+	time = (unsigned int)nPgmTime;
+     return time;
+}
+##GET_CURRENT_TIME_BASE_END
+
+##CONTROL_RUN_TASK_START
+    unsigned int i;
+    int target_task_id=-1;
+
+     // find target task id
+    for(i=0;i<ARRAYLEN(tasks);i++){
+        if(strcmp(t_name, tasks[i].name)==0) {
+            target_task_id = tasks[i].task_id;
+            break;
+        }
+    }
+
+    init_task_channel(target_task_id);
+    if(tasks[target_task_id].driven_type == DataDriven || tasks[target_task_id].driven_type == ControlDriven )
+    {
+        TASK_CREATER(target_task_id);
+    }
+    else if(tasks[target_task_id].driven_type == TimeDriven)
+        TASK_CREATER(target_task_id);
+
+    tasks[target_task_id].state = Run;
+
+    return;
+##CONTROL_RUN_TASK_END
+
+##CONTROL_CALL_TASK_START
+    unsigned int i;
+    int target_task_id=-1;
+
+     // find target task id
+    for(i=0;i<ARRAYLEN(tasks);i++){
+        if(strcmp(t_name, tasks[i].name)==0) {
+            target_task_id = tasks[i].task_id;
+            break;
+        }
+    }
+
+    init_task_channel(target_task_id);
+    tasks[target_task_id].state = Run;
+    if(tasks[target_task_id].driven_type == DataDriven || tasks[target_task_id].driven_type == ControlDriven )
+    {
+        ControlOnce_task_routine(target_task_id);
+        //TASK_CREATER(target_task_id);
+    }
+    else if(tasks[target_task_id].driven_type == TimeDriven)
+    {
+       	ControlOnce_task_routine(target_task_id);
+        //TASK_CREATER(target_task_id);
+    }
+
+    tasks[target_task_id].state = Stop;
+
+    return;
+##CONTROL_CALL_TASK_END
+
+##CONTROL_STOP_TASK_START
+    unsigned int i;
+    int target_task_id=-1;
+
+    if(strcmp(caller_task_name, t_name) == 0)
+    {
+    	int task_id = get_task_id(caller_task_name);
+    	int parent_task_id = tasks[task_id].parent_task_id;
+        TASK_CANCELER(parent_task_id);//tasks[parent_task_id].thread);
+        wrapup_task_channel(parent_task_id);
+        tasks[parent_task_id].state = Stop;
+        //printf("Stop task (Own) %s (task_id: %d)\n", tasks[parent_task_id].name, parent_task_id);
+    }
+    else
+    {
+	    // find target task id
+	    for(i=0;i<ARRAYLEN(tasks);i++)
+        {
+	        if(strcmp(t_name, tasks[i].name)==0)
+            {
+	            target_task_id = tasks[i].task_id;
+	            break;
+            }
+	    }
+
+        TASK_CANCELER(target_task_id);//tasks[task_id].thread);
+        wrapup_task_channel(target_task_id);
+        tasks[target_task_id].state = Stop;
+
+    }
+
+    return;
+##CONTROL_STOP_TASK_END
+
+##CONTROL_RESUME_TASK_START
+    unsigned int i;
+    int target_task_id=-1;
+    int my_control_task_id=-1;
+
+    my_control_task_id = get_task_id(caller_task_name);
+    // find target task id
+    for(i=0;i<ARRAYLEN(tasks);i++){
+        if(strcmp(t_name, tasks[i].name)==0) {
+            target_task_id = tasks[i].task_id;
+            break;
+        }
+    }
+
+    if(tasks[target_task_id].state != Stop)
+        tasks[target_task_id].state = Run;
+    COND_BROADCAST((tasks[target_task_id].p_cond));
+
+    return;
+##CONTROL_RESUME_TASK_END
+
+##CONTROL_SUSPEND_TASK_START
+	unsigned int i;
+    //int index=-1;
+    int target_task_id=-1;
+    int my_control_task_id=-1;
+
+	if(strcmp(caller_task_name, t_name) == 0)
+    {
+        int task_id = get_task_id(caller_task_name);
+        int parent_task_id = tasks[task_id].parent_task_id;
+        if(tasks[parent_task_id].state != Stop)
+            tasks[parent_task_id].state = Wait;
+        //printf("Suspend task(Own) %s(task_id: %d)\n", tasks[parent_task_id].name, parent_task_id);
+    }
+	else{
+   		my_control_task_id = get_task_id(caller_task_name);
+	    // find target task id
+	    for(i=0;i<ARRAYLEN(tasks);i++)
+        {
+	        if(strcmp(t_name, tasks[i].name)==0)
+            {
+	            target_task_id = tasks[i].task_id;
+	            break;
+	        }
+	    }
+
+        if(tasks[target_task_id].state != Stop)
+            tasks[target_task_id].state = Wait;
+    }
+
+    return;
+##CONTROL_SUSPEND_TASK_END
+

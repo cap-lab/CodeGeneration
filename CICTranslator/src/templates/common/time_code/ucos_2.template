@@ -1,0 +1,14 @@
+##GET_CURRENT_TIME_BASE_START
+unsigned int get_current_time_base(){
+    unsigned int time = 0;
+    time = OSTimeGet();
+    return time;
+}
+##GET_CURRENT_TIME_BASE_END
+
+##CHANGE_TIME_UNIT_START
+unsigned int change_time_unit(unsigned int time_value, char *time_unit){
+		//Need to fix 
+        return time_value;
+}
+##CHANGE_TIME_UNIT_END

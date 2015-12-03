@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<!-- 
+$Id: build.xml,v 1.2 2009-02-23 07:11:19 long21s Exp $
+
+Copyright (c) 2009 by CAPLAB co., Ltd.
+All rights reserved.
+
+This software is the confidential and proprietary information
+of CABPAB.  You
+shall not disclose such Confidential Information and shall use
+it only in accordance with the terms of the license agreement
+you entered into with CAPLAB.
+
+________________________________________________________________
+
+Build file for CIC XML - for use with Jakarta Ant-->
+
+
+<!-- Default behavior is to dist.-->
+
+<project name="CICXML4JAVA" default="dist" basedir=".">
+	<!-- Base directories -->
+	<property name="src.dir" value="src" />
+    <property name="target.dir" value="classes" />
+	<property name="lib.dir" value="lib" />
+	<property name="dist.dir" value="dist" />
+    
+    <property name="schemas.dir" value="xsd" />
+    <property name="main.src.dir" value="${src.dir}/main" />
+    <property name="schemas.src.dir" value="${src.dir}/schemas" />
+    <property name="jar.name" value="cicxml.jar" />
+    <property name="version.class" value="about.hopes.cic.xml.BuildNumber" />
+    
+	<path id="lib.classpath">
+		<fileset dir="${lib.dir}" includes="**/*.jar"/>
+	</path>
+
+    <path id="jaxb.classpath">
+        <fileset dir="${lib.dir}" includes="jaxb*.jar"/>
+    </path>
+
+    <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
+        <classpath refid="jaxb.classpath" />
+    </taskdef>
+
+	<!-- =================================================================== -->
+	<!-- Prepares the build directories and generate parse routines          -->
+	<!-- =================================================================== -->
+	<target name="prepare" depends="prepare.schemas">
+		<mkdir dir="${target.dir}" />
+		<mkdir dir="${dist.dir}" />
+	</target>
+
+	<!-- =================================================================== -->
+	<!-- Compile XML schemas                                                 -->
+	<!-- =================================================================== -->
+	<taskdef resource="org/tigris/subversion/svnant/svnantlib.xml" classpathref="lib.classpath"/> 
+    <property name="svn.url" value="svn://scm.forge.snu.ac.kr/svnroot/cicxmls"/>
+		    
+    <target name="prepare.schemas" >
+        <delete dir="xsd" quiet="true"/>
+        <svn>
+            <checkout url="${svn.url}/trunk" destPath="xsd"/>
+        </svn>            
+        <delete dir="xsd" excludes="*.xsd" quiet="true"/>
+        <delete dir="xsd/.svn" quiet="true"/>
+    </target>
+    
+    <!-- CICCommon.xsd를 다른 CIC*.xsd에서 include해서 사용함 -->
+    <property name="package_name" value="hopes.cic.xml" />
+    <property name="common.xsd.file" value="CICCommon.xsd" />
+
+    <target name="schemas.binding">
+        <delete dir="${schemas.src.dir}" excludes=".*" quiet="true"/>
+        <mkdir dir="${schemas.src.dir}" />
+        <xjc target="src/schemas" package="${package_name}" extension="true">
+            <schema  dir="${schemas.dir}" includes="*.xsd" excludes="${common.xsd.file}" />
+            <binding dir="${schemas.src.dir}" includes="*.xjb"/>
+            <arg value="-no-header" />
+            <produces dir="${schemas.src.dir}" includes="* impl/*" />
+        </xjc>
+        <copy todir="${schemas.src.dir}/${schemas.dir}">
+            <fileset dir="${schemas.dir}" includes="*.xsd" />
+        </copy>
+    </target>
+
+	<!-- =================================================================== -->
+	<!-- Compile Engine Library                                              -->
+	<!-- =================================================================== -->
+    <target name="compile" depends="prepare, schemas.binding">
+        <javac destdir="${target.dir}" includes="**/*.java" deprecation="on" debug="on" optimize="off" source="1.6" compiler="extJavac">
+            <compilerarg value="-J-Djava.endorsed.dirs=${as.endorsed.lib.dir}" />
+            <src>
+                <pathelement location="${main.src.dir}" />
+                <pathelement location="${schemas.src.dir}" />
+            </src>
+            <classpath>
+                <path location="${target.dir}"/>
+                <path refid="lib.classpath" />
+            </classpath>
+        </javac>
+        <copy todir="${target.dir}">
+            <fileset dir="${schemas.src.dir}" includes="**/*.gif,**/*.jpg,**/*.png,**/*.xml,**/*.dtd,**/*.tks,**/*.xsd" />
+        </copy>
+    </target>
+
+	<!-- =================================================================== -->
+	<!-- Creates CIC XML library                                             -->
+	<!-- =================================================================== -->
+	<target name="dist" depends="prepare, compile">
+		<jar jarfile="${dist.dir}/${jar.name}" compress="false">
+            <manifest>
+                <attribute name="Main-Class" value="${version.class}" />
+            </manifest>
+		    <fileset dir="${target.dir}" />
+		</jar>
+	</target>
+
+
+	<!-- =================================================================== -->
+	<!-- Cleans everything:                                                  -->
+	<!-- =================================================================== -->
+
+	<target name="clean">
+        <delete dir="${schemas.src.dir}" />
+		<delete dir="${target.dir}" />
+        <delete dir="${dist.dir}" />
+	</target>
+
+    <!-- =================================================================== -->
+	<!-- redist everything:                                                  -->
+	<!-- =================================================================== -->
+	<target name="redist" depends="clean, dist" />
+
+</project>

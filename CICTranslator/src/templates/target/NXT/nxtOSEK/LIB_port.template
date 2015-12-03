@@ -1,0 +1,13 @@
+#ifndef __LIB_PORT_H__
+#define __LIB_PORT_H__
+
+int init_lib_port(int library_id, char op);
+int read_lib_port(int channel_index, unsigned char *buf, int len);
+int write_lib_port(int channel_index, unsigned char *buf, int len);
+int lib_available(int channel_index);
+
+#define LIB_RECEIVE(a, b, c) read_lib_port(a, (unsigned char *)b, c)
+#define LIB_SEND(a, b, c) write_lib_port(a, (unsigned char *)b, c)
+#define LIB_CHECK(a) lib_available(a)
+
+#endif /* __LIB_PORT_H__ */

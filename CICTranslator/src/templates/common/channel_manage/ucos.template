@@ -1,0 +1,238 @@
+##INIT_WRAPUP_CHANNELS_START
+static void init_channel(void)
+{
+    unsigned int i;
+    LIB_ERR lerr;
+    
+    for(i=0; i<num_channels; i++)
+    {
+        MUTEX_INIT(&(channels[i].mutex));
+        COND_INIT(&(channels[i].cond));
+       
+        if(channels[i].type == CHANNEL_TYPE_NORMAL || channels[i].type == CHANNEL_TYPE_BUFFER)
+        {
+            unsigned char *ptr;
+            ptr = (unsigned char*)Mem_HeapAlloc(channels[i].max_size + sizeof(int), 16, NULL, &lerr);
+            if(lerr != LIB_MEM_ERR_NONE)
+            {
+                PRINT("MEM_ALLOC failed!\n");
+                exit(EXIT_FAILURE);
+            }
+            channels[i].buf = ptr;
+            channels[i].start = ptr;
+            Mem_Set(ptr, 0x0, channels[i].initData);
+            channels[i].end = ptr + channels[i].initData;
+            channels[i].cur_size = channels[i].initData;
+        }
+    }
+}
+
+static void wrapup_channel(void)
+{
+    unsigned int i;
+    for(i=0; i<num_channels; i++)
+    {
+        if(channels[i].type == CHANNEL_TYPE_NORMAL || channels[i].type == CHANNEL_TYPE_BUFFER){
+            free(channels[i].buf);
+        }
+    }
+}
+##INIT_WRAPUP_CHANNELS_END
+
+##INIT_WRAPUP_TASK_CHANNELS_START
+static void init_task_channel(int parent_task_id){
+    int i=0, j=0, flag=0;
+    for(i = 0; i < num_channels; i++){
+        flag = 0;
+        for(j=0; j< num_portmaps; j++){
+            if(channels[i].channel_id == addressmap[j].channel_id && tasks[addressmap[j].task_id].parent_task_id == parent_task_id) flag++;
+        }
+        if(flag == 2){
+            channels[i].start = channels[i].buf;
+            Mem_Set(channels[i].start, 0x0, channels[i].initData);
+            channels[i].end = channels[i].start + channels[i].initData;
+            channels[i].cur_size = channels[i].initData;
+        }
+    }
+}
+
+static void wrapup_task_channel(int task_id){
+
+}
+##INIT_WRAPUP_TASK_CHANNELS_END
+
+##READ_WRITE_PORT_START
+
+int read_port(int channel_index, unsigned char *buf, int len)
+{
+    int cur_size=0;
+    int task_id = find_task(channels[channel_index].channel_id, 'r');
+    CHANNEL *channel = &channels[channel_index];
+
+read_start:
+    if(channel->start < channel->end)  cur_size = (unsigned int)(channel->end - channel->start);
+    else if(channel->start == channel->end){
+      if(channel->isFull == false)		 cur_size = 0;
+      else if(channel->isFull == true)	 cur_size = channel->max_size + sizeof(int);
+    }
+    else   cur_size = (unsigned int)(channel->end + channel->max_size + sizeof(int) - channel->start);
+
+    if(len > cur_size) // blocking case
+    {
+        channel->request_read = true;
+        tasks[task_id].run_state = ReadBlock;
+        cic_task_sleep(channel_index, 'r');
+        goto read_start; // try reading again
+    }
+    tasks[task_id].run_state = Running;
+
+    if(channel->start + len <= channel->buf + channel->max_size + sizeof(int))
+    {
+        Mem_Copy(buf, channel->start, len);
+        channel->start += len;
+    }
+    else
+    {
+        int part = channel->max_size+sizeof(int) - (channel->start - channel->buf);
+        if(part != 0)
+        {
+            Mem_Copy(buf, channel->start, part);
+        }
+        Mem_Copy(buf + part, channel->buf, len - part);
+        channel->start = channel->buf + (len - part);
+    }
+
+    channel->request_read = false;
+        	
+	if(channel->end == channel->start){
+		channel->isFull = false;
+	}
+	
+    cic_task_notify(channel_index, 'r');
+
+    return len;
+}
+
+int write_one_port(CHANNEL* channel, unsigned char *buf, int len)
+{
+    int cur_size=0;
+    int channel_index = -1;
+    channel_index = get_channel_index(channel->channel_id);
+    int task_id = find_task(channel->channel_id, 'w');
+
+write_start:
+    if(channel->start < channel->end)  cur_size = (unsigned int)(channel->end - channel->start);
+    else if(channel->start == channel->end){
+      if(channel->isFull == false)		 cur_size = 0;
+      else if(channel->isFull == true)	 cur_size = channel->max_size + sizeof(int);
+    }
+    else   cur_size = (unsigned int)(channel->end + channel->max_size + sizeof(int) - channel->start);
+
+    if(len + cur_size >= channel->max_size + sizeof(int)) // blocking case
+    {
+        channel->request_write = true;
+        tasks[task_id].run_state = WriteBlock;
+        cic_task_sleep(channel_index, 'w');
+        goto write_start; // try writing again
+    }
+    tasks[task_id].run_state = Running;
+
+    if(channel->buf + channel->max_size + sizeof(int) >= channel->end + len)
+    {
+        Mem_Copy(channel->end, buf, len);
+        channel->end += len;
+    }
+    else
+    {
+        int part = channel->max_size + sizeof(int) - (channel->end - channel->buf);
+        if(part != 0)
+        {
+            Mem_Copy(channel->end, buf, part);
+        }
+        Mem_Copy(channel->buf, buf + part, len - part);
+        channel->end = channel->buf + (len - part);
+    }
+    channel->request_write = false;
+    channel->request_read = false;
+    
+    if(channel->end == channel->start){
+		channel->isFull = true;
+	}
+
+    cic_task_notify(channel_index, 'w');
+
+    return len;
+}
+
+int write_port(int channel_index, unsigned char *buf, int len)
+{
+    int result = 0;
+
+    while(channel_index >= 0) {
+        result = write_one_port(&channels[channel_index],buf,len);
+        channel_index = channels[channel_index].next_channel_index;
+    }
+
+    return result;
+}
+
+int available(int channel_index) // non-blocking
+{
+    int ret;
+
+    CHANNEL *channel = &channels[channel_index];
+
+    MUTEX_LOCK(&(channel->mutex));
+
+    if(channel->start <= channel->end) {
+    	ret = (unsigned int)(channel->end - channel->start);
+    	if(ret == 0 && channel->isFull == true)	ret = channel->max_size + sizeof(int);
+    }
+    else	 ret = (unsigned int)(channel->end + channel->max_size + sizeof(int) - channel->start);
+
+    MUTEX_UNLOCK(&(channel->mutex));
+
+    return ret;
+}
+##READ_WRITE_PORT_END
+
+##READ_WRITE_BUF_PORT_START
+int read_buf_port(int channel_index, unsigned char *buf, int len)
+{
+    int task_id = find_task(channel_index, 'r');
+    CHANNEL *channel = &channels[channel_index];
+
+    MUTEX_LOCK(&(channel->mutex));
+    if(channel->buf + len <= channel->buf + channel->max_size + sizeof(int))
+        Mem_Copy(buf, channel->start, len);
+    else        PRINT("READ: BUF_SIZE < SAMPLE_SIZE");
+    MUTEX_UNLOCK(&(channel->mutex));
+
+    return len;
+}
+
+int write_one_buf_port(CHANNEL* channel, unsigned char *buf, int len)
+{
+    int task_id = find_task(channel->channel_id, 'w');
+
+    MUTEX_LOCK(&(channel->mutex));
+    if(channel->buf + channel->max_size + sizeof(int) >= channel->buf + len)
+        Mem_Copy(channel->end, buf, len);
+    else        PRINT("WRITE: BUF_SIZE < SAMPLE_SIZE");
+    MUTEX_UNLOCK(&(channel->mutex));
+    
+    return len;
+}
+
+int write_buf_port(int channel_index, unsigned char *buf, int len)
+{
+    int result = 0;
+
+    while(channel_index >= 0) {
+        result = write_one_buf_port(&channels[channel_index],buf,len);
+        channel_index = channels[channel_index].next_channel_index;
+    }
+
+    return result;
+}
+##READ_WRITE_BUF_PORT_END

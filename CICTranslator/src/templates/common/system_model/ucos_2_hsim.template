@@ -1,0 +1,35 @@
+#ifndef _SYSTEM_MODEL
+#define _SYSTEM_MODEL
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#include "../ucos_2/os_cpu.h"
+#include "../ucos_2/os_cfg.h"
+#include "../ucos_2/ucos_ii.h"
+
+#include "../esim/esim_lib.h"
+
+#define SHARED_BASE     (0x10000000)                                                   
+#define SHARED_SIZE     (0x800000)
+
+#define INTR_BASE       (0x10A00000)                                           
+                                                                         
+#define SIZE_ALIGN(a)   (((a+3)/4)*4)                                                                                                           
+
+#if defined(OS_MAX_FLAGS) && (OS_MAX_FLAGS < (31*2))                                   
+    #error OS_MAX_FLAGS in os_cfg.h should be larger than (31*2)!                      
+#endif                                                                                 
+
+typedef unsigned char bool;
+
+#define false 0
+#define true (!false)
+
+#define BUFFER_DATA_TYPE volatile unsigned int*
+
+#define PRINT printf
+#define STRING_COMPARE strcmp
+#define EXIT exit
+#endif

@@ -1,0 +1,26 @@
+##TARGET_DEPENDENT_CODE_START
+CIC_STATIC CIC_T_INT GetProcId(CIC_T_INT task_index, CIC_T_INT proc_num, CIC_T_CHAR* mode_name, CIC_T_INT local_id){
+	CIC_T_INT i=0, j=0, ret=0;
+
+	for(i=0; i<CIC_ARRAYLEN(task_to_core_map); i++){
+		if(task_to_core_map[i].task_index == task_index){
+			CIC_T_INT proc_num_index = 0, mode_index = 0;
+			for(j=0; j<MAX_PROC_NUM; j++){
+				if(task_to_core_map[i].proc_num_list[j] == proc_num){
+					proc_num_index = j;
+					break;
+				}
+			}
+			for(j=0; j<MAX_MODE_NUM; j++){
+				if(CIC_F_STRING_COMPARE(task_to_core_map[i].mode_list[j], mode_name) == 0){
+					mode_index = j;
+					break;
+				}
+			}
+			ret = task_to_core_map[i].core_map[proc_num_index][mode_index][local_id];
+			break;
+		}
+	}
+	return ret;
+}
+##TARGET_DEPENDENT_CODE_END

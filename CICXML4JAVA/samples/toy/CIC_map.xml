@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CIC_Mapping
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns="http://peace.snu.ac.kr/CICXMLSchema">
+	<task name="t1">
+		<subtask name="st1_1">
+			<processor pool="pool0" id="1" />
+		</subtask>
+	</task>
+	<task name="t2">
+		<subtask name="st2_1" dataParallel="wavefront">
+			<processor pool="pool0" id="0" />
+			<processor pool="pool0" id="1" />
+			<processor pool="pool0" id="2" />
+			<processor pool="pool0" id="3" />
+		</subtask>
+	</task>
+</CIC_Mapping>

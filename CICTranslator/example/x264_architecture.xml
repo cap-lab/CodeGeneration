@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CIC_Architecture target="Cell" xmlns="http://peace.snu.ac.kr/CICXMLSchema">
+    <elementTypes>
+        <elementType scheduler="RR" name="PPE_0" nMasterPorts="1" model="PPE" category="processor" OS="Linux"/>
+        <elementType scheduler="RR" name="SPE_0" nMasterPorts="1" model="SPE" category="processor" OS="NONE"/>
+    </elementTypes>
+    <elements>
+        <element type="PPE_0" poolSize="1" name="CellPPE_0" allowDataParallelMapping="false"/>
+        <element type="SPE_0" poolSize="1" name="CellSPE_pool_0" allowDataParallelMapping="true"/>
+    </elements>
+    <maps>
+        <master name="CellPPE_0"/>
+        <master name="CellSPE_pool_0"/>
+    </maps>
+</CIC_Architecture>
+

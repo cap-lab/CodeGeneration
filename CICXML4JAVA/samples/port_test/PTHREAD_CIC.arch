@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CIC_Architecture
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns="http://peace.snu.ac.kr/CICXMLSchema"
+	target="PTHREAD">
+	<elementTypes>
+		<elementType name="arm926ej_s" category="processor" subcategory="..." model="arm9" />
+	</elementTypes>
+	<elements>
+		<element name="arm9pool" type="arm926ej_s" poolSize="3" />
+	</elements>
+	<maps>
+		<master name="arm9mp"/>
+		<interrupt masterName="arm9mp" slaveName="arm9mp" />
+	</maps>
+</CIC_Architecture>

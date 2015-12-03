@@ -1,0 +1,152 @@
+##INIT_WRAPUP_LIBRARY_CHANNELS_START
+CIC_STATIC CIC_T_VOID InitLibraryChannels(CIC_T_VOID)
+{
+    CIC_T_UINT i;
+    
+    for(i=0; i<CIC_UV_NUM_LIB_CHANNELS; i++){
+        CIC_F_MUTEX_INIT(&(lib_channels[i].mutex));
+        CIC_F_COND_INIT(&(lib_channels[i].cond));
+       
+        CIC_UT_BUFFER_DATA_TYPE ptr;
+        ptr = (CIC_UT_BUFFER_DATA_TYPE)CIC_F_MEM_ALLOC(lib_channels[i].max_size + CIC_SIZEOF(int));
+        if(ptr == CIC_V_NULL){
+            CIC_F_ERROR("proc", "InitChannels(): MEM_ALLOC failed!", ERROR_EXIT);
+        }
+        lib_channels[i].buf = ptr;
+        lib_channels[i].start = ptr;
+        lib_channels[i].end = ptr;
+        lib_channels[i].cur_size =0;
+    }
+}
+
+CIC_STATIC CIC_T_VOID WrapupLibraryChannels(CIC_T_VOID)
+{
+    CIC_T_UINT i;
+    for(i=0; i<CIC_UV_NUM_LIB_CHANNELS; i++){
+        CIC_F_MEM_FREE(lib_channels[i].buf);
+    }
+}
+##INIT_WRAPUP_LIBRARY_CHANNELS_END
+
+##READ_WRITE_LIB_PORT_START
+CIC_T_INT InitLibraryPort(CIC_T_INT library_id, CIC_CONST CIC_T_CHAR op)
+{
+    CIC_T_UINT i;
+    for(i=0; i<CIC_UV_NUM_LIB_CHANNELS; i++){
+        if(lib_channels[i].channel_id == library_id && lib_channels[i].op == op){
+            return i;
+        }
+    }
+	CIC_F_ERROR("proc", "InitLibPort(): No port is available or connected!", ERROR_EXIT);
+}
+
+CIC_T_INT ReadLibPort(CIC_T_INT channel_index, CIC_T_UCHAR *buf, CIC_T_INT len)
+{
+    CIC_T_INT cur_size=0;
+    CIC_UT_LIB_CHANNEL *channel = &lib_channels[channel_index];
+
+read_lib_start:
+	CIC_F_MUTEX_LOCK(&(channel->mutex));
+    if(channel->start < channel->end) {
+    	cur_size = (CIC_T_UINT)(channel->end - channel->start);
+    }
+    else if(channel->start == channel->end){
+      if(channel->is_full == 0)		cur_size = 0;
+      else if(channel->is_full == 1)	cur_size = channel->max_size;
+    }
+    else{
+    	cur_size = (CIC_T_UINT)(channel->end + channel->max_size + CIC_SIZEOF(int) - channel->start);
+    }
+
+    if(len > cur_size){		// blocking case
+        CIC_F_COND_WAIT(&(channel->cond), &(channel->mutex));
+        CIC_F_MUTEX_UNLOCK(&(channel->mutex));
+        goto read_lib_start; // try reading again
+    }
+
+    if(channel->start + len <= channel->buf + channel->max_size + CIC_SIZEOF(int)){
+        CIC_F_MEM_COPY(buf, channel->start, len);
+        channel->start += len;
+    }
+    else{
+        CIC_T_INT part = channel->max_size+CIC_SIZEOF(int) - (channel->start - channel->buf);
+        if(part != 0)
+        {
+            CIC_F_MEM_COPY(buf, channel->start, part);
+        }
+        CIC_F_MEM_COPY(buf + part, channel->buf, len - part);
+        channel->start = channel->buf + (len - part);
+    }
+    
+	if(channel->end == channel->start)	channel->is_full = 0;
+
+    CIC_F_MUTEX_UNLOCK(&(channel->mutex));
+    CIC_FCOND_BROADCAST(&(channel->cond));
+
+    return len;
+}
+
+CIC_T_INT WriteLibPort(CIC_T_INTc hannel_index, unsigned char *buf, CIC_T_INT len)
+{
+    CIC_T_INT cur_size=0;
+    CIC_UT_LIB_CHANNEL *channel = &lib_channels[channel_index];
+
+write_lib_start:
+	CIC_F_MUTEX_LOCK(&(channel->mutex));
+    if(channel->start < channel->end){
+    	cur_size = (CIC_T_UINT)(channel->end - channel->start);
+    }
+    else if(channel->start == channel->end){
+      if(channel->is_full == 0)		 cur_size = 0;
+      else if(channel->is_full == 1)	 cur_size = channel->max_size;
+    }
+    else{
+    	cur_size = (CIC_T_UINT)(channel->end + channel->max_size + CIC_SIZEOF(int) - channel->start);
+    }
+
+    if(len + cur_size >= channel->max_size + CIC_SIZEOF(int)){ // blocking case
+        CIC_F_COND_WAIT(&(channel->cond), &(channel->mutex));
+        CIC_F_MUTEX_UNLOCK(&(channel->mutex));
+        goto write_lib_start; // try writing again
+    }
+
+    if(channel->buf + channel->max_size + CIC_SIZEOF(int) >= channel->end + len){
+        CIC_F_MEM_COPY(channel->end, buf, len);
+        channel->end += len;
+    }
+    else{
+        CIC_T_INTpart = channel->max_size + CIC_SIZEOF(int) - (channel->end - channel->buf);
+        if(part != 0){
+            CIC_F_MEM_COPY(channel->end, buf, part);
+        }
+        CIC_F_MEM_COPY(channel->buf, buf + part, len - part);
+        channel->end = channel->buf + (len - part);
+    }
+    
+    if(channel->end == channel->start)	channel->is_full = 1;
+	
+    CIC_F_MUTEX_UNLOCK(&(channel->mutex));
+    CIC_F_COND_BROADCAST(&(channel->cond));
+
+    return len;
+}
+
+CIC_T_INT LibAvailable(CIC_T_INT channel_index) // non-blocking
+{
+    CIC_T_INT ret;
+
+    CIC_UT_LIB_CHANNEL *channel = &lib_channels[channel_index];
+
+    CIC_F_MUTEX_LOCK(&(channel->mutex));
+
+    if(channel->start <= channel->end) {
+    	ret = (CIC_T_UINT)(channel->end - channel->start);
+    	if(ret == 0 && channel->is_full == CIC_V_TRUE)	ret = channel->max_size + CIC_SIZEOF(int);
+    }
+    else  	ret = (CIC_T_UINT)(channel->end + channel->max_size + CIC_SIZEOF(int) - channel->start);
+
+    CIC_F_MUTEX_UNLOCK(&(channel->mutex));
+
+    return ret;
+}
+##READ_WRITE_LIB_PORT_END

@@ -1,0 +1,145 @@
+#ifndef _THREAD_INFO
+#define _THREAD_INFO
+
+#define THREAD_FUNC_RET_TYPE static void
+#define THREAD_FUNC_ARG_TYPE void*
+
+#define THREAD_TYPE TASKINFO
+#define MUTEX_TYPE OS_EVENT*
+#define COND_TYPE OS_FLAG_GRP
+
+#define MUTEX_LOCK(a)   my_mutex_lock(*(a))
+#define MUTEX_UNLOCK(a) my_mutex_unlock(*(a))
+
+#define COND_WAIT(a, b) my_cond_wait(a, b)
+#define COND_BROADCAST(a) my_cond_broadcast(a)
+
+#define MUTEX_INIT(a)   *(a) = my_mutex_init(1)
+#define MUTEX_WRAPUP(a) my_mutex_wrapup(*(a))
+
+#define COND_INIT(a)    my_cond_init(a)
+#define COND_WRAPUP(a)  my_cond_wrapup(a)
+
+#define SCHED_YIELD()   my_sched_yield() 
+
+#define THREAD_CREATE(a, b, c)    my_thread_create(a, b, c)
+#define THREAD_JOIN(a)            my_thread_join(a)
+#define THREAD_CANCEL(a)          my_thread_cancel(a) 
+
+#define MUTEX_INIT_INLINE NULL
+#define COND_INIT_INLINE  NULL
+
+#define APP_TASK_ROBOT_START_PRIO 1u
+#define APP_TASK_ROBOT_START_STK_SIZE 1024u
+
+#define TASK_STK_SIZE 8192u
+#define PRIO_START (4)
+
+#define OS_ERR INT8U
+
+typedef struct{
+  int prio;
+  OS_TCB tcb;
+  OS_STK stk[TASK_STK_SIZE];
+} TASKINFO;
+
+static void my_mutex_lock(MUTEX_TYPE mutex)
+{
+    OS_ERR err;
+    //OSMutexPend(mutex, 0, &err);
+    OSSemPend(mutex, 0, &err);
+    if(err != OS_NO_ERR){
+      printf("OSMutexPend Error! %d\n", err);
+    } 
+}
+
+static void my_mutex_unlock(MUTEX_TYPE mutex)
+{
+    OS_ERR err;
+    //err = OSMutexPost(mutex);
+    err = OSSemPost(mutex);
+    if(err != OS_NO_ERR){
+      printf("OSMutexPost Error! %d\n", err);
+    } 
+}
+   
+static void my_cond_wait(COND_TYPE *cond, MUTEX_TYPE *mutex)
+{
+
+}
+
+
+static void my_cond_broadcast(COND_TYPE *cond)
+{
+
+}
+
+static OS_EVENT* my_mutex_init(int cnt)
+{
+    //mutex = OSMutexCreate(0, &err);
+    OS_EVENT* mutex = OSSemCreate(cnt);
+    if(mutex == (OS_EVENT*) 0){
+      printf("OSMutexCreate Error!\n");
+    } 
+    return mutex;
+}
+
+static void my_mutex_wrapup(MUTEX_TYPE mutex)
+{
+    //OS_ERR err;
+    //mutex = OSMutexDel(mutex, 0, &err);
+    if(mutex == (OS_EVENT*) 0){
+      printf("OSMutexDel Error!");
+    } 
+}
+
+static void my_cond_init(COND_TYPE *cond)
+{
+    OS_ERR err;
+    cond = OSFlagCreate(0, &err);
+    if(err != OS_NO_ERR || cond == NULL){
+      printf("OSFlagCreate Error!");
+    } 
+}
+
+static void my_cond_wrapup(COND_TYPE *cond)
+{
+    OS_ERR err;
+    OSFlagDel(cond, 0, &err);
+    if(err != OS_NO_ERR){
+      printf("OSFlagDel Error!");
+    } 
+}
+
+static void my_thread_create(TASKINFO* taskinfo, void (*task_routine)(void*), void* task_index)
+{
+    OS_ERR err;
+    err = OSTaskCreate(task_routine, (void *)task_index, &taskinfo->stk[TASK_STK_SIZE-4], taskinfo->prio);   
+    if(err != OS_NO_ERR){
+        printf("OSTaskCreate() failed! (%d)\n", err);
+    }
+}
+ 
+static void my_thread_join(THREAD_TYPE index)
+{
+   // Need To Fix
+}
+
+static void my_thread_cancel(TASKINFO* taskinfo)
+{
+   // Need To Fix
+    OS_ERR err;
+    err = OSTaskDel(0);
+    
+    if(err != OS_NO_ERR){
+        printf("OSTaskDel() failed!\n");
+    }
+}
+
+static void my_sched_yield()
+{
+    //OS_ERR err;
+    //OSTaskSemPend(1, OS_OPT_PEND_BLOCKING, 0, &err); 
+}
+
+#endif

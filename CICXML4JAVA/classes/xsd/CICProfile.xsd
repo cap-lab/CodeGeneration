@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema id="CICProfile"
+        targetNamespace="http://peace.snu.ac.kr/CICXMLSchema"
+        elementFormDefault="qualified"
+        xmlns="http://peace.snu.ac.kr/CICXMLSchema"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:include schemaLocation="./CICCommon.xsd" />
+
+  <xs:element name="CIC_Profile" type="CICProfileType" />
+
+
+  <!-- Type definitions for profile data (i.e. estimated time for subtasks ) -->
+  <xs:complexType name="CICProfileType">
+    <xs:sequence>
+      <xs:element name="task" type="ProfileTaskType" minOccurs="1" maxOccurs="unbounded" />
+      <xs:element name="comm" type="ProfileCommType" minOccurs="0" maxOccurs="unbounded" />  
+    </xs:sequence>
+  </xs:complexType>
+  
+    <xs:complexType name="ProfileTaskModeType">
+    <xs:sequence>
+      <xs:element name="profile" type="ProfileType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="name" type="NameType" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="ProfileTaskType">
+    <xs:sequence>
+      <xs:element name="mode" type="ProfileTaskModeType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="name" type="NameType" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="ProfileType">
+    <xs:attribute name="processorType" type="xs:string" use="required" />
+    <xs:attribute name="value" type="xs:nonNegativeInteger" use="required" />
+    <xs:attribute name="unit" type="xs:string" use="required" />
+    <xs:attribute name="memoryAccessCount" type="xs:nonNegativeInteger" use="optional" />
+  </xs:complexType>
+
+ <xs:complexType name="ProfileCommType">
+    <xs:attribute name="src" type="NameType" use="required" />
+    <xs:attribute name="dst" type="NameType" use="required" />
+    <xs:attribute name="size" type="xs:nonNegativeInteger" use="required" />
+    <xs:attribute name="cost" type="xs:nonNegativeInteger" use="required" />
+    <xs:attribute name="settingcost" type="xs:nonNegativeInteger" use="optional" />  
+    <xs:attribute name="timeunit" type="TimeMetricType" use="required" />
+    <xs:attribute name="sizeunit" type="SizeMetricType" use="required" />
+  </xs:complexType>
+
+</xs:schema>

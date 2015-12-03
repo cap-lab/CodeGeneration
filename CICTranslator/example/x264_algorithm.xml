@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CIC_Algorithm xmlns="http://peace.snu.ac.kr/CICXMLSchema">
+    <tasks>
+        <task runCondition="data-driven" name="ME_0" hasInternalStates="Yes" file="ME_0.cic" cflags="-D__CIC__ -I/home/dac09/workspace/Hae/schematic/Cell_x264.files/CICTask">
+            <dataParallel type="wavefront">
+                <volume>
+                    <value>11</value>
+                    <value>9</value>
+                </volume>
+                <dependencyVector>
+                    <vector>
+                        <value>1</value>
+                        <value>0</value>
+                    </vector>
+                    <vector>
+                        <value>1</value>
+                        <value>1</value>
+                    </vector>
+                    <vector>
+                        <value>0</value>
+                        <value>1</value>
+                    </vector>
+                    <vector>
+                        <value>-1</value>
+                        <value>1</value>
+                    </vector>
+                </dependencyVector>
+            </dataParallel>
+            <port type="array" sampleSize="11324" rate="99" name="neighborInfofromDBK" isFeedback="true" direction="input"/>
+            <port type="array" sampleSize="396" rate="39204" name="initInfofromINIT" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="12372" rate="1124828" name="encodeInfotoENC" isFeedback="false" direction="output"/>
+            <port type="array" sampleSize="12372" rate="1224828" name="encodeInfotoVLC" isFeedback="false" direction="output"/>
+            <port type="array" sampleSize="804" rate="79596" name="deblockInfotoDBK" isFeedback="false" direction="output"/>
+            <port type="array" sampleSize="396" rate="39204" name="initInfotoENC" isFeedback="false" direction="output"/>
+        </task>
+        <task runCondition="data-driven" name="Encoder_1" hasInternalStates="Yes" file="Encoder_1.cic" cflags="-D__CIC__ -I/home/dac09/workspace/Hae/schematic/Cell_x264.files/CICTask">
+            <port type="fifo" sampleSize="4" rate="1" name="p18" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="4" rate="99" name="p19" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="4" rate="99" name="p17" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="4" rate="99" name="p15" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="4" rate="99" name="p7" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="4" rate="99" name="p30" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="4" rate="99" name="p22" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="4" rate="1" name="p6" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="4" rate="99" name="p4" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="4" rate="99" name="p3" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="12372" rate="99" name="p52" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="396" rate="99" name="p53" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="64" rate="99" name="p28" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="64" rate="99" name="p29" isFeedback="false" direction="output"/>
+            <port type="array" sampleSize="32" rate="99" name="p43" isFeedback="false" direction="output"/>
+            <port type="array" sampleSize="480" rate="99" name="p42" isFeedback="false" direction="output"/>
+            <port type="array" sampleSize="64" rate="99" name="p41" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="256" rate="99" name="p5" isFeedback="false" direction="output"/>
+            <port type="array" sampleSize="4" rate="99" name="p35" isFeedback="false" direction="output"/>
+            <port type="array" sampleSize="4" rate="99" name="p36" isFeedback="false" direction="output"/>
+            <port type="array" sampleSize="1024" rate="99" name="p37" isFeedback="false" direction="output"/>
+            <port type="array" sampleSize="960" rate="99" name="p38" isFeedback="false" direction="output"/>
+            <port type="array" sampleSize="192" rate="99" name="p39" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="192" rate="99" name="p40" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="256" rate="99" name="p20" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="4" rate="99" name="p54" isFeedback="false" direction="output"/>
+        </task>
+        <task runCondition="data-driven" name="Deblock_2" hasInternalStates="Yes" file="Deblock_2.cic" cflags="-D__CIC__ -I/home/dac09/workspace/Hae/schematic/Cell_x264.files/CICTask">
+            <port type="fifo" sampleSize="4" rate="99" name="p18" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="4" rate="1" name="p33" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="64" rate="99" name="p24" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="64" rate="99" name="p25" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="256" rate="99" name="p22" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="192" rate="99" name="p27" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="256" rate="99" name="p23" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="804" rate="99" name="p41" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="4" rate="99" name="p40" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="11324" rate="99" name="p42" isFeedback="false" direction="output"/>
+        </task>
+        <task runCondition="time-driven" name="Init_3" hasInternalStates="Yes" file="Init_3.cic" cflags="-D__CIC__ -I/home/dac09/workspace/Hae/schematic/Cell_x264.files/CICTask">
+            <port type="fifo" sampleSize="40" rate="1" name="p63" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="4" rate="1" name="p67" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="4" rate="1" name="p68" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="4" rate="1" name="p58" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="4" rate="99" name="p52" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="4" rate="99" name="p53" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="4" rate="99" name="p54" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="4" rate="99" name="p55" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="4" rate="1" name="p59" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="4" rate="1" name="p60" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="4" rate="1" name="p61" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="4" rate="1" name="p62" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="4" rate="1" name="p49" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="4" rate="1" name="p50" isFeedback="false" direction="output"/>
+            <port type="fifo" sampleSize="4" rate="1" name="p51" isFeedback="false" direction="output"/>
+            <port type="array" sampleSize="396" rate="99" name="p71" isFeedback="false" direction="output"/>
+        </task>
+        <task runCondition="data-driven" name="VLC_4" hasInternalStates="Yes" file="VLC_4.cic" cflags="-D__CIC__ -I/home/dac09/workspace/Hae/schematic/Cell_x264.files/CICTask">
+            <port type="fifo" sampleSize="40" rate="99" name="p17" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="4" rate="1" name="p18" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="4" rate="99" name="p0" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="32" rate="99" name="p14" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="480" rate="99" name="p16" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="64" rate="99" name="p12" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="4" rate="99" name="p7" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="4" rate="99" name="p8" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="1024" rate="99" name="p13" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="960" rate="99" name="p15" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="192" rate="99" name="p6" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="12372" rate="99" name="p60" isFeedback="false" direction="input"/>
+        </task>
+    </tasks>
+    <channels>
+        <channel type="fifo" size="3960" sampleType="" initialDataSize="0">
+            <src task="Init_3" port="p63"/>
+            <dst task="VLC_4" port="p17"/>
+        </channel>
+        <channel type="fifo" size="4" sampleType="" initialDataSize="0">
+            <src task="Init_3" port="p67"/>
+            <dst task="VLC_4" port="p18"/>
+        </channel>
+        <channel type="fifo" size="396" sampleType="" initialDataSize="0">
+            <src task="Init_3" port="p68"/>
+            <dst task="VLC_4" port="p0"/>
+        </channel>
+        <channel type="fifo" size="4" sampleType="" initialDataSize="0">
+            <src task="Init_3" port="p58"/>
+            <dst task="Encoder_1" port="p18"/>
+        </channel>
+        <channel type="fifo" size="396" sampleType="" initialDataSize="0">
+            <src task="Init_3" port="p52"/>
+            <dst task="Encoder_1" port="p19"/>
+        </channel>
+        <channel type="fifo" size="396" sampleType="" initialDataSize="0">
+            <src task="Init_3" port="p53"/>
+            <dst task="Encoder_1" port="p17"/>
+        </channel>
+        <channel type="fifo" size="396" sampleType="" initialDataSize="0">
+            <src task="Init_3" port="p54"/>
+            <dst task="Encoder_1" port="p15"/>
+        </channel>
+        <channel type="fifo" size="396" sampleType="" initialDataSize="0">
+            <src task="Init_3" port="p55"/>
+            <dst task="Encoder_1" port="p7"/>
+        </channel>
+        <channel type="fifo" size="396" sampleType="" initialDataSize="0">
+            <src task="Init_3" port="p59"/>
+            <dst task="Encoder_1" port="p30"/>
+        </channel>
+        <channel type="fifo" size="396" sampleType="" initialDataSize="0">
+            <src task="Init_3" port="p60"/>
+            <dst task="Encoder_1" port="p22"/>
+        </channel>
+        <channel type="fifo" size="396" sampleType="" initialDataSize="0">
+            <src task="Init_3" port="p61"/>
+            <dst task="Deblock_2" port="p18"/>
+        </channel>
+        <channel type="fifo" size="4" sampleType="" initialDataSize="0">
+            <src task="Init_3" port="p62"/>
+            <dst task="Deblock_2" port="p33"/>
+        </channel>
+        <channel type="fifo" size="4" sampleType="" initialDataSize="0">
+            <src task="Init_3" port="p49"/>
+            <dst task="Encoder_1" port="p6"/>
+        </channel>
+        <channel type="fifo" size="396" sampleType="" initialDataSize="0">
+            <src task="Init_3" port="p50"/>
+            <dst task="Encoder_1" port="p4"/>
+        </channel>
+        <channel type="fifo" size="396" sampleType="" initialDataSize="0">
+            <src task="Init_3" port="p51"/>
+            <dst task="Encoder_1" port="p3"/>
+        </channel>
+        <channel type="array" size="39204" sampleType="" initialDataSize="0">
+            <src task="Init_3" port="p71"/>
+            <dst task="ME_0" port="initInfofromINIT"/>
+        </channel>
+        <channel type="fifo" size="6336" sampleType="" initialDataSize="0">
+            <src task="Encoder_1" port="p28"/>
+            <dst task="Deblock_2" port="p24"/>
+        </channel>
+        <channel type="fifo" size="6336" sampleType="" initialDataSize="0">
+            <src task="Encoder_1" port="p29"/>
+            <dst task="Deblock_2" port="p25"/>
+        </channel>
+        <channel type="array" size="3168" sampleType="" initialDataSize="0">
+            <src task="Encoder_1" port="p43"/>
+            <dst task="VLC_4" port="p14"/>
+        </channel>
+        <channel type="array" size="47520" sampleType="" initialDataSize="0">
+            <src task="Encoder_1" port="p42"/>
+            <dst task="VLC_4" port="p16"/>
+        </channel>
+        <channel type="array" size="6336" sampleType="" initialDataSize="0">
+            <src task="Encoder_1" port="p41"/>
+            <dst task="VLC_4" port="p12"/>
+        </channel>
+        <channel type="fifo" size="25344" sampleType="" initialDataSize="0">
+            <src task="Encoder_1" port="p5"/>
+            <dst task="Deblock_2" port="p22"/>
+        </channel>
+        <channel type="array" size="101376" sampleType="" initialDataSize="0">
+            <src task="Encoder_1" port="p37"/>
+            <dst task="VLC_4" port="p13"/>
+        </channel>
+        <channel type="array" size="95040" sampleType="" initialDataSize="0">
+            <src task="Encoder_1" port="p38"/>
+            <dst task="VLC_4" port="p15"/>
+        </channel>
+        <channel type="array" size="19008" sampleType="" initialDataSize="0">
+            <src task="Encoder_1" port="p39"/>
+            <dst task="VLC_4" port="p6"/>
+        </channel>
+        <channel type="fifo" size="19008" sampleType="" initialDataSize="0">
+            <src task="Encoder_1" port="p40"/>
+            <dst task="Deblock_2" port="p27"/>
+        </channel>
+        <channel type="fifo" size="25344" sampleType="" initialDataSize="0">
+            <src task="Encoder_1" port="p20"/>
+            <dst task="Deblock_2" port="p23"/>
+        </channel>
+        <channel type="fifo" size="396" sampleType="" initialDataSize="0">
+            <src task="Encoder_1" port="p54"/>
+            <dst task="Deblock_2" port="p40"/>
+        </channel>
+        <channel type="array" size="1121076" sampleType="" initialDataSize="1">
+            <src task="Deblock_2" port="p42"/>
+            <dst task="ME_0" port="neighborInfofromDBK"/>
+        </channel>
+        <channel type="array" size="1224828" sampleType="" initialDataSize="0">
+            <src task="ME_0" port="encodeInfotoENC"/>
+            <dst task="Encoder_1" port="p52"/>
+        </channel>
+        <channel type="array" size="1224828" sampleType="" initialDataSize="0">
+            <src task="ME_0" port="encodeInfotoVLC"/>
+            <dst task="VLC_4" port="p60"/>
+        </channel>
+        <channel type="array" size="79596" sampleType="" initialDataSize="0">
+            <src task="ME_0" port="deblockInfotoDBK"/>
+            <dst task="Deblock_2" port="p41"/>
+        </channel>
+        <channel type="array" size="101376" sampleType="" initialDataSize="0">
+            <src task="ME_0" port="initInfotoENC"/>
+            <dst task="Encoder_1" port="p53"/>
+        </channel>
+        <channel type="array" size="396" sampleType="" initialDataSize="0">
+            <src task="Encoder_1" port="p36"/>
+            <dst task="VLC_4" port="p8"/>
+        </channel>
+        <channel type="array" size="396" sampleType="" initialDataSize="0">
+            <src task="Encoder_1" port="p35"/>
+            <dst task="VLC_4" port="p7"/>
+        </channel>
+    </channels>
+    <libraryConnections/>
+    <taskGroups>
+        <taskGroup name="DuumyForNullPointerException"/>
+    </taskGroups>
+    <modes>
+        <mode name="default">
+            <task runRate="1" priority="1" name="ME_0">
+                <period value="10" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task runRate="1" priority="1" name="Encoder_1">
+                <period value="10" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task runRate="1" priority="1" name="Deblock_2">
+                <period value="10" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task runRate="1" priority="1" name="Init_3">
+                <period value="10" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task runRate="1" priority="1" name="VLC_4">
+                <period value="10" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+        </mode>
+    </modes>
+</CIC_Algorithm>
+

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CIC_Algorithm
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns="http://peace.snu.ac.kr/CICXMLSchema">
+	<tasks>
+		<task name="t1">
+			<subtask name="st1_1" runCondition="time-driven" runRate="2" file="st1_1.cic" cflags="-O2">
+				<dataParallel type="none" />
+				<port name="p1_1_1o" direction="output" rate="3" sampleSize="16" />
+				<port name="p1_1_2o" direction="output" rate="2" sampleSize="4" />
+			</subtask>
+			<subtask name="st1_2" runCondition="data-driven" file="st1_2.cic" cflags="-O2">
+				<dataParallel type="loop" maxParallel="3" />
+				<port name="p1_2_1i" direction="input" rate="3" sampleSize="16" />
+			</subtask>
+			<parameter name="p1_1" type="int" value="3" />
+			<parameter name="p1_2" type="float" value="2.0" />
+		</task>
+		<task name="t2">
+			<subtask name="st2_1" runCondition="data-driven" file="st2_1.cic" cflags="-O2">
+				<dataParallel type="wavefront" maxParallel="6">
+					<dependency>0,1</dependency>
+				</dataParallel>
+				<port name="p2_1_1i" direction="input" rate="2" sampleSize="4" isFeedback="true" />
+				<port name="p2_1_2i" direction="input" rate="2" sampleSize="4" isFeedback="true" />
+				<port name="p2_1_3o" direction="output" rate="2" sampleSize="4" />
+			</subtask>
+		</task>
+	</tasks>
+	<channels>
+		<channel type="fifo" size="10240">
+			<src task="t1" subtask="st1_1" port="p1_1_1o" />
+			<dst task="t1" subtask="st1_2" port="p1_2_1i" />
+		</channel>
+		<channel type="array" size="2048" initialDataSize="1">
+			<src task="t2" subtask="st2_1" port="p2_1_3o" />
+			<dst task="t2" subtask="st2_1" port="p2_1_2i" />
+		</channel>
+	</channels>
+	<modes>
+		<mode name="m1">
+			<task name="t1" priority="2">
+				<period metric="ms" value="20" />
+				<deadline metric="ms" value="15" />
+			</task>
+			<task name="t2" priority="3"></task>
+		</mode>
+		<mode name="m2"></mode>
+	</modes>
+</CIC_Algorithm>

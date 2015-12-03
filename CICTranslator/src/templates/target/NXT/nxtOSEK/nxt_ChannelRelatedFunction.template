@@ -1,0 +1,463 @@
+##INIT_WRAPUP_TASK_CHANNELS_START
+static void init_task_channel(int parent_task_id)
+{
+    int i=0, j=0, flag=0;
+    for(i = 0; i < num_channels; i++)
+    {
+        flag = 0;
+        for(j=0; j< num_portmaps; j++)
+        {
+            if(channels[i].channel_id == addressmap[j].channel_id && tasks[addressmap[j].task_id].parent_task_id == parent_task_id)
+            	flag++;
+        }
+        if(flag == 2){
+            channels[i].start = channels[i].buf;
+            memset(channels[i].start, 0x0, channels[i].initData);
+            channels[i].end = channels[i].start + channels[i].initData;
+            channels[i].cur_size = channels[i].initData;
+        }
+    }
+}
+
+static void wrapup_task_channel(int task_id)
+{
+
+}
+##INIT_WRAPUP_TASK_CHANNELS_END
+
+##INIT_WRAPUP_CHANNELS_START
+static void init_channel(void)
+{
+    unsigned int i;
+    for(i=0; i<num_channels; i++)
+    {
+    	MUTEX_INIT(channels[i].mutex);
+
+        if(channels[i].type == CHANNEL_TYPE_NORMAL)
+        {
+        }
+        else if(channels[i].type == CHANNEL_TYPE_ARRAY_CHANNEL)
+        {
+        }
+        else if(channels[i].type == CHANNEL_TYPE_BUFFER)
+        {
+            switch(i)
+            {
+##BUFFER_INITIALIZE
+            	default:
+            		break;
+            }
+
+        }
+    }
+}
+
+static void wrapup_channel(void)
+{
+	//no need to free (static)
+}
+##INIT_WRAPUP_CHANNELS_END
+
+##INIT_WRAPUP_LIB_CHANNELS_START
+static void init_lib_channel(void)
+{
+    unsigned int i;
+    for(i=0; i<num_lib_channels; i++)
+    {
+    	MUTEX_INIT(lib_channels[i].mutex);
+		switch(i)
+		{
+##L_CHANNEL_INITIALIZE
+			default:
+				break;
+		}				
+    }
+}
+
+static void wrapup_lib_channel(void)
+{
+	//no need to free (static)
+}
+##INIT_WRAPUP_LIB_CHANNELS_END
+
+##READ_WRITE_PORT_START
+int available(int channel_index) // non-blocking
+{
+    int ret;
+
+    CHANNEL *channel;
+    channel = get_channel(channel_index);
+
+    MUTEX_LOCK((channel->mutex));
+
+    ret = channel->cur_size;
+
+    MUTEX_UNLOCK((channel->mutex));
+
+    return ret;
+}
+##READ_WRITE_PORT_END
+
+##READ_WRITE_AC_PORT_START
+int ac_available (int channel_index, int index)
+{
+    CHANNEL *channel;
+    channel = get_channel(channel_index);
+
+    if(channel->head[index].used != 0)
+    {
+        return 1;
+    }
+    else if(channel->head[index].used == 0)
+    {
+        return 0;
+    }
+    else
+    {
+        //printf("ac_available(): unknown status!\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+int check_acport(int channel_id)
+{
+    int ret = -1;
+
+    CHANNEL *channel;
+    channel = get_channel(channel_id);
+
+check_ac_start:
+
+    MUTEX_LOCK((channel->mutex));
+    {
+        AC_AVAIL_LIST *node;
+        node = channel->avail_index_start;
+
+        if(node == NULL) // blocking case
+        {
+            //COND_WAIT(&(channel->cond), (channel->mutex));
+            MUTEX_UNLOCK((channel->mutex));
+            goto check_ac_start;
+        }
+        else
+        {
+            ret = node->avail_index;
+            channel->avail_index_start = channel->avail_index_start->next;
+
+            if(channel->avail_index_start != NULL)
+            {
+                //assert(channel->avail_index_end != NULL);
+                channel->avail_index_start->prev = NULL;
+            }
+            else
+            {
+                channel->avail_index_end = NULL;
+            }
+            //assert(node->prev == NULL);
+            node->next = NULL;
+            channel->head[ret].used = 2;
+        }
+    }
+
+    MUTEX_UNLOCK((channel->mutex));
+
+    return ret;
+}
+##READ_WRITE_AC_PORT_END
+
+##READ_WRITE_BUF_PORT_START
+int read_buport(int channel_index, unsigned char *buf, int len) // NON blocking read
+{
+	int task_id = find_task(channels[channel_index].channel_id, 'r');
+	CHANNEL *channel;
+
+	channel = get_channel(channel_index);
+
+	if(len > channel->max_size)
+	{
+		exit(EXIT_FAILURE);
+	}
+
+	tasks[task_id].run_state = Running;
+
+	if(channel->start + len <= channel->buf + channel->max_size )
+    {
+        memcpy(buf, channel->start, len);
+        channel->start += len;
+    }
+    else
+    {
+        int part = channel->max_size - (channel->start - channel->buf);
+        if(part != 0)
+        {
+            memcpy(buf, channel->start, part);
+        }
+        memcpy(buf + part, channel->buf, len - part);
+        channel->start = channel->buf + (len - part);
+    }
+
+    channel->request_read = false;
+    channel->request_write = false;
+
+    return len;
+}
+
+int write_one_buport(CHANNEL* channel, unsigned char *buf, int len)
+{
+    int task_id = find_task(channel->channel_id, 'w');
+
+    if(len < 0)
+    {
+        //printf("write_port(): len should be larger than 0!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if(len > channel->max_size)
+    {
+        //printf("write_port(): max_size is too small!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    tasks[task_id].run_state = Running;
+
+    if(channel->buf + channel->max_size >= channel->end + len)
+    {
+        memcpy(channel->end, buf, len);
+        channel->end += len;
+    }
+    else
+    {
+        int part = channel->max_size - (channel->end - channel->buf);
+        if(part != 0)
+        {
+            memcpy(channel->end, buf, part);
+        }
+        memcpy(channel->buf, buf + part, len - part);
+        channel->end = channel->buf + (len - part);
+    }
+
+    channel->request_write = false;
+    channel->request_read = false;
+
+    return len;
+}
+
+
+int write_buport(int channel_index, unsigned char* buf, int len)
+{
+	int result = 0;
+	while(channel_index >= 0)
+	{
+		result = write_one_buport(&channels[channel_index], buf, len);
+		channel_index = channels[channel_index].next_channel_index;
+	}
+	return result;
+}
+##READ_WRITE_BUF_PORT_END
+
+##READ_WRITE_LIB_PORT_START
+int init_lib_port(int library_id, const char op)
+{
+    unsigned int i;
+    for(i=0; i<num_lib_channels; i++)
+    {
+        if(lib_channels[i].channel_id == library_id && lib_channels[i].op == op)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int read_lib_port(int channel_index, unsigned char *buf, int len)
+{
+    int cur_size=0;
+    LIB_CHANNEL *channel = &lib_channels[channel_index];
+
+read_lib_start:
+    if(channel->start < channel->end)  cur_size = (unsigned int)(channel->end - channel->start);
+    else if(channel->start == channel->end){
+      if(channel->isFull == 0)		cur_size = 0;
+      else if(channel->isFull == 1)	cur_size = channel->max_size;
+    }
+    else  cur_size = (unsigned int)(channel->end + channel->max_size - channel->start);
+
+    if(len > cur_size) // blocking case
+    {
+        wait1Msec(10);
+        goto read_lib_start; // try reading again
+    }
+
+    if(channel->start + len <= channel->buf + channel->max_size)
+    {
+        memcpy(buf, channel->start, len);
+        channel->start += len;
+    }
+    else
+    {
+        int part = channel->max_size - (channel->start - channel->buf);
+        if(part != 0)
+        {
+            memcpy(buf, channel->start, part);
+        }
+        memcpy(buf + part, channel->buf, len - part);
+        channel->start = channel->buf + (len - part);
+    }
+    if(channel->end == channel->start){
+			channel->isFull = 0;
+		}
+
+    return len;
+}
+
+int write_lib_port(int channel_index, unsigned char *buf, int len)
+{
+    int cur_size=0;
+    LIB_CHANNEL *channel = &lib_channels[channel_index];
+
+write_lib_start:
+
+    if(channel->start < channel->end)  cur_size = (unsigned int)(channel->end - channel->start);
+    else if(channel->start == channel->end){
+      if(channel->isFull == 0)		 cur_size = 0;
+      else if(channel->isFull == 1)	 cur_size = channel->max_size;
+    }
+    else   cur_size = (unsigned int)(channel->end + channel->max_size - channel->start);
+
+    if(len + cur_size > channel->max_size) // blocking case
+    {
+        wait1Msec(10);
+        goto write_lib_start; // try writing again
+    }
+
+    if(channel->buf + channel->max_size >= channel->end + len)
+    {
+        memcpy(channel->end, buf, len);
+        channel->end += len;
+    }
+    else
+    {
+        int part = channel->max_size - (channel->end - channel->buf);
+        if(part != 0)
+        {
+            memcpy(channel->end, buf, part);
+        }
+        memcpy(channel->buf, buf + part, len - part);
+        channel->end = channel->buf + (len - part);
+    }
+
+    	if(channel->end == channel->start){
+
+		channel->isFull = 1;
+
+	}
+
+    GlobalState_func_data data;
+    memcpy(&data, channel->start, sizeof(GlobalState_func_data));
+
+    return len;
+}
+
+int lib_available(int channel_index) // non-blocking
+{
+    int ret;
+
+    LIB_CHANNEL *channel = &lib_channels[channel_index];
+
+    MUTEX_LOCK((channel->mutex));
+
+    ret = channel->end-channel->start;
+
+    MUTEX_UNLOCK((channel->mutex));
+
+    return ret;
+}
+##READ_WRITE_LIB_PORT_END
+
+##LIB_WRAPPER_DECLARATION_START
+int checkBTLinkConnected()
+{
+    if (nBTCurrentStreamIndex >= 0)
+    {
+        nxtDisplayString(1, "%d", nBTCurrentStreamIndex);
+        wait10Msec(1);
+      return nBTCurrentStreamIndex;
+    }
+    else
+        return -1;
+}
+
+void bluetoothInit()
+{
+    setBluetoothOn();   //bluetooth On
+    setBluetoothVisibility(true);   //make visible
+
+    int connect = -1;
+    while(true)
+    {
+        if(bBTVisble)
+        {            
+            connect = checkBTLinkConnected();
+            if(connect >=0)
+                break;
+        }
+    }
+
+    //nxtDisplayString(6, "CONNECT! SUCCESS");
+    //wait10Msec(3);
+
+    setBluetoothRawDataMode();
+    while(bBTRawMode == false)
+    {
+        wait1Msec(1);
+        setBluetoothRawDataMode();
+    }
+
+}
+##LIB_WRAPPER_DECLARATION_END
+
+##LIB_WRAPPER_TASK_START
+task BluetoothWrapperSenderRoutine()
+{
+	while(1)
+	{
+	   	for(int i=0; i<num_channels; i++)
+	   	{
+	   		// Need to implement
+	   	}
+
+		// Lib Send
+	   	for(int i=0; i<num_lib_channels; i++)
+	   	{
+	   		if(lib_channels[i].op == 'w')
+	   		{
+		   		if((lib_channels[i].end - lib_channels[i].start >= lib_channels[i].sampleSize) ||
+		   			((lib_channels[i].end == lib_channels[i].start) && lib_channels[i].isFull == 1))
+		   		{
+		   			##LIB_WRAPPER_TASK_LIB_SEND
+		   		}
+	   		}
+	   	}
+	}
+}
+
+task BluetoothWrapperReceiverRoutine()
+{	
+	ubyte library_id= 255;
+	short returnValue = 0;
+	int channel_id = -1;
+	
+	while(true)
+	{
+		//library_index		
+		do
+		{
+			returnValue = nxtReadRawBluetooth((ubyte*)&library_id, sizeof(ubyte));
+		} while(returnValue == 0);
+		
+		returnValue = 0;
+		
+		##LIB_WRAPPER_TASK_LIB_RECEIVE
+	}
+}
+##LIB_WRAPPER_TASK_END

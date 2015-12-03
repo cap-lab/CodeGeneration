@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CIC_GPUSetup xmlns="http://peace.snu.ac.kr/CICXMLSchema">
+    <tasks>
+        <task name = "YUVtoRGB" clustering="No" pipelining="Yes" maxStream="4">
+			<globalWorkSize>
+				<value>80</value>
+				<value>45</value>
+			</globalWorkSize>
+			<localWorkSize>
+				<value>16</value>
+				<value>16</value>
+			</localWorkSize>
+		</task>
+        <task name = "Gaussian" clustering="No" pipelining="Yes" maxStream="4">
+			<globalWorkSize>
+				<value>80</value>
+				<value>1</value>
+			</globalWorkSize>
+			<localWorkSize>
+				<value>16</value>
+				<value>1</value>
+			</localWorkSize>
+		</task>
+        <task name = "Sobel" clustering="No" pipelining="Yes" maxStream="4">
+			<globalWorkSize>
+				<value>80</value>
+				<value>45</value>
+			</globalWorkSize>
+			<localWorkSize>
+				<value>16</value>
+				<value>16</value>
+			</localWorkSize>
+		</task>
+        <task name = "NonMax" clustering="No" pipelining="Yes" maxStream="4">
+			<globalWorkSize>
+				<value>80</value>
+				<value>45</value>
+			</globalWorkSize>
+			<localWorkSize>
+				<value>16</value>
+				<value>16</value>
+			</localWorkSize>
+		</task>
+        <task name = "Hough" clustering="No" pipelining="Yes" maxStream="4">
+			<globalWorkSize>
+				<value>80</value>
+				<value>45</value>
+			</globalWorkSize>
+			<localWorkSize>
+				<value>16</value>
+				<value>16</value>
+			</localWorkSize>
+		</task>
+        <task name = "KNN" clustering="No" pipelining="Yes" maxStream="4">
+			<globalWorkSize>
+				<value>80</value>
+				<value>45</value>
+			</globalWorkSize>
+			<localWorkSize>
+				<value>16</value>
+				<value>16</value>
+			</localWorkSize>
+		</task>
+        <task name = "NLM" clustering="No" pipelining="Yes" maxStream="4">
+			<globalWorkSize>
+				<value>160</value>
+				<value>90</value>
+			</globalWorkSize>
+			<localWorkSize>
+				<value>8</value>
+				<value>8</value>
+			</localWorkSize>
+		</task>
+        <task name = "Blending" clustering="No" pipelining="Yes" maxStream="4">
+			<globalWorkSize>
+				<value>80</value>
+				<value>45</value>
+			</globalWorkSize>
+			<localWorkSize>
+				<value>16</value>
+				<value>16</value>
+			</localWorkSize>
+		</task>
+        <task name = "Sharpen" clustering="No" pipelining="Yes" maxStream="4">
+			<globalWorkSize>
+				<value>80</value>
+				<value>45</value>
+			</globalWorkSize>
+			<localWorkSize>
+				<value>16</value>
+				<value>16</value>
+			</localWorkSize>
+		</task>
+        <task name = "Merge" clustering="No" pipelining="Yes" maxStream="4">
+			<globalWorkSize>
+				<value>80</value>
+				<value>45</value>
+			</globalWorkSize>
+			<localWorkSize>
+				<value>16</value>
+				<value>16</value>
+			</localWorkSize>
+		</task>
+        <task name = "RGBtoYUV" clustering="No" pipelining="Yes" maxStream="4">
+			<globalWorkSize>
+				<value>80</value>
+				<value>45</value>
+			</globalWorkSize>
+			<localWorkSize>
+				<value>16</value>
+				<value>16</value>
+			</localWorkSize>
+		</task>
+	</tasks>
+</CIC_GPUSetup>

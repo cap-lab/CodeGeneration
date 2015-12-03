@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CIC_Algorithm xmlns="http://peace.snu.ac.kr/CICXMLSchema">
+    <tasks>
+            <task  runCondition="time-driven" name="A" file="A.cic" cflags="-O2">
+                <dataParallel type="none"/>
+                <port type="fifo" sampleSize="4" rate="1" name="AO1" period="1" direction="output"/>
+                <port type="fifo" sampleSize="4" rate="3" name="AO2" period="1" direction="output"/>
+		<parameter value="3" type="int" name="p1"/>
+		<parameter value="2.0" type="float" name="p2"/>
+            </task>
+            <task  runCondition="data-driven" name="B" file="B.cic" cflags="-O2">
+                <dataParallel type="loop" maxParallel="8"/>
+                <port type="fifo" sampleSize="4" rate="1" name="BI" period="1" direction="input"/>
+                <port type="fifo" sampleSize="4" rate="2" name="BO" period="1" direction="output"/>
+                <port type="fifo" sampleSize="4" rate="2" name="BOO" period="1" direction="output"/>
+            </task>
+            <task  runCondition="data-driven" name="C" file="C.cic" cflags="-O2">
+                <dataParallel type="none"/>
+                <port type="fifo" sampleSize="4" rate="1" name="CI" period="1" direction="input"/>
+                <port type="fifo" sampleSize="4" rate="1" name="CII" period="1" direction="input"/>
+                <port type="fifo" sampleSize="4" rate="1" name="CO" period="1" direction="output"/>
+            </task>
+            <task  runCondition="data-driven" name="D" file="D.cic" cflags="-O2">
+                <dataParallel type="none"/>
+                <port type="fifo" sampleSize="4" rate="1" name="DI" period="1" direction="input"/>
+                <port type="fifo" sampleSize="4" rate="1" name="DO" period="1" direction="output"/>
+            </task>
+            <task  runCondition="data-driven" name="E" file="E.cic" cflags="-O2">
+                <dataParallel type="none"/>
+                <port type="fifo" sampleSize="4" rate="2" name="EI1" period="1" direction="input"/>
+                <port type="fifo" sampleSize="4" rate="3" name="EI2" period="1" direction="input"/>
+                <port type="fifo" sampleSize="4" rate="1" name="eTemp" period="1" direction="output"/>
+            </task>
+
+            <task  runCondition="time-driven" name="F" file="F.cic" cflags="-O2">
+                <dataParallel type="none"/>
+                <port type="fifo" sampleSize="4" rate="1" name="fTemp" period="1" direction="input"/>
+                <port type="fifo" sampleSize="4" rate="1" name="FO" period="1" direction="output"/>
+            </task>
+            <task  runCondition="data-driven" name="G" file="G.cic" cflags="-O2">
+                <dataParallel type="loop" maxParallel="8"/>
+                <port type="fifo" sampleSize="4" rate="1" name="GI" period="1" direction="input"/>
+                <port type="fifo" sampleSize="4" rate="1" name="GO" period="1" direction="output"/>
+            </task>
+            <task  runCondition="time-driven" name="H" file="H.cic" cflags="-O2">
+                <dataParallel type="none"/>
+                <port type="fifo" sampleSize="4" rate="1" name="HI" period="1" direction="input"/>
+            </task>
+
+    </tasks>
+    <channels>
+        <channel type="fifo" size="4">
+            <src task="A" port="AO1"/>
+            <dst task="B" port="BI"/>
+        </channel>
+        <channel type="fifo" size="12">
+            <src task="A" port="AO2"/>
+            <dst task="D" port="DI"/>
+        </channel>
+        <channel type="fifo" size="8">
+            <src task="B" port="BO"/>
+            <dst task="C" port="CI"/>
+        </channel>
+        <channel type="fifo" size="8">
+            <src task="B" port="BOO"/>
+            <dst task="C" port="CII"/>
+        </channel>
+        <channel type="fifo" size="4">
+            <src task="C" port="CO"/>
+            <dst task="E" port="EI1"/>
+        </channel>
+        <channel type="fifo" size="12">
+            <src task="D" port="DO"/>
+            <dst task="E" port="EI2"/>
+        </channel>
+        <channel type="fifo" size="4">
+            <src task="F" port="FO"/>
+            <dst task="G" port="GI"/>
+        </channel>
+        <channel type="fifo" size="4">
+            <src task="G" port="GO"/>
+            <dst task="H" port="HI"/>
+        </channel>
+        <channel type="fifo" size="4">
+            <src task="E" port="eTemp"/>
+            <dst task="F" port="fTemp"/>
+        </channel>
+    </channels>
+
+    <taskGroups>
+	    <taskGroup name="g1" groupType="StaticRate">
+		    <task name="A" />
+		    <task name="B" />
+		    <task name="C" />
+		    <task name="D" />
+		    <task name="E" />
+	    </taskGroup> 
+	    <taskGroup name="g2" groupType="StaticRate">
+		    <task name="F" />
+		    <task name="G" />
+		    <task name="H" />
+	    </taskGroup>
+    </taskGroups>
+
+    <modes>
+        <mode name="default">
+            <task priority="1" name="A" runRate="1">
+                <period value="500" metric="ms"/>
+                <deadline value="500" metric="ms"/>
+                <maxInitialInterval value="500" metric="ms"/>
+            </task>
+            <task priority="1" name="B" runRate="1">
+                <period value="500" metric="ms"/>
+                <deadline value="500" metric="ms"/>
+                <maxInitialInterval value="500" metric="ms"/>
+            </task>
+            <task priority="1" name="C" runRate="2">
+                <period value="500" metric="ms"/>
+                <deadline value="500" metric="ms"/>
+                <maxInitialInterval value="500" metric="ms"/>
+            </task>
+            <task priority="1" name="D" runRate="3">
+                <period value="500" metric="ms"/>
+                <deadline value="500" metric="ms"/>
+                <maxInitialInterval value="500" metric="ms"/>
+            </task>
+            <task priority="1" name="E" runRate="1">
+                <period value="500" metric="ms"/>
+                <deadline value="500" metric="ms"/>
+                <maxInitialInterval value="500" metric="ms"/>
+            </task>
+
+            <task priority="1" name="F" runRate="1">
+                <period value="250" metric="ms"/>
+                <deadline value="250" metric="ms"/>
+                <maxInitialInterval value="250" metric="ms"/>
+            </task>
+            <task priority="2" name="G" runRate="1">
+                <period value="250" metric="ms"/>
+                <deadline value="250" metric="ms"/>
+                <maxInitialInterval value="250" metric="ms"/>
+            </task>
+            <task priority="2" name="H" runRate="1">
+                <period value="500" metric="ms"/>
+                <deadline value="500" metric="ms"/>
+                <maxInitialInterval value="500" metric="ms"/>
+            </task>
+
+            <taskGroup priority="1" name="g1">
+                <period value="500" metric="ms"/>
+                <deadline value="500" metric="ms"/>
+                <maxInitialInterval value="500" metric="ms"/>
+            </taskGroup>
+            <taskGroup priority="1" name="g2">
+                <period value="250" metric="ms"/>
+                <deadline value="250" metric="ms"/>
+                <maxInitialInterval value="250" metric="ms"/>
+            </taskGroup>
+        </mode>
+    </modes>
+
+</CIC_Algorithm>

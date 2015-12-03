@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema id="CICSchedule"
+        targetNamespace="http://peace.snu.ac.kr/CICXMLSchema"
+        elementFormDefault="qualified"
+        xmlns="http://peace.snu.ac.kr/CICXMLSchema"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:include schemaLocation="./CICCommon.xsd" />
+
+  <xs:element name="CIC_Schedule" type="CICScheduleType" />
+
+
+  <!-- Type definitions for algorithm specification -->
+  <xs:complexType name="CICScheduleType">
+    <xs:sequence>
+      <xs:element name="taskGroups" type="TaskGroupsType" minOccurs="1" maxOccurs="1" />            
+    </xs:sequence>
+    <xs:attribute name="type" type="NameType" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="TaskGroupsType">
+    <xs:sequence>
+      <xs:element name="taskGroup" type="TaskGroupForScheduleType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="TaskGroupForScheduleType">
+    <xs:sequence>
+      <xs:element name="scheduleGroup" type="ScheduleGroupType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="name" type="NameType" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="ScheduleGroupType">
+    <xs:sequence>
+      <xs:element name="scheduleElement" type="ScheduleElementType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="scheduleType" type="ScheduleType" use="required" />
+    <xs:attribute name="poolName" type="NameType" use="required" />
+    <xs:attribute name="localId" type="xs:nonNegativeInteger" use="required" />
+  </xs:complexType>
+  
+  <xs:complexType name="ScheduleElementType">
+    <xs:choice>
+      <xs:element name="loop" type="LoopType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="task" type="TaskInstanceType" minOccurs="0" maxOccurs="1" />    
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:complexType name="LoopType">
+    <xs:sequence>
+       <xs:element name="scheduleElement" type="ScheduleElementType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="repetition" type="xs:positiveInteger" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="TaskInstanceType">
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="repetition" type="xs:positiveInteger" use="optional" />
+    <xs:attribute name="priority" type="xs:nonNegativeInteger" use="optional" />
+    <xs:attribute name="startTime" type="xs:nonNegativeInteger" use="optional" />
+    <xs:attribute name="endTime" type="xs:nonNegativeInteger" use="optional" />    
+  </xs:complexType>
+
+  <xs:simpleType name="ScheduleType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="static" />
+      <xs:enumeration value="dynamic" />
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>

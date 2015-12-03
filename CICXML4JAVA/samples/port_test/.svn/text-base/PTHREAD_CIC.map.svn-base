@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CIC_Mapping
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns="http://peace.snu.ac.kr/CICXMLSchema">
+	<task name="sender">
+		<subtask name="task">
+			<processor pool="arm9pool" id="0" />
+		</subtask>
+	</task>
+	<task name="relay">
+		<subtask name="task">
+			<processor pool="arm9pool" id="0" />
+		</subtask>
+	</task>
+	<task name="recv">
+		<subtask name="task">
+			<processor pool="arm9pool" id="0" />
+		</subtask>
+	</task>
+</CIC_Mapping>

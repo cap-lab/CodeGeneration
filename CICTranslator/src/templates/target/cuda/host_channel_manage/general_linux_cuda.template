@@ -1,0 +1,597 @@
+##INIT_WRAPUP_CHANNELS_START
+static void init_channel(void)
+{
+    unsigned int i, j, k;
+    unsigned int isgpu;
+
+    for(i=0; i<num_channels; i++)
+    {
+        if( 0 != pthread_mutex_init(&(channels[i].mutex), NULL))
+        {
+            printf("init_channel(): pthread_mutex_init() failed!\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if( 0 != pthread_cond_init(&(channels[i].cond), NULL))
+        {
+            printf("init_channel(): pthread_cond_init() failed!\n");
+            exit(EXIT_FAILURE);
+        }
+        if(channels[i].type == CHANNEL_TYPE_NORMAL)
+        {
+            unsigned char *ptr;
+            isgpu = 0;
+            for(j=0; j<num_portmaps; j++)
+            {
+                if(i == addressmap[j].channel_id && (gpuTaskInfo[addressmap[j].task_id].isGPU == 2)){
+                    for(k=0; k<num_portmaps; k++){
+                        if(i == addressmap[k].channel_id && k != j){
+                            if(gpuTaskInfo[addressmap[k].task_id].isGPU != 0 && (gpuTaskInfo[addressmap[j].task_id].gpu_index == gpuTaskInfo[addressmap[k].task_id].gpu_index)){ 
+                                isgpu = 2;
+                            }
+                            else{
+                                if(gpuTaskInfo[addressmap[j].task_id].isGPU == 2){
+                                    isgpu = 1;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+            
+            if(isgpu == 1)
+                CUDA_ERROR_CHECK(cudaHostAlloc((void**)&ptr, channels[i].max_size + sizeof(int), cudaHostAllocPortable));
+            else if(isgpu == 2){
+                int gpu_num=0;
+                for(j=0; j<num_portmaps; j++){
+                    if(addressmap[j].channel_id == i){
+                        gpu_num = addressmap[j].task_id;
+                        break;
+                    }
+                }
+                cudaSetDevice(gpuTaskInfo[gpu_num].gpu_index);
+                CUDA_ERROR_CHECK(cudaMalloc((void**) &ptr, channels[i].max_size + sizeof(int))); 
+            }
+            else {
+                ptr = (unsigned char *)malloc(channels[i].max_size + sizeof(int));
+                if(ptr == NULL)
+                {
+                    printf("initialize_port(): malloc failed!\n");
+                    exit(EXIT_FAILURE);
+                }
+            }
+            
+            if(isgpu == 2)      gpuChannelInfo[i].cpu_gpu = 2;
+            else if(isgpu == 1) gpuChannelInfo[i].cpu_gpu = 1;
+            else                gpuChannelInfo[i].cpu_gpu = 0;
+
+            channels[i].buf = ptr;
+            gpuChannelInfo[i].read_wait = ptr;
+            gpuChannelInfo[i].write_wait = ptr;
+            channels[i].start = ptr;
+            memset(ptr, 0x0, channels[i].initData);
+            channels[i].end = ptr + channels[i].initData;
+            channels[i].cur_size = channels[i].initData;
+            gpuChannelInfo[i].wait_size = channels[i].initData;
+        }
+
+        else if(channels[i].type == CHANNEL_TYPE_ARRAY_CHANNEL)
+        {
+            if(channels[i].max_size <= 0)
+            {
+                printf("init_channel(): size should be positive!\n");
+                exit(EXIT_FAILURE);
+            }
+
+            if(channels[i].sampleSize <= 0)
+            {
+                printf("init_channel(): sampleSize should be positive!\n");
+                exit(EXIT_FAILURE);
+            }
+
+            if(channels[i].max_size % channels[i].sampleSize != 0)
+            {
+                printf("init_channel(): size should be divided by sampleSize!\n");
+                exit(EXIT_FAILURE);
+            }
+
+            if(channels[i].max_size / channels[i].sampleSize < channels[i].initData)
+            {
+                printf("init_channel(): initData is too large!\n");
+                exit(EXIT_FAILURE);
+            }
+
+            {
+                int j;
+                const int count = channels[i].max_size / channels[i].sampleSize;
+                channels[i].head = (AC_DATA*) malloc(count * sizeof(AC_DATA));
+                if(channels[i].head == NULL)
+                {
+                    printf("init_channel(): malloc() failed!\n");
+                    exit(EXIT_FAILURE);
+                }
+
+                channels[i].avail_index_start = channels[i].avail_index_end = NULL;
+
+                for(j=0;j<count;j++)
+                {
+                    channels[i].head[j].avail_node = (AC_AVAIL_LIST*) malloc(sizeof(AC_AVAIL_LIST));
+                    if(channels[i].head[j].avail_node == NULL)
+                    {
+                        printf("init_channel(): malloc() failed!\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    channels[i].head[j].avail_node->avail_index = j;
+                    channels[i].head[j].avail_node->prev = channels[i].head[j].avail_node->next = NULL;
+
+                    if(j < channels[i].initData)
+                    {
+                        channels[i].head[j].used = 1;
+                        {
+                            AC_DATA *ptr;
+                            CHANNEL *channel;
+                            ptr = &(channels[i].head[j]);
+                            channel = &(channels[i]);
+                            if(channel->avail_index_start == NULL)
+                            {
+                                assert(channel->avail_index_end == NULL);
+                                channel->avail_index_start = channel->avail_index_end = ptr->avail_node;
+                                assert(channel->avail_index_start->prev == NULL);
+                                assert(channel->avail_index_start->next == NULL);
+                            }
+                            else
+                            {
+                                AC_AVAIL_LIST *node;
+                                assert(channel->avail_index_end != NULL);
+                                node = channel->avail_index_end;
+                                channel->avail_index_end = node->next = ptr->avail_node;
+                                ptr->avail_node->prev = node;
+                                ptr->avail_node->next = NULL;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        channels[i].head[j].used = 0;
+                    }
+                    channels[i].head[j].buf = (unsigned char*) malloc(channels[i].sampleSize);
+                    if(channels[i].head[j].buf == NULL)
+                    {
+                        printf("init_channel(): malloc() failed!\n");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+            }
+        }
+    }
+}
+
+static void wrapup_channel(void)
+{
+    unsigned int i, j;
+
+    for(i=0; i<num_channels; i++)
+    {
+        if(channels[i].type == CHANNEL_TYPE_NORMAL)
+        {
+            if(gpuChannelInfo[i].cpu_gpu == 1)
+               CUDA_ERROR_CHECK(cudaFreeHost(channels[i].buf));
+            else if(gpuChannelInfo[i].cpu_gpu == 2){
+                int gpu_num=0;
+                for(j=0; j<num_portmaps; j++){
+                    if(addressmap[j].channel_id == i){
+                        gpu_num = addressmap[j].task_id;
+                        break;
+                    }
+               }
+               cudaSetDevice(gpuTaskInfo[gpu_num].gpu_index);
+               CUDA_ERROR_CHECK(cudaFree(channels[i].buf));
+            }
+            else 
+               free(channels[i].buf);
+        }
+        else if(channels[i].type == CHANNEL_TYPE_ARRAY_CHANNEL)
+        {
+            int j;
+            const int count = channels[i].max_size / channels[i].sampleSize;
+            for(j=0;j<count;j++)
+            {
+                free(channels[i].head[j].avail_node);
+                free(channels[i].head[j].buf);
+            }
+            free(channels[i].head);
+        }
+    }
+}
+##INIT_WRAPUP_CHANNELS_END
+
+##INIT_WRAPUP_TASK_CHANNELS_START
+static void init_task_channel(int parent_task_id){
+    int i=0, j=0, flag=0;
+    for(i = 0; i < num_channels; i++){
+        flag = 0;
+        for(j=0; j< num_portmaps; j++){
+            if(channels[i].channel_id == addressmap[j].channel_id && tasks[addressmap[j].task_id].parent_task_id == parent_task_id) flag++;
+        }
+        if(flag == 2){
+            channels[i].start = channels[i].buf;
+            memset(channels[i].start, 0x0, channels[i].initData);
+            channels[i].end = channels[i].start + channels[i].initData;
+            channels[i].cur_size = channels[i].initData;
+        }
+    }
+}
+
+static void wrapup_task_channel(int task_id){
+
+}
+##INIT_WRAPUP_TASK_CHANNELS_END
+
+##READ_WRITE_PORT_START
+
+int read_port(int channel_index, unsigned char *buf, int len) // blocking
+{
+    int cur_size=0;
+    CHANNEL *channel = &channels[channel_index];
+
+read_start:
+    if(tasks[addressmap[channel->sink_port].task_id].state!=Run)
+        pthread_exit(NULL);
+
+    if(channel->start <= channel->end)  cur_size = (unsigned int)(channel->end - channel->start);
+    else                                cur_size = (unsigned int)(channel->end + channel->max_size + sizeof(int) - channel->start);
+
+    if(len > cur_size) // blocking case
+    {
+        MUTEX_LOCK(&(channel->mutex));
+        channel->request_read = true;
+        COND_BROADCAST(&(channel->cond));
+        COND_WAIT(&(channel->cond), &(channel->mutex));
+        MUTEX_UNLOCK(&(channel->mutex));
+        goto read_start; // try reading again
+    }
+
+    if(channel->start + len <= channel->buf + channel->max_size + sizeof(int))
+    {
+        memcpy(buf, channel->start, len);
+        channel->start += len;
+        gpuChannelInfo[channel_index].read_wait += len;
+    }
+    else
+    {
+        int part = channel->max_size+sizeof(int) - (channel->start - channel->buf);
+        if(part != 0)
+        {
+            memcpy(buf, channel->start, part);
+        }
+        memcpy(buf + part, channel->buf, len - part);
+        channel->start = channel->buf + (len - part);
+        gpuChannelInfo[channel_index].read_wait = channel->buf + (len - part);
+    }
+
+    channel->request_read = false;
+    COND_BROADCAST(&(channel->cond));
+
+    return len;
+}
+
+int write_one_port(CHANNEL* channel, unsigned char *buf, int len) // blocking
+{
+    int cur_size=0;
+
+    if(len < 0)
+    {
+        printf("write_port(): len should be larger than 0!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if(len > channel->max_size)
+    {
+        printf("write_port(): max_size is too small!\n");
+        exit(EXIT_FAILURE);
+    }
+
+write_start:
+
+    if(channel->start <= channel->end)  cur_size = (unsigned int)(channel->end - channel->start);
+    else                                cur_size = (unsigned int)(channel->end + channel->max_size + sizeof(int) - channel->start);
+
+    if(len + cur_size > channel->max_size + sizeof(int)) // blocking case
+    {
+        MUTEX_LOCK(&(channel->mutex));
+        channel->request_write = true;
+        COND_BROADCAST(&(channel->cond));
+        COND_WAIT(&(channel->cond), &(channel->mutex));
+        MUTEX_UNLOCK(&(channel->mutex));
+        goto write_start; // try writing again
+    }
+
+
+    if(channel->buf + channel->max_size+sizeof(int) >= channel->end + len)
+    {
+        memcpy(channel->end, buf, len);
+        channel->end += len;
+        gpuChannelInfo[channel->channel_id].write_wait += len;
+    }
+    else
+    {
+        int part = channel->max_size+sizeof(int) - (channel->end - channel->buf);
+        if(part != 0)
+        {
+            memcpy(channel->end, buf, part);
+        }
+        memcpy(channel->buf, buf + part, len - part);
+        channel->end = channel->buf + (len - part);
+        gpuChannelInfo[channel->channel_id].write_wait = channel->buf + (len - part);
+    }
+
+    channel->request_write = false;
+    COND_BROADCAST(&(channel->cond));
+
+    return len;
+}
+
+int write_port(int channel_index, unsigned char *buf, int len) // blocking
+{
+    int result = 0;
+
+    while(channel_index >= 0) {
+        result = write_one_port(&channels[channel_index],buf,len);
+        channel_index = channels[channel_index].next_channel_index;
+    }
+
+    return result;
+}
+
+int available(int channel_index) // non-blocking
+{
+    int ret;
+
+    CHANNEL *channel = &channels[channel_index];
+
+    MUTEX_LOCK(&(channel->mutex));
+
+    ret = channel->end-channel->start;
+    if(ret == 0 && channel->isFull == true)	ret = channel->max_size;
+
+    MUTEX_UNLOCK(&(channel->mutex));
+
+    return ret;
+}
+##READ_WRITE_PORT_END
+
+##READ_WRITE_AC_PORT_START
+int read_acport(int channel_index, unsigned char *buf, int len, int index)
+{
+	int task_id = find_task(channel_index, 'r');
+    AC_DATA *ptr;
+    CHANNEL *channel = &channels[channel_index];
+    
+    ptr = &channel->head[index];
+    
+read_ac_start:
+
+    MUTEX_LOCK(&(channel->mutex));
+
+    if(ptr->used == 0)
+    {
+        channel->request_read = true;
+       tasks[task_id].run_state = ReadBlock;
+        if(channel->request_write == true)
+        {
+            printf("read_acport(): deadlock!\n");
+            exit(EXIT_FAILURE);
+        }
+        COND_WAIT(&(channel->cond), &(channel->mutex));
+        MUTEX_UNLOCK(&(channel->mutex));
+        goto read_ac_start;
+    }
+	tasks[task_id].run_state = Running;
+    channel->request_read = false;
+
+    memcpy(buf, ptr->buf, len);
+
+    {
+        AC_AVAIL_LIST *node;
+        node = ptr->avail_node;
+
+        if(ptr->used == 2)
+        {
+            assert(node->prev == NULL);
+            assert(node->next == NULL);
+        }
+        else
+        {
+            if(node->prev != NULL)
+            {
+                assert(node != channel->avail_index_start);
+                node->prev->next = node->next;
+            }
+            else
+            {
+                assert(node == channel->avail_index_start);
+                channel->avail_index_start = node->next;
+            }
+            if(node->next != NULL)
+            {
+                assert(node != channel->avail_index_end);
+                node->next->prev = node->prev;
+            }
+            else
+            {
+                assert(node == channel->avail_index_end);
+                channel->avail_index_end = node->prev;
+            }
+            node->prev = node->next = NULL;
+        }
+    }
+    ptr->used = 0;
+
+    MUTEX_UNLOCK(&(channel->mutex));
+    COND_BROADCAST(&(channel->cond));
+
+    return len;
+}
+
+int write_acport(int channel_id, unsigned char *buf, int len, int index)
+{
+	int task_id = find_task(channel_id, 'w');
+    AC_DATA *ptr;
+    CHANNEL *channel = &channels[channel_id];
+    
+    ptr = &channel->head[index];
+
+write_ac_start:
+
+    MUTEX_LOCK(&(channel->mutex));
+
+    if(ptr->used != 0)
+    {
+        channel->request_write = true;
+        tasks[task_id].run_state = WriteBlock;
+        if(channel->request_read == true)
+        {
+            printf("write_acport(): deadlock!\n");
+            exit(EXIT_FAILURE);
+        }
+        COND_WAIT(&(channel->cond), &(channel->mutex));
+        MUTEX_UNLOCK(&(channel->mutex));
+        goto write_ac_start;
+    }
+	tasks[task_id].run_state = Running;
+    channel->request_write = false;
+
+    memcpy(ptr->buf, buf, len);
+    ptr->used = 1;
+    
+    
+#if defined(BREAK_DEBUG) && (BREAK_DEBUG==1)
+    if(channel->isBreak){
+        dump_break_channel_data(channel_id);
+        wait_from_gui_break();
+        update_break();
+    }
+#endif
+
+#if defined(WATCH_DEBUG) && (WATCH_DEBUG==1)
+    if(channel->isWatch){
+        dump_watch_channel_data(channel_id);
+        update_watch();
+    }
+#endif
+
+    {
+        if(channel->avail_index_start == NULL)
+        {
+            assert(channel->avail_index_end == NULL);
+            channel->avail_index_start = channel->avail_index_end = ptr->avail_node;
+            assert(channel->avail_index_start->prev == NULL);
+            assert(channel->avail_index_start->next == NULL);
+        }
+        else
+        {
+            AC_AVAIL_LIST *node;
+            assert(channel->avail_index_end != NULL);
+            node = channel->avail_index_end;
+            channel->avail_index_end = node->next = ptr->avail_node;
+            ptr->avail_node->prev = node;
+            ptr->avail_node->next = NULL;
+        }
+    }
+
+    MUTEX_UNLOCK(&(channel->mutex));
+    COND_BROADCAST(&(channel->cond));
+
+    return len;
+}
+
+int ac_available (int channel_index, int index)
+{
+    CHANNEL *channel = &channels[channel_index];
+
+    if(channel->head[index].used != 0)
+    {
+        return 1;
+    }
+    else if(channel->head[index].used == 0)
+    {
+        return 0;
+    }
+    else
+    {
+        PRINT("ac_available(): unknown status!\n");
+        EXIT(EXIT_FAILURE);
+    }
+}
+
+int check_acport(int channel_id)
+{
+    int ret = -1;
+
+    CHANNEL *channel = &channels[channel_id];
+
+check_ac_start:
+
+    MUTEX_LOCK(&(channel->mutex));
+    {
+        AC_AVAIL_LIST *node;
+        node = channel->avail_index_start;
+
+        if(node == NULL) // blocking case
+        {
+            COND_WAIT(&(channel->cond), &(channel->mutex));
+            MUTEX_UNLOCK(&(channel->mutex));
+            goto check_ac_start;
+        }
+        else
+        {
+            ret = node->avail_index;
+            channel->avail_index_start = channel->avail_index_start->next;
+
+            if(channel->avail_index_start != NULL)
+            {
+                channel->avail_index_start->prev = NULL;
+            }
+            else
+            {
+                channel->avail_index_end = NULL;
+            }
+            node->next = NULL;
+            channel->head[ret].used = 2;
+        }
+    }
+
+    MUTEX_UNLOCK(&(channel->mutex));
+
+    return ret;
+}
+##READ_WRITE_AC_PORT_END
+
+
+##INIT_WRAPUP_CLUSTERS_START
+static void init_cluster(void)
+{               
+    int i=0;
+                                                                                                                                       
+    for(i=0; i<ARRAYLEN(cluster_buffers); i++)
+    {       
+        if(cluster_buffers[i].max_size > 0){
+                CUDA_ERROR_CHECK(cudaHostAlloc((void**)&cluster_buffers[i].buf, cluster_buffers[i].max_size, cudaHostAllocPortable));  
+                cluster_buffers[i].start = cluster_buffers[i].buf;                                                                     
+                cluster_buffers[i].end = cluster_buffers[i].buf;                                                                       
+        }   
+    }           
+}               
+                
+static void wrapup_cluster(void)
+{               
+    int i=0;    
+    for(i=0; i<ARRAYLEN(cluster_buffers); i++)
+    {       
+        if(cluster_buffers[i].max_size > 0)                                                                                            
+                CUDA_ERROR_CHECK(cudaFreeHost(cluster_buffers[i].buf));                                                                
+    }       
+} 
+##INIT_WRAPUP_CLUSTERS_END

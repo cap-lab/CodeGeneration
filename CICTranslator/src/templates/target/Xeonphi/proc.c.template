@@ -1,0 +1,106 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+#include <unistd.h>
+
+typedef struct{      
+  int func_number;  
+  long *func_addr;
+}funcAddr;
+
+##TASK_GO_DECLARATION
+
+funcAddr get_func(void){
+
+  funcAddr fa;
+
+
+##TASK_NUMBER
+  fa.func_addr = (long*)malloc(sizeof(long)*fa.func_number);
+
+##TASK_GO_ADDR
+
+  return fa;
+}
+
+
+void set_argument(int *argc, char*** argv, char* argument){
+
+  char *token;
+  char arg[100][1000];
+  char string[1000];
+  int len, i, j;
+  char *buf;
+  i = 0;
+  
+  strcpy(string, argument);
+  token = strtok_r(string, " ", &buf);
+
+  if(token){
+	len = strlen(token);
+	strncpy( arg[i], token, len);
+	i++;
+  }
+  while(token!=NULL){
+	token = strtok_r(NULL, " ", &buf);
+	if(token){
+	  len = strlen(token);
+	  strncpy(arg[i], token, len);
+	  i++;
+	}   
+  }
+
+  *argc = i;
+  
+  (*argv) = (char**)malloc(sizeof(char*)*(*argc));
+  for(j=0; j<*argc; j++){
+	len = strlen(arg[j]);
+	
+	(*argv)[j] = (char*)malloc( (len+1) *sizeof(char));
+	strncpy( (*argv)[j], arg[j], len);
+	(*argv)[j][len]='\0';
+  }
+}
+
+void free_argument(int *argc, char*** argv){
+  int i;
+  
+  for(i=0; i<*argc; i++){
+	free( (*argv)[i] );
+  }
+}
+
+void get_parallel_info(int *TID, int *MAX_PAR, int parallel_id, int max_parallel){
+
+  *TID = parallel_id;
+  *MAX_PAR = max_parallel;
+
+}
+
+void read_acport( long* task_data_addr, unsigned char * user_data, int size, int index){
+  memcpy( user_data, task_data_addr + (size*index)/8, size);
+}
+
+void write_acport( long* task_check_addr, unsigned char * user_data, int size, int index){
+
+  memcpy( task_check_addr + (size*index)/8, user_data , size);
+ 
+}
+
+ // int read_port(int channel_index, unsigned char *buf, int len) // blocking
+void read_port( long* task_data_addr, unsigned char * user_data, int size){
+  //printf("%p <- %p (size:%d)\n", user_data, task_data_addr, size);fflush(stdout);
+  memcpy( user_data, task_data_addr , size);
+}
+
+void write_port( long* task_check_addr, unsigned char * user_data, int size){
+
+  memcpy( task_check_addr , user_data , size);
+ 
+}
+
+int init_task_port(int id, char* name){
+  
+}
+

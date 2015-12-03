@@ -1,0 +1,67 @@
+##COMM_MASTER_CODE_START
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <sys/select.h>
+#include <arpa/inet.h>
+#include <assert.h>
+
+#define BUFSIZE 1024
+#define TRUE 1
+#define PORT 8081
+//Able to change std input buffer size and port number
+
+int wifiSocketList[NUM_WIFI_CONNECTION];	//socket for each client 
+
+int server_sockfd;
+int data_sockfd;
+int re;
+int option = TRUE;
+socklen_t socklen;	//Type socklen_t is defined in arpa/inet.h, and it is defined as unsigned int
+struct sockaddr_in server_addr, clnt_addr;
+socklen_t clnt_addr_size = (socklen_t)sizeof(clnt_addr);
+int max = 0;	//It is used in WIFIReceiverRoutine. It is the 1st argument of select().
+
+fd_set readfds;
+
+//WifiInit handles socket creating, binding, listening and accepting.
+//WifiInit is executed and finished only once at the beginning of the Wifi connection,
+//and no more additional client can be added after then.
+void WifiInit()
+{
+    //Create a new server socket for connection
+    server_sockfd = socket(PF_INET, SOCK_STREAM, 0);
+    assert(server_sockfd != -1);
+    printf("Server socket is created\n"); fflush(stdout);
+
+    socklen = (socklen_t)sizeof(option);
+    setsockopt(server_sockfd, SOL_SOCKET, SO_REUSEADDR, &option, socklen);
+
+    //Set address to receive a connection request
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    server_addr.sin_port = htons(PORT);
+
+    //binding socket(server_sockfd) to the port
+    socklen = (socklen_t) sizeof(server_addr);
+    re = bind(server_sockfd, (struct sockaddr *)&server_addr, socklen);    //typecast form int* to struct sockaddr* might cause a problem
+    assert(re != -1);
+
+    //Keep listening until the connection request from any client occurs
+    re = listen(server_sockfd, 5);
+    printf("Start listening\n"); fflush(stdout);
+    assert(re != -1);
+
+    FD_ZERO(&readfds);
+    //Accepting connection requests
+    int index; 
+    for(index = 0; index < NUM_WIFI_CONNECTION; index++)
+    {
+        wifiSocketList[index] = accept(server_sockfd, (struct sockaddr *)&clnt_addr, &clnt_addr_size);
+        FD_SET(wifiSocketList[index], &readfds);
+        max = wifiSocketList[index];
+        printf("Client %d is accepted\n", wifiSocketList[index]); fflush(stdout);
+    }   
+}
+##COMM_MASTER_CODE_END

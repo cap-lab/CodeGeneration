@@ -1,0 +1,3 @@
+LIB_CHANNEL lib_channels[] = {
+##LIBCHANNEL_ENTRIES
+};

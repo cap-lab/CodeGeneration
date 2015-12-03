@@ -1,0 +1,53 @@
+---------------------------------------------------------------------------------------------------
+					VRep 사용법
+---------------------------------------------------------------------------------------------------
+코드 생성기에서 만들어진 파일들은 다음과 같다.
+	- Client Application : 기존 코드생성기에서 만들어주는 형태
+	- child script
+
+1. Target 파일을 VRep 내부 programming 폴더 내로 옮겨준다. 
+ex. V-REP_PRO_EDU_V3_2_0_rev4_Linux/programming
+ex. /home/hyessun/Downloads/V-REP_PRO_EDU_V3_2_0_rev4_Linux/programming
+
+이 때 예를 들어 Target_abc라는 폴더였다면, 그 안에 들어가서 ls를 하게 될 경우 모든 h와 proc.c가 보여야 한다. 
+- V-REP_PRO_EDU_V3_2_0_rev4_Linux
+	- programming
+		- Target_abc
+			- proc.c
+			- ###.cic
+			- ###.c ....
+
+2. make clean을 해준 후에 make를 해준다.(다른 로봇으로 인해 만들어졌을 o파일을 지우기 위해)그러면 proc파일이 생성될 것이다. 
+
+3. 생성된 proc 파일을 Vrep파일내에 복사해준다. 
+ex. V-REP_PRO_EDU_V3_2_0_rev4_Linux/ 으로 복사해준다. 
+ex. /home/hyessun/Downloads/V-REP_PRO_EDU_V3_2_0_rev4_Linux/
+
+이를 파일로 그려보면 
+- V-REP_PRO_EDU_V3_2_0_rev4_Linux
+	- proc
+	- programming
+		- Target_abc
+			- proc.c
+			- ###.cic
+			- ###.c ....
+			- proc
+
+4. Vrep을 켠다. 
+.....V-REP_PRO_EDU_V3_2_0_rev4_Linux$ ./vrep.sh
+	
+5. child script의 경우 해당 scene에 로봇에게 threaded script를 생성해 준후 생성된 child script 를 copy&paste해준다. 
+
+6. 시뮬레이션을 실행한다.  
+
+** 프로그램을 종료할 때에는 다음과 같은 루틴을 따라야 한다. 
+1. 다른 터미널을 띄운후 top을 실행한다.   
+$ top
+
+2. 이를 통해 proc의 PID를 알아낸다.
+ex. PID	USER	...	COMMAND
+	3241hyessun		proc
+ 
+3. proc을 PID를 이용해서 kill한다.
+$ kill -9 3241 
+---------------------------------------------------------------------------------------------------

@@ -1,0 +1,122 @@
+##INIT_WRAPUP_LIBRARY_CHANNELS_START
+static void init_lib_channel(void)
+{
+    unsigned int i;
+    LIB_ERR lerr;
+    
+    for(i=0; i<num_libchannels; i++)
+    {
+        MUTEX_INIT(&(lib_channels[i].mutex));
+        COND_INIT(&(lib_channels[i].cond));
+       
+        {
+            unsigned char *ptr;
+            ptr = (unsigned char*)Mem_HeapAlloc(lib_channels[i].max_size + sizeof(int), 16, NULL, &lerr);
+            if(lerr != LIB_MEM_ERR_NONE)
+            {
+                PRINT("MEM_ALLOC failed!\n");
+                exit(EXIT_FAILURE);
+            }
+            lib_channels[i].buf = ptr;
+            lib_channels[i].start = ptr;
+            lib_channels[i].end = ptr;
+            lib_channels[i].cur_size =0;
+        }
+    }
+}
+
+static void wrapup_lib_channel(void)
+{
+    unsigned int i;
+    for(i=0; i<num_libchannels; i++)
+    {
+            free(lib_channels[i].buf);
+    }
+}
+##INIT_WRAPUP_LIBRARY_CHANNELS_END
+
+##READ_WRITE_LIB_PORT_START
+int init_lib_port(int library_id, const char op)
+{
+    unsigned int i;
+    for(i=0; i<num_libchannels; i++)
+    {
+        if(lib_channels[i].channel_id == library_id && lib_channels[i].op == op)
+        {
+            return i;
+        }
+    }
+
+    PRINT("Warning : init_lib_port(): No port is available or connected\n");
+    return -1;
+}
+
+int read_lib_port(int channel_index, unsigned char *buf, int len)
+{
+    LIB_CHANNEL *channel = &lib_channels[channel_index];
+
+    if(channel->start + len <= channel->buf + channel->max_size + sizeof(int))
+    {
+        Mem_Copy(buf, channel->start, len);
+        channel->start += len;
+    }
+    else
+    {
+        int part = channel->max_size+sizeof(int) - (channel->start - channel->buf);
+        if(part != 0)
+        {
+            Mem_Copy(buf, channel->start, part);
+        }
+        Mem_Copy(buf + part, channel->buf, len - part);
+        channel->start = channel->buf + (len - part);
+    }
+
+    return len;
+}
+
+int write_lib_port(int channel_index, unsigned char *buf, int len)
+{
+    LIB_CHANNEL *channel = &lib_channels[channel_index];
+
+    if(channel->buf + channel->max_size + sizeof(int) >= channel->end + len)
+    {
+        Mem_Copy(channel->end, buf, len);
+        channel->end += len;
+    }
+    else
+    {
+        int part = channel->max_size + sizeof(int) - (channel->end - channel->buf);
+        if(part != 0)
+        {
+            Mem_Copy(channel->end, buf, part);
+        }
+        Mem_Copy(channel->buf, buf + part, len - part);
+        channel->end = channel->buf + (len - part);
+    }
+    
+    if(lib_available(channel_index) != 0)	//to prevent write twice consecutively
+      OSTaskSemPend(1000, OS_OPT_PEND_BLOCKING, 0, &err); 
+
+    return len;
+}
+
+int lib_available(int channel_index) // non-blocking
+{
+    int ret;
+
+    LIB_CHANNEL *channel = &lib_channels[channel_index];
+
+    MUTEX_LOCK(&(channel->mutex));
+
+    if(channel->start <= channel->end) {
+    	ret = (unsigned int)(channel->end - channel->start);
+    	if(ret == 0 && channel->isFull == true)	ret = channel->max_size + sizeof(int);
+    }
+    else  	ret = (unsigned int)(channel->end + channel->max_size + sizeof(int) - channel->start);
+
+    MUTEX_UNLOCK(&(channel->mutex));
+
+    return ret;
+}
+
+##READ_WRITE_LIB_PORT_END

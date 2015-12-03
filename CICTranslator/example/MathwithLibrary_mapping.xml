@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CIC_Mapping xmlns="http://peace.snu.ac.kr/CICXMLSchema">
+    <task name="input" dataParallel="none">
+        <processor pool="arm926ej_s" localId="0"/>
+    </task>
+    <task name="calculate" dataParallel="none">
+        <processor pool="arm926ej_s" localId="0"/>
+    </task>
+    <task name="output" dataParallel="none">
+        <processor pool="arm926ej_s" localId="0"/>
+    </task>
+</CIC_Mapping>
+

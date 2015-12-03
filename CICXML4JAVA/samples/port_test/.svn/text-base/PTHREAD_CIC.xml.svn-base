@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<CIC_XML name="mmm">
+  <hardware>
+  	<target>PTHREAD</target>
+	<openmp_mode>bcast</openmp_mode>
+	<processor name="arm926ej-s">
+        <coreList>
+            <core index="0"/>
+            <core index="1"/>
+            <core index="2"/>
+        </coreList>
+		<OS>
+			<support>TRUE</support>
+			<sched>DEFAULT</sched>
+		</OS>
+	</processor>
+  </hardware>
+  <constraints>
+    <memory>0</memory>
+    <power>0</power>
+    <globalPeriod>20</globalPeriod>
+    <mode>
+      <task name="sender">
+        <deadline>1</deadline>
+        <period>1</period>
+        <priority>1</priority>
+        <subtask name="task">
+          <execTime>1</execTime>
+        </subtask>
+      </task>
+      <task name="relay">
+        <deadline>1</deadline>
+        <period>2</period>
+        <priority>1</priority>
+        <subtask name="task">
+          <execTime>1</execTime>
+        </subtask>
+      </task>
+      <task name="recv">
+        <deadline>1</deadline>
+        <period>4</period>
+        <priority>1</priority>
+        <subtask name="task">
+          <execTime>1</execTime>
+        </subtask>
+      </task>
+    </mode>
+  </constraints>
+  <structure>
+    <mode name="default">
+      <task name="sender">
+        <subtask name="task">
+          <dataParallel>0</dataParallel>
+          <taskID>0</taskID>
+          <rate>1</rate>
+          <procMap>0</procMap>
+          <fileName>sender.cic</fileName>
+          <cflags></cflags>
+        </subtask>
+      </task>
+      <task name="relay">
+        <subtask name="task">
+          <dataParallel>0</dataParallel>
+          <taskID>1</taskID>
+          <rate>4</rate>
+          <procMap>0</procMap>
+          <fileName>relay.cic</fileName>
+          <cflags></cflags>
+        </subtask>
+      </task>
+      <task name="recv">
+        <subtask name="task">
+          <dataParallel>0</dataParallel>
+          <taskID>2</taskID>
+          <rate>12</rate>
+          <procMap>0</procMap>
+          <fileName>recv.cic</fileName>
+          <cflags></cflags>
+        </subtask>
+      </task>
+    </mode>
+    <queue>
+      <index>0</index>
+      <src name="sender.task">
+        <portid>0</portid>
+      </src>
+      <dst name="relay.task">
+        <portid>0</portid>
+      </dst>
+      <initData>0</initData>
+      <sampleSize>4</sampleSize>
+      <produce>1</produce>
+      <consume>1</consume>
+      <size>9</size>
+    </queue>
+    <queue>
+      <index>1</index>
+      <src name="relay.task">
+        <portid>1</portid>
+      </src>
+      <dst name="recv.task">
+        <portid>0</portid>
+      </dst>
+      <initData>0</initData>
+      <sampleSize>4</sampleSize>
+      <produce>1</produce>
+      <consume>1</consume>
+      <size>11</size>
+    </queue>
+  </structure>
+</CIC_XML>

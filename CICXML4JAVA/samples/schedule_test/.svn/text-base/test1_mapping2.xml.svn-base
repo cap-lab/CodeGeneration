@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CIC_Mapping xmlns="http://peace.snu.ac.kr/CICXMLSchema">
+    <task name="A">
+        <processor pool="arm2mp" localId="1"/>
+    </task>
+    <task name="B">
+        <processor pool="arm2mp" localId="0"/>
+    </task>
+    <task name="C">
+        <processor pool="arm2mp" localId="0"/>
+    </task>
+    <task name="D">
+        <processor pool="arm2mp" localId="0"/>
+    </task>
+    <task name="E">
+        <processor pool="arm2mp" localId="1"/>
+    </task>
+    <task name="F">
+        <processor pool="arm2mp" localId="0"/>
+    </task>
+    <task name="G">
+        <processor pool="arm4mp" localId="0"/>
+        <processor pool="arm4mp" localId="1"/>
+        <processor pool="arm4mp" localId="2"/>
+        <processor pool="arm4mp" localId="3"/>
+    </task>
+    <task name="H">
+        <processor pool="arm2mp" localId="1"/>
+    </task>
+</CIC_Mapping>
+

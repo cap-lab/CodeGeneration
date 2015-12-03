@@ -1,0 +1,238 @@
+##TASK_ROUTINE_START
+THREAD_FUNC_RET_TYPE task_routine(THREAD_FUNC_ARG_TYPE pdata)
+{
+  int task_index = (int)pdata;
+        OS_ERR err;
+        OS_TICK start, end, current, period; 
+
+  if(tasks[task_index].task_type != Control){
+            while(1){
+              if(all_threads_created) break;
+           }
+  }
+  
+  TASK_INIT;
+   
+  if(tasks[task_index].task_type == Control){
+    MUTEX_LOCK(&control_task_count_lock);
+    control_task_count++;
+    if(control_task_count == control_task_total_count)  all_control_tasks_initiated = true;
+    MUTEX_UNLOCK(&control_task_count_lock);
+  }
+  
+  if(tasks[task_index].driven_type == TimeDriven){
+    OS_TICK tick_rate = OSCfg_TickRate_Hz;
+    CPU_INT32U ms_period = tasks[task_index].period;
+    period  =  (tick_rate * ((OS_TICK)ms_period + (OS_TICK)500u / tick_rate)) / (OS_TICK)1000u;
+  }
+          
+  while(true){
+          if(tasks[task_index].state == Wait){
+            MUTEX_LOCK(&(tasks[task_index].p_mutex));
+            cic_task_sleep(task_index, 't');
+            MUTEX_UNLOCK(&(tasks[task_index].p_mutex));
+          }
+          
+          if(tasks[task_index].hasMTM == true){
+            int i=0;
+            for(i=0; i<num_mtms; i++)
+              if(task_index == mtms[i].task_id)  break;
+            mtms[i].transition();
+          }
+          
+          if(tasks[task_index].driven_type == TimeDriven){ 
+            start = OSTimeGet(&err);
+            if(err != OS_ERR_NONE){
+                PRINT("OSTimeGet1() failed!\n");
+            }
+            end = start + period;
+          }
+
+          TASK_GO;
+          
+          OSTaskSemPend(1, OS_OPT_PEND_BLOCKING, 0, &err); 
+          if(tasks[task_index].driven_type == TimeDriven){
+            current = OSTimeGet(&err);
+            if(current < end)     OSTaskSemPend(end - current, OS_OPT_PEND_BLOCKING, 0, &err);
+          }
+
+          if(exit_signal == 1 || tasks[task_index].state == Stop)    break;
+  }
+  
+  time_task_count++;
+     
+  TASK_WRAPUP;
+
+  tasks[task_index].state = Stop;
+}
+##TASK_ROUTINE_END
+
+##EXECUTE_TASKS_START
+static void execute_tasks(void)
+{
+    int i=0;
+    OS_ERR err;
+    
+    THREAD_CREATE(&(arduino_task), arduino_task_routine, (void *)0);
+
+    for(i=0; i<num_tasks; i++)
+    {
+        if(tasks[i].task_type == Control){
+            control_task_total_count++;
+            THREAD_CREATE(&(tasks[i].thread), task_routine, (void *)tasks[i].task_id);
+            if(tasks[i].driven_type == TimeDriven)      num_time_task++;
+        }
+    }
+
+    if(control_task_total_count != 0){
+        while(1){
+              if(all_control_tasks_initiated){
+                      OSTaskChangePrio(&AppTaskRobotStartTCB, APP_TASK_ROBOT_START_PRIO, &err);
+                      break;
+              }
+              else{
+                OSTaskChangePrio(&AppTaskRobotStartTCB, OS_CFG_TICK_TASK_PRIO, &err);
+              }
+           }
+    }
+
+    for(i=0; i<num_tasks; i++)
+    {
+        if(tasks[i].task_type != Control){
+          int create_thread = 0;
+
+          if(tasks[i].parent_task_id == i)    create_thread = 1;
+                else                                create_thread = 0;
+
+          if(create_thread == 1 && tasks[i].state == Run){
+                    THREAD_CREATE(&(tasks[i].thread), task_routine, (void *)tasks[i].task_id);
+                    if(tasks[i].driven_type == TimeDriven)      num_time_task++;
+                }
+        }
+    }
+  
+    all_threads_created = true;
+    
+    while(1){
+        if(time_task_count > 0 && time_task_count == num_time_task){
+                wait_data_tasks_end();
+                OSTaskChangePrio(&AppTaskRobotStartTCB, APP_TASK_ROBOT_START_PRIO, &err);
+                break;
+        }
+        else{
+          OSTaskChangePrio(&AppTaskRobotStartTCB, OS_CFG_TICK_TASK_PRIO, &err);
+        }
+    }
+
+    for(i=0; i<num_tasks; i++)
+        if(tasks[i].driven_type != ControlDriven) THREAD_CANCEL(&tasks[i].thread);
+    
+    THREAD_CANCEL(&(arduino_task));
+
+    return;
+}
+##EXECUTE_TASKS_END
+
+##CONTROL_RUN_TASK_START
+    int i=0;
+    int target_task_id = get_task_id(t_name);
+    for(i=0; i<ARRAYLEN(tasks); i++)
+    {
+        if(target_task_id == tasks[i].task_id)
+        {
+            int task_index = tasks[i].task_id;
+            
+            init_task_channel(task_index);
+            THREAD_CREATE(&(tasks[task_index].thread), task_routine, (void *)task_index);
+            tasks[task_index].state = Run;
+
+            //PRINT("Run a task");
+            break;
+        }
+    }  
+    return;  
+##CONTROL_RUN_TASK_END
+
+##CONTROL_STOP_TASK_START
+    int i=0;
+    if(STRING_COMPARE(caller_task_name, t_name) == 0){
+      int task_id = get_task_id(caller_task_name);
+      int parent_task_id = tasks[task_id].parent_task_id;
+        THREAD_CANCEL(&tasks[parent_task_id].thread);
+        wrapup_task_channel(parent_task_id);
+        tasks[parent_task_id].state = Stop;
+        PRINT("Stop a task (own)");
+    }
+    else{
+      int target_task_id = get_task_id(t_name);
+      for(i=0; i<ARRAYLEN(tasks); i++)
+      {
+          if(target_task_id == tasks[i].task_id)
+          {
+              int task_index = tasks[i].task_id;
+              
+              THREAD_CANCEL(&tasks[task_index].thread);
+              wrapup_task_channel(task_index);
+              tasks[task_index].state = Stop;
+
+              //PRINT("Stop a task");
+              break;
+          }
+      } 
+    }
+
+    return;
+##CONTROL_STOP_TASK_END
+
+##CONTROL_RESUME_TASK_START
+    int i=0;
+    OS_ERR err;
+    
+    int target_task_id = get_task_id(t_name);
+    for(i=0; i<ARRAYLEN(tasks); i++)
+    {
+        if(target_task_id == tasks[i].task_id)
+        {
+            int task_id = tasks[i].task_id;
+            if(tasks[task_id].state != Stop)  tasks[task_id].state = Run;
+            OSTaskResume(&(tasks[task_id].thread.tcb), &err);
+            PRINT("Resume a task");
+            break;
+        }
+    } 
+
+    return;
+##CONTROL_RESUME_TASK_END
+
+##CONTROL_SUSPEND_TASK_START
+    int i=0;
+    OS_ERR err;
+    
+    if(STRING_COMPARE(caller_task_name, t_name) == 0){
+        int task_id = get_task_id(caller_task_name);
+        int parent_task_id = tasks[task_id].parent_task_id;
+        if(tasks[parent_task_id].state != Stop){
+          tasks[parent_task_id].state = Wait;
+          OSTaskSuspend(&(tasks[task_id].thread.tcb), &err);
+        }
+        PRINT("Suspend a task (own)");
+    }
+    else{
+      int target_task_id = get_task_id(t_name);
+      for(i=0; i<ARRAYLEN(tasks); i++)
+      {
+          if(target_task_id == tasks[i].task_id)
+          {
+              int task_id = tasks[i].task_id;
+              if(tasks[task_id].state != Stop){
+                  tasks[task_id].state = Wait;
+                  OSTaskSuspend(&(tasks[task_id].thread.tcb), &err);
+              }
+              PRINT("Suspend a task");
+              break;
+          }
+      }  
+
+    }
+    return;
+##CONTROL_SUSPEND_TASK_END

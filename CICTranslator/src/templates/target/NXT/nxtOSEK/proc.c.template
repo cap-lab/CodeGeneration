@@ -1,0 +1,596 @@
+##TARGET_DEPENDENT_SENSOR_ACTUATOR_DECLARATION
+
+##OS_DEPENDENT_HEADER_INCLUDE
+
+##EXTERN_FUNCTION_DECLARATION
+
+##SLEEP_MACRO
+
+#define num_tasks (int)(sizeof(tasks)/sizeof(tasks[0]))
+#define num_channels (int)(sizeof(channels)/sizeof(channels[0]))
+#define num_portmaps (int)(sizeof(addressmap)/sizeof(addressmap[0]))
+#define num_mtms (int)(sizeof(mtms)/sizeof(mtms[0]))
+#define ARRAYLEN(ARR) (int)(sizeof(ARR)/sizeof(ARR[0]))
+
+##LIBRARY_NUM_DECLARATION
+
+// For sync. among threads
+volatile static bool all_threads_created = false;
+volatile static bool channel_empty = false;
+volatile static int time_task_count = 0;
+static int num_time_task = 0;
+static MUTEX_TYPE time_mutex;
+static COND_TYPE time_cond;
+
+volatile static bool global_sync = false;
+static MUTEX_TYPE global_mutex;
+static COND_TYPE global_cond;
+
+#if defined(RESUME)
+static bool resume = false;
+#endif
+
+
+##EXTERNAL_GLOBAL_HEADERS
+
+##ALL_INIT
+
+##LIB_INIT_WRAPUP
+
+##SCHEDULE_CODE
+
+##TARGET_DEPENDENT_IMPLEMENTATION
+
+static void wait_data_tasks_end(){
+	// if (all data-driven tasks are WaitBlock or ReadBlock state) && (remaining data size in all channels are less than sample size or 0)
+	int i=0;
+	bool task_flag = false, data_flag = false;
+
+	while(1){
+		data_flag = false;
+		for(i=0; i<num_channels; i++){
+			if(channels[i].cur_size >= channels[i].sampleSize && channels[i].initData == 0){
+				data_flag = true;
+				break;
+			}
+		}
+		if(!data_flag){
+			channel_empty = true;
+			break;
+		}
+	}
+
+	while(1){
+		task_flag = false;
+		for(i=0; i<num_tasks; i++){
+			if(tasks[i].driven_type == DataDriven && tasks[i].isChildtask == false){
+				if(tasks[i].run_state == Running){
+					task_flag = true;
+					break;
+				}
+			}
+		}
+		if(!task_flag)	break;
+	}
+}
+
+##DEBUG_CODE_IMPLEMENTATION
+
+##WRAPUP_TASK_ROUTINE
+
+##DATA_TASK_ROUTINE
+
+##CONTROL_ONCE_TASK_ROUTINE
+
+##TIME_TASK_ROUTINE
+
+##EXECUTE_TASKS
+
+##INIT_WRAPUP_TASK_CHANNELS
+
+##INIT_WRAPUP_CHANNELS
+
+##INIT_WRAPUP_LIB_CHANNELS
+
+int init_port(int task_id, int port_id)
+{
+    unsigned int i;
+    int channel_id;
+    for(i=0; i<num_portmaps; i++)
+    {
+        if(addressmap[i].task_id == task_id && addressmap[i].port_id == port_id)
+        {
+            unsigned int j;
+            channel_id = addressmap[i].channel_id;
+            for(j=0; j<num_channels; j++)
+                if(channels[j].channel_id == channel_id)
+                    return j;
+        }
+    }
+    
+    exit(EXIT_FAILURE);
+}
+
+int init_task_port(int task_id, const char* port_name)
+{
+    unsigned int i;
+    int channel_id;
+    for(i=0; i<num_portmaps; i++)
+    {
+        if(addressmap[i].task_id == task_id && strcmp(addressmap[i].port_name, port_name)==0)
+        {
+            unsigned int j;
+            channel_id = addressmap[i].channel_id;
+            for(j=0; j<num_channels; j++)
+                if(channels[j].channel_id == channel_id)
+                    return j;           
+            return -1;
+        }
+    }
+	
+    return -1;
+}
+
+static CHANNEL *get_channel(int channel_index)
+{
+#if defined(PROC_DEBUG) //&& (PROC_DEBUG==1)
+    if(channel_index>=0 && channel_index < num_channels)
+#endif
+
+        return &(channels[channel_index]);
+
+#if defined(PROC_DEBUG)// && (PROC_DEBUG==1)
+    //printf("get_channel(): Can't find channel(channel_index: %d)\n", channel_index);
+    exit(EXIT_FAILURE);
+#endif
+}
+
+static char *get_task_name(int task_id)
+{
+    int i;
+    for(i=0; i<num_tasks; i++)
+    {
+        if(tasks[i].task_id == task_id)
+        {
+            return tasks[i].name;
+        }
+    }
+#if defined(PROC_DEBUG)// && (PROC_DEBUG==1)
+    //printf("get_task_name(): Can't find task's name\n");
+    exit(EXIT_FAILURE);
+#endif
+	return NULL;
+}
+
+static int get_task_id(char* task_name)
+{
+    int i;
+    for(i=0; i<num_tasks; i++)
+    {
+        if(strcmp(task_name, tasks[i].name) == 0)
+        {
+            return tasks[i].task_id;
+        }
+    }
+#if defined(PROC_DEBUG) //&& (PROC_DEBUG==1)
+    //printf("get_task_id(): Can't find task's id\n");
+    exit(EXIT_FAILURE);
+#endif
+	return -1;
+}
+
+static int find_task(int channel_id, char op){
+	int i=0;
+	for(i=0; i<num_portmaps; i++){
+		if(addressmap[i].channel_id == channel_id && addressmap[i].op == op)
+			return addressmap[i].task_id;
+	}
+#if defined(PROC_DEBUG) //&& (PROC_DEBUG==1)
+    //printf("get_task_name(): Can't find task's name\n");
+    exit(EXIT_FAILURE);
+#endif
+
+	return -1;
+}
+
+##READ_WRITE_PORT
+
+##READ_WRITE_AC_PORT
+
+##READ_WRITE_BUF_PORT
+
+##READ_WRITE_LIB_PORT
+
+##GET_CURRENT_TIME_BASE
+
+static unsigned int get_control_channel_index(unsigned int control_task_id)
+{
+	int i;
+	/* get control channel array index */
+	for(i=0;i<CONTROL_CHANNEL_COUNT;i++) {
+		if(control_task_id == control_channel[i].control_task_id) {
+			return i;
+		}
+	}
+#if defined(PROC_DEBUG) //&& (PROC_DEBUG==1)
+	//printf("NOT CALLED CONTROL CHANNEL\n");
+#endif
+	return -1;
+}
+
+static int get_valid_timer_slot_id(unsigned int cont_ch_index)
+{
+	int i, temp_slot_index;
+
+	i = control_channel[cont_ch_index].empty_slot_index;
+	temp_slot_index = control_channel[cont_ch_index].empty_slot_index + 1;
+	if(temp_slot_index>=MAX_TIMER_SLOT_SIZE) // return back to the first time_slot
+		temp_slot_index = 0;
+
+	if(control_channel[cont_ch_index].timer_slot[temp_slot_index] != 0) {  // check the next point is available
+		unsigned int cur_time_val = get_current_time_base();
+		if(control_channel[cont_ch_index].timer_slot[temp_slot_index]  <= cur_time_val) {
+			control_channel[cont_ch_index].timer_slot[temp_slot_index] = 0;
+		}
+		else { // traverse until it find an available time slot
+			for(; temp_slot_index != i; ++temp_slot_index) {
+				if(temp_slot_index>=MAX_TIMER_SLOT_SIZE)
+					temp_slot_index = 0;
+				if(control_channel[cont_ch_index].timer_slot[temp_slot_index] == 0)
+					break;
+				else if(control_channel[cont_ch_index].timer_slot[temp_slot_index] <= cur_time_val) {
+					control_channel[cont_ch_index].timer_slot[temp_slot_index] = 0;
+					break;
+				}
+			}
+
+			if(temp_slot_index == i)
+			{
+				return -1;
+			}
+		}
+	}
+
+	control_channel[cont_ch_index].empty_slot_index = temp_slot_index;
+	return i;
+}
+
+void execute_transition(char* caller_task_name, char* t_name)
+{
+    int i=0, j=0;
+
+    for(i=0; i<num_tasks; i++){
+        if(strcmp(tasks[i].name, t_name) == 0){
+            for(j=0; j<ARRAYLEN(mtms); j++){
+                if(mtms[j].task_id == tasks[i].parent_task_id){
+                    MTM_TRANSITION;//mtms[j].transition();
+                    return;
+                }
+            }
+        }
+    }
+    return;
+}
+
+
+char* get_mode(char* caller_task_name, char*t_name, int time_base_id)
+{
+    int i=0, j=0;
+    char* mode = NULL;
+
+    for(i=0; i<num_tasks; i++){
+        if(strcmp(tasks[i].name, t_name) == 0){
+            for(j=0; j<ARRAYLEN(mtms); j++){
+                if(mtms[j].task_id == tasks[i].parent_task_id){
+                    MTM_GET_CUR_MODE_NAME;//mode = mtms[j].get_current_mode_name();
+                    return mode;
+                }
+            }
+        }
+    }
+
+    return NULL;
+}
+
+void set_mtm_param_int(char* caller_task_name, char* t_name, char* p_name, long p_value)
+{
+    int i=0, j=0;
+
+    for(i=0; i<num_tasks; i++){
+        if(strcmp(tasks[i].name, t_name) == 0){
+            for(j=0; j<ARRAYLEN(mtms); j++){
+                if(mtms[j].task_id == tasks[i].parent_task_id){
+                    MTM_SET_VAR_INT;//mtms[j].set_variable_int(p_name, (int)p_value);
+                    return;
+                }
+            }
+        }
+    }
+    return;
+}
+
+void set_mtm_param_string(char* caller_task_name, char* t_name, char* p_name, char* p_value)
+{
+    return;
+}
+
+int check_task_state(char* caller_task_name, char* t_name)
+{
+    int i=0;
+    int task_id=0;
+
+    for(i=0; i<num_tasks; i++){
+        if(strcmp(t_name, tasks[i].name) == 0){
+            task_id = i;
+            break;
+        }
+    }
+
+    return tasks[task_id].state;
+}
+
+
+void run_task(char* caller_task_name, char* t_name)
+{
+	##CONTROL_RUN_TASK    
+}
+
+void call_task(char* caller_task_name, char* t_name)
+{
+	##CONTROL_CALL_TASK    
+}
+
+void stop_task(char* caller_task_name, char* t_name)
+{
+	##CONTROL_STOP_TASK   
+}
+
+void resume_task(char* caller_task_name, char* t_name)
+{
+    ##CONTROL_RESUME_TASK
+}
+
+void suspend_task(char* caller_task_name, char* t_name)
+{
+	##CONTROL_SUSPEND_TASK
+}
+
+long get_param_int(char* caller_task_name, char* t_name, char* p_name)
+{
+	long ret=0;
+	int i=0;
+	char *task_name;
+	char *param_name;
+
+	if(t_name == NULL)
+	{
+		int task_id = get_task_id(caller_task_name);
+		task_name = tasks[task_id].name;
+		param_name = p_name;
+	}
+	else
+	{
+		task_name = t_name;
+		param_name = p_name;
+	}
+
+	for(i=0; i<ARRAYLEN(param_list); i++)
+	{
+		if(strcmp(task_name, param_list[i].task_name) == 0 && strcmp(param_name, param_list[i].param_name) == 0)
+		{
+			ret = (long)(param_list[i].param_value);
+			break;
+		}
+	}
+
+	return ret;
+}
+
+void set_param_int(char* caller_task_name, char* t_name, char* p_name, long p_value)
+{
+	int target_task_id=0;
+	int param_id=-1;
+
+	unsigned int i;
+
+	/* find target task id */
+	for(i=0;i<ARRAYLEN(tasks);i++){
+		if(strcmp(t_name, tasks[i].name)==0) {
+			target_task_id = i;
+			break;
+		}
+	}
+	/* find param id */
+	for(i=0;i<ARRAYLEN(param_list);i++) {
+		if(strcmp(p_name, param_list[i].param_name)==0 && target_task_id == param_list[i].task_id)
+    {
+			param_id = param_list[i].param_id;
+			break;
+		}
+	}
+
+    param_list[param_id].param_value = (void*)p_value;
+
+
+    return;
+}
+
+float get_param_float(char* caller_task_name, char* t_name, char* p_name)
+{
+	float ret=0;
+	int i=0;
+	char *task_name;
+	char *param_name;
+
+	if(t_name == NULL)
+	{
+		int task_id = get_task_id(caller_task_name);
+		task_name = tasks[task_id].name;
+		param_name = p_name;
+	}
+	else
+	{
+		task_name = t_name;
+		param_name = p_name;
+	}
+
+	for(i=0; i<ARRAYLEN(param_list); i++)
+	{
+		if(strcmp(task_name, param_list[i].task_name) == 0 && strcmp(param_name, param_list[i].param_name) == 0)
+		{
+			ret = *(float*)(param_list[i].param_value);
+			break;
+		}
+	}
+
+	return ret;
+}
+
+void set_param_float(char* caller_task_name, char* t_name, char* p_name, float p_value)
+{
+	int target_task_id=0;
+	int param_id=-1;
+
+	unsigned int i;
+
+	/* find target task id */
+	for(i=0;i<ARRAYLEN(tasks);i++){
+		if(strcmp(t_name, tasks[i].name)==0) {
+			target_task_id = i;
+			break;
+		}
+	}
+	/* find param id */
+	for(i=0;i<ARRAYLEN(param_list);i++) {
+		if(strcmp(p_name, param_list[i].param_name)==0 &&
+				target_task_id == param_list[i].task_id) {
+			param_id = param_list[i].param_id;
+			break;
+		}
+	}
+
+    param_list[param_id].param_value = (void*)p_value;
+
+	return;
+}
+
+int get_timer_alarmed(char* caller_task_name, unsigned int timer_id)
+{
+	unsigned int my_task_id = get_task_id(caller_task_name);
+	unsigned int cont_ch_index = get_control_channel_index(my_task_id);
+	int p_group, p;
+	unsigned int current_time_base = get_current_time_base();
+
+	p = control_channel[cont_ch_index].control_priority;
+	p_group = control_channel[cont_ch_index].control_group_id;
+
+	if(control_channel[cont_ch_index].timer_slot[timer_id] > control_channel[cont_ch_index].time_base[timer_id])
+	{
+		if(control_channel[cont_ch_index].timer_slot[timer_id]  <= current_time_base)
+		{
+			control_channel[cont_ch_index].timer_slot[timer_id]=0; // reset timer
+			control_channel[cont_ch_index].empty_slot_index = timer_id;
+			return 0;
+		}
+		else 
+		{
+			if(control_channel[cont_ch_index].time_base[timer_id] > current_time_base) //overflow
+			{
+				control_channel[cont_ch_index].timer_slot[timer_id]=0; // reset timer
+				control_channel[cont_ch_index].empty_slot_index = timer_id;
+				return 0;
+			}
+			else
+				return -1;
+		}
+	}
+	else //overflow
+	{
+		if((control_channel[cont_ch_index].timer_slot[timer_id]  <= current_time_base) && (control_channel[cont_ch_index].time_base[timer_id] > current_time_base))
+		{
+			control_channel[cont_ch_index].timer_slot[timer_id]=0; // reset timer
+			control_channel[cont_ch_index].empty_slot_index = timer_id;
+			return 0;
+		}
+		else
+			return -1;
+	}
+}
+
+int set_timer(char* caller_task_name, unsigned int time_offset,  unsigned char* time_unit)
+{
+	int timer_id;
+	unsigned int my_task_id = get_task_id(caller_task_name);
+	unsigned int cont_ch_index = get_control_channel_index(my_task_id);
+	timer_id = get_valid_timer_slot_id(cont_ch_index);
+	unsigned int time_base = get_current_time_base();
+
+    if(strcmp(time_unit, "M") == 0)
+    {
+        time_offset = time_offset * 1000 * 60;
+    }
+    else if(strcmp(time_unit, "S") == 0)
+    {
+        time_offset = time_offset * 1000;
+    }
+    else if(strcmp(time_unit, "MS") == 0)
+    {
+        time_offset = time_offset;
+    }
+    else if(strcmp(time_unit, "US") == 0) //DO IT MS instead of US
+    {
+        time_offset = time_offset;
+    }
+
+    if(timer_id == -1)
+    {
+        nxtDisplayString(0, "ERROR: array size error");
+        control_channel[cont_ch_index].time_base[timer_id] = time_base;	//to make error
+    }
+    control_channel[cont_ch_index].time_base[timer_id] = time_base;
+	control_channel[cont_ch_index].timer_slot[timer_id] = time_base + time_offset;
+	return timer_id;
+}
+
+void reset_timer(char* caller_task_name, unsigned int timer_id)
+{
+	unsigned int my_task_id = get_task_id(caller_task_name);
+	unsigned int cont_ch_index = get_control_channel_index(my_task_id);
+	control_channel[cont_ch_index].time_base[timer_id] = 0; //reset timer: base time
+	control_channel[cont_ch_index].timer_slot[timer_id]=0; // reset timer
+}
+
+void program_kill()
+{
+    //printf("----PROGRAM KILL---\n");
+	exit(EXIT_FAILURE);
+}
+
+void program_stop()
+{
+
+		exit_signal = 1;
+    return;
+
+}
+
+##LIB_WRAPPER_DECLARATION
+
+##LIB_WRAPPER_TASK
+
+task main()
+{
+##TARGET_DEPENDENT_INIT_CALL
+	
+	init_channel();
+	
+##TARGET_INIT_LIB_CHANNEL
+		
+##TARGET_DEPENDENT_LIB_CALL
+	execute_tasks();
+	
+##TARGET_WRAPUP_LIB_CHANNEL
+	wrapup_channel();
+
+##TARGET_DEPENDENT_WRAPUP_CALL	
+}

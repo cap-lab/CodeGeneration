@@ -1,0 +1,160 @@
+##INTERRUPT_START
+static void lock_acquire(void)
+{
+        esim_mutex_lock(&shared_lock);
+}
+
+static void lock_release(void)
+{
+        esim_mutex_unlock(&shared_lock);
+}
+
+static void interrupt_enable(void)
+{
+        volatile int* INT_IER = (volatile int*)(INTR_BASE + (my_proc_id * 0x1000));
+        volatile int* INT_SOFT = (volatile int*)(INTR_BASE + (my_proc_id * 0x1000) + 0x10);
+
+        *INT_SOFT = 0x0;
+        *INT_IER = 0x00000010;
+}
+
+static void interrupt_send(int proc_id, int task_idx)
+{
+#if defined(INTR_DEBUG) && (INTR_DEBUG==1)
+    printf(" -- task %d(p%d) wakeup send task %d(p%d)\n", OSPrioCur - PRIO_START + 1, my_proc_id, task_idx, proc_id);
+#endif
+
+    if(proc_id != my_proc_id)
+    {
+        printf("intr_send_t] %d (t_id: %d)\n", proc_id, task_idx);
+        task_wakeup_list[task_idx] = 1;
+        *((volatile unsigned int *)(INTR_BASE+((proc_id * 0x1000) + 0x10))) = 0x10;
+    }
+    else
+    {
+        INT8U err;
+        OSFlagPost(flag_intr[task_idx], 0x1, OS_FLAG_SET, &err);
+#if defined(INTR_DEBUG) && (INTR_DEBUG==1)
+        printf(" -- wakeup received task %d(p%d)\n", task_idx, my_proc_id);
+#endif
+    }
+}
+
+// this is an ISR....
+__irq void interrupt_receive(void)
+{
+    int i;
+
+    OS_ENTER_CRITICAL();
+    OSSchedLock();
+    printf("intr_recv] start\n");
+    for(i=0;i<num_overall_tasks;i++)
+    {
+        if(task_wakeup_list[i] == 1)
+        {
+            INT8U err;
+            task_wakeup_list[i] = -1;
+            OSFlagPost(flag_intr[i], 0x1, OS_FLAG_SET, &err);
+#if defined(INTR_DEBUG) && (INTR_DEBUG==1)
+            printf(" -- wakeup received task %d(p%d)\n", i, my_proc_id);
+#endif
+        }
+    }
+    printf("intr_recv] end\n");
+    interrupt_enable();
+    OSSchedUnlock();
+    OS_EXIT_CRITICAL();
+}
+
+static void CIC_task_sleep(CHANNEL *channel, char op_type)
+{
+    int idx = OSPrioCur - PRIO_START; // index of the current task in the 'tasks' array
+    INT8U err;
+    int i;
+    volatile int *list = NULL;
+    volatile int list_size = 0;
+
+    OSSchedLock();
+    OS_ENTER_CRITICAL();
+    lock_acquire();
+    if(op_type == 'r')
+    {
+        list = waiting_writer_task_list[channel->channel_id];
+        list_size = waiting_writer_task_list_size[channel->channel_id];
+        for(i=0;i<waiting_reader_task_list_size[channel->channel_id];i++)
+        {
+            if(waiting_reader_task_list[channel->channel_id][i] == -1)
+            {
+                waiting_reader_task_list[channel->channel_id][i] = idx;
+                //*((volatile int *)(INTR_BASE+0x10)) = SYNC_INTERVAL;
+                break;
+            }
+        }
+    }
+    else if(op_type == 'w')
+    {
+        list = waiting_reader_task_list[channel->channel_id];
+        list_size = waiting_reader_task_list_size[channel->channel_id];
+        for(i=0;i<waiting_writer_task_list_size[channel->channel_id];i++)
+        {
+            if(waiting_writer_task_list[channel->channel_id][i] == -1)
+            {
+                waiting_writer_task_list[channel->channel_id][i] = idx;
+                //*((volatile int *)(INTR_BASE+0x10)) = SYNC_INTERVAL;
+                break;
+            }
+        }
+    }
+
+    for(i=0;i<list_size;i++)
+    {
+        int wakeup_task_idx = list[i];
+        if(wakeup_task_idx != -1)
+        {
+            list[i] = -1;
+            interrupt_send(tasks[wakeup_task_idx].proc_id, wakeup_task_idx);
+        }
+    }
+    lock_release();
+    OS_EXIT_CRITICAL();
+    OSSchedUnlock();
+
+    OSFlagPend(flag_intr[idx], 0x1, OS_FLAG_WAIT_SET_ANY + OS_FLAG_CONSUME, 0, &err);
+    if(err != OS_NO_ERR) printf("cic_task_sleep OSFlagPend error %d %d\n",err, idx);
+}
+
+static void CIC_task_notify(CHANNEL *channel, char op_type)
+{
+    int i;
+
+    volatile int *list = NULL;
+    volatile int list_size = 0;
+
+    OSSchedLock();
+    OS_ENTER_CRITICAL();
+    lock_acquire();
+    if(op_type == 'r')
+    {
+        list = waiting_writer_task_list[channel->channel_id];
+        list_size = waiting_writer_task_list_size[channel->channel_id];
+    }
+    else if(op_type == 'w')
+    {
+        list = waiting_reader_task_list[channel->channel_id];
+        list_size = waiting_reader_task_list_size[channel->channel_id];
+    }
+
+    for(i=0;i<list_size;i++)
+    {
+        int wakeup_task_idx = list[i];
+        if(wakeup_task_idx != -1)
+        {
+            list[i] = -1;
+            interrupt_send(tasks[wakeup_task_idx].proc_id, wakeup_task_idx);
+        }
+    }
+    lock_release();
+    OS_EXIT_CRITICAL();
+    OSSchedUnlock();
+}
+##INTERRUPT_END

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CIC_Mapping xmlns="http://peace.snu.ac.kr/CICXMLSchema">
+    <task name="LoadImage">
+        <processor pool="CUDA_CPU_0" localId="0"/>
+    </task>
+    <task name="YUVtoRGB">
+        <processor pool="CUDA_GPU_0" localId="0"/>
+    </task>
+    <task name="Gaussian">
+        <processor pool="CUDA_GPU_0" localId="0"/>
+    </task>
+    <task name="Sobel">
+        <processor pool="CUDA_GPU_0" localId="0"/>
+    </task>
+    <task name="NonMax">
+        <processor pool="CUDA_GPU_0" localId="0"/>
+    </task>
+    <task name="Hough">
+        <processor pool="CUDA_GPU_0" localId="0"/>
+    </task>
+    <task name="DrawLane">
+        <processor pool="CUDA_CPU_0" localId="0"/>
+    </task>
+    <task name="KNN">
+        <processor pool="CUDA_GPU_0" localId="0"/>
+    </task>
+    <task name="NLM">
+        <processor pool="CUDA_GPU_0" localId="0"/>
+    </task>
+    <task name="Blending">
+        <processor pool="CUDA_GPU_0" localId="0"/>
+    </task>
+    <task name="Sharpen">
+        <processor pool="CUDA_GPU_0" localId="0"/>
+    </task>
+    <task name="Merge">
+        <processor pool="CUDA_GPU_0" localId="0"/>
+    </task>
+    <task name="RGBtoYUV">
+        <processor pool="CUDA_GPU_0" localId="0"/>
+    </task>
+    <task name="StoreImage">
+        <processor pool="CUDA_CPU_0" localId="0"/>
+    </task>
+</CIC_Mapping>
+

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CIC_Algorithm xmlns="http://peace.snu.ac.kr/CICXMLSchema">
+    <tasks>
+        <task runCondition="time-driven" name="input" hasInternalStates="Yes" file="input.cic" cflags="">
+            <port type="array" sampleSize="8" rate="1" name="output" isFeedback="false" direction="output"/>
+        </task>
+        <task runCondition="data-driven" name="calculate" hasInternalStates="Yes" file="calculate.cic" cflags="">
+            <port type="array" sampleSize="8" rate="1" name="input" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="8" rate="1" name="output_pow" isFeedback="false" direction="output"/>
+            <port type="array" sampleSize="8" rate="1" name="output_exp" isFeedback="false" direction="output"/>
+            <port type="array" sampleSize="8" rate="1" name="output_log" isFeedback="false" direction="output"/>
+            <port type="array" sampleSize="8" rate="1" name="output_sin" isFeedback="false" direction="output"/>
+            <port type="array" sampleSize="8" rate="1" name="output_cos" isFeedback="false" direction="output"/>
+            <port type="array" sampleSize="8" rate="1" name="output_tan" isFeedback="false" direction="output"/>
+            <libraryMasterPort type="math" name="math_1"/>
+        </task>
+        <task runCondition="data-driven" name="output" hasInternalStates="Yes" file="output.cic" cflags="">
+            <port type="array" sampleSize="8" rate="1" name="input_pow" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="8" rate="1" name="input_exp" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="8" rate="1" name="input_log" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="8" rate="1" name="input_sin" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="8" rate="1" name="input_cos" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="8" rate="1" name="input_tan" isFeedback="false" direction="input"/>
+        </task>
+    </tasks>
+    <libraries>
+        <library type="math" name="math" ldflags="" header="math.cicl.h" file="math.cicl" cflags=""/>
+    </libraries>
+    <channels>
+        <channel type="array" size="8" sampleType="" initialDataSize="0">
+            <src task="input" port="output"/>
+            <dst task="calculate" port="input"/>
+        </channel>
+        <channel type="array" size="8" sampleType="" initialDataSize="0">
+            <src task="calculate" port="output_pow"/>
+            <dst task="output" port="input_pow"/>
+        </channel>
+        <channel type="array" size="8" sampleType="" initialDataSize="0">
+            <src task="calculate" port="output_log"/>
+            <dst task="output" port="input_log"/>
+        </channel>
+        <channel type="array" size="8" sampleType="" initialDataSize="0">
+            <src task="calculate" port="output_exp"/>
+            <dst task="output" port="input_exp"/>
+        </channel>
+        <channel type="array" size="8" sampleType="" initialDataSize="0">
+            <src task="calculate" port="output_sin"/>
+            <dst task="output" port="input_sin"/>
+        </channel>
+        <channel type="array" size="8" sampleType="" initialDataSize="0">
+            <src task="calculate" port="output_cos"/>
+            <dst task="output" port="input_cos"/>
+        </channel>
+        <channel type="array" size="8" sampleType="" initialDataSize="0">
+            <src task="calculate" port="output_tan"/>
+            <dst task="output" port="input_tan"/>
+        </channel>
+    </channels>
+    <libraryConnections>
+        <taskLibraryConnection slaveLibrary="math" masterTask="calculate" masterPort="math_1"/>
+    </libraryConnections>
+    <modes>
+        <mode name="default">
+            <task priority="1" name="input">
+                <period value="1" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task priority="1" name="calculate">
+                <period value="1" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task priority="1" name="output">
+                <period value="1" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+        </mode>
+    </modes>
+</CIC_Algorithm>
+

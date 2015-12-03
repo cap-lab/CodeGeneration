@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CIC_Architecture
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns="http://peace.snu.ac.kr/CICXMLSchema"
+	target="MY_TARGET">
+	<elementTypes>
+		<elementType name="arm920t" category="processor" subcategory="..." model="arm9" OS="QNX" scheduler="RM" clock="100" power="200" nMasterPorts="1" nSlavePorts="0" nInterruptPorts="1" />
+		<elementType name="dma173" category="dma" model="dm8192" clock="100" power="20" nMasterPorts="2" nSlavePorts="1">
+			<slavePort name="reg" size="1" metric="KiB" />
+		</elementType>
+		<elementType name="dram2M" category="memory" subcategory="dram" model="..." power="15" nSlavePorts="1">
+			<slavePort name="mem" size="2" metric="MiB" />
+		</elementType>
+	</elementTypes>
+	<elements>
+		<element name="arm4mp" type="arm920t" poolSize="4" />
+		<element name="arm2mp" type="arm920t" poolSize="2" />
+		<element name="dma1" type="dma173" />
+		<element name="dram1" type="dram2M" />
+		<element name="dram2" type="dram2M" />
+	</elements>
+	<maps>
+		<master name="arm4mp">
+			<slave name="dram1" port="mem" baseAddress="0x00000000" />
+		</master>
+		<master name="arm4mp" localId="0">
+			<slave name="dma1" port="reg" baseAddress="0x20000000" />
+		</master>
+		<master name="arm2mp">
+			<slave name="dram2" port="mem" baseAddress="0x00000000" />
+		</master>
+		<master name="dma1">
+			<slave name="dram1" port="mem" baseAddress="0x40000000" />
+			<slave name="dram2" port="mem" baseAddress="0x60000000" />
+		</master>
+		<interrupt masterName="dma1" slaveName="arm4mp" slaveLocalId="0" />
+	</maps>
+</CIC_Architecture>

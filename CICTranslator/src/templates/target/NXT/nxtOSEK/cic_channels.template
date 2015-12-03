@@ -1,0 +1,44 @@
+typedef enum { CHANNEL_TYPE_NORMAL, CHANNEL_TYPE_ARRAY_CHANNEL, CHANNEL_TYPE_BUFFER} CHANNEL_TYPE;
+
+typedef struct _AC_AVAIL_LIST
+{
+    int avail_index;
+    void*/*struct _AC_AVAIL_LIST**/ prev;
+    void*/*struct _AC_AVAIL_LIST**/ next;
+} AC_AVAIL_LIST;
+
+typedef struct _AC_DATA
+{
+    AC_AVAIL_LIST *avail_node;
+    int used;
+    unsigned char *buf;
+} AC_DATA;
+
+typedef struct {
+    int channel_id;
+    int next_channel_index;
+    CHANNEL_TYPE type;
+    unsigned char *buf;
+    unsigned char *start;
+    unsigned char *end;
+    int max_size;
+    int cur_size;
+    AC_DATA *head;
+
+    AC_AVAIL_LIST *avail_index_start;
+    AC_AVAIL_LIST *avail_index_end;
+
+    int initData;
+    int sampleSize;
+    char* sampleType;
+    bool request_read;
+    bool request_write;
+    int source_port;
+    int sink_port;
+    bool isWatch;
+    bool isBreak;
+
+    MUTEX_TYPE mutex;
+    COND_TYPE cond;
+
+} CHANNEL;

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<workspace>
+  <project>
+    <path>$WS_DIR$\uCOS-III-App\uCOS-III-App.ewp</path>
+  </project>
+  <batchBuild>
+    <batchDefinition>
+      <name>uCOS-LM3S9B92-EVALBOT</name>
+      <member>
+        <project>uCOS-III-App</project>
+        <configuration>Flash</configuration>
+      </member>
+    </batchDefinition>
+  </batchBuild>
+</workspace>
+
+

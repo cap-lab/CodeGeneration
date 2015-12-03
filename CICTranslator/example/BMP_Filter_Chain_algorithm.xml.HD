@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CIC_Algorithm xmlns="http://peace.snu.ac.kr/CICXMLSchema">
+    <tasks>
+        <task runCondition="time-driven" name="LoadImage" hasInternalStates="Yes" file="LoadImage.cic" cflags="">
+            <port type="fifo" sampleSize="1" rate="1" name="output" isFeedback="false" direction="output"/>
+            <parameter value="1280" type="int" name="WIDTH" description=""/>
+            <parameter value="720" type="int" name="HEIGHT" description=""/>
+        </task>
+        <task runCondition="time-driven" name="YUVtoRGB" hasInternalStates="Yes" file="GPU_YUVtoRGB.cic" cflags="">
+            <port type="fifo" sampleSize="1" rate="1" name="input" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="1" rate="1" name="output" isFeedback="false" direction="output"/>
+            <parameter value="1280" type="int" name="WIDTH" description=""/>
+            <parameter value="720" type="int" name="HEIGHT" description=""/>
+        </task>
+        <task runCondition="time-driven" name="Gaussian" hasInternalStates="Yes" file="GPU_Gaussian_Filter.cic" cflags="">
+            <port type="fifo" sampleSize="1" rate="1" name="input" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="1" rate="1" name="output" isFeedback="false" direction="output"/>
+            <parameter value="1280" type="int" name="WIDTH" description=""/>
+            <parameter value="720" type="int" name="HEIGHT" description=""/>
+        </task>
+        <task runCondition="time-driven" name="Sobel" hasInternalStates="Yes" file="GPU_Sobel_Filter.cic" cflags="">
+            <port type="fifo" sampleSize="1" rate="1" name="input" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="1" rate="1" name="output" isFeedback="false" direction="output"/>
+            <parameter value="1280" type="int" name="WIDTH" description=""/>
+            <parameter value="720" type="int" name="HEIGHT" description=""/>
+        </task>
+        <task runCondition="time-driven" name="NonMax" hasInternalStates="Yes" file="GPU_NonMax_Filter.cic" cflags="">
+            <port type="fifo" sampleSize="1" rate="1" name="input" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="1" rate="1" name="output" isFeedback="false" direction="output"/>
+            <parameter value="1280" type="int" name="WIDTH" description=""/>
+            <parameter value="720" type="int" name="HEIGHT" description=""/>
+        </task>
+        <task runCondition="time-driven" name="Hough" hasInternalStates="Yes" file="GPU_Hough_Filter.cic" cflags="">
+            <port type="fifo" sampleSize="1" rate="1" name="input" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="1" rate="1" name="output" isFeedback="false" direction="output"/>
+            <parameter value="1280" type="int" name="WIDTH" description=""/>
+            <parameter value="720" type="int" name="HEIGHT" description=""/>
+            <parameter value="360" type="int" name="MAX_ANGLE" description=""/>
+            <parameter value="2077" type="int" name="MAX_R" description=""/>
+            <parameter value="50" type="int" name="ISEDGE" description=""/>
+            <parameter value="3.141592" type="float" name="PI" description=""/>
+        </task>
+        <task runCondition="time-driven" name="DrawLane" hasInternalStates="Yes" file="CPU_Draw_Lane.cic" cflags="">
+            <port type="fifo" sampleSize="1" rate="1" name="input" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="1" rate="1" name="output" isFeedback="false" direction="output"/>
+            <parameter value="1280" type="int" name="WIDTH" description=""/>
+            <parameter value="720" type="int" name="HEIGHT" description=""/>
+            <parameter value="360" type="int" name="MAX_ANGLE" description=""/>
+            <parameter value="2077" type="int" name="MAX_R" description=""/>
+            <parameter value="50" type="int" name="ISEDGE" description=""/>
+            <parameter value="3.141592" type="float" name="PI" description=""/>
+        </task>
+        <task runCondition="time-driven" name="KNN" hasInternalStates="Yes" file="GPU_KNN_Filter.cic" cflags="">
+            <port type="fifo" sampleSize="1" rate="1" name="input" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="1" rate="1" name="output" isFeedback="false" direction="output"/>
+            <parameter value="1280" type="int" name="WIDTH" description=""/>
+            <parameter value="720" type="int" name="HEIGHT" description=""/>
+        </task>
+        <task runCondition="time-driven" name="NLM" hasInternalStates="Yes" file="GPU_NLM_Filter.cic" cflags="">
+            <port type="fifo" sampleSize="1" rate="1" name="input" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="1" rate="1" name="output" isFeedback="false" direction="output"/>
+            <parameter value="1280" type="int" name="WIDTH" description=""/>
+            <parameter value="720" type="int" name="HEIGHT" description=""/>
+        </task>
+        <task runCondition="time-driven" name="Blending" hasInternalStates="Yes" file="GPU_Blending_Filter.cic" cflags="">
+            <port type="fifo" sampleSize="1" rate="1" name="input_knn" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="1" rate="1" name="input_nlm" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="1" rate="1" name="output" isFeedback="false" direction="output"/>
+            <parameter value="1280" type="int" name="WIDTH" description=""/>
+            <parameter value="720" type="int" name="HEIGHT" description=""/>
+        </task>
+        <task runCondition="time-driven" name="Sharpen" hasInternalStates="Yes" file="GPU_Sharpen_Filter.cic" cflags="">
+            <port type="fifo" sampleSize="1" rate="1" name="input" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="1" rate="1" name="output" isFeedback="false" direction="output"/>
+            <parameter value="1280" type="int" name="WIDTH" description=""/>
+            <parameter value="720" type="int" name="HEIGHT" description=""/>
+        </task>
+        <task runCondition="time-driven" name="Merge" hasInternalStates="Yes" file="GPU_Merge_Filter.cic" cflags="">
+            <port type="fifo" sampleSize="1" rate="1" name="input_origin" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="1" rate="1" name="input_hough" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="1" rate="1" name="output" isFeedback="false" direction="output"/>
+            <parameter value="1280" type="int" name="WIDTH" description=""/>
+            <parameter value="720" type="int" name="HEIGHT" description=""/>
+        </task>
+        <task runCondition="time-driven" name="RGBtoYUV" hasInternalStates="Yes" file="GPU_RGBtoYUV.cic" cflags="">
+            <port type="fifo" sampleSize="1" rate="1" name="input" isFeedback="false" direction="input"/>
+            <port type="fifo" sampleSize="1" rate="1" name="output" isFeedback="false" direction="output"/>
+            <parameter value="1280" type="int" name="WIDTH" description=""/>
+            <parameter value="720" type="int" name="HEIGHT" description=""/>
+        </task>
+        <task runCondition="time-driven" name="StoreImage" hasInternalStates="Yes" file="StoreImage.cic" cflags="">
+            <port type="fifo" sampleSize="1" rate="1" name="input" isFeedback="false" direction="input"/>
+            <parameter value="1280" type="int" name="WIDTH" description=""/>
+            <parameter value="720" type="int" name="HEIGHT" description=""/>
+        </task>
+    </tasks>
+    <channels>
+        <channel type="fifo" size="1382400" sampleType="unsigned char" initialDataSize="0">
+            <src task="LoadImage" port="output"/>
+            <dst task="YUVtoRGB" port="input"/>
+        </channel>
+        <channel type="fifo" size="2764800" sampleType="unsigned char" initialDataSize="0">
+            <src task="YUVtoRGB" port="output"/>
+            <dst task="Gaussian" port="input"/>
+        </channel>
+        <channel type="fifo" size="2764800" sampleType="unsigned char" initialDataSize="0">
+            <src task="YUVtoRGB" port="output"/>
+            <dst task="KNN" port="input"/>
+        </channel>
+        <channel type="fifo" size="2764800" sampleType="unsigned char" initialDataSize="0">
+            <src task="YUVtoRGB" port="output"/>
+            <dst task="NLM" port="input"/>
+        </channel>
+        <channel type="fifo" size="2764800" sampleType="unsigned char" initialDataSize="0">
+            <src task="Gaussian" port="output"/>
+            <dst task="Sobel" port="input"/>
+        </channel>
+        <channel type="fifo" size="2764800" sampleType="unsigned char" initialDataSize="0">
+            <src task="Sobel" port="output"/>
+            <dst task="NonMax" port="input"/>
+        </channel>
+        <channel type="fifo" size="2764800" sampleType="unsigned char" initialDataSize="0">
+            <src task="NonMax" port="output"/>
+            <dst task="Hough" port="input"/>
+        </channel>
+        <channel type="fifo" size="2990880" sampleType="unsigned char" initialDataSize="0">
+            <src task="Hough" port="output"/>
+            <dst task="DrawLane" port="input"/>
+        </channel>
+        <channel type="fifo" size="2764800" sampleType="unsigned char" initialDataSize="0">
+            <src task="KNN" port="output"/>
+            <dst task="Blending" port="input_knn"/>
+        </channel>
+        <channel type="fifo" size="2764800" sampleType="unsigned char" initialDataSize="0">
+            <src task="NLM" port="output"/>
+            <dst task="Blending" port="input_nlm"/>
+        </channel>
+        <channel type="fifo" size="2764800" sampleType="unsigned char" initialDataSize="0">
+            <src task="Blending" port="output"/>
+            <dst task="Sharpen" port="input"/>
+        </channel>
+        <channel type="fifo" size="2764800" sampleType="unsigned char" initialDataSize="0">
+            <src task="DrawLane" port="output"/>
+            <dst task="Merge" port="input_hough"/>
+        </channel>
+        <channel type="fifo" size="2764800" sampleType="unsigned char" initialDataSize="0">
+            <src task="Sharpen" port="output"/>
+            <dst task="Merge" port="input_origin"/>
+        </channel>
+        <channel type="fifo" size="2764800" sampleType="unsigned char" initialDataSize="0">
+            <src task="Merge" port="output"/>
+            <dst task="RGBtoYUV" port="input"/>
+        </channel>
+        <channel type="fifo" size="1382400" sampleType="unsigned char" initialDataSize="0">
+            <src task="RGBtoYUV" port="output"/>
+            <dst task="StoreImage" port="input"/>
+        </channel>
+    </channels>
+    <libraryConnections/>
+    <modes>
+        <mode name="default">
+            <task priority="1" name="LoadImage">
+                <period value="1" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task priority="1" name="YUVtoRGB">
+                <period value="1" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task priority="1" name="Gaussian">
+                <period value="1" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task priority="1" name="Sobel">
+                <period value="1" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task priority="1" name="NonMax">
+                <period value="1" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task priority="1" name="Hough">
+                <period value="1" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task priority="1" name="DrawLane">
+                <period value="1" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task priority="1" name="KNN">
+                <period value="1" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task priority="1" name="NLM">
+                <period value="1" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task priority="1" name="Blending">
+                <period value="1" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task priority="1" name="Sharpen">
+                <period value="1" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task priority="1" name="Merge">
+                <period value="1" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task priority="1" name="RGBtoYUV">
+                <period value="1" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task priority="1" name="StoreImage">
+                <period value="1" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+        </mode>
+    </modes>
+</CIC_Algorithm>
+

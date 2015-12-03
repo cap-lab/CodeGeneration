@@ -1,0 +1,39 @@
+##COMM_SLAVE_CODE_START
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <sys/select.h>
+#include <arpa/inet.h>
+#include <assert.h>
+
+#define BUFSIZE 1024
+#define PORT 8081 
+
+int serv_sock;
+int re;
+int str_len;
+
+struct sockaddr_in serv_addr;
+
+fd_set readfds;
+
+void WifiInit()
+{
+	##DEF_SERVER_IP
+    //Create a new socket to connect to server
+    serv_sock = socket(PF_INET, SOCK_STREAM, 0);
+    assert(serv_sock != -1);
+
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = inet_addr(ipaddr);//IP address of server
+    serv_addr.sin_port = htons(PORT);//port number
+
+    socklen_t socklen = (socklen_t) sizeof(serv_addr);
+    re = connect(serv_sock, (struct sockaddr *)&serv_addr, socklen);
+    assert(re != -1);
+    FD_ZERO(&readfds);
+
+    FD_SET(serv_sock, &readfds);    
+}
+##COMM_SLAVE_CODE_END

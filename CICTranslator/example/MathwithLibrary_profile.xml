@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CIC_Profile xmlns="http://peace.snu.ac.kr/CICXMLSchema">
+    <task name="input">
+        <profile processorType="arm926ej_s" executionCycles="1"/>
+    </task>
+    <task name="calculate">
+        <profile processorType="arm926ej_s" executionCycles="1"/>
+    </task>
+    <task name="output">
+        <profile processorType="arm926ej_s" executionCycles="1"/>
+    </task>
+</CIC_Profile>
+

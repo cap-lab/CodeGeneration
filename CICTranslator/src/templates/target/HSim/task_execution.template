@@ -1,0 +1,235 @@
+##TASK_ROUTINE_START
+#ifdef LIB_WRAPPER
+THREAD_FUNC_RET_TYPE lib_wrapper_routine(THREAD_FUNC_ARG_TYPE pdata){
+    int wrapper_index = (int)pdata;
+
+    lib_wrappers[wrapper_index].init();
+    lib_wrappers[wrapper_index].go();
+    lib_wrappers[wrapper_index].wrapup();
+}
+#endif
+
+THREAD_FUNC_RET_TYPE task_routine(THREAD_FUNC_ARG_TYPE pdata)
+{
+  int task_index = (int)pdata;
+  OS_ERR err;
+
+  if(tasks[task_index].task_type != Control){
+      while(1){
+         if(all_threads_created) break;
+      }
+  }
+
+  task_wakeup_list[task_index] = -1;
+  TASK_INIT;
+
+  if(tasks[task_index].task_type == Control){
+        MUTEX_LOCK(&control_task_count_lock);
+        control_task_count++;
+        if(control_task_count == control_task_total_count)
+		OSFlagPost(&main_flag_intr, 0x1, OS_FLAG_SET, &err);
+        MUTEX_UNLOCK(&control_task_count_lock);
+  }
+
+  while(true){
+          if(tasks[task_index].state == Wait){
+            MUTEX_LOCK(&(tasks[task_index].p_mutex));
+            OSTaskSuspend(tasks[task_index].thread.prio);
+            MUTEX_UNLOCK(&(tasks[task_index].p_mutex));
+          }
+        
+          if(tasks[task_index].hasMTM == true){
+            int i=0;
+            for(i=0; i<num_mtms; i++)
+              if(task_index == mtms[i].task_id)  break;
+            mtms[i].transition();
+          }
+
+          OSSchedLock();   
+          TASK_GO;
+          OSSchedUnlock();   
+          
+          if(exit_signal == 1 || tasks[task_index].state == Stop)    break;
+  }
+  
+  time_task_count++;
+     
+  TASK_WRAPUP;
+
+  tasks[task_index].state = Stop;
+}
+
+##TASK_ROUTINE_END
+
+##EXECUTE_TASKS_START
+
+static void execute_tasks(void)
+{
+    int i=0;
+    OS_ERR err;
+
+    COND_INIT(&main_flag_intr);
+
+    for(i=0; i<num_tasks; i++){
+    	flag_intr[i] = OSFlagCreate(0x0, &err);
+		if(err != OS_NO_ERR)	printf("execute_tasks] OSFlagCreate Fail! (%d)\n", err);
+    }
+#ifdef LIB_WRAPPER
+    for(;i<num_tasks + num_libwrappers; i++){
+    	flag_intr[i] = OSFlagCreate(0x0, &err);
+		if(err != OS_NO_ERR)	printf("execute_tasks] OSFlagCreate Fail! (%d)\n", err);
+    }
+#endif
+    for(i=0; i<num_tasks; i++)
+    {
+        if(tasks[i].task_type == Control && tasks[i].proc_id == my_proc_id){
+            control_task_total_count++;
+            THREAD_CREATE(&(tasks[i].thread), task_routine, (void *)tasks[i].task_id);
+            if(tasks[i].driven_type == TimeDriven)      num_time_task++;
+        }
+    }
+    if(control_task_total_count != 0){
+	OSFlagPend(&main_flag_intr, 0x1, OS_FLAG_WAIT_SET_ANY, 0, &err);
+    }
+
+    for(i=0; i<num_tasks; i++)
+    {
+        if(tasks[i].task_type != Control && tasks[i].proc_id == my_proc_id){
+          int create_thread = 0;
+
+          if(tasks[i].parent_task_id == i)    create_thread = 1;
+          else                                create_thread = 0;
+
+          if(create_thread == 1 && tasks[i].state == Run && tasks[i].proc_id == my_proc_id){
+               THREAD_CREATE(&(tasks[i].thread), task_routine, (void *)tasks[i].task_id);
+               if(tasks[i].driven_type == TimeDriven)      num_time_task++;
+          }
+        }
+    }
+#ifdef LIB_WRAPPER
+    for(i=0; i<num_libwrappers; i++){
+	 if(lib_wrappers[i].proc_id == my_proc_id){
+     	 	printf("%s lib wrapper thread is created!\n", lib_wrappers[i].name);
+         	THREAD_CREATE(&(lib_wrappers[i].th), lib_wrapper_routine, (void *)i);
+	 }
+    }
+#endif
+    all_threads_created = true;
+    
+    if(time_task_count > 0 && time_task_count == num_time_task){
+	OSFlagPend(&main_flag_intr, 0x1, OS_FLAG_WAIT_SET_ANY, 0, &err);
+    }
+
+    for(i=0; i<num_tasks; i++)
+        if(tasks[i].driven_type != ControlDriven) THREAD_CANCEL(&tasks[i].thread);
+
+    return;
+}
+##EXECUTE_TASKS_END
+
+##CONTROL_RUN_TASK_START
+    int i=0;
+    int target_task_id = get_task_id(t_name);
+    for(i=0; i<ARRAYLEN(tasks); i++)
+    {
+        if(target_task_id == tasks[i].task_id)
+        {
+            int task_index = tasks[i].task_id;
+            
+            init_task_channel(task_index);
+            THREAD_CREATE(&(tasks[task_index].thread), task_routine, (void *)task_index);
+            tasks[task_index].state = Run;
+
+            //PRINT("Run a task");
+            break;
+        }
+    }  
+    return;  
+##CONTROL_RUN_TASK_END
+
+##CONTROL_STOP_TASK_START
+    int i=0;
+    if(STRING_COMPARE(caller_task_name, t_name) == 0){
+      int task_id = get_task_id(caller_task_name);
+      int parent_task_id = tasks[task_id].parent_task_id;
+        THREAD_CANCEL(&tasks[parent_task_id].thread);
+        wrapup_task_channel(parent_task_id);
+        tasks[parent_task_id].state = Stop;
+        PRINT("Stop a task (own)");
+    }
+    else{
+      int target_task_id = get_task_id(t_name);
+      for(i=0; i<ARRAYLEN(tasks); i++)
+      {
+          if(target_task_id == tasks[i].task_id)
+          {
+              int task_index = tasks[i].task_id;
+              
+              THREAD_CANCEL(&tasks[task_index].thread);
+              wrapup_task_channel(task_index);
+              tasks[task_index].state = Stop;
+
+              //PRINT("Stop a task");
+              break;
+          }
+      } 
+    }
+
+    return;
+##CONTROL_STOP_TASK_END
+
+##CONTROL_RESUME_TASK_START
+    int i=0;
+    OS_ERR err;
+    
+    int target_task_id = get_task_id(t_name);
+    for(i=0; i<ARRAYLEN(tasks); i++)
+    {
+        if(target_task_id == tasks[i].task_id)
+        {
+            int task_id = tasks[i].task_id;
+            if(tasks[task_id].state != Stop)  tasks[task_id].state = Run;
+            err = OSTaskResume((INT8U)(tasks[task_id].thread.prio));
+            if(err != OS_NO_ERR) PRINT("OSTaskResume Error\n");
+            else				 PRINT("Resume a task\n");
+            break;
+        }
+    } 
+
+    return;
+##CONTROL_RESUME_TASK_END
+
+##CONTROL_SUSPEND_TASK_START
+    int i=0;
+    OS_ERR err;
+    
+    if(STRING_COMPARE(caller_task_name, t_name) == 0){
+        int task_id = get_task_id(caller_task_name);
+        int parent_task_id = tasks[task_id].parent_task_id;
+        if(tasks[parent_task_id].state != Stop){
+          tasks[parent_task_id].state = Wait;
+          err = OSTaskSuspend((INT8U)(tasks[task_id].thread.prio));
+          if(err != OS_NO_ERR) PRINT("OSTaskSuspend Error\n");
+          else				   PRINT("Suspend a task\n");
+        }
+    }
+    else{
+      int target_task_id = get_task_id(t_name);
+      for(i=0; i<ARRAYLEN(tasks); i++)
+      {
+          if(target_task_id == tasks[i].task_id)
+          {
+              int task_id = tasks[i].task_id;
+              if(tasks[task_id].state != Stop){
+                  tasks[task_id].state = Wait;
+                  err = OSTaskSuspend((INT8U)(tasks[task_id].thread.prio));
+              }
+              if(err != OS_NO_ERR) PRINT("OSTaskSuspend Error\n");
+              else				   PRINT("Suspend a task\n");
+              break;
+          }
+      }  
+
+    }
+    return;
+##CONTROL_SUSPEND_TASK_END

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CIC_Algorithm xmlns="http://peace.snu.ac.kr/CICXMLSchema">
+    <tasks>
+        <task runCondition="time-driven" name="Producer" hasInternalStates="Yes" file="Producer.cic" cflags="">
+            <port type="array" sampleSize="4" rate="1" name="output" isFeedback="false" direction="output"/>
+        </task>
+        <task runCondition="data-driven" name="Compute" hasInternalStates="Yes" file="Compute.cic" cflags="">
+            <dataParallel type="loop" maxParallel="2"/>
+            <port type="array" sampleSize="4" rate="1" name="input" isFeedback="false" direction="input"/>
+            <port type="array" sampleSize="4" rate="1" name="output" isFeedback="false" direction="output"/>
+        </task>
+        <task runCondition="data-driven" name="Printer" hasInternalStates="Yes" file="Printer.cic" cflags="">
+            <port type="array" sampleSize="4" rate="1" name="input" isFeedback="false" direction="input"/>
+        </task>
+    </tasks>
+    <channels>
+        <channel type="array" size="40" sampleType="" initialDataSize="0">
+            <src task="Producer" port="output"/>
+            <dst task="Compute" port="input"/>
+        </channel>
+        <channel type="array" size="40" sampleType="" initialDataSize="0">
+            <src task="Compute" port="output"/>
+            <dst task="Printer" port="input"/>
+        </channel>
+    </channels>
+    <libraryConnections/>
+    <modes>
+        <mode name="default">
+            <task priority="1" name="Producer">
+                <period value="10" metric="us"/>
+                <deadline value="1" metric="us"/>
+            </task>
+            <task priority="1" name="Compute">
+                <period value="10" metric="us"/>
+                <deadline value="10" metric="us"/>
+            </task>
+            <task priority="1" name="Printer">
+                <period value="10" metric="us"/>
+                <deadline value="10" metric="us"/>
+            </task>
+        </mode>
+    </modes>
+</CIC_Algorithm>
+

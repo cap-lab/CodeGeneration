@@ -1,0 +1,53 @@
+##IROBOT_INIT_START
+#define BAUDRATE B57600
+#define SERPORT "/dev/ttyUSB0"
+int irobot_fd;
+static struct termios tty;
+
+void init_irobot(){
+	char data[256];
+
+	int flags = fcntl(STDIN_FILENO, F_GETFL);
+
+	irobot_fd = open(SERPORT, O_RDWR);            //open the serial port
+
+	if ( irobot_fd < 0 ) 
+	{
+		printf( "\nUnable to open %s", SERPORT );
+		printf( "\nerrno = %d", errno );
+		exit(0);
+	}
+	else 
+	{
+		printf( "\nSuccessfully opened the serial port" );
+	}
+
+	tcgetattr(irobot_fd, &tty);           
+
+	tty.c_cflag = CLOCAL | CREAD | CS8;     // CLOCAL   = ignore modem control lines
+	// CREAD    = enable receiver
+	// CS8      = 8 bit data
+	// ~CRTSCTS = no hardware flow control
+
+	tty.c_iflag = IGNBRK | IGNPAR;        // IGNBRK = ignore BREAK condition
+	// IGNPAR = ignore framing anf parity errors
+
+
+	tty.c_oflag = 0;              //
+	tty.c_lflag = 0;              //
+
+	cfsetospeed(&tty, BAUDRATE );       // Set output baudrate
+	cfsetispeed(&tty, BAUDRATE );       // set input baudrate
+
+	if( tcsetattr(irobot_fd, TCSANOW, &tty) < 0 )   // Set serial port - TCSANOW = Apply changes immediately
+	{
+		printf( "\nUnable to tcsetattr %s", SERPORT );
+		printf( "\nerrno = %d", errno );
+	}
+	else
+		printf( "\ntcsetattr successfull" );
+
+	fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+
+}
+##IROBOT_INIT_END

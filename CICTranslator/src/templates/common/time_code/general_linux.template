@@ -1,0 +1,20 @@
+##GET_CURRENT_TIME_BASE_START
+CIC_T_UINT GetCurrentTimeBase(){
+    CIC_T_UINT time;
+    CIC_T_STRUCT timeval now_time;
+    gettimeofday(&now_time, 0);
+    time = (CIC_T_UINT)(((now_time.tv_sec % 100)*pow(10.0, 6)) + now_time.tv_usec);
+    return time;
+}
+##GET_CURRENT_TIME_BASE_END
+
+##CHANGE_TIME_UNIT_START
+CIC_T_UINT ChangeTimeUnit(CIC_T_UINT val, CIC_T_CHAR *unit){
+	CIC_T_UINT ret;
+    if(CIC_F_STRING_COMPARE(unit, "S") == 0)	ret = val * 1000 * 1000;
+    else if(CIC_F_STRING_COMPARE(unit, "MS") == 0)	ret = val * 1000;
+    else if(CIC_F_STRING_COMPARE(unit, "US") == 0)	ret = val;
+    else 										ret = val;
+    return ret;
+}
+##CHANGE_TIME_UNIT_END

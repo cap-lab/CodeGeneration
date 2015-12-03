@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema id="CICConfiguration"
+        targetNamespace="http://peace.snu.ac.kr/CICXMLSchema"
+        elementFormDefault="qualified"
+        xmlns="http://peace.snu.ac.kr/CICXMLSchema"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:include schemaLocation="./CICCommon.xsd" />
+
+  <xs:element name="CIC_Configuration" type="CICConfigurationType" />
+
+  <xs:complexType name="CICConfigurationType">
+    <xs:sequence>
+      <xs:element name="simulation" type="SimulationType" minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="SimulationType">
+    <xs:sequence>
+      <xs:element name="executionTime" type="TimeType" minOccurs="1" maxOccurs="1" />
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>

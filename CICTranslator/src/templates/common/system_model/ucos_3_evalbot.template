@@ -1,0 +1,14 @@
+#ifndef _SYSTEM_MODEL
+#define _SYSTEM_MODEL
+
+#include <includes.h>
+#include <defs.h>
+
+#define bool CPU_BOOLEAN
+
+#define BUFFER_DATA_TYPE unsigned char*
+
+#define STRING_COMPARE Str_Cmp
+#define PRINT(a) BSP_DisplayStringDraw(a, 0u, 0u)
+#define EXIT(a) exit(a)
+#endif
