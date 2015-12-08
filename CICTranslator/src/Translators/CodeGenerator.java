@@ -201,39 +201,70 @@ public class CodeGenerator
 		//builder.fillTaskEntry(mProcessor,mTask);
 		mQueue = builder.makeQueues(mAlgorithm, mTask);
 		
+		mTarget = mArchitecture.getTarget();
+		
 		copyTaskCode();
 			
 		mGlobalPeriodMetric = mConfiguration.getSimulation().getExecutionTime().getMetric().value();
 		mGlobalPeriod = mConfiguration.getSimulation().getExecutionTime().getValue().intValue();
 		
-		if(mGraphType.equals("DataFlow") || mGraphType.equals("Hybrid")){
-			mConnectedTaskGraph = builder.findConnectedTaskGraph(mTask);
-			mConnectedSDFTaskSet = new HashMap<Integer, List<List<Task>>>();
-			//System.out.println(mConnectedTaskGraph);
-			for(int i=0; i<mConnectedTaskGraph.size(); i++){
-				List<Task> connected_task_graph = mConnectedTaskGraph.get(i);
-				List<List<Task>> taskSet = null;
-				taskSet = builder.findSDFTaskSet(mTask, connected_task_graph);
-				mConnectedSDFTaskSet.put(i, taskSet);
-			}
-			//System.out.println(mConnectedSDFTaskSet);
+		if(mTarget.toUpperCase().contains("THREAD")){
+			if(mGraphType.equals("DataFlow") || mGraphType.equals("Hybrid")){
+				mConnectedTaskGraph = builder.findConnectedTaskGraph(mTask);
+				mConnectedSDFTaskSet = new HashMap<Integer, List<List<Task>>>();
+				//System.out.println(mConnectedTaskGraph);
+				for(int i=0; i<mConnectedTaskGraph.size(); i++){
+					List<Task> connected_task_graph = mConnectedTaskGraph.get(i);
+					List<List<Task>> taskSet = null;
+					taskSet = builder.findSDFTaskSet(mTask, connected_task_graph);
+					mConnectedSDFTaskSet.put(i, taskSet);
+				}
 			
-			// Make virtual tasks for top-level sdf graphs
-			mVTask = builder.modifyTaskStructure(mTask, mQueue, mConnectedTaskGraph, mConnectedSDFTaskSet, mAlgorithm.getProperty(), mGlobalPeriod, mGlobalPeriodMetric);
-			if(mCodeGenType.equals("p")){
-				mPVTask = builder.addProcessorVirtualTask(mTask, mQueue, mProcessor, mConnectedTaskGraph, mConnectedSDFTaskSet, mAlgorithm.getProperty(), mGlobalPeriod, mGlobalPeriodMetric, mVTask, mOutputPath);
+				// Make virtual tasks for top-level sdf graphs
+				mVTask = builder.modifyTaskStructure(mTask, mQueue, mConnectedTaskGraph, mConnectedSDFTaskSet, mAlgorithm.getProperty(), mGlobalPeriod, mGlobalPeriodMetric);
+				mPVTask = new HashMap<String, Task>(); 
 			}
-			else	mPVTask = new HashMap<String, Task>(); 
-		}
-		else if(mGraphType.equals("ProcessNetwork")){
-			mTask = builder.removeParentTask(mTask);
-			mConnectedSDFTaskSet = new HashMap<Integer, List<List<Task>>>();
-			mVTask = new HashMap<String, Task>(); 
-			mPVTask = new HashMap<String, Task>(); 
+			else if(mGraphType.equals("ProcessNetwork")){
+				mTask = builder.removeParentTask(mTask);
+				mConnectedSDFTaskSet = new HashMap<Integer, List<List<Task>>>();
+				mVTask = new HashMap<String, Task>(); 
+				mPVTask = new HashMap<String, Task>(); 
+			}
+			else{
+				System.out.println("Graph property is something wrong!");
+				System.exit(-1);
+			}
 		}
 		else{
-			System.out.println("Graph property is something wrong!");
-			System.exit(-1);
+			if(mGraphType.equals("DataFlow") || mGraphType.equals("Hybrid")){
+				mConnectedTaskGraph = builder.findConnectedTaskGraph(mTask);
+				mConnectedSDFTaskSet = new HashMap<Integer, List<List<Task>>>();
+				//System.out.println(mConnectedTaskGraph);
+				for(int i=0; i<mConnectedTaskGraph.size(); i++){
+					List<Task> connected_task_graph = mConnectedTaskGraph.get(i);
+					List<List<Task>> taskSet = null;
+					taskSet = builder.findSDFTaskSet(mTask, connected_task_graph);
+					mConnectedSDFTaskSet.put(i, taskSet);
+				}
+				//System.out.println(mConnectedSDFTaskSet);
+				
+				// Make virtual tasks for top-level sdf graphs
+				mVTask = builder.modifyTaskStructure(mTask, mQueue, mConnectedTaskGraph, mConnectedSDFTaskSet, mAlgorithm.getProperty(), mGlobalPeriod, mGlobalPeriodMetric);
+				if(mCodeGenType.equals("p")){
+					mPVTask = builder.addProcessorVirtualTask(mTask, mQueue, mProcessor, mConnectedTaskGraph, mConnectedSDFTaskSet, mAlgorithm.getProperty(), mGlobalPeriod, mGlobalPeriodMetric, mVTask, mOutputPath);
+				}
+				else	mPVTask = new HashMap<String, Task>(); 
+			}
+			else if(mGraphType.equals("ProcessNetwork")){
+				mTask = builder.removeParentTask(mTask);
+				mConnectedSDFTaskSet = new HashMap<Integer, List<List<Task>>>();
+				mVTask = new HashMap<String, Task>(); 
+				mPVTask = new HashMap<String, Task>(); 
+			}
+			else{
+				System.out.println("Graph property is something wrong!");
+				System.exit(-1);
+			}
 		}
 	
 		//if(mProfile != null)	builder.fillExecutionTimeInfo(mProfile, mProcessor, mTask);
@@ -280,8 +311,6 @@ public class CodeGenerator
 
 	public String generateTargetCode()
 	{
-		mTarget = mArchitecture.getTarget();
-
 		if(mTarget.toUpperCase().contains("THREAD")) {
 			
 			if(mTarget.toUpperCase().contains("_S"))	mThreadVer = "s";
@@ -330,7 +359,7 @@ public class CodeGenerator
 			}
 		}
 		
-		else if(mTarget.toUpperCase().contains("INTEL_I7")) {
+		else if(mTarget.toUpperCase().contains("MULTICOREHOST")) {
 			int ret = 0;
 			
 			CommonLibraries.CIC.generateCommonCode("Single", mOutputPath, mTranslatorPath, mTask, mQueue, mLibrary, mThreadVer, mAlgorithm, mControl);
@@ -342,68 +371,6 @@ public class CodeGenerator
 					CICTargetCodeTranslator translator_pthread = new CICPthreadTranslator();
 					translator_pthread.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mThreadVer, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mCodeGenType);
 				}
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		else if(mTarget.toUpperCase().contains("ROBONOVA")) {
-			int ret = 0;
-			
-			CommonLibraries.CIC.generateCommonCode("Single", mOutputPath, mTranslatorPath, mTask, mQueue, mLibrary, mThreadVer, mAlgorithm, mControl);
-			
-			CICTargetCodeTranslator translator = new CICRobonovaTranslator();
-			try {
-				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mThreadVer, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mCodeGenType);
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		else if(mTarget.toUpperCase().contains("NXT")) {
-			int ret = 0;
-			
-			CICTargetCodeTranslator translator = new CICNXTPCTranslator();
-			try {
-				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mThreadVer, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mCodeGenType);
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		else if(mTarget.toUpperCase().contains("TIEVALBOT")) {
-			int ret = 0;
-
-			CICTargetCodeTranslator translator = new CICTIEvalbotTranslator();
-			try {
-				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mThreadVer, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mCodeGenType);
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		else if(mTarget.toUpperCase().contains("IROBOTCREATE")) {
-			int ret = 0;
-
-			CICTargetCodeTranslator translator = new CICIRobotCreateTranslator();
-			try {
-				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mThreadVer, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mCodeGenType);
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-				
-		else if(mTarget.toUpperCase().contains("DISTRIBUTEDROBOTS")) {
-			int ret = 0;
-
-			CICDistributedRobotsTranslator translator = new CICDistributedRobotsTranslator();
-			try {
-				ret = translator.generateCodeWithComm(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mCommunication, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mThreadVer, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mCodeGenType);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -439,45 +406,7 @@ public class CodeGenerator
 			CICHSimUcosTranslator.copyOSandLibrary(mOutputPath, mTranslatorPath);
 			CICHSimUcosTranslator.wrapup(mOutputPath);
 		}
-		
-		else if(mTarget.toUpperCase().contains("ROBOTSIMULATION")) {
-			int ret = 0;
-			CommonLibraries.CIC.generateCommonCode("Single", mOutputPath, mTranslatorPath, mTask, mQueue, mLibrary, mThreadVer, mAlgorithm, mControl);
-			CICRobotSimTranslator translator = new CICRobotSimTranslator();
-			try {
-				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mThreadVer, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mCodeGenType);
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		else if(mTarget.toUpperCase().contains("VREPSIMULATION")){
-			int ret = 0;
-			
-			CICVRepSimTranslator translator = new CICVRepSimTranslator();
-			
-			try {
-				if(mCommunication.size() > 0)
-					ret = translator.generateCodeWithComm(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mCommunication, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mThreadVer, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mCodeGenType);
-				else
-					ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mThreadVer, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mCodeGenType);				
-					
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		else if(mTarget.toUpperCase().contains("ARDUINO")){
-			int ret = 0;
-			
-			CICArduinoTranslator translator = new CICArduinoTranslator();
-			try {
-				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mThreadVer, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mCodeGenType);
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+
 		else if(mTarget.toUpperCase().contains("XEONPHI")){
 			int ret = 0;
 			

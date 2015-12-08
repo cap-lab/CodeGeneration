@@ -278,7 +278,7 @@ go_continue:
     CIC_T_INT target_task_id = GetTaskId(t_name);
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
         if(target_task_id == tasks[i].task_id){
-            int task_id = tasks[i].task_id;
+            CIC_T_INT task_id = tasks[i].task_id;
 	        InitTaskChannel(task_id);
 	        
             CIC_F_THREAD_CREATE(&(tasks[task_id].thread), TaskRoutine, (void *)task_id);
@@ -301,7 +301,7 @@ go_continue:
         PRINT("Stop a task (own)");
     }
     else{
-      int target_task_id = GetTaskId(t_name);
+      CIC_T_INT target_task_id = GetTaskId(t_name);
       for(i=0; i<CIC_UV_NUM_TASKS; i++){
           if(target_task_id == tasks[i].task_id){
                CIC_T_INT task_id = tasks[i].task_id;

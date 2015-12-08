@@ -1,2 +1,0 @@
-static void time_task_routine(int pdata);
-static void data_task_routine(int pdata);

@@ -238,7 +238,7 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
         if(target_task_id == tasks[i].parent_task_id && tasks[i].has_subgraph == CIC_V_FALSE){
-            int task_id = tasks[i].task_id;
+            CIC_T_INT task_id = tasks[i].task_id;
             
             CIC_F_THREAD_CREATE(&(tasks[task_id].thread), TaskRoutine, (void *)task_id);
 
