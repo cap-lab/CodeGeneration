@@ -160,13 +160,27 @@
 
 
   <!-- Type definitions for library specification -->
-  <xs:complexType name="LibraryType">
+   <xs:complexType name="LibraryFunctionArgumentType">
+    <xs:attribute name="type" type="xs:string" use="required" />
+    <xs:attribute name="name" type="xs:string" use="required" />
+   </xs:complexType>
+
+   <xs:complexType name="LibraryFunctionType">
+    <xs:sequence>
+      <xs:element name="argument" type="LibraryFunctionArgumentType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="returnType" type="xs:string" use="required" />
+    <xs:attribute name="name" type="xs:string" use="required" />
+   </xs:complexType>
+
+   <xs:complexType name="LibraryType">
     <xs:sequence>
       <xs:element name="libraryMasterPort" type="LibraryMasterPortType" minOccurs="0" maxOccurs="unbounded" />
       <xs:element name="extraHeader" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
       <xs:element name="extraSource" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
       <xs:element name="extraCIC" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
       <xs:element name="extraFile" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="function" type="LibraryFunctionType" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
     <xs:attribute name="name" type="NameType" use="required" />
     <xs:attribute name="type" type="NameType" use="required" />
