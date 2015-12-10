@@ -173,6 +173,8 @@ public class CodeGenerator
 				
 		try {
 			mAlgorithm = algorithmLoader.loadResource(mCICXMLFile + "_algorithm.xml");
+			System.out.println("--- " + mCICXMLFile + "_algorithm.xml");
+			System.out.println(mAlgorithm);
 			mArchitecture = architectureLoader.loadResource(mCICXMLFile + "_architecture.xml");
 			mMapping = mappingLoader.loadResource(mCICXMLFile + "_mapping.xml");
 			mConfiguration = configurationLoader.loadResource(mCICXMLFile + "_configuration.xml");
