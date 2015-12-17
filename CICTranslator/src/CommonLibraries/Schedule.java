@@ -796,7 +796,6 @@ public class Schedule {
 		String wrapupCode="";
 		CICScheduleType schedule;
 		CICScheduleTypeLoader scheduleLoader = new CICScheduleTypeLoader();
-				
 		for(Task task: mPVTask.values()){
 			Task parentTask = null; 
 			for(Task t: mTask.values()){

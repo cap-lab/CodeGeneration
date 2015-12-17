@@ -127,11 +127,11 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 		// generate mtm files from xml files	
 		for(Task t: mTask.values()){
 			if(t.getHasMTM().equalsIgnoreCase("Yes")){
-				if(mCodeGenType.equals("t") || mCodeGenType.equals("a")){
+				if(mCodeGenType.equals("Single") || mCodeGenType.equals("Global")){
 					templateFile = mTranslatorPath + "templates/common/mtm_template/thread_per_task.template";			
 					CommonLibraries.CIC.generateMTMFile(mOutputPath, templateFile, t, mAlgorithm, mTask, mPVTask, mQueue, mCodeGenType);
 				}
-				else if(mCodeGenType.equals("p")){
+				else if(mCodeGenType.equals("Partitioned")){
 					templateFile = mTranslatorPath + "templates/common/mtm_template/thread_per_processor.template";			
 					CommonLibraries.CIC.generateMTMFile(mOutputPath, templateFile, t, mAlgorithm, mTask, mPVTask, mQueue, mCodeGenType);
 				}
@@ -320,13 +320,13 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 		// CONTROL_GROUP_COUNT, CONTROL_CHANNEL_COUNT, PARAM_LIST_ENTRIES, CONTROL_CHANNEL_LIST_ENTRIES //
 		code = CommonLibraries.CIC.translateControlDataStructure(code, mTask, mControl);
 		
-		if(mThreadVer.equals("s")){
+		if(mThreadVer.equals("Single")){
 			templateFile = mTranslatorPath + "templates/common/task_execution/single_thread_hybrid.template";
 		}
-		else if(mThreadVer.equals("m")){
-			if(mCodeGenType.equals("a"))		templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
-			else if(mCodeGenType.equals("t"))	templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_task.template";
-			else if(mCodeGenType.equals("p"))	templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_processor.template";
+		else if(mThreadVer.equals("Multi")){
+			if(mCodeGenType.equals("Single"))			templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
+			else if(mCodeGenType.equals("Global"))		templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_task.template";
+			else if(mCodeGenType.equals("Partitioned"))	templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_processor.template";
 		}
 		
 		// TASK_VARIABLE_DECLARATION //
@@ -397,13 +397,13 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 			code = code.replace("##CONTROL_API", controlApi);
 			//////////////////////////
 			
-			if(mThreadVer.equals("s")){
+			if(mThreadVer.equals("Single")){
 				templateFile = mTranslatorPath + "templates/common/task_execution/single_thread_hybrid.template";
 			}
-			else if(mThreadVer.equals("m")){
-				if(mCodeGenType.equals("a"))		templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
-				else if(mCodeGenType.equals("t"))	templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_task.template";
-				else if(mCodeGenType.equals("p"))	templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_processor.template";
+			else if(mThreadVer.equals("Multi")){
+				if(mCodeGenType.equals("Single"))			templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
+				else if(mCodeGenType.equals("Global"))		templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_task.template";
+				else if(mCodeGenType.equals("Partitioned"))	templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_processor.template";
 			}
 			// CONTROL_RUN_TASK //
 			String controlRunTask = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##CONTROL_RUN_TASK");
@@ -428,10 +428,10 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 		else{
 			code = code.replace("##CONTROL_API", "");
 		}
-		if(mThreadVer.equals("s")){
+		if(mThreadVer.equals("Single")){
 			templateFile = mTranslatorPath + "templates/common/channel_manage/general_linux_single_thread.template";
 		}
-		else if(mThreadVer.equals("m")){
+		else if(mThreadVer.equals("Multi")){
 			templateFile = mTranslatorPath + "templates/common/channel_manage/general_linux_multi_thread.template";
 		}
 		// INIT_WRAPUP_CHANNELS //
@@ -488,14 +488,15 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 		
 		// SCHEDULE_CODE //
 		String staticScheduleCode ="";
-		if(mCodeGenType.equals("a")){
+		if(mCodeGenType.equals("Single")){
 			String outPath = mOutputPath + "/convertedSDF3xml/";
 			staticScheduleCode = CommonLibraries.Schedule.generateSingleProcessorStaticScheduleCode(outPath, mTask, mVTask);
 			code = code.replace("##SCHEDULE_CODE", staticScheduleCode);
 		}
-		else if(mCodeGenType.equals("t")){
+		else if(mCodeGenType.equals("Global")){
 		}
-		else if(mCodeGenType.equals("p")){
+		else if(mCodeGenType.equals("Partitioned")){
+			System.out.println();
 			String outPath = mOutputPath + "/convertedSDF3xml/";
 			staticScheduleCode = CommonLibraries.Schedule.generateMultiProcessorStaticScheduleCode(outPath, mTask, mVTask, mPVTask);
 			code = code.replace("##SCHEDULE_CODE", staticScheduleCode);
@@ -503,13 +504,13 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 		code = code.replace("##SCHEDULE_CODE", staticScheduleCode);
 		///////////////////
 		
-		if(mThreadVer.equals("s")){
+		if(mThreadVer.equals("Single")){
 			templateFile = mTranslatorPath + "templates/common/task_execution/single_thread_hybrid.template";
 		}
-		else if(mThreadVer.equals("m")){
-			if(mCodeGenType.equals("a"))		templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
-			else if(mCodeGenType.equals("t"))	templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_task.template";
-			else if(mCodeGenType.equals("p"))	templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_processor.template";
+		else if(mThreadVer.equals("Multi")){
+			if(mCodeGenType.equals("Single"))			templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
+			else if(mCodeGenType.equals("Global"))		templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_task.template";
+			else if(mCodeGenType.equals("Partitioned"))	templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_processor.template";
 		}
 		
 		// TASK_ROUTINE //
@@ -531,7 +532,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 		code = code.replace("##SET_PROC", setProc);
 		//////////////
 		
-		if(mCodeGenType.equals("p")){
+		if(mCodeGenType.equals("Partitioned")){
 			// SET_PROC //
 			String setVirtualProc= "\tcpu_set_t cpuset;\n"
 					      + "\tCPU_ZERO(&cpuset);\n"
@@ -667,11 +668,11 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 		    mRootPath = mRootPath.replace("F:", "/cygdrive/F");
 		    mRootPath = mRootPath.replace("G:", "/cygdrive/G");
 		    
-		    if(mThreadVer.equals("m")){
+		    if(mThreadVer.equals("Multi")){
 		    	outstream.write("#CFLAGS=-Wall -O0 -g -DDISPLAY -DTHREAD_STYLE\n".getBytes());
 		        outstream.write("CFLAGS=-Wall -O2 -DDISPLAY -DTHREAD_STYLE\n".getBytes());
 		    }
-		    else if(mThreadVer.equals("s")){
+		    else if(mThreadVer.equals("Single")){
 		    	outstream.write("#CFLAGS=-Wall -O0 -g -DDISPLAY\n".getBytes());
 		        outstream.write("CFLAGS=-Wall -O2 -DDISPLAY\n".getBytes());
 		    }

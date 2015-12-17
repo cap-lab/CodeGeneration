@@ -44,14 +44,14 @@ public class Control {
 					for(Task task: mTask.values()){
 						if(task.getName().equals(controlTask.getTask())){
 							taskID = task.getIndex();
-							masterProcId = task.getProc().get(0).toString();
+							masterProcId = task.getProc().get("Default").get("Default").get(0).toString();
 							break;
 						}
 					}
 					for(Task task: mTask.values()){
 						if(task.getHasSubgraph().equalsIgnoreCase("No")){
 							if(task.getName().equals(controlTask.getSlaveTask().get(0))){
-								slaveProcId = task.getProc().get(0).toString();
+								slaveProcId = task.getProc().get("Default").get("Default").get(0).toString();
 								break;
 							} 
 						}

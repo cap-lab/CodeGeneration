@@ -96,9 +96,9 @@ public class CodeGenerator
 		mGlobalPeriod = 0;
 		mTotalControlQueue = 0;	
 		
-		mGraphType = "";	// DataFlow, ProcessNetwork, Hybrid
+		mGraphType = "ProcessNetwork";	// DataFlow, ProcessNetwork, Hybrid
 		mThreadVer = "m";	// s: single thread, m: multi thread
-		mCodeGenType = "p";	// a: thread per app, t: thread per task, p: thread per proc
+		mCodeGenType = "t";	// a: thread per app, t: thread per task, p: thread per proc
 		mLanguage = "c";
 	}
 	
@@ -195,6 +195,9 @@ public class CodeGenerator
 	
 	public void makeInnerDataStructures(){
 		mGraphType = mAlgorithm.getProperty();
+		mThreadVer = mConfiguration.getCodeGeneration().getThread();
+		mCodeGenType = mConfiguration.getCodeGeneration().getSchedule();
+		
 		BuildInnerDataStructures builder = new BuildInnerDataStructures();
 		mProcessor = builder.makeProcessors(mArchitecture);
 		mCommunication = builder.makeCommunications(mArchitecture);
@@ -252,7 +255,7 @@ public class CodeGenerator
 				
 				// Make virtual tasks for top-level sdf graphs
 				mVTask = builder.modifyTaskStructure(mTask, mQueue, mConnectedTaskGraph, mConnectedSDFTaskSet, mAlgorithm.getProperty(), mGlobalPeriod, mGlobalPeriodMetric);
-				if(mCodeGenType.equals("p")){
+				if(mCodeGenType.equals("Partitioned")){
 					mPVTask = builder.addProcessorVirtualTask(mTask, mQueue, mProcessor, mConnectedTaskGraph, mConnectedSDFTaskSet, mAlgorithm.getProperty(), mGlobalPeriod, mGlobalPeriodMetric, mVTask, mOutputPath);
 				}
 				else	mPVTask = new HashMap<String, Task>(); 

@@ -13,9 +13,9 @@
 #define SLEEP(a) sleep(a)
 #endif
 
-#define RUN 0
-#define STOP 1
-#define WAIT 2
+#define TASK_STATUS_RUN 0
+#define TASK_STATUS_STOP 1
+#define TASK_STATUS_WAIT 2
 
 #define TASK_CODE_BEGIN
 #define TASK_CODE_END
