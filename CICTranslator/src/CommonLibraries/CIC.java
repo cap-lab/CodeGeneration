@@ -154,7 +154,7 @@ public class CIC {
 		String numSubTasks = "";
 		String srcTaskIndex = "";
 		
-		if(version.equals("t")){
+		if(version.equals("Global")){
 			String srcTaskName = "";
 			int srcTaskId = 0;
 			int subTaskCount = 0;
@@ -221,7 +221,7 @@ public class CIC {
 			numSubTasks += "#define NUM_SUB_TASKS " + subTaskCount;
 			srcTaskIndex += "CIC_STATIC CIC_T_INT src_task_index = " + srcTaskId + ";";
 		}
-		else if(version.equals("p")){
+		else if(version.equals("Partitioned")){
 			int subTaskCount = 0;
 			for(Task pt: mPVTask.values()){
 				if(pt.getParentTask().equals(task.getName())){
@@ -272,8 +272,8 @@ public class CIC {
         	t += "\t\tcase " + i + ":\n";	        	
         	// transition list
         	if(transList.size() == 0){
-		        if(version.equals("p"))	t += "\t\t\tsrc_continue_count++;\n";
-		        else					t += "\t\t\tcontinue_count[src_task_index]++;\n";
+		        if(version.equals("Partitioned"))	t += "\t\t\tsrc_continue_count++;\n";
+		        else								t += "\t\t\tcontinue_count[src_task_index]++;\n";
         	}
         	else{
 	        	for(int j=0; j<transList.size(); j++){
@@ -306,8 +306,8 @@ public class CIC {
 				        t += "\t\t\t\tcurrent_mode = " + dst_id + ";\n";     	
 				        t += "\t\t\t\tis_transition = CIC_V_TRUE;\n\t\t\t}\n";
 				        t += "\t\t\telse{\n";
-				        if(version.equals("p"))	t += "\t\t\t\tsrc_continue_count++;\n";
-				        else					t += "\t\t\t\tcontinue_count[src_task_index]++;\n";
+				        if(version.equals("Partitioned"))	t += "\t\t\t\tsrc_continue_count++;\n";
+				        else								t += "\t\t\t\tcontinue_count[src_task_index]++;\n";
 				        t += "\t\t\t}\n";
 			        }
 	        	}
@@ -580,7 +580,7 @@ public class CIC {
 		// EXTERN_FUNCTION_DECLARATION //
 		String externalFunctions = "";
 	
-		if(mCodeGenType.equals("a")){
+		if(mCodeGenType.equals("Single")){
 			for(Task task: mTask.values()){
 				externalFunctions += "CIC_EXTERN CIC_T_VOID "+task.getName()+"_Init(CIC_T_INT);\n";
 				externalFunctions += "CIC_EXTERN CIC_T_VOID "+task.getName()+"_Go(CIC_T_VOID);\n";
@@ -597,7 +597,7 @@ public class CIC {
 				externalFunctions += "CIC_STATIC CIC_T_VOID "+task.getName()+"_Wrapup(CIC_T_VOID);\n";
 			}
 		}
-		else if(mCodeGenType.equals("t")){
+		else if(mCodeGenType.equals("Global")){
 			for(Task task: mTask.values()){
 				if(task.getHasSubgraph().equals("No")){
 					externalFunctions += "CIC_EXTERN CIC_T_VOID "+task.getName()+"_Init(CIC_T_INT);\n";
@@ -611,7 +611,7 @@ public class CIC {
 				}
 			}
 		}
-		else if(mCodeGenType.equals("t") || mCodeGenType.equals("p")){
+		else if(mCodeGenType.equals("Partitioned")){
 			for(Task task: mTask.values()){
 				if(task.getHasSubgraph().equals("No")){
 					externalFunctions += "CIC_EXTERN CIC_T_VOID "+task.getName()+"_Init(CIC_T_INT);\n";
@@ -649,7 +649,7 @@ public class CIC {
 					isSDF = "CIC_V_TRUE";
 				}
 				mtmEntriesCode += "\tENTRY(" + t.getIndex() + ", " + isSDF + ", " + t.getName() + ", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
-				externalMTMFunctions += "CIC_EXTERN CIC_T_VOID " + t.getName() + "_MTMInitialize(CIC_T_VOID);\n"
+				externalMTMFunctions += "CIC_EXTERN CIC_T_VOID " + t.getName() + "_Initialize(CIC_T_VOID);\n"
 						+ "CIC_EXTERN CIC_T_CHAR* " + t.getName() + "_GetCurrentModeName(CIC_T_VOID);\n"
 						+ "CIC_EXTERN CIC_T_INT " + t.getName() + "_GetVariableInt(CIC_T_CHAR*);\n"
 						+ "CIC_EXTERN CIC_T_VOID " + t.getName() + "_SetVariableInt(CIC_T_CHAR*, CIC_T_INT);\n"
@@ -852,11 +852,11 @@ public class CIC {
 			
 			controlGroupCount = "1";
 			//if(mControl.getExclusiveControlTasksList() != null)	controlGroupCount = Integer.toString(mControl.getExclusiveControlTasksList().getExclusiveControlTasks().size());
-			controlGroupCount = "#define CONTROL_GROUP_COUNT " + controlGroupCount;
+			controlGroupCount = "#define CIC_UV_CONTROL_GROUP_COUNT " + controlGroupCount;
 			
 			controlChannelCount = "1";
 			//if(mControl.getControlTasks() != null)	controlChannelCount = Integer.toString(mControl.getControlTasks().getControlTask().size());
-			controlChannelCount = "#define CONTROL_CHANNEL_COUNT " + controlChannelCount;
+			controlChannelCount = "#define CIC_UV_CONTROL_CHANNEL_COUNT " + controlChannelCount;
 		}
 		
 		code = code.replace("##PARAM_LIST_ENTRIES", controlParamListEntries);

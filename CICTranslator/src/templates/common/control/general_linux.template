@@ -39,21 +39,6 @@ CIC_T_VOID SetMTMParamString(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, C
     return;
 }
 
-CIC_T_INT CheckTaskState(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
-{
-    CIC_T_INT i=0;
-    CIC_T_INT task_id=0;
-
-    for(i=0; i<CIC_UV_NUM_TASKS; i++){
-        if(CIC_F_STRING_COMPARE(t_name, tasks[i].name) == 0){
-            task_id = i;
-            break;
-        }
-    }
-
-    return tasks[task_id].state;
-}
-
 CIC_T_CHAR* GetCurrentModeName(CIC_T_CHAR* caller_task_name)
 {
     CIC_T_INT i=0, j=0;
@@ -75,7 +60,7 @@ CIC_T_CHAR* GetCurrentModeName(CIC_T_CHAR* caller_task_name)
 ##MTM_API_END
 
 ##CONTROL_API_START
-CIC_STATIC CIC_T_INT GetControlChannelIndex(CIC_UT_INT control_task_id)
+CIC_STATIC CIC_T_INT GetControlChannelIndex(CIC_T_INT control_task_id)
 {
 	CIC_T_INT i;
 	
@@ -99,7 +84,7 @@ CIC_STATIC CIC_T_INT GetValidTimerSlotId(CIC_T_UINT cont_ch_index)
 		temp_slot_index = 0;
 
 	if(control_channel[cont_ch_index].timer_slot[temp_slot_index] != 0) {  // check the next point is available
-		CIC_T_UINT cur_time_val = get_current_time_base();
+		CIC_T_UINT cur_time_val = GetCurrentTimeBase();
 		if(control_channel[cont_ch_index].timer_slot[temp_slot_index]  <= cur_time_val) {
 			control_channel[cont_ch_index].timer_slot[temp_slot_index] = 0;
 		}
@@ -126,15 +111,41 @@ CIC_STATIC CIC_T_INT GetValidTimerSlotId(CIC_T_UINT cont_ch_index)
 	return id;
 }
 
+CIC_T_VOID SetThroughput(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, CIC_T_CHAR* value, CIC_T_CHAR* unit)
+{
+
+}
+
+CIC_T_VOID SetDeadline(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, CIC_T_CHAR* value, CIC_T_CHAR* unit)
+{
+
+}
+
+CIC_T_INT CheckTaskState(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
+{
+    CIC_T_INT i=0;
+    CIC_T_INT task_id=0;
+
+    for(i=0; i<CIC_UV_NUM_TASKS; i++){
+        if(CIC_F_STRING_COMPARE(t_name, tasks[i].name) == 0){
+            task_id = i;
+            break;
+        }
+    }
+
+    return tasks[task_id].state;
+}
+
 CIC_T_VOID CallTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
 {
-	CIC_T_INT task_index = GetTaskId(t_name);
+	CIC_T_INT task_index = GetTaskIdForName(t_name);
 	tasks[task_index].state = STATE_RUN;
 	TASK_INIT;
 	TASK_GO;
 	TASK_WRAPUP;
 	tasks[task_index].state = STATE_STOP;
 }
+
 
 CIC_T_VOID RunTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
 {
@@ -156,6 +167,11 @@ CIC_T_VOID SuspendTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
 ##CONTROL_SUSPEND_TASK
 }
 
+CIC_T_VOID EndTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
+{
+##CONTROL_END_TASK
+}
+
 CIC_T_LONG GetParamInt(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, CIC_T_CHAR* p_name)
 {
 	CIC_T_LONG ret=0;
@@ -164,7 +180,7 @@ CIC_T_LONG GetParamInt(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, CIC_T_C
 	CIC_T_CHAR *param_name;
 
 	if(t_name == CIC_V_NULL){
-		CIC_T_INT task_id = GetTaskId(caller_task_name);
+		CIC_T_INT task_id = GetTaskIdForName(caller_task_name);
 		task_name = tasks[task_id].name;
 		param_name = p_name;
 	}
@@ -174,7 +190,7 @@ CIC_T_LONG GetParamInt(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, CIC_T_C
 	}
 
 	for(i=0; i<CIC_ARRAYLEN(param_list); i++){
-		if(CIC_F_STRING_COMPARE(task_name, param_list[i].task_name) == 0 && STRING_COMPARE(param_name, param_list[i].param_name) == 0){
+		if(CIC_F_STRING_COMPARE(task_name, param_list[i].task_name) == 0 && CIC_F_STRING_COMPARE(param_name, param_list[i].param_name) == 0){
 			ret = (long)(param_list[i].param_value);
 			break;
 		}
@@ -186,10 +202,10 @@ CIC_T_LONG GetParamInt(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, CIC_T_C
 CIC_T_VOID SetParamInt(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, CIC_T_CHAR* p_name, CIC_T_LONG p_value)
 {
 	CIC_T_INT i=0; 
-    CIC_T_INT tarGetTaskId = GetTaskId(t_name);
+    CIC_T_INT tarGetTaskIdForName = GetTaskIdForName(t_name);
 
-    for(i=0;i<CIC_CIC_ARRAYLEN(param_list);i++) {
-        if(tarGetTaskId == param_list[i].task_id && STRING_COMPARE(p_name, param_list[i].param_name)==0 ) {
+    for(i=0;i<CIC_ARRAYLEN(param_list);i++) {
+        if(tarGetTaskIdForName == param_list[i].task_id && CIC_F_STRING_COMPARE(p_name, param_list[i].param_name)==0 ) {
            (param_list[i].param_value) = (CIC_T_VOID*)p_value;
             break;
         }
@@ -205,7 +221,7 @@ CIC_T_DOUBLE GetParamFloat(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, CIC
 	CIC_T_CHAR *task_name, *param_name;
 
 	if(t_name == CIC_V_NULL){
-		CIC_T_INT task_id = GetTaskId(caller_task_name);
+		CIC_T_INT task_id = GetTaskIdForName(caller_task_name);
 		task_name = tasks[task_id].name;
 		param_name = p_name;
 	}
@@ -215,7 +231,7 @@ CIC_T_DOUBLE GetParamFloat(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, CIC
 	}
 
 	for(i=0; i<CIC_ARRAYLEN(param_list); i++){
-		if(STRING_COMPARE(task_name, param_list[i].task_name) == 0 && STRING_COMPARE(param_name, param_list[i].param_name) == 0){
+		if(CIC_F_STRING_COMPARE(task_name, param_list[i].task_name) == 0 && CIC_F_STRING_COMPARE(param_name, param_list[i].param_name) == 0){
 			ret = *((double*)&(param_list[i].param_value));
 			break;
 		}
@@ -227,10 +243,10 @@ CIC_T_DOUBLE GetParamFloat(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, CIC
 CIC_T_VOID SetParamFloat(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, CIC_T_CHAR* p_name, CIC_T_DOUBLE p_value)
 {
     CIC_T_INT i=0; 
-    CIC_T_INT tarGetTaskId = GetTaskId(t_name);
+    CIC_T_INT tarGetTaskIdForName = GetTaskIdForName(t_name);
 
     for(i=0;i<CIC_ARRAYLEN(param_list);i++) {
-        if(tarGetTaskId == param_list[i].task_id && STRING_COMPARE(p_name, param_list[i].param_name)==0 ) {
+        if(tarGetTaskIdForName == param_list[i].task_id && CIC_F_STRING_COMPARE(p_name, param_list[i].param_name)==0 ) {
            *((double*)&(param_list[i].param_value)) = p_value;
             break;
         }
@@ -240,7 +256,7 @@ CIC_T_VOID SetParamFloat(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, CIC_T
 
 CIC_T_INT GetTimerAlarmed(CIC_T_CHAR* caller_task_name, CIC_T_UINT timer_id)
 {
-	CIC_T_UINT my_task_id = GetTaskId(caller_task_name);
+	CIC_T_UINT my_task_id = GetTaskIdForName(caller_task_name);
 	CIC_T_UINT cont_ch_index = GetControlChannelIndex(my_task_id);
 
 	CIC_T_UINT cur_time = GetCurrentTimeBase();
@@ -269,7 +285,7 @@ CIC_T_INT SetTimer(CIC_T_CHAR* caller_task_name, CIC_T_UINT time_value, CIC_T_CH
 {
 	CIC_T_INT timer_id;
 	CIC_T_UINT tick;
-	CIC_T_UINT my_task_id = GetTaskId(caller_task_name);
+	CIC_T_UINT my_task_id = GetTaskIdForName(caller_task_name);
 	CIC_T_UINT cont_ch_index = GetControlChannelIndex(my_task_id);
 	timer_id = GetValidTimerSlotId(cont_ch_index);
         
@@ -281,7 +297,7 @@ CIC_T_INT SetTimer(CIC_T_CHAR* caller_task_name, CIC_T_UINT time_value, CIC_T_CH
 
 CIC_T_VOID ResetTimer(CIC_T_CHAR* caller_task_name, CIC_T_UINT timer_id) 
 {
-	CIC_T_UINT my_task_id = GetTaskId(caller_task_name);
+	CIC_T_UINT my_task_id = GetTaskIdForName(caller_task_name);
 	CIC_T_UINT cont_ch_index = GetControlChannelIndex(my_task_id);
 	control_channel[cont_ch_index].timer_slot[timer_id]=0; // reset timer
 }

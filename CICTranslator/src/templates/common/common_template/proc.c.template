@@ -52,7 +52,7 @@ CIC_UT_TASK virtual_tasks[] = {
 
 ##EXTERN_MTM_FUNCTION_DECLARATION
 
-#define ENTRY(a, b, task, c, d) {a, b, task##_MTMInitialize, task##_GetCurrentModeName, task##_SetVariableInt, task##_GetVariableInt, task##_SetVariableString, task##_GetVariableString, task##_Transition, task##_UpdateCurrentMode, task##_GetTaskIterCount, task##_GetTaskRepeatCount, c, d, 0}
+#define ENTRY(a, b, task, c, d) {a, b, task##_Initialize, task##_GetCurrentModeName, task##_SetVariableInt, task##_GetVariableInt, task##_SetVariableString, task##_GetVariableString, task##_Transition, task##_UpdateCurrentMode, task##_GetTaskIterCount, task##_GetTaskRepeatCount, c, d, 0}
 CIC_UT_MTM mtms[] = {
 ##MTM_ENTRIES
 };
@@ -130,6 +130,18 @@ CIC_STATIC CIC_T_CHAR *GetTaskNameForId(CIC_T_INT task_id)
     return CIC_V_NULL;
 }
 
+CIC_STATIC CIC_T_INT GetTaskIndexForName(CIC_T_CHAR* task_name)
+{
+    CIC_T_INT i;
+    for(i=0; i<CIC_UV_NUM_TASKS; i++){
+        if(CIC_F_STRING_COMPARE(task_name, tasks[i].name) == 0){
+        	return i;
+        }
+    }
+    CIC_F_ERROR(task_name, "GetTaskIndexForName() fail!", CIC_V_ERROR_EXIT);
+    return CIC_V_ERROR;
+}
+
 CIC_STATIC CIC_T_INT GetTaskIdForName(CIC_T_CHAR* task_name)
 {
     CIC_T_INT i;
@@ -156,6 +168,25 @@ CIC_STATIC CIC_T_INT GetTaskIdForChannel(CIC_T_INT channel_id, CIC_T_CHAR op)
     CIC_F_INTEGER_TO_STRING(channel_id_name, channel_id);
 	CIC_F_ERROR(channel_id_name, "GetTaskIdForChannel() fail!", CIC_V_ERROR_EXIT);
 	return CIC_V_ERROR;
+}
+
+CIC_STATIC CIC_T_VOID CheckGraphEnd(CIC_T_INT parent_task_id){
+	CIC_T_INT i;
+	CIC_T_INT parent_task_index = GetTaskIndexForId(parent_task_id);
+	CIC_T_INT task_count = 0, complete_count = 0;
+    for(i=0; i<CIC_UV_NUM_TASKS; i++){
+    	if(tasks[i].parent_task_id == parent_task_id && i != parent_task_index){
+			if(tasks[parent_task_index].state == STATE_END && 
+				tasks[parent_task_index].run_count <= tasks[i].run_count){
+				complete_count++;
+    		}
+			task_count++;
+    	}
+    }
+    
+    if(task_count == complete_count){
+		StopTask(CIC_V_NULL, tasks[parent_task_index].name);
+	}
 }
 
 CIC_STATIC CIC_T_VOID WaitDataTasksEnd(){
@@ -268,16 +299,6 @@ CIC_T_INT GetChannelIndex(CIC_T_INT channel_id)
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 
-///////////////////////////////////// MTM API START /////////////////////////////////////
-##MTM_API
-////////////////////////////////////// MTM API END //////////////////////////////////////
-
-
-///////////////////////////////////// CONTROL API START /////////////////////////////////////
-##CONTROL_API
-////////////////////////////////////// CONTROL API END //////////////////////////////////////
-
-
 ///////////////////////////////// CHANNEL INIT/WRAPUP START /////////////////////////////////
 ##INIT_WRAPUP_TASK_CHANNELS
 
@@ -305,7 +326,7 @@ CIC_T_INT GetChannelIndex(CIC_T_INT channel_id)
 
 ##LIB_WRAPUP_FUNCTION
 /////////////////////////////// LIBRARY TASK INIT/WRAPUP END ////////////////////////////////
- 
+
  
 ////////////////////////// STATIC SCHEDULE CODE START (IF NEEDED) ///////////////////////////
 ##SCHEDULE_CODE
@@ -318,6 +339,16 @@ CIC_T_INT GetChannelIndex(CIC_T_INT channel_id)
 ##EXECUTE_TASKS
 ///////////////////////////////////// TASK ROUTINE END //////////////////////////////////////
 
+
+///////////////////////////////////// MTM API START /////////////////////////////////////
+##MTM_API
+////////////////////////////////////// MTM API END //////////////////////////////////////
+
+
+///////////////////////////////////// CONTROL API START /////////////////////////////////////
+##CONTROL_API
+////////////////////////////////////// CONTROL API END //////////////////////////////////////
+ 
 
 CIC_T_VOID InitSystemVariables(){
 ##INIT_SYSTEM_VARIABLES

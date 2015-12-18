@@ -3,12 +3,6 @@
 
 #include "includes.h"
 
-#ifdef WIN32
-#define CIC_F_SLEEP(a) Sleep(a*1000)
-#else
-#define CIC_F_SLEEP(a) sleep(a)
-#endif
-
 #define SYSTEM_PRINTF_SUPPORT 1
 #define SYSTEM_THREAD_SUPPORT 1
 #define SYSTEM_STANDARD_LIB_SUPPORT 1
@@ -42,6 +36,8 @@
 #define CIC_V_TRUE true
 #define CIC_V_FALSE false
 
+#define CIC_F_SLEEP sleep
+#define CIC_F_USLEEP usleep
 #define CIC_F_STRING_COPY strcpy
 #define CIC_F_STRING_COMPARE strcmp
 #define CIC_F_STRING_CONCATENATE strcat

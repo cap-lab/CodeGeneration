@@ -1,4 +1,4 @@
-#define MTM_INITIALIZE CIC_T_VOID ##TASK_NAME_MTMInitialize(CIC_T_VOID)    
+#define MTM_INITIALIZE CIC_T_VOID ##TASK_NAME_Initialize(CIC_T_VOID)    
 #define GET_CURRENT_MODE_NAME CIC_T_CHAR* ##TASK_NAME_GetCurrentModeName(CIC_T_CHAR *task_name)                             
 #define GET_CURRENT_MODE_ID CIC_T_INT ##TASK_NAME_GetCurrentModeID(CIC_T_CHAR *task_name)                                                            
 #define GET_MODE_NAME CIC_T_CHAR* ##TASK_NAME_GetModeName(CIC_T_INT id)                                       

@@ -52,11 +52,11 @@ CIC_UT_THREAD_FUNC_RET_TYPE VirtualTaskRoutine(CIC_UT_THREAD_FUNC_ARG_TYPE pdata
 		}
 	}
 
-	CIC_F_BARRIER_WAIT(&all_thread_barrier);
+	//CIC_F_BARRIER_WAIT(&all_thread_barrier);
 
 	(*virtual_tasks[task_index].Init)(task_index);
 
-	CIC_F_BARRIER_WAIT(&all_thread_barrier);
+	//CIC_F_BARRIER_WAIT(&all_thread_barrier);
 
 virtual_task_continue:
 	iteration_count = virtual_tasks[task_index].run_count;
@@ -75,9 +75,12 @@ virtual_task_continue:
    		(*virtual_tasks[task_index].Go)();
    		
         count++;
-        if(virtual_tasks[task_index].driven_type == TIME_DRIVEN){
-			if(iteration_count == count)	break;
-		}
+        
+        virtual_tasks[task_index].run_count += 1;
+        
+        //if(virtual_tasks[task_index].driven_type == TIME_DRIVEN){
+		//	if(iteration_count == count)	break;
+		//}
     }
     
     if(virtual_tasks[task_index].driven_type == TIME_DRIVEN){
@@ -112,19 +115,22 @@ CIC_UT_THREAD_FUNC_RET_TYPE TaskRoutine(CIC_UT_THREAD_FUNC_ARG_TYPE pdata)
 	
 ##SET_PROC
 
-	if(tasks[task_index].task_type == COMPUTATIONAL){
-		CIC_F_BARRIER_WAIT(&all_thread_barrier);
-	}
+	//if(tasks[task_index].task_type == COMPUTATIONAL){
+	//	CIC_F_BARRIER_WAIT(&all_thread_barrier);
+	//}
 
 	if(*tasks[task_index].PreInit != CIC_V_NULL) TASK_PREINIT;
 	TASK_INIT;
 
 	if(tasks[task_index].task_type == CONTROL){
 		CIC_F_BARRIER_WAIT(&control_task_barrier);	// When TASK_INIT functions of control tasks are called,
+		
+		/*
 		while(!all_thread_barrier_initialized){		// wait until all_thread_barrier is initialized
 			CIC_F_SCHED_YIELD();
 		}	
 		CIC_F_BARRIER_WAIT(&all_thread_barrier);	// and wait until all threads of computational tasks are invoked.
+		*/
 	}
 	
 task_continue:   
@@ -213,6 +219,7 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
     CIC_F_BARRIER_WAIT(&control_task_barrier);
       
     // All thread barrier initialize
+    /*
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
         if(tasks[i].task_type != CONTROL){
 	        CIC_T_BOOL create_thread = CIC_V_FALSE;
@@ -230,7 +237,8 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 
 	CIC_F_BARRIER_INIT(&all_thread_barrier, all_thread_count);
 	all_thread_barrier_initialized = CIC_V_TRUE;
-
+	*/
+	
 	// Create threads for computational tasks
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
         if(tasks[i].task_type != CONTROL){
@@ -242,7 +250,7 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 	        if(create_thread == CIC_V_TRUE && tasks[i].state == STATE_RUN){
 	            CIC_F_PRINTF("%s task thread is created!\n", tasks[i].name);
 	            CIC_F_THREAD_CREATE(&(tasks[i].thread), TaskRoutine, (void *)tasks[i].task_id);
-	            all_thread_count++;
+	            //all_thread_count++;
 		        if(tasks[i].driven_type == TIME_DRIVEN)	num_time_task++;
 			}
 	    }
@@ -250,11 +258,11 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
     
     for(i=0; i<CIC_UV_NUM_VIRTUAL_TASKS; i++){
         CIC_T_BOOL create_thread = CIC_V_FALSE;
-
-        if(virtual_tasks[i].state == STATE_RUN){
+		CIC_T_INT parent_task_index = GetTaskIndexForId(virtual_tasks[i].parent_task_id);
+        if(tasks[parent_task_index].state == STATE_RUN){
             CIC_F_PRINTF("%s virtual_task thread is created!\n", virtual_tasks[i].name);
             CIC_F_THREAD_CREATE(&(virtual_tasks[i].thread), VirtualTaskRoutine, (void *)virtual_tasks[i].task_id);
-            all_thread_count++;
+            //all_thread_count++;
 	        if(virtual_tasks[i].driven_type == TIME_DRIVEN)	num_time_task++;
 		}
     }
@@ -306,17 +314,24 @@ go_continue:
 ##EXECUTE_TASKS_END
 
 ##CONTROL_RUN_TASK_START
-    CIC_T_INT i=0;
-    CIC_T_INT target_task_id = GetTaskId(t_name);
+    CIC_T_INT i=0, j=0;
+    CIC_T_INT target_task_id = GetTaskIdForName(t_name);
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
         if(target_task_id == tasks[i].task_id){
-            CIC_T_INT task_id = tasks[i].task_id;
-	        InitTaskChannel(task_id);
-	        
-            CIC_F_THREAD_CREATE(&(tasks[task_id].thread), TaskRoutine, (void *)task_id);
-	            
-	        tasks[task_id].state = STATE_RUN;
-	        CIC_F_PRINTF("Run task %s (task_id: %d)\n", tasks[task_id].name, task_id);
+        	if(tasks[i].has_subgraph){
+        		InitTaskChannels(target_task_id);
+        		for(j=0; j<CIC_UV_NUM_VIRTUAL_TASKS; j++){
+        			if(virtual_tasks[j].parent_task_id == target_task_id){
+        				CIC_F_THREAD_CREATE(&(virtual_tasks[i].thread), VirtualTaskRoutine, (void *)virtual_tasks[j].task_id);
+        			}
+        		}
+        	}
+        	else{
+        		 CIC_F_THREAD_CREATE(&(tasks[i].thread), TaskRoutine, (void *)i);
+        	}
+           
+	        tasks[i].state = STATE_RUN;
+	        CIC_F_PRINTF("Run task %s (task_id: %d)\n", tasks[i].name, tasks[i].task_id);
 	        break;
         }
     }  
@@ -324,34 +339,25 @@ go_continue:
 
 ##CONTROL_STOP_TASK_START
     CIC_T_INT i=0;
-    if(CIC_F_STRING_COMPARE(caller_task_name, t_name) == 0){
-    	CIC_T_INT task_id = GetTaskId(caller_task_name);
-    	CIC_T_INT parent_task_id = tasks[task_id].parent_task_id;
-        CIC_F_THREAD_CANCEL(tasks[parent_task_id].thread);
-        WrapupTaskChannel(parent_task_id);
-        tasks[parent_task_id].state = STATE_STOP;
-        PRINT("Stop a task (own)");
-    }
-    else{
-      CIC_T_INT target_task_id = GetTaskId(t_name);
-      for(i=0; i<CIC_UV_NUM_TASKS; i++){
-          if(target_task_id == tasks[i].task_id){
-               CIC_T_INT task_id = tasks[i].task_id;
-	           CIC_F_THREAD_CANCEL(tasks[task_id].thread);
-	           WrapupTaskChannel(task_id);
-	           tasks[task_id].state = STATE_STOP;
-	           CIC_F_PRINTF("Stop task %s (task_id: %d)\n", tasks[task_id].name, task_id);
-	           break;
-          }
-      } 
-    }
+    
+    CIC_T_INT target_task_id = GetTaskIdForName(t_name);
+    for(i=0; i<CIC_UV_NUM_TASKS; i++){
+        if(target_task_id == tasks[i].task_id){
+             CIC_T_INT task_id = tasks[i].task_id;
+	         CIC_F_THREAD_CANCEL(tasks[task_id].thread);
+	         WrapupTaskChannels(task_id);
+	         tasks[task_id].state = STATE_STOP;
+	         CIC_F_PRINTF("Stop task %s (task_id: %d)\n", tasks[task_id].name, task_id);
+	         break;
+        }
+    } 
 
     return;
 ##CONTROL_STOP_TASK_END
 
 ##CONTROL_RESUME_TASK_START
     CIC_T_INT i=0;
-    CIC_T_INT target_task_id = GetTaskId(t_name);
+    CIC_T_INT target_task_id = GetTaskIdForName(t_name);
     
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
         if(target_task_id == tasks[i].task_id){
@@ -369,13 +375,13 @@ go_continue:
     CIC_T_INT i=0;
     
     if(CIC_F_STRING_COMPARE(caller_task_name, t_name) == 0){
-        CIC_T_INT task_id = GetTaskId(caller_task_name);
+        CIC_T_INT task_id = GetTaskIdForName(caller_task_name);
         CIC_T_INT parent_task_id = tasks[task_id].parent_task_id;
         if(tasks[parent_task_id].state != STATE_STOP)	tasks[parent_task_id].state = STATE_WAIT;
-        CIC_F_PRINT("Suspend a task (own)");
+        CIC_F_PRINTF("Suspend a task (own)");
     }
     else{
-      CIC_T_INT target_task_id = GetTaskId(t_name);
+      CIC_T_INT target_task_id = GetTaskIdForName(t_name);
       for(i=0; i<CIC_UV_NUM_TASKS; i++){
           if(target_task_id == tasks[i].task_id){
               CIC_T_INT task_id = tasks[i].task_id;
@@ -388,3 +394,26 @@ go_continue:
     }
     return;
 ##CONTROL_SUSPEND_TASK_END
+
+##CONTROL_END_TASK_START
+    CIC_T_INT i=0;
+    CIC_T_INT run_count=0;
+    CIC_T_INT task_index = GetTaskIndexForName(caller_task_name);
+    CIC_T_INT target_task_id = GetTaskIdForName(t_name);
+    CIC_T_INT target_task_index = GetTaskIndexForName(t_name);
+    
+    tasks[target_task_index].state = STATE_END;
+    for(i=0; i<CIC_UV_NUM_VIRTUAL_TASKS; i++){
+    	if(virtual_tasks[i].parent_task_id == target_task_id){
+    		if(run_count < virtual_tasks[i].run_count)	run_count = virtual_tasks[i].run_count;
+    	}
+    }
+    tasks[target_task_index].run_count = run_count;
+    
+    TASK_WRAPUP;
+    tasks[task_index].state = STATE_STOP;
+    CIC_F_PRINTF("End task %s (task_id: %d)\n", tasks[task_index].name, tasks[task_index].task_id);
+    CIC_F_THREAD_EXIT();
+   
+    return;
+##CONTROL_END_TASK_END

@@ -341,7 +341,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 		
 		// TARGET_DEPENDENT_IMPLEMENTATION //
 		String targetDependentImpl = generateTaskToCoreMap();
-		if(mCodeGenType.equals("p"))	targetDependentImpl += generateVirtualTaskToCoreMap();
+		if(mCodeGenType.equals("Partitioned"))	targetDependentImpl += generateVirtualTaskToCoreMap();
 		
 		templateFile = mTranslatorPath + "templates/target/Multicore/target_dependent_code.template";
 		targetDependentImpl += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##TARGET_DEPENDENT_CODE");
@@ -423,6 +423,11 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 			// CONTROL_SUSPEND_TASK //
 			String controlSuspendTask = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##CONTROL_SUSPEND_TASK");
 			code = code.replace("##CONTROL_SUSPEND_TASK", controlSuspendTask);
+			//////////////////////////
+			
+			// CONTROL_END_TASK //
+			String controlEndTask = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##CONTROL_END_TASK");
+			code = code.replace("##CONTROL_END_TASK", controlEndTask);
 			//////////////////////////
 		}
 		else{
