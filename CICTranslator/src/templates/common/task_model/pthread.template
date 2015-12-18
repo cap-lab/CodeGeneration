@@ -33,6 +33,8 @@
 #define CIC_F_THREAD_JOIN(a)         CICThreadJoin(a)
 #define CIC_F_THREAD_CANCEL(a)       CICThreadCancel(a)
 #define CIC_F_THREAD_EXIT()      	 CICThreadExit()
+#define CIC_F_THREAD_SELF()      	 CICThreadSelf()
+#define CIC_F_THREAD_EQUAL(a, b)     CICThreadEqual(a, b)
 
 #define CIC_V_MUTEX_INIT_INLINE PTHREAD_MUTEX_INITIALIZER
 #define CIC_V_COND_INIT_INLINE  PTHREAD_COND_INITIALIZER
@@ -168,6 +170,16 @@ CIC_STATIC CIC_T_VOID CICThreadCancel(CIC_T_THREAD a){
 
 CIC_STATIC CIC_T_VOID CICThreadExit(){
     pthread_exit(CIC_V_NULL);
+}
+
+CIC_STATIC CIC_T_THREAD CICThreadSelf(){
+    return pthread_self();
+}
+
+CIC_STATIC CIC_T_BOOL CICThreadEqual(CIC_T_THREAD th_1, CIC_T_THREAD th_2){
+	CIC_T_INT ret = pthread_equal(th_1, th_2);
+	if(ret != 0)	return CIC_V_TRUE;
+	return CIC_V_FALSE;
 }
 
 CIC_STATIC CIC_T_VOID CICSchedYield(){

@@ -443,13 +443,8 @@ public class CIC {
 			if(parentTaskId == -1)	parentTaskId = Integer.parseInt(task.getIndex());
 			
 			// check isSrcTask
-			String isSrcTask = "CIC_V_TRUE";
-			for(Queue taskQueue: task.getQueue()){
-				if(taskQueue.getDst().equals(task.getName()) && Integer.parseInt(taskQueue.getInitData()) == 0){
-					isSrcTask = "CIC_V_FALSE";
-					break;
-				}
-			}
+			String isSrcTask = "CIC_V_FALSE";
+			if(task.getIsSrcTask())	isSrcTask = "CIC_V_TRUE";
 			
 			taskEntriesCode += "\tENTRY(" + task.getIndex() +", \""+ task.getName()+"\", " + taskType + ", "
 				+ task.getName() + ", "+ taskDrivenType+", "+state+", " + runState+", "
@@ -558,11 +553,7 @@ public class CIC {
 			
 			// to call Transition() once...
 			String isSrcTask = "CIC_V_FALSE";
-			
-			if(!task.getParentTask().equals(parentHistory)){
-				parentHistory = task.getParentTask();
-				isSrcTask = "CIC_V_TRUE";
-			}
+			if(task.getIsSrcTask())	isSrcTask = "CIC_V_TRUE";
 			
 			virtualTaskEntriesCode += "\tENTRY(" + task.getIndex() +", \""+ task.getName()+"\", " + taskType + ", "
 				+ task.getName() + ", "+ taskDrivenType+", "+state+", "+runState+", "

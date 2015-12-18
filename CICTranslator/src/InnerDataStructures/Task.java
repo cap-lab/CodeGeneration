@@ -44,9 +44,16 @@ public class Task {
 	private String mParentTask;
 	private String mTaskType;
 	private int mRunRate;
+	private boolean mIsSrcTask;
 	
 	
-	public Task(int index, String name, String cicfile, Map<String, Map<String, List<Integer>>> proc, String cflag, String ldflag, String dataParallel, int width, int height, List<VectorType> dependency, List<Integer> feedbackList, String runCondition, List<String> extraHeader, List<String> extraSource, List<LibraryMasterPortType> libraryPort, List<TaskParameterType> parameter, String hasSubgraph, String hasMTM, MTM mtmInfo, String parentTask, String taskType, Map<String, Map<String, Integer>> inPortList, Map<String, Map<String, Integer>> outPortList)
+	public Task(int index, String name, String cicfile, Map<String, Map<String, List<Integer>>> proc
+			, String cflag, String ldflag, String dataParallel, int width, int height
+			, List<VectorType> dependency, List<Integer> feedbackList, String runCondition
+			, List<String> extraHeader, List<String> extraSource, List<LibraryMasterPortType> libraryPort
+			, List<TaskParameterType> parameter, String hasSubgraph, String hasMTM, MTM mtmInfo
+			, String parentTask, String taskType, Map<String, Map<String, Integer>> inPortList
+			, Map<String, Map<String, Integer>> outPortList, boolean isSrcTask)
 	{
 		mIndex = index;
 		mName = name;
@@ -82,6 +89,7 @@ public class Task {
 		mOutPortList = outPortList;
 		mMTMInfo = mtmInfo;
 		mRunRate = 1;
+		mIsSrcTask = isSrcTask;
 	}
 	
 	public Task(int index, String name, String parentTask, int runRate, String periodMetric, String runCondition, int period)
@@ -124,6 +132,7 @@ public class Task {
 		mOutPortList = null;
 		mMTMInfo = null;
 		mRunRate = runRate;
+		mIsSrcTask = false;
 	}
 	
 	public void setIndex(int index)					{mIndex = index;}
@@ -132,13 +141,14 @@ public class Task {
 	public void setDeadline(int deadline)			{mDeadline = deadline;}
 	public void setPriority(int priority)			{mPriority = priority;}
 	public void setRunRate(int runRate)				{mRunRate = runRate;}
-	public void setProc(Map<String, Map<String, List<Integer>>> proc)		{mProc = proc;}
+	public void setProc(Map<String, Map<String, List<Integer>>> proc)					{mProc = proc;}
 	public void setExecutionTimeValue(Map<String, Map<Integer, Integer>> executionTime)	{mExecutionTimeValue = executionTime;}
-	public void setExecutionTimeMetric(Map<String, Map<Integer, String>> metric)			{mExecutionTimeMetric = metric;}
+	public void setExecutionTimeMetric(Map<String, Map<Integer, String>> metric)		{mExecutionTimeMetric = metric;}
 	public void setIsSlaveTask(boolean isSlaveTask)		{mIsSlaveTask = isSlaveTask;}
-	public void setParentTask(String parentTask)	{mParentTask = parentTask;}
+	public void setParentTask(String parentTask)		{mParentTask = parentTask;}
+	public void setIsSrcTask(boolean isSrc)				{mIsSrcTask = isSrc;}
 	
-	
+	public boolean getIsSrcTask()					{return mIsSrcTask;}
 	public String getRunCondition()					{return mRunCondition;}
 	public String getIndex()						{return Integer.toString(mIndex);}
 	public String getName()							{return mName;}

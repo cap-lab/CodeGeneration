@@ -26,17 +26,28 @@ CIC_STATIC CIC_UT_TASK_COUNT_INFO task_iter_info[] = {
 };
 
 CIC_STATIC CIC_T_INT complete_task_count;
-CIC_STATIC CIC_T_BOOL is_transition = CIC_V_FALSE;
+CIC_STATIC CIC_T_BOOL is_transition;
 CIC_STATIC CIC_T_INT current_mode, prev_mode;
-CIC_STATIC CIC_T_INT src_continue_count = 0;
-CIC_STATIC CIC_T_INT continue_count[NUM_SUB_TASKS] = {0, };
+CIC_STATIC CIC_T_INT src_continue_count;
+CIC_STATIC CIC_T_INT continue_count[NUM_SUB_TASKS];
 
 CIC_STATIC CIC_T_MUTEX mtm_mutex = CIC_V_MUTEX_INIT_INLINE;
 CIC_STATIC CIC_T_COND mtm_cond = CIC_V_COND_INIT_INLINE;
 
 MTM_INITIALIZE
 {
-
+	CIC_T_INT i = 0;
+	for(i=0; i<NUM_SUB_TASKS; i++){
+		continue_count[i] = 0;
+	}
+	
+	is_transition = CIC_V_FALSE;
+	complete_task_count = 0;
+	src_continue_count = 0;
+	current_mode = 0;
+	prev_mode = 0;
+	CIC_F_MUTEX_INIT(&mtm_mutex);
+	CIC_F_COND_INIT(&mtm_cond);
 }
 
 UPDATE_CURRENT_MODE

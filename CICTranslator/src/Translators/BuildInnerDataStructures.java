@@ -666,6 +666,9 @@ public class BuildInnerDataStructures {
 				else if(port.getDirection().equals(PortDirectionType.OUTPUT))	outPortList.put(portName, portElem);
 			}
 			
+			boolean isSrcTask = false;
+			if(inPortList.size() == 0)	isSrcTask = true;
+			
 	        MTM mtmInfo = null;
 			if(hasMTM.equalsIgnoreCase("Yes")){
 		       	List<String> modes = new ArrayList<String> ();
@@ -706,7 +709,10 @@ public class BuildInnerDataStructures {
 			else	mtmInfo = new MTM();
 
 			// 货肺款 Task 积己
-			task_result = new Task(index, name, cicfile, null, cflag, ldflag, dataParallelType, width, height, dependencyList, feedbackList, runCondition, task.getExtraHeader(), task.getExtraSource(), task.getLibraryMasterPort(), task.getParameter(), hasSubgraph, hasMTM, mtmInfo, parentTask, taskType, inPortList, outPortList);
+			task_result = new Task(index, name, cicfile, null, cflag, ldflag, dataParallelType
+					, width, height, dependencyList, feedbackList, runCondition, task.getExtraHeader()
+					, task.getExtraSource(), task.getLibraryMasterPort(), task.getParameter(), hasSubgraph
+					, hasMTM, mtmInfo, parentTask, taskType, inPortList, outPortList, isSrcTask);
 			index++;
 						
 			// Tasks 氦磐俊 火涝
