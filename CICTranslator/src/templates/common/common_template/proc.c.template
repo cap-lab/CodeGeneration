@@ -329,6 +329,28 @@ CIC_T_INT GetChannelIndex(CIC_T_INT channel_id)
 ///////////////////////////////////// CONTROL API START /////////////////////////////////////
 ##CONTROL_API
 ////////////////////////////////////// CONTROL API END //////////////////////////////////////
+
+
+////////////////////////////////// BASIC CONTROL API START //////////////////////////////////
+CIC_T_VOID EndTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
+{
+##CONTROL_END_TASK
+}
+
+CIC_T_VOID ProgramKill()
+{
+    CIC_F_PRINT_STRING("----PROGRAM KILL---\n");
+	CIC_F_EXIT(0);
+}
+
+CIC_T_VOID ProgramStop(CIC_T_CHAR* caller_task_name)                                                 
+{             
+    exit_signal = CIC_V_TRUE;
+    CIC_F_PRINT_STRING("----PROGRAM STOP---\n");
+    
+    return;                          
+}
+//////////////////////////////////// BASIC CONTROL API END //////////////////////////////////
  
 
 CIC_T_VOID InitSystemVariables(){

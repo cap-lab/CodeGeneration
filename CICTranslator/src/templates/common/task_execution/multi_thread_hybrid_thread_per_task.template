@@ -3,18 +3,9 @@
 #if defined(SYSTEM_THREAD_SUPPORT) && (SYSTEM_THREAD_SUPPORT==1) 
 CIC_VOLATILE CIC_STATIC CIC_T_BOOL channel_empty = CIC_V_FALSE;
 
-CIC_STATIC CIC_T_MUTEX time_mutex;
-CIC_STATIC CIC_T_COND time_cond;
-CIC_STATIC CIC_T_INT num_time_task = 0;
-CIC_VOLATILE CIC_STATIC CIC_T_INT time_task_count = 0;
-
 CIC_STATIC CIC_T_MUTEX global_mutex;
 CIC_STATIC CIC_T_COND global_cond;
 CIC_VOLATILE CIC_STATIC CIC_T_BOOL global_sync = CIC_V_FALSE;
-
-CIC_STATIC CIC_T_INT all_thread_count;
-CIC_STATIC CIC_T_BARRIER all_thread_barrier;
-CIC_VOLATILE CIC_STATIC CIC_T_BOOL all_thread_barrier_initialized = CIC_V_FALSE;
 
 CIC_STATIC CIC_T_INT control_thread_count;
 CIC_STATIC CIC_T_BARRIER control_task_barrier;
@@ -38,7 +29,15 @@ CIC_STATIC CIC_T_VOID CheckGraphEnd(CIC_T_INT parent_task_id){
     }
     
     if(task_count == complete_count){
-		StopTask(CIC_V_NULL, tasks[parent_task_index].name);
+		for(i=0; i<CIC_UV_NUM_TASKS; i++){
+	        if(parent_task_id == tasks[i].parent_task_id && tasks[i].has_subgraph == CIC_V_FALSE){
+	            if(tasks[i].thread != 0)   CIC_F_THREAD_CANCEL(&tasks[i].thread);
+	            tasks[i].state = STATE_STOP;
+	        }
+	    }
+	    WrapupTaskChannels(parent_task_id);
+	    tasks[parent_task_index].state = STATE_STOP;
+	    CIC_F_PRINTF("End graph %s (task_id: %d)\n", tasks[parent_task_index].name, tasks[parent_task_index].task_id);
 	}
 }
 
@@ -63,24 +62,11 @@ CIC_UT_THREAD_FUNC_RET_TYPE TaskRoutine(CIC_UT_THREAD_FUNC_ARG_TYPE pdata)
     CIC_T_UINT current, end;
     CIC_T_BOOL is_end = CIC_V_FALSE;
 
-/*
-	if(tasks[task_index].task_type == COMPUTATIONAL){
-		CIC_F_BARRIER_WAIT(&all_thread_barrier);
-	}
-*/
-
 	if(*tasks[task_index].PreInit != CIC_V_NULL) TASK_PREINIT;
     TASK_INIT;
 
     if(tasks[task_index].task_type == CONTROL){ 	// CIC Control Task
 		CIC_F_BARRIER_WAIT(&control_task_barrier);	// When TASK_INIT functions of control tasks are called,
-
-/*		
-		while(!all_thread_barrier_initialized){		// wait until all_thread_barrier is initialized
-			CIC_F_SCHED_YIELD();
-		}
-		CIC_F_BARRIER_WAIT(&all_thread_barrier);	// and wait until all threads of computational tasks are invoked.
-*/
 	}
 
 	if(tasks[task_index].is_child_task == CIC_V_TRUE && tasks[parent_task_index].has_mtm == CIC_V_TRUE){   // bottom-level task
@@ -192,13 +178,6 @@ CIC_UT_THREAD_FUNC_RET_TYPE TaskRoutine(CIC_UT_THREAD_FUNC_ARG_TYPE pdata)
    CheckGraphEnd(parent_task_id);
    CIC_F_MUTEX_UNLOCK(&tasks[parent_task_index].mutex);
 
-   if(tasks[task_index].driven_type == TIME_DRIVEN){
-	   CIC_F_MUTEX_LOCK(&time_mutex);
-	   time_task_count++;
-	   CIC_F_COND_WAIT(&time_cond, &time_mutex);
-	   CIC_F_MUTEX_UNLOCK(&time_mutex);
-   }
-
    return CIC_V_NULL;
 }
 ##TASK_ROUTINE_END
@@ -219,7 +198,6 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
    		if(tasks[i].task_type == CONTROL){
     		control_thread_count++;
-    		all_thread_count++;
     	}
     }
     CIC_F_BARRIER_INIT(&control_task_barrier, control_thread_count+1);	// +1 is for itself
@@ -229,29 +207,12 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
         if(tasks[i].task_type == CONTROL){
 	        CIC_F_PRINTF("%s task thread (Control) is created!\n", tasks[i].name);
 			CIC_F_THREAD_CREATE(&(tasks[i].thread), TaskRoutine, (CIC_T_VOID *)tasks[i].task_id);
-		    if(tasks[i].driven_type == TIME_DRIVEN)	num_time_task++;
 		}
     }
      
     // Wait until TASK_INIT functions of all control tasks are called
     CIC_F_BARRIER_WAIT(&control_task_barrier);
       
-    // All thread barrier initialize
-/*
-    for(i=0; i<CIC_UV_NUM_TASKS; i++){
-        if(tasks[i].task_type != CONTROL){
-	        CIC_T_BOOL create_thread = CIC_V_FALSE;
-
-	        if(tasks[i].parent_task_id == i)    create_thread = CIC_V_TRUE;
-            else                                create_thread = CIC_V_FALSE;
-
-	        if(create_thread == CIC_V_TRUE && tasks[i].state == STATE_RUN)	all_thread_count++;
-	     }
-	}
-	CIC_F_BARRIER_INIT(&all_thread_barrier, all_thread_count);
-	all_thread_barrier_initialized = CIC_V_TRUE;
-*/
-	
 	// Create threads for computational tasks
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
         if(tasks[i].task_type != CONTROL){
@@ -264,19 +225,26 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 	        if(create_thread == CIC_V_TRUE && tasks[i].state == STATE_RUN){
 	            CIC_F_PRINTF("%s task thread is created!\n", tasks[i].name);
 	            CIC_F_THREAD_CREATE(&(tasks[i].thread), TaskRoutine, (void *)tasks[i].task_id);
-		        if(tasks[i].driven_type == TIME_DRIVEN)	num_time_task++;
 			}
 	    }
     }
     CIC_F_PRINT_STRING("--------------------------------------------\n");
 
+    // Tasks are Running
 	while(CIC_V_TRUE){
-		if(time_task_count == num_time_task){
-			WaitDataTasksEnd();
-			CIC_F_COND_BROADCAST(&time_cond);
-			break;
+		CIC_T_BOOL end_flag = CIC_V_TRUE;
+		CIC_F_USLEEP(100000);
+		for(i=0; i<CIC_UV_NUM_TASKS; i++){
+			if(tasks[i].state != STATE_STOP){
+				end_flag = CIC_V_FALSE;
+				break;
+			}
 		}
+		if(end_flag)	break;
 	}
+	
+	for(i=0; i<CIC_UV_NUM_TASKS; i++)
+        CIC_F_THREAD_CANCEL(tasks[i].thread);
 	
     return;
 }

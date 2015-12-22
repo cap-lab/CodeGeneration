@@ -167,11 +167,6 @@ CIC_T_VOID SuspendTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
 ##CONTROL_SUSPEND_TASK
 }
 
-CIC_T_VOID EndTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
-{
-##CONTROL_END_TASK
-}
-
 CIC_T_LONG GetParamInt(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, CIC_T_CHAR* p_name)
 {
 	CIC_T_LONG ret=0;
@@ -300,19 +295,5 @@ CIC_T_VOID ResetTimer(CIC_T_CHAR* caller_task_name, CIC_T_UINT timer_id)
 	CIC_T_UINT my_task_id = GetTaskIdForName(caller_task_name);
 	CIC_T_UINT cont_ch_index = GetControlChannelIndex(my_task_id);
 	control_channel[cont_ch_index].timer_slot[timer_id]=0; // reset timer
-}
-
-CIC_T_VOID ProgramKill()
-{
-    CIC_F_PRINT_STRING("----PROGRAM KILL---\n");
-	CIC_F_EXIT(0);
-}
-
-CIC_T_VOID ProgramStop(CIC_T_CHAR* caller_task_name)                                                 
-{             
-    exit_signal = CIC_V_TRUE;
-    CIC_F_PRINT_STRING("----PROGRAM STOP---\n");
-    
-    return;                          
 }
 ##CONTROL_API_END

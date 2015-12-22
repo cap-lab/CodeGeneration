@@ -390,13 +390,13 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 		}
 		else	code = code.replace("##MTM_API", "");
 		///////////////////////////
-					
+
 		if(mControl.getControlTasks() != null){
 			// CONTROL_API //
 			String controlApi = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##CONTROL_API");
 			code = code.replace("##CONTROL_API", controlApi);
 			//////////////////////////
-			
+						
 			if(mThreadVer.equals("Single")){
 				templateFile = mTranslatorPath + "templates/common/task_execution/single_thread_hybrid.template";
 			}
@@ -405,6 +405,12 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 				else if(mCodeGenType.equals("Global"))		templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_task.template";
 				else if(mCodeGenType.equals("Partitioned"))	templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_processor.template";
 			}
+		
+			// CONTROL_END_TASK //
+			String controlEndTask = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##CONTROL_END_TASK");
+			code = code.replace("##CONTROL_END_TASK", controlEndTask);
+			//////////////////////////
+								
 			// CONTROL_RUN_TASK //
 			String controlRunTask = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##CONTROL_RUN_TASK");
 			code = code.replace("##CONTROL_RUN_TASK", controlRunTask);
@@ -424,15 +430,26 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 			String controlSuspendTask = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##CONTROL_SUSPEND_TASK");
 			code = code.replace("##CONTROL_SUSPEND_TASK", controlSuspendTask);
 			//////////////////////////
+		}
+		else{
+			code = code.replace("##CONTROL_API", "");
 			
+			if(mThreadVer.equals("Single")){
+				templateFile = mTranslatorPath + "templates/common/task_execution/single_thread_hybrid.template";
+			}
+			else if(mThreadVer.equals("Multi")){
+				if(mCodeGenType.equals("Single"))			templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
+				else if(mCodeGenType.equals("Global"))		templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_task.template";
+				else if(mCodeGenType.equals("Partitioned"))	templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_processor.template";
+			}
+		
 			// CONTROL_END_TASK //
 			String controlEndTask = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##CONTROL_END_TASK");
 			code = code.replace("##CONTROL_END_TASK", controlEndTask);
 			//////////////////////////
 		}
-		else{
-			code = code.replace("##CONTROL_API", "");
-		}
+			
+		
 		if(mThreadVer.equals("Single")){
 			templateFile = mTranslatorPath + "templates/common/channel_manage/general_linux_single_thread.template";
 		}
@@ -566,9 +583,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 		// INIT_SYSTEM_VARIABLES //
 		String initSystemVariables = "";
 		initSystemVariables += "\tCIC_F_MUTEX_INIT(&global_mutex);\n" + 
-							"\tCIC_F_COND_INIT(&global_cond);\n" + 
-							"\tCIC_F_MUTEX_INIT(&time_mutex);\n" + 
-							"\tCIC_F_COND_INIT(&time_cond);\n";
+							"\tCIC_F_COND_INIT(&global_cond);\n";
 
 		code = code.replace("##INIT_SYSTEM_VARIABLES", initSystemVariables);
 		//////////////////////////////////
@@ -576,9 +591,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 		// WRAPUP_SYSTEM_VARIABLES //
 		String wrapupSystemVariables = "";
 		wrapupSystemVariables += "\tCIC_F_MUTEX_WRAPUP(&global_mutex);\n" + 
-								"\tCIC_F_COND_WRAPUP(&global_cond);\n" + 
-								"\tCIC_F_MUTEX_WRAPUP(&time_mutex);\n" + 
-								"\tCIC_F_COND_WRAPUP(&time_cond);\n";
+								"\tCIC_F_COND_WRAPUP(&global_cond);\n";
 
 
 		code = code.replace("##WRAPUP_SYSTEM_VARIABLES", wrapupSystemVariables);

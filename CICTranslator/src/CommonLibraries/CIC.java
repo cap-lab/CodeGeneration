@@ -66,6 +66,7 @@ public class CIC {
 		
 		String includeHeaders = "#include \"target_system_model.h\"\n";
 		includeHeaders += "#include \"cic_comm_apis.h\"\n";
+		includeHeaders += "#include \"cic_basic_control_apis.h\"\n";
 		
 		boolean mtmFlag = false;
 		for(TaskType t: mAlgorithm.getTasks().getTask()){
@@ -866,6 +867,9 @@ public class CIC {
 		
 		// Copy cic_control_apis.h file
 		Util.copyFile(mOutputPath+"cic_control_apis.h", mTranslatorPath + "templates/common/common_template/cic_control_apis.h");
+		
+		// Copy cic_control.h
+		Util.copyFile(mOutputPath+"cic_basic_control_apis.h", mTranslatorPath + "templates/common/common_template/cic_basic_control_apis.h");
 		
 		// Copy cic_mtm_apis.h file
 		Util.copyFile(mOutputPath+"cic_mtm_apis.h", mTranslatorPath + "templates/common/common_template/cic_mtm_apis.h");

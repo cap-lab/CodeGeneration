@@ -216,7 +216,7 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator
 		
 		// DEBUG_CODE //
 		if(mThreadVer.equals("Single"))	templateFile = mTranslatorPath + "templates/common/debug_code/general_linux_single_thread.template";
-		else						templateFile = mTranslatorPath + "templates/common/debug_code/general_linux_multi_thread.template";
+		else							templateFile = mTranslatorPath + "templates/common/debug_code/general_linux_multi_thread.template";
 		String debugCode = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##DEBUG_CODE_IMPLEMENTATION");
 		code = code.replace("##DEBUG_CODE_IMPLEMENTATION", debugCode);
 		///////////////////////////
