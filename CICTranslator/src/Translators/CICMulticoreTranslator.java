@@ -248,7 +248,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 			
 			code += "}},\n";
 		}
-		code += "};\n\n";
+		code += "};\n";
 
 		return code;
 	}

@@ -503,10 +503,9 @@ public class BuildInnerDataStructures {
 						}
 						
 						// initialize
-						for(Task t: tasks.values()){
-							Map<String, List<Integer>> taskProcMap = new HashMap<String, List<Integer>>();
+						for(Task t: tasks.values()){					
 							if(t.getParentTask().equals(task.getName()) && t.getHasSubgraph().equals("No") ){
-								List<Integer> procList = new ArrayList<Integer>();
+								Map<String, List<Integer>> taskProcMap = new HashMap<String, List<Integer>>();
 								taskMapForModeForNumProc.get(t.getName()).put(mode, taskProcMap);
 							}
 						}
@@ -518,8 +517,9 @@ public class BuildInnerDataStructures {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
-							int num_proc = schedule.getTaskGroups().getTaskGroup().get(0).getScheduleGroup().size();
-							
+							String temp = schedFileList.get(f_i).getName().replace(task.getParentTask() + "_" + mode + "_", "");
+							temp = temp.replace("_schedule.xml", "");
+							int num_proc = Integer.parseInt(temp);
 							// initialize
 							for(Task t: tasks.values()){
 								if(t.getParentTask().equals(task.getName()) && t.getHasSubgraph().equals("No") ){

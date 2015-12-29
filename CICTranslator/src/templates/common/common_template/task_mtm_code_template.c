@@ -6,10 +6,10 @@
 #define SET_VARIABLE_INT CIC_T_VOID ##TASK_NAME_SetVariableInt(CIC_T_CHAR* name, CIC_T_INT value)                   
 #define GET_VARIABLE_STRING CIC_T_CHAR* ##TASK_NAME_GetVariableString(CIC_T_CHAR* name)                       
 #define SET_VARIABLE_STRING CIC_T_VOID ##TASK_NAME_SetVariableString(CIC_T_CHAR* name, CIC_T_CHAR* value)           
-#define TRANSITION CIC_T_VOID ##TASK_NAME_Transition()
+#define TRANSITION CIC_T_BOOL ##TASK_NAME_Transition()
 #define UPDATE_CURRENT_MODE CIC_T_VOID ##TASK_NAME_UpdateCurrentMode(CIC_T_CHAR *task_name)
 
 #define GET_TASK_ITER_COUNT CIC_T_INT ##TASK_NAME_GetTaskIterCount(CIC_T_CHAR* task_name)
-#define GET_TASK_REPEAT_COUNT CIC_T_INT ##TASK_NAME_GetTaskRepeatCount(CIC_T_CHAR* task_name)
+#define GET_TASK_REPEAT_COUNT CIC_T_INT ##TASK_NAME_GetTaskRepeatCount(CIC_T_CHAR* task_name, CIC_T_INT run_count)
 
 ##CIC_INCLUDE

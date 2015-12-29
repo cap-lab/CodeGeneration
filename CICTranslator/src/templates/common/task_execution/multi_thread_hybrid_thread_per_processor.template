@@ -5,7 +5,6 @@ CIC_VOLATILE CIC_STATIC CIC_T_BOOL channel_empty = CIC_V_FALSE;
 
 CIC_STATIC CIC_T_MUTEX global_mutex;
 CIC_STATIC CIC_T_COND global_cond;
-CIC_VOLATILE CIC_STATIC CIC_T_BOOL global_sync = CIC_V_FALSE;
 
 CIC_STATIC CIC_T_INT control_thread_count;
 CIC_STATIC CIC_T_BARRIER control_task_barrier;
@@ -29,35 +28,34 @@ CIC_STATIC CIC_T_VOID CheckGraphEnd(CIC_T_INT parent_task_id){
     	}
     }
     
-    if(task_count == complete_count){
+    CIC_F_MUTEX_LOCK(&global_mutex);
+    if(task_count == complete_count && tasks[parent_task_index].state != STATE_STOP){
 		CIC_T_THREAD cur_thread = CIC_F_THREAD_SELF();
     
-	    for(i=0; i<CIC_UV_NUM_TASKS; i++){
-	        if(parent_task_id == tasks[i].task_id){
-	        	if(tasks[i].has_subgraph){
-	        		for(j=0; j<CIC_UV_NUM_VIRTUAL_TASKS; j++){
-	        			if(virtual_tasks[j].parent_task_id == parent_task_id){
-	        				virtual_tasks[j].state = STATE_STOP;
-	        				virtual_tasks[j].run_count = 0;
-	        				if(!CIC_F_THREAD_EQUAL(cur_thread, virtual_tasks[j].thread)){
-	        					CIC_F_THREAD_CANCEL(virtual_tasks[j].thread);
-	        				}
-	        			}
-	        		}
-	        		WrapupTaskChannels(parent_task_id);
-	        	}
-	        	else{
-	        		CIC_F_THREAD_CANCEL(tasks[i].thread);
-	        		tasks[i].Wrapup();
-	        	}
-	           
-	            tasks[i].state = STATE_STOP;
-		        tasks[i].run_count = 0;
-		        CIC_F_PRINTF("End graph %s (task_id: %d)\n", tasks[i].name, tasks[i].task_id);
-		        break;
-	        }
-	    }  
+    	if(tasks[parent_task_index].has_subgraph){
+    		for(j=0; j<CIC_UV_NUM_VIRTUAL_TASKS; j++){
+    			if(virtual_tasks[j].parent_task_id == parent_task_id){
+    				virtual_tasks[j].state = STATE_STOP;
+    				virtual_tasks[j].run_count = 0;
+    				if(!CIC_F_THREAD_EQUAL(cur_thread, virtual_tasks[j].thread)){
+    					CIC_F_THREAD_CANCEL(virtual_tasks[j].thread);
+    				}
+    			}
+    		}
+    		WrapupTaskChannels(parent_task_id);
+    	}
+    	else{
+    		CIC_F_THREAD_CANCEL(tasks[i].thread);
+    		tasks[parent_task_index].Wrapup();
+    	}
+       
+       
+        tasks[parent_task_index].state = STATE_STOP;   
+        tasks[parent_task_index].run_count = 0;
+        CIC_F_PRINTF("End graph %s (task_id: %d)\n", tasks[parent_task_index].name, tasks[parent_task_index].task_id);
+        CIC_F_COND_BROADCAST(&global_cond);
 	}
+	CIC_F_MUTEX_UNLOCK(&global_mutex);
 }
 
 CIC_UT_THREAD_FUNC_RET_TYPE VirtualTaskRoutine(CIC_UT_THREAD_FUNC_ARG_TYPE pdata)
@@ -67,26 +65,17 @@ CIC_UT_THREAD_FUNC_RET_TYPE VirtualTaskRoutine(CIC_UT_THREAD_FUNC_ARG_TYPE pdata
    	CIC_T_INT parent_task_id = virtual_tasks[task_index].parent_task_id;
    	CIC_T_INT parent_task_index = GetTaskIndexForId(parent_task_id);
    	CIC_T_INT mtm_index = -1;
-    CIC_T_INT iteration_count = virtual_tasks[task_index].run_count;
-	CIC_T_INT i=0, count = 0;
+	CIC_T_INT i=0;
 	
 ##SET_VIRTUAL_PROC
 
 	if(tasks[parent_task_index].has_mtm == CIC_V_TRUE){
-	    for(i=0; i<CIC_UV_NUM_MTMS; i++){
-            if(parent_task_index == mtms[i].task_id){
-            	mtm_index = i;
-            	break;
-            }
-        }
+		mtm_index = GetMTMIndexForTaskId(parent_task_id);
 	}
 
 	(*virtual_tasks[task_index].Init)(task_index);
 
 virtual_task_continue:
-	iteration_count = virtual_tasks[task_index].run_count;
-	count = 0;
-	
     while(CIC_V_TRUE) {
         if(tasks[parent_task_index].state == STATE_WAIT){
             CIC_F_MUTEX_LOCK(&(virtual_tasks[task_index].mutex));
@@ -98,8 +87,6 @@ virtual_task_continue:
 		
         // Call TASK_GO function of a task
    		(*virtual_tasks[task_index].Go)();
-   		
-        count++;
         
         virtual_tasks[task_index].run_count += 1;
         
@@ -111,10 +98,8 @@ virtual_task_continue:
     
 	(*virtual_tasks[task_index].Wrapup)();
 	
-	CIC_F_MUTEX_LOCK(&tasks[parent_task_index].mutex);
     virtual_tasks[task_index].state = STATE_STOP;
     CheckGraphEnd(parent_task_id);
-    CIC_F_MUTEX_UNLOCK(&tasks[parent_task_index].mutex);
 	
     return CIC_V_NULL;
 }
@@ -124,7 +109,6 @@ CIC_UT_THREAD_FUNC_RET_TYPE TaskRoutine(CIC_UT_THREAD_FUNC_ARG_TYPE pdata)
 	CIC_T_INT task_id = *((CIC_T_INT*)&pdata);
 	CIC_T_INT task_index = GetTaskIndexForId(task_id);
 	CIC_T_INT proc_id = 0;
-	CIC_T_INT iteration_count, count;
 	CIC_T_CHAR* mode_name = "Default";
 	
 	if(tasks[task_index].period <= 0)	return CIC_V_NULL;
@@ -145,17 +129,10 @@ task_continue:
             CIC_F_COND_WAIT(&(tasks[task_index].cond), &(tasks[task_index].mutex));
             CIC_F_MUTEX_UNLOCK(&(tasks[task_index].mutex));
         }
-        if(global_sync){
-            CIC_F_MUTEX_LOCK(&(global_mutex));
-            CIC_F_COND_WAIT(&(global_cond), &(global_mutex));
-            CIC_F_MUTEX_UNLOCK(&(global_mutex));
-        }
         
         if(tasks[task_index].has_mtm == CIC_V_TRUE){
-            CIC_T_INT i=0;
-            for(i=0; i<CIC_UV_NUM_MTMS; i++)
-                if(task_index == mtms[i].task_id)  break;
-            mtms[i].Transition();
+            CIC_T_INT mtm_index = GetMTMIndexForTaskId(task_id);
+            mtms[mtm_index].Transition();
         }
 	
 		if(*tasks[task_index].PreGo != CIC_V_NULL) TASK_PREGO;
@@ -167,7 +144,10 @@ task_continue:
 		 
 	TASK_WRAPUP;
 	if(*tasks[task_index].PostWrapup != CIC_V_NULL) TASK_POSTWRAPUP;
+	CIC_F_MUTEX_LOCK(&global_mutex);
 	tasks[task_index].state = STATE_STOP;
+	CIC_F_COND_BROADCAST(&global_cond);
+    CIC_F_MUTEX_UNLOCK(&global_mutex);
 }
 ##TASK_ROUTINE_END
 
@@ -231,21 +211,23 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
     // Tasks are Running
 	while(CIC_V_TRUE){
 		CIC_T_BOOL end_flag = CIC_V_TRUE;
-		CIC_F_USLEEP(100000);
+		CIC_F_MUTEX_LOCK(&global_mutex);
+		CIC_F_COND_WAIT(&global_cond, &global_mutex);
 		for(i=0; i<CIC_UV_NUM_TASKS; i++){
 			if(!tasks[i].is_child_task && tasks[i].state != STATE_STOP){
 				end_flag = CIC_V_FALSE;
 				break;
 			}
 		}
+		CIC_F_MUTEX_UNLOCK(&global_mutex);
 		if(end_flag)	break;
 	}
 
     for(i=0; i<CIC_UV_NUM_TASKS; i++)
-        CIC_F_THREAD_CANCEL(tasks[i].thread);
+        if(tasks[i].thread != CIC_V_NULL)	CIC_F_THREAD_CANCEL(tasks[i].thread);
         
     for(i=0; i<CIC_UV_NUM_VIRTUAL_TASKS; i++)
-        CIC_F_THREAD_CANCEL(virtual_tasks[i].thread);
+        if(virtual_tasks[i].thread != CIC_V_NULL)	CIC_F_THREAD_CANCEL(virtual_tasks[i].thread);
     
 	return;
 }
@@ -257,10 +239,8 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
     CIC_T_INT target_task_index = GetTaskIndexForName(t_name);
     
     if(tasks[target_task_index].has_mtm){
-		for(i=0; i<CIC_UV_NUM_MTMS; i++){
-			if(target_task_id == mtms[i].task_id)  break;
-		}
-		mtms[i].Initialize();
+    	CIC_T_INT mtm_index = GetMTMIndexForTaskId(target_task_id);
+		mtms[mtm_index].Initialize();
 	}
     
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
@@ -310,9 +290,12 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
         		CIC_F_THREAD_CANCEL(tasks[i].thread);
         	}
            
+            CIC_F_MUTEX_LOCK(&global_mutex);
             tasks[i].state = STATE_STOP;
 	        tasks[i].run_count = 0;
 	        CIC_F_PRINTF("Stop task %s (task_id: %d)\n", tasks[i].name, tasks[i].task_id);
+	        CIC_F_COND_BROADCAST(&global_cond);
+    		CIC_F_MUTEX_UNLOCK(&global_mutex);
 	        break;
         }
     }  
@@ -401,13 +384,14 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 
 				(*virtual_tasks[task_index].Wrapup)();
 
-				CIC_F_MUTEX_LOCK(&tasks[target_task_index].mutex);
 				virtual_tasks[task_index].state = STATE_STOP;
 				CheckGraphEnd(target_task_index);
-				CIC_F_MUTEX_UNLOCK(&tasks[target_task_index].mutex);
 			}
 			else{
+				CIC_F_MUTEX_LOCK(&global_mutex);
 				tasks[target_task_index].state = STATE_STOP;
+				CIC_F_COND_BROADCAST(&global_cond);
+    			CIC_F_MUTEX_UNLOCK(&global_mutex);
 			}
 			break;
 		}

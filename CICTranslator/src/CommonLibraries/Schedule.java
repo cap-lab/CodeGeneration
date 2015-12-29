@@ -815,27 +815,31 @@ public class Schedule {
 			goCode += ("CIC_T_VOID " + task.getName() + "_Go(){\n");
 			wrapupCode += ("CIC_T_VOID " + task.getName() + "_Wrapup(){\n");
 			
-			initCode += "\tCIC_T_INT i=0;\n\tCIC_T_INT mtm_index = 0;\n\tCIC_T_CHAR* mode = 0;\n";
-			initCode += "\tCIC_T_INT task_id = GetTaskIdForName(\"" + task.getParentTask() + "\");\n";
-			initCode += ("\tfor(i=0; i<CIC_UV_NUM_MTMS; i++){\n\t\tif(task_id == mtms[i].task_id){\n\t\t\tmtm_index = i;\n\t\t\tbreak;\n\t\t}\n\t}\n\n");
-			initCode += "\tmode = mtms[mtm_index].GetCurrentModeName();\n";
-			
-			wrapupCode += "\tCIC_T_INT i=0;\n\tCIC_T_INT mtm_index = 0;\n\tCIC_T_CHAR* mode = 0;\n";
-			wrapupCode += "\tCIC_T_INT task_id = GetTaskIdForName(\"" + task.getParentTask() + "\");\n";
-			wrapupCode += ("\tfor(i=0; i<CIC_UV_NUM_MTMS; i++){\n\t\tif(task_id == mtms[i].task_id){\n\t\t\tmtm_index = i;\n\t\t\tbreak;\n\t\t}\n\t}\n\n");
-			wrapupCode += "\tmode = mtms[mtm_index].GetCurrentModeName();\n";
+			if(modeList.size() > 1){
+				initCode += "\tCIC_T_INT i=0;\n\tCIC_T_INT mtm_index = 0;\n\tCIC_T_CHAR* mode = 0;\n";
+				initCode += "\tCIC_T_INT task_id = GetTaskIdForName(\"" + task.getParentTask() + "\");\n";
+				initCode += ("\tfor(i=0; i<CIC_UV_NUM_MTMS; i++){\n\t\tif(task_id == mtms[i].task_id){\n\t\t\tmtm_index = i;\n\t\t\tbreak;\n\t\t}\n\t}\n\n");
+				initCode += "\tmode = mtms[mtm_index].GetCurrentModeName();\n";
+				
+				wrapupCode += "\tCIC_T_INT i=0;\n\tCIC_T_INT mtm_index = 0;\n\tCIC_T_CHAR* mode = 0;\n";
+				wrapupCode += "\tCIC_T_INT task_id = GetTaskIdForName(\"" + task.getParentTask() + "\");\n";
+				wrapupCode += ("\tfor(i=0; i<CIC_UV_NUM_MTMS; i++){\n\t\tif(task_id == mtms[i].task_id){\n\t\t\tmtm_index = i;\n\t\t\tbreak;\n\t\t}\n\t}\n\n");
+				wrapupCode += "\tmode = mtms[mtm_index].GetCurrentModeName();\n";
+			}
 			
 			int index = 0;
 			for(String mode: modeList){
 				ArrayList<String> history = new ArrayList<String>();
 				try {
-					if(index == 0){
-						initCode += "\tif(CIC_F_STRING_COMPARE(mode, \"" + mode + "\") == 0){\n";
-						wrapupCode += "\tif(CIC_F_STRING_COMPARE(mode, \"" + mode + "\") == 0){\n";
-					}
-					else if(index != 0)	{
-						initCode += "\telse if(CIC_F_STRING_COMPARE(mode, \"" + mode + "\") == 0){\n";
-						wrapupCode += "\telse if(CIC_F_STRING_COMPARE(mode, \"" + mode + "\") == 0){\n";
+					if(modeList.size() > 1){
+						if(index == 0){
+							initCode += "\tif(CIC_F_STRING_COMPARE(mode, \"" + mode + "\") == 0){\n";
+							wrapupCode += "\tif(CIC_F_STRING_COMPARE(mode, \"" + mode + "\") == 0){\n";
+						}
+						else if(index != 0)	{
+							initCode += "\telse if(CIC_F_STRING_COMPARE(mode, \"" + mode + "\") == 0){\n";
+							wrapupCode += "\telse if(CIC_F_STRING_COMPARE(mode, \"" + mode + "\") == 0){\n";
+						}
 					}
 					ArrayList<File> schedFileList = new ArrayList<File>();
 					File file = new File(outputPath);
@@ -883,8 +887,10 @@ public class Schedule {
 								}
 							}
 						}
-						initCode += "\t}\n";
-						wrapupCode += "\t}\n";
+						if(modeList.size() > 1){
+							initCode += "\t}\n";
+							wrapupCode += "\t}\n";
+						}
 						index++;
 					}
 				} catch (CICXMLException e) {
@@ -893,10 +899,11 @@ public class Schedule {
 				}
 			}
 			
-			goCode += "\tCIC_T_INT i=0;\n\tCIC_T_INT mtm_index = 0;\n\tCIC_T_CHAR* mode = 0;\n";
-			goCode += "\tCIC_T_INT task_id = GetTaskIdForName(\"" + task.getParentTask() + "\");\n";
-			goCode += ("\tfor(i=0; i<CIC_UV_NUM_MTMS; i++){\n\t\tif(task_id == mtms[i].task_id){\n\t\t\tmtm_index = i;\n\t\t\tbreak;\n\t\t}\n\t}\n\n");
-
+			if(modeList.size() > 1){
+				goCode += "\tCIC_T_INT i=0;\n\tCIC_T_INT mtm_index = 0;\n\tCIC_T_CHAR* mode = 0;\n";
+				goCode += "\tCIC_T_INT task_id = GetTaskIdForName(\"" + task.getParentTask() + "\");\n";
+				goCode += ("\tfor(i=0; i<CIC_UV_NUM_MTMS; i++){\n\t\tif(task_id == mtms[i].task_id){\n\t\t\tmtm_index = i;\n\t\t\tbreak;\n\t\t}\n\t}\n\n");
+			}
 			// Current assumption: A source task should be mapped on to the same processor for all modes
 			boolean isSrcTask = false;
 			String srcGoCode = "";
@@ -951,19 +958,23 @@ public class Schedule {
 					e.printStackTrace();
 				}
 			}
+			
+
 			if(isSrcTask){
 				goCode += srcGoCode;
 				if(modeList.size() > 1)	goCode += "\tmtms[mtm_index].Transition();\n";
 				task.setIsSrcTask(true);
 			}
 			if(!isSrcTask && modeList.size() > 1)	goCode += "\tmtms[mtm_index].UpdateCurrentMode(\"" + task.getName() + "\");\n";
-			goCode += "\n\tmode = mtms[mtm_index].GetCurrentModeName(\"" + task.getName() + "\");\n";
+			if(modeList.size() > 1)					goCode += "\n\tmode = mtms[mtm_index].GetCurrentModeName(\"" + task.getName() + "\");\n";
 			
 			index = 0;
 			for(String mode: modeList){
 				try {
-					if(index == 0)		goCode += "\tif(CIC_F_STRING_COMPARE(mode, \"" + mode + "\") == 0){\n";
-					else if(index != 0)	goCode += "\telse if(CIC_F_STRING_COMPARE(mode, \"" + mode + "\") == 0){\n";
+					if(modeList.size() > 1){
+						if(index == 0)		goCode += "\tif(CIC_F_STRING_COMPARE(mode, \"" + mode + "\") == 0){\n";
+						else if(index != 0)	goCode += "\telse if(CIC_F_STRING_COMPARE(mode, \"" + mode + "\") == 0){\n";
+					}
 					ArrayList<File> schedFileList = new ArrayList<File>();
 					File file = new File(outputPath);
 					File[] fileList = file.listFiles();
@@ -998,7 +1009,7 @@ public class Schedule {
 							}
 						}
 					}
-					goCode += "\t}\n";
+					if(modeList.size() > 1)	goCode += "\t}\n";
 					index++;
 					
 				} catch (CICXMLException e) {

@@ -102,6 +102,17 @@ CIC_UT_PORTMAP addressmap[] = {
 
 
 /////////////////////////////// PRIMITIVE FUNCTIONS (TASKS) /////////////////////////////////
+CIC_STATIC CIC_T_INT GetMTMIndexForTaskId(CIC_T_INT task_id){
+	CIC_T_INT i=0;
+    for(i=0; i<CIC_UV_NUM_MTMS; i++){
+        if(task_id == mtms[i].task_id){
+        	return i;
+        }
+    }
+    CIC_F_ERROR("proc", "GetMTMIndexForTaskId() fail!", CIC_V_ERROR_EXIT);
+    return CIC_V_ERROR;
+}
+
 CIC_STATIC CIC_T_CHAR *GetTaskIndexForId(CIC_T_INT task_id)
 {
     CIC_T_INT i;

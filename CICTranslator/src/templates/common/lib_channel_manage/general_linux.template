@@ -80,8 +80,9 @@ read_lib_start:
     
 	if(channel->end == channel->start)	channel->is_full = 0;
 
+	CIC_F_COND_BROADCAST(&(channel->cond));
     CIC_F_MUTEX_UNLOCK(&(channel->mutex));
-    CIC_FCOND_BROADCAST(&(channel->cond));
+    
 
     return len;
 }
@@ -125,8 +126,8 @@ write_lib_start:
     
     if(channel->end == channel->start)	channel->is_full = 1;
 	
-    CIC_F_MUTEX_UNLOCK(&(channel->mutex));
-    CIC_F_COND_BROADCAST(&(channel->cond));
+	CIC_F_COND_BROADCAST(&(channel->cond));
+    CIC_F_MUTEX_UNLOCK(&(channel->mutex));  
 
     return len;
 }

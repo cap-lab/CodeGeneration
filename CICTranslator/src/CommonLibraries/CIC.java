@@ -273,8 +273,7 @@ public class CIC {
         	t += "\t\tcase " + i + ":\n";	        	
         	// transition list
         	if(transList.size() == 0){
-		        if(version.equals("Partitioned"))	t += "\t\t\tsrc_continue_count++;\n";
-		        else								t += "\t\t\tcontinue_count[src_task_index]++;\n";
+		        t += "\t\t\tsrc_continue_count++;\n";
         	}
         	else{
 	        	for(int j=0; j<transList.size(); j++){
@@ -304,11 +303,10 @@ public class CIC {
 			        			break;
 			        		}
 			        	}
-				        t += "\t\t\t\tcurrent_mode = " + dst_id + ";\n";     	
+				        t += "\t\t\t\tnext_mode = " + dst_id + ";\n";     	
 				        t += "\t\t\t\tis_transition = CIC_V_TRUE;\n\t\t\t}\n";
 				        t += "\t\t\telse{\n";
-				        if(version.equals("Partitioned"))	t += "\t\t\t\tsrc_continue_count++;\n";
-				        else								t += "\t\t\t\tcontinue_count[src_task_index]++;\n";
+				        t += "\t\t\t\tsrc_continue_count++;\n";
 				        t += "\t\t\t}\n";
 			        }
 	        	}
@@ -647,10 +645,10 @@ public class CIC {
 						+ "CIC_EXTERN CIC_T_VOID " + t.getName() + "_SetVariableInt(CIC_T_CHAR*, CIC_T_INT);\n"
 						+ "CIC_EXTERN CIC_T_CHAR* " + t.getName() + "_GetVariableString(CIC_T_CHAR*);\n"
 						+ "CIC_EXTERN CIC_T_VOID " + t.getName() + "_SetVariableString(CIC_T_CHAR*, CIC_T_CHAR*);\n"
-						+ "CIC_EXTERN CIC_T_VOID " + t.getName() + "_Transition(CIC_T_VOID);\n"
+						+ "CIC_EXTERN CIC_T_BOOL " + t.getName() + "_Transition(CIC_T_VOID);\n"
 						+ "CIC_EXTERN CIC_T_INT " + t.getName() + "_UpdateCurrentMode(CIC_T_CHAR*);\n"
 						+ "CIC_EXTERN CIC_T_INT " + t.getName() + "_GetTaskIterCount(CIC_T_CHAR*);\n"
-						+ "CIC_EXTERN CIC_T_INT " + t.getName() + "_GetTaskRepeatCount(CIC_T_CHAR*);\n";
+						+ "CIC_EXTERN CIC_T_INT " + t.getName() + "_GetTaskRepeatCount(CIC_T_CHAR*, CIC_T_INT);\n";
 				index++;
 			}
 		}

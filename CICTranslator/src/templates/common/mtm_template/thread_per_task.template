@@ -29,39 +29,27 @@ CIC_STATIC CIC_UT_TASK_COUNT_INFO task_iter_info[] = {
 ##SRCTASKINDEX
 CIC_STATIC CIC_T_INT current_mode_queue[MODE_QUEUE_SIZE][2];
 CIC_STATIC CIC_T_INT *mode_pointer[NUM_SUB_TASKS];
-CIC_STATIC CIC_T_INT *most_recent_mode_pointer;
 CIC_STATIC CIC_T_INT current_mode;
-CIC_STATIC CIC_T_INT continue_count[NUM_SUB_TASKS];
+CIC_STATIC CIC_T_INT src_continue_count;
 
-CIC_STATIC CIC_T_MUTEX trans_mutex = CIC_V_MUTEX_INIT_INLINE;
 CIC_STATIC CIC_T_MUTEX read_mutex = CIC_V_MUTEX_INIT_INLINE;
 CIC_STATIC CIC_T_COND read_cond = CIC_V_COND_INIT_INLINE;
 CIC_STATIC CIC_T_MUTEX write_mutex = CIC_V_MUTEX_INIT_INLINE;
 CIC_STATIC CIC_T_COND write_cond = CIC_V_COND_INIT_INLINE;
-CIC_STATIC CIC_T_MUTEX is_full_mutex = CIC_V_MUTEX_INIT_INLINE;
 
 MTM_INITIALIZE
 {
 	CIC_T_INT i=0;
 	
 	for(i=0; i<MODE_QUEUE_SIZE; i++){
-		if(i < MODE_QUEUE_SIZE -2){
-			current_mode_queue[i][0] = 0;
-			current_mode_queue[i][1] = -1;
-		}
-		else{
-			current_mode_queue[i][0] = 0;
-			current_mode_queue[i][1] = 1;
-		}
+		current_mode_queue[i][0] = 0;
+		current_mode_queue[i][1] = -1;
 	}
 	
 	for(i=0; i<NUM_SUB_TASKS; i++){
-		if(i == src_task_index) mode_pointer[i] = current_mode_queue[MODE_QUEUE_SIZE] - 4;
-		else					mode_pointer[i] = current_mode_queue[MODE_QUEUE_SIZE] - 2;
-		
-		continue_count[i] = 0;
+		if(i != src_task_index)	mode_pointer[i] = current_mode_queue[MODE_QUEUE_SIZE] - 2;
+		else					mode_pointer[i] = current_mode_queue;
 	}
-	most_recent_mode_pointer = current_mode_queue[0] + 2;
 }
 
 UPDATE_CURRENT_MODE
@@ -79,23 +67,18 @@ UPDATE_CURRENT_MODE
 	}
 
 	// update current mode pointer
+	CIC_F_MUTEX_LOCK(&write_mutex);
 	mode_pointer[task_index]+=2;
-	if(task_index != src_task_index)	continue_count[task_index] = 0;
-	if(mode_pointer[task_index] == current_mode_queue[MODE_QUEUE_SIZE])	mode_pointer[task_index] = current_mode_queue[0];
-
-	// read blocking case
-	if(mode_pointer[task_index] == most_recent_mode_pointer){
-		CIC_F_MUTEX_LOCK(&read_mutex);
-		CIC_F_COND_WAIT(&read_cond, &read_mutex);
-		CIC_F_MUTEX_UNLOCK(&read_mutex);
+	if(mode_pointer[task_index] == current_mode_queue[MODE_QUEUE_SIZE]){
+		mode_pointer[task_index] = current_mode_queue;
 	}
 
 	// check awake condition of writer
 	// if a slot in current_mode_queue is available, wakeup source task to write a current mode of next iteration
+	CIC_T_INT *next_src_pos = mode_pointer[src_task_index] + 2;
+	if(next_src_pos == current_mode_queue[MODE_QUEUE_SIZE])	next_src_pos = current_mode_queue;
 	for(i=0; i<NUM_SUB_TASKS; i++){
-		CIC_T_INT *next_mode_pos = most_recent_mode_pointer + 2;
-		if(next_mode_pos == current_mode_queue[MODE_QUEUE_SIZE])	next_mode_pos = current_mode_queue[0];
-		if(mode_pointer[i] == next_mode_pos){
+		if(i != src_task_index && mode_pointer[i] == next_src_pos){
 			is_empty_slot = CIC_V_FALSE;
 			break;
 		}
@@ -103,13 +86,13 @@ UPDATE_CURRENT_MODE
 	if(is_empty_slot){
 		CIC_F_COND_BROADCAST(&write_cond);
 	}
+	CIC_F_MUTEX_UNLOCK(&write_mutex);
 }
 
 GET_TASK_REPEAT_COUNT
 {
     CIC_T_INT i=0;
 	CIC_T_INT task_index = 0;
-	CIC_T_INT *prev_pointer = CIC_V_NULL;
 
 	// get task_id
     for(i=0; i<CIC_ARRAYLEN(task_iter_info); i++){
@@ -118,22 +101,13 @@ GET_TASK_REPEAT_COUNT
 			break;
 		}
 	}
-	
-	prev_pointer = most_recent_mode_pointer - 2;
-	if(prev_pointer < current_mode_queue[0]){
-		prev_pointer = current_mode_queue[MODE_QUEUE_SIZE] - 2;
-	}
 
-	CIC_F_MUTEX_LOCK(&trans_mutex);
-	if(task_index != src_task_index && mode_pointer[task_index][1] == -1 && continue_count[task_index] >= continue_count[src_task_index]){
-		CIC_F_MUTEX_UNLOCK(&trans_mutex);
-		CIC_F_MUTEX_LOCK(&read_mutex);
+	CIC_F_MUTEX_LOCK(&read_mutex);
+	if(mode_pointer[task_index][1] == -1 && src_continue_count <= run_count){
 		CIC_F_COND_WAIT(&read_cond, &read_mutex);
-		CIC_F_MUTEX_UNLOCK(&read_mutex);
 	}
-	else	CIC_F_MUTEX_UNLOCK(&trans_mutex);
+	CIC_F_MUTEX_UNLOCK(&read_mutex);
 	
-	if(task_index != src_task_index)	continue_count[task_index]++;
 	return mode_pointer[task_index][1];
 }
 
@@ -223,46 +197,45 @@ TRANSITION
 {
 	CIC_T_INT i=0;
 	CIC_T_BOOL is_full = CIC_V_FALSE, is_transition = CIC_V_FALSE;
+	CIC_T_INT next_mode = 0;
 ##TRANS_VAR_INIT
 	
-	// check write blocking case
-	for(i=0; i<NUM_SUB_TASKS; i++){
-		CIC_T_INT *most_near_pos = mode_pointer[i];
-		if(most_near_pos == current_mode_queue)	most_near_pos = current_mode_queue[MODE_QUEUE_SIZE] - 2;
-		else									most_near_pos = mode_pointer[i] - 2;
-		if(most_near_pos == most_recent_mode_pointer){
-			is_full = CIC_V_TRUE;
-			break;
-		}
-	}
-
-	if(is_full){
-		CIC_F_MUTEX_LOCK(&write_mutex);
-		CIC_F_COND_WAIT(&write_cond, &write_mutex);
-		CIC_F_MUTEX_UNLOCK(&write_mutex);
-	}
-	
-	CIC_F_MUTEX_LOCK(&trans_mutex);
-	
+	CIC_F_MUTEX_LOCK(&write_mutex);
 ##TRANSITION
 
 	// update current mode pointer
 	if(is_transition){
-		CIC_T_INT *prev_pointer = most_recent_mode_pointer - 2;
-		if(prev_pointer < current_mode_queue[0]){
-			prev_pointer = current_mode_queue[MODE_QUEUE_SIZE] - 2;
+		// check write blocking case
+		CIC_T_INT *next_src_pos = mode_pointer[src_task_index] + 2;
+		if(next_src_pos == current_mode_queue[MODE_QUEUE_SIZE])	next_src_pos = current_mode_queue;
+		for(i=0; i<NUM_SUB_TASKS; i++){
+			if(i != src_task_index && next_src_pos == mode_pointer[i]){
+				is_full = CIC_V_TRUE;
+				break;
+			}
 		}
-		prev_pointer[1] = continue_count[src_task_index];
-		most_recent_mode_pointer[0] = current_mode;
-		most_recent_mode_pointer[1] = -1;
-		continue_count[src_task_index] = 1;	
 
-		most_recent_mode_pointer+=2;
-		if(most_recent_mode_pointer == current_mode_queue[MODE_QUEUE_SIZE]){
-			most_recent_mode_pointer = current_mode_queue[0];
+		if(is_full){
+			CIC_F_COND_WAIT(&write_cond, &write_mutex);
 		}
+
+		if(src_continue_count == 0)	src_continue_count = 1;
+		mode_pointer[src_task_index][0] = current_mode;
+		mode_pointer[src_task_index][1] = src_continue_count;
+		mode_pointer[src_task_index] += 2;
+		if(mode_pointer[src_task_index] == current_mode_queue[MODE_QUEUE_SIZE]){
+			mode_pointer[src_task_index] = current_mode_queue;
+		}
+		mode_pointer[src_task_index][0] = next_mode;
+		mode_pointer[src_task_index][1] = -1;
+		src_continue_count = 1;
+		current_mode = next_mode;
 	}
-
+	CIC_F_MUTEX_UNLOCK(&write_mutex);
+	
+	CIC_F_MUTEX_LOCK(&read_mutex);
 	CIC_F_COND_BROADCAST(&read_cond);
-	CIC_F_MUTEX_UNLOCK(&trans_mutex);
+	CIC_F_MUTEX_UNLOCK(&read_mutex);
+	
+	return is_transition;
 }

@@ -27,7 +27,7 @@ CIC_STATIC CIC_UT_TASK_COUNT_INFO task_iter_info[] = {
 
 CIC_STATIC CIC_T_INT complete_task_count;
 CIC_STATIC CIC_T_BOOL is_transition;
-CIC_STATIC CIC_T_INT current_mode, prev_mode;
+CIC_STATIC CIC_T_INT current_mode, next_mode;
 CIC_STATIC CIC_T_INT src_continue_count;
 CIC_STATIC CIC_T_INT continue_count[NUM_SUB_TASKS];
 
@@ -42,10 +42,6 @@ MTM_INITIALIZE
 	}
 	
 	is_transition = CIC_V_FALSE;
-	complete_task_count = 0;
-	src_continue_count = 0;
-	current_mode = 0;
-	prev_mode = 0;
 	CIC_F_MUTEX_INIT(&mtm_mutex);
 	CIC_F_COND_INIT(&mtm_cond);
 }
@@ -64,16 +60,15 @@ UPDATE_CURRENT_MODE
 	}
 
 	CIC_F_MUTEX_LOCK(&mtm_mutex);
-	continue_count[task_index]++;
-
-	if(continue_count[task_index] > src_continue_count){
+	
+	if(continue_count[task_index] >= src_continue_count){
 		complete_task_count++;
 		if(is_transition && complete_task_count >= NUM_SUB_TASKS - 1){
 			for(i=0; i<NUM_SUB_TASKS; i++){
-				continue_count[i] = 1;
+				continue_count[i] = 0;
 			}
 			complete_task_count--;
-			prev_mode = current_mode;
+			current_mode = next_mode;
 			src_continue_count = 1;
 			is_transition = CIC_V_FALSE;
 			CIC_F_COND_BROADCAST(&mtm_cond);
@@ -83,6 +78,7 @@ UPDATE_CURRENT_MODE
 			complete_task_count--;
 		}
 	}
+	continue_count[task_index]++;
 	CIC_F_MUTEX_UNLOCK(&mtm_mutex);
 }
 
@@ -98,7 +94,7 @@ GET_TASK_ITER_COUNT
 
 GET_CURRENT_MODE_NAME
 {
-	return mode_map[prev_mode].name;
+	return mode_map[current_mode].name;
 }
 
 SET_VARIABLE_INT
@@ -156,18 +152,16 @@ TRANSITION
 	if(is_transition){
 		if(complete_task_count >= NUM_SUB_TASKS - 1){
 			for(i=0; i<NUM_SUB_TASKS; i++){
-				continue_count[i] = 1;
+				continue_count[i] = 0;
 			}
-			prev_mode = current_mode;
+			current_mode = next_mode;
 			src_continue_count = 1;
 			is_transition = CIC_V_FALSE;
-			CIC_F_COND_BROADCAST(&mtm_cond);
 		}
 		else{
 			CIC_F_COND_WAIT(&mtm_cond, &mtm_mutex);
 		}
 	}
-	CIC_F_MUTEX_UNLOCK(&mtm_mutex);
-
 	CIC_F_COND_BROADCAST(&mtm_cond);
+	CIC_F_MUTEX_UNLOCK(&mtm_mutex);
 }
