@@ -121,7 +121,7 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator
 		// generate mtm files from xml files	
 		for(Task t: mTask.values()){
 			if(t.getHasMTM().equalsIgnoreCase("Yes")){
-				templateFile = mTranslatorPath + "templates/common/common_template/task_code_template.mtm";			
+				templateFile = mTranslatorPath + "templates/common/mtm_template/thread_per_processor.template";			
 				CommonLibraries.CIC.generateMTMFile(mOutputPath, templateFile, t, mAlgorithm, mTask, mPVTask, mQueue, mCodeGenType);
 			}
 		}
@@ -208,7 +208,7 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator
 		code = CommonLibraries.CIC.translateControlDataStructure(code, mTask, mControl);
 		
 		if(mThreadVer.equals("Single"))	templateFile = mTranslatorPath + "templates/common/task_execution/single_thread_hybrid.template";
-		else						templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
+		else							templateFile = mTranslatorPath + "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
 		// TASK_VARIABLE_DECLARATION //
 		String taskVariableDecl = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##TASK_VARIABLE_DECLARATION");
 		code = code.replace("##TASK_VARIABLE_DECLARATION", taskVariableDecl);
@@ -289,6 +289,11 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator
 		else{
 			code = code.replace("##CONTROL_API", "");
 		}
+		
+		// CONTROL_END_TASK //
+		String controlEndTask = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##CONTROL_END_TASK");
+		code = code.replace("##CONTROL_END_TASK", controlEndTask);
+		//////////////////////////
 		
 		if(mThreadVer.equals("Single"))	templateFile = mTranslatorPath + "templates/common/channel_manage/general_linux_single_thread.template";
 		else							templateFile = mTranslatorPath + "templates/common/channel_manage/general_linux_multi_thread.template";

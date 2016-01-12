@@ -343,7 +343,7 @@ CIC_T_INT GetChannelIndex(CIC_T_INT channel_id)
 
 
 ////////////////////////////////// BASIC CONTROL API START //////////////////////////////////
-CIC_T_VOID EndTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
+CIC_T_VOID EndCICTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
 {
 ##CONTROL_END_TASK
 }

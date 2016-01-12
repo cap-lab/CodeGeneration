@@ -136,7 +136,7 @@ CIC_T_INT CheckTaskState(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
     return tasks[task_id].state;
 }
 
-CIC_T_VOID CallTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
+CIC_T_VOID CallCICTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
 {
 	CIC_T_INT task_index = GetTaskIdForName(t_name);
 	tasks[task_index].state = STATE_RUN;
@@ -147,22 +147,22 @@ CIC_T_VOID CallTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
 }
 
 
-CIC_T_VOID RunTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
+CIC_T_VOID RunCICTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
 {
 ##CONTROL_RUN_TASK
 }
 
-CIC_T_VOID StopTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
+CIC_T_VOID StopCICTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
 {
 ##CONTROL_STOP_TASK
 }
 
-CIC_T_VOID ResumeTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
+CIC_T_VOID ResumeCICTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
 {
 ##CONTROL_RESUME_TASK
 }
 
-CIC_T_VOID SuspendTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
+CIC_T_VOID SuspendCICTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name)
 {
 ##CONTROL_SUSPEND_TASK
 }

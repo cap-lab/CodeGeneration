@@ -127,7 +127,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 		// generate mtm files from xml files	
 		for(Task t: mTask.values()){
 			if(t.getHasMTM().equalsIgnoreCase("Yes")){
-				if(mCodeGenType.equals("Single") || mCodeGenType.equals("Global")){
+				if(mCodeGenType.equals("Global")){
 					templateFile = mTranslatorPath + "templates/common/mtm_template/thread_per_task.template";			
 					CommonLibraries.CIC.generateMTMFile(mOutputPath, templateFile, t, mAlgorithm, mTask, mPVTask, mQueue, mCodeGenType);
 				}
@@ -518,7 +518,6 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 		else if(mCodeGenType.equals("Global")){
 		}
 		else if(mCodeGenType.equals("Partitioned")){
-			System.out.println();
 			String outPath = mOutputPath + "/convertedSDF3xml/";
 			staticScheduleCode = CommonLibraries.Schedule.generateMultiProcessorStaticScheduleCode(outPath, mTask, mVTask, mPVTask);
 			code = code.replace("##SCHEDULE_CODE", staticScheduleCode);

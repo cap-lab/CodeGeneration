@@ -751,11 +751,11 @@ public class Schedule {
 					try {
 						go_skip = false;
 						staticScheduleCode += ("CIC_T_VOID " + task.getName() + "_Go(){\n");
-						if(!Util.fileIsLive(outputPath + "\\" + task.getName() + "_" + "Default" + "_schedule.xml")){
+						if(!Util.fileIsLive(outputPath + "\\" + task.getName() + "_" + "Default_1_schedule.xml")){
 							JOptionPane.showMessageDialog(null, "You should execute 'Analysis' before build!");
 							System.exit(-1);
 						}
-						schedule = scheduleLoader.loadResource(outputPath + "\\" + task.getName() + "_" + "Default" + "_schedule.xml");
+						schedule = scheduleLoader.loadResource(outputPath + "\\" + task.getName() + "_" + "Default_1_schedule.xml");
 						TaskGroupsType taskGroups = schedule.getTaskGroups();
 						List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
 						for(int i=0; i<taskGroupList.size();i++){

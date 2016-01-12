@@ -244,7 +244,6 @@ go_continue:
 			WaitDataTasksEnd();
 #if defined(RESUME) && (RESUME==1)
 			fflush(stdout);
-			CIC_F_SLEEP(1); 
 			resume = WaitFromGUIResume();
 			if(resume == CIC_V_TRUE){
 				CIC_F_COND_BROADCAST(&time_cond);
@@ -356,3 +355,30 @@ go_continue:
     }
     return;
 ##CONTROL_SUSPEND_TASK_END
+
+##CONTROL_END_TASK_START
+    CIC_T_INT i=0;
+    if(CIC_F_STRING_COMPARE(caller_task_name, t_name) == 0){
+    	CIC_T_INT task_id = GetTaskId(caller_task_name);
+    	CIC_T_INT parent_task_id = tasks[task_id].parent_task_id;
+        CIC_F_THREAD_CANCEL(tasks[parent_task_id].thread);
+        WrapupTaskChannel(parent_task_id);
+        tasks[parent_task_id].state = STATE_STOP;
+        PRINT("Stop a task (own)");
+    }
+    else{
+      CIC_T_INT target_task_id = GetTaskId(t_name);
+      for(i=0; i<CIC_UV_NUM_TASKS; i++){
+          if(target_task_id == tasks[i].task_id){
+               CIC_T_INT task_id = tasks[i].task_id;
+	           CIC_F_THREAD_CANCEL(tasks[task_id].thread);
+	           WrapupTaskChannel(task_id);
+	           tasks[task_id].state = STATE_STOP;
+	           CIC_F_PRINTF("Endtask %s (task_id: %d)\n", tasks[task_id].name, task_id);
+	           break;
+          }
+      } 
+    }
+
+    return;
+##CONTROL_END_TASK_END
