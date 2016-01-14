@@ -1,3 +1,5 @@
+// hs: need to delete before release
+
 package hae.peace.container.cic.mapping.xml;
 
 import hae.kernel.util.ObjectList;
@@ -26,10 +28,10 @@ import java.util.Map;
 public class CICArchitectureXMLHandler {
 	private CICArchitectureTypeLoader loader;
 	private CICArchitectureType architecture;
-	private CICManualDSEPanel panel;
-	public CICArchitectureXMLHandler(CICManualDSEPanel cicManualDSEPanel) {
+//	private CICManualDSEPanel panel;
+	public CICArchitectureXMLHandler(/*CICManualDSEPanel cicManualDSEPanel*/) {
 		loader = new CICArchitectureTypeLoader();
-		this.panel = cicManualDSEPanel;
+//		this.panel = cicManualDSEPanel;
 	}
 	
 	public CICArchitectureType getArchitecture() {
@@ -193,7 +195,7 @@ public class CICArchitectureXMLHandler {
 		architecture.setTarget(target);
 	}
 	
-	public String getFileName() {
-		return panel.getParentPanel().getNickName() + "_architecture.xml";
-	}
+//	public String getFileName() {
+//		return panel.getParentPanel().getNickName() + "_architecture.xml";
+//	}
 }

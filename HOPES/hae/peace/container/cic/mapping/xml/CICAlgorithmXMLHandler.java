@@ -1,3 +1,4 @@
+// hs: need to delete before release
 package hae.peace.container.cic.mapping.xml;
 
 import java.io.ByteArrayInputStream;
@@ -18,7 +19,7 @@ public class CICAlgorithmXMLHandler {
 	private CICAlgorithmTypeLoader loader;
 	private CICAlgorithmType algorithm;
 	
-	public CICAlgorithmXMLHandler(CICManualDSEPanel panel) {
+	public CICAlgorithmXMLHandler() {
 		loader = new CICAlgorithmTypeLoader();
 	}
 	
