@@ -94,9 +94,12 @@ public class CICArchitectureXMLHandler {
 			int poolSize = element.getPoolSize() != null ? element.getPoolSize().intValue() : 1;
 			String os = elementType.getOS();
 			if(os==null) os = "NONE";
-			boolean bParallel = element.isAllowDataParallelMapping();
+			
+			// deleted for release (2015/12) - 더이상 processor 에서는 allow Data ParallelMapping이 쓰이지 않음
+//			boolean bParallel = element.isAllowDataParallelMapping();
 			for (int i = 0; i < poolSize; i++) {
-				Processor proc = new Processor(i, element.getName(), bParallel, os, element.getType());
+				// deleted for release (2015/12) - 더이상 processor 에서는 allow Data ParallelMapping이 쓰이지 않음				
+				Processor proc = new Processor(i, element.getName(), /*bParallel, */os, element.getType());
 				procList.add(proc);
 			}			
 		}
