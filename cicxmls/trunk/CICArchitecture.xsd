@@ -91,7 +91,7 @@
     <xs:attribute name="name" type="NameType" use="required" />
     <xs:attribute name="type" type="NameType" use="required" />
     <xs:attribute name="poolSize" type="xs:nonNegativeInteger" use="optional" default="1" />
-    <!-- If it is a pool. -->
+    <!-- If it is a pool. Need to be deleted, because core should be allowed Data Parallel Mapping when the task is data-parallel-->
     <xs:attribute name="allowDataParallelMapping" type="xs:boolean" use="optional" default="false"/>
   </xs:complexType>
 
