@@ -57,6 +57,25 @@ CIC_T_CHAR* GetCurrentModeName(CIC_T_CHAR* caller_task_name)
 	CIC_F_ERROR("proc", "GetModeCurrentModeName() fail!", CIC_V_ERROR_EXIT);
     return CIC_V_NULL;
 }
+
+CIC_T_CHAR* GetMode(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* target_task_name)
+{
+    CIC_T_INT i=0, j=0;
+    CIC_T_CHAR* mode = CIC_V_NULL;
+
+    for(i=0; i<CIC_UV_NUM_TASKS; i++){
+        if(CIC_F_STRING_COMPARE(tasks[i].name, target_task_name) == 0){
+            for(j=0; j<CIC_ARRAYLEN(mtms); j++){
+                if(mtms[j].task_id == tasks[i].parent_task_id){
+                    mode = mtms[j].GetCurrentModeName(target_task_name);
+                    return mode;
+                }
+            }
+        }
+    }
+	CIC_F_ERROR("proc", "GetMode() fail!", CIC_V_ERROR_EXIT);
+    return CIC_V_NULL;
+}
 ##MTM_API_END
 
 ##CONTROL_API_START
@@ -249,7 +268,7 @@ CIC_T_VOID SetParamFloat(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, CIC_T
 	return;
 }
 
-CIC_T_INT GetTimerAlarmed(CIC_T_CHAR* caller_task_name, CIC_T_UINT timer_id)
+CIC_T_INT GetCICTimerAlarmed(CIC_T_CHAR* caller_task_name, CIC_T_UINT timer_id)
 {
 	CIC_T_UINT my_task_id = GetTaskIdForName(caller_task_name);
 	CIC_T_UINT cont_ch_index = GetControlChannelIndex(my_task_id);
@@ -276,7 +295,7 @@ CIC_T_INT GetTimerAlarmed(CIC_T_CHAR* caller_task_name, CIC_T_UINT timer_id)
 	return 0;
 }
 
-CIC_T_INT SetTimer(CIC_T_CHAR* caller_task_name, CIC_T_UINT time_value, CIC_T_CHAR *time_unit) 
+CIC_T_INT SetCICTimer(CIC_T_CHAR* caller_task_name, CIC_T_UINT time_value, CIC_T_CHAR *time_unit) 
 {
 	CIC_T_INT timer_id;
 	CIC_T_UINT tick;
@@ -290,7 +309,7 @@ CIC_T_INT SetTimer(CIC_T_CHAR* caller_task_name, CIC_T_UINT time_value, CIC_T_CH
 	return timer_id; 
 }
 
-CIC_T_VOID ResetTimer(CIC_T_CHAR* caller_task_name, CIC_T_UINT timer_id) 
+CIC_T_VOID ResetCICTimer(CIC_T_CHAR* caller_task_name, CIC_T_UINT timer_id) 
 {
 	CIC_T_UINT my_task_id = GetTaskIdForName(caller_task_name);
 	CIC_T_UINT cont_ch_index = GetControlChannelIndex(my_task_id);

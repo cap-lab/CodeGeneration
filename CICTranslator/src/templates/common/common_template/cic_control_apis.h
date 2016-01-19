@@ -14,9 +14,9 @@ CIC_EXTERN CIC_T_VOID 		ResumeCICTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* 
 CIC_EXTERN CIC_T_VOID 		CallCICTask(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name);
 CIC_EXTERN CIC_T_INT 		CheckTaskState(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name); 
 CIC_EXTERN CIC_T_INT 		GetCurrentTimeBase(CIC_T_VOID);
-CIC_EXTERN CIC_T_INT 		SetTimer(CIC_T_CHAR* caller_task_name, CIC_T_UINT time_value, CIC_T_CHAR *time_unit);
-CIC_EXTERN CIC_T_INT 		GetTimerAlarmed(CIC_T_CHAR* caller_task_name, CIC_T_UINT timer_id);
-CIC_EXTERN CIC_T_VOID 		ResetTimer(CIC_T_CHAR* caller_task_name, CIC_T_UINT timer_id);
+CIC_EXTERN CIC_T_INT 		SetCICTimer(CIC_T_CHAR* caller_task_name, CIC_T_UINT time_value, CIC_T_CHAR *time_unit);
+CIC_EXTERN CIC_T_INT 		GetCICTimerAlarmed(CIC_T_CHAR* caller_task_name, CIC_T_UINT timer_id);
+CIC_EXTERN CIC_T_VOID 		ResetCICTimer(CIC_T_CHAR* caller_task_name, CIC_T_UINT timer_id);
 
 #define SYS_REQ_SET_THROUGHPUT(a, b, c)			 SetThroughput(TASK_NAME, a, b, c)
 #define SYS_REQ_SET_DEADLINE(a, b, c)			 SetDeadline(TASK_NAME, a, b, c)
@@ -31,9 +31,9 @@ CIC_EXTERN CIC_T_VOID 		ResetTimer(CIC_T_CHAR* caller_task_name, CIC_T_UINT time
 #define SYS_REQ_CALL_TASK(a)					 CallCICTask(TASK_NAME, a)
 #define SYS_REQ_CHECK_TASK_STATE(a) 			 CheckTaskState(TASK_NAME, a)
 #define SYS_REQ_GET_CURRENT_TIME_BASE()			 GetCurrentTimeBase()
-#define SYS_REQ_SET_TIMER(a, b)					 SetTimer(TASK_NAME, a, b)
-#define SYS_REQ_GET_TIMER_ALARMED(a)			 GetTimerAlarmed(TASK_NAME, a)
-#define SYS_REQ_RESET_TIMER(a) 					 ResetTimer(TASK_NAME, a)
+#define SYS_REQ_SET_TIMER(a, b)					 SetCICTimer(TASK_NAME, a, b)
+#define SYS_REQ_GET_TIMER_ALARMED(a)			 GetCICTimerAlarmed(TASK_NAME, a)
+#define SYS_REQ_RESET_TIMER(a) 					 ResetCICTimer(TASK_NAME, a)
 
 
 #endif /* __CIC_CONTROL_APIS_H__ */

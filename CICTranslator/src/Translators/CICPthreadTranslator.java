@@ -192,7 +192,7 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator
 		//////////////
 		
 		// EXTERN_TASK_FUNCTION_DECLARATION, TASK_ENTRIES, EXTERN_MTM_FUNCTION_DECLARATION, MTM_ENTRIES //
-		code = CommonLibraries.CIC.translateTaskDataStructure(code, mTask, mGlobalPeriod, mGlobalPeriodMetric, mThreadVer, mCodeGenType, mVTask, mPVTask);
+		code = CommonLibraries.CIC.translateTaskDataStructure(code, mTask, mGlobalPeriod, mGlobalPeriodMetric, mThreadVer, "Single", mVTask, mPVTask);
 		
 		// CHANNEL_ENTRIES //
 		code = CommonLibraries.CIC.translateChannelDataStructure(code, mQueue, mThreadVer);
