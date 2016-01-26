@@ -53,7 +53,8 @@
     <xs:attribute name="clock" type="xs:nonNegativeInteger" use="optional" />
     <!-- Clock frequency in MHz -->
     <xs:attribute name="archiType" type="xs:string" use="optional" />
-    <xs:attribute name="power" type="xs:nonNegativeInteger" use="optional" />
+    <xs:attribute name="activePower" type="xs:nonNegativeInteger" use="optional" />
+    <xs:attribute name="sleepPower" type="xs:nonNegativeInteger" use="optional" />
     <!-- Power consumtion in mW -->
     <xs:attribute name="nMasterPorts" type="xs:nonNegativeInteger" use="optional" />
     <xs:attribute name="nInterruptPorts" type="xs:nonNegativeInteger" use="optional" />
