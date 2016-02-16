@@ -121,6 +121,7 @@ CIC_T_INT ReadPort(CIC_T_INT channel_index, CIC_UT_BUFFER_DATA_TYPE buf, CIC_T_I
     CIC_T_INT cur_size=0;
     CIC_T_INT channel_id = channels[channel_index].channel_id;
     CIC_T_INT task_id = GetTaskIdForChannel(channel_id, 'r');
+    CIC_T_INT task_index = GetTaskIndexForId(task_id);
     CIC_UT_CHANNEL *channel = &channels[channel_index];
     
     if(len < 0){
@@ -167,6 +168,7 @@ CIC_T_INT WriteOnePort(CIC_T_INT channel_index, CIC_UT_BUFFER_DATA_TYPE buf, CIC
     CIC_T_INT cur_size=0;
     CIC_T_INT channel_id = channels[channel_index].channel_id;
     CIC_T_INT task_id = GetTaskIdForChannel(channel_id, 'r');
+    CIC_T_INT task_index = GetTaskIndexForId(task_id);
     CIC_UT_CHANNEL *channel = &channels[channel_index];
     
     if(len < 0){

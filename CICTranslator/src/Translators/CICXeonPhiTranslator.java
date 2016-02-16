@@ -201,7 +201,7 @@ public class CICXeonPhiTranslator implements CICTargetCodeTranslator
 					if(processorVector == null) return null;
 					for(int k=0; k<processorVector.size(); k++){
 						Element proc = (Element)processorVector.get(k);
-						if(proc.getAttribute("type").equals(procname)){
+						if(proc.getAttribute("type").toLowerCase().equals(procname)){
 							Element execTime = (Element)XmlParserUtil.getChildNode(proc, "executionTime");
 							exectime = Integer.parseInt(execTime.getAttribute("time"));
 							break;
@@ -212,7 +212,8 @@ public class CICXeonPhiTranslator implements CICTargetCodeTranslator
 			}
 			
 			Task t = mTask.get(taskname);
-			content += t.getExecutionTimeValue().get(modename) + "\n";
+			//content += t.getExecutionTimeValue().get(modename) + "\n";
+			content += exectime + "\n";
 		}
 		for(int i=0; i<actorVector.size(); i++){
 			Element actor = (Element)actorVector.get(i);

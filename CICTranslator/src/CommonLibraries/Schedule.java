@@ -804,6 +804,12 @@ public class Schedule {
 					break;
 				}
 			}
+			for(Task t: mVTask.values()){
+				if(t.getName().equals(task.getParentTask())){
+					parentTask = t;
+					break;
+				}
+			}
 			List<String> modeList = new ArrayList<String>();
 			
 			if(parentTask.getMTM() != null)

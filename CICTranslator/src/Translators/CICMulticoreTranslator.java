@@ -258,10 +258,11 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator
 		
 		code += "\nCIC_T_INT virtual_task_to_core_map[] = {";
 		
-		int index = mTask.size();
-		while(index < mTask.size() + mPVTask.size()) {
+		int index = mTask.size() + mVTask.size();
+		while(index < mTask.size() + mVTask.size() + mPVTask.size()) {
 			Task task = null;
 			for(Task t: mPVTask.values()){
+				System.out.println("-- " + t.getIndex() + " " + index);
 				if(Integer.parseInt(t.getIndex()) == index){
 					task = t;
 					break;
