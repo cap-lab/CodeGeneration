@@ -17,9 +17,9 @@
     </xs:sequence>
   </xs:complexType>
 
-  <xs:complexType name="CodeGenerationType">
-    <xs:attribute name="thread" type="NameType" use="required" />
-    <xs:attribute name="schedule" type="NameType" use="required" />
+  <xs:complexType name="CodeGenerationType">    
+    <xs:attribute name="runtimeExecutionPolicy" type="NameType" use="required" />
+    <xs:attribute name="threadOrFunctioncall" type="NameType" use="required" />
   </xs:complexType>
 
   <xs:complexType name="SimulationType">
