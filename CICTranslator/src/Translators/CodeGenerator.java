@@ -61,8 +61,9 @@ public class CodeGenerator
 	private int mTotalControlQueue;
 	
 	private String mGraphType;
-	private String mThreadVer;
-	private String mCodeGenType;
+	// hs: need to delete before release: 타겟마다 알아서 할 예정 
+//	private String mThreadVer;
+	private String mRuntimeExecutionPolicy;
 	private String mLanguage;
 		
 	CodeGenerator()
@@ -97,8 +98,10 @@ public class CodeGenerator
 		mTotalControlQueue = 0;	
 		
 		mGraphType = "ProcessNetwork";	// DataFlow, ProcessNetwork, Hybrid
-		mThreadVer = "m";	// s: single thread, m: multi thread
-		mCodeGenType = "t";	// a: thread per app, t: thread per task, p: thread per proc
+		// hs: need to fix before release
+//		mThreadVer = "m";	// s: single thread, m: multi thread		
+		mRuntimeExecutionPolicy = "t";	//예전 style: a: thread per app, t: thread per task, p: thread per proc
+		
 		mLanguage = "c";
 	}
 	
@@ -195,8 +198,8 @@ public class CodeGenerator
 	
 	public void makeInnerDataStructures(){
 		mGraphType = mAlgorithm.getProperty();
-		mThreadVer = mConfiguration.getCodeGeneration().getThread();
-		mCodeGenType = mConfiguration.getCodeGeneration().getSchedule();
+//		mThreadVer = mConfiguration.getCodeGeneration().getThread();
+		mRuntimeExecutionPolicy = mConfiguration.getCodeGeneration().getRuntimeExecutionPolicy();
 		
 		BuildInnerDataStructures builder = new BuildInnerDataStructures();
 		mProcessor = builder.makeProcessors(mArchitecture);
@@ -255,7 +258,7 @@ public class CodeGenerator
 				
 				// Make virtual tasks for top-level sdf graphs
 				mVTask = builder.modifyTaskStructure(mTask, mQueue, mConnectedTaskGraph, mConnectedSDFTaskSet, mAlgorithm.getProperty(), mGlobalPeriod, mGlobalPeriodMetric);
-				if(mCodeGenType.equals("Partitioned")){
+				if(mRuntimeExecutionPolicy.equals("Partitioned")){
 					mPVTask = builder.addProcessorVirtualTask(mTask, mQueue, mProcessor, mConnectedTaskGraph, mConnectedSDFTaskSet, mAlgorithm.getProperty(), mGlobalPeriod, mGlobalPeriodMetric, mVTask, mOutputPath);
 				}
 				else	mPVTask = new HashMap<String, Task>(); 
@@ -317,15 +320,15 @@ public class CodeGenerator
 	public String generateTargetCode()
 	{
 		if(mTarget.toUpperCase().contains("THREAD")) {
-			
-			if(mTarget.toUpperCase().contains("_S"))	mThreadVer = "s";
+			// hs: need to delete before release
+//			if(mTarget.toUpperCase().contains("_S"))	mThreadVer = "s";
 			if(mTarget.contains("_C++"))				mLanguage = "c++";
 			
-			CommonLibraries.CIC.generateCommonCode("Single", mOutputPath, mTranslatorPath, mTask, mQueue, mLibrary, mThreadVer, mAlgorithm, mControl);
+			CommonLibraries.CIC.generateCommonCode("Single", mOutputPath, mTranslatorPath, mTask, mQueue, mLibrary, mAlgorithm, mControl);
 						
 			CICTargetCodeTranslator translator = new CICPthreadTranslator();
 			try {
-				translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mThreadVer, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mCodeGenType);
+				translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mRuntimeExecutionPolicy);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -335,14 +338,14 @@ public class CodeGenerator
 		else if(mTarget.toUpperCase().contains("CELL")) {
 			int ret = 0;
 			
-			CommonLibraries.CIC.generateCommonCode("Single", mOutputPath, mTranslatorPath, mTask, mQueue, mLibrary, mThreadVer, mAlgorithm, mControl);
+			CommonLibraries.CIC.generateCommonCode("Single", mOutputPath, mTranslatorPath, mTask, mQueue, mLibrary, mAlgorithm, mControl);
 			
 			CICTargetCodeTranslator translator = new CICCellTranslator();
 			try {
-				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mThreadVer, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mCodeGenType);
+				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mRuntimeExecutionPolicy);
 				if(ret == -1){
 					CICTargetCodeTranslator translator_pthread = new CICPthreadTranslator();
-					translator_pthread.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mThreadVer, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mCodeGenType);
+					translator_pthread.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mRuntimeExecutionPolicy);
 				}
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
@@ -353,11 +356,11 @@ public class CodeGenerator
 		else if(mTarget.toUpperCase().contains("CUDA")) {
 			int ret = 0;
 			
-			CommonLibraries.CIC.generateCommonCode("Single", mOutputPath, mTranslatorPath, mTask, mQueue, mLibrary, mThreadVer, mAlgorithm, mControl);
+			CommonLibraries.CIC.generateCommonCode("Single", mOutputPath, mTranslatorPath, mTask, mQueue, mLibrary, mAlgorithm, mControl);
 			
 			CICTargetCodeTranslator translator = new CICCudaTranslator();
 			try {
-				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mThreadVer, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mCodeGenType);
+				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mRuntimeExecutionPolicy);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -367,11 +370,11 @@ public class CodeGenerator
 		else if(mTarget.toUpperCase().contains("MULTICOREHOST")) {
 			int ret = 0;
 			
-			CommonLibraries.CIC.generateCommonCode("Single", mOutputPath, mTranslatorPath, mTask, mQueue, mLibrary, mThreadVer, mAlgorithm, mControl);
+			CommonLibraries.CIC.generateCommonCode("Single", mOutputPath, mTranslatorPath, mTask, mQueue, mLibrary, mAlgorithm, mControl);
 			
 			CICTargetCodeTranslator translator = new CICMulticoreTranslator();
 			try {
-				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mThreadVer, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mCodeGenType);
+				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mRuntimeExecutionPolicy);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -383,12 +386,12 @@ public class CodeGenerator
 			
 			for(Processor proc: mProcessor.values()){
 				if(proc.getSupportOS().contains("uC-OS")){
-					CommonLibraries.CIC.generateCommonCode("Single", mOutputPath, mTranslatorPath, mTask, mQueue, mLibrary, mThreadVer, mAlgorithm, mControl);
+					CommonLibraries.CIC.generateCommonCode("Single", mOutputPath, mTranslatorPath, mTask, mQueue, mLibrary, mAlgorithm, mControl);
 					CICHSimUcosTranslator translator = new CICHSimUcosTranslator();
 					try {
 						String t_mTarget = Integer.toString(index);
 						String t_mOutputPath = mOutputPath + "/proc." + t_mTarget + "/";
-						ret = translator.generateCode(t_mTarget, mTranslatorPath, t_mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mThreadVer, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mCodeGenType);
+						ret = translator.generateCode(t_mTarget, mTranslatorPath, t_mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mRuntimeExecutionPolicy);
 					} catch (FileNotFoundException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -413,7 +416,7 @@ public class CodeGenerator
 			
 			CICXeonPhiTranslator translator = new CICXeonPhiTranslator();
 			try {
-				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mThreadVer, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mCodeGenType);
+				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mGlobalPeriod, mGlobalPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mRuntimeExecutionPolicy);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

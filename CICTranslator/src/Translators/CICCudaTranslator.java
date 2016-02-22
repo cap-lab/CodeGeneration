@@ -40,12 +40,12 @@ public class CICCudaTranslator implements CICTargetCodeTranslator {
 	private int mTotalControlQueue;
 	
 	private String mThreadVer;
-	private String mCodeGenType;
+	private String mRuntimeExecutionPolicy;
 	private String mLanguage;
 	
 	
 	@Override
-	public int generateCode(String target, String translatorPath, String outputPath, String rootPath, Map<Integer, Processor> processor, Map<String, Task> task, Map<Integer, Queue> queue, Map<String, Library> library, Map<String, Library> globalLibrary, int globalPeriod, String globalPeriodMetric, String cicxmlfile, String language, String threadVer, CICAlgorithmType algorithm, CICControlType control, CICScheduleType schedule, CICGPUSetupType gpusetup, CICMappingType mapping, Map<Integer, List<Task>> connectedtaskgraph,  Map<Integer, List<List<Task>>> connectedsdftaskset, Map<String, Task> vtask, Map<String, Task> pvtask, String codegentype) throws FileNotFoundException
+	public int generateCode(String target, String translatorPath, String outputPath, String rootPath, Map<Integer, Processor> processor, Map<String, Task> task, Map<Integer, Queue> queue, Map<String, Library> library, Map<String, Library> globalLibrary, int globalPeriod, String globalPeriodMetric, String cicxmlfile, String language, CICAlgorithmType algorithm, CICControlType control, CICScheduleType schedule, CICGPUSetupType gpusetup, CICMappingType mapping, Map<Integer, List<Task>> connectedtaskgraph,  Map<Integer, List<List<Task>>> connectedsdftaskset, Map<String, Task> vtask, Map<String, Task> pvtask, String runtimeExecutionPolicy) throws FileNotFoundException
 	{
 		int ret = 0;
 		mTarget = target;
@@ -55,8 +55,8 @@ public class CICCudaTranslator implements CICTargetCodeTranslator {
 		mCICXMLFile = cicxmlfile;
 		mGlobalPeriod = globalPeriod;
 		mGlobalPeriodMetric = globalPeriodMetric;
-		mThreadVer = threadVer;
-		mCodeGenType = codegentype;
+		mThreadVer = "m";
+		mRuntimeExecutionPolicy = runtimeExecutionPolicy;
 		mLanguage = language;
 		
 		mTask = task;
@@ -82,7 +82,7 @@ public class CICCudaTranslator implements CICTargetCodeTranslator {
 		// generate cic_tasks.h
 		fileOut = mOutputPath + "task_def.h";
 		templateFile = mTranslatorPath + "templates/common/common_template/task_def.h.template";
-		CommonLibraries.CIC.generateTaskDataStructure(fileOut, templateFile, mTask, mGlobalPeriod, mGlobalPeriodMetric, mThreadVer, mCodeGenType, mVTask, mPVTask);
+		CommonLibraries.CIC.generateTaskDataStructure(fileOut, templateFile, mTask, mGlobalPeriod, mGlobalPeriodMetric, mThreadVer, mRuntimeExecutionPolicy, mVTask, mPVTask);
 		
 		
 		// generate task_name.c (include task_name.cic)
@@ -1077,12 +1077,12 @@ public class CICCudaTranslator implements CICTargetCodeTranslator {
 			Map<String, Task> mTask, Map<Integer, Queue> mQueue,
 			Map<String, Library> mLibrary, Map<String, Library> mGlobalLibrary,
 			int mGlobalPeriod, String mGlbalPeriodMetric, String mCICXMLFile,
-			String language, String threadVer, CICAlgorithmType mAlgorithm,
+			String language, CICAlgorithmType mAlgorithm,
 			CICControlType mControl, CICScheduleType mSchedule,
 			CICGPUSetupType mGpusetup, CICMappingType mMapping,
 			Map<Integer, List<Task>> mConnectedTaskGraph,
 			Map<Integer, List<List<Task>>> mConnectedSDFTaskSet,
-			Map<String, Task> mVTask, Map<String, Task> mPVTask, String mCodeGenType) throws FileNotFoundException {
+			Map<String, Task> mVTask, Map<String, Task> mPVTask, String mRuntimeExecutionPolicy) throws FileNotFoundException {
 		// TODO Auto-generated method stub
 		return 0;
 	}
