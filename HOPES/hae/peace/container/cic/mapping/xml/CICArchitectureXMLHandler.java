@@ -14,8 +14,6 @@ import hopes.cic.xml.ArchitectureElementCategoryType;
 import hopes.cic.xml.ArchitectureElementSlavePortType;
 import hopes.cic.xml.ArchitectureElementType;
 import hopes.cic.xml.ArchitectureElementTypeType;
-import hopes.cic.xml.ArchitectureMapSlaveType;
-import hopes.cic.xml.ArchitectureMapType;
 import hopes.cic.xml.CICArchitectureType;
 import hopes.cic.xml.CICArchitectureTypeLoader;
 
