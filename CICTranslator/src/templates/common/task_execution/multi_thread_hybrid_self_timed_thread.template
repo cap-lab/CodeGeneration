@@ -1,0 +1,584 @@
+##TASK_VARIABLE_DECLARATION_START
+// For thread synchonization
+#if defined(SYSTEM_THREAD_SUPPORT) && (SYSTEM_THREAD_SUPPORT==1) 
+CIC_VOLATILE CIC_STATIC CIC_T_BOOL channel_empty = CIC_V_FALSE;
+
+CIC_STATIC CIC_T_MUTEX global_mutex;
+CIC_STATIC CIC_T_COND global_cond;
+
+CIC_STATIC CIC_T_INT control_thread_count;
+CIC_STATIC CIC_T_BARRIER control_task_barrier;
+CIC_STATIC CIC_T_BOOL exit_signal = CIC_V_FALSE;
+
+CIC_STATIC CIC_T_INT task_thread_count;
+CIC_STATIC CIC_T_BARRIER task_barrier; 
+CIC_VOLATILE CIC_T_BOOL start_signal = CIC_V_FALSE;
+#endif
+##TASK_VARIABLE_DECLARATION_END
+
+##TASK_ROUTINE_START
+CIC_STATIC CIC_T_VOID CheckGraphEndFromTaskId(CIC_T_INT parent_task_id, CIC_T_BOOL is_parent_virtual){
+  CIC_T_INT i;
+  CIC_T_INT parent_task_index = -1; // GetTaskIndexForId(parent_task_id);
+  CIC_T_INT task_count = 0, complete_count = 0;
+
+  if(is_parent_virtual == CIC_V_TRUE){
+    parent_task_index = GetVirtualTaskIndexFromTaskId(parent_task_id);
+
+    for(i=0; i<CIC_UV_NUM_TASKS; i++){
+      if(tasks[i].parent_task_id == parent_task_id){
+        task_count++;
+        if(tasks[parent_task_index].state == STATE_END && 
+            tasks[parent_task_index].run_count <= (CIC_T_INT)(tasks[i].run_count/tasks[i].run_rate)){
+          complete_count++;
+        }
+      }
+    }
+  }
+  else{
+    parent_task_index = GetTaskIndexFromTaskId(parent_task_id);
+
+    for(i=0; i<CIC_UV_NUM_TASKS; i++){
+      if(tasks[i].parent_task_id == parent_task_id && i != parent_task_index){
+        task_count++;
+        if(tasks[parent_task_index].state == STATE_END && 
+            tasks[parent_task_index].run_count <= (CIC_T_INT)(tasks[i].run_count/tasks[i].run_rate)){
+          complete_count++;
+        }
+      }
+    }
+  }
+
+  CIC_F_MUTEX_LOCK(&global_mutex);
+  if(task_count == complete_count){
+    if(is_parent_virtual == CIC_V_TRUE && virtual_tasks[parent_task_index].state != STATE_STOP){
+      for(i=0; i<CIC_UV_NUM_TASKS; i++){
+        if(parent_task_id == tasks[i].parent_task_id && tasks[i].has_subgraph == CIC_V_FALSE){
+          if(tasks[i].thread != 0)   CIC_F_THREAD_CANCEL(&tasks[i].thread);
+          tasks[i].state = STATE_STOP;
+        }
+      }
+      WrapupTaskChannels(parent_task_id);
+
+      virtual_tasks[parent_task_index].state = STATE_STOP;
+      CIC_F_COND_BROADCAST(&global_cond);   
+
+      CIC_F_PRINTF("End graph %s (task_id: %d)\n", tasks[parent_task_index].name, tasks[parent_task_index].task_id);
+
+    }
+    else if(is_parent_virtual == CIC_V_FALSE && tasks[parent_task_index].state != STATE_STOP){
+      for(i=0; i<CIC_UV_NUM_TASKS; i++){
+        if(parent_task_id == tasks[i].parent_task_id && tasks[i].has_subgraph == CIC_V_FALSE){
+          if(tasks[i].thread != 0)   CIC_F_THREAD_CANCEL(&tasks[i].thread);
+          tasks[i].state = STATE_STOP;
+        }
+      }
+      WrapupTaskChannels(parent_task_id);
+
+      tasks[parent_task_index].state = STATE_STOP;
+      CIC_F_COND_BROADCAST(&global_cond);   
+
+      CIC_F_PRINTF("End graph %s (task_id: %d)\n", tasks[parent_task_index].name, tasks[parent_task_index].task_id);
+
+    }
+  }
+  CIC_F_MUTEX_UNLOCK(&global_mutex);
+
+}
+
+CIC_UT_THREAD_FUNC_RET_TYPE TaskRoutine(CIC_UT_THREAD_FUNC_ARG_TYPE pdata)
+{
+  CIC_T_INT task_id = *((CIC_T_INT*)&pdata);
+  CIC_T_INT task_index = GetTaskIndexFromTaskId(task_id);
+
+  CIC_T_INT parent_task_id = tasks[task_index].parent_task_id;
+  CIC_T_BOOL is_second_level_sadf = CIC_V_FALSE;
+
+  CIC_T_INT mtm_index = -1, iter_count = -1, repeat_count = -1, loop_count = -1, run_count = -1;
+  CIC_T_INT i=0, j=0;
+
+  CIC_T_INT proc_id=0;
+  CIC_T_CHAR *mode_name = CIC_V_NULL;
+
+  CIC_T_UINT period = tasks[task_index].period;
+  CIC_T_UINT current, end;
+  CIC_T_BOOL is_end = CIC_V_FALSE;
+
+  CIC_T_INT parent_task_index = -1;
+  CIC_T_INT parent_virtual_task_index = -1;
+
+  if(tasks[task_index].is_parent_virtual == CIC_V_TRUE)
+  {
+    parent_virtual_task_index = GetVirtualTaskIndexFromTaskId(tasks[task_index].parent_task_id);
+  }
+  else
+  {
+    parent_task_index = GetTaskIndexFromTaskId(tasks[task_index].parent_task_id);
+  }
+
+  if(*tasks[task_index].PreInit != CIC_V_NULL) TASK_PREINIT;
+  TASK_INIT;
+
+  if(tasks[task_index].task_type == CONTROL){   // CIC Control Task
+    CIC_F_BARRIER_WAIT(&control_task_barrier);  // When TASK_INIT functions of control tasks are called,
+  }
+  
+  if(tasks[task_index].is_child_task == CIC_V_TRUE && tasks[task_index].is_parent_virtual == CIC_V_FALSE && 
+      tasks[parent_task_index].has_mtm == CIC_V_TRUE){   // bottom-level task
+    mtm_index = GetMTMIndexFromTaskId(parent_task_id);
+
+    if(mtms[mtm_index].is_sdf){
+      is_second_level_sadf = CIC_V_FALSE;
+    }
+    else{
+      is_second_level_sadf = CIC_V_TRUE;
+    }
+  }
+  else if(tasks[task_index].is_child_task == CIC_V_TRUE && tasks[task_index].is_parent_virtual == CIC_V_TRUE && 
+      virtual_tasks[parent_virtual_task_index].has_mtm == CIC_V_TRUE){   // bottom-level task
+    mtm_index = GetMTMIndexFromTaskId(parent_task_id);
+
+    if(mtms[mtm_index].is_sdf){
+      is_second_level_sadf = CIC_V_FALSE;
+    }
+    else{
+      is_second_level_sadf = CIC_V_TRUE;
+    }
+  }
+ 
+  if(tasks[task_index].is_child_task == CIC_V_TRUE && tasks[task_index].is_parent_virtual == CIC_V_FALSE &&
+      tasks[parent_task_index].has_mtm == CIC_V_TRUE){
+    mode_name = mtms[mtm_index].GetCurrentModeName(tasks[task_index].name);
+  }
+  else if(tasks[task_index].is_child_task == CIC_V_TRUE && tasks[task_index].is_parent_virtual == CIC_V_TRUE &&
+      virtual_tasks[parent_virtual_task_index].has_mtm == CIC_V_TRUE){
+    mode_name = mtms[mtm_index].GetCurrentModeName(tasks[task_index].name);
+  } 
+  else{
+    //no.... here.... 
+    mode_name = "Default";
+  }
+
+##SET_PROC
+
+  //to run 1st task per processor in schedules
+  tasks[task_index].state = STATE_WAIT;
+  CIC_T_INT schedule_index = GetScheduleIndexFromProcessorId(proc_id);
+  if(schedules[schedule_index].task_execution_order[0] == task_id)
+  {
+    tasks[task_index].state = STATE_RUN;
+  }
+
+  if(tasks[task_index].p_metric == S)             period = period * 1000;
+  else if(tasks[task_index].p_metric == MS)       period = period * 1000;
+  else if(tasks[task_index].p_metric == US)       period = period;
+
+  CIC_F_BARRIER_WAIT(&task_barrier);
+  while(CIC_V_TRUE){
+    if(start_signal == CIC_V_TRUE)
+      break;
+  }
+
+  while(CIC_V_TRUE) {
+    CIC_F_MUTEX_LOCK(&(tasks[task_index].mutex));
+    if(tasks[task_index].state == STATE_WAIT){
+      CIC_F_COND_WAIT(&(tasks[task_index].cond), &(tasks[task_index].mutex));
+    }
+    CIC_F_MUTEX_UNLOCK(&(tasks[task_index].mutex));
+
+    if(exit_signal)    break;
+
+    if(is_second_level_sadf && !tasks[task_index].is_src_task){
+      mtms[mtm_index].UpdateCurrentMode(tasks[task_index].name);
+    }
+
+    if(is_second_level_sadf){
+      mode_name = mtms[mtm_index].GetCurrentModeName(tasks[task_index].name);
+      iter_count = mtms[mtm_index].GetTaskIterCount(tasks[task_index].name);
+
+##SET_PROC
+
+    }
+    else{
+      iter_count = 1;
+    }
+
+    run_count = 0;  
+    while(CIC_V_TRUE){
+      if(is_second_level_sadf && !tasks[task_index].is_src_task){
+        repeat_count = mtms[mtm_index].GetTaskRepeatCount(tasks[task_index].name, run_count);
+        if(repeat_count == -1){
+          loop_count = 1;
+          run_count++;
+        }
+        else{
+          if(run_count >= repeat_count) break;
+          else  loop_count = repeat_count - run_count;
+        }
+      }
+      else{
+        repeat_count = 1;
+        loop_count = 1;
+      }
+
+      for(i=0; i<loop_count; i++){
+        for(j=0; j<iter_count; j++){
+          /*
+           *    if(tasks[task_index].driven_type == TIME_DRIVEN){
+           *         end = GetCurrentTimeBase();
+           *         end += period;
+           *   }
+           */
+
+          if(*tasks[task_index].PreGo != CIC_V_NULL) TASK_PREGO;
+          TASK_GO;
+          if(*tasks[task_index].PostGo != CIC_V_NULL) TASK_POSTGO;
+
+          /*
+           *   if(tasks[task_index].driven_type == TIME_DRIVEN){
+           *        while(CIC_V_TRUE){
+           *            current = GetCurrentTimeBase();
+           *            if(current >= end)                 break;
+           *            else if(abs(current-end) >= period)      break;
+           *            else                             CIC_F_USLEEP(1000);
+           *        }
+           *   }
+           */
+        }
+        tasks[task_index].run_count += 1;
+        
+        //need to check.... 
+         tasks[task_index].state = STATE_WAIT;
+
+    	schedules[schedule_index].execution_index++;
+    	if(schedules[schedule_index].execution_index >= schedules[schedule_index].max_schedule_length)
+      		schedules[schedule_index].execution_index = 0;
+    	CIC_T_INT sched_exec_index = schedules[schedule_index].execution_index;
+    	CIC_T_INT next_task_id = schedules[schedule_index].task_execution_order[sched_exec_index];
+    	CIC_T_INT next_task_index = GetTaskIndexFromTaskId(next_task_id);
+
+    	CIC_F_MUTEX_LOCK(&(tasks[next_task_index].mutex));
+        if(tasks[next_task_index].state != STATE_STOP)
+        {
+          tasks[next_task_index].state = STATE_RUN;
+          CIC_F_COND_BROADCAST(&(tasks[next_task_index].cond));
+        }
+        CIC_F_MUTEX_UNLOCK(&(tasks[next_task_index].mutex));
+      }
+
+      if(is_second_level_sadf && tasks[task_index].is_src_task){
+        CIC_T_BOOL ret = mtms[mtm_index].Transition();
+        if(ret) break;
+      }
+
+      if(tasks[task_index].is_parent_virtual == CIC_V_TRUE)
+      {
+        if(virtual_tasks[parent_virtual_task_index].state == STATE_END && 
+            virtual_tasks[parent_virtual_task_index].run_count <= (CIC_T_INT)(tasks[task_index].run_count/tasks[task_index].run_rate))
+        {
+          printf("---- task[%d] : run_count: %d\n", task_index, tasks[task_index].run_count);
+          printf("++++ vtask[%d] : run_count: %d\n", parent_virtual_task_index, virtual_tasks[parent_virtual_task_index].run_count);
+          fflush(stdout);
+          is_end = CIC_V_TRUE;
+          break;
+        }
+      }
+      else
+      {
+        if(tasks[parent_task_index].state == STATE_END && 
+            tasks[parent_task_index].run_count <= (CIC_T_INT)(tasks[task_index].run_count/tasks[task_index].run_rate))
+        {
+          is_end = CIC_V_TRUE;
+          break;
+        }
+      }
+
+      if(repeat_count != -1)  break;
+    }
+
+    if(is_end || exit_signal) break;  
+
+  }
+
+  printf("OH~ Good Bye ---------- %d\n", task_index);
+  TASK_WRAPUP;
+  if(*tasks[task_index].PostWrapup != CIC_V_NULL) TASK_POSTWRAPUP;
+  CIC_F_MUTEX_LOCK(&global_mutex);
+  tasks[task_index].state = STATE_STOP;
+  CIC_F_COND_BROADCAST(&global_cond);
+  CIC_F_MUTEX_UNLOCK(&global_mutex);
+
+  CheckGraphEndFromTaskId(parent_task_id, tasks[task_index].is_parent_virtual);
+
+  return CIC_V_NULL;
+}
+##TASK_ROUTINE_END
+
+##EXECUTE_TASKS_START
+CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
+{
+  CIC_T_INT i = 0; 
+
+  CIC_F_PRINT_STRING("\n------ Task thread create information ------\n");
+
+  // Call MTM initialize function
+  for(i=0; i<CIC_UV_NUM_MTMS; i++){
+    mtms[i].Initialize();
+  }
+
+  // Control barrier initialize
+  for(i=0; i<CIC_UV_NUM_TASKS; i++){
+    if(tasks[i].task_type == CONTROL){
+      control_thread_count++;
+    }
+  }
+  CIC_F_BARRIER_INIT(&control_task_barrier, control_thread_count+1);	// +1 is for itself
+
+  // Create threads for control tasks 
+  for(i=0; i<CIC_UV_NUM_TASKS; i++){
+    if(tasks[i].task_type == CONTROL){
+      CIC_F_PRINTF("%s task thread (Control) is created!\n", tasks[i].name);
+      CIC_F_THREAD_CREATE(&(tasks[i].thread), TaskRoutine, (CIC_T_VOID *)tasks[i].task_id);
+    }
+  }
+
+  // Wait until TASK_INIT functions of all control tasks are called
+  CIC_F_BARRIER_WAIT(&control_task_barrier);
+
+  // task-thread barrier initialize
+  for(i=0; i<CIC_UV_NUM_TASKS; i++){
+    if(tasks[i].task_type != CONTROL){
+      CIC_T_BOOL create_thread = CIC_V_FALSE;
+
+      if(!tasks[i].has_subgraph)
+      {
+        if(tasks[i].parent_task_id == i)
+          create_thread = CIC_V_TRUE;
+        else if(GetTaskIndexFromTaskId(tasks[i].parent_task_id) < CIC_UV_NUM_TASKS)
+        {
+          create_thread = CIC_V_TRUE;         
+        }		 
+      }
+
+      if(create_thread == CIC_V_TRUE && tasks[i].state == STATE_RUN){
+        task_thread_count++;
+      }
+    }
+  }
+  CIC_F_BARRIER_INIT(&task_barrier, task_thread_count+1);	// +1 is for itself
+
+
+  // Create threads for computational tasks
+  for(i=0; i<CIC_UV_NUM_TASKS; i++){
+    if(tasks[i].task_type != CONTROL){
+      CIC_T_BOOL create_thread = CIC_V_FALSE;
+
+    if(!tasks[i].has_subgraph)
+    {
+      if(tasks[i].parent_task_id == i)
+        create_thread = CIC_V_TRUE;
+      else if(GetTaskIndexFromTaskId(tasks[i].parent_task_id) < CIC_UV_NUM_TASKS)
+      {
+          create_thread = CIC_V_TRUE;         
+      }		 
+    }
+      
+/*    
+      CIC_T_BOOL create_thread = CIC_V_TRUE;
+
+      if(tasks[i].parent_task_id == i)
+      {
+        if(tasks[i].has_subgraph == CIC_V_TRUE && tasks[i].has_mtm == CIC_V_TRUE)
+          create_thread = CIC_V_FALSE;
+      }
+*/
+      if(create_thread == CIC_V_TRUE && tasks[i].state == STATE_RUN){
+        CIC_F_PRINTF("%s task thread is created!\n", tasks[i].name);
+        CIC_F_THREAD_CREATE(&(tasks[i].thread), TaskRoutine, (void *)tasks[i].task_id);
+      }
+    }
+  }
+  
+  // Wait until setting task's state to TASK_WAIT 
+  CIC_F_BARRIER_WAIT(&task_barrier);
+  start_signal = CIC_V_TRUE;
+  
+  CIC_F_PRINT_STRING("--------------------------------------------\n");
+
+  // Tasks are Running
+  while(CIC_V_TRUE){
+    CIC_T_BOOL end_flag = CIC_V_TRUE;
+    CIC_F_MUTEX_LOCK(&global_mutex);
+    CIC_F_COND_WAIT(&global_cond, &global_mutex);
+    for(i=0; i<CIC_UV_NUM_TASKS; i++){
+      if(tasks[i].is_child_task && tasks[i].state != STATE_STOP){
+        end_flag = CIC_V_FALSE;
+        break;
+      }
+      if(tasks[i].is_parent_virtual == CIC_V_FALSE &&
+          !tasks[i].is_child_task && tasks[i].state != STATE_STOP){
+        end_flag = CIC_V_FALSE;
+        break;
+      }
+    }
+    CIC_F_MUTEX_UNLOCK(&global_mutex);
+    if(end_flag)	break;
+  }
+
+  for(i=0; i<CIC_UV_NUM_TASKS; i++)
+    if(tasks[i].thread != CIC_V_NULL)	CIC_F_THREAD_CANCEL(tasks[i].thread);
+
+  return;
+}
+##EXECUTE_TASKS_END
+
+
+##CONTROL_RUN_TASK_START
+   CIC_T_INT i=0, j=0;
+    CIC_T_INT target_task_id = GetTaskIdFromTaskName(t_name);
+    CIC_T_INT target_task_index = GetTaskIndexFromTaskName(t_name);
+
+	InitTaskChannels(tasks[target_task_index].parent_task_id);
+	
+	tasks[target_task_index].run_count = 0;
+	
+	if(tasks[target_task_index].has_mtm){
+		CIC_T_INT mtm_index = GetMTMIndexFromTaskId(target_task_id);
+		mtms[mtm_index].Initialize();
+	}
+
+    for(i=0; i<CIC_UV_NUM_TASKS; i++){
+        if(target_task_id == tasks[i].parent_task_id && tasks[i].has_subgraph == CIC_V_FALSE){  
+            CIC_F_THREAD_CREATE(&(tasks[i].thread), TaskRoutine, (void *)tasks[i].task_id);
+            tasks[i].state = STATE_RUN;
+            tasks[i].run_count = 0;
+            CIC_F_PRINTF("Run task %s (task_id: %d)\n", tasks[i].name, tasks[i].task_id);
+        }
+    }   
+    
+    tasks[target_task_id].state = STATE_RUN;
+    
+    return;
+##CONTROL_RUN_TASK_END
+
+##CONTROL_STOP_TASK_START
+    CIC_T_INT i=0;
+    CIC_T_INT target_task_id = GetTaskIdFromTaskName(t_name);
+    CIC_T_INT target_task_index = GetTaskIndexFromTaskName(t_name);
+
+	for(i=0; i<CIC_UV_NUM_TASKS; i++){
+        if(target_task_id == tasks[i].parent_task_id && tasks[i].has_subgraph == CIC_V_FALSE){
+            if(tasks[i].thread != 0)   CIC_F_THREAD_CANCEL(&tasks[i].thread);
+            tasks[i].state = STATE_STOP;
+            CIC_F_PRINTF("Stop task %s (task_id: %d)\n", tasks[i].name, tasks[i].task_id);
+        }
+    }
+    
+    WrapupTaskChannels(target_task_id);
+    
+    CIC_F_MUTEX_LOCK(&global_mutex);
+    tasks[target_task_index].state = STATE_STOP;
+    CIC_F_COND_BRAODCAST(&global_cond);
+    CIC_F_MUTEX_UNLOCK(&global_mutex);
+    
+    return;
+##CONTROL_STOP_TASK_END
+
+##CONTROL_RESUME_TASK_START
+    CIC_T_INT i=0;
+    CIC_T_INT target_task_id = GetTaskIdFromTaskName(t_name);
+    CIC_T_INT target_task_index = GetTaskIndexFromTaskName(t_name);
+
+    for(i=0; i<CIC_UV_NUM_TASKS; i++){
+        if(target_task_id == tasks[i].parent_task_id && tasks[i].has_subgraph == CIC_V_FALSE){
+            if(tasks[i].state != STATE_STOP)	tasks[i].state = STATE_RUN;
+            CIC_F_COND_BROADCAST(&(tasks[i].cond));
+            CIC_F_PRINTF("Resume task %s(task_id: %d)\n", tasks[i].name, tasks[i].task_id);
+        }
+    }   
+    
+    if(tasks[target_task_index].state != STATE_STOP)	tasks[target_task_index].state = STATE_RUN;
+    
+    return;
+##CONTROL_RESUME_TASK_END
+
+##CONTROL_SUSPEND_TASK_START
+    CIC_T_INT i=0;
+    CIC_T_INT target_task_id = GetTaskIdFromTaskName(t_name);
+    CIC_T_INT target_task_index = GetTaskIndexFromTaskName(t_name);
+
+    for(i=0; i<CIC_UV_NUM_TASKS; i++){
+        if(target_task_id == tasks[i].parent_task_id && tasks[i].has_subgraph == CIC_V_FALSE){
+            if(tasks[i].state != STATE_STOP)	tasks[i].state = STATE_WAIT;
+            CIC_F_PRINTF("Suspend task %s(task_id: %d)\n", tasks[i].name, tasks[i].task_id);
+        }
+    }
+    
+    if(tasks[target_task_index].state != STATE_STOP)	tasks[target_task_index].state = STATE_WAIT;
+    
+    return;
+##CONTROL_SUSPEND_TASK_END
+
+##CONTROL_END_TASK_START
+  CIC_T_INT i=0, j=0;
+  CIC_T_INT caller_task_index = GetTaskIndexFromTaskName(caller_task_name);
+  CIC_T_INT parent_task_index = 0;
+  CIC_T_INT parent_virtual_task_index = 0; 
+
+  CIC_T_INT target_task_id = GetTaskIdFromTaskName(t_name);
+  CIC_T_INT target_task_index = GetTaskIndexFromTaskName(t_name);
+
+  for(i=0; i<CIC_UV_NUM_TASKS; i++)
+  {
+    if(target_task_id == tasks[i].task_id)
+    {
+      if(tasks[i].has_subgraph)
+      {     
+        tasks[target_task_index].state = STATE_END;
+        tasks[target_task_index].run_count = (CIC_T_INT)(tasks[caller_task_index].run_count/tasks[caller_task_index].run_rate);
+
+        (*tasks[caller_task_index].Wrapup)();
+
+        tasks[caller_task_index].state = STATE_STOP;
+      }
+      else{
+        if(tasks[target_task_index].task_id != tasks[target_task_index].parent_task_id)
+        {
+          if(tasks[target_task_index].is_parent_virtual == CIC_V_TRUE)
+          {
+            parent_virtual_task_index = GetVirtualTaskIndexFromTaskId(tasks[target_task_index].parent_task_id);
+            virtual_tasks[parent_virtual_task_index].state = STATE_END; 
+            virtual_tasks[parent_virtual_task_index].run_count = (CIC_T_INT)(tasks[target_task_index].run_count/tasks[target_task_index].run_rate);
+            printf("END CIC TASK: parent [%d] : run_count : %d\n", parent_virtual_task_index, virtual_tasks[parent_task_index].run_count);
+
+            (*tasks[target_task_index].Wrapup)();
+
+            tasks[target_task_index].state = STATE_STOP;
+          }
+          else
+          {
+            parent_task_index = GetTaskIndexFromTaskId(tasks[target_task_index].parent_task_id);
+
+            tasks[parent_task_index].state = STATE_END;
+            tasks[parent_task_index].run_count = (CIC_T_INT)(tasks[target_task_index].run_count/tasks[target_task_index].run_rate);
+
+            (*tasks[target_task_index].Wrapup)();
+
+            tasks[target_task_index].state = STATE_STOP;
+            }
+          }
+
+        }
+        break;
+      }
+
+    }
+
+  CIC_F_PRINTF("End task %s (task_id: %d)\n", tasks[target_task_index].name, tasks[target_task_index].task_id);
+  
+  printf("OH~ Good Bye ---------- %d: run_count %d\n", caller_task_index, tasks[caller_task_index].run_count);
+  CIC_F_THREAD_EXIT();
+
+  return;
+##CONTROL_END_TASK_END
+

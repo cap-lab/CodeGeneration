@@ -2,7 +2,7 @@
 #define __CIC_COMM_APIS_H__
 
 CIC_EXTERN CIC_T_INT InitTaskPort(CIC_T_INT task_id, CIC_CONST CIC_T_CHAR* port_name);
-CIC_EXTERN CIC_T_INT GetChannelIndex(CIC_T_INT channel_id);
+CIC_EXTERN CIC_T_INT GetChannelIndexFromChannelId(CIC_T_INT channel_id);
 CIC_EXTERN CIC_T_INT ReadPort(CIC_T_INT channel_id, CIC_UT_BUFFER_DATA_TYPE buf, CIC_T_INT len);
 CIC_EXTERN CIC_T_INT WritePort(CIC_T_INT channel_id, CIC_UT_BUFFER_DATA_TYPE buf, CIC_T_INT len);
 CIC_EXTERN CIC_T_INT Available(CIC_T_INT channel_id);

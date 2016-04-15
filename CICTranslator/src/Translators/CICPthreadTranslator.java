@@ -43,6 +43,7 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 	private String mGlobalPeriodMetric;
 	private String mThreadVer;
 	private String mRuntimeExecutionPolicy;
+	private String mCodeGenerationStyle;
 	private String mLanguage;
 
 	private Map<String, Task> mTask;
@@ -68,7 +69,7 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 			String globalPeriodMetric, String cicxmlfile, String language, CICAlgorithmType algorithm,
 			CICControlType control, CICScheduleType schedule, CICGPUSetupType gpusetup, CICMappingType mapping,
 			Map<Integer, List<Task>> connectedtaskgraph, Map<Integer, List<List<Task>>> connectedsdftaskset,
-			Map<String, Task> vtask, Map<String, Task> pvtask, String runtimeExecutionPolicy)
+			Map<String, Task> vtask, Map<String, Task> pvtask, String runtimeExecutionPolicy, String codeGenerationStyle)
 					throws FileNotFoundException {
 		mTarget = target;
 		mTranslatorPath = translatorPath;
@@ -77,8 +78,9 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 		mCICXMLFile = cicxmlfile;
 		mGlobalPeriod = globalPeriod;
 		mGlobalPeriodMetric = globalPeriodMetric;
-		mThreadVer = "m";
+		mThreadVer = "Multi";
 		mRuntimeExecutionPolicy = runtimeExecutionPolicy;
+		mCodeGenerationStyle = codeGenerationStyle;
 		mLanguage = language;
 
 		mTask = task;
@@ -134,7 +136,7 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 			if (t.getHasMTM().equalsIgnoreCase("Yes")) {
 				templateFile = mTranslatorPath + "templates/common/mtm_template/thread_per_processor.template";
 				CommonLibraries.CIC.generateMTMFile(mOutputPath, templateFile, t, mAlgorithm, mTask, mPVTask, mQueue,
-						mRuntimeExecutionPolicy);
+						mRuntimeExecutionPolicy, mCodeGenerationStyle);
 			}
 		}
 
@@ -203,7 +205,7 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 		// EXTERN_TASK_FUNCTION_DECLARATION, TASK_ENTRIES,
 		// EXTERN_MTM_FUNCTION_DECLARATION, MTM_ENTRIES //
 		code = CommonLibraries.CIC.translateTaskDataStructure(code, mTask, mGlobalPeriod, mGlobalPeriodMetric,
-				mThreadVer, "Single", mVTask, mPVTask);
+				"Single", ""/*mCodeGenerationStyle*/, mVTask, mPVTask);
 
 		// CHANNEL_ENTRIES //
 		code = CommonLibraries.CIC.translateChannelDataStructure(code, mQueue, mThreadVer);
@@ -220,7 +222,7 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 		code = CommonLibraries.CIC.translateControlDataStructure(code, mTask, mControl);
 
 		if (mThreadVer.equals("Single"))
-			templateFile = mTranslatorPath + "templates/common/task_execution/single_thread_hybrid.template";
+			templateFile = mTranslatorPath + "templates/common/task_execution/single_thread_hybrid.template.not_used";
 		else
 			templateFile = mTranslatorPath
 					+ "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
@@ -282,7 +284,7 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 			//////////////////////////
 
 			if (mThreadVer.equals("Single"))
-				templateFile = mTranslatorPath + "templates/common/task_execution/single_thread_hybrid.template";
+				templateFile = mTranslatorPath + "templates/common/task_execution/single_thread_hybrid.template.not_used";
 			else
 				templateFile = mTranslatorPath
 						+ "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
@@ -382,7 +384,7 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 		///////////////////
 
 		if (mThreadVer.equals("Single"))
-			templateFile = mTranslatorPath + "templates/common/task_execution/single_thread_hybrid.template";
+			templateFile = mTranslatorPath + "templates/common/task_execution/single_thread_hybrid.template.not_used";
 		else
 			templateFile = mTranslatorPath
 					+ "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
@@ -655,7 +657,7 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 			CICAlgorithmType mAlgorithm, CICControlType mControl, CICScheduleType mSchedule, CICGPUSetupType mGpusetup,
 			CICMappingType mMapping, Map<Integer, List<Task>> mConnectedTaskGraph,
 			Map<Integer, List<List<Task>>> mConnectedSDFTaskSet, Map<String, Task> mVTask, Map<String, Task> mPVTask,
-			String mRuntimeExecutionPolicy) throws FileNotFoundException {
+			String mRuntimeExecutionPolicy, String codeGenerationStyle) throws FileNotFoundException {
 		// TODO Auto-generated method stub
 		return 0;
 	}

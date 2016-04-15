@@ -65,6 +65,7 @@ CIC_TYPEDEF CIC_T_STRUCT {
 	CIC_T_BOOL is_src_task;
     CIC_T_BOOL is_child_task;
     CIC_T_INT parent_task_id;
+    CIC_T_BOOL is_parent_virtual;
 
     CIC_T_MUTEX mutex;
     CIC_T_COND cond;

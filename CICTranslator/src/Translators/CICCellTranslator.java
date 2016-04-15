@@ -20,6 +20,7 @@ public class CICCellTranslator implements CICTargetCodeTranslator {
 	private String mGlobalPeriodMetric;
 	private String mThreadVer;
 	private String mRuntimeExecutionPolicy;
+	private String mCodeGenerationStyle;
 	private String mLanguage;
 
 	private Map<String, Task> mTask;
@@ -66,7 +67,7 @@ public class CICCellTranslator implements CICTargetCodeTranslator {
 			String globalPeriodMetric, String cicxmlfile, String language, CICAlgorithmType algorithm,
 			CICControlType control, CICScheduleType schedule, CICGPUSetupType gpusetup, CICMappingType mapping,
 			Map<Integer, List<Task>> connectedtaskgraph, Map<Integer, List<List<Task>>> connectedsdftaskset,
-			Map<String, Task> vtask, Map<String, Task> pvtask, String runtimeExecutionPolicy)
+			Map<String, Task> vtask, Map<String, Task> pvtask, String runtimeExecutionPolicy, String codeGenerationStyle)
 					throws FileNotFoundException {
 		mTarget = target;
 		mTranslatorPath = translatorPath;
@@ -75,8 +76,9 @@ public class CICCellTranslator implements CICTargetCodeTranslator {
 		mCICXMLFile = cicxmlfile;
 		mGlobalPeriod = globalPeriod;
 		mGlobalPeriodMetric = globalPeriodMetric;
-		mThreadVer = "m";
+		mThreadVer = "Multi";
 		mRuntimeExecutionPolicy = runtimeExecutionPolicy;
+		mCodeGenerationStyle = codeGenerationStyle;
 		mLanguage = language;
 
 		mTask = task;
@@ -121,7 +123,7 @@ public class CICCellTranslator implements CICTargetCodeTranslator {
 		fileOut = mOutputPath + "cic_tasks.h";
 		templateFile = mTranslatorPath + "templates/common/cic/cic_tasks.h.template";
 		CommonLibraries.CIC.generateTaskDataStructure(fileOut, templateFile, mTask, mGlobalPeriod, mGlobalPeriodMetric,
-				mThreadVer, mRuntimeExecutionPolicy, mVTask, mPVTask);
+				mRuntimeExecutionPolicy, mCodeGenerationStyle, mVTask, mPVTask);
 
 		// generate cic_channels.h
 		fileOut = mOutputPath + "cic_channels.h";
@@ -1920,7 +1922,7 @@ public class CICCellTranslator implements CICTargetCodeTranslator {
 			CICAlgorithmType mAlgorithm, CICControlType mControl, CICScheduleType mSchedule, CICGPUSetupType mGpusetup,
 			CICMappingType mMapping, Map<Integer, List<Task>> mConnectedTaskGraph,
 			Map<Integer, List<List<Task>>> mConnectedSDFTaskSet, Map<String, Task> mVTask, Map<String, Task> mPVtask,
-			String mRuntimeExecutionPolicy) throws FileNotFoundException {
+			String mRuntimeExecutionPolicy, String codeGenerationStyle) throws FileNotFoundException {
 		// TODO Auto-generated method stub
 		return 0;
 	}

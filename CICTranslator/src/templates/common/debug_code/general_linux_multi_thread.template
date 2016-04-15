@@ -94,7 +94,7 @@ CIC_T_VOID UpdateBreak(){
         for(i=0; i<CIC_UV_NUM_PORTMAPS; i++){
             if(addressmap[i].task_id == dst_id && CIC_F_STRING_COMPARE(addressmap[i].port_name, dst_port) == 0){
                 break_ch_id = addressmap[i].channel_id;
-                CIC_T_INT break_channel_index = GetChannelIndex(break_ch_id);
+                CIC_T_INT break_channel_index = GetChannelIndexFromChannelId(break_ch_id);
                 channels[break_channel_index].is_break = CIC_V_TRUE;
                 break;
             }
@@ -136,7 +136,7 @@ CIC_T_VOID UpdateWatch(){
         for(i=0; i<CIC_UV_NUM_PORTMAPS; i++){
             if(addressmap[i].task_id == dst_id && CIC_F_STRING_COMPARE(addressmap[i].port_name, dst_port) == 0){
                 watch_ch_id = addressmap[i].channel_id;
-                CIC_T_INT watch_channel_index = GetChannelIndex(watch_ch_id);
+                CIC_T_INT watch_channel_index = GetChannelIndexFromChannelId(watch_ch_id);
                 channels[watch_channel_index].is_watch = CIC_V_TRUE;
                 break;
             }
@@ -284,7 +284,7 @@ CIC_T_VOID DumpWatchChannelData(CIC_T_INT channel_id){
 	CIC_T_INT i=0;
 	CIC_T_UCHAR *src_task_name, *src_port_name, *dst_task_name, *dst_port_name;
 	CIC_T_UCHAR file_name[255] = "watch_";
-    CIC_T_INT channel_index = GetChannelIndex(channel_id);
+    CIC_T_INT channel_index = GetChannelIndexFromChannelId(channel_id);
 	
     for(i=0; i<CIC_UV_NUM_PORTMAPS; i++){
     	if(addressmap[i].channel_id == channel_id){
@@ -322,7 +322,7 @@ CIC_T_VOID DumpWatchChannelData(CIC_T_INT channel_id){
 CIC_T_VOID DumpBreakChannelData(CIC_T_INT channel_id){
 	CIC_T_INT i=0;
 	CIC_T_UCHAR *src_task_name, *src_port_name, *dst_task_name, *dst_port_name;
-    CIC_T_INT channel_index = GetChannelIndex(channel_id);
+    CIC_T_INT channel_index = GetChannelIndexFromChannelId(channel_id);
 	
     FILE *fd = fopen("break_channel.dump", "wb");
     fprintf(fd, "*. Channel info\n");

@@ -35,6 +35,7 @@ public class CICHSimUcosTranslator implements CICTargetCodeTranslator {
 	private String mGlobalPeriodMetric;
 	private String mThreadVer;
 	private String mRuntimeExecutionPolicy;
+	private String mCodeGenerationStyle;
 	private String mLanguage;
 
 	private Map<String, Task> mTask;
@@ -64,7 +65,7 @@ public class CICHSimUcosTranslator implements CICTargetCodeTranslator {
 			String globalPeriodMetric, String cicxmlfile, String language, CICAlgorithmType algorithm,
 			CICControlType control, CICScheduleType schedule, CICGPUSetupType gpusetup, CICMappingType mapping,
 			Map<Integer, List<Task>> connectedtaskgraph, Map<Integer, List<List<Task>>> connectedsdftaskset,
-			Map<String, Task> vtask, Map<String, Task> pvtask, String runtimeExecutionPolicy)
+			Map<String, Task> vtask, Map<String, Task> pvtask, String runtimeExecutionPolicy, String codeGenerationStyle)
 					throws FileNotFoundException {
 		mTarget = target;
 		mTranslatorPath = translatorPath;
@@ -73,8 +74,9 @@ public class CICHSimUcosTranslator implements CICTargetCodeTranslator {
 		mCICXMLFile = cicxmlfile;
 		mGlobalPeriod = globalPeriod;
 		mGlobalPeriodMetric = globalPeriodMetric;
-		mThreadVer = "m";
+		mThreadVer = "Multi";	//need to check
 		mRuntimeExecutionPolicy = runtimeExecutionPolicy;
+		mCodeGenerationStyle = codeGenerationStyle;
 		mLanguage = language;
 
 		mTask = task;
@@ -131,7 +133,7 @@ public class CICHSimUcosTranslator implements CICTargetCodeTranslator {
 		fileOut = mOutputPath + "task_def.h";
 		templateFile = mTranslatorPath + "templates/common/common_template/task_def.h.template";
 		CommonLibraries.CIC.generateTaskDataStructure(fileOut, templateFile, mTask, mGlobalPeriod, mGlobalPeriodMetric,
-				mThreadVer, mRuntimeExecutionPolicy, mVTask, mPVTask);
+				mRuntimeExecutionPolicy, mCodeGenerationStyle, mVTask, mPVTask);
 
 		// Need to copy cic_channels.h & generate channel_def.h
 
@@ -162,7 +164,7 @@ public class CICHSimUcosTranslator implements CICTargetCodeTranslator {
 			if (t.getHasMTM().equalsIgnoreCase("Yes")) {
 				templateFile = mTranslatorPath + "templates/common/common_template/task_code_template.mtm";
 				CommonLibraries.CIC.generateMTMFile(mOutputPath, templateFile, t, mAlgorithm, mTask, mPVTask, mQueue,
-						"Single");
+						"Single", null);
 			}
 		}
 
@@ -962,7 +964,7 @@ public class CICHSimUcosTranslator implements CICTargetCodeTranslator {
 			CICAlgorithmType mAlgorithm, CICControlType mControl, CICScheduleType mSchedule, CICGPUSetupType mGpusetup,
 			CICMappingType mMapping, Map<Integer, List<Task>> mConnectedTaskGraph,
 			Map<Integer, List<List<Task>>> mConnectedSDFTaskSet, Map<String, Task> mVTask, Map<String, Task> mPVTask,
-			String mRuntimeExecutionPolicy) throws FileNotFoundException {
+			String mRuntimeExecutionPolicy, String codeGenerationStyle) throws FileNotFoundException {
 		// TODO Auto-generated method stub
 		return 0;
 	}

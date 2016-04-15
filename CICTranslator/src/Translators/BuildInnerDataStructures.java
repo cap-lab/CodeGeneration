@@ -340,12 +340,12 @@ public class BuildInnerDataStructures {
 		return mNewTask;
 	}
 	
-	
-	public Map<String, Task> modifyTaskStructure(Map<String, Task> mTask, Map<Integer, Queue> mQueue, Map<Integer, List<Task>> mConnectedTaskGraph, Map<Integer, List<List<Task>>> mConnectedSDFTaskSet, String TaskGraphProperty, int mGlobalPeriod, String mGlobalPeriodMetric){
+	// hs: need to check!!
+	// 함수를 쪼개는게 좋아보임 -> virtualTask 추가해주는 부분 + task 구조 바꿔주는 부분하고 
+	public Map<String, Task> modifyTaskStructure(Map<String, Task> mTask, Map<Integer, Queue> mQueue, Map<Integer, List<List<Task>>> mConnectedSDFTaskSet, String TaskGraphProperty, int mGlobalPeriod, String mGlobalPeriodMetric){
 		Map<String, Task> mNewTask = new HashMap<String, Task>();
 		
-		int index=mTask.size();
-		Task task_result = null;
+		int index = mTask.size();
 
 		// Make virtual tasks for sdf graphs in a top-level task graph
 		for(List<List<Task>> taskList: mConnectedSDFTaskSet.values()){
@@ -406,7 +406,7 @@ public class BuildInnerDataStructures {
 			}
 		}
 
-
+		//기존 태스크들의 부모 태스크를 virtual task로 바꿔주는 과정
 		index = mTask.size();
 		for(List<List<Task>> taskListOut: mConnectedSDFTaskSet.values()){
 			for(int i=0; i<taskListOut.size(); i++){
@@ -422,6 +422,32 @@ public class BuildInnerDataStructures {
 				index = index + 1;
 			}
 		}
+		
+		//SDF 일때에만  runRate 반영		
+		Task parentTask = null;
+		String mode = null;
+		for(Task t: mTask.values()){
+			if(t.getHasMTM().equalsIgnoreCase("Yes")){ // 이를 위해 부모 태스크 먼저 찾음 
+				if(t.getMTM() != null && t.getMTM().getModes().size() == 1){ //SDF 일때에만  = mode 는 1개뿐
+					parentTask = t; 
+					mode = t.getMTM().getModes().get(0);
+					
+					Map<String, Integer> tr = CommonLibraries.Schedule.generateIterationCount(parentTask, mode, mTask, mQueue);
+					for(Task i_t: mTask.values())
+					{
+						if(!i_t.getParentTask().equals(i_t.getName())){
+							int rate = 0;
+							if(tr.get(i_t.getName()) != null)
+								rate = tr.get(i_t.getName());
+							i_t.setRunRate(rate); 
+//							System.out.println(i_t.getName() + ": runrate: " + rate);
+						}
+						
+					}
+				}			
+			}
+		}
+		
 		
 		return mNewTask;
 	}
@@ -613,7 +639,8 @@ public class BuildInnerDataStructures {
 			List<VectorType> dependencyList = new ArrayList();
 			List<Integer> feedbackList = new ArrayList();
 			
-			// 현재는 Wavefront parallelism을 사용하는 경우가 없다. 예전에 Cell이나 HSim에서 Static하게 스케줄할 때 사용되었는데, 지금은 Array channel을 통해 dynamic하게 하므로 사용되지 않고 있다.
+			// 현재는 Wavefront parallelism을 사용하는 경우가 없다. 
+			// 예전에 Cell이나 HSim에서 Static하게 스케줄할 때 사용되었는데, 지금은 Array channel을 통해 dynamic하게 하므로 사용되지 않고 있다.
 			if(dataParallelType == "WAVEFRONT"){
 				if(!dataParallel.getVolume().getValue().isEmpty()){
 					width = dataParallel.getVolume().getValue().get(0).intValue();
@@ -755,9 +782,11 @@ public class BuildInnerDataStructures {
 			}
 			// RunRate
 			int runRate = 0;
-			if(mtask.getRunRate() != null)	runRate = mtask.getRunRate().intValue();
-			else							runRate = 1;
-			tasks.get(mtask.getName()).setRunRate(runRate);
+			if(mtask.getRunRate() != null)	{
+				runRate = mtask.getRunRate().intValue();
+			}
+			else							runRate = 1;	//현재 xml 에서는 runrate를 심어주지 않아서 1로 저장됨 
+			tasks.get(mtask.getName()).setRunRate(runRate);			
 		}
 		
 		return tasks;
@@ -951,6 +980,7 @@ public class BuildInnerDataStructures {
 			for(ChannelType channel: mAlgorithm.getChannels().getChannel()){
 				int flag=0;
 				int srcPortId=0, dstPortId=0;
+				int srcRate=1, dstRate=1;
 				String srcPortName = null, dstPortName = null;
 				String src = null, dst = null;
 				
@@ -979,6 +1009,7 @@ public class BuildInnerDataStructures {
 								src = channel.getSrc().get(0).getTask();
 								srcPortId = t_index;
 								srcPortName = port.getName();
+								srcRate = port.getRate().get(0).getRate().intValue(); //현재는 sdf만 지원하기 때문 
 								//sampleSize = port.getSampleSize().intValue();
 								flag=1;
 								break;
@@ -1000,6 +1031,7 @@ public class BuildInnerDataStructures {
 								dst = channel.getDst().get(0).getTask();
 								dstPortId = t_index;
 								dstPortName = port.getName();
+								dstRate = port.getRate().get(0).getRate().intValue(); //현재는 sdf만 지원하기 때문 
 								flag=1;
 								break;
 							}
@@ -1010,7 +1042,7 @@ public class BuildInnerDataStructures {
 				}
 				
 				flag=0;
-				Queue queue_result = new Queue(index, src, srcPortId, srcPortName, dst, dstPortId, dstPortName, size, initData, sampleSize, type, channel.getType(), sampleType); 
+				Queue queue_result = new Queue(index, src, srcPortId, srcPortName, srcRate, dst, dstPortId, dstPortName, dstRate, size, initData, sampleSize, type, channel.getType(), sampleType); 
 				queues.put(index, queue_result);
 				index++;
 			}
@@ -1033,43 +1065,60 @@ public class BuildInnerDataStructures {
 	
 /////////////////////////////////////////////////////// Etc. Generation ///////////////////////////////////////////////////////
 
-	public void fillExecutionTimeInfo(CICProfileType mProfile, Map<Integer, Processor> processors, Map<String, Task> tasks){
-	// Need to Fix (2013-10-23, profile->mode.profile)
+	public void fillExecutionTimeInfo(CICProfileType mProfile, Map<String, Task> tasks){
 		for(Task task: tasks.values()){	
 			if(task.getHasSubgraph().equalsIgnoreCase("No")){
-				Map<String, Map<Integer, Integer>> taskprofilevalinfo = new HashMap<String, Map<Integer, Integer>>();
-				Map<String, Map<Integer, String>> taskprofileunitinfo = new HashMap<String, Map<Integer, String>>();
-				String unit = "";
-
+				Map<String, Integer> taskprofilevalinfo = new HashMap<String, Integer>();
+				Map<String, String > taskprofileunitinfo = new HashMap<String, String>();
+				
 				for(ProfileTaskType profiledTask: mProfile.getTask()){
 					String taskname = profiledTask.getName();
 					if(taskname.equals(task.getName())){
 						for(ProfileTaskModeType profilemode: profiledTask.getMode()){
-							Map<Integer, Integer> procExec = new HashMap<Integer, Integer>();
-							Map<Integer, String> procMetric = new HashMap<Integer, String>();
 							for(ProfileType profileProcessor: profilemode.getProfile()){
-								int procId = 0;
-								for(Processor proc: processors.values()){
-									if(proc.getProcType().equals(profileProcessor.getProcessorType())){
-										procId = proc.getIndex();
-										break;
-									}
-								}
-								procExec.put(procId, profileProcessor.getValue().intValue());
-								procMetric.put(procId, profileProcessor.getUnit());
+								//getProfile 에는 1개씩만 있다고 가정
+								taskprofilevalinfo.put(profilemode.getName(), profileProcessor.getValue().intValue());
+								taskprofileunitinfo.put(profilemode.getName(), profileProcessor.getUnit());
 							}
-							taskprofilevalinfo.put(profilemode.getName(), procExec);
-							taskprofileunitinfo.put(profilemode.getName(), procMetric);
 						}
 						tasks.get(task.getName()).setExecutionTimeValue(taskprofilevalinfo);
 						tasks.get(task.getName()).setExecutionTimeMetric(taskprofileunitinfo);
 						break;
 					}
-					else	continue;
 				}
+				
+//				Map<String, Map<Integer, Integer>> taskprofilevalinfo = new HashMap<String, Map<Integer, Integer>>();
+//				Map<String, Map<Integer, String>> taskprofileunitinfo = new HashMap<String, Map<Integer, String>>();				
+//				for(ProfileTaskType profiledTask: mProfile.getTask()){
+//					String taskname = profiledTask.getName();
+//					if(taskname.equals(task.getName())){
+//						for(ProfileTaskModeType profilemode: profiledTask.getMode()){
+//							Map<Integer, Integer> procExec = new HashMap<Integer, Integer>();
+//							Map<Integer, String> procMetric = new HashMap<Integer, String>();
+//							for(ProfileType profileProcessor: profilemode.getProfile()){
+//								int procId = 0;
+//								for(Processor proc: processors.values()){
+//									if(proc.getProcType().equals(profileProcessor.getProcessorType())){
+//										procId = proc.getIndex();
+//										break;
+//									}
+//								}
+//								procExec.put(procId, profileProcessor.getValue().intValue());
+//								procMetric.put(procId, profileProcessor.getUnit());
+//							}
+//							taskprofilevalinfo.put(profilemode.getName(), procExec);
+//							taskprofileunitinfo.put(profilemode.getName(), procMetric);
+//						}
+//						tasks.get(task.getName()).setExecutionTimeValue(taskprofilevalinfo);
+//						tasks.get(task.getName()).setExecutionTimeMetric(taskprofileunitinfo);
+//						break;
+//					}
+//					else	continue;
+//				}
 			}
 		}
 	}
+	
 	public void checkSlaveTask(Map<String, Task> tasks, CICControlType mControl){
 		if(mControl.getControlTasks() == null)	return;
 		else{

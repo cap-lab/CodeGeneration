@@ -127,7 +127,7 @@ public class CIC {
 
 	public static void generateMTMFile(String outputPath, String mTemplateFile, Task task, CICAlgorithmType mAlgorithm,
 			Map<String, Task> mTask, Map<String, Task> mPVTask, Map<Integer, Queue> mQueue,
-			String runtimeExecutionPolicy) {
+			String runtimeExecutionPolicy, String codeGenerationStyle) {
 		File fileOut = new File(outputPath + task.getName() + ".mtm");
 		File templateFile = new File(mTemplateFile);
 
@@ -140,7 +140,7 @@ public class CIC {
 			String content = new String(buffer);
 
 			outstream.write(translateMTMFile(outputPath, content, task, mAlgorithm, mTask, mPVTask, mQueue,
-					runtimeExecutionPolicy).getBytes());
+					runtimeExecutionPolicy, codeGenerationStyle).getBytes());
 			outstream.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -152,7 +152,7 @@ public class CIC {
 
 	public static String translateMTMFile(String outputPath, String mContent, Task task, CICAlgorithmType mAlgorithm,
 			Map<String, Task> mTask, Map<String, Task> mPVTask, Map<Integer, Queue> mQueue,
-			String runtimeExecutionPolicy) {
+			String runtimeExecutionPolicy, String codeGenerationStyle) {
 		String code = mContent;
 		String modeMap = "";
 		String intVarMap = "";
@@ -163,7 +163,11 @@ public class CIC {
 		String numSubTasks = "";
 		String srcTaskIndex = "";
 
-		if (runtimeExecutionPolicy.equals("Global")) {
+		if (runtimeExecutionPolicy.equals("Global")
+			|| (runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed) && codeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
+			|| (runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign) && codeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))) 
+				 
+		{
 			String srcTaskName = "";
 			int srcTaskId = 0;
 			int subTaskCount = 0;
@@ -230,7 +234,12 @@ public class CIC {
 
 			numSubTasks += "#define NUM_SUB_TASKS " + subTaskCount;
 			srcTaskIndex += "CIC_STATIC CIC_T_INT src_task_index = " + srcTaskId + ";";
-		} else if (runtimeExecutionPolicy.equals("Partitioned")) {
+		} else if (runtimeExecutionPolicy.equals("Partitioned")
+			|| runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)
+			|| (runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed) && codeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_FunctionCall))
+			|| (runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign) && codeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_FunctionCall))) 
+		 
+		{
 			int subTaskCount = 0;
 			for (Task pt : mPVTask.values()) {
 				if (pt.getParentTask().equals(task.getName())) {
@@ -340,7 +349,7 @@ public class CIC {
 	}
 
 	public static void generateTaskDataStructure(String mDestFile, String mTemplateFile, Map<String, Task> mTask,
-			int globalPeriod, String globalPeriodMetric, String mThreadVer, String mRuntimeExecutionPolicy,
+			int globalPeriod, String globalPeriodMetric, String mRuntimeExecutionPolicy, String mCodeGenerationStyle,
 			Map<String, Task> mVTask, Map<String, Task> mPVTask) {
 		File fileOut = new File(mDestFile);
 		File templateFile = new File(mTemplateFile);
@@ -352,8 +361,8 @@ public class CIC {
 			instream.close();
 			String content = new String(buffer);
 
-			outstream.write(translateTaskDataStructure(content, mTask, globalPeriod, globalPeriodMetric, mThreadVer,
-					mRuntimeExecutionPolicy, mVTask, mPVTask).getBytes());
+			outstream.write(translateTaskDataStructure(content, mTask, globalPeriod, globalPeriodMetric, 
+					mRuntimeExecutionPolicy, mCodeGenerationStyle, mVTask, mPVTask).getBytes());
 			outstream.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -364,11 +373,13 @@ public class CIC {
 	}
 
 	public static String translateTaskDataStructure(String code, Map<String, Task> mTask, int mGlobalPeriod,
-			String mGlobalPeriodMetric, String mThreadVer, String mRuntimeExecutionPolicy, Map<String, Task> mVTask,
+			String mGlobalPeriodMetric, String mRuntimeExecutionPolicy, String mCodeGenerationStyle, Map<String, Task> mVTask,
 			Map<String, Task> mPVTask) {
 		String taskEntriesCode = "";
 		String virtualTaskEntriesCode = "";
 		int index = 0;
+		
+		// TASK_ENTRIES //
 		while (index < mTask.size()) {
 			Task task = null;
 			for (Task t : mTask.values()) {
@@ -429,30 +440,39 @@ public class CIC {
 
 			String isChildTask = "CIC_V_FALSE";
 			int parentTaskId = -1;
+			String isParentVirtual = "CIC_V_FALSE";
 
 			if (hasSubgraph.equals("CIC_V_FALSE")) {
 				if (!task.getName().equals(task.getParentTask())) {
 					for (Task t : mTask.values()) {
 						if (task.getParentTask().equals(t.getName())) {
+							//부모 태스크가 task 안에 있는 child task인 경우
 							isChildTask = "CIC_V_TRUE";
 							parentTaskId = Integer.parseInt(t.getIndex());
+							isParentVirtual = "CIC_V_FALSE"; 
 							break;
 						}
 					}
 					for (Task t : mVTask.values()) {
 						if (task.getParentTask().equals(t.getName())) {
+							//부모 태스크가 vtask 안에 있는 task인 경우
 							isChildTask = "CIC_V_TRUE";
 							parentTaskId = Integer.parseInt(t.getIndex());
+							isParentVirtual = "CIC_V_TRUE"; 
 							break;
 						}
 					}
 				} else {
+					//flat한 태스크들 중 하나의 태스크인 경우; 가장 일반적인 경우
 					isChildTask = "CIC_V_FALSE";
 					parentTaskId = index;
+					isParentVirtual = "CIC_V_FALSE"; 
 				}
 			} else {
+				//내가 부모 태스크인 경우
 				isChildTask = "CIC_V_FALSE";
 				parentTaskId = index;
+				isParentVirtual = "CIC_V_FALSE"; 
 			}
 
 			if (parentTaskId == -1)
@@ -463,22 +483,29 @@ public class CIC {
 			if (task.getIsSrcTask())
 				isSrcTask = "CIC_V_TRUE";
 
-			taskEntriesCode += "\tENTRY(" + task.getIndex() + ", \"" + task.getName() + "\", " + taskType + ", "
-					+ task.getName() + ", " + taskDrivenType + ", " + state + ", " + runState + ", "
-					+ task.getPeriodMetric().toUpperCase() + ", " + task.getRunRate() + "/*rate*/, " + task.getPeriod()
-					+ "/*period*/, " + globalPeriod + "/*global period*/, "
-					+ Integer.toString(globalPeriod / Integer.parseInt(
-							task.getPeriod()) /*
-												 * * Integer.parseInt(task.
-												 * getRunRate())
-												 */)
-					+ ", " + hasMTM + ", " + hasSubgraph + ", " + isSrcTask + ", " + isChildTask + ", " + parentTaskId
-					+ ", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
+			if (mRuntimeExecutionPolicy.equals("Single")) {
+				taskEntriesCode += "\tENTRY(" + task.getIndex() + ", \"" + task.getName() + "\", " + taskType + ", "
+						+ task.getName() + ", " + taskDrivenType + ", " + state + ", " + runState + ", "
+						+ task.getPeriodMetric().toUpperCase() + ", " + task.getRunRate() + "/*rate*/, " 
+						+ task.getPeriod() + "/*period*/, " + globalPeriod + "/*global period*/, "
+						+ Integer.toString(globalPeriod / Integer.parseInt(task.getPeriod()) /*Integer.parseInt(task.getRunRate())*/) + "/*run_count*/, " 
+						+ hasMTM + ", " + hasSubgraph + ", " + isSrcTask + ", " + isChildTask + ", " + parentTaskId 
+						+ ", " + isParentVirtual + ", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
+			}
+			else {
+				taskEntriesCode += "\tENTRY(" + task.getIndex() + ", \"" + task.getName() + "\", " + taskType + ", "
+						+ task.getName() + ", " + taskDrivenType + ", " + state + ", " + runState + ", "
+						+ task.getPeriodMetric().toUpperCase() + ", " + task.getRunRate() + "/*rate*/, " 
+						+ task.getPeriod() + "/*period*/, " + globalPeriod + "/*global period*/, "
+						+ "0/*run_count*/, " 
+						+ hasMTM + ", " + hasSubgraph + ", " + isSrcTask + ", " + isChildTask + ", " + parentTaskId 
+						+ ", " + isParentVirtual + ", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";				
+			}
 
 			index++;
 		}
 
-		String parentHistory = "";
+		// VIRTUAL_TASK_ENTRIES //
 		while (index < mTask.size() + mVTask.size() + mPVTask.size()) {
 			Task task = null;
 			if (index < mTask.size() + mVTask.size()) {
@@ -546,26 +573,28 @@ public class CIC {
 			else
 				hasSubgraph = "CIC_V_FALSE";
 
+			// hs: need to check!! 
+			// -1을 냅둘지 말지... 
 			String isChildTask = "CIC_V_FALSE";
 			int parentTaskId = -1;
-
+			String isParentVirtual = "CIC_V_FALSE";
+			
 			for (Task t : mTask.values()) {
 				if (task.getParentTask().equals(t.getName())) {
 					isChildTask = "CIC_V_FALSE";
 					parentTaskId = Integer.parseInt(t.getIndex());
+					isParentVirtual = "CIC_V_FALSE";
 					break;
 				}
 			}
-
-			/*
-			 * if(hasSubgraph.equals("CIC_V_FALSE")){
-			 * if(!task.getName().equals(task.getParentTask())){ for(Task t:
-			 * mVTask.values()){ if(task.getParentTask().equals(t.getName())){
-			 * isChildTask = "CIC_V_TRUE"; parentTaskId =
-			 * Integer.parseInt(t.getIndex()); break; } } } else{ isChildTask =
-			 * "CIC_V_FALSE"; parentTaskId = index; } } else{ isChildTask =
-			 * "CIC_V_FALSE"; parentTaskId = index; }
-			 */
+			for (Task t: mVTask.values()) {
+				if(task.getParentTask().equals(t.getName())) {
+					isChildTask = "CIC_V_FALSE";
+					parentTaskId = Integer.parseInt(t.getIndex());
+					isParentVirtual = "CIC_V_TRUE";
+					break;
+				}
+			}			
 
 			// to call Transition() once...
 			String isSrcTask = "CIC_V_FALSE";
@@ -579,7 +608,7 @@ public class CIC {
 					+ Integer.toString(
 							globalPeriod / Integer.parseInt(task.getPeriod()) / Integer.parseInt(task.getRunRate()))
 					+ ", " + hasMTM + ", " + hasSubgraph + ", " + isSrcTask + ", " + isChildTask + ", " + parentTaskId
-					+ ", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
+					+ ", " + isParentVirtual + ", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
 
 			index++;
 		}
@@ -603,7 +632,9 @@ public class CIC {
 				externalFunctions += "CIC_STATIC CIC_T_VOID " + task.getName() + "_Go(CIC_T_VOID);\n";
 				externalFunctions += "CIC_STATIC CIC_T_VOID " + task.getName() + "_Wrapup(CIC_T_VOID);\n";
 			}
-		} else if (mRuntimeExecutionPolicy.equals("Global")) {
+		} else if (mRuntimeExecutionPolicy.equals("Global")
+				|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign )&& mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
+				|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed) && mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread) )) {
 			for (Task task : mTask.values()) {
 				if (task.getHasSubgraph().equals("No")) {
 					externalFunctions += "CIC_EXTERN CIC_T_VOID " + task.getName() + "_Init(CIC_T_INT);\n";
@@ -615,7 +646,10 @@ public class CIC {
 					externalFunctions += "CIC_T_VOID " + task.getName() + "_Wrapup(CIC_T_VOID) {};\n";
 				}
 			}
-		} else if (mRuntimeExecutionPolicy.equals("Partitioned")) {
+		} else if (mRuntimeExecutionPolicy.equals("Partitioned") 
+				|| mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic) /*"Fully-Static-Execution-Policy"*/ 
+				|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed) && mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_FunctionCall))
+				|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign) && mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_FunctionCall))) {
 			for (Task task : mTask.values()) {
 				if (task.getHasSubgraph().equals("No")) {
 					externalFunctions += "CIC_EXTERN CIC_T_VOID " + task.getName() + "_Init(CIC_T_INT);\n";
@@ -665,6 +699,22 @@ public class CIC {
 						+ "CIC_EXTERN CIC_T_INT " + t.getName() + "_GetTaskRepeatCount(CIC_T_CHAR*, CIC_T_INT);\n";
 				index++;
 			}
+		}
+		for (Task t : mVTask.values()) {
+			String isSDF = "CIC_V_TRUE";
+			mtmEntriesCode += "\tENTRY(" + t.getIndex() + ", " + isSDF + ", " + t.getName()
+					+ ", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
+			externalMTMFunctions += "CIC_EXTERN CIC_T_VOID " + t.getName() + "_Initialize(CIC_T_VOID);\n"
+					+ "CIC_EXTERN CIC_T_CHAR* " + t.getName() + "_GetCurrentModeName(CIC_T_VOID);\n"
+					+ "CIC_EXTERN CIC_T_INT " + t.getName() + "_GetVariableInt(CIC_T_CHAR*);\n"
+					+ "CIC_EXTERN CIC_T_VOID " + t.getName() + "_SetVariableInt(CIC_T_CHAR*, CIC_T_INT);\n"
+					+ "CIC_EXTERN CIC_T_CHAR* " + t.getName() + "_GetVariableString(CIC_T_CHAR*);\n"
+					+ "CIC_EXTERN CIC_T_VOID " + t.getName() + "_SetVariableString(CIC_T_CHAR*, CIC_T_CHAR*);\n"
+					+ "CIC_EXTERN CIC_T_BOOL " + t.getName() + "_Transition(CIC_T_VOID);\n"
+					+ "CIC_EXTERN CIC_T_INT " + t.getName() + "_UpdateCurrentMode(CIC_T_CHAR*);\n"
+					+ "CIC_EXTERN CIC_T_INT " + t.getName() + "_GetTaskIterCount(CIC_T_CHAR*);\n"
+					+ "CIC_EXTERN CIC_T_INT " + t.getName() + "_GetTaskRepeatCount(CIC_T_CHAR*, CIC_T_INT);\n";
+			index++;
 		}
 
 		if (index == 0)
@@ -811,10 +861,10 @@ public class CIC {
 		for (Queue queue : mQueue.values()) {
 			if (mTask.get(queue.getSrc()) != null)
 				portmapEntriesCode += "\t{" + mTask.get(queue.getSrc()).getIndex() + "," + queue.getSrcPortId() + ","
-						+ "\"" + queue.getSrcPortName() + "\"," + queue.getIndex() + ",'w'},\n";
+						+ "\"" + queue.getSrcPortName() + "\"," + queue.getIndex() + ",'w'," + queue.getSrcRate() + "},\n";
 			if (mTask.get(queue.getDst()) != null)
 				portmapEntriesCode += "\t{" + mTask.get(queue.getDst()).getIndex() + "," + queue.getDstPortId() + ","
-						+ "\"" + queue.getDstPortName() + "\"," + queue.getIndex() + ",'r'},\n";
+						+ "\"" + queue.getDstPortName() + "\"," + queue.getIndex() + ",'r'," + queue.getDstRate() + "},\n";
 		}
 
 		code = code.replace("##PORT_ENTRIES", portmapEntriesCode);
@@ -876,7 +926,9 @@ public class CIC {
 		return code;
 	}
 
-	public static void generateCommonCode(String platform, String mOutputPath, String mTranslatorPath,
+	// hs: need to check!!
+	// 왜 mOutputPath, mTranslatorPath 만 쓰는데 넘겨주는 변수가 이렇게 많은걸까??? 
+	public static void generateCommonCode(String mOutputPath, String mTranslatorPath,
 			Map<String, Task> mTask, Map<Integer, Queue> mQueue, Map<String, Library> mLibrary, 
 			CICAlgorithmType mAlgorithm, CICControlType mControl) {
 		// Copy cic_comm_apis.h file

@@ -13,9 +13,9 @@ CIC_STATIC CIC_T_BOOL exit_signal = CIC_V_FALSE;
 ##TASK_VARIABLE_DECLARATION_END
 
 ##TASK_ROUTINE_START
-CIC_STATIC CIC_T_VOID CheckGraphEnd(CIC_T_INT parent_task_id){
+CIC_STATIC CIC_T_VOID CheckGraphEndFromTaskId(CIC_T_INT parent_task_id){
 	CIC_T_INT i;
-	CIC_T_INT parent_task_index = GetTaskIndexForId(parent_task_id);
+	CIC_T_INT parent_task_index = GetTaskIndexFromTaskId(parent_task_id);
 	CIC_T_INT task_count = 0, complete_count = 0;
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
     	if(tasks[i].parent_task_id == parent_task_id && i != parent_task_index){
@@ -48,10 +48,10 @@ CIC_STATIC CIC_T_VOID CheckGraphEnd(CIC_T_INT parent_task_id){
 CIC_UT_THREAD_FUNC_RET_TYPE TaskRoutine(CIC_UT_THREAD_FUNC_ARG_TYPE pdata)
 {
    CIC_T_INT task_id = *((CIC_T_INT*)&pdata);
-	CIC_T_INT task_index = GetTaskIndexForId(task_id);
+	CIC_T_INT task_index = GetTaskIndexFromTaskId(task_id);
 
 	CIC_T_INT parent_task_id = tasks[task_index].parent_task_id;
-	CIC_T_INT parent_task_index = GetTaskIndexForId(parent_task_id);
+	CIC_T_INT parent_task_index = GetTaskIndexFromTaskId(parent_task_id);
 	CIC_T_BOOL is_second_level_sadf = CIC_V_FALSE;
 
 	CIC_T_INT mtm_index = -1, iter_count = -1, repeat_count = -1, loop_count = -1, run_count = -1;
@@ -72,7 +72,7 @@ CIC_UT_THREAD_FUNC_RET_TYPE TaskRoutine(CIC_UT_THREAD_FUNC_ARG_TYPE pdata)
 	}
 
 	if(tasks[task_index].is_child_task == CIC_V_TRUE && tasks[parent_task_index].has_mtm == CIC_V_TRUE){   // bottom-level task
-		mtm_index = GetMTMIndexForTaskId(parent_task_id);
+		mtm_index = GetMTMIndexFromTaskId(parent_task_id);
 		
 		if(mtms[mtm_index].is_sdf){
 			is_second_level_sadf = CIC_V_FALSE;
@@ -187,7 +187,7 @@ CIC_UT_THREAD_FUNC_RET_TYPE TaskRoutine(CIC_UT_THREAD_FUNC_ARG_TYPE pdata)
    tasks[task_index].state = STATE_STOP;
    CIC_F_COND_BROADCAST(&global_cond);
    CIC_F_MUTEX_UNLOCK(&global_mutex);
-   CheckGraphEnd(parent_task_id);
+   CheckGraphEndFromTaskId(parent_task_id);
 
    return CIC_V_NULL;
 }
@@ -266,15 +266,15 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 
 ##CONTROL_RUN_TASK_START
     CIC_T_INT i=0, j=0;
-    CIC_T_INT target_task_id = GetTaskIdForName(t_name);
-    CIC_T_INT target_task_index = GetTaskIndexForName(t_name);
+    CIC_T_INT target_task_id = GetTaskIdFromTaskName(t_name);
+    CIC_T_INT target_task_index = GetTaskIndexFromTaskName(t_name);
 
 	InitTaskChannels(tasks[target_task_index].parent_task_id);
 	
 	tasks[target_task_index].run_count = 0;
 	
 	if(tasks[target_task_index].has_mtm){
-		CIC_T_INT mtm_index = GetMTMIndexForTaskId(target_task_id);
+		CIC_T_INT mtm_index = GetMTMIndexFromTaskId(target_task_id);
 		mtms[mtm_index].Initialize();
 	}
 
@@ -294,8 +294,8 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 
 ##CONTROL_STOP_TASK_START
     CIC_T_INT i=0;
-    CIC_T_INT target_task_id = GetTaskIdForName(t_name);
-    CIC_T_INT target_task_index = GetTaskIndexForName(t_name);
+    CIC_T_INT target_task_id = GetTaskIdFromTaskName(t_name);
+    CIC_T_INT target_task_index = GetTaskIndexFromTaskName(t_name);
 
 	for(i=0; i<CIC_UV_NUM_TASKS; i++){
         if(target_task_id == tasks[i].parent_task_id && tasks[i].has_subgraph == CIC_V_FALSE){
@@ -317,8 +317,8 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 
 ##CONTROL_RESUME_TASK_START
     CIC_T_INT i=0;
-    CIC_T_INT target_task_id = GetTaskIdForName(t_name);
-    CIC_T_INT target_task_index = GetTaskIndexForName(t_name);
+    CIC_T_INT target_task_id = GetTaskIdFromTaskName(t_name);
+    CIC_T_INT target_task_index = GetTaskIndexFromTaskName(t_name);
 
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
         if(target_task_id == tasks[i].parent_task_id && tasks[i].has_subgraph == CIC_V_FALSE){
@@ -335,8 +335,8 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 
 ##CONTROL_SUSPEND_TASK_START
     CIC_T_INT i=0;
-    CIC_T_INT target_task_id = GetTaskIdForName(t_name);
-    CIC_T_INT target_task_index = GetTaskIndexForName(t_name);
+    CIC_T_INT target_task_id = GetTaskIdFromTaskName(t_name);
+    CIC_T_INT target_task_index = GetTaskIndexFromTaskName(t_name);
 
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
         if(target_task_id == tasks[i].parent_task_id && tasks[i].has_subgraph == CIC_V_FALSE){
@@ -352,8 +352,8 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 
 ##CONTROL_END_TASK_START
     CIC_T_INT i=0;
-    CIC_T_INT task_index = GetTaskIndexForName(caller_task_name);
-    CIC_T_INT target_task_index = GetTaskIndexForName(t_name);
+    CIC_T_INT task_index = GetTaskIndexFromTaskName(caller_task_name);
+    CIC_T_INT target_task_index = GetTaskIndexFromTaskName(t_name);
     
     tasks[target_task_index].state = STATE_END;
     tasks[target_task_index].run_count = tasks[task_index].run_count;
@@ -365,7 +365,7 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
     CIC_F_COND_BROADCAST(&global_cond);
     CIC_F_MUTEX_UNLOCK(&global_mutex);
     
-    CheckGraphEnd(target_task_index);
+    CheckGraphEndFromTaskId(target_task_index);
 
     CIC_F_PRINTF("End task %s (task_id: %d)\n", tasks[task_index].name, tasks[task_index].task_id);
     CIC_F_THREAD_EXIT();

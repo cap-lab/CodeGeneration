@@ -1,11 +1,11 @@
-##TARGET_DEPENDENT_CODE_START
-CIC_STATIC CIC_T_INT GetProcId(CIC_T_INT task_index, CIC_T_INT proc_num, CIC_T_CHAR* mode_name, CIC_T_INT local_id){
+##GET_PROCESSOR_ID_START
+CIC_STATIC CIC_T_INT GetProcessorId(CIC_T_INT task_index, CIC_T_INT proc_num, CIC_T_CHAR* mode_name, CIC_T_INT local_id){
 	CIC_T_INT i=0, j=0, ret=0;
 
 	for(i=0; i<CIC_ARRAYLEN(task_to_core_map); i++){
 		if(task_to_core_map[i].task_index == task_index){
 			CIC_T_INT proc_num_index = 0, mode_index = 0;
-			for(j=0; j<MAX_PROC_NUM; j++){
+			for(j=0; j<MAX_SCHED_NUM; j++){
 				if(task_to_core_map[i].proc_num_list[j] == proc_num){
 					proc_num_index = j;
 					break;
@@ -23,4 +23,81 @@ CIC_STATIC CIC_T_INT GetProcId(CIC_T_INT task_index, CIC_T_INT proc_num, CIC_T_C
 	}
 	return ret;
 }
-##TARGET_DEPENDENT_CODE_END
+##GET_PROCESSOR_ID_END
+
+##PROCESSOR_ID_FROM_VIRTUAL_TASK_ID_START
+CIC_STATIC CIC_T_INT GetProcessorIdFromVirtualTaskId(CIC_T_INT virtual_task_id)
+{                                                             
+	CIC_T_INT i = 0;
+	CIC_T_CHAR virtual_task_id_name[10];
+                                                                             
+	for(i = 0; i < CIC_ARRAYLEN(virtual_task_to_core_map); i++)
+	{
+		if(virtual_task_to_core_map[i].virtual_task_id == virtual_task_id) 
+		{
+			return virtual_task_to_core_map[i].processor_id;
+		}
+	}  
+	
+	CIC_F_INTEGER_TO_STRING(virtual_task_id_name, virtual_task_id);
+	CIC_F_ERROR(virtual_task_id_name, "GetProcessorIdFromVirtualTaskId() fail!", CIC_V_ERROR_EXIT); 
+	return CIC_V_ERROR;
+}
+##PROCESSOR_ID_FROM_VIRTUAL_TASK_ID_END
+
+##GET_VIRTUAL_TASK_INDEX_FROM_THREAD_START
+CIC_T_INT GetVirtualTaskIndexFromThread(CIC_T_THREAD th)
+{
+  CIC_T_INT i, virtual_task_index = CIC_V_ERROR;
+
+  for(i = 0; i < CIC_UV_NUM_VIRTUAL_TASKS; i++)
+  {
+    if(CIC_F_THREAD_EQUAL(virtual_tasks[i].thread, th))
+    {
+      virtual_task_index = i;
+      break;
+    }
+  }
+
+  return virtual_task_index;
+}
+##GET_VIRTUAL_TASK_INDEX_FROM_THREAD_END
+
+##GET_TASK_PRIORITY_FROM_TASK_ID_START
+CIC_T_INT GetTaskPriorityFromTaskIdAndModeNameAndProcId(CIC_T_INT task_id, CIC_T_CHAR* mode_name, CIC_T_INT processor_id)
+{
+  CIC_T_INT i;
+  CIC_T_CHAR task_id_name[10];
+  CIC_F_INTEGER_TO_STRING(task_id_name, task_id);
+
+  for(i = 0; i < CIC_ARRAYLEN(task_to_priority); i++)
+  {
+    if(task_to_priority[i].task_id == task_id && task_to_priority[i].processor_id == processor_id
+        && (CIC_F_STRING_COMPARE(task_to_priority[i].mode_name, mode_name) == 0))
+      return task_to_priority[i].task_priority;
+  }
+
+  CIC_F_ERROR(task_id_name/*mode_name*/, "GetTaskPriorityFromTaskIdAndModeNameAndProcId() fail!", CIC_V_ERROR_EXIT);
+  return CIC_V_ERROR;
+}
+##GET_TASK_PRIORITY_FROM_TASK_ID_END
+
+##GET_SCHEDULE_INDEX_FROM_PROCESSOR_ID_START
+CIC_STATIC CIC_T_INT GetScheduleIndexFromProcessorId(CIC_T_INT processor_id)
+{
+  CIC_T_INT i;
+  CIC_T_CHAR processor_id_name[10];
+  CIC_F_INTEGER_TO_STRING(processor_id_name, processor_id);
+
+  for(i = 0; i < CIC_ARRAYLEN(schedules); i++)
+  {
+    if(schedules[i].processor_id == processor_id)
+    {
+      return i;
+    }
+  }
+
+  CIC_F_ERROR(processor_id_name, "GetScheduleIndexFromProcessorId() fail!", CIC_V_ERROR_EXIT);
+  return CIC_V_ERROR;
+}
+##GET_SCHEDULE_INDEX_FROM_PROCESSOR_ID_END

@@ -40,7 +40,7 @@
 ////////////////////////////////////// DATA STRUCTURES //////////////////////////////////////
 ##EXTERN_TASK_FUNCTION_DECLARATION
 
-#define ENTRY(a, b, c, task, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r) {a, b, c, CIC_V_NULL, task##_Init, CIC_V_NULL, task##_Go, CIC_V_NULL, task##_Wrapup, CIC_V_NULL, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, 0}
+#define ENTRY(a, b, c, task, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s) {a, b, c, CIC_V_NULL, task##_Init, CIC_V_NULL, task##_Go, CIC_V_NULL, task##_Wrapup, CIC_V_NULL, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, 0}
 CIC_UT_TASK tasks[] = {
 ##TASK_ENTRIES
 };
@@ -102,18 +102,18 @@ CIC_UT_PORTMAP addressmap[] = {
 
 
 /////////////////////////////// PRIMITIVE FUNCTIONS (TASKS) /////////////////////////////////
-CIC_STATIC CIC_T_INT GetMTMIndexForTaskId(CIC_T_INT task_id){
+CIC_STATIC CIC_T_INT GetMTMIndexFromTaskId(CIC_T_INT task_id){
 	CIC_T_INT i=0;
     for(i=0; i<CIC_UV_NUM_MTMS; i++){
         if(task_id == mtms[i].task_id){
         	return i;
         }
     }
-    CIC_F_ERROR("proc", "GetMTMIndexForTaskId() fail!", CIC_V_ERROR_EXIT);
+    CIC_F_ERROR("proc", "GetMTMIndexFromTaskId() fail!", CIC_V_ERROR_EXIT);
     return CIC_V_ERROR;
 }
 
-CIC_STATIC CIC_T_CHAR *GetTaskIndexForId(CIC_T_INT task_id)
+CIC_STATIC CIC_T_CHAR *GetTaskIndexFromTaskId(CIC_T_INT task_id)
 {
     CIC_T_INT i;
 
@@ -122,11 +122,26 @@ CIC_STATIC CIC_T_CHAR *GetTaskIndexForId(CIC_T_INT task_id)
         	return i;
         }
     }
-    CIC_F_ERROR("proc", "GetTaskIndexForId() fail!", CIC_V_ERROR_EXIT);
+    CIC_F_ERROR("proc", "GetTaskIndexFromTaskId() fail!", CIC_V_ERROR_EXIT);
     return CIC_V_NULL;
 }
 
-CIC_STATIC CIC_T_CHAR *GetTaskNameForId(CIC_T_INT task_id)
+CIC_STATIC CIC_T_INT GetVirtualTaskIndexFromTaskId(CIC_T_INT task_id)
+{
+    CIC_T_INT i;
+ 
+    for(i = 0; i < CIC_UV_NUM_VIRTUAL_TASKS; i++)
+    {
+        if(virtual_tasks[i].task_id == task_id)
+        {                                                                
+			return i;
+		}
+	}                                                                   
+	CIC_F_ERROR("proc", "GetVirtualTaskIndexFromTaskId() fail!", CIC_V_ERROR_EXIT);
+	return CIC_V_ERROR;
+} 
+
+CIC_STATIC CIC_T_CHAR *GetTaskNameFromTaskId(CIC_T_INT task_id)
 {
     CIC_T_INT i;
     CIC_T_CHAR task_id_name[10];
@@ -137,11 +152,11 @@ CIC_STATIC CIC_T_CHAR *GetTaskNameForId(CIC_T_INT task_id)
         	return tasks[i].name;
         }
     }
-    CIC_F_ERROR(task_id_name, "GetTaskNameForId() fail!", CIC_V_ERROR_EXIT);
+    CIC_F_ERROR(task_id_name, "GetTaskNameFromTaskId() fail!", CIC_V_ERROR_EXIT);
     return CIC_V_NULL;
 }
 
-CIC_STATIC CIC_T_INT GetTaskIndexForName(CIC_T_CHAR* task_name)
+CIC_STATIC CIC_T_INT GetTaskIndexFromTaskName(CIC_T_CHAR* task_name)
 {
     CIC_T_INT i;
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
@@ -149,11 +164,11 @@ CIC_STATIC CIC_T_INT GetTaskIndexForName(CIC_T_CHAR* task_name)
         	return i;
         }
     }
-    CIC_F_ERROR(task_name, "GetTaskIndexForName() fail!", CIC_V_ERROR_EXIT);
+    CIC_F_ERROR(task_name, "GetTaskIndexFromTaskName() fail!", CIC_V_ERROR_EXIT);
     return CIC_V_ERROR;
 }
 
-CIC_STATIC CIC_T_INT GetTaskIdForName(CIC_T_CHAR* task_name)
+CIC_STATIC CIC_T_INT GetTaskIdFromTaskName(CIC_T_CHAR* task_name)
 {
     CIC_T_INT i;
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
@@ -161,11 +176,11 @@ CIC_STATIC CIC_T_INT GetTaskIdForName(CIC_T_CHAR* task_name)
         	return tasks[i].task_id;
         }
     }
-    CIC_F_ERROR(task_name, "GetTaskIdForName() fail!", CIC_V_ERROR_EXIT);
+    CIC_F_ERROR(task_name, "GetTaskIdFromTaskName() fail!", CIC_V_ERROR_EXIT);
     return CIC_V_ERROR;
 }
 
-CIC_STATIC CIC_T_INT GetTaskIdForChannel(CIC_T_INT channel_id, CIC_T_CHAR op)
+CIC_STATIC CIC_T_INT GetTaskIdFromChannelIdAndOp(CIC_T_INT channel_id, CIC_T_CHAR op)
 {
 	CIC_T_INT i=0;
 	CIC_T_CHAR channel_id_name[13];
@@ -177,7 +192,7 @@ CIC_STATIC CIC_T_INT GetTaskIdForChannel(CIC_T_INT channel_id, CIC_T_CHAR op)
 	}
 
     CIC_F_INTEGER_TO_STRING(channel_id_name, channel_id);
-	CIC_F_ERROR(channel_id_name, "GetTaskIdForChannel() fail!", CIC_V_ERROR_EXIT);
+	CIC_F_ERROR(channel_id_name, "GetTaskIdFromChannelIdAndOp() fail!", CIC_V_ERROR_EXIT);
 	return CIC_V_ERROR;
 }
 
@@ -269,7 +284,7 @@ CIC_T_INT InitTaskPort(CIC_T_INT task_id, CIC_CONST CIC_T_CHAR* port_name)
 }
 
 // Transform ch_id to the index in channels[]
-CIC_T_INT GetChannelIndex(CIC_T_INT channel_id)
+CIC_T_INT GetChannelIndexFromChannelId(CIC_T_INT channel_id)
 {
 	CIC_T_UINT i;
 	CIC_T_CHAR channel_id_name[10];
@@ -278,7 +293,7 @@ CIC_T_INT GetChannelIndex(CIC_T_INT channel_id)
 	for(i=0; i<CIC_UV_NUM_CHANNELS; i++){
 		if(channels[i].channel_id == channel_id)	return i;
 	}
-	CIC_F_ERROR(channel_id_name, "GetChannelIndex() fail! (No port is available or connected)", CIC_V_ERROR_EXIT);
+	CIC_F_ERROR(channel_id_name, "GetChannelIndexFromChannelId() fail! (No port is available or connected)", CIC_V_ERROR_EXIT);
 	return CIC_V_ERROR;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////

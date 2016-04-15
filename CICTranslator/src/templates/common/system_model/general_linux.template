@@ -63,5 +63,4 @@ CIC_STATIC CIC_UT_BUFFER_DATA_TYPE MemAlloc(CIC_T_INT size){
 CIC_STATIC CIC_T_VOID IntegerToString(CIC_T_CHAR* buf, CIC_T_INT val){
 	sprintf(buf, "%d", val);
 }
-
 #endif /*__TARGET_SYSTEM_MODEL_H__*/

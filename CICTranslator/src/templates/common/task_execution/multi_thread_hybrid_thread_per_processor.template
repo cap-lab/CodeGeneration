@@ -14,9 +14,9 @@ CIC_STATIC CIC_T_BOOL exit_signal = CIC_V_FALSE;
 
 
 ##TASK_ROUTINE_START
-CIC_STATIC CIC_T_VOID CheckGraphEnd(CIC_T_INT parent_task_id){
+CIC_STATIC CIC_T_VOID CheckGraphEndFromTaskId(CIC_T_INT parent_task_id){
 	CIC_T_INT i, j;
-	CIC_T_INT parent_task_index = GetTaskIndexForId(parent_task_id);
+	CIC_T_INT parent_task_index = GetTaskIndexFromTaskId(parent_task_id);
 	CIC_T_INT task_count = 0, complete_count = 0;
     for(i=0; i<CIC_UV_NUM_VIRTUAL_TASKS; i++){
     	if(virtual_tasks[i].parent_task_id == parent_task_id){
@@ -63,14 +63,15 @@ CIC_UT_THREAD_FUNC_RET_TYPE VirtualTaskRoutine(CIC_UT_THREAD_FUNC_ARG_TYPE pdata
     CIC_T_INT task_id = *((CIC_T_INT*)&pdata);
     CIC_T_INT task_index = task_id - CIC_UV_NUM_TASKS;
    	CIC_T_INT parent_task_id = virtual_tasks[task_index].parent_task_id;
-   	CIC_T_INT parent_task_index = GetTaskIndexForId(parent_task_id);
+   	CIC_T_INT parent_task_index = GetTaskIndexFromTaskId(parent_task_id);
    	CIC_T_INT mtm_index = -1;
 	CIC_T_INT i=0;
+	CIC_T_INT processor_id;
 	
 ##SET_VIRTUAL_PROC
 
 	if(tasks[parent_task_index].has_mtm == CIC_V_TRUE){
-		mtm_index = GetMTMIndexForTaskId(parent_task_id);
+		mtm_index = GetMTMIndexFromTaskId(parent_task_id);
 	}
 
 	(*virtual_tasks[task_index].Init)(task_index);
@@ -99,7 +100,7 @@ virtual_task_continue:
 	(*virtual_tasks[task_index].Wrapup)();
 	
     virtual_tasks[task_index].state = STATE_STOP;
-    CheckGraphEnd(parent_task_id);
+    CheckGraphEndFromTaskId(parent_task_id);
 	
     return CIC_V_NULL;
 }
@@ -107,7 +108,7 @@ virtual_task_continue:
 CIC_UT_THREAD_FUNC_RET_TYPE TaskRoutine(CIC_UT_THREAD_FUNC_ARG_TYPE pdata)
 {
 	CIC_T_INT task_id = *((CIC_T_INT*)&pdata);
-	CIC_T_INT task_index = GetTaskIndexForId(task_id);
+	CIC_T_INT task_index = GetTaskIndexFromTaskId(task_id);
 	CIC_T_INT proc_id = 0;
 	CIC_T_CHAR* mode_name = "Default";
 	
@@ -131,7 +132,7 @@ task_continue:
         }
         
         if(tasks[task_index].has_mtm == CIC_V_TRUE){
-            CIC_T_INT mtm_index = GetMTMIndexForTaskId(task_id);
+            CIC_T_INT mtm_index = GetMTMIndexFromTaskId(task_id);
             mtms[mtm_index].Transition();
         }
 	
@@ -200,7 +201,7 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
     
     for(i=0; i<CIC_UV_NUM_VIRTUAL_TASKS; i++){
         CIC_T_BOOL create_thread = CIC_V_FALSE;
-		CIC_T_INT parent_task_index = GetTaskIndexForId(virtual_tasks[i].parent_task_id);
+		CIC_T_INT parent_task_index = GetTaskIndexFromTaskId(virtual_tasks[i].parent_task_id);
         if(tasks[parent_task_index].state == STATE_RUN){
             CIC_F_PRINTF("%s virtual_task thread is created!\n", virtual_tasks[i].name);
             CIC_F_THREAD_CREATE(&(virtual_tasks[i].thread), VirtualTaskRoutine, (void *)virtual_tasks[i].task_id);
@@ -235,11 +236,11 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 
 ##CONTROL_RUN_TASK_START
     CIC_T_INT i=0, j=0;
-    CIC_T_INT target_task_id = GetTaskIdForName(t_name);
-    CIC_T_INT target_task_index = GetTaskIndexForName(t_name);
+    CIC_T_INT target_task_id = GetTaskIdFromTaskName(t_name);
+    CIC_T_INT target_task_index = GetTaskIndexFromTaskName(t_name);
     
     if(tasks[target_task_index].has_mtm){
-    	CIC_T_INT mtm_index = GetMTMIndexForTaskId(target_task_id);
+    	CIC_T_INT mtm_index = GetMTMIndexFromTaskId(target_task_id);
 		mtms[mtm_index].Initialize();
 	}
     
@@ -269,7 +270,7 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 
 ##CONTROL_STOP_TASK_START
  	CIC_T_INT i=0, j=0;
-    CIC_T_INT target_task_id = GetTaskIdForName(t_name);
+    CIC_T_INT target_task_id = GetTaskIdFromTaskName(t_name);
     CIC_T_THREAD cur_thread = CIC_F_THREAD_SELF();
     
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
@@ -305,7 +306,7 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 
 ##CONTROL_RESUME_TASK_START
  	CIC_T_INT i=0, j=0;
-    CIC_T_INT target_task_id = GetTaskIdForName(t_name);
+    CIC_T_INT target_task_id = GetTaskIdFromTaskName(t_name);
     
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
         if(target_task_id == tasks[i].task_id){
@@ -336,7 +337,7 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 
 ##CONTROL_SUSPEND_TASK_START
  	CIC_T_INT i=0, j=0;
-    CIC_T_INT target_task_id = GetTaskIdForName(t_name);
+    CIC_T_INT target_task_id = GetTaskIdFromTaskName(t_name);
     
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
         if(target_task_id == tasks[i].task_id){
@@ -365,8 +366,8 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
     CIC_T_THREAD th = CIC_F_THREAD_SELF();
     CIC_T_INT task_index = 0;
     
-    CIC_T_INT target_task_id = GetTaskIdForName(t_name);
-    CIC_T_INT target_task_index = GetTaskIndexForName(t_name);
+    CIC_T_INT target_task_id = GetTaskIdFromTaskName(t_name);
+    CIC_T_INT target_task_index = GetTaskIndexFromTaskName(t_name);
     
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
 		if(target_task_id == tasks[i].task_id){
@@ -385,7 +386,7 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 				(*virtual_tasks[task_index].Wrapup)();
 
 				virtual_tasks[task_index].state = STATE_STOP;
-				CheckGraphEnd(target_task_index);
+				CheckGraphEndFromTaskId(target_task_index);
 			}
 			else{
 				CIC_F_MUTEX_LOCK(&global_mutex);

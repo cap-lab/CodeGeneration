@@ -27,8 +27,8 @@ public class Task {
 	private String mPeriodMetric;
 	private String mDeadlineMetric;
 	private String mRunCondition;
-	private Map<String, Map<Integer, Integer>> mExecutionTimeValue;
-	private Map<String, Map<Integer, String>> mExecutionTimeMetric;
+	private Map<String, Integer>  mExecutionTimeValue;
+	private Map<String, String> mExecutionTimeMetric;
 	private boolean mIsSlaveTask;
 	private List<String> mControllingTask;
 	private int mPriority_TFS;
@@ -73,8 +73,8 @@ public class Task {
 		mExtraSource = extraSource;
 		mLibraryPort = libraryPort;
 		mParameter = parameter;
-		mExecutionTimeValue = new HashMap<String, Map<Integer, Integer>>();
-		mExecutionTimeMetric = new HashMap<String, Map<Integer, String>>();
+		mExecutionTimeValue = new HashMap<String, Integer>();
+		mExecutionTimeMetric = new HashMap<String, String>();
 		mIsSlaveTask = false;
 		mPriority_TFS = 0;
 		mPrev = new ArrayList<String>();
@@ -92,6 +92,7 @@ public class Task {
 		mIsSrcTask = isSrcTask;
 	}
 	
+	//virtual task 만들 때 사용하는 생성자
 	public Task(int index, String name, String parentTask, int runRate, String periodMetric, String runCondition, int period)
 	{
 		mIndex = index;
@@ -116,8 +117,8 @@ public class Task {
 		mExtraSource = new ArrayList<String>();
 		mLibraryPort = null;
 		mParameter = null;
-		mExecutionTimeValue = new HashMap<String, Map<Integer, Integer>>();
-		mExecutionTimeMetric = new HashMap<String, Map<Integer, String>>();
+		mExecutionTimeValue = new HashMap<String, Integer>();
+		mExecutionTimeMetric = new HashMap<String, String>();
 		mIsSlaveTask = false;
 		mPriority_TFS = 0;
 		mPrev = new ArrayList<String>();
@@ -142,8 +143,8 @@ public class Task {
 	public void setPriority(int priority)			{mPriority = priority;}
 	public void setRunRate(int runRate)				{mRunRate = runRate;}
 	public void setProc(Map<String, Map<String, List<Integer>>> proc)					{mProc = proc;}
-	public void setExecutionTimeValue(Map<String, Map<Integer, Integer>> executionTime)	{mExecutionTimeValue = executionTime;}
-	public void setExecutionTimeMetric(Map<String, Map<Integer, String>> metric)		{mExecutionTimeMetric = metric;}
+	public void setExecutionTimeValue(Map<String, Integer> executionTime)	{mExecutionTimeValue = executionTime;}
+	public void setExecutionTimeMetric(Map<String, String> metric)		{mExecutionTimeMetric = metric;}
 	public void setIsSlaveTask(boolean isSlaveTask)		{mIsSlaveTask = isSlaveTask;}
 	public void setParentTask(String parentTask)		{mParentTask = parentTask;}
 	public void setIsSrcTask(boolean isSrc)				{mIsSrcTask = isSrc;}
@@ -183,5 +184,6 @@ public class Task {
 	}
 	public List<LibraryMasterPortType> getLibraryPortList()	{return mLibraryPort;}
 	public MTM getMTM()								{return mMTMInfo;}
-	public Map<String, Map<Integer, Integer>> getExecutionTimeValue()	{return mExecutionTimeValue;}
+	public Map<String, Integer> getExecutionTimeValue()	{return mExecutionTimeValue;}
+	public Map<String, String > getExecutionTimeMetric()	{return mExecutionTimeMetric;}
 }
