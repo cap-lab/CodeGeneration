@@ -439,7 +439,8 @@ public class BuildInnerDataStructures {
 							int rate = 0;
 							if(tr.get(i_t.getName()) != null)
 								rate = tr.get(i_t.getName());
-							i_t.setRunRate(rate); 
+							if(rate != 0)
+								i_t.setRunRate(rate); 
 //							System.out.println(i_t.getName() + ": runrate: " + rate);
 						}
 						

@@ -83,7 +83,7 @@ CIC_T_INT GetTaskPriorityFromTaskIdAndModeNameAndProcId(CIC_T_INT task_id, CIC_T
 ##GET_TASK_PRIORITY_FROM_TASK_ID_END
 
 ##GET_SCHEDULE_INDEX_FROM_PROCESSOR_ID_START
-CIC_STATIC CIC_T_INT GetScheduleIndexFromProcessorId(CIC_T_INT processor_id)
+CIC_STATIC CIC_T_INT GetScheduleIndexFromProcessorIdAndParentTaskId(CIC_T_INT processor_id, CIC_T_INT parent_task_id)
 {
   CIC_T_INT i;
   CIC_T_CHAR processor_id_name[10];
@@ -91,13 +91,13 @@ CIC_STATIC CIC_T_INT GetScheduleIndexFromProcessorId(CIC_T_INT processor_id)
 
   for(i = 0; i < CIC_ARRAYLEN(schedules); i++)
   {
-    if(schedules[i].processor_id == processor_id)
+    if(schedules[i].processor_id == processor_id && schedules[i].parent_task_id == parent_task_id)
     {
       return i;
     }
   }
 
-  CIC_F_ERROR(processor_id_name, "GetScheduleIndexFromProcessorId() fail!", CIC_V_ERROR_EXIT);
+  CIC_F_ERROR(processor_id_name, "GetScheduleIndexFromProcessorIdAndParentTaskId() fail!", CIC_V_ERROR_EXIT);
   return CIC_V_ERROR;
 }
 ##GET_SCHEDULE_INDEX_FROM_PROCESSOR_ID_END

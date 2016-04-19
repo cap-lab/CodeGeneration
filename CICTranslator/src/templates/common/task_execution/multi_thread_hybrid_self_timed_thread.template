@@ -163,7 +163,7 @@ CIC_UT_THREAD_FUNC_RET_TYPE TaskRoutine(CIC_UT_THREAD_FUNC_ARG_TYPE pdata)
 
   //to run 1st task per processor in schedules
   tasks[task_index].state = STATE_WAIT;
-  CIC_T_INT schedule_index = GetScheduleIndexFromProcessorId(proc_id);
+  CIC_T_INT schedule_index = GetScheduleIndexFromProcessorIdAndParentTaskId(proc_id, parent_task_id);
   if(schedules[schedule_index].task_execution_order[0] == task_id)
   {
     tasks[task_index].state = STATE_RUN;

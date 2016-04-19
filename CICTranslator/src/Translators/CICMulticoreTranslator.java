@@ -389,65 +389,118 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		code += "\nCIC_UT_TASK_TO_PRIORITY task_to_priority[] = {\n";
 		
 		String outPath = mOutputPath + "/convertedSDF3xml/";
-		code += CommonLibraries.Schedule.generateTaskPriorityDefineCode(outPath, mTask);
-		
-//		TaskGroupsType taskGroups = mSchedule.getTaskGroups();
-//		List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
-//		for(int i = 0; i < taskGroupList.size(); i++)
-//		{
-//			List<ScheduleGroupType> scheduleGroup = taskGroupList.get(i).getScheduleGroup();
-//			for(int j = 0; j < scheduleGroup.size(); j++)
-//			{
-//				int taskPriority = 10;
-//				List<ScheduleElementType> schedules = scheduleGroup.get(j).getScheduleElement();
-//				for(int k = 0; k < schedules.size(); k++)
-//				{
-//					ScheduleElementType schedule = schedules.get(k);
-//					String taskName = schedule.getTask().getName();
-//					String taskId = "0";
-//					
-//					for(Task t: mTask.values())
-//					{
-//						if(t.getName().equals(taskName)){
-//							taskId = t.getIndex();
-//							break;
-//						}
-//					}
-//					code += "{" + taskId + ", " + taskPriority +"},\n";
-//					taskPriority++;
-//				}
-//			}
-//			
-//		}
+		code += generateTaskPriorityDefineCode(outPath, mTask);
 		
 		code += "};\n\n";
 		
 		return code;	
 	}
 	
+	public String generateTaskPriorityDefineCode(String outputPath, Map<String, Task> mTask) {
+		// 현재 sadf 는 지원하지 않는다... sadf 지원하려면.. 지금꺼에서 mode도 입력이 되어야함.. mode 마다
+		// task_priority 가 다를테니깐....
+		// 그래서 이부분의 수정이 필요하다.
+
+		String taskPriorityDefineCode = "";
+		CICScheduleTypeLoader scheduleLoader = new CICScheduleTypeLoader();
+		CICScheduleType mSchedule;
+
+		List<Task> parentTaskList = new ArrayList<Task>();
+		List<Task> taskList = new ArrayList<Task>();
+		Task parentTask = null;
+		Task task = null;
+		
+		for (Task ta : mTask.values()) {
+			for (Task t : mTask.values()) {
+				if (t.getName().equals(ta.getParentTask())) {
+					if(!parentTaskList.contains(t) && !taskList.contains(ta))
+					{
+						parentTask = t;
+						task = ta;
+						parentTaskList.add(parentTask);
+						taskList.add(task);
+					}					
+					break;
+				}
+			}
+		}
+
+		for(int index = 0; index < parentTaskList.size(); index++)
+		{
+			parentTask = parentTaskList.get(index);
+			task = taskList.get(index);
+			
+			List<String> modeList = new ArrayList<String>();
+			if (parentTask.getMTM() != null)
+				modeList = parentTask.getMTM().getModes();
+			else
+				modeList.add("Default");
+			
+			for (String mode : modeList) {
+				ArrayList<String> history = new ArrayList<String>();
+				try {
+					ArrayList<File> schedFileList = new ArrayList<File>();
+					File file = new File(outputPath);
+					File[] fileList = file.listFiles();
+					for (File f : fileList) {
+						if (f.getName().contains(task.getParentTask() + "_" + mode)
+								&& f.getName().endsWith("_schedule.xml")) {
+							schedFileList.add(f);
+						}
+					}
+					if (schedFileList.size() <= 0) {
+						JOptionPane.showMessageDialog(null, "You should execute 'Analysis' before build!");
+						System.exit(-1);
+					}
+
+					for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
+						// 첫번째 스케줄만 저장하도록 가정
+						mSchedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
+
+						TaskGroupsType taskGroups = mSchedule.getTaskGroups();
+						List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
+						for (int i = 0; i < taskGroupList.size(); i++) {
+							List<ScheduleGroupType> scheduleGroup = taskGroupList.get(i).getScheduleGroup();
+							for (int j = 0; j < scheduleGroup.size(); j++) {
+								int taskPriority = 10;
+								List<ScheduleElementType> schedules = scheduleGroup.get(j).getScheduleElement();
+								for (int k = 0; k < schedules.size(); k++) {
+									ScheduleElementType schedule = schedules.get(k);
+									String taskName = schedule.getTask().getName();
+									String taskId = "0";
+
+									for (Task t : mTask.values()) {
+										if (t.getName().equals(taskName)) {
+											taskId = t.getIndex();
+											break;
+										}
+									}
+									taskPriorityDefineCode += "{" + taskId + ", " + j + ", \"" + mode + "\", "
+											+ taskPriority + "},\n";
+									taskPriority++;
+								}
+							}
+
+						}
+					}
+				} catch (CICXMLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		return taskPriorityDefineCode;
+	}
+	
 	public String generateSchedule(){
 		//현재 sadf 는 지원하지 않는다...  sadf 지원하려면.. 지금꺼에서 mode도 입력이 되어야함.. mode 마다 task_priority 가 다를테니깐.... 
 		// 그래서 이부분의 수정이 필요하다.
 		String code = "";
-		String outPath = mOutputPath + "/convertedSDF3xml/";
-		
-		
-//		code += "#define MAX_SCHED_NUM_PER_PROC " + ;
-//		
-//		code += "\nCIC_TYPEDEF CIC_T_STRUCT{\n" 
-//				+ "\tCIC_T_INT processor_id; \n" 
-//				+ "\tCIC_T_INT execution_index; \n"
-//				+ "\tCIC_T_INT max_schedule_length; \n"
-//				+ "\tCIC_T_INT task_execution_order[MAX_SCHED_NUM_PER_PROC]; \n"
-//				+ "}CIC_UT_SCHEDULE_RESULT_PER_PROC;  \n";
-//		
-//		code += "CIC_UT_SCHEDULE_RESULT_PER_PROC schedules[] = {\n";
-		
-		
+		String outPath = mOutputPath + "/convertedSDF3xml/";		
+				
 		code += generateStaticSchedule(outPath, mTask);
-	
-//		code += "};\n\n";
-		
+			
 		return code;	
 	}
 	
@@ -459,75 +512,87 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		CICScheduleTypeLoader scheduleLoader = new CICScheduleTypeLoader();
 		CICScheduleType mSchedule;
 		
+		List<Task> parentTaskList = new ArrayList<Task>();
+		List<Task> taskList = new ArrayList<Task>();
 		Task parentTask = null;
 		Task task = null;
 		
 		for (Task ta : mTask.values()) {
 			for (Task t : mTask.values()) {
 				if (t.getName().equals(ta.getParentTask())) {
-					parentTask = t;
-					task = ta;
+					if(!parentTaskList.contains(t) && !taskList.contains(ta))
+					{
+						parentTask = t;
+						task = ta;
+						parentTaskList.add(parentTask);
+						taskList.add(task);
+					}					
 					break;
 				}
 			}
-			System.out.println("......" + task.getName());
-			break;
 		}
-		
-		
-		List<String> modeList = new ArrayList<String>();
-		if(parentTask.getMTM() != null)
-			modeList = parentTask.getMTM().getModes();
-		else
-			modeList.add("Default");	// 이럴 경우 어떻게 해야하지?? virutal task에서 찾아야하느 건가?? 
 		
 		int max_schedule_num_per_processor = 0;
 		
-		for (String mode : modeList) {
-			try {
-				ArrayList<File> schedFileList = new ArrayList<File>();
-				File file = new File(outputPath);
-				File[] fileList = file.listFiles();
-				for (File f : fileList) {
-					if (f.getName().contains(task.getParentTask() + "_" + mode)
-							&& f.getName().endsWith("_schedule.xml")) {
-						schedFileList.add(f);
+		for(int index = 0; index < parentTaskList.size(); index++)
+		{
+			parentTask = parentTaskList.get(index);
+			task = taskList.get(index);
+			
+			List<String> modeList = new ArrayList<String>();
+			if(parentTask.getMTM() != null)
+				modeList = parentTask.getMTM().getModes();
+			else
+				modeList.add("Default");	// 이럴 경우 어떻게 해야하지?? virutal task에서 찾아야하느 건가?? 
+			
+			
+			for (String mode : modeList) {
+				try {
+					ArrayList<File> schedFileList = new ArrayList<File>();
+					File file = new File(outputPath);
+					File[] fileList = file.listFiles();
+					for (File f : fileList) {
+						if (f.getName().contains(task.getParentTask() + "_" + mode)
+								&& f.getName().endsWith("_schedule.xml")) {
+							schedFileList.add(f);
+						}
 					}
-				}
-				if (schedFileList.size() <= 0) {
-					JOptionPane.showMessageDialog(null, "You should execute 'Analysis' before build!");
-					System.exit(-1);
-				}
-				
-				for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
-					//첫번째 스케줄만 저장하도록 가정 
-					mSchedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
+					if (schedFileList.size() <= 0) {
+						JOptionPane.showMessageDialog(null, "You should execute 'Analysis' before build!");
+						System.exit(-1);
+					}
 					
-					TaskGroupsType taskGroups = mSchedule.getTaskGroups();
-					List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
-					for(int i = 0; i < taskGroupList.size(); i++)
-					{
-						List<ScheduleGroupType> scheduleGroup = taskGroupList.get(i).getScheduleGroup();
-						for(int j = 0; j < scheduleGroup.size(); j++)
+					for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
+						//첫번째 스케줄만 저장하도록 가정 
+						mSchedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
+						
+						TaskGroupsType taskGroups = mSchedule.getTaskGroups();
+						List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
+						for(int i = 0; i < taskGroupList.size(); i++)
 						{
-							List<ScheduleElementType> schedules = scheduleGroup.get(j).getScheduleElement();
-							
-							//max 개수 세기
-							if(max_schedule_num_per_processor < schedules.size())
-								max_schedule_num_per_processor = schedules.size();							
-						}						
-					}
-				}	
-			} catch (CICXMLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+							List<ScheduleGroupType> scheduleGroup = taskGroupList.get(i).getScheduleGroup();
+							for(int j = 0; j < scheduleGroup.size(); j++)
+							{
+								List<ScheduleElementType> schedules = scheduleGroup.get(j).getScheduleElement();
+								
+								//max 개수 세기
+								if(max_schedule_num_per_processor < schedules.size())
+									max_schedule_num_per_processor = schedules.size();							
+							}						
+						}
+					}	
+				} catch (CICXMLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-		}
+		}	
 		
 		taskPriorityDefineCode += "#define MAX_SCHED_NUM_PER_PROC " + max_schedule_num_per_processor;
 		
 		taskPriorityDefineCode += "\nCIC_TYPEDEF CIC_T_STRUCT{\n" 
 				+ "\tCIC_T_INT processor_id; \n" 
+				+ "\tCIC_T_INT parent_task_id; \n"
 				+ "\tCIC_VOLATILE CIC_T_INT execution_index; \n"
 				+ "\tCIC_T_INT max_schedule_length; \n"
 				+ "\tCIC_T_INT task_execution_order[MAX_SCHED_NUM_PER_PROC]; \n"
@@ -535,70 +600,82 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		
 		taskPriorityDefineCode += "CIC_UT_SCHEDULE_RESULT_PER_PROC schedules[] = {\n";
 		
-		for (String mode : modeList) {
-			try {
-				ArrayList<File> schedFileList = new ArrayList<File>();
-				File file = new File(outputPath);
-				File[] fileList = file.listFiles();
-				for (File f : fileList) {
-					if (f.getName().contains(task.getParentTask() + "_" + mode)
-							&& f.getName().endsWith("_schedule.xml")) {
-						schedFileList.add(f);
+		for(int index = 0; index < parentTaskList.size(); index++)
+		{
+			parentTask = parentTaskList.get(index);
+			task = taskList.get(index);
+			
+			List<String> modeList = new ArrayList<String>();
+			if(parentTask.getMTM() != null)
+				modeList = parentTask.getMTM().getModes();
+			else
+				modeList.add("Default");	// 이럴 경우 어떻게 해야하지?? virutal task에서 찾아야하느 건가?? 
+			
+			for (String mode : modeList) {
+				try {
+					ArrayList<File> schedFileList = new ArrayList<File>();
+					File file = new File(outputPath);
+					File[] fileList = file.listFiles();
+					for (File f : fileList) {
+						if (f.getName().contains(task.getParentTask() + "_" + mode)
+								&& f.getName().endsWith("_schedule.xml")) {
+							schedFileList.add(f);
+						}
 					}
-				}
-				if (schedFileList.size() <= 0) {
-					JOptionPane.showMessageDialog(null, "You should execute 'Analysis' before build!");
-					System.exit(-1);
-				}
-								
-				for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
-					//첫번째 스케줄만 저장하도록 가정 
-					mSchedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
-					
-					TaskGroupsType taskGroups = mSchedule.getTaskGroups();
-					List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
-					for(int i = 0; i < taskGroupList.size(); i++)
-					{
-						List<ScheduleGroupType> scheduleGroup = taskGroupList.get(i).getScheduleGroup();
-						for(int j = 0; j < scheduleGroup.size(); j++)
+					if (schedFileList.size() <= 0) {
+						JOptionPane.showMessageDialog(null, "You should execute 'Analysis' before build!");
+						System.exit(-1);
+					}
+									
+					for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
+						//첫번째 스케줄만 저장하도록 가정 
+						mSchedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
+						
+						TaskGroupsType taskGroups = mSchedule.getTaskGroups();
+						List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
+						for(int i = 0; i < taskGroupList.size(); i++)
 						{
-							List<ScheduleElementType> schedules = scheduleGroup.get(j).getScheduleElement();
-														
-							taskPriorityDefineCode += "{" + scheduleGroup.get(j).getLocalId() + ", 0, " + schedules.size() + ", {";
-							
-							for(int k = 0; k < schedules.size(); k++)
+							List<ScheduleGroupType> scheduleGroup = taskGroupList.get(i).getScheduleGroup();
+							for(int j = 0; j < scheduleGroup.size(); j++)
 							{
-								ScheduleElementType schedule = schedules.get(k);
-								String taskName = schedule.getTask().getName();
-								String taskId = "0";
+								List<ScheduleElementType> schedules = scheduleGroup.get(j).getScheduleElement();
+															
+								taskPriorityDefineCode += "\t{" + scheduleGroup.get(j).getLocalId() + ", "+ parentTask.getIndex() + ", 0, " + schedules.size() + ", {";
 								
-								for(Task t: mTask.values())
+								for(int k = 0; k < schedules.size(); k++)
 								{
-									if(t.getName().equals(taskName)){
-										taskId = t.getIndex();
-										break;
+									ScheduleElementType schedule = schedules.get(k);
+									String taskName = schedule.getTask().getName();
+									String taskId = "0";
+									
+									for(Task t: mTask.values())
+									{
+										if(t.getName().equals(taskName)){
+											taskId = t.getIndex();
+											break;
+										}
+									}
+									taskPriorityDefineCode += taskId + ", ";
+									//processor id, execution_index(0), max, {순서}
+								}
+								
+								if(schedules.size() < max_schedule_num_per_processor){
+									for(int temp = 0; temp < (max_schedule_num_per_processor - schedules.size()); temp++){
+										taskPriorityDefineCode += "-1, ";
 									}
 								}
-								taskPriorityDefineCode += taskId + ", ";
-								//processor id, execution_index(0), max, {순서}
+								taskPriorityDefineCode += "}},\n";
+								
 							}
-							
-							if(schedules.size() < max_schedule_num_per_processor){
-								for(int temp = 0; temp < (max_schedule_num_per_processor - schedules.size()); temp++){
-									taskPriorityDefineCode += "-1, ";
-								}
-							}
-							taskPriorityDefineCode += "}},\n";
 							
 						}
-						
-					}
-				}					
-			} catch (CICXMLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+					}					
+				} catch (CICXMLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}			
+		}		
 		
 		taskPriorityDefineCode += "};\n\n"; 
 		

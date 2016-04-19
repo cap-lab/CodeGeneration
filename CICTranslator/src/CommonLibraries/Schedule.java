@@ -1482,6 +1482,15 @@ public class Schedule {
 		CICScheduleType schedule;
 
 		code += "CIC_T_VOID " + task.getName() + "_Go(){\n";
+		
+		String parent_task_id = "-1";
+		for(Task t: mTask.values())
+		{
+			if(t.getName().equals(task.getParentTask())){
+				parent_task_id = t.getIndex();			
+				break;
+			}
+		}
 
 		if (mRuntimeExecutionPolicy
 				.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) /* "Fully-Static-Execution-Policy" */
@@ -1496,7 +1505,8 @@ public class Schedule {
 			String processor_id = result[result.length - 1];
 			code += "\tCIC_T_INT processor_id = " + processor_id + ";\n";
 			code += "\tCIC_T_INT task_id = -1;\n";
-			code += "\tCIC_T_INT sched_index = GetScheduleIndexFromProcessorId(processor_id);\n";
+			code += "\tCIC_T_INT parent_task_id = " + parent_task_id + ";\n";
+			code += "\tCIC_T_INT sched_index = GetScheduleIndexFromProcessorIdAndParentTaskId(processor_id, parent_task_id);\n";
 			code += "\tCIC_T_INT i;\n";
 			code += "\tCIC_T_BOOL executable = CIC_V_FALSE;\n";
 			code += "\tCIC_T_INT num_task_stop = 0;\n\n";
@@ -1644,185 +1654,5 @@ public class Schedule {
 
 		return staticScheduleCode;
 	}
-
-	public static String generateTaskPriorityDefineCode(String outputPath, Map<String, Task> mTask) {
-		// 현재 sadf 는 지원하지 않는다... sadf 지원하려면.. 지금꺼에서 mode도 입력이 되어야함.. mode 마다
-		// task_priority 가 다를테니깐....
-		// 그래서 이부분의 수정이 필요하다.
-
-		String taskPriorityDefineCode = "";
-		CICScheduleTypeLoader scheduleLoader = new CICScheduleTypeLoader();
-		CICScheduleType mSchedule;
-
-		Task parentTask = null;
-		Task task = null;
-
-		for (Task ta : mTask.values()) {
-			for (Task t : mTask.values()) {
-				if (t.getName().equals(ta.getParentTask())) {
-					parentTask = t;
-					task = ta;
-					break;
-				}
-			}
-			break;
-		}
-
-		List<String> modeList = new ArrayList<String>();
-		if (parentTask.getMTM() != null)
-			modeList = parentTask.getMTM().getModes();
-		else
-			modeList.add("Default");
-
-		for (String mode : modeList) {
-			ArrayList<String> history = new ArrayList<String>();
-			try {
-				ArrayList<File> schedFileList = new ArrayList<File>();
-				File file = new File(outputPath);
-				File[] fileList = file.listFiles();
-				for (File f : fileList) {
-					if (f.getName().contains(task.getParentTask() + "_" + mode)
-							&& f.getName().endsWith("_schedule.xml")) {
-						schedFileList.add(f);
-					}
-				}
-				if (schedFileList.size() <= 0) {
-					JOptionPane.showMessageDialog(null, "You should execute 'Analysis' before build!");
-					System.exit(-1);
-				}
-
-				for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
-					// 첫번째 스케줄만 저장하도록 가정
-					mSchedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
-
-					TaskGroupsType taskGroups = mSchedule.getTaskGroups();
-					List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
-					for (int i = 0; i < taskGroupList.size(); i++) {
-						List<ScheduleGroupType> scheduleGroup = taskGroupList.get(i).getScheduleGroup();
-						for (int j = 0; j < scheduleGroup.size(); j++) {
-							int taskPriority = 10;
-							List<ScheduleElementType> schedules = scheduleGroup.get(j).getScheduleElement();
-							for (int k = 0; k < schedules.size(); k++) {
-								ScheduleElementType schedule = schedules.get(k);
-								String taskName = schedule.getTask().getName();
-								String taskId = "0";
-
-								for (Task t : mTask.values()) {
-									if (t.getName().equals(taskName)) {
-										taskId = t.getIndex();
-										break;
-									}
-								}
-								taskPriorityDefineCode += "{" + taskId + ", " + j + ", \"" + mode + "\", "
-										+ taskPriority + "},\n";
-								taskPriority++;
-							}
-						}
-
-					}
-				}
-			} catch (CICXMLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-
-		return taskPriorityDefineCode;
-	}
-
-	// public static String generateStaticSchedule(String outputPath,
-	// Map<String, Task> mTask){
-	// //현재 sadf 는 지원하지 않는다... sadf 지원하려면.. 지금꺼에서 mode도 입력이 되어야함.. mode 마다
-	// task_priority 가 다를테니깐....
-	// // 그래서 이부분의 수정이 필요하다.
-	//
-	// String taskPriorityDefineCode = "";
-	// CICScheduleTypeLoader scheduleLoader = new CICScheduleTypeLoader();
-	// CICScheduleType mSchedule;
-	//
-	// Task parentTask = null;
-	// Task task = null;
-	//
-	// for (Task ta : mTask.values()) {
-	// for (Task t : mTask.values()) {
-	// if (t.getName().equals(ta.getParentTask())) {
-	// parentTask = t;
-	// task = ta;
-	// break;
-	// }
-	// }
-	// System.out.println("......" + task.getName());
-	// break;
-	// }
-	//
-	//
-	// List<String> modeList = new ArrayList<String>();
-	// if(parentTask.getMTM() != null)
-	// modeList = parentTask.getMTM().getModes();
-	// else
-	// modeList.add("Default");
-	//
-	// for (String mode : modeList) {
-	// ArrayList<String> history = new ArrayList<String>();
-	// try {
-	// ArrayList<File> schedFileList = new ArrayList<File>();
-	// File file = new File(outputPath);
-	// File[] fileList = file.listFiles();
-	// for (File f : fileList) {
-	// if (f.getName().contains(task.getParentTask() + "_" + mode)
-	// && f.getName().endsWith("_schedule.xml")) {
-	// schedFileList.add(f);
-	// }
-	// }
-	// if (schedFileList.size() <= 0) {
-	// JOptionPane.showMessageDialog(null, "You should execute 'Analysis' before
-	// build!");
-	// System.exit(-1);
-	// }
-	//
-	// for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
-	// //첫번째 스케줄만 저장하도록 가정
-	// mSchedule =
-	// scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
-	//
-	// TaskGroupsType taskGroups = mSchedule.getTaskGroups();
-	// List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
-	// for(int i = 0; i < taskGroupList.size(); i++)
-	// {
-	// List<ScheduleGroupType> scheduleGroup =
-	// taskGroupList.get(i).getScheduleGroup();
-	// for(int j = 0; j < scheduleGroup.size(); j++)
-	// {
-	// List<ScheduleElementType> schedules =
-	// scheduleGroup.get(j).getScheduleElement();
-	// for(int k = 0; k < schedules.size(); k++)
-	// {
-	// ScheduleElementType schedule = schedules.get(k);
-	// String taskName = schedule.getTask().getName();
-	// String taskId = "0";
-	//
-	// for(Task t: mTask.values())
-	// {
-	// if(t.getName().equals(taskName)){
-	// taskId = t.getIndex();
-	// break;
-	// }
-	// }
-	// taskPriorityDefineCode += "{" + taskId + ", \"" + mode + "\", " +
-	// taskPriority +"},\n";
-	// //processor id, execution_index(0), max, {순서}
-	// }
-	// }
-	//
-	// }
-	// }
-	// } catch (CICXMLException e) {
-	// // TODO Auto-generated catch block
-	// e.printStackTrace();
-	// }
-	// }
-	//
-	// return taskPriorityDefineCode;
-	// }
 
 }
