@@ -575,7 +575,7 @@ public class Schedule {
 			}
 			code += tab + "\t\t\t}\n";
 			code += tab + "\t\t}\n";
-		} else { // getLoop == null �̶�� sdf
+		} else { // if (getLoop == null) -> sdf
 			tab += "\t";
 			if (sched.getTask().getRepetition() == null)
 				System.out.println(sched.getTask().getName());

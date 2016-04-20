@@ -114,27 +114,27 @@ public class CodeGenerator
 		mRootPath = rootpath;
 	}
 	
-	public void execute(){
-		// Parse XML files
-		System.out.print("Step #2 Parse XML ... ");
-		String cicxmlfile = parseXMLFile();
-		System.out.print("OK! (XML file: " + cicxmlfile + ".xml)\n");
-		
-		// Extended XML Generation
-		System.out.print("Step #3 Extending XML ... ");
-		//codeGenerator.extendXML();
-		System.out.print("OK!\n");
-		
-		// Make inner data structure
-		System.out.print("Step #4 Build inner data structures ... ");
-		makeInnerDataStructures();
-		System.out.print("OK!\n");
-		
-		// Target code generation
-		System.out.print("Step #5 Generate Target Code ... ");
-		String target = generateTargetCode();
-		if(target != null)	System.out.print("OK! (Target: " + target + ")\n");
-	}
+//	public void execute(){
+//		// Parse XML files
+//		System.out.print("Step #2 Parse XML ... ");
+//		String cicxmlfile = parseXMLFile();
+//		System.out.print("OK! (XML file: " + cicxmlfile + ".xml)\n");
+//		
+//		// Extended XML Generation
+//		System.out.print("Step #3 Extending XML ... ");
+//		//codeGenerator.extendXML();
+//		System.out.print("OK!\n");
+//		
+//		// Make inner data structure
+//		System.out.print("Step #4 Build inner data structures ... ");
+//		makeInnerDataStructures();
+//		System.out.print("OK!\n");
+//		
+//		// Target code generation
+//		System.out.print("Step #5 Generate Target Code ... ");
+//		String target = generateTargetCode();
+//		if(target != null)	System.out.print("OK! (Target: " + target + ")\n");
+//	}
 
 	public void parseArguments(String[] theArguments)
 	{
@@ -256,14 +256,13 @@ public class CodeGenerator
 			if(mGraphType.equals("DataFlow") || mGraphType.equals("Hybrid")){
 				mConnectedTaskGraph = builder.findConnectedTaskGraph(mTask);
 				mConnectedSDFTaskSet = new HashMap<Integer, List<List<Task>>>();
-				//System.out.println(mConnectedTaskGraph);
+				
 				for(int i=0; i<mConnectedTaskGraph.size(); i++){
 					List<Task> connected_task_graph = mConnectedTaskGraph.get(i);
 					List<List<Task>> taskSet = null;
 					taskSet = builder.findSDFTaskSet(mTask, connected_task_graph);
 					mConnectedSDFTaskSet.put(i, taskSet);
 				}
-				//System.out.println(mConnectedSDFTaskSet);
 				
 				// Make virtual tasks for top-level sdf graphs
 				mVTask = builder.modifyTaskStructure(mTask, mQueue, mConnectedSDFTaskSet, mAlgorithm.getProperty(), mGlobalPeriod, mGlobalPeriodMetric);

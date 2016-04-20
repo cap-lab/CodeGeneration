@@ -254,14 +254,23 @@ public class CIC {
 			taskiterinfo += "\t{\"__temp__\", {0, 0}, 0},\n";
 		}
 
-		List<String> modeList = task.getMTM().getModes();
+		//hshong: 2016/04/20
+		List<String> modeList = new ArrayList<String>();
+		if (task.getMTM() != null)
+			modeList = task.getMTM().getModes();
+		else
+			modeList.add("Default");
+		
 		for (int i = 0; i < modeList.size(); i++) {
 			String mode = modeList.get(i);
 			modeMap += "\t{" + i + ", \"" + mode + "\"},\n";
 		}
 
 		transitionVarInit += "\t";
-		List<Variable> varList = task.getMTM().getVariables();
+		//hshong: 2016/04/20
+		List<Variable> varList = new ArrayList<Variable>();
+		if (task.getMTM() != null)
+			varList = task.getMTM().getVariables();
 		for (int i = 0; i < varList.size(); i++) {
 			Variable var = varList.get(i);
 			String type = var.getType();
@@ -284,7 +293,11 @@ public class CIC {
 		}
 
 		transition += "\tswitch(current_mode){\n";
-		List<Transition> transList = task.getMTM().getTransitions();
+		//hshong: 2016/04/20
+		List<Transition> transList = new ArrayList<Transition>();
+		if (task.getMTM() != null)
+			transList = task.getMTM().getTransitions();
+		
 		String t = "";
 		for (int i = 0; i < modeList.size(); i++) {
 			String mode = modeList.get(i);
@@ -446,7 +459,7 @@ public class CIC {
 				if (!task.getName().equals(task.getParentTask())) {
 					for (Task t : mTask.values()) {
 						if (task.getParentTask().equals(t.getName())) {
-							//�θ� �½�ũ�� task �ȿ� �ִ� child task�� ���
+							//占싸몌옙 占승쏙옙크占쏙옙 task 占싫울옙 占쌍댐옙 child task占쏙옙 占쏙옙占�
 							isChildTask = "CIC_V_TRUE";
 							parentTaskId = Integer.parseInt(t.getIndex());
 							isParentVirtual = "CIC_V_FALSE"; 
@@ -455,7 +468,7 @@ public class CIC {
 					}
 					for (Task t : mVTask.values()) {
 						if (task.getParentTask().equals(t.getName())) {
-							//�θ� �½�ũ�� vtask �ȿ� �ִ� task�� ���
+							//占싸몌옙 占승쏙옙크占쏙옙 vtask 占싫울옙 占쌍댐옙 task占쏙옙 占쏙옙占�
 							isChildTask = "CIC_V_TRUE";
 							parentTaskId = Integer.parseInt(t.getIndex());
 							isParentVirtual = "CIC_V_TRUE"; 
@@ -463,13 +476,13 @@ public class CIC {
 						}
 					}
 				} else {
-					//flat�� �½�ũ�� �� �ϳ��� �½�ũ�� ���; ���� �Ϲ����� ���
+					//flat占쏙옙 占승쏙옙크占쏙옙 占쏙옙 占싹놂옙占쏙옙 占승쏙옙크占쏙옙 占쏙옙占�; 占쏙옙占쏙옙 占싹뱄옙占쏙옙占쏙옙 占쏙옙占�
 					isChildTask = "CIC_V_FALSE";
 					parentTaskId = index;
 					isParentVirtual = "CIC_V_FALSE"; 
 				}
 			} else {
-				//���� �θ� �½�ũ�� ���
+				//占쏙옙占쏙옙 占싸몌옙 占승쏙옙크占쏙옙 占쏙옙占�
 				isChildTask = "CIC_V_FALSE";
 				parentTaskId = index;
 				isParentVirtual = "CIC_V_FALSE"; 
@@ -574,7 +587,7 @@ public class CIC {
 				hasSubgraph = "CIC_V_FALSE";
 
 			// hs: need to check!! 
-			// -1�� ������ ����... 
+			// -1占쏙옙 占쏙옙占쏙옙占쏙옙 占쏙옙占쏙옙... 
 			String isChildTask = "CIC_V_FALSE";
 			int parentTaskId = -1;
 			String isParentVirtual = "CIC_V_FALSE";
@@ -928,7 +941,7 @@ public class CIC {
 	}
 
 	// hs: need to check!!
-	// �� mOutputPath, mTranslatorPath �� ���µ� �Ѱ��ִ� ������ �̷��� �����ɱ�??? 
+	// 占쏙옙 mOutputPath, mTranslatorPath 占쏙옙 占쏙옙占승듸옙 占싼곤옙占쌍댐옙 占쏙옙占쏙옙占쏙옙 占싱뤄옙占쏙옙 占쏙옙占쏙옙占심깍옙??? 
 	public static void generateCommonCode(String mOutputPath, String mTranslatorPath,
 			Map<String, Task> mTask, Map<Integer, Queue> mQueue, Map<String, Library> mLibrary, 
 			CICAlgorithmType mAlgorithm, CICControlType mControl) {

@@ -129,7 +129,7 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 					templateFile = mTranslatorPath + "templates/common/common_template/task_code_template.c";
 				CommonLibraries.CIC.generateTaskCode(fileOut, templateFile, t, mAlgorithm, mControl);
 			}
-		}
+		}		
 
 		// generate mtm files from xml files
 		for (Task t : mTask.values()) {
@@ -139,7 +139,18 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 						mRuntimeExecutionPolicy, mCodeGenerationStyle);
 			}
 		}
-
+		//hshong: 2016/04/20
+		//generate mtm files when this graph is SDF
+		for (Task vt : mVTask.values()) {
+			templateFile = mTranslatorPath + "templates/common/mtm_template/thread_per_processor.template";
+			CommonLibraries.CIC.generateMTMFile(mOutputPath, templateFile, vt, mAlgorithm, mTask, mPVTask, mQueue,
+					mRuntimeExecutionPolicy, mCodeGenerationStyle);
+			
+			fileOut = mOutputPath + vt.getName() + srcExtension;
+			templateFile = mTranslatorPath + "templates/common/common_template/task_mtm_code_template.c";
+			CommonLibraries.CIC.generateTaskMTMCode(fileOut, templateFile, vt, mAlgorithm);
+		}
+		
 		// generate library files
 		if (mLibrary != null) {
 			for (Library l : mLibrary.values())
@@ -563,6 +574,10 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 			outstream.write("all: proc\n\n".getBytes());
 
 			outstream.write("proc:".getBytes());
+			//hshong
+			for (Task vTask : mVTask.values())
+				outstream.write((" " + vTask.getName() + ".o").getBytes());
+			
 			for (Task task : mTask.values())
 				outstream.write((" " + task.getName() + ".o").getBytes());
 
@@ -588,6 +603,16 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 			outstream.write("\n".getBytes());
 			outstream.write(("\t$(CC) $(CFLAGS) -c proc" + srcExtension + " -o proc.o\n\n").getBytes());
 
+			//hshong: 2016/04/20
+			for (Task vTask : mVTask.values()) {
+				outstream.write((vTask.getName() + ".o: " + vTask.getName() + srcExtension + " " + " ").getBytes());
+				
+				outstream.write("\n".getBytes());
+				outstream.write(("\t$(CC) $(CFLAGS) " + vTask.getCflag() + " -c " + vTask.getName() + srcExtension
+						+ " -o " + vTask.getName() + ".o\n\n").getBytes());
+
+			}
+			
 			for (Task task : mTask.values()) {
 				if (task.getCICFile().endsWith(".cic"))
 					outstream.write(
