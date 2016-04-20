@@ -446,7 +446,7 @@ public class CIC {
 				if (!task.getName().equals(task.getParentTask())) {
 					for (Task t : mTask.values()) {
 						if (task.getParentTask().equals(t.getName())) {
-							//ºÎ¸ð ÅÂ½ºÅ©°¡ task ¾È¿¡ ÀÖ´Â child taskÀÎ °æ¿ì
+							//ï¿½Î¸ï¿½ ï¿½Â½ï¿½Å©ï¿½ï¿½ task ï¿½È¿ï¿½ ï¿½Ö´ï¿½ child taskï¿½ï¿½ ï¿½ï¿½ï¿½
 							isChildTask = "CIC_V_TRUE";
 							parentTaskId = Integer.parseInt(t.getIndex());
 							isParentVirtual = "CIC_V_FALSE"; 
@@ -455,7 +455,7 @@ public class CIC {
 					}
 					for (Task t : mVTask.values()) {
 						if (task.getParentTask().equals(t.getName())) {
-							//ºÎ¸ð ÅÂ½ºÅ©°¡ vtask ¾È¿¡ ÀÖ´Â taskÀÎ °æ¿ì
+							//ï¿½Î¸ï¿½ ï¿½Â½ï¿½Å©ï¿½ï¿½ vtask ï¿½È¿ï¿½ ï¿½Ö´ï¿½ taskï¿½ï¿½ ï¿½ï¿½ï¿½
 							isChildTask = "CIC_V_TRUE";
 							parentTaskId = Integer.parseInt(t.getIndex());
 							isParentVirtual = "CIC_V_TRUE"; 
@@ -463,13 +463,13 @@ public class CIC {
 						}
 					}
 				} else {
-					//flatÇÑ ÅÂ½ºÅ©µé Áß ÇÏ³ªÀÇ ÅÂ½ºÅ©ÀÎ °æ¿ì; °¡Àå ÀÏ¹ÝÀûÀÎ °æ¿ì
+					//flatï¿½ï¿½ ï¿½Â½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½Â½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ï¿½; ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 					isChildTask = "CIC_V_FALSE";
 					parentTaskId = index;
 					isParentVirtual = "CIC_V_FALSE"; 
 				}
 			} else {
-				//³»°¡ ºÎ¸ð ÅÂ½ºÅ©ÀÎ °æ¿ì
+				//ï¿½ï¿½ï¿½ï¿½ ï¿½Î¸ï¿½ ï¿½Â½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ï¿½
 				isChildTask = "CIC_V_FALSE";
 				parentTaskId = index;
 				isParentVirtual = "CIC_V_FALSE"; 
@@ -574,7 +574,7 @@ public class CIC {
 				hasSubgraph = "CIC_V_FALSE";
 
 			// hs: need to check!! 
-			// -1À» ³ÀµÑÁö ¸»Áö... 
+			// -1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½... 
 			String isChildTask = "CIC_V_FALSE";
 			int parentTaskId = -1;
 			String isParentVirtual = "CIC_V_FALSE";
@@ -717,8 +717,9 @@ public class CIC {
 			index++;
 		}
 
-		if (index == 0)
-			mtmEntriesCode += "\t{0, CIC_V_FALSE, CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE}\n";
+		// removed by jhw (need to support zero entry compile)
+		//if (index == 0)
+		//	mtmEntriesCode += "\t{0, CIC_V_FALSE, CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE}\n";
 
 		code = code.replace("##EXTERN_TASK_FUNCTION_DECLARATION", externalFunctions);
 		code = code.replace("##TASK_ENTRIES", taskEntriesCode);
@@ -927,7 +928,7 @@ public class CIC {
 	}
 
 	// hs: need to check!!
-	// ¿Ö mOutputPath, mTranslatorPath ¸¸ ¾²´Âµ¥ ³Ñ°ÜÁÖ´Â º¯¼ö°¡ ÀÌ·¸°Ô ¸¹Àº°É±î??? 
+	// ï¿½ï¿½ mOutputPath, mTranslatorPath ï¿½ï¿½ ï¿½ï¿½ï¿½Âµï¿½ ï¿½Ñ°ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½É±ï¿½??? 
 	public static void generateCommonCode(String mOutputPath, String mTranslatorPath,
 			Map<String, Task> mTask, Map<Integer, Queue> mQueue, Map<String, Library> mLibrary, 
 			CICAlgorithmType mAlgorithm, CICControlType mControl) {
