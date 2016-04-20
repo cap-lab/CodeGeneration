@@ -62,7 +62,7 @@ public class CodeGenerator
 	private int mTotalControlQueue;
 	
 	private String mGraphType;
-	// hs: need to delete before release: Å¸°Ù¸¶´Ù ¾Ë¾Æ¼­ ÇÒ ¿¹Á¤ 
+	// hs: need to delete before release: Å¸ï¿½Ù¸ï¿½ï¿½ï¿½ ï¿½Ë¾Æ¼ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 //	private String mThreadVer;
 	private String mRuntimeExecutionPolicy;
 	private String mCodeGenerationStyle;
@@ -102,7 +102,7 @@ public class CodeGenerator
 		mGraphType = "ProcessNetwork";	// DataFlow, ProcessNetwork, Hybrid
 		// hs: need to fix before release
 //		mThreadVer = "m";	// s: single thread, m: multi thread		
-		mRuntimeExecutionPolicy = "t";	//¿¹Àü style: a: thread per app, t: thread per task, p: thread per proc
+		mRuntimeExecutionPolicy = "t";	//ï¿½ï¿½ï¿½ï¿½ style: a: thread per app, t: thread per task, p: thread per proc
 		mCodeGenerationStyle = "f"; 
 		mLanguage = "c";
 	}
@@ -157,9 +157,14 @@ public class CodeGenerator
 			mCICXMLFile = mArguments[1];
 			mOutputPath = mArguments[2];
 			mRootPath = mArguments[3];
-			
-			mTranslatorPath = mTranslatorPath + "\\";
-			mOutputPath = mOutputPath + "\\";
+			if (System.getProperty("os.name").contains("Windows")){
+				mTranslatorPath = mTranslatorPath + "\\";
+				mOutputPath = mOutputPath + "\\";
+			}
+			else{
+				mTranslatorPath = mTranslatorPath + "/";
+				mOutputPath = mOutputPath + "/";
+			}
 		}
 	}
 
@@ -190,7 +195,7 @@ public class CodeGenerator
 			f = new File(mCICXMLFile + "_gpusetup.xml");
 			if(f.exists())	mGpusetup = gpusetupLoader.loadResource(mCICXMLFile + "_gpusetup.xml");
 			f = new File("_schedule.xml");
-			// ¾îÂ÷ÇÇ convertedSDF3xml ÆÄÀÏ ³»¿¡ ÀÖ´Â ÆÄÀÏÀÌ¸§ÀÌ¶û ¾È ¸Â¾Æ¼­ ¿©±ä ¹«Á¶°Ç ¾È µé¾î°¡¼­  mSchedule Àº Ç×»ó null ¾Æ´Ñ°¡?
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ convertedSDF3xml ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ï¿½Ì¶ï¿½ ï¿½ï¿½ ï¿½Â¾Æ¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½î°¡ï¿½ï¿½  mSchedule ï¿½ï¿½ ï¿½×»ï¿½ null ï¿½Æ´Ñ°ï¿½?
 			if(f.exists())	mSchedule = scheduleLoader.loadResource(mCICXMLFile + "_schedule.xml");
 		} catch (CICXMLException e) {
 			e.printStackTrace();
@@ -302,7 +307,7 @@ public class CodeGenerator
 			mTotalControlQueue = builder.setControlQueueIndex(mTask, mProcessor);
 		}
 		
-		// DeviceIO´Â ÇöÀç ±¸ÇöÇÏÁö ¾ÊÀº »óÅÂ - È£±ÙÀÌ¿Í ³íÀÇÈÄ °áÁ¤
+		// DeviceIOï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - È£ï¿½ï¿½ï¿½Ì¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		
 		if(mAlgorithm.getLibraries() != null)	
 			mLibrary = builder.fillLibraryMapping(mAlgorithm, mMapping, mProcessor, mTask, mCICXMLFile, mOutputPath);

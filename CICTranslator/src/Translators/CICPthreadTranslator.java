@@ -524,10 +524,10 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 			mRootPath = mRootPath.replace("F:", "/cygdrive/F");
 			mRootPath = mRootPath.replace("G:", "/cygdrive/G");
 
+			if (System.getProperty("os.name").contains("Windows"))
 			{
 				outstream.write("# -- For Win32 & Debug --\n".getBytes());
-				outstream
-						.write("#CFLAGS=-Wall -O0 -DDISPLAY -DWATCH_DEBUG -DBREAK_DEBUG -DRESUME -DWIN32\n".getBytes());
+				outstream.write("#CFLAGS=-Wall -O0 -DDISPLAY -DWATCH_DEBUG -DBREAK_DEBUG -DRESUME -DWIN32\n".getBytes());
 				outstream.write("# -- For Win32 & !Debug --\n".getBytes());
 				outstream.write("CFLAGS=-O2 -DDISPLAY -DWATCH_DEBUG -DBREAK_DEBUG -DRESUME -DWIN32\n".getBytes());
 				outstream.write("# -- For Linux & Debug --\n".getBytes());
@@ -538,6 +538,20 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 				outstream.write("LDFLAGS= -lpthread -lm -lx11 -lXau -lws2_32\n".getBytes());
 				outstream.write("# -- For Linux --\n".getBytes());
 				outstream.write("#LDFLAGS= -lpthread -lm -lX11\n\n".getBytes());
+			}
+			else{
+				outstream.write("# -- For Win32 & Debug --\n".getBytes());
+				outstream.write("#CFLAGS=-Wall -O0 -DDISPLAY -DWATCH_DEBUG -DBREAK_DEBUG -DRESUME -DWIN32\n".getBytes());
+				outstream.write("# -- For Win32 & !Debug --\n".getBytes());
+				outstream.write("#CFLAGS=-O2 -DDISPLAY -DWATCH_DEBUG -DBREAK_DEBUG -DRESUME -DWIN32\n".getBytes());
+				outstream.write("# -- For Linux & Debug --\n".getBytes());
+				outstream.write("#CFLAGS=-Wall -O0 -DDISPLAY\n".getBytes());
+				outstream.write("# -- For Linux & !Debug --\n".getBytes());
+				outstream.write("CFLAGS=-O2 -DDISPLAY\n".getBytes());
+				outstream.write("# -- For Win32 --\n".getBytes());
+				outstream.write("#LDFLAGS= -lpthread -lm -lx11 -lXau -lws2_32\n".getBytes());
+				outstream.write("# -- For Linux --\n".getBytes());
+				outstream.write("LDFLAGS= -lpthread -lm -lX11\n\n".getBytes());
 			}
 
 			if (ldFlagList.values().size() > 0)

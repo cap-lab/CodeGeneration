@@ -575,7 +575,7 @@ public class Schedule {
 			}
 			code += tab + "\t\t\t}\n";
 			code += tab + "\t\t}\n";
-		} else { // getLoop == null ÀÌ¶ó¸é sdf
+		} else { // getLoop == null ï¿½Ì¶ï¿½ï¿½ sdf
 			tab += "\t";
 			if (sched.getTask().getRepetition() == null)
 				System.out.println(sched.getTask().getName());
@@ -599,7 +599,7 @@ public class Schedule {
 
 					code += tab + task.getName() + "_Go();\n";
 					if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) {
-						// ´ÜÀ§: us
+						// ï¿½ï¿½ï¿½ï¿½: us
 						code += tab + "while(1){\n" 
 								+ tab + "\tclock_gettime(CLOCK_MONOTONIC, &end);\n" 
 								+ tab + "\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
@@ -614,8 +614,8 @@ public class Schedule {
 				}
 				go_skip = false;
 			} else {
-				// ÀÌºÎºÐ¿¡ fully-static : need to check
-				// ÀÌºÎºÐ¿¡ RuntimeExecutionPolicy_StaticAssign : need to check
+				// ï¿½ÌºÎºÐ¿ï¿½ fully-static : need to check
+				// ï¿½ÌºÎºÐ¿ï¿½ RuntimeExecutionPolicy_StaticAssign : need to check
 				TaskInstanceType task = sched.getTask();
 				int count = sched.getTask().getRepetition().intValue();
 				code += tab + "\t{\n";
@@ -628,7 +628,7 @@ public class Schedule {
 					}
 					code += tab + "\t\t\t\t" + task.getName() + "_Go();\n";
 					if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) {
-						// ´ÜÀ§: us
+						// ï¿½ï¿½ï¿½ï¿½: us
 						code += tab + "while(1){\n" + tab + "\tclock_gettime(CLOCK_MONOTONIC, &end);\n" + tab
 								+ "\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
 								+ tab + "\tif(GetWorstCaseExecutionTimeFromTaskIdAndModeName("
@@ -641,7 +641,7 @@ public class Schedule {
 					}
 					code += tab + "\t\t\t" + task.getName() + "_Go();\n";
 					if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) {
-						// ´ÜÀ§: us
+						// ï¿½ï¿½ï¿½ï¿½: us
 						code += tab + "while(1){\n" + tab + "\tclock_gettime(CLOCK_MONOTONIC, &end);\n" + tab
 								+ "\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
 								+ tab + "\tif(GetWorstCaseExecutionTimeFromTaskIdAndModeName("
@@ -676,7 +676,7 @@ public class Schedule {
 			}
 			code += tab + "\t\t\t}\n";
 			code += tab + "\t\t}\n";
-		} else { // getLoop == null ÀÌ¶ó¸é sdf
+		} else { // getLoop == null ï¿½Ì¶ï¿½ï¿½ sdf
 			tab += "\t";
 			if (sched.getTask().getRepetition() == null)
 				System.out.println(sched.getTask().getName());
@@ -687,7 +687,7 @@ public class Schedule {
 				}
 				go_skip = false;
 			} else {
-				// ÀÌºÎºÐ¿¡ fully-static ÇØÁà¾ßÇÔ
+				// ï¿½ÌºÎºÐ¿ï¿½ fully-static ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				TaskInstanceType task = sched.getTask();
 				int count = sched.getTask().getRepetition().intValue();
 				code += tab + "\t{\n";
@@ -847,12 +847,16 @@ public class Schedule {
 					try {
 						go_skip = false;
 						staticScheduleCode += ("CIC_T_VOID " + task.getName() + "_Go(){\n");
-						if (!Util.fileIsLive(outputPath + "\\" + task.getName() + "_" + "Default_1_schedule.xml")) {
+						
+						String split = "";
+						if (System.getProperty("os.name").contains("Windows"))	split = "\\";
+						else													split = "/";
+						
+						if (!Util.fileIsLive(outputPath + split + task.getName() + "_" + "Default_1_schedule.xml")) {
 							JOptionPane.showMessageDialog(null, "You should execute 'Analysis' before build!");
 							System.exit(-1);
 						}
-						schedule = scheduleLoader
-								.loadResource(outputPath + "\\" + task.getName() + "_" + "Default_1_schedule.xml");
+						schedule = scheduleLoader.loadResource(outputPath + split + task.getName() + "_" + "Default_1_schedule.xml");
 						TaskGroupsType taskGroups = schedule.getTaskGroups();
 						List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
 						for (int i = 0; i < taskGroupList.size(); i++) {
@@ -1207,7 +1211,7 @@ public class Schedule {
 				}
 
 				for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
-					// Ã¹¹øÂ° ½ºÄÉÁÙ¸¸ ÀúÀåÇÏµµ·Ï °¡Á¤
+					// Ã¹ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					schedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
 
 					TaskGroupsType taskGroups = schedule.getTaskGroups();
@@ -1291,14 +1295,14 @@ public class Schedule {
 		}
 		// Current assumption: A source task should be mapped on to the same
 		// processor for all modes
-		boolean isSrcTask = false; // sadf¿¡¼­´Â SrcTask°¡ 1°³¶ó°í °¡Á¤
+		boolean isSrcTask = false; // sadfï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ SrcTaskï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		String srcGoCode = "";
 		for (String mode : modeList) {
 			try {
 				ArrayList<File> schedFileList = getSchedFileList(outputPath, task, mode);
 
 				for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
-					// Ã¹¹øÂ° ½ºÄÉÁÙ¸¸ ÀúÀåÇÏµµ·Ï °¡Á¤
+					// Ã¹ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					schedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
 					int num_proc = schedule.getTaskGroups().getTaskGroup().get(0).getScheduleGroup().size();
 
@@ -1365,7 +1369,7 @@ public class Schedule {
 
 				ArrayList<File> schedFileList = getSchedFileList(outputPath, task, mode);
 
-				// Ã¹¹øÂ° ½ºÄÉÁÙ¸¸ ÀúÀåÇÏµµ·Ï °¡Á¤
+				// Ã¹ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				schedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
 				TaskGroupsType taskGroups = schedule.getTaskGroups();
 				List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
@@ -1409,7 +1413,7 @@ public class Schedule {
 		try {				
 			ArrayList<File> schedFileList = getSchedFileList(outputPath, task, mode); 
 			
-			//Ã¹¹øÂ° ½ºÄÉÁÙ¸¸ ÀúÀåÇÏµµ·Ï °¡Á¤ 
+			//Ã¹ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 			schedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
 			TaskGroupsType taskGroups = schedule.getTaskGroups();
 			List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
@@ -1531,8 +1535,8 @@ public class Schedule {
 					+ "\t}\n\n";
 		}
 
-		if (modeList.size() > 1) // RuntimeExecutionPolicy_StaticAssign ´Â ¾ÆÁ÷
-									// Áö¿ø¾ÈÇÔ
+		if (modeList.size() > 1) // RuntimeExecutionPolicy_StaticAssign ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+									// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			code += generateSADFGocode(outputPath, mTask, scheduleLoader, modeList, task, mRuntimeExecutionPolicy);
 		else
 			code += generateSDFGocode(outputPath, mTask, scheduleLoader,
@@ -1589,7 +1593,7 @@ public class Schedule {
 				}
 
 				for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
-					// Ã¹¹øÂ° ½ºÄÉÁÙ¸¸ ÀúÀåÇÏµµ·Ï °¡Á¤
+					// Ã¹ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					schedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
 
 					TaskGroupsType taskGroups = schedule.getTaskGroups();
