@@ -108,7 +108,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		Util.copyFile(mOutputPath + "includes.h",
 				mTranslatorPath + "templates/common/common_template/includes.h.linux");
 		
-		//hshong: CASES ½ÇÇè À§ÇØ Ãß°¡
+		//hshong: CASES ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 		Util.copyFile(mOutputPath + "rdtsc.h",
 				mTranslatorPath + "templates/target/Multicore/time_cycle.h.template");
 
@@ -138,7 +138,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		}
 
 		// generate mtm files from xml files
-		// ¿©±ä ¾ÆÁ÷ Á¦´ë·Î °ËÅäÇÏÁö ¾Ê¾ÒÀ½... .mtm ÆÄÀÏÀÌ ¾î¶»°Ô µÇ´ÂÁö´Â ¾ÆÁ÷ ÆÄ¾ÇÇÏÁö ¸øÇß±â ¶§¹®
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½... .mtm ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½î¶»ï¿½ï¿½ ï¿½Ç´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ä¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ï¿½
 		for (Task t : mTask.values()) {
 			if (t.getHasMTM().equalsIgnoreCase("Yes")) {
 				if (mRuntimeExecutionPolicy.equals("Global") 
@@ -340,14 +340,14 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		int taskIndex = 0; 
 		for(Task task: mTask.values())
 		{			
-			//´ÜÀ§: us, cycle, ms Áß¿¡ us, ms¸¸ Ã³¸®
+			//ï¿½ï¿½ï¿½ï¿½: us, cycle, ms ï¿½ß¿ï¿½ us, msï¿½ï¿½ Ã³ï¿½ï¿½
 			if(task.getHasSubgraph().equalsIgnoreCase("No")){
 				Map<String, Integer> time_per_mode = new HashMap<String, Integer>();
 				Map<String, String> timeunit_per_mode = new HashMap<String, String>();
 				time_per_mode = task.getExecutionTimeValue();
 				timeunit_per_mode = task.getExecutionTimeMetric();
 				
-				//´ÜÀ§¸¦ us·Î ¹Ù²ã¼­ ³Ö¾îÁÜ 
+				//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ usï¿½ï¿½ ï¿½Ù²ã¼­ ï¿½Ö¾ï¿½ï¿½ï¿½ 
 				Iterator<String> modes = time_per_mode.keySet().iterator();
 				Iterator<String> modes2 = timeunit_per_mode.keySet().iterator();
 				while(modes.hasNext() && modes2.hasNext())
@@ -375,8 +375,8 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 	}
 	
 	public String generateTaskToPriority(){
-		//ÇöÀç sadf ´Â Áö¿øÇÏÁö ¾Ê´Â´Ù...  sadf Áö¿øÇÏ·Á¸é.. Áö±Ý²¨¿¡¼­ modeµµ ÀÔ·ÂÀÌ µÇ¾î¾ßÇÔ.. mode ¸¶´Ù task_priority °¡ ´Ù¸¦Å×´Ï±ñ.... 
-		// ±×·¡¼­ ÀÌºÎºÐÀÇ ¼öÁ¤ÀÌ ÇÊ¿äÇÏ´Ù.
+		//ï¿½ï¿½ï¿½ï¿½ sadf ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½...  sadf ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½.. ï¿½ï¿½ï¿½Ý²ï¿½ï¿½ï¿½ï¿½ï¿½ modeï¿½ï¿½ ï¿½Ô·ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½.. mode ï¿½ï¿½ï¿½ï¿½ task_priority ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½×´Ï±ï¿½.... 
+		// ï¿½×·ï¿½ï¿½ï¿½ ï¿½ÌºÎºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½Ï´ï¿½.
 		String code = "";
 		
 		code += "\nCIC_TYPEDEF CIC_T_STRUCT{\n" 
@@ -397,9 +397,9 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 	}
 	
 	public String generateTaskPriorityDefineCode(String outputPath, Map<String, Task> mTask) {
-		// ÇöÀç sadf ´Â Áö¿øÇÏÁö ¾Ê´Â´Ù... sadf Áö¿øÇÏ·Á¸é.. Áö±Ý²¨¿¡¼­ modeµµ ÀÔ·ÂÀÌ µÇ¾î¾ßÇÔ.. mode ¸¶´Ù
-		// task_priority °¡ ´Ù¸¦Å×´Ï±ñ....
-		// ±×·¡¼­ ÀÌºÎºÐÀÇ ¼öÁ¤ÀÌ ÇÊ¿äÇÏ´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ sadf ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½... sadf ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½.. ï¿½ï¿½ï¿½Ý²ï¿½ï¿½ï¿½ï¿½ï¿½ modeï¿½ï¿½ ï¿½Ô·ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½.. mode ï¿½ï¿½ï¿½ï¿½
+		// task_priority ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½×´Ï±ï¿½....
+		// ï¿½×·ï¿½ï¿½ï¿½ ï¿½ÌºÎºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½Ï´ï¿½.
 
 		String taskPriorityDefineCode = "";
 		CICScheduleTypeLoader scheduleLoader = new CICScheduleTypeLoader();
@@ -454,7 +454,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 					}
 
 					for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
-						// Ã¹¹øÂ° ½ºÄÉÁÙ¸¸ ÀúÀåÇÏµµ·Ï °¡Á¤
+						// Ã¹ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 						mSchedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
 
 						TaskGroupsType taskGroups = mSchedule.getTaskGroups();
@@ -494,8 +494,8 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 	}
 	
 	public String generateSchedule(){
-		//ÇöÀç sadf ´Â Áö¿øÇÏÁö ¾Ê´Â´Ù...  sadf Áö¿øÇÏ·Á¸é.. Áö±Ý²¨¿¡¼­ modeµµ ÀÔ·ÂÀÌ µÇ¾î¾ßÇÔ.. mode ¸¶´Ù task_priority °¡ ´Ù¸¦Å×´Ï±ñ.... 
-		// ±×·¡¼­ ÀÌºÎºÐÀÇ ¼öÁ¤ÀÌ ÇÊ¿äÇÏ´Ù.
+		//ï¿½ï¿½ï¿½ï¿½ sadf ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½...  sadf ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½.. ï¿½ï¿½ï¿½Ý²ï¿½ï¿½ï¿½ï¿½ï¿½ modeï¿½ï¿½ ï¿½Ô·ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½.. mode ï¿½ï¿½ï¿½ï¿½ task_priority ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½×´Ï±ï¿½.... 
+		// ï¿½×·ï¿½ï¿½ï¿½ ï¿½ÌºÎºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½Ï´ï¿½.
 		String code = "";
 		String outPath = mOutputPath + "/convertedSDF3xml/";		
 				
@@ -505,8 +505,8 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 	}
 	
 	private String generateStaticSchedule(String outputPath, Map<String, Task> mTask){
-		//ÇöÀç sadf ´Â Áö¿øÇÏÁö ¾Ê´Â´Ù...  sadf Áö¿øÇÏ·Á¸é.. Áö±Ý²¨¿¡¼­ modeµµ ÀÔ·ÂÀÌ µÇ¾î¾ßÇÔ.. mode ¸¶´Ù task_priority °¡ ´Ù¸¦Å×´Ï±ñ.... 
-		// ±×·¡¼­ ÀÌºÎºÐÀÇ ¼öÁ¤ÀÌ ÇÊ¿äÇÏ´Ù.
+		//ï¿½ï¿½ï¿½ï¿½ sadf ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½...  sadf ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½.. ï¿½ï¿½ï¿½Ý²ï¿½ï¿½ï¿½ï¿½ï¿½ modeï¿½ï¿½ ï¿½Ô·ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½.. mode ï¿½ï¿½ï¿½ï¿½ task_priority ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½×´Ï±ï¿½.... 
+		// ï¿½×·ï¿½ï¿½ï¿½ ï¿½ÌºÎºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½Ï´ï¿½.
 		
 		String taskPriorityDefineCode = "";
 		CICScheduleTypeLoader scheduleLoader = new CICScheduleTypeLoader();
@@ -543,7 +543,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 			if(parentTask.getMTM() != null)
 				modeList = parentTask.getMTM().getModes();
 			else
-				modeList.add("Default");	// ÀÌ·² °æ¿ì ¾î¶»°Ô ÇØ¾ßÇÏÁö?? virutal task¿¡¼­ Ã£¾Æ¾ßÇÏ´À °Ç°¡?? 
+				modeList.add("Default");	// ï¿½Ì·ï¿½ ï¿½ï¿½ï¿½ ï¿½î¶»ï¿½ï¿½ ï¿½Ø¾ï¿½ï¿½ï¿½ï¿½ï¿½?? virutal taskï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Æ¾ï¿½ï¿½Ï´ï¿½ ï¿½Ç°ï¿½?? 
 			
 			
 			for (String mode : modeList) {
@@ -563,7 +563,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 					}
 					
 					for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
-						//Ã¹¹øÂ° ½ºÄÉÁÙ¸¸ ÀúÀåÇÏµµ·Ï °¡Á¤ 
+						//Ã¹ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 						mSchedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
 						
 						TaskGroupsType taskGroups = mSchedule.getTaskGroups();
@@ -575,7 +575,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 							{
 								List<ScheduleElementType> schedules = scheduleGroup.get(j).getScheduleElement();
 								
-								//max °³¼ö ¼¼±â
+								//max ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 								if(max_schedule_num_per_processor < schedules.size())
 									max_schedule_num_per_processor = schedules.size();							
 							}						
@@ -609,7 +609,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 			if(parentTask.getMTM() != null)
 				modeList = parentTask.getMTM().getModes();
 			else
-				modeList.add("Default");	// ÀÌ·² °æ¿ì ¾î¶»°Ô ÇØ¾ßÇÏÁö?? virutal task¿¡¼­ Ã£¾Æ¾ßÇÏ´À °Ç°¡?? 
+				modeList.add("Default");	// ï¿½Ì·ï¿½ ï¿½ï¿½ï¿½ ï¿½î¶»ï¿½ï¿½ ï¿½Ø¾ï¿½ï¿½ï¿½ï¿½ï¿½?? virutal taskï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Æ¾ï¿½ï¿½Ï´ï¿½ ï¿½Ç°ï¿½?? 
 			
 			for (String mode : modeList) {
 				try {
@@ -628,7 +628,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 					}
 									
 					for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
-						//Ã¹¹øÂ° ½ºÄÉÁÙ¸¸ ÀúÀåÇÏµµ·Ï °¡Á¤ 
+						//Ã¹ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 						mSchedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
 						
 						TaskGroupsType taskGroups = mSchedule.getTaskGroups();
@@ -656,7 +656,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 										}
 									}
 									taskPriorityDefineCode += taskId + ", ";
-									//processor id, execution_index(0), max, {¼ø¼­}
+									//processor id, execution_index(0), max, {ï¿½ï¿½}
 								}
 								
 								if(schedules.size() < max_schedule_num_per_processor){
@@ -692,7 +692,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 			for (String header : mAlgorithm.getHeaders().getHeaderFile())
 				externalGlobalHeaders += "#include\"" + header + "\"\n";
 		}
-		//hshong: CASES ½ÇÇè À§ÇØ Ãß°¡
+		//hshong: CASES ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 		externalGlobalHeaders += "#include \"rdtsc.h\"\n";
 		code = code.replace("##EXTERNAL_GLOBAL_HEADERS", externalGlobalHeaders);
 		////////////////////////////
@@ -728,14 +728,14 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		code = CommonLibraries.CIC.translateControlDataStructure(code, mTask, mControl);
 
 		// hs: need to fix before release
-//		// multi ¸¸ Áö¿øÇÏ±â·Î ÇØ¼­ ÇÊ¿ä¾øÀ½ 
+//		// multi ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ ï¿½Ø¼ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ï¿½ 
 //		if (mThreadVer.equals("Single")) {
 //			templateFile = mTranslatorPath + "templates/common/task_execution/single_thread_hybrid.template.not_used";
 //			// hs: need to fix before release
 ////		} else if (mThreadVer.equals("Multi")) {
 //		} else 
 		if (mThreadVer.equals("Multi")) {
-			//¾È¾²ÀÓ
+			//ï¿½È¾ï¿½ï¿½ï¿½
 //			if (mRuntimeExecutionPolicy.equals("Single"))
 //				templateFile = mTranslatorPath
 //						+ "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
@@ -748,7 +748,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 						+ "templates/common/task_execution/multi_thread_hybrid_thread_per_processor.template";
 			else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic))//("Fully-Static-Execution-Policy"))
 			{
-				//fully-staticÀº function call¸¸ Áö¿ø Áß
+				//fully-staticï¿½ï¿½ function callï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
 				templateFile = mTranslatorPath
 						+ "templates/common/task_execution/multi_thread_hybrid_fully_static_function_call.template";
 			}
@@ -788,7 +788,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		targetDependentImpl += generateTaskToCoreMap();
 		if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)/*"Fully-Static-Execution-Policy"*/)
 		{
-			//fully-staticÀº function call¸¸ Áö¿ø Áß
+			//fully-staticï¿½ï¿½ function callï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
 			targetDependentImpl += generateTaskToWCET();
 			targetDependentImpl += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##WORST_CASE_EXECUTION_TIME");
 			
@@ -828,8 +828,8 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 			}
 			else if(mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
 			{
-				//ÇöÀç sadf ´Â Áö¿øÇÏÁö ¾Ê´Â´Ù...  sadf Áö¿øÇÏ·Á¸é.. Áö±Ý²¨¿¡¼­ modeµµ ÀÔ·ÂÀÌ µÇ¾î¾ßÇÔ.. mode ¸¶´Ù task_priority °¡ ´Ù¸¦Å×´Ï±ñ.... 
-				// ±×·¡¼­ ÀÌºÎºÐÀÇ ¼öÁ¤ÀÌ ÇÊ¿äÇÏ´Ù.
+				//ï¿½ï¿½ï¿½ï¿½ sadf ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½...  sadf ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½.. ï¿½ï¿½ï¿½Ý²ï¿½ï¿½ï¿½ï¿½ï¿½ modeï¿½ï¿½ ï¿½Ô·ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½.. mode ï¿½ï¿½ï¿½ï¿½ task_priority ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½×´Ï±ï¿½.... 
+				// ï¿½×·ï¿½ï¿½ï¿½ ï¿½ÌºÎºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½Ï´ï¿½.
 				targetDependentImpl += generateTaskToPriority();
 				templateFile = mTranslatorPath + "templates/target/Multicore/target_dependent_code.template";
 				targetDependentImpl += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_TASK_PRIORITY_FROM_TASK_ID");
@@ -1253,7 +1253,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		targetDependentInit = "#if defined(WATCH_DEBUG) && (WATCH_DEBUG==1)\n" + "\tUpdateWatch();\n#endif\n"
 				+ "#if defined(BREAK_DEBUG) && (BREAK_DEBUG==1)\n" + "\tUpdateBreak();\n#endif\n";
 
-		//hshong: CASES ½ÇÇè À§ÇØ Ãß°¡
+		//hshong: CASES ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 		targetDependentInit += "unsigned long long a, b;\n"
 							+ "a = rdtsc();\n";
 		
@@ -1281,7 +1281,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 //			}
 //		}
 		
-		//hshong: CASES ½ÇÇè À§ÇØ Ãß°¡
+		//hshong: CASES ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 		targetDependentWrapup += "b = rdtsc();\n"
 								+ "printf(\"cycle\t%llu\\n\", b-a);\n";
 		
