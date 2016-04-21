@@ -576,7 +576,9 @@ public class CICXeonPhiTranslator implements CICTargetCodeTranslator {
 				g_index++;
 			}
 
-			int index = mCICXMLFile.lastIndexOf("\\");
+			int index = 0;
+			if (System.getProperty("os.name").contains("Windows")) index = mCICXMLFile.lastIndexOf("\\");
+			else												   index = mCICXMLFile.lastIndexOf("/");
 			String proj_name = mCICXMLFile.substring(index + 1);
 
 			File fileOut = new File(mOutputPath + proj_name + ".txt");
@@ -809,7 +811,9 @@ public class CICXeonPhiTranslator implements CICTargetCodeTranslator {
 				for (Library library : mLibrary.values())
 					outstream.write((" " + library.getName() + ".o").getBytes());
 
-			int index = mCICXMLFile.lastIndexOf("\\");
+			int index = 0;
+			if (System.getProperty("os.name").contains("Windows")) index = mCICXMLFile.lastIndexOf("\\");
+			else												   index = mCICXMLFile.lastIndexOf("/");
 			String proj_name = mCICXMLFile.substring(index + 1);
 
 			outstream.write(" proc.o\n".getBytes());
