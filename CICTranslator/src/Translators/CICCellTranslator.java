@@ -16,9 +16,8 @@ public class CICCellTranslator implements CICTargetCodeTranslator {
 	private String mOutputPath;
 	private String mRootPath;
 	private String mCICXMLFile;
-	private int mGlobalPeriod;
-	private String mGlobalPeriodMetric;
-	private String mThreadVer;
+	private int mFuncSimPeriod;
+	private String mFuncSimPeriodMetric;
 	private String mRuntimeExecutionPolicy;
 	private String mCodeGenerationStyle;
 	private String mLanguage;
@@ -63,8 +62,8 @@ public class CICCellTranslator implements CICTargetCodeTranslator {
 	@Override
 	public int generateCode(String target, String translatorPath, String outputPath, String rootPath,
 			Map<Integer, Processor> processor, Map<String, Task> task, Map<Integer, Queue> queue,
-			Map<String, Library> library, Map<String, Library> globalLibrary, int globalPeriod,
-			String globalPeriodMetric, String cicxmlfile, String language, CICAlgorithmType algorithm,
+			Map<String, Library> library, Map<String, Library> globalLibrary, int funcSimPeriod,
+			String funcSimPeriodMetric, String cicxmlfile, String language, CICAlgorithmType algorithm,
 			CICControlType control, CICScheduleType schedule, CICGPUSetupType gpusetup, CICMappingType mapping,
 			Map<Integer, List<Task>> connectedtaskgraph, Map<Integer, List<List<Task>>> connectedsdftaskset,
 			Map<String, Task> vtask, Map<String, Task> pvtask, String runtimeExecutionPolicy, String codeGenerationStyle)
@@ -74,9 +73,8 @@ public class CICCellTranslator implements CICTargetCodeTranslator {
 		mOutputPath = outputPath;
 		mRootPath = rootPath;
 		mCICXMLFile = cicxmlfile;
-		mGlobalPeriod = globalPeriod;
-		mGlobalPeriodMetric = globalPeriodMetric;
-		mThreadVer = "Multi";
+		mFuncSimPeriod = funcSimPeriod;
+		mFuncSimPeriodMetric = funcSimPeriodMetric;
 		mRuntimeExecutionPolicy = runtimeExecutionPolicy;
 		mCodeGenerationStyle = codeGenerationStyle;
 		mLanguage = language;
@@ -122,13 +120,13 @@ public class CICCellTranslator implements CICTargetCodeTranslator {
 		// generate cic_tasks.h
 		fileOut = mOutputPath + "cic_tasks.h";
 		templateFile = mTranslatorPath + "templates/common/cic/cic_tasks.h.template";
-		CommonLibraries.CIC.generateTaskDataStructure(fileOut, templateFile, mTask, mGlobalPeriod, mGlobalPeriodMetric,
+		CommonLibraries.CIC.generateTaskDataStructure(fileOut, templateFile, mTask, mFuncSimPeriod, mFuncSimPeriodMetric,
 				mRuntimeExecutionPolicy, mCodeGenerationStyle, mVTask, mPVTask);
 
 		// generate cic_channels.h
 		fileOut = mOutputPath + "cic_channels.h";
 		templateFile = mTranslatorPath + "templates/common/cic/cic_channels.h.template";
-		CommonLibraries.CIC.generateChannelHeader(fileOut, templateFile, mQueue, mThreadVer);
+		CommonLibraries.CIC.generateChannelHeader(fileOut, templateFile, mQueue);
 
 		// generate cic_portmap.h
 		fileOut = mOutputPath + "cic_portmap.h";
@@ -348,17 +346,17 @@ public class CICCellTranslator implements CICTargetCodeTranslator {
 		content += "#ifdef __PPU__\n\n";
 		content += "#define NUM_SPE_TO_USE       (" + Integer.toString(task.getProc().size()) + ")\n";
 
-		int globalPeriod = 0;
-		if (mGlobalPeriodMetric.equalsIgnoreCase("h"))
-			globalPeriod = mGlobalPeriod * 3600 * 1000 * 1000;
-		else if (mGlobalPeriodMetric.equalsIgnoreCase("m"))
-			globalPeriod = mGlobalPeriod * 60 * 1000 * 1000;
-		else if (mGlobalPeriodMetric.equalsIgnoreCase("s"))
-			globalPeriod = mGlobalPeriod * 1000 * 1000;
-		else if (mGlobalPeriodMetric.equalsIgnoreCase("ms"))
-			globalPeriod = mGlobalPeriod * 1000;
-		else if (mGlobalPeriodMetric.equalsIgnoreCase("us"))
-			globalPeriod = mGlobalPeriod * 1;
+		int funcSimPeriod = 0;
+		if (mFuncSimPeriodMetric.equalsIgnoreCase("h"))
+			funcSimPeriod = mFuncSimPeriod * 3600 * 1000 * 1000;
+		else if (mFuncSimPeriodMetric.equalsIgnoreCase("m"))
+			funcSimPeriod = mFuncSimPeriod * 60 * 1000 * 1000;
+		else if (mFuncSimPeriodMetric.equalsIgnoreCase("s"))
+			funcSimPeriod = mFuncSimPeriod * 1000 * 1000;
+		else if (mFuncSimPeriodMetric.equalsIgnoreCase("ms"))
+			funcSimPeriod = mFuncSimPeriod * 1000;
+		else if (mFuncSimPeriodMetric.equalsIgnoreCase("us"))
+			funcSimPeriod = mFuncSimPeriod * 1;
 		else {
 			System.out.println("[makeTasks] Not supported metric of period");
 			System.exit(-1);
@@ -366,7 +364,7 @@ public class CICCellTranslator implements CICTargetCodeTranslator {
 
 		int runCount = 0;
 		if (task.getRunCondition().equals("TIME_DRIVEN"))
-			runCount = globalPeriod / Integer.parseInt(task.getPeriod());
+			runCount = funcSimPeriod / Integer.parseInt(task.getPeriod());
 		else
 			runCount = 0;
 

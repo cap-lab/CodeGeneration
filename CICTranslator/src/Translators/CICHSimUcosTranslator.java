@@ -31,8 +31,8 @@ public class CICHSimUcosTranslator implements CICTargetCodeTranslator {
 	private String mOutputPath;
 	private String mRootPath;
 	private String mCICXMLFile;
-	private int mGlobalPeriod;
-	private String mGlobalPeriodMetric;
+	private int mFuncSimPeriod;
+	private String mFuncSimPeriodMetric;
 	private String mThreadVer;
 	private String mRuntimeExecutionPolicy;
 	private String mCodeGenerationStyle;
@@ -61,8 +61,8 @@ public class CICHSimUcosTranslator implements CICTargetCodeTranslator {
 	@Override
 	public int generateCode(String target, String translatorPath, String outputPath, String rootPath,
 			Map<Integer, Processor> processor, Map<String, Task> task, Map<Integer, Queue> queue,
-			Map<String, Library> library, Map<String, Library> globalLibrary, int globalPeriod,
-			String globalPeriodMetric, String cicxmlfile, String language, CICAlgorithmType algorithm,
+			Map<String, Library> library, Map<String, Library> globalLibrary, int funcSimPeriod,
+			String funcSimPeriodMetric, String cicxmlfile, String language, CICAlgorithmType algorithm,
 			CICControlType control, CICScheduleType schedule, CICGPUSetupType gpusetup, CICMappingType mapping,
 			Map<Integer, List<Task>> connectedtaskgraph, Map<Integer, List<List<Task>>> connectedsdftaskset,
 			Map<String, Task> vtask, Map<String, Task> pvtask, String runtimeExecutionPolicy, String codeGenerationStyle)
@@ -72,8 +72,8 @@ public class CICHSimUcosTranslator implements CICTargetCodeTranslator {
 		mOutputPath = outputPath;
 		mRootPath = rootPath;
 		mCICXMLFile = cicxmlfile;
-		mGlobalPeriod = globalPeriod;
-		mGlobalPeriodMetric = globalPeriodMetric;
+		mFuncSimPeriod = funcSimPeriod;
+		mFuncSimPeriodMetric = funcSimPeriodMetric;
 		mThreadVer = "Multi";	//need to check
 		mRuntimeExecutionPolicy = runtimeExecutionPolicy;
 		mCodeGenerationStyle = codeGenerationStyle;
@@ -132,7 +132,7 @@ public class CICHSimUcosTranslator implements CICTargetCodeTranslator {
 		// generate cic_tasks.h
 		fileOut = mOutputPath + "task_def.h";
 		templateFile = mTranslatorPath + "templates/common/common_template/task_def.h.template";
-		CommonLibraries.CIC.generateTaskDataStructure(fileOut, templateFile, mTask, mGlobalPeriod, mGlobalPeriodMetric,
+		CommonLibraries.CIC.generateTaskDataStructure(fileOut, templateFile, mTask, mFuncSimPeriod, mFuncSimPeriodMetric,
 				mRuntimeExecutionPolicy, mCodeGenerationStyle, mVTask, mPVTask);
 
 		// Need to copy cic_channels.h & generate channel_def.h

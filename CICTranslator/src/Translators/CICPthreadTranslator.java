@@ -39,9 +39,8 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 	private String mOutputPath;
 	private String mRootPath;
 	private String mCICXMLFile;
-	private int mGlobalPeriod;
-	private String mGlobalPeriodMetric;
-	private String mThreadVer;
+	private int mFuncSimPeriod;
+	private String mFuncSimPeriodMetric;
 	private String mRuntimeExecutionPolicy;
 	private String mCodeGenerationStyle;
 	private String mLanguage;
@@ -65,8 +64,8 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 	@Override
 	public int generateCode(String target, String translatorPath, String outputPath, String rootPath,
 			Map<Integer, Processor> processor, Map<String, Task> task, Map<Integer, Queue> queue,
-			Map<String, Library> library, Map<String, Library> globalLibrary, int globalPeriod,
-			String globalPeriodMetric, String cicxmlfile, String language, CICAlgorithmType algorithm,
+			Map<String, Library> library, Map<String, Library> globalLibrary, int funcSimPeriod,
+			String funcSimPeriodMetric, String cicxmlfile, String language, CICAlgorithmType algorithm,
 			CICControlType control, CICScheduleType schedule, CICGPUSetupType gpusetup, CICMappingType mapping,
 			Map<Integer, List<Task>> connectedtaskgraph, Map<Integer, List<List<Task>>> connectedsdftaskset,
 			Map<String, Task> vtask, Map<String, Task> pvtask, String runtimeExecutionPolicy, String codeGenerationStyle)
@@ -76,9 +75,8 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 		mOutputPath = outputPath;
 		mRootPath = rootPath;
 		mCICXMLFile = cicxmlfile;
-		mGlobalPeriod = globalPeriod;
-		mGlobalPeriodMetric = globalPeriodMetric;
-		mThreadVer = "Multi";
+		mFuncSimPeriod = funcSimPeriod;
+		mFuncSimPeriodMetric = funcSimPeriodMetric;
 		mRuntimeExecutionPolicy = runtimeExecutionPolicy;
 		mCodeGenerationStyle = codeGenerationStyle;
 		mLanguage = language;
@@ -215,11 +213,11 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 
 		// EXTERN_TASK_FUNCTION_DECLARATION, TASK_ENTRIES,
 		// EXTERN_MTM_FUNCTION_DECLARATION, MTM_ENTRIES //
-		code = CommonLibraries.CIC.translateTaskDataStructure(code, mTask, mGlobalPeriod, mGlobalPeriodMetric,
+		code = CommonLibraries.CIC.translateTaskDataStructure(code, mTask, mFuncSimPeriod, mFuncSimPeriodMetric,
 				"Single", ""/*mCodeGenerationStyle*/, mVTask, mPVTask);
 
 		// CHANNEL_ENTRIES //
-		code = CommonLibraries.CIC.translateChannelDataStructure(code, mQueue, mThreadVer);
+		code = CommonLibraries.CIC.translateChannelDataStructure(code, mQueue);
 
 		// PORT_ENTRIES //
 		code = CommonLibraries.CIC.translatePortmapDataStructure(code, mTask, mQueue);
@@ -232,21 +230,17 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 		// CONTROL_CHANNEL_LIST_ENTRIES //
 		code = CommonLibraries.CIC.translateControlDataStructure(code, mTask, mControl);
 
-		if (mThreadVer.equals("Single"))
-			templateFile = mTranslatorPath + "templates/common/task_execution/single_thread_hybrid.template.not_used";
-		else
-			templateFile = mTranslatorPath
-					+ "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
+		templateFile = mTranslatorPath
+				+ "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
+			
 		// TASK_VARIABLE_DECLARATION //
 		String taskVariableDecl = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##TASK_VARIABLE_DECLARATION");
 		code = code.replace("##TASK_VARIABLE_DECLARATION", taskVariableDecl);
 		//////////////////////////
 
 		// DEBUG_CODE //
-		if (mThreadVer.equals("Single"))
-			templateFile = mTranslatorPath + "templates/common/debug_code/general_linux_single_thread.template";
-		else
-			templateFile = mTranslatorPath + "templates/common/debug_code/general_linux_multi_thread.template";
+		templateFile = mTranslatorPath + "templates/common/debug_code/general_linux_multi_thread.template";
+			
 		String debugCode = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##DEBUG_CODE_IMPLEMENTATION");
 		code = code.replace("##DEBUG_CODE_IMPLEMENTATION", debugCode);
 		///////////////////////////
@@ -294,11 +288,9 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 			code = code.replace("##CONTROL_API", controlApi);
 			//////////////////////////
 
-			if (mThreadVer.equals("Single"))
-				templateFile = mTranslatorPath + "templates/common/task_execution/single_thread_hybrid.template.not_used";
-			else
-				templateFile = mTranslatorPath
-						+ "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
+			templateFile = mTranslatorPath
+					+ "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
+				
 			// CONTROL_RUN_TASK //
 			String controlRunTask = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##CONTROL_RUN_TASK");
 			code = code.replace("##CONTROL_RUN_TASK", controlRunTask);
@@ -328,10 +320,8 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 		code = code.replace("##CONTROL_END_TASK", controlEndTask);
 		//////////////////////////
 
-		if (mThreadVer.equals("Single"))
-			templateFile = mTranslatorPath + "templates/common/channel_manage/general_linux_single_thread.template";
-		else
-			templateFile = mTranslatorPath + "templates/common/channel_manage/general_linux_multi_thread.template";
+		templateFile = mTranslatorPath + "templates/common/channel_manage/general_linux_multi_thread.template";
+			
 		// INIT_WRAPUP_CHANNELS //
 		String initWrapupChannels = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##INIT_WRAPUP_CHANNELS");
 		code = code.replace("##INIT_WRAPUP_CHANNELS", initWrapupChannels);
@@ -394,11 +384,9 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 		code = code.replace("##SCHEDULE_CODE", staticScheduleCode);
 		///////////////////
 
-		if (mThreadVer.equals("Single"))
-			templateFile = mTranslatorPath + "templates/common/task_execution/single_thread_hybrid.template.not_used";
-		else
-			templateFile = mTranslatorPath
-					+ "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
+		templateFile = mTranslatorPath
+				+ "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
+			
 
 		// TASK_ROUTINE //
 		String timeTaskRoutine = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##TASK_ROUTINE");
@@ -430,20 +418,16 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 
 		// INIT_SYSTEM_VARIABLES //
 		String initSystemVariables = "";
-		if (mThreadVer.equals("Multi")) {
-			initSystemVariables += "\tCIC_F_MUTEX_INIT(&global_mutex);\n" + "\tCIC_F_COND_INIT(&global_cond);\n"
-					+ "\tCIC_F_MUTEX_INIT(&time_mutex);\n" + "\tCIC_F_COND_INIT(&time_cond);\n";
-		}
+		initSystemVariables += "\tCIC_F_MUTEX_INIT(&global_mutex);\n" + "\tCIC_F_COND_INIT(&global_cond);\n"
+				+ "\tCIC_F_MUTEX_INIT(&time_mutex);\n" + "\tCIC_F_COND_INIT(&time_cond);\n";
 
 		code = code.replace("##INIT_SYSTEM_VARIABLES", initSystemVariables);
 		//////////////////////////////////
 
 		// WRAPUP_SYSTEM_VARIABLES //
 		String wrapupSystemVariables = "";
-		if (mThreadVer.equals("Multi")) {
-			wrapupSystemVariables += "\tCIC_F_MUTEX_WRAPUP(&global_mutex);\n" + "\tCIC_F_COND_WRAPUP(&global_cond);\n"
-					+ "\tCIC_F_MUTEX_WRAPUP(&time_mutex);\n" + "\tCIC_F_COND_WRAPUP(&time_cond);\n";
-		}
+		wrapupSystemVariables += "\tCIC_F_MUTEX_WRAPUP(&global_mutex);\n" + "\tCIC_F_COND_WRAPUP(&global_cond);\n"
+				+ "\tCIC_F_MUTEX_WRAPUP(&time_mutex);\n" + "\tCIC_F_COND_WRAPUP(&time_cond);\n";
 
 		code = code.replace("##WRAPUP_SYSTEM_VARIABLES", wrapupSystemVariables);
 		//////////////////////////////////

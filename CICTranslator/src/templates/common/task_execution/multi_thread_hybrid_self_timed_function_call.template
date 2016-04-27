@@ -299,7 +299,7 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
   */
   for(i=0; i<CIC_UV_NUM_VIRTUAL_TASKS; i++){
     CIC_T_INT parent_task_index;
-    if(virtual_tasks[i].parent_task_id <= CIC_UV_NUM_TASKS) //hierarical 
+    if(virtual_tasks[i].parent_task_id < CIC_UV_NUM_TASKS) //hierarical 
       parent_task_index = GetTaskIndexFromTaskId(virtual_tasks[i].parent_task_id);
     else
       parent_task_index = GetVirtualTaskIndexFromTaskId(virtual_tasks[i].parent_task_id);

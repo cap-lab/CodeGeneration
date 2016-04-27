@@ -599,7 +599,7 @@ public class Schedule {
 
 					code += tab + task.getName() + "_Go();\n";
 					if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) {
-						// ����: us
+						// unit: us
 						code += tab + "while(1){\n" 
 								+ tab + "\tclock_gettime(CLOCK_MONOTONIC, &end);\n" 
 								+ tab + "\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
@@ -614,8 +614,8 @@ public class Schedule {
 				}
 				go_skip = false;
 			} else {
-				// �̺κп� fully-static : need to check
-				// �̺κп� RuntimeExecutionPolicy_StaticAssign : need to check
+				// fully-static : need to check
+				// RuntimeExecutionPolicy_StaticAssign : need to check
 				TaskInstanceType task = sched.getTask();
 				int count = sched.getTask().getRepetition().intValue();
 				code += tab + "\t{\n";
@@ -628,7 +628,7 @@ public class Schedule {
 					}
 					code += tab + "\t\t\t\t" + task.getName() + "_Go();\n";
 					if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) {
-						// ����: us
+						// unit: us
 						code += tab + "while(1){\n" + tab + "\tclock_gettime(CLOCK_MONOTONIC, &end);\n" + tab
 								+ "\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
 								+ tab + "\tif(GetWorstCaseExecutionTimeFromTaskIdAndModeName("
@@ -641,7 +641,7 @@ public class Schedule {
 					}
 					code += tab + "\t\t\t" + task.getName() + "_Go();\n";
 					if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) {
-						// ����: us
+						// unit: us
 						code += tab + "while(1){\n" + tab + "\tclock_gettime(CLOCK_MONOTONIC, &end);\n" + tab
 								+ "\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
 								+ tab + "\tif(GetWorstCaseExecutionTimeFromTaskIdAndModeName("
@@ -676,7 +676,7 @@ public class Schedule {
 			}
 			code += tab + "\t\t\t}\n";
 			code += tab + "\t\t}\n";
-		} else { // getLoop == null �̶�� sdf
+		} else {  // if (getLoop == null) -> sdf
 			tab += "\t";
 			if (sched.getTask().getRepetition() == null)
 				System.out.println(sched.getTask().getName());
@@ -687,7 +687,7 @@ public class Schedule {
 				}
 				go_skip = false;
 			} else {
-				// �̺κп� fully-static �������
+				// need to cover fully-static
 				TaskInstanceType task = sched.getTask();
 				int count = sched.getTask().getRepetition().intValue();
 				code += tab + "\t{\n";
@@ -1211,7 +1211,7 @@ public class Schedule {
 				}
 
 				for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
-					// ù��° �����ٸ� �����ϵ��� ����
+					// we assume that we save only the first schedule 
 					schedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
 
 					TaskGroupsType taskGroups = schedule.getTaskGroups();
@@ -1295,14 +1295,14 @@ public class Schedule {
 		}
 		// Current assumption: A source task should be mapped on to the same
 		// processor for all modes
-		boolean isSrcTask = false; // sadf������ SrcTask�� 1����� ����
+		boolean isSrcTask = false; // in sadf, we assume there is only ONE! SrcTask!
 		String srcGoCode = "";
 		for (String mode : modeList) {
 			try {
 				ArrayList<File> schedFileList = getSchedFileList(outputPath, task, mode);
 
 				for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
-					// ù��° �����ٸ� �����ϵ��� ����
+					// we assume that we save only the first schedule 
 					schedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
 					int num_proc = schedule.getTaskGroups().getTaskGroup().get(0).getScheduleGroup().size();
 
@@ -1369,7 +1369,7 @@ public class Schedule {
 
 				ArrayList<File> schedFileList = getSchedFileList(outputPath, task, mode);
 
-				// ù��° �����ٸ� �����ϵ��� ����
+				// we assume that we save only the first schedule 
 				schedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
 				TaskGroupsType taskGroups = schedule.getTaskGroups();
 				List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
@@ -1413,7 +1413,7 @@ public class Schedule {
 		try {				
 			ArrayList<File> schedFileList = getSchedFileList(outputPath, task, mode); 
 			
-			//ù��° �����ٸ� �����ϵ��� ���� 
+			// we assume that we save only the first schedule 
 			schedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
 			TaskGroupsType taskGroups = schedule.getTaskGroups();
 			List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
@@ -1480,7 +1480,7 @@ public class Schedule {
 		return code;
 	}
 
-	private static String generateGocode(String outputPath, Map<String, Task> mTask,
+	private static String generateGocode(String outputPath, Map<String, Task> mTask, Map<String, Task> mVTask,
 			CICScheduleTypeLoader scheduleLoader, List<String> modeList, Task task, String mRuntimeExecutionPolicy) {
 		String code = "";
 		CICScheduleType schedule;
@@ -1495,9 +1495,16 @@ public class Schedule {
 				break;
 			}
 		}
+		for(Task vt: mVTask.values())
+		{
+			if(vt.getName().equals(task.getParentTask())){
+				parent_task_id = vt.getIndex();			
+				break;
+			}
+		}
 
 		if (mRuntimeExecutionPolicy
-				.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) /* "Fully-Static-Execution-Policy" */
+				.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) 
 		{
 			code += "\tunsigned long diff;\n";
 			code += "\tCIC_T_STRUCT timespec start, end;\n\n";
@@ -1535,8 +1542,7 @@ public class Schedule {
 					+ "\t}\n\n";
 		}
 
-		if (modeList.size() > 1) // RuntimeExecutionPolicy_StaticAssign �� ����
-									// �������
+		if (modeList.size() > 1) // NOT support RuntimeExecutionPolicy_StaticAssign yet... 
 			code += generateSADFGocode(outputPath, mTask, scheduleLoader, modeList, task, mRuntimeExecutionPolicy);
 		else
 			code += generateSDFGocode(outputPath, mTask, scheduleLoader,
@@ -1593,7 +1599,7 @@ public class Schedule {
 				}
 
 				for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
-					// ù��° �����ٸ� �����ϵ��� ����
+					// we assume that we save only the first schedule 
 					schedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
 
 					TaskGroupsType taskGroups = schedule.getTaskGroups();
@@ -1650,7 +1656,7 @@ public class Schedule {
 				modeList.add("Default");
 
 			initCode += generateInitcode(outputPath, mTask, scheduleLoader, modeList, task, mRuntimeExecutionPolicy);
-			goCode += generateGocode(outputPath, mTask, scheduleLoader, modeList, task, mRuntimeExecutionPolicy);
+			goCode += generateGocode(outputPath, mTask, mVTask, scheduleLoader, modeList, task, mRuntimeExecutionPolicy);
 			wrapupCode += generateWrapupcode(outputPath, scheduleLoader, modeList, task);
 
 			staticScheduleCode = initCode + goCode + wrapupCode;

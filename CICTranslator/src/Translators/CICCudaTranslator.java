@@ -35,8 +35,8 @@ public class CICCudaTranslator implements CICTargetCodeTranslator {
 	private Map<String, Task> mVTask;
 	private Map<String, Task> mPVTask;
 	
-	private String mGlobalPeriodMetric;
-	private int mGlobalPeriod;
+	private String mFuncSimPeriodMetric;
+	private int mFuncSimPeriod;
 	private int mTotalControlQueue;
 	
 	private String mThreadVer;
@@ -46,7 +46,9 @@ public class CICCudaTranslator implements CICTargetCodeTranslator {
 	
 	
 	@Override
-	public int generateCode(String target, String translatorPath, String outputPath, String rootPath, Map<Integer, Processor> processor, Map<String, Task> task, Map<Integer, Queue> queue, Map<String, Library> library, Map<String, Library> globalLibrary, int globalPeriod, String globalPeriodMetric, String cicxmlfile, String language, CICAlgorithmType algorithm, CICControlType control, CICScheduleType schedule, CICGPUSetupType gpusetup, CICMappingType mapping, Map<Integer, List<Task>> connectedtaskgraph,  Map<Integer, List<List<Task>>> connectedsdftaskset, Map<String, Task> vtask, Map<String, Task> pvtask, String runtimeExecutionPolicy, String codeGenerationStyle) throws FileNotFoundException
+	public int generateCode(String target, String translatorPath, String outputPath, String rootPath, 
+			Map<Integer, Processor> processor, Map<String, Task> task, Map<Integer, Queue> queue, 
+			Map<String, Library> library, Map<String, Library> globalLibrary, int funcSimPeriod, String funcSimPeriodMetric, String cicxmlfile, String language, CICAlgorithmType algorithm, CICControlType control, CICScheduleType schedule, CICGPUSetupType gpusetup, CICMappingType mapping, Map<Integer, List<Task>> connectedtaskgraph,  Map<Integer, List<List<Task>>> connectedsdftaskset, Map<String, Task> vtask, Map<String, Task> pvtask, String runtimeExecutionPolicy, String codeGenerationStyle) throws FileNotFoundException
 	{
 		int ret = 0;
 		mTarget = target;
@@ -54,8 +56,8 @@ public class CICCudaTranslator implements CICTargetCodeTranslator {
 		mOutputPath = outputPath;
 		mRootPath = rootPath;
 		mCICXMLFile = cicxmlfile;
-		mGlobalPeriod = globalPeriod;
-		mGlobalPeriodMetric = globalPeriodMetric;
+		mFuncSimPeriod = funcSimPeriod;
+		mFuncSimPeriodMetric = funcSimPeriodMetric;
 		mThreadVer = "Multi"; //need to check
 		mRuntimeExecutionPolicy = runtimeExecutionPolicy;
 		mCodeGenerationStyle = codeGenerationStyle;
@@ -84,7 +86,7 @@ public class CICCudaTranslator implements CICTargetCodeTranslator {
 		// generate cic_tasks.h
 		fileOut = mOutputPath + "task_def.h";
 		templateFile = mTranslatorPath + "templates/common/common_template/task_def.h.template";
-		CommonLibraries.CIC.generateTaskDataStructure(fileOut, templateFile, mTask, mGlobalPeriod, mGlobalPeriodMetric, mRuntimeExecutionPolicy, mCodeGenerationStyle, mVTask, mPVTask);
+		CommonLibraries.CIC.generateTaskDataStructure(fileOut, templateFile, mTask, mFuncSimPeriod, mFuncSimPeriodMetric, mRuntimeExecutionPolicy, mCodeGenerationStyle, mVTask, mPVTask);
 		
 		
 		// generate task_name.c (include task_name.cic)
@@ -233,17 +235,17 @@ public class CICCudaTranslator implements CICTargetCodeTranslator {
 				}
 			}
 	
-			int globalPeriod = 0;
-			if(mGlobalPeriodMetric.equalsIgnoreCase("h"))			globalPeriod = mGlobalPeriod * 3600 * 1000 * 1000;
-			else if(mGlobalPeriodMetric.equalsIgnoreCase("m"))		globalPeriod = mGlobalPeriod * 60 * 1000 * 1000;
-			else if(mGlobalPeriodMetric.equalsIgnoreCase("s"))		globalPeriod = mGlobalPeriod * 1000 * 1000;
-			else if(mGlobalPeriodMetric.equalsIgnoreCase("ms"))		globalPeriod = mGlobalPeriod * 1000;
-			else if(mGlobalPeriodMetric.equalsIgnoreCase("us"))		globalPeriod = mGlobalPeriod * 1;
+			int funcSimPeriod = 0;
+			if(mFuncSimPeriodMetric.equalsIgnoreCase("h"))			funcSimPeriod = mFuncSimPeriod * 3600 * 1000 * 1000;
+			else if(mFuncSimPeriodMetric.equalsIgnoreCase("m"))		funcSimPeriod = mFuncSimPeriod * 60 * 1000 * 1000;
+			else if(mFuncSimPeriodMetric.equalsIgnoreCase("s"))		funcSimPeriod = mFuncSimPeriod * 1000 * 1000;
+			else if(mFuncSimPeriodMetric.equalsIgnoreCase("ms"))		funcSimPeriod = mFuncSimPeriod * 1000;
+			else if(mFuncSimPeriodMetric.equalsIgnoreCase("us"))		funcSimPeriod = mFuncSimPeriod * 1;
 			else{
 				System.out.println("[makeTasks] Not supported metric of period");
 				System.exit(-1);
 			}
-			int taskRunCount = globalPeriod / Integer.parseInt(task.getPeriod());
+			int taskRunCount = funcSimPeriod / Integer.parseInt(task.getPeriod());
 			
 			taskIndexDef += "#define TASK_INDEX (" + task.getIndex() + ")\n";
 			
@@ -552,17 +554,17 @@ public class CICCudaTranslator implements CICTargetCodeTranslator {
 					break;
 				}
 			}
-			int globalPeriod = 0;
-			if(mGlobalPeriodMetric.equalsIgnoreCase("h"))			globalPeriod = mGlobalPeriod * 3600 * 1000 * 1000;
-			else if(mGlobalPeriodMetric.equalsIgnoreCase("m"))		globalPeriod = mGlobalPeriod * 60 * 1000 * 1000;
-			else if(mGlobalPeriodMetric.equalsIgnoreCase("s"))		globalPeriod = mGlobalPeriod * 1000 * 1000;
-			else if(mGlobalPeriodMetric.equalsIgnoreCase("ms"))		globalPeriod = mGlobalPeriod * 1000;
-			else if(mGlobalPeriodMetric.equalsIgnoreCase("us"))		globalPeriod = mGlobalPeriod * 1;
+			int funcSimPeriod = 0;
+			if(mFuncSimPeriodMetric.equalsIgnoreCase("h"))			funcSimPeriod = mFuncSimPeriod * 3600 * 1000 * 1000;
+			else if(mFuncSimPeriodMetric.equalsIgnoreCase("m"))		funcSimPeriod = mFuncSimPeriod * 60 * 1000 * 1000;
+			else if(mFuncSimPeriodMetric.equalsIgnoreCase("s"))		funcSimPeriod = mFuncSimPeriod * 1000 * 1000;
+			else if(mFuncSimPeriodMetric.equalsIgnoreCase("ms"))		funcSimPeriod = mFuncSimPeriod * 1000;
+			else if(mFuncSimPeriodMetric.equalsIgnoreCase("us"))		funcSimPeriod = mFuncSimPeriod * 1;
 			else{
 				System.out.println("[makeTasks] Not supported metric of period");
 				System.exit(-1);
 			}
-			int taskRunCount = globalPeriod / Integer.parseInt(task.getPeriod());
+			int taskRunCount = funcSimPeriod / Integer.parseInt(task.getPeriod());
 			int isGPU = 0;
 			int gpuIndex = 0;
 			for(GPUTaskType gpuTask: mGpusetup.getTasks().getTask()){

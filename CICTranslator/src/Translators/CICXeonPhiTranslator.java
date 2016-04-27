@@ -39,8 +39,6 @@ public class CICXeonPhiTranslator implements CICTargetCodeTranslator {
 	private String mOutputPath;
 	private String mRootPath;
 	private String mCICXMLFile;
-	private int mGlobalPeriod;
-	private String mGlobalPeriodMetric;
 	private String mThreadVer;
 	private String mLanguage;
 
@@ -64,8 +62,8 @@ public class CICXeonPhiTranslator implements CICTargetCodeTranslator {
 	@Override
 	public int generateCode(String target, String translatorPath, String outputPath, String rootPath,
 			Map<Integer, Processor> processor, Map<String, Task> task, Map<Integer, Queue> queue,
-			Map<String, Library> library, Map<String, Library> globalLibrary, int globalPeriod,
-			String globalPeriodMetric, String cicxmlfile, String language, CICAlgorithmType algorithm,
+			Map<String, Library> library, Map<String, Library> globalLibrary, int funcSimPeriod,
+			String funcSimPeriodMetric, String cicxmlfile, String language, CICAlgorithmType algorithm,
 			CICControlType control, CICScheduleType schedule, CICGPUSetupType gpusetup, CICMappingType mapping,
 			Map<Integer, List<Task>> connectedtaskgraph, Map<Integer, List<List<Task>>> connectedsdftaskset,
 			Map<String, Task> vtask, Map<String, Task> pvtask, String runtimeExecutionPolicy, String codeGenerationStyle)
@@ -75,8 +73,6 @@ public class CICXeonPhiTranslator implements CICTargetCodeTranslator {
 		mOutputPath = outputPath;
 		mRootPath = rootPath;
 		mCICXMLFile = cicxmlfile;
-		mGlobalPeriod = globalPeriod;
-		mGlobalPeriodMetric = globalPeriodMetric;
 		mThreadVer = "Multi"; //need to check
 		mLanguage = language;
 

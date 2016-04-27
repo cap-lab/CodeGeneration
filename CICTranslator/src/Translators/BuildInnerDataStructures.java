@@ -8,15 +8,6 @@ import java.util.*;
 import java.util.regex.*;
 
 import javax.swing.JOptionPane;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import InnerDataStructures.*;
 import InnerDataStructures.Communication.BluetoothComm;
@@ -81,7 +72,6 @@ public class BuildInnerDataStructures {
 	
 	public List<Communication> makeCommunications(CICArchitectureType mArchitecture) 
 	{
-		int index = 0;
 		Communication communication = null;
 		List<Communication> communications = new ArrayList<Communication>();
 
@@ -179,13 +169,15 @@ public class BuildInnerDataStructures {
 				Task currSetTask = currSet.get(currPointer);
 				for(int i = 0; i < currSetTask.getQueue().size(); i++){
 					Queue currQueue = currSetTask.getQueue().get(i);
-					if(currQueue.getSrc().equals(currSetTask.getName()) && !currQueue.getDst().equals(currSetTask.getName()) && taskGraph.get(currQueue.getDst()) != null && !currSet.contains(taskGraph.get(currQueue.getDst()))){
+					if(currQueue.getSrc().equals(currSetTask.getName()) && !currQueue.getDst().equals(currSetTask.getName()) 
+							&& taskGraph.get(currQueue.getDst()) != null && !currSet.contains(taskGraph.get(currQueue.getDst()))){
 						if(currSetTask.getPortList().get(currQueue.getSrcPortName()).size() > 0){
 							currSet.add(taskGraph.get(currQueue.getDst()));
 							taskGraph.remove(currQueue.getDst());
 						}
 					}
-					else if(currQueue.getDst().equals(currSetTask.getName()) && !currQueue.getSrc().equals(currSetTask.getName()) && taskGraph.get(currQueue.getSrc()) != null && !currSet.contains(taskGraph.get(currQueue.getSrc()))){
+					else if(currQueue.getDst().equals(currSetTask.getName()) && !currQueue.getSrc().equals(currSetTask.getName()) 
+							&& taskGraph.get(currQueue.getSrc()) != null && !currSet.contains(taskGraph.get(currQueue.getSrc()))){
 						if(currSetTask.getPortList().get(currQueue.getDstPortName()).size() > 0){
 							currSet.add(taskGraph.get(currQueue.getSrc()));
 							taskGraph.remove(currQueue.getSrc());
@@ -257,7 +249,9 @@ public class BuildInnerDataStructures {
 		return modifiedTask;
 	}
 	
-	public Map<String, Task> addProcessorVirtualTask(Map<String, Task> mTask, Map<Integer, Queue> mQueue, Map<Integer, Processor> mProcessor, Map<Integer, List<Task>> mConnectedTaskGraph, Map<Integer, List<List<Task>>> mConnectedSDFTaskSet, String TaskGraphProperty, int mGlobalPeriod, String mGlobalPeriodMetric, Map<String, Task> mVTask, String mOutputPath){
+	public Map<String, Task> addProcessorVirtualTask(Map<String, Task> mTask, Map<Integer, Queue> mQueue, 
+			Map<Integer, Processor> mProcessor, Map<Integer, List<Task>> mConnectedTaskGraph, Map<Integer, 
+			List<List<Task>>> mConnectedSDFTaskSet, String TaskGraphProperty, Map<String, Task> mVTask, String mOutputPath){
 		Map<String, Task> mNewTask = new HashMap<String, Task>();
 		ArrayList<Task> parentTaskList = new ArrayList<Task>();
 		String schedFilePath = mOutputPath + "/convertedSDF3xml/";
@@ -301,16 +295,14 @@ public class BuildInnerDataStructures {
 				for(File schedFile: schedFileList){
 					CICScheduleTypeLoader loaderSched;
 					CICScheduleType schedule = null;
-					int usedProcNum = 0;
 					loaderSched = new CICScheduleTypeLoader();
 					try {
 						schedule = loaderSched.loadResource(schedFile.getAbsolutePath());
 					} catch (CICXMLException e) {
-						// TODO Auto-generated catch block
+						// Auto-generated catch block
 						e.printStackTrace();
 					}
 					for(ScheduleGroupType schedGroup: schedule.getTaskGroups().getTaskGroup().get(0).getScheduleGroup()){
-						String poolName = schedGroup.getPoolName();
 						int procId = 0;
 						for(Processor proc: mProcessor.values()){
 							if(proc.getPoolName().equals(schedGroup.getPoolName()) && proc.getLocalIndex() == schedGroup.getLocalId().intValue()){
@@ -340,9 +332,7 @@ public class BuildInnerDataStructures {
 		return mNewTask;
 	}
 	
-	// hs: need to check!!
-	// 함수를 쪼개는게 좋아보임 -> virtualTask 추가해주는 부분 + task 구조 바꿔주는 부분하고 
-	public Map<String, Task> modifyTaskStructure(Map<String, Task> mTask, Map<Integer, Queue> mQueue, Map<Integer, List<List<Task>>> mConnectedSDFTaskSet, String TaskGraphProperty, int mGlobalPeriod, String mGlobalPeriodMetric){
+	public Map<String, Task> makeVirtualTask(Map<String, Task> mTask, Map<Integer, Queue> mQueue, Map<Integer, List<List<Task>>> mConnectedSDFTaskSet, String TaskGraphProperty, int mFuncSimPeriod, String mFuncSimPeriodMetric){
 		Map<String, Task> mNewTask = new HashMap<String, Task>();
 		
 		int index = mTask.size();
@@ -371,7 +361,7 @@ public class BuildInnerDataStructures {
 					if(TaskGraphProperty.equals("DataFlow") && isSrc == true){
 						drivenType = "TIME_DRIVEN";
 						period = 1;
-						periodMetric = mGlobalPeriodMetric;
+						periodMetric = mFuncSimPeriodMetric;
 						runRate = 1;
 					}
 					else if(TaskGraphProperty.equals("Hybrid") && isSrc == true && subTaskList.get(j).getRunCondition().equals("TIME_DRIVEN")){
@@ -405,75 +395,15 @@ public class BuildInnerDataStructures {
 				index = index + 1;
 			}
 		}
-
-		//기존 태스크들의 부모 태스크를 virtual task로 바꿔주는 과정
-		index = mTask.size();
-		for(List<List<Task>> taskListOut: mConnectedSDFTaskSet.values()){
-			for(int i=0; i<taskListOut.size(); i++){
-				List<Task> taskListIn = taskListOut.get(i);
-				for(int j=0; j<taskListIn.size(); j++){
-					for(Task t: mTask.values()){
-						if(taskListIn.get(j).getName().equals(t.getName())){
-							t.setParentTask("SDF_" + index);
-							break;
-						}
-					}
-				}
-				index = index + 1;
-			}
-		}
 		
-		//SDF 일때에만  runRate 반영		
-		Task parentTask = null;
-		String mode = null;
-		for(Task t: mTask.values()){
-			if(t.getHasMTM().equalsIgnoreCase("Yes")){ // 이를 위해 부모 태스크 먼저 찾음 
-				if(t.getMTM() != null && t.getMTM().getModes().size() == 1){ //SDF 일때에만  = mode 는 1개뿐
-					parentTask = t; 
-					mode = t.getMTM().getModes().get(0);
-					
-					Map<String, Integer> tr = CommonLibraries.Schedule.generateIterationCount(parentTask, mode, mTask, mQueue);
-					for(Task i_t: mTask.values())
-					{
-						if(!i_t.getParentTask().equals(i_t.getName())){
-							int rate = 0;
-							if(tr.get(i_t.getName()) != null)
-								rate = tr.get(i_t.getName());
-							if(rate != 0)
-								i_t.setRunRate(rate); 
-//							System.out.println(i_t.getName() + ": runrate: " + rate);
-						}
-						
-					}
-				}			
-			}
-		}
-		
-		
+		modifyTaskStructure_parentTask(mTask, mConnectedSDFTaskSet);
+	
 		return mNewTask;
 	}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 //////////////////////////////////////////////////////// Task Generation /////////////////////////////////////////////////////////
-	/*
-	public void fillTaskEntry( Map<Integer, Processor> processors, Map<String, Task> tasks){
-		for(Task task: tasks.values()){
-			if(task.getHasSubgraph().equalsIgnoreCase("No")){
-				if(task.getProc().size() > 1){
-					for(List<Integer> procList: task.getProc().values()){
-						for(int proc: procList){
-							processors.get(proc).getTask().add(task);
-						}
-					}
-				}
-				else{
-					processors.get(task.getProc().get("Default").get(0)).getTask().add(task);
-				}
-			}
-		}
-	}
-	*/
-	public void fillMappingForTask(Map<String, Task> tasks, Map<Integer, Processor> processors, CICMappingType mapping, String outputPath, String graphType){
+	private void fillMappingFromManualMapping(Map<String, Task> tasks, Map<Integer, Processor> processors, CICMappingType mapping){
 		for(Task task: tasks.values()){
 			List<MappingProcessorIdType> taskMaps = new ArrayList();
 			List<Integer> procList = new ArrayList();
@@ -500,117 +430,270 @@ public class BuildInnerDataStructures {
 			procListMapMap.put("Default", procListMap);
 			task.setProc(procListMapMap);
 		}
-		if(!graphType.equals("ProcessNetwork")){
-			CICScheduleType schedule = null;
-			CICScheduleTypeLoader scheduleLoader = new CICScheduleTypeLoader();
-			
-			for(Task task: tasks.values()){
-				if(task.getHasMTM().equals("Yes") && task.getHasSubgraph().equals("Yes")){
-					// initialize
-					Map<String, Map<String, Map<String, List<Integer>>>> taskMapForModeForNumProc = new HashMap<String, Map<String, Map<String, List<Integer>>>>();
-					for(Task t: tasks.values()){
-						if(t.getParentTask().equals(task.getName()) && t.getHasSubgraph().equals("No") ){
-							Map<String, Map<String, List<Integer>>> taskMapForNumProc = new HashMap<String, Map<String, List<Integer>>> ();
-							taskMapForModeForNumProc.put(t.getName(), taskMapForNumProc);
+	}
+	
+	private boolean fillMappingFromHierarchicalGraph(Map<String, Task> tasks, Map<Integer, Processor> processors, String outputPath)
+	{
+		boolean done = false;
+		CICScheduleType schedule = null;
+		CICScheduleTypeLoader scheduleLoader = new CICScheduleTypeLoader();
+		
+		//hierarchical graph 
+		for(Task task: tasks.values()){
+			if(task.getHasMTM().equals("Yes") && task.getHasSubgraph().equals("Yes")){
+				// initialize
+				//Map structure: <parent task name, <mode, <num_proc(schedule_id), processor id>>>
+				Map<String, Map<String, Map<String, List<Integer>>>> taskMapForModeForNumProc = new HashMap<String, Map<String, Map<String, List<Integer>>>>();
+				for(Task t: tasks.values()){
+					if(t.getParentTask().equals(task.getName()) && t.getHasSubgraph().equals("No") ){
+						Map<String, Map<String, List<Integer>>> taskMapForNumProc = new HashMap<String, Map<String, List<Integer>>> ();
+						taskMapForModeForNumProc.put(t.getName(), taskMapForNumProc);
+					}
+				}
+				
+				// extract the processor information from schedule.xml
+				for(String mode: task.getMTM().getModes()){					
+					ArrayList<File> schedFileList = new ArrayList<File>();
+					File file = new File(outputPath + "/convertedSDF3xml");
+					File[] fileList = file.listFiles();
+					for(File f: fileList){
+						if(f.getName().contains(task.getParentTask() + "_" + mode) && f.getName().endsWith("_schedule.xml")){
+							schedFileList.add(f);
 						}
 					}
+					if(schedFileList.size() <= 0){
+						JOptionPane.showMessageDialog(null, "You should execute 'Analysis' before build!");
+						System.exit(-1);
+					}
 					
-					for(String mode: task.getMTM().getModes()){					
-						ArrayList<File> schedFileList = new ArrayList<File>();
-						File file = new File(outputPath + "/convertedSDF3xml");
-						File[] fileList = file.listFiles();
-						for(File f: fileList){
-							if(f.getName().contains(task.getParentTask() + "_" + mode) && f.getName().endsWith("_schedule.xml")){
-								schedFileList.add(f);
+					// initialize
+					for(Task t: tasks.values()){					
+						if(t.getParentTask().equals(task.getName()) && t.getHasSubgraph().equals("No") ){
+							Map<String, List<Integer>> taskProcMap = new HashMap<String, List<Integer>>();
+							taskMapForModeForNumProc.get(t.getName()).put(mode, taskProcMap);
+						}
+					}
+
+					for(int f_i=0; f_i < schedFileList.size(); f_i++){
+						try {
+							schedule = scheduleLoader.loadResource(schedFileList.get(f_i).getAbsolutePath());
+						} catch (CICXMLException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						String temp = schedFileList.get(f_i).getName().replace(task.getParentTask() + "_" + mode + "_", "");
+						temp = temp.replace("_schedule.xml", "");
+						int num_proc = Integer.parseInt(temp);
+						// initialize
+						for(Task t: tasks.values()){
+							if(t.getParentTask().equals(task.getName()) && t.getHasSubgraph().equals("No") ){
+								List<Integer> procList = new ArrayList<Integer>();
+								taskMapForModeForNumProc.get(t.getName()).get(mode).put(Integer.toString(num_proc), procList);
 							}
 						}
-						if(schedFileList.size() <= 0){
-							JOptionPane.showMessageDialog(null, "You should execute 'Analysis' before build!");
-							System.exit(-1);
+							
+						TaskGroupsType taskGroups = schedule.getTaskGroups();
+						List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
+						for(int i=0; i<taskGroupList.size();i++){
+							List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
+							for(int j=0; j<schedGroup.size(); j++){
+								int proc_id = 0;
+								for(Processor proc: processors.values()){
+									if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) 
+											&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
+										proc_id = proc.getIndex();
+										break;
+									}
+								}
+								List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
+								for(int k=0; k<scheds.size(); k++){
+									ScheduleElementType sched = scheds.get(k);
+									String taskName = sched.getTask().getName();
+									if(!taskMapForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).contains(proc_id))
+										taskMapForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).add(proc_id);
+								}
+							}
 						}
 						
-						// initialize
-						for(Task t: tasks.values()){					
-							if(t.getParentTask().equals(task.getName()) && t.getHasSubgraph().equals("No") ){
-								Map<String, List<Integer>> taskProcMap = new HashMap<String, List<Integer>>();
-								taskMapForModeForNumProc.get(t.getName()).put(mode, taskProcMap);
-							}
-						}
-
-						for(int f_i=0; f_i < schedFileList.size(); f_i++){
-							try {
-								schedule = scheduleLoader.loadResource(schedFileList.get(f_i).getAbsolutePath());
-							} catch (CICXMLException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							String temp = schedFileList.get(f_i).getName().replace(task.getParentTask() + "_" + mode + "_", "");
-							temp = temp.replace("_schedule.xml", "");
-							int num_proc = Integer.parseInt(temp);
-							// initialize
-							for(Task t: tasks.values()){
-								if(t.getParentTask().equals(task.getName()) && t.getHasSubgraph().equals("No") ){
-									List<Integer> procList = new ArrayList<Integer>();
-									taskMapForModeForNumProc.get(t.getName()).get(mode).put(Integer.toString(num_proc), procList);
-								}
-							}
-								
-							TaskGroupsType taskGroups = schedule.getTaskGroups();
-							List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
-							boolean srcFlag = false;
-							for(int i=0; i<taskGroupList.size();i++){
-								List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
-								for(int j=0; j<schedGroup.size(); j++){
-									int proc_id = 0;
-									for(Processor proc: processors.values()){
-										if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) 
-												&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
-											proc_id = proc.getIndex();
-											break;
-										}
-									}
-									List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
-									for(int k=0; k<scheds.size(); k++){
-										ScheduleElementType sched = scheds.get(k);
-										String taskName = sched.getTask().getName();
-										if(!taskMapForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).contains(proc_id))
-											taskMapForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).add(proc_id);
-									}
-								}
-							}
-							
-							//System.out.println(taskMapForModeForNumProc);
-						}
+						//System.out.println(taskMapForModeForNumProc);
 					}
-					
-					for(Task t: tasks.values()){
-						if(t.getParentTask().equals(task.getName()) && t.getHasSubgraph().equals("No") ){
-							Map<String, Map<String, List<Integer>>> before = taskMapForModeForNumProc.get(t.getName());
-							Map<String, Map<String, List<Integer>>> after = new HashMap<String, Map<String, List<Integer>>>();
-							
-							List<String> modeList = task.getMTM().getModes();
-							List<String> procNumList = new ArrayList<String> ();
-							
-							Set<String> pnl = before.get(modeList.get(0)).keySet();
-							for(String procNum: pnl){
-								procNumList.add(procNum);
-							}
-							
-							for(String procNum: procNumList){
-								Map<String, List<Integer>> modeMapList = new HashMap<String, List<Integer>>();
-								for(String mode: modeList){
-									List<Integer> procList = before.get(mode).get(procNum);
-									modeMapList.put(mode, procList);
-								}
-								after.put(procNum, modeMapList);
-							}
-							t.setProc(after);
-							//System.out.println("-- " + t.getName() + ": " + t.getProc());
+				}
+				
+				for(Task t: tasks.values()){
+					if(t.getParentTask().equals(task.getName()) && t.getHasSubgraph().equals("No") ){
+						Map<String, Map<String, List<Integer>>> before = taskMapForModeForNumProc.get(t.getName());
+						Map<String, Map<String, List<Integer>>> after = new HashMap<String, Map<String, List<Integer>>>();
+						
+						List<String> modeList = task.getMTM().getModes();
+						List<String> procNumList = new ArrayList<String> ();
+						
+						Set<String> pnl = before.get(modeList.get(0)).keySet();
+						for(String procNum: pnl){
+							procNumList.add(procNum);
 						}
+						
+						for(String procNum: procNumList){
+							Map<String, List<Integer>> modeMapList = new HashMap<String, List<Integer>>();
+							for(String mode: modeList){
+								List<Integer> procList = before.get(mode).get(procNum);
+								modeMapList.put(mode, procList);
+							}
+							after.put(procNum, modeMapList);
+						}
+						t.setProc(after);
+						done = true;
+						//System.out.println("-- " + t.getName() + ": " + t.getProc());
 					}
 				}
 			}
 		}
+		return done;
+	}
+	
+	private void fillMappingFromFlatGraph(Map<String, Task> tasks, Map<String, Task> vTasks, Map<Integer, Processor> processors, String outputPath)
+	{
+		CICScheduleType schedule = null;
+		CICScheduleTypeLoader scheduleLoader = new CICScheduleTypeLoader();
+		
+		List<Task> targetVtask = new ArrayList<Task>();
+		for(Task vTask: vTasks.values())
+		{
+			for(Task task: tasks.values())
+			{
+				if(task.getParentTask().equals(vTask.getName()))
+				{
+					targetVtask.add(vTask);
+					break;
+				}
+			}
+		}
+				
+		for(Task vTask: targetVtask){	
+			// initialize
+			//Map structure: <parent task name, <mode, <num_proc(schedule_id), processor id>>>
+			Map<String, Map<String, Map<String, List<Integer>>>> taskMapForModeForNumProc = new HashMap<String, Map<String, Map<String, List<Integer>>>>();
+			for(Task t: tasks.values()){
+				if(t.getParentTask().equals(vTask.getName()) && t.getHasSubgraph().equals("No") ){
+					Map<String, Map<String, List<Integer>>> taskMapForNumProc = new HashMap<String, Map<String, List<Integer>>> ();
+					taskMapForModeForNumProc.put(t.getName(), taskMapForNumProc);
+				}
+			}
+			
+			// extract the processor information from schedule.xml
+			List<String> modeList = new ArrayList<String>();
+			if (vTask.getMTM() != null)
+				modeList = vTask.getMTM().getModes();
+			else
+				modeList.add("Default");
+			
+			for(String mode: modeList){					
+				ArrayList<File> schedFileList = new ArrayList<File>();
+				File file = new File(outputPath + "/convertedSDF3xml");
+				File[] fileList = file.listFiles();
+				for(File f: fileList){
+					if(f.getName().contains(vTask.getParentTask() + "_" + mode) && f.getName().endsWith("_schedule.xml")){
+						schedFileList.add(f);
+					}
+				}
+				if(schedFileList.size() <= 0){
+					JOptionPane.showMessageDialog(null, "You should execute 'Analysis' before build!");
+					System.exit(-1);
+				}
+				
+				// initialize
+				for(Task t: tasks.values()){					
+					if(t.getParentTask().equals(vTask.getName()) && t.getHasSubgraph().equals("No") ){
+						Map<String, List<Integer>> taskProcMap = new HashMap<String, List<Integer>>();
+						taskMapForModeForNumProc.get(t.getName()).put(mode, taskProcMap);
+					}
+				}
+
+				for(int f_i=0; f_i < schedFileList.size(); f_i++){
+					try {
+						schedule = scheduleLoader.loadResource(schedFileList.get(f_i).getAbsolutePath());
+					} catch (CICXMLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					String temp = schedFileList.get(f_i).getName().replace(vTask.getParentTask() + "_" + mode + "_", "");
+					temp = temp.replace("_schedule.xml", "");
+					int num_proc = Integer.parseInt(temp);
+					// initialize
+					for(Task t: tasks.values()){
+						if(t.getParentTask().equals(vTask.getName()) && t.getHasSubgraph().equals("No") ){
+							List<Integer> procList = new ArrayList<Integer>();
+							taskMapForModeForNumProc.get(t.getName()).get(mode).put(Integer.toString(num_proc), procList);
+						}
+					}
+						
+					TaskGroupsType taskGroups = schedule.getTaskGroups();
+					List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
+					for(int i=0; i<taskGroupList.size();i++){
+						List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
+						for(int j=0; j<schedGroup.size(); j++){
+							int proc_id = 0;
+							for(Processor proc: processors.values()){
+								if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) 
+										&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
+									proc_id = proc.getIndex();
+									break;
+								}
+							}
+							List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
+							for(int k=0; k<scheds.size(); k++){
+								ScheduleElementType sched = scheds.get(k);
+								String taskName = sched.getTask().getName();
+								if(!taskMapForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).contains(proc_id))
+									taskMapForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).add(proc_id);
+							}
+						}
+					}
+					
+//						System.out.println(taskMapForModeForNumProc);
+				}
+			}
+			
+			for(Task t: tasks.values()){
+				if(t.getParentTask().equals(vTask.getName()) && t.getHasSubgraph().equals("No") ){
+					Map<String, Map<String, List<Integer>>> before = taskMapForModeForNumProc.get(t.getName());
+					Map<String, Map<String, List<Integer>>> after = new HashMap<String, Map<String, List<Integer>>>();
+					
+					List<String> procNumList = new ArrayList<String> ();
+					
+					Set<String> pnl = before.get(modeList.get(0)).keySet();
+					for(String procNum: pnl){
+						procNumList.add(procNum);
+					}
+					
+					for(String procNum: procNumList){
+						Map<String, List<Integer>> modeMapList = new HashMap<String, List<Integer>>();
+						for(String mode: modeList){
+							List<Integer> procList = before.get(mode).get(procNum);
+							modeMapList.put(mode, procList);
+						}
+						after.put(procNum, modeMapList);
+					}
+					t.setProc(after);
+//						System.out.println("-- " + t.getName() + ": " + t.getProc());
+				}
+			}
+		}
+	}
+
+	
+	private void fillMappingFromAutomaticMapping(Map<String, Task> tasks, Map<String, Task> vTasks, Map<Integer, Processor> processors, String outputPath){
+		boolean result = fillMappingFromHierarchicalGraph(tasks, processors, outputPath);
+		if(!result && vTasks.size() > 0)
+			fillMappingFromFlatGraph(tasks, vTasks, processors, outputPath);
+		
+	}
+	
+	public void fillMappingForTask(Map<String, Task> tasks, Map<String, Task> vTasks, Map<Integer, Processor> processors, CICMappingType mapping, String outputPath, String graphType){
+		
+		fillMappingFromManualMapping(tasks, processors, mapping);
+		if(!graphType.equals("ProcessNetwork")){
+			fillMappingFromAutomaticMapping(tasks, vTasks, processors, outputPath);
+		}	
 	}
 		
 	
@@ -620,10 +703,8 @@ public class BuildInnerDataStructures {
 		Task task_result = null;
 
 		for(TaskType task: mAlgorithm.getTasks().getTask()){	
-			// Task 이름
 			String name = task.getName();
 			
-			// Task의 Data Parallel 옵션
 			String dataParallelType;
 			TaskDataParallelType dataParallel = task.getDataParallel();
 			if(dataParallel == null)									dataParallelType = "NONE";
@@ -659,7 +740,7 @@ public class BuildInnerDataStructures {
 				}
 			}
 			
-			// Task의 cicfile
+			// cic file of Task
 			String cicfile = task.getFile().toString();
 			
 			String cflag;
@@ -736,14 +817,13 @@ public class BuildInnerDataStructures {
 			}
 			else	mtmInfo = new MTM();
 
-			// 새로운 Task 생성
+			// create new Task
 			task_result = new Task(index, name, cicfile, null, cflag, ldflag, dataParallelType
 					, width, height, dependencyList, feedbackList, runCondition, task.getExtraHeader()
 					, task.getExtraSource(), task.getLibraryMasterPort(), task.getParameter(), hasSubgraph
 					, hasMTM, mtmInfo, parentTask, taskType, inPortList, outPortList, isSrcTask);
 			index++;
 						
-			// Tasks 벡터에 삽입
 			tasks.put(name, task_result);
 		}
 		
@@ -786,12 +866,80 @@ public class BuildInnerDataStructures {
 			if(mtask.getRunRate() != null)	{
 				runRate = mtask.getRunRate().intValue();
 			}
-			else							runRate = 1;	//현재 xml 에서는 runrate를 심어주지 않아서 1로 저장됨 
+			else							runRate = 1;	//Using xml, runRate is null -> runRate = 1
 			tasks.get(mtask.getName()).setRunRate(runRate);			
 		}
 		
 		return tasks;
 	}
+	
+	public void modifyTaskStructure_runRate(Map<String, Task> mTask, Map<String, Task> mVTask, Map<Integer, Queue> mQueue)
+	{
+		//[CODE_REVIEW]: hshong(4/21): need to check: functional sim & multi-thread when the graph is flat.
+		//Assume update runrate when the graph is SDF
+		Task parentTask = null;
+		String mode = null;
+		for(Task t: mTask.values()){
+			if(t.getHasMTM().equalsIgnoreCase("Yes")){ //first, find the parent task 
+				if(t.getMTM() != null && t.getMTM().getModes().size() == 1){ //When the graph is SDF, mode has only one mode
+					parentTask = t; 
+					mode = t.getMTM().getModes().get(0);
+					
+					Map<String, Integer> tr = CommonLibraries.Schedule.generateIterationCount(parentTask, mode, mTask, mQueue);
+					for(Task i_t: mTask.values())
+					{
+						if(!i_t.getParentTask().equals(i_t.getName())){
+							int rate = 0;
+							if(tr.get(i_t.getName()) != null)
+								rate = tr.get(i_t.getName());
+							if(rate != 0)
+								i_t.setRunRate(rate); 
+						}
+								
+					}
+				}					
+			}
+			else {
+				if(mVTask.size() > 0){ //case of flat graph
+					Map<String, Integer> tr = CommonLibraries.Schedule.generateIterationCount(null, "Default", mTask, mQueue);
+					for(Task i_t: mTask.values())
+					{
+						if(!i_t.getParentTask().equals(i_t.getName())){
+							int rate = 0;
+							if(tr.get(i_t.getName()) != null)
+								rate = tr.get(i_t.getName());
+							if(rate != 0)
+								i_t.setRunRate(rate); 
+						}
+								
+					}
+				}
+			}
+		}
+		
+	}
+	
+	
+	public void modifyTaskStructure_parentTask(Map<String, Task> mTask, Map<Integer, List<List<Task>>> mConnectedSDFTaskSet)
+	{
+		//change parent task to virtual parent task
+		int index = mTask.size();
+		for(List<List<Task>> taskListOut: mConnectedSDFTaskSet.values()){
+			for(int i=0; i<taskListOut.size(); i++){
+				List<Task> taskListIn = taskListOut.get(i);
+				for(int j=0; j<taskListIn.size(); j++){
+					for(Task t: mTask.values()){
+						if(taskListIn.get(j).getName().equals(t.getName())){
+							t.setParentTask("SDF_" + index);
+							break;
+						}
+					}
+				}
+				index = index + 1;
+			}
+		}
+	}
+			
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1010,7 +1158,11 @@ public class BuildInnerDataStructures {
 								src = channel.getSrc().get(0).getTask();
 								srcPortId = t_index;
 								srcPortName = port.getName();
-								srcRate = port.getRate().get(0).getRate().intValue(); //현재는 sdf만 지원하기 때문 
+								//[CODE_REVIEW]: hshong(4/21):sadf 지원하도록 확장
+								if(port.getRate() != null)
+									srcRate = port.getRate().get(0).getRate().intValue(); //현재는 sdf만 지원하기 때문
+								else //process network
+									srcRate = 1;
 								//sampleSize = port.getSampleSize().intValue();
 								flag=1;
 								break;
@@ -1032,7 +1184,11 @@ public class BuildInnerDataStructures {
 								dst = channel.getDst().get(0).getTask();
 								dstPortId = t_index;
 								dstPortName = port.getName();
-								dstRate = port.getRate().get(0).getRate().intValue(); //현재는 sdf만 지원하기 때문 
+								//[CODE_REVIEW]: hshong(4/21):sadf 지원하도록 확장
+								if(port.getRate() != null)
+									dstRate = port.getRate().get(0).getRate().intValue(); //현재는 sdf만 지원하기 때문
+								else //process network
+									dstRate = 1;
 								flag=1;
 								break;
 							}
@@ -1077,7 +1233,6 @@ public class BuildInnerDataStructures {
 					if(taskname.equals(task.getName())){
 						for(ProfileTaskModeType profilemode: profiledTask.getMode()){
 							for(ProfileType profileProcessor: profilemode.getProfile()){
-								//getProfile 에는 1개씩만 있다고 가정
 								taskprofilevalinfo.put(profilemode.getName(), profileProcessor.getValue().intValue());
 								taskprofileunitinfo.put(profilemode.getName(), profileProcessor.getUnit());
 							}

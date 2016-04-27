@@ -352,12 +352,19 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 
       if(!tasks[i].has_subgraph)
       {
-        if(tasks[i].parent_task_id == i)
-          create_thread = CIC_V_TRUE;
-        else if(GetTaskIndexFromTaskId(tasks[i].parent_task_id) < CIC_UV_NUM_TASKS)
-        {
-          create_thread = CIC_V_TRUE;         
-        }		 
+        create_thread = CIC_V_TRUE;
+	      /*
+	      if(tasks[i].parent_task_id == i)
+	        create_thread = CIC_V_TRUE;
+	      else if(tasks[i].is_parent_virtual == CIC_V_TRUE)
+	      {
+	          create_thread = CIC_V_TRUE;         
+	      }	
+	      else if(GetTaskIndexFromTaskId(tasks[i].parent_task_id) < CIC_UV_NUM_TASKS)
+	      {
+	          create_thread = CIC_V_TRUE;         
+	      }
+	      */		 
       }
 
       if(create_thread == CIC_V_TRUE && tasks[i].state == STATE_RUN){
@@ -375,12 +382,19 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 
     if(!tasks[i].has_subgraph)
     {
+      create_thread = CIC_V_TRUE;
+      /*
       if(tasks[i].parent_task_id == i)
         create_thread = CIC_V_TRUE;
+      else if(tasks[i].is_parent_virtual == CIC_V_TRUE)
+      {
+          create_thread = CIC_V_TRUE;         
+      }	
       else if(GetTaskIndexFromTaskId(tasks[i].parent_task_id) < CIC_UV_NUM_TASKS)
       {
           create_thread = CIC_V_TRUE;         
-      }		 
+      }
+      */		 
     }
       
 /*    

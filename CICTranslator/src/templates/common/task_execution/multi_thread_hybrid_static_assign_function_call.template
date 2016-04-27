@@ -13,48 +13,6 @@ CIC_STATIC CIC_T_BOOL exit_signal = CIC_V_FALSE;
 CIC_VOLATILE CIC_STATIC CIC_T_BOOL firable_task[CIC_UV_NUM_TASKS];
 ##TASK_VARIABLE_DECLARATION_END
 
-##PUSH_POP_RUN_QUEUE_START
-CIC_T_VOID push_run_queue(CIC_T_INT task_id){
-  CIC_T_INT i;
-  CIC_T_BOOL done = CIC_V_FALSE;
-  CIC_T_CHAR task_id_name[10];
-
-  CIC_F_MUTEX_LOCK(&available_run_queue_mutex);
-  for(i = 0; i < CIC_ARRAYLEN(available_run_queue); i++){
-    if(available_run_queue[i] == task_id){
-      CIC_F_MUTEX_UNLOCK(&available_run_queue_mutex);
-      return;
-    }
-  }
-
-  for(i = 0; i < CIC_UV_NUM_TASKS; i++){
-    if(available_run_queue[i] == -1){
-      available_run_queue[i] = task_id;
-      done = CIC_V_TRUE;
-      break;
-    }
-  }
-  CIC_F_MUTEX_UNLOCK(&available_run_queue_mutex);
-
-  CIC_F_INTEGER_TO_STRING(task_id_name, task_id);
-  if(done == CIC_V_FALSE)
-    CIC_F_ERROR("fail", "push_run_queue() fail!", CIC_V_ERROR_EXIT);
-}
-
-CIC_T_VOID pop_run_queue(CIC_T_INT task_id){
-  CIC_T_INT i;
-
-  CIC_F_MUTEX_LOCK(&available_run_queue_mutex);
-  for(i = 0; i < CIC_ARRAYLEN(available_run_queue); i++){
-    if(available_run_queue[i] == task_id){
-      available_run_queue[i] = -1;
-      break;
-    }
-  }
-  CIC_F_MUTEX_UNLOCK(&available_run_queue_mutex);
-}
-##PUSH_POP_RUN_QUEUE_END
-
 ##CHECK_TASK_END_START
 CIC_STATIC CIC_T_BOOL CheckTaskEnd(CIC_T_INT task_id){
   CIC_T_BOOL finish = CIC_V_FALSE;
@@ -140,35 +98,6 @@ CIC_T_BOOL IsRunnableTaskFromTaskId(CIC_T_INT task_id){
   return executable;
 }
 ##IS_RUNNNABLE_TASK_FROM_TASK_ID_END
-
-##GET_RUN_QUEUE_START
-CIC_T_INT GetRunnableTaskFromProcessorId(CIC_T_INT proc_id, CIC_T_INT candidates[], CIC_T_INT num_candidate, CIC_T_CHAR* mode_name){
-  CIC_T_INT candidate_task_id = -1;
-  CIC_T_INT candidate_task_priority = 999;
-  CIC_T_INT i, j, priority_temp;
-
-  for(i = 0; i < num_candidate; i++)
-  {
-    CheckTaskEnd(candidates[i]);
-  }
-  CIC_F_MUTEX_LOCK(&available_run_queue_mutex);
-  for(i = 0; i < CIC_ARRAYLEN(available_run_queue); i++){
-    for(j = 0; j < num_candidate; j++){
-      if(tasks[candidates[j]].state == STATE_STOP) continue;
-      if(available_run_queue[i] == candidates[j]){
-        priority_temp = GetTaskPriorityFromTaskIdAndModeNameAndProcId(available_run_queue[i], mode_name, proc_id);
-        if(priority_temp < candidate_task_priority){
-          candidate_task_priority = priority_temp;
-          candidate_task_id = available_run_queue[i];
-        }
-      }
-    }
-  }
-  CIC_F_MUTEX_UNLOCK(&available_run_queue_mutex);
-
-  return candidate_task_id;
-}
-##GET_RUN_QUEUE_END
 
 ##UPDATE_RUN_QUEUE_START
 CIC_T_VOID updateRunQueueFromTaskId(CIC_T_INT task_id){
@@ -447,7 +376,7 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
   
   for(i=0; i<CIC_UV_NUM_VIRTUAL_TASKS; i++){
     CIC_T_INT parent_task_index;
-    if(virtual_tasks[i].parent_task_id <= CIC_UV_NUM_TASKS) //hierarical 
+    if(virtual_tasks[i].parent_task_id < CIC_UV_NUM_TASKS) //hierarical 
       parent_task_index = GetTaskIndexFromTaskId(virtual_tasks[i].parent_task_id);
     else
       parent_task_index = GetVirtualTaskIndexFromTaskId(virtual_tasks[i].parent_task_id);
@@ -673,15 +602,3 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 
   return;
 ##CONTROL_END_TASK_END
-
-##INIT_SYSTEM_VARIABLES_START
-  CIC_T_INT i; 
-  CIC_F_MUTEX_INIT(&available_run_queue_mutex);
-
-  for(i = 0; i < CIC_UV_NUM_TASKS; i++)
-    available_run_queue[i] = -1;
-##INIT_SYSTEM_VARIABLES_END
-
-##WRAPUP_SYSTEM_VARIABLES_START
-  CIC_F_MUTEX_WRAPUP(&available_run_queue_mutex);
-##WRAPUP_SYSTEM_VARIABLES_END
