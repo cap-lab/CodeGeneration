@@ -60,7 +60,7 @@
 
   <xs:complexType name="ProfileLibraryType">
     <xs:sequence>
-      <xs:element name="function" type="ProfileLibraryFunctionType" minOccurs="1" maxOccurs="unbounded" />
+      <xs:element name="function" type="ProfileLibraryFunctionType" minOccurs="0" maxOccurs="unbounded" />
     </xs:sequence>
     <xs:attribute name="name" type="NameType" use="required" />
   </xs:complexType>
