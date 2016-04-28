@@ -18,7 +18,7 @@ public interface CICTargetCodeTranslator {
 			String mFuncSimPeriodMetric, String mCICXMLFile, String language, CICAlgorithmType mAlgorithm,
 			CICControlType mControl, CICScheduleType mSchedule, CICGPUSetupType mGpusetup, CICMappingType mMapping,
 			Map<Integer, List<Task>> mConnectedTaskGraph, Map<Integer, List<List<Task>>> mConnectedSDFTaskSet,
-			Map<String, Task> mVTask, Map<String, Task> mPVTask, String mRuntimeExecutionPolicy, String codeGenerationStyle)
+			Map<String, Task> mVTask, Map<String, Task> mPVTask, String mGraphType, String mRuntimeExecutionPolicy, String codeGenerationStyle)
 					throws FileNotFoundException;
 
 	public int generateCodeWithComm(String mTarget, String mTranslatorPath, String mOutputPath, String mRootPath,
@@ -28,6 +28,6 @@ public interface CICTargetCodeTranslator {
 			CICAlgorithmType mAlgorithm, CICControlType mControl, CICScheduleType mSchedule, CICGPUSetupType mGpusetup,
 			CICMappingType mMapping, Map<Integer, List<Task>> mConnectedTaskGraph,
 			Map<Integer, List<List<Task>>> mConnectedSDFTaskSet, Map<String, Task> mVTask, Map<String, Task> mPVTask,
-			String mRuntimeExecutionPolicy, String codeGenerationStyle) throws FileNotFoundException;
+			String mGraphType, String mRuntimeExecutionPolicy, String codeGenerationStyle) throws FileNotFoundException;
 
 }

@@ -100,8 +100,8 @@ public class CodeGenerator
 		mTotalControlQueue = 0;	
 		
 		mGraphType = "ProcessNetwork";	// DataFlow, ProcessNetwork, Hybrid
-		mRuntimeExecutionPolicy = "t";	//tyle: a: thread per app, t: thread per task, p: thread per proc
-		mCodeGenerationStyle = "f"; 
+		mRuntimeExecutionPolicy = HopesInterface.RuntimeExecutionPolicy_SelfTimed;	//style: a: thread per app, t: thread per task, p: thread per proc
+		mCodeGenerationStyle = HopesInterface.CodeGenerationPolicy_FunctionCall; 
 		mLanguage = "c";
 	}
 	
@@ -334,7 +334,7 @@ public class CodeGenerator
 						
 			CICTargetCodeTranslator translator = new CICPthreadTranslator();
 			try {
-				translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mFuncSimPeriod, mFuncSimPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mRuntimeExecutionPolicy, mCodeGenerationStyle);
+				translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mFuncSimPeriod, mFuncSimPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mGraphType, mRuntimeExecutionPolicy, mCodeGenerationStyle);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -348,10 +348,10 @@ public class CodeGenerator
 			
 			CICTargetCodeTranslator translator = new CICCellTranslator();
 			try {
-				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mFuncSimPeriod, mFuncSimPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mRuntimeExecutionPolicy, mCodeGenerationStyle);
+				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mFuncSimPeriod, mFuncSimPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mGraphType, mRuntimeExecutionPolicy, mCodeGenerationStyle);
 				if(ret == -1){
 					CICTargetCodeTranslator translator_pthread = new CICPthreadTranslator();
-					translator_pthread.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mFuncSimPeriod, mFuncSimPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mRuntimeExecutionPolicy, mCodeGenerationStyle);
+					translator_pthread.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mFuncSimPeriod, mFuncSimPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mGraphType, mRuntimeExecutionPolicy, mCodeGenerationStyle);
 				}
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
@@ -366,7 +366,7 @@ public class CodeGenerator
 			
 			CICTargetCodeTranslator translator = new CICCudaTranslator();
 			try {
-				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mFuncSimPeriod, mFuncSimPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mRuntimeExecutionPolicy, mCodeGenerationStyle);
+				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mFuncSimPeriod, mFuncSimPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mGraphType, mRuntimeExecutionPolicy, mCodeGenerationStyle);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -381,7 +381,7 @@ public class CodeGenerator
 			
 			CICTargetCodeTranslator translator = new CICMulticoreTranslator();
 			try {
-				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mFuncSimPeriod, mFuncSimPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mRuntimeExecutionPolicy, mCodeGenerationStyle);
+				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mFuncSimPeriod, mFuncSimPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mGraphType, mRuntimeExecutionPolicy, mCodeGenerationStyle);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -398,7 +398,7 @@ public class CodeGenerator
 					try {
 						String t_mTarget = Integer.toString(index);
 						String t_mOutputPath = mOutputPath + "/proc." + t_mTarget + "/";
-						ret = translator.generateCode(t_mTarget, mTranslatorPath, t_mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mFuncSimPeriod, mFuncSimPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mRuntimeExecutionPolicy, mCodeGenerationStyle);
+						ret = translator.generateCode(t_mTarget, mTranslatorPath, t_mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mFuncSimPeriod, mFuncSimPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mGraphType, mRuntimeExecutionPolicy, mCodeGenerationStyle);
 					} catch (FileNotFoundException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -423,7 +423,7 @@ public class CodeGenerator
 			
 			CICXeonPhiTranslator translator = new CICXeonPhiTranslator();
 			try {
-				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mFuncSimPeriod, mFuncSimPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mRuntimeExecutionPolicy, mCodeGenerationStyle);
+				ret = translator.generateCode(mTarget, mTranslatorPath, mOutputPath, mRootPath, mProcessor, mTask, mQueue, mLibrary, mLibrary, mFuncSimPeriod, mFuncSimPeriodMetric, mCICXMLFile, mLanguage, mAlgorithm, mControl, mSchedule, mGpusetup, mMapping, mConnectedTaskGraph, mConnectedSDFTaskSet, mVTask, mPVTask, mGraphType, mRuntimeExecutionPolicy, mCodeGenerationStyle);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

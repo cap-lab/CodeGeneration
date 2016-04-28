@@ -7,6 +7,7 @@ import hopes.cic.xml.CICMappingType;
 import hopes.cic.xml.CICScheduleType;
 import hopes.cic.xml.LibraryMasterPortType;
 import hopes.cic.xml.TaskLibraryConnectionType;
+import ptolemy.actor.lib.GradientAdaptiveLattice;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,6 +35,7 @@ public class CICHSimUcosTranslator implements CICTargetCodeTranslator {
 	private int mFuncSimPeriod;
 	private String mFuncSimPeriodMetric;
 	private String mThreadVer;
+	private String mGraphType;
 	private String mRuntimeExecutionPolicy;
 	private String mCodeGenerationStyle;
 	private String mLanguage;
@@ -65,7 +67,8 @@ public class CICHSimUcosTranslator implements CICTargetCodeTranslator {
 			String funcSimPeriodMetric, String cicxmlfile, String language, CICAlgorithmType algorithm,
 			CICControlType control, CICScheduleType schedule, CICGPUSetupType gpusetup, CICMappingType mapping,
 			Map<Integer, List<Task>> connectedtaskgraph, Map<Integer, List<List<Task>>> connectedsdftaskset,
-			Map<String, Task> vtask, Map<String, Task> pvtask, String runtimeExecutionPolicy, String codeGenerationStyle)
+			Map<String, Task> vtask, Map<String, Task> pvtask, String graphType, 
+			String runtimeExecutionPolicy, String codeGenerationStyle)
 					throws FileNotFoundException {
 		mTarget = target;
 		mTranslatorPath = translatorPath;
@@ -75,6 +78,7 @@ public class CICHSimUcosTranslator implements CICTargetCodeTranslator {
 		mFuncSimPeriod = funcSimPeriod;
 		mFuncSimPeriodMetric = funcSimPeriodMetric;
 		mThreadVer = "Multi";	//need to check
+		mGraphType = graphType;
 		mRuntimeExecutionPolicy = runtimeExecutionPolicy;
 		mCodeGenerationStyle = codeGenerationStyle;
 		mLanguage = language;
@@ -964,7 +968,7 @@ public class CICHSimUcosTranslator implements CICTargetCodeTranslator {
 			CICAlgorithmType mAlgorithm, CICControlType mControl, CICScheduleType mSchedule, CICGPUSetupType mGpusetup,
 			CICMappingType mMapping, Map<Integer, List<Task>> mConnectedTaskGraph,
 			Map<Integer, List<List<Task>>> mConnectedSDFTaskSet, Map<String, Task> mVTask, Map<String, Task> mPVTask,
-			String mRuntimeExecutionPolicy, String codeGenerationStyle) throws FileNotFoundException {
+			String mGraphType, String mRuntimeExecutionPolicy, String codeGenerationStyle) throws FileNotFoundException {
 		// TODO Auto-generated method stub
 		return 0;
 	}

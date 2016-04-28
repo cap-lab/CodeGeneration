@@ -83,7 +83,8 @@ virtual_task_continue:
 
 CIC_UT_THREAD_FUNC_RET_TYPE TaskRoutine(CIC_UT_THREAD_FUNC_ARG_TYPE pdata)
 {
-	CIC_T_INT task_index = *((CIC_T_INT*)&pdata);
+	CIC_T_INT task_id = *((CIC_T_INT*)&pdata);
+	CIC_T_INT task_index = GetTaskIndexFromTaskId(task_id);
 
 	CIC_T_INT iteration_count, count;
 	
