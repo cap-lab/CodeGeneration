@@ -157,6 +157,8 @@ public class CIC {
 				|| (runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed)
 						&& codeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
 				|| (runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)
+						&& codeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
+				|| (runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic)
 						&& codeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread)))
 
 		{
@@ -669,6 +671,8 @@ public class CIC {
 			}
 		} else if (mRuntimeExecutionPolicy.equals("Global")
 				|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)
+						&& mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
+				|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic)
 						&& mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
 				|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed)
 						&& mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))) {

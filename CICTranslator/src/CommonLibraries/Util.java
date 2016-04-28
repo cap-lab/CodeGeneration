@@ -16,6 +16,7 @@ public class Util {
 	
 	public static void copyFile(String theDestFile, String theSrcFile)
 	{
+		System.out.println(theSrcFile);
 		try {
 			// open template
 			File srcFile = new File(theSrcFile);		

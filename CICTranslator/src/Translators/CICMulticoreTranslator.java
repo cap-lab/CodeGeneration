@@ -106,6 +106,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		}
 
 		// generate mtm files from xml files
+		//[CODE_REVIEW]: hshong(4/21): simplify
 		// hshong: need to check
 		for (Task t : mTask.values()) {
 			if (t.getHasMTM().equalsIgnoreCase("Yes")) {
@@ -113,7 +114,9 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 						|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed)
 								&& mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
 						|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)
-								&& mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))) {
+								&& mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
+						|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)
+								&& mCodeGenerationStyle.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic))) {
 					templateFile = mTranslatorPath + "templates/common/mtm_template/thread_per_task.template";
 					CommonLibraries.CIC.generateMTMFile(mOutputPath, templateFile, t, mAlgorithm, mTask, mPVTask,
 							mQueue, mRuntimeExecutionPolicy, mCodeGenerationStyle);
@@ -673,6 +676,10 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 			else if (codeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
 				templateFile = mTranslatorPath
 						+ "templates/common/task_execution/multi_thread_hybrid_static_assign_thread.template";
+		} else if (runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic)) {
+			// assume that we supports only thread version to fully-dynamic policy
+			templateFile = mTranslatorPath
+					+ "templates/common/task_execution/multi_thread_hybrid_fully_dynamic_thread.template";
 		}
 
 		return templateFile;
@@ -724,6 +731,13 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 				code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_TASK_PRIORITY_FROM_TASK_ID");
 				code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_VIRTUAL_TASK_INDEX_FROM_THREAD");
 			}
+		} else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic)) {
+			//now, we doesn't support SADF. 
+			//To support SADF, we need to insert mode information, because there are task_priorities per mode => We need to fix it! 
+			code += generateTaskToPriority();
+			templateFile = mTranslatorPath + "templates/target/Multicore/target_dependent_code.template";
+			code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_TASK_PRIORITY_FROM_TASK_ID");
+			code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_VIRTUAL_TASK_INDEX_FROM_THREAD");
 		} else if (mRuntimeExecutionPolicy.equals("Partitioned")) {
 			code += generateVirtualTaskToCoreMap();
 			templateFile = mTranslatorPath + "templates/target/Multicore/target_dependent_code.template";
@@ -951,10 +965,13 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		//////////////////////////
 
 		// SET_PROC //
-		String setProc = "\tproc_id = GetProcessorId(task_id, 0, mode_name, 0);\n" + "\tcpu_set_t cpuset;\n"
-				+ "\tCPU_ZERO(&cpuset);\n" + "\tCPU_SET(proc_id, &cpuset);\n"
-				+ "\tpthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);\n";
-		code = code.replace("##SET_PROC", setProc);
+		if (!mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic))
+		{
+			String setProc = "\tproc_id = GetProcessorId(task_id, 0, mode_name, 0);\n" + "\tcpu_set_t cpuset;\n"
+					+ "\tCPU_ZERO(&cpuset);\n" + "\tCPU_SET(proc_id, &cpuset);\n"
+					+ "\tpthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);\n";
+			code = code.replace("##SET_PROC", setProc);
+		}		
 		//////////////
 
 		if (mRuntimeExecutionPolicy.equals("Partitioned")) {
@@ -1051,6 +1068,9 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 //							+ "templates/common/task_execution/multi_thread_hybrid_static_assign_function_call.template";
 //				else if (mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
 //					;
+//			}
+//			else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic)) {
+//				;
 //			}
 
 			// CONTROL_END_TASK //
