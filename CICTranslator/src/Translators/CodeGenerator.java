@@ -200,7 +200,7 @@ public class CodeGenerator
 		mFuncSimPeriodMetric = mConfiguration.getSimulation().getExecutionTime().getMetric().value();
 		mFuncSimPeriod = mConfiguration.getSimulation().getExecutionTime().getValue().intValue();
 		
-		//[CODE_REVIEW]: hshong(4/21):delete func.sim 
+		//[CODE_REVIEW]: hshong(4/21):delete func.sim - need to merge 
 		if(mTarget.toUpperCase().contains("THREAD")){ //functional simulation
 			if(mGraphType.equals("DataFlow") || mGraphType.equals("Hybrid")){
 				mConnectedTaskGraph = mBuilder.findConnectedTaskGraph(mTask);
