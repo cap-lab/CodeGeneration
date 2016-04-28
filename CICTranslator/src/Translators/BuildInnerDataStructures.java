@@ -40,7 +40,7 @@ public class BuildInnerDataStructures {
 				sched = elementType.getScheduler().name();
 				processorname = elementType.getModel();
 				poolname = element.getName();
-				// elmentType.archiTypeÀÌ optionalÀÌ¾î¼­ GPU°¡ ¾Æ´Ñ °æ¿ì¿¡´Â, ÇØ´ç element°¡ ¾øÀ» ¼öµµ ÀÖÀ¸¹Ç·Î, ¾Æ·¡¿Í °°ÀÌ ¼±ÅÃÀûÀ¸·Î ¹Þ´Â´Ù.
+				// elmentType.archiTypeï¿½ï¿½ optionalï¿½Ì¾î¼­ GPUï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½, ï¿½Ø´ï¿½ elementï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½, ï¿½Æ·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ´Â´ï¿½.
 				if(elementType.getModel().equalsIgnoreCase("GPU"))	arch = elementType.getArchiType();
 				else												arch = "default";
 			}
@@ -721,8 +721,8 @@ public class BuildInnerDataStructures {
 			List<VectorType> dependencyList = new ArrayList();
 			List<Integer> feedbackList = new ArrayList();
 			
-			// ÇöÀç´Â Wavefront parallelismÀ» »ç¿ëÇÏ´Â °æ¿ì°¡ ¾ø´Ù. 
-			// ¿¹Àü¿¡ CellÀÌ³ª HSim¿¡¼­ StaticÇÏ°Ô ½ºÄÉÁÙÇÒ ¶§ »ç¿ëµÇ¾ú´Âµ¥, Áö±ÝÀº Array channelÀ» ÅëÇØ dynamicÇÏ°Ô ÇÏ¹Ç·Î »ç¿ëµÇÁö ¾Ê°í ÀÖ´Ù.
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ Wavefront parallelismï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ì°¡ ï¿½ï¿½ï¿½. 
+			// ï¿½ï¿½ï¿½ï¿½ Cellï¿½Ì³ï¿½ HSimï¿½ï¿½ï¿½ï¿½ Staticï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ç¾ï¿½Âµï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Array channelï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ dynamicï¿½Ï°ï¿½ ï¿½Ï¹Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ö´ï¿½.
 			if(dataParallelType == "WAVEFRONT"){
 				if(!dataParallel.getVolume().getValue().isEmpty()){
 					width = dataParallel.getVolume().getValue().get(0).intValue();
@@ -760,7 +760,7 @@ public class BuildInnerDataStructures {
 			String parentTask = task.getParentTask();
 			String taskType = task.getTaskType();
 			
-			// °¢ port´Â mode¿Í rateÀ» °¡Áø´Ù. (multi rateÀ» Áö¿øÇÏ±â À§ÇÔ.)
+			// ï¿½ï¿½ portï¿½ï¿½ modeï¿½ï¿½ rateï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½. (multi rateï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½.)
 			Map<String, Map<String, Integer>> inPortList = new HashMap<String, Map<String, Integer>>();
 			Map<String, Map<String, Integer>> outPortList = new HashMap<String, Map<String, Integer>>();
 			for(TaskPortType port: task.getPort()){
@@ -1158,9 +1158,9 @@ public class BuildInnerDataStructures {
 								src = channel.getSrc().get(0).getTask();
 								srcPortId = t_index;
 								srcPortName = port.getName();
-								//[CODE_REVIEW]: hshong(4/21):sadf Áö¿øÇÏµµ·Ï È®Àå
-								if(port.getRate() != null)
-									srcRate = port.getRate().get(0).getRate().intValue(); //ÇöÀç´Â sdf¸¸ Áö¿øÇÏ±â ¶§¹®
+								//[CODE_REVIEW]: hshong(4/21):sadf ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ È®ï¿½ï¿½
+								if(port.getRate().size() > 0)
+									srcRate = port.getRate().get(0).getRate().intValue(); //ï¿½ï¿½ï¿½ï¿½ï¿½ sdfï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½
 								else //process network
 									srcRate = 1;
 								//sampleSize = port.getSampleSize().intValue();
@@ -1184,9 +1184,9 @@ public class BuildInnerDataStructures {
 								dst = channel.getDst().get(0).getTask();
 								dstPortId = t_index;
 								dstPortName = port.getName();
-								//[CODE_REVIEW]: hshong(4/21):sadf Áö¿øÇÏµµ·Ï È®Àå
-								if(port.getRate() != null)
-									dstRate = port.getRate().get(0).getRate().intValue(); //ÇöÀç´Â sdf¸¸ Áö¿øÇÏ±â ¶§¹®
+								//[CODE_REVIEW]: hshong(4/21):sadf ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ È®ï¿½ï¿½
+								if(port.getRate().size() > 0)
+									dstRate = port.getRate().get(0).getRate().intValue(); //ï¿½ï¿½ï¿½ï¿½ï¿½ sdfï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½
 								else //process network
 									dstRate = 1;
 								flag=1;
