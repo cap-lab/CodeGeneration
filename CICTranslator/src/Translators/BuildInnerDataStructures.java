@@ -302,18 +302,25 @@ public class BuildInnerDataStructures {
 						// Auto-generated catch block
 						e.printStackTrace();
 					}
-					for(ScheduleGroupType schedGroup: schedule.getTaskGroups().getTaskGroup().get(0).getScheduleGroup()){
-						int procId = 0;
-						for(Processor proc: mProcessor.values()){
-							if(proc.getPoolName().equals(schedGroup.getPoolName()) && proc.getLocalIndex() == schedGroup.getLocalId().intValue()){
-								procId = proc.getIndex();
-								break;
+					
+					List<TaskGroupForScheduleType> taskGroupList =schedule.getTaskGroups().getTaskGroup();
+					for(int i = 0; i < taskGroupList.size(); i++)
+					{   
+						List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
+						for(int j=0; j<schedGroup.size(); j++){
+							int procId = -1;
+							for(Processor proc: mProcessor.values()){
+								if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) && proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
+									procId = proc.getIndex();
+									break;
+								}
 							}
-						}
-						if(!usedProcList.contains(procId))	usedProcList.add(procId);
+							if(!usedProcList.contains(procId) && procId != -1)	usedProcList.add(procId);
+						}				
 					}
 				}
 			}
+			
 			for(int procId: usedProcList){
 				Task virtualTask = new Task(index, task.getName() + "_proc_" + procId, task.getName() + "_proc_" + procId, Integer.parseInt(task.getRunRate()), task.getPeriodMetric(), task.getRunCondition(), Integer.parseInt(task.getPeriod()));
 				Map<String, Map<String, List<Integer>>> plmapmap = new HashMap<String, Map<String, List<Integer>>>();
@@ -390,7 +397,7 @@ public class BuildInnerDataStructures {
 				}
 				
 				Task virtualTask = new Task(index, "SDF_" + index, "SDF_" + index, runRate, periodMetric, drivenType, period);
-				//System.out.println(virtualTask.getName());
+//				System.out.println("makeVirtualTask::" + virtualTask.getName());
 				mNewTask.put(virtualTask.getName(), virtualTask);
 				index = index + 1;
 			}
@@ -542,7 +549,7 @@ public class BuildInnerDataStructures {
 						}
 						t.setProc(after);
 						done = true;
-						//System.out.println("-- " + t.getName() + ": " + t.getProc());
+//						System.out.println("-- " + t.getName() + ": " + t.getProc());
 					}
 				}
 			}

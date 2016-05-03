@@ -241,7 +241,6 @@ public class CodeGenerator
 					taskSet = mBuilder.findSDFTaskSet(mTask, connected_task_graph);
 					mConnectedSDFTaskSet.put(i, taskSet);
 				}
-				
 				// Make virtual tasks for top-level sdf graphs
 				mVTask = mBuilder.makeVirtualTask(mTask, mQueue, mConnectedSDFTaskSet, mAlgorithm.getProperty(), mFuncSimPeriod, mFuncSimPeriodMetric);
 				mBuilder.modifyTaskStructure_runRate(mTask, mVTask, mQueue);
