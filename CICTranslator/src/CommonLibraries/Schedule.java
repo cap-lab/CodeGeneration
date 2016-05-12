@@ -730,8 +730,6 @@ public class Schedule {
 					}
 				}
 				staticScheduleCode += ("\n}\n\n");
-
-					System.out.println("$$$$$$$$$$$ task: " + task.getName());
 				if (task.getHasMTM() == true) {
 					staticScheduleCode += ("CIC_T_VOID " + task.getName() + "_Go(){\n");
 					staticScheduleCode += ("\tCIC_T_INT i=0;\n\tCIC_T_INT mtm_id = 0;\n\tCIC_T_CHAR* mode = 0;\n\tCIC_T_INT task_id = GetTaskIdFromTaskName(\""

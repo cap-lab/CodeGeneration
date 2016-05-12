@@ -80,7 +80,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 				mTranslatorPath + "templates/common/common_template/includes.h.linux");
 
 		// hshong: need to delete: it is temporary, because of CASES
-		Util.copyFile(mOutputPath + "rdtsc.h", mTranslatorPath + "templates/target/Multicore/time_cycle.h.template");
+		//Util.copyFile(mOutputPath + "rdtsc.h", mTranslatorPath + "templates/target/Multicore/time_cycle.h.template");
 
 		String fileOut = null;
 		String templateFile = "";
@@ -108,8 +108,6 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		}
 
 		// generate mtm files from xml files
-		//[CODE_REVIEW]: hshong(4/21): simplify
-		// hshong: need to check
 		for (Task t : mTask.values()) {
 			if (t.getHasMTM() == true) {
 				if (mGraphType.equals("ProcessNetwork"))
@@ -121,21 +119,12 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 				else 
 				{
 					if (mRuntimeExecutionPolicy.equals("Global")
-							|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed)
-									&& mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
-							|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)
-									&& mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
-							|| mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic)) {
+							|| mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread)) {
 						templateFile = mTranslatorPath + "templates/common/mtm_template/thread_per_task.template";
 						CommonLibraries.CIC.generateMTMFile(mOutputPath, templateFile, t, mAlgorithm, mTask, mPVTask,
 								mQueue, mRuntimeExecutionPolicy, mCodeGenerationStyle);
 					} else if (mRuntimeExecutionPolicy.equals("Partitioned")
-							|| mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)
-							|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed)
-									&& mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_FunctionCall))
-							|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)
-									&& mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_FunctionCall)))
-
+							|| mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_FunctionCall))
 					{
 						templateFile = mTranslatorPath + "templates/common/mtm_template/thread_per_processor.template";
 						CommonLibraries.CIC.generateMTMFile(mOutputPath, templateFile, t, mAlgorithm, mTask, mPVTask,
@@ -825,7 +814,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 				externalGlobalHeaders += "#include\"" + header + "\"\n";
 		}
 		// hshong: need to delete: it is temporary, because of CASES
-		externalGlobalHeaders += "#include \"rdtsc.h\"\n";
+		//externalGlobalHeaders += "#include \"rdtsc.h\"\n";
 		code = code.replace("##EXTERNAL_GLOBAL_HEADERS", externalGlobalHeaders);
 		////////////////////////////
 
@@ -1133,7 +1122,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 				+ "#if defined(BREAK_DEBUG) && (BREAK_DEBUG==1)\n" + "\tUpdateBreak();\n#endif\n";
 
 		// hshong: need to delete: it is temporary, because of CASES
-		targetDependentInit += "unsigned long long a, b;\n" + "a = rdtsc();\n";
+		//targetDependentInit += "unsigned long long a, b;\n" + "a = rdtsc();\n";
 		
 		code = code.replace("##TARGET_DEPENDENT_INIT_CALL", targetDependentInit);
 		////////////////////////////////
@@ -1142,7 +1131,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		String targetDependentWrapup = "";		
 
 		// hshong: need to delete: it is temporary, because of CASES
-		targetDependentWrapup += "b = rdtsc();\n" + "printf(\"cycle\t%llu\\n\", b-a);\n";
+		//targetDependentWrapup += "b = rdtsc();\n" + "printf(\"cycle\t%llu\\n\", b-a);\n";
 
 		targetDependentWrapup += "return EXIT_SUCCESS;";
 		code = code.replace("##TARGET_DEPENDENT_WRAPUP_CALL", targetDependentWrapup);
