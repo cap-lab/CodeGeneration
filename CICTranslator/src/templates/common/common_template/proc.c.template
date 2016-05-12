@@ -40,7 +40,7 @@
 ////////////////////////////////////// DATA STRUCTURES //////////////////////////////////////
 ##EXTERN_TASK_FUNCTION_DECLARATION
 
-#define ENTRY(a, b, c, task, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s) {a, b, c, CIC_V_NULL, task##_Init, CIC_V_NULL, task##_Go, CIC_V_NULL, task##_Wrapup, CIC_V_NULL, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, 0}
+#define ENTRY(a, b, c, task, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r) {a, b, c, CIC_V_NULL, task##_Init, CIC_V_NULL, task##_Go, CIC_V_NULL, task##_Wrapup, CIC_V_NULL, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, 0}
 CIC_UT_TASK tasks[] = {
 ##TASK_ENTRIES
 };
@@ -52,7 +52,7 @@ CIC_UT_TASK virtual_tasks[] = {
 
 ##EXTERN_MTM_FUNCTION_DECLARATION
 
-#define ENTRY(a, b, task, c, d) {a, b, task##_Initialize, task##_GetCurrentModeName, task##_SetVariableInt, task##_GetVariableInt, task##_SetVariableString, task##_GetVariableString, task##_Transition, task##_UpdateCurrentMode, task##_GetTaskIterCount, task##_GetTaskRepeatCount, c, d, 0}
+#define ENTRY(a, b, task, c, d) {a, b, task##_Initialize, task##_GetCurrentModeName, task##_SetVariableInt, task##_GetVariableInt, task##_SetVariableString, task##_GetVariableString, task##_Transition, task##_UpdateCurrentMode, task##_GetTaskIterCount, task##_GetTaskIterCountFromModeName, task##_GetTaskRepeatCount, c, d, 0}
 CIC_UT_MTM mtms[] = {
 ##MTM_ENTRIES
 };

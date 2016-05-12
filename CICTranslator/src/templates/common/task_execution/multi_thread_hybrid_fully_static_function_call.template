@@ -12,7 +12,6 @@ CIC_STATIC CIC_T_BOOL exit_signal = CIC_V_FALSE;
 #endif
 ##TASK_VARIABLE_DECLARATION_END
 
-
 ##WORST_CASE_EXECUTION_TIME_START
 CIC_STATIC CIC_T_INT GetWorstCaseExecutionTimeFromTaskIdAndModeName(CIC_T_INT task_id, CIC_T_CHAR* mode_name)
 {                                                                                            
@@ -32,42 +31,21 @@ CIC_STATIC CIC_T_INT GetWorstCaseExecutionTimeFromTaskIdAndModeName(CIC_T_INT ta
 }
 ##WORST_CASE_EXECUTION_TIME_END
 
-
 ##TASK_ROUTINE_START
-CIC_STATIC CIC_T_VOID CheckGraphEndFromTaskId(CIC_T_INT parent_task_id, CIC_T_BOOL is_parent_virtual){
+CIC_STATIC CIC_T_VOID CheckGraphEndFromTaskId(CIC_T_INT parent_task_id){
   CIC_T_INT i, j;
-  CIC_T_INT parent_task_index = -1; //GetTaskIndexFromTaskId(parent_task_id);
-  CIC_T_INT parent_virtual_task_index = -1;//GetVirtualTaskIndexFromTaskId(parent_task_id);
+  CIC_T_INT parent_task_index = -1;
   CIC_T_INT task_count = 0, complete_count = 0;
 
-  if(is_parent_virtual == CIC_V_TRUE)
-  {
-    parent_virtual_task_index = GetVirtualTaskIndexFromTaskId(parent_task_id);
-  }
-  else
-  {
-    parent_task_index = GetTaskIndexFromTaskId(parent_task_id);
-  }
+  parent_task_index = GetTaskIndexFromTaskId(parent_task_id);
 
   for(i=0; i<CIC_ARRAYLEN(virtual_task_to_core_map); i++){
-    if(virtual_tasks[i].parent_task_id == parent_task_id){
-      if(is_parent_virtual == CIC_V_FALSE)
-      {
+    if(virtual_tasks[i].parent_task_id == parent_task_id){      
         if(tasks[parent_task_index].state == STATE_END && 
             tasks[parent_task_index].run_count <= virtual_tasks[i].run_count){
           complete_count++;
         }
-        task_count++;
-      }
-      else
-      {
-        if(virtual_tasks[parent_virtual_task_index].state == STATE_END &&
-            virtual_tasks[parent_virtual_task_index].run_count <= virtual_tasks[i].run_count)
-        {
-          complete_count++;
-        }
-        task_count++;
-      }
+        task_count++;     
     }
   }
 
@@ -76,54 +54,23 @@ CIC_STATIC CIC_T_VOID CheckGraphEndFromTaskId(CIC_T_INT parent_task_id, CIC_T_BO
   {
     CIC_T_THREAD cur_thread = CIC_F_THREAD_SELF();
 
-    if(is_parent_virtual == CIC_V_FALSE && tasks[parent_task_index].state != STATE_STOP){
-      if(tasks[parent_task_index].has_subgraph){
-        for(j=0; j<CIC_UV_NUM_VIRTUAL_TASKS; j++){
-          if(virtual_tasks[j].parent_task_id == parent_task_id){
-            virtual_tasks[j].state = STATE_STOP;
-            virtual_tasks[j].run_count = 0;
-            if(!CIC_F_THREAD_EQUAL(cur_thread, virtual_tasks[j].thread)){
-              CIC_F_THREAD_CANCEL(virtual_tasks[j].thread);
-            }
-          }
-        }
-        WrapupTaskChannels(parent_task_id);
-      }
-      else{
-        CIC_F_THREAD_CANCEL(tasks[parent_task_index].thread);
-        tasks[parent_task_index].Wrapup();
-      }
-
+    if(tasks[parent_task_index].state != STATE_STOP){     
+	  for(j=0; j<CIC_UV_NUM_VIRTUAL_TASKS; j++){
+	    if(virtual_tasks[j].parent_task_id == parent_task_id){
+	      virtual_tasks[j].state = STATE_STOP;
+	      virtual_tasks[j].run_count = 0;
+	      if(!CIC_F_THREAD_EQUAL(cur_thread, virtual_tasks[j].thread)){
+	        CIC_F_THREAD_CANCEL(virtual_tasks[j].thread);
+	      }
+	    }
+	  }
+	  WrapupTaskChannels(parent_task_id);
 
       tasks[parent_task_index].state = STATE_STOP;   
       tasks[parent_task_index].run_count = 0;
       CIC_F_PRINTF("End graph %s (task_id: %d)\n", tasks[parent_task_index].name, tasks[parent_task_index].task_id);
       CIC_F_COND_BROADCAST(&global_cond);
-    }
-    else if(is_parent_virtual == CIC_V_TRUE && virtual_tasks[parent_virtual_task_index].state != STATE_STOP)
-    {
-      if(virtual_tasks[parent_virtual_task_index].has_subgraph)
-      {
-        for(j = 0; j < CIC_UV_NUM_VIRTUAL_TASKS; j++)
-        {
-          if(virtual_tasks[j].parent_task_id == parent_task_id)
-          {
-            virtual_tasks[j].state = STATE_STOP;
-            virtual_tasks[j].run_count = 0;
-            if(!CIC_F_THREAD_EQUAL(cur_thread, virtual_tasks[j].thread)){
-              CIC_F_THREAD_CANCEL(virtual_tasks[j].thread);
-            }
-          } 
-        }
-        WrapupTaskChannels(parent_task_id);
-      }
-
-      virtual_tasks[parent_virtual_task_index].state = STATE_STOP;
-      virtual_tasks[parent_virtual_task_index].run_count = 0;
-      CIC_F_PRINTF("End graph %s (task_id: %d)\n", virtual_tasks[parent_virtual_task_index].name, virtual_tasks[parent_virtual_task_index].task_id);
-      CIC_F_COND_BROADCAST(&global_cond);
-
-    }
+    }    
   }
   CIC_F_MUTEX_UNLOCK(&global_mutex);
 }
@@ -134,34 +81,15 @@ CIC_UT_THREAD_FUNC_RET_TYPE VirtualTaskRoutine(CIC_UT_THREAD_FUNC_ARG_TYPE pdata
   CIC_T_INT task_index = task_id - CIC_UV_NUM_TASKS;
   CIC_T_INT parent_task_id = virtual_tasks[task_index].parent_task_id;
   CIC_T_INT parent_task_index = -1; 
-  CIC_T_INT parent_virtual_task_index = -1;
   CIC_T_INT mtm_index = -1;
   CIC_T_INT processor_id;
 
 ##SET_VIRTUAL_PROC  
 
-  if(virtual_tasks[task_index].is_parent_virtual == CIC_V_TRUE)
-  {
-    parent_virtual_task_index = GetVirtualTaskIndexFromTaskId(parent_task_id);
-  }
-  else
-  {
-    parent_task_index = GetTaskIndexFromTaskId(parent_task_id);
-  }
+  parent_task_index = GetTaskIndexFromTaskId(parent_task_id);
 
-  if(virtual_tasks[task_index].is_parent_virtual == CIC_V_TRUE)
-  {
-    if(virtual_tasks[parent_virtual_task_index].has_mtm == CIC_V_TRUE){
-      mtm_index = GetMTMIndexFromTaskId(parent_task_id);
-    }
-  }
-  else
-  {
-    if(tasks[parent_task_index].has_mtm == CIC_V_TRUE){
-      mtm_index = GetMTMIndexFromTaskId(parent_task_id);
-    } 
-  }
-
+  mtm_index = GetMTMIndexFromTaskId(parent_task_id);
+  
   (*virtual_tasks[task_index].Init)(task_index);
 
 virtual_task_continue:
@@ -171,33 +99,23 @@ virtual_task_continue:
       CIC_F_COND_WAIT(&(virtual_tasks[task_index].cond), &(virtual_tasks[task_index].mutex));
       CIC_F_MUTEX_UNLOCK(&(virtual_tasks[task_index].mutex));
     }
-
+    
     if(exit_signal)    break;
 
     // Call TASK_GO function of a task
     (*virtual_tasks[task_index].Go)();
 
     virtual_tasks[task_index].run_count += 1;
-    if(virtual_tasks[task_index].is_parent_virtual == CIC_V_TRUE)
-    {
-      if(virtual_tasks[parent_virtual_task_index].state == STATE_END &&
-          virtual_tasks[parent_virtual_task_index].run_count <= virtual_tasks[task_index].run_count){
-        break;	
-      }
-    }
-    else
-    {
-      if(tasks[parent_task_index].state == STATE_END && 
-          tasks[parent_task_index].run_count <= virtual_tasks[task_index].run_count){
-        break;	
-      }
-    }
+    if(tasks[parent_task_index].state == STATE_END && 
+        tasks[parent_task_index].run_count <= virtual_tasks[task_index].run_count){
+      break;	
+    }    
   }
   (*virtual_tasks[task_index].Wrapup)();
 
   virtual_tasks[task_index].state = STATE_STOP;
 
-  CheckGraphEndFromTaskId(parent_task_id, virtual_tasks[task_index].is_parent_virtual);
+  CheckGraphEndFromTaskId(parent_task_id);
 
   return CIC_V_NULL;
 }
@@ -295,26 +213,16 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
       }
     }
   }
-
+   
   for(i=0; i<CIC_UV_NUM_VIRTUAL_TASKS; i++){
-    CIC_T_BOOL create_thread = CIC_V_FALSE;
     CIC_T_INT parent_task_index;
-    if(virtual_tasks[i].is_parent_virtual == CIC_V_TRUE)
-    {
-      parent_task_index= GetVirtualTaskIndexFromTaskId(virtual_tasks[i].parent_task_id);
-      if(virtual_tasks[parent_task_index].state == STATE_RUN && virtual_tasks[i].parent_task_id != virtual_tasks[i].task_id){
-        CIC_F_PRINTF("%s virtual_task thread is created!\n", virtual_tasks[i].name);
-        CIC_F_THREAD_CREATE(&(virtual_tasks[i].thread), VirtualTaskRoutine, (void *)virtual_tasks[i].task_id);
-      }
+    parent_task_index = GetTaskIndexFromTaskId(virtual_tasks[i].parent_task_id);
+    
+    if(tasks[parent_task_index].state == STATE_RUN){
+      CIC_F_PRINTF("%s virtual_task thread is created!\n", virtual_tasks[i].name);
+      CIC_F_THREAD_CREATE(&(virtual_tasks[i].thread), VirtualTaskRoutine, (void *)virtual_tasks[i].task_id);
     }
-    else{
-      parent_task_index = GetTaskIndexFromTaskId(virtual_tasks[i].parent_task_id);
-      if(tasks[parent_task_index].state == STATE_RUN && virtual_tasks[i].parent_task_id != virtual_tasks[i].task_id){
-        CIC_F_PRINTF("%s virtual_task thread is created!\n", virtual_tasks[i].name);
-        CIC_F_THREAD_CREATE(&(virtual_tasks[i].thread), VirtualTaskRoutine, (void *)virtual_tasks[i].task_id);
-      }
-    }
-  }
+  }  
   CIC_F_PRINT_STRING("--------------------------------------------\n");
 
   // Tasks are Running
@@ -475,7 +383,6 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
   	CIC_T_THREAD th = CIC_F_THREAD_SELF();
   	CIC_T_INT virtual_task_index = 0;
   	CIC_T_INT parent_task_index = 0;
-  	CIC_T_INT parent_virtual_task_index = 0; 
 
   	CIC_T_INT target_task_id = GetTaskIdFromTaskName(t_name);
   	CIC_T_INT target_task_index = GetTaskIndexFromTaskName(t_name);
@@ -494,39 +401,28 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 		        (*virtual_tasks[virtual_task_index].Wrapup)();
 
         		virtual_tasks[virtual_task_index].state = STATE_STOP;
-        		CheckGraphEndFromTaskId(target_task_id, CIC_V_FALSE);
+        		CheckGraphEndFromTaskId(target_task_id);
 
       		}
       		else{
         		if(tasks[target_task_index].task_id != tasks[target_task_index].parent_task_id)
-        		{
-					if(tasks[target_task_index].is_parent_virtual == CIC_V_TRUE)
-          			{
-            			parent_virtual_task_index = GetVirtualTaskIndexFromTaskId(tasks[target_task_index].parent_task_id);
-            			virtual_task_index = GetVirtualTaskIndexFromThread(th);
+        		{					
+        			parent_task_index = GetTaskIndexFromTaskId(tasks[target_task_index].parent_task_id);
+        			virtual_task_index = GetVirtualTaskIndexFromThread(th);
 
-			            virtual_tasks[parent_virtual_task_index].state = STATE_END; 
-			            virtual_tasks[parent_virtual_task_index].run_count = virtual_tasks[virtual_task_index].run_count;
-            
-            			(*virtual_tasks[virtual_task_index].Wrapup)();
+        			tasks[parent_task_index].state = STATE_END;
+        			tasks[parent_task_index].run_count = virtual_tasks[virtual_task_index].run_count;
 
-			            virtual_tasks[virtual_task_index].state = STATE_STOP;
-			            CheckGraphEndFromTaskId(tasks[target_task_index].parent_task_id, CIC_V_TRUE);
-          			}
-          			else
-          			{
-            			parent_task_index = GetTaskIndexFromTaskId(tasks[target_task_index].parent_task_id);
-            			virtual_task_index = GetVirtualTaskIndexFromThread(th);
+		            (*virtual_tasks[virtual_task_index].Wrapup)();
 
-            			tasks[parent_task_index].state = STATE_END;
-            			tasks[parent_task_index].run_count = virtual_tasks[virtual_task_index].run_count;
-
-			            (*virtual_tasks[virtual_task_index].Wrapup)();
-
-            			virtual_tasks[virtual_task_index].state = STATE_STOP;
-            			CheckGraphEndFromTaskId(tasks[target_task_index].parent_task_id, CIC_V_FALSE);
-          			}
+        			virtual_tasks[virtual_task_index].state = STATE_STOP;
+        			CheckGraphEndFromTaskId(tasks[target_task_index].parent_task_id);
 		        }
+		        else
+				{        
+	                tasks[target_task_index].state = STATE_STOP;
+                    tasks[target_task_index].run_count = 0;
+                }
         		break;
       		}
 		}

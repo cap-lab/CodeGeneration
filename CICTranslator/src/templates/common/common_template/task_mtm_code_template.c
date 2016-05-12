@@ -10,6 +10,7 @@
 #define UPDATE_CURRENT_MODE CIC_T_VOID ##TASK_NAME_UpdateCurrentMode(CIC_T_CHAR *task_name)
 
 #define GET_TASK_ITER_COUNT CIC_T_INT ##TASK_NAME_GetTaskIterCount(CIC_T_CHAR* task_name)
+#define GET_TASK_ITER_COUNT_FROM_MODE_NAME CIC_T_INT ##TASK_NAME_GetTaskIterCountFromModeName(CIC_T_CHAR* task_name, CIC_T_CHAR* mode_name)
 #define GET_TASK_REPEAT_COUNT CIC_T_INT ##TASK_NAME_GetTaskRepeatCount(CIC_T_CHAR* task_name, CIC_T_INT run_count)
 
 ##CIC_INCLUDE

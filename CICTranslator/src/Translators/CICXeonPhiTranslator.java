@@ -104,7 +104,7 @@ public class CICXeonPhiTranslator implements CICTargetCodeTranslator {
 
 		// generate task_name.c (include task_name.cic)
 		for (Task t : mTask.values()) {
-			if (t.getHasSubgraph().equalsIgnoreCase("Yes") && t.getHasMTM().equalsIgnoreCase("Yes")) {
+			if (t.getHasSubgraph().equalsIgnoreCase("Yes") && t.getHasMTM() == true) {
 				fileOut = mOutputPath + t.getName() + srcExtension;
 				templateFile = mTranslatorPath + "templates/common/common_template/task_mtm_code_template.c";
 				CommonLibraries.CIC.generateTaskMTMCode(fileOut, templateFile, t, mAlgorithm);
@@ -637,7 +637,7 @@ public class CICXeonPhiTranslator implements CICTargetCodeTranslator {
 
 		cicInclude += "#include \"" + task.getCICFile() + "\"\n";
 
-		if (task.getHasMTM().equalsIgnoreCase("Yes")) {
+		if (task.getHasMTM() == true) {
 			mtmDef += "#define GET_CURRENT_MODE_NAME char* ##TASK_NAME_get_current_mode_name()\n"
 					+ "#define GET_CURRENT_MODE_ID int ##TASK_NAME_get_current_mode_id()\n"
 					+ "#define GET_MODE_NAME char* ##TASK_NAME_get_mode_name(int id)\n"

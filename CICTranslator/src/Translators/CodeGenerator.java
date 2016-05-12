@@ -190,7 +190,6 @@ public class CodeGenerator
 		mProcessor = mBuilder.makeProcessors(mArchitecture);
 		mCommunication = mBuilder.makeCommunications(mArchitecture);
 		mTask = mBuilder.makeTasks(mOutputPath, mAlgorithm);
-//		mBuilder.fillMappingForTask(mTask, mProcessor, mMapping, mOutputPath, mGraphType);
 		mQueue = mBuilder.makeQueues(mAlgorithm, mTask);
 		
 		mTarget = mArchitecture.getTarget();

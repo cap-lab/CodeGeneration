@@ -93,7 +93,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 
 		// generate task_name.c (include task_name.cic)
 		for (Task t : mTask.values()) {
-			if (t.getHasSubgraph().equalsIgnoreCase("Yes") && t.getHasMTM().equalsIgnoreCase("Yes")) {
+			if (t.getHasSubgraph().equalsIgnoreCase("Yes") && t.getHasMTM() == true) {
 				fileOut = mOutputPath + t.getName() + srcExtension;
 				templateFile = mTranslatorPath + "templates/common/common_template/task_mtm_code_template.c";
 				CommonLibraries.CIC.generateTaskMTMCode(fileOut, templateFile, t, mAlgorithm);
@@ -111,7 +111,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		//[CODE_REVIEW]: hshong(4/21): simplify
 		// hshong: need to check
 		for (Task t : mTask.values()) {
-			if (t.getHasMTM().equalsIgnoreCase("Yes")) {
+			if (t.getHasMTM() == true) {
 				if (mGraphType.equals("ProcessNetwork"))
 				{
 					templateFile = mTranslatorPath + "templates/common/mtm_template/thread_per_processor.template";
@@ -125,8 +125,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 									&& mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
 							|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)
 									&& mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
-							|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)
-									&& mCodeGenerationStyle.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic))) {
+							|| mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic)) {
 						templateFile = mTranslatorPath + "templates/common/mtm_template/thread_per_task.template";
 						CommonLibraries.CIC.generateMTMFile(mOutputPath, templateFile, t, mAlgorithm, mTask, mPVTask,
 								mQueue, mRuntimeExecutionPolicy, mCodeGenerationStyle);
@@ -369,7 +368,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 
 		for (Task ta : mTask.values()) {
 			for (Task t : mTask.values()) {
-				if (t.getName().equals(ta.getParentTask())) {
+				if (t.getName().equals(ta.getParentTask()) && !(t.equals(ta))) {
 					if (!parentTaskList.contains(t) && !taskList.contains(ta)) {
 						parentTask = t;
 						task = ta;
@@ -404,6 +403,8 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 			else
 				modeList.add("Default");
 
+			if(modeList == null)
+				System.out.println("parentTask: " + parentTask.getName());
 			for (String mode : modeList) {
 				ArrayList<String> history = new ArrayList<String>();
 				try {
@@ -896,7 +897,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		code = code.replace("##GET_CURRENT_TIME_BASE", getCurrentTimeBase);
 		///////////////////////////
 
-		// CHANGE_TIME_UNIT //  =======hshong
+		// CHANGE_TIME_UNIT //  
 		String changeTimeUnit = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##CHANGE_TIME_UNIT");
 		code = code.replace("##CHANGE_TIME_UNIT", changeTimeUnit);
 		///////////////////////////
@@ -1040,10 +1041,10 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		//////////////////////////
 
 		templateFile = mTranslatorPath + "templates/common/control/general_linux.template";
-		// MTM_API // =======hshong
+		// MTM_API // 
 		boolean mtmFlag = false;
 		for (Task t : mTask.values()) {
-			if (t.getHasMTM().equals("Yes")) {
+			if (t.getHasMTM() == true) {
 				mtmFlag = true;
 				break;
 			}
@@ -1057,41 +1058,12 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 
 		templateFile = mTranslatorPath + "templates/common/control/general_linux.template";
 		if (mControl.getControlTasks() != null) {
-			// CONTROL_API //  =======hshong
+			// CONTROL_API //  
 			String controlApi = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##CONTROL_API");
 			code = code.replace("##CONTROL_API", controlApi);
 			//////////////////////////
 
 			templateFile = getTaskExecutionTemplateFile(mGraphType, mRuntimeExecutionPolicy, mCodeGenerationStyle);
-			//need to check!!!!!!!!!!
-//			if (mRuntimeExecutionPolicy.equals("Single"))
-//				templateFile = mTranslatorPath
-//						+ "templates/common/task_execution/multi_thread_hybrid_thread_per_application.template";
-//			else if (mRuntimeExecutionPolicy.equals("Global"))
-//				templateFile = mTranslatorPath
-//						+ "templates/common/task_execution/multi_thread_hybrid_thread_per_task.template";
-//			else if (mRuntimeExecutionPolicy.equals("Partitioned"))
-//				templateFile = mTranslatorPath
-//						+ "templates/common/task_execution/multi_thread_hybrid_thread_per_processor.template";
-//			else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic))
-//				templateFile = mTranslatorPath
-//						+ "templates/common/task_execution/multi_thread_hybrid_fully_static_function_call.template";
-//			else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed)) {
-//				if (mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_FunctionCall))
-//					templateFile = mTranslatorPath
-//							+ "templates/common/task_execution/multi_thread_hybrid_self_timed_function_call.template";
-//				else if (mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
-//					;
-//			} else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)) {
-//				if (mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_FunctionCall))
-//					templateFile = mTranslatorPath
-//							+ "templates/common/task_execution/multi_thread_hybrid_static_assign_function_call.template";
-//				else if (mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
-//					;
-//			}
-//			else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic)) {
-//				;
-//			}
 
 			// CONTROL_END_TASK //
 			String controlEndTask = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##CONTROL_END_TASK");

@@ -116,7 +116,7 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 
 		// generate task_name.c (include task_name.cic)
 		for (Task t : mTask.values()) {
-			if (t.getHasSubgraph().equalsIgnoreCase("Yes") && t.getHasMTM().equalsIgnoreCase("Yes")) {
+			if (t.getHasSubgraph().equalsIgnoreCase("Yes") && t.getHasMTM() == true) {
 				fileOut = mOutputPath + t.getName() + srcExtension;
 				templateFile = mTranslatorPath + "templates/common/common_template/task_mtm_code_template.c";
 				CommonLibraries.CIC.generateTaskMTMCode(fileOut, templateFile, t, mAlgorithm);
@@ -132,7 +132,7 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 
 		// generate mtm files from xml files
 		for (Task t : mTask.values()) {
-			if (t.getHasMTM().equalsIgnoreCase("Yes")) {
+			if (t.getHasMTM() == true) {
 				templateFile = mTranslatorPath + "templates/common/mtm_template/thread_per_processor.template";
 				CommonLibraries.CIC.generateMTMFile(mOutputPath, templateFile, t, mAlgorithm, mTask, mPVTask, mQueue,
 						mRuntimeExecutionPolicy, mCodeGenerationStyle);

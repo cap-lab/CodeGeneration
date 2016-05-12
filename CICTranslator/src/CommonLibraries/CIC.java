@@ -462,7 +462,7 @@ public class CIC {
 
 			// Added by jhw for multi-mode
 			String hasMTM = "";
-			if (task.getHasMTM().equalsIgnoreCase("Yes"))
+			if (task.getHasMTM() == true)
 				hasMTM = "CIC_V_TRUE";
 			else
 				hasMTM = "CIC_V_FALSE";
@@ -529,37 +529,119 @@ public class CIC {
 													 * getRunRate())
 													 */)
 						+ "/*run_count*/, " + hasMTM + ", " + hasSubgraph + ", " + isSrcTask + ", " + isChildTask + ", "
-						+ parentTaskId + ", " + isParentVirtual
-						+ ", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
+						+ parentTaskId 	+ ", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
 			} else {
 				taskEntriesCode += "\tENTRY(" + task.getIndex() + ", \"" + task.getName() + "\", " + taskType + ", "
 						+ task.getName() + ", " + taskDrivenType + ", " + state + ", " + runState + ", "
 						+ task.getPeriodMetric().toUpperCase() + ", " + task.getRunRate() + "/*rate*/, "
 						+ task.getPeriod() + "/*period*/, " + funcSimPeriod + "/*funcSim period*/, "
 						+ "0/*run_count*/, " + hasMTM + ", " + hasSubgraph + ", " + isSrcTask + ", " + isChildTask
-						+ ", " + parentTaskId + ", " + isParentVirtual
-						+ ", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
+						+ ", " + parentTaskId + ", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
 			}
 
 			index++;
 		}
+		
+		while (index < mTask.size() + mVTask.size()) {
+			Task task = null;
+			for (Task t : mVTask.values()) {
+				if (Integer.parseInt(t.getIndex()) == index) {
+					task = t;
+					break;
+				}
+			}
+			
+			String taskDrivenType = null;
+			String state = null;
+			String runState = null;
 
+			if (task.getRunCondition().equals("DATA_DRIVEN")) {
+				taskDrivenType = "DATA_DRIVEN";
+				state = "STATE_RUN";
+				runState = "RUNNING";
+			} else if (task.getRunCondition().equals("TIME_DRIVEN")) {
+				taskDrivenType = "TIME_DRIVEN";
+				state = "STATE_RUN";
+				runState = "RUNNING";
+			} else if (task.getRunCondition().equals("CONTROL_DRIVEN")) {
+				taskDrivenType = "CONTROL_DRIVEN";
+				state = "STATE_STOP";
+				runState = "RUNNING";
+			} else {
+				System.out.println(task.getRunCondition() + " is not supported!");
+				System.exit(-1);
+			}
+
+			int funcSimPeriod = 0;
+			if (mFuncSimPeriodMetric.equalsIgnoreCase("h"))
+				funcSimPeriod = mFuncSimPeriod * 3600 * 1000 * 1000;
+			else if (mFuncSimPeriodMetric.equalsIgnoreCase("m"))
+				funcSimPeriod = mFuncSimPeriod * 60 * 1000 * 1000;
+			else if (mFuncSimPeriodMetric.equalsIgnoreCase("s"))
+				funcSimPeriod = mFuncSimPeriod * 1000 * 1000;
+			else if (mFuncSimPeriodMetric.equalsIgnoreCase("ms"))
+				funcSimPeriod = mFuncSimPeriod * 1000;
+			else if (mFuncSimPeriodMetric.equalsIgnoreCase("us"))
+				funcSimPeriod = mFuncSimPeriod * 1;
+			else
+				funcSimPeriod = mFuncSimPeriod * 1;
+
+			String taskType = "VIRTUAL";
+
+			// Added by jhw for multi-mode
+			String hasMTM = "CIC_V_TRUE";
+
+			String hasSubgraph = "";
+			if (task.getHasSubgraph().equalsIgnoreCase("Yes"))
+				hasSubgraph = "CIC_V_TRUE";
+			else
+				hasSubgraph = "CIC_V_FALSE";
+
+			String isChildTask = "CIC_V_FALSE";
+			int parentTaskId = -1;
+			String isParentVirtual = "CIC_V_FALSE";
+
+			for (Task t : mTask.values()) {
+				if (task.getParentTask().equals(t.getName())) {
+					isChildTask = "CIC_V_FALSE";
+					parentTaskId = Integer.parseInt(t.getIndex());
+					isParentVirtual = "CIC_V_FALSE";
+					break;
+				}
+			}
+			for (Task t : mVTask.values()) {
+				if (task.getParentTask().equals(t.getName())) {
+					isChildTask = "CIC_V_FALSE";
+					parentTaskId = Integer.parseInt(t.getIndex());
+					isParentVirtual = "CIC_V_TRUE";
+					break;
+				}
+			}
+
+			// to call Transition() once...
+			String isSrcTask = "CIC_V_FALSE";
+			if (task.getIsSrcTask())
+				isSrcTask = "CIC_V_TRUE";
+
+			taskEntriesCode += "\tENTRY(" + task.getIndex() + ", \"" + task.getName() + "\", " + taskType + ", "
+					+ task.getName() + ", " + taskDrivenType + ", " + state + ", " + runState + ", "
+					+ task.getPeriodMetric().toUpperCase() + ", " + task.getRunRate() + "/*rate*/, " + task.getPeriod()
+					+ "/*period*/, " + funcSimPeriod + "/*funcSim period*/, "
+					+ Integer.toString(
+							funcSimPeriod / Integer.parseInt(task.getPeriod()) / Integer.parseInt(task.getRunRate()))
+					+ ", " + hasMTM + ", " + hasSubgraph + ", " + isSrcTask + ", " + isChildTask + ", " + parentTaskId
+					+ ", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
+
+			index++;
+		}
+		
 		// VIRTUAL_TASK_ENTRIES //
 		while (index < mTask.size() + mVTask.size() + mPVTask.size()) {
 			Task task = null;
-			if (index < mTask.size() + mVTask.size()) {
-				for (Task t : mVTask.values()) {
-					if (Integer.parseInt(t.getIndex()) == index) {
-						task = t;
-						break;
-					}
-				}
-			} else {
-				for (Task t : mPVTask.values()) {
-					if (Integer.parseInt(t.getIndex()) == index) {
-						task = t;
-						break;
-					}
+			for (Task t : mPVTask.values()) {
+				if (Integer.parseInt(t.getIndex()) == index) {
+					task = t;
+					break;
 				}
 			}
 			String taskDrivenType = null;
@@ -601,7 +683,7 @@ public class CIC {
 
 			// Added by jhw for multi-mode
 			String hasMTM = "";
-			if (task.getHasMTM().equalsIgnoreCase("Yes"))
+			if (task.getHasMTM() == true)
 				hasMTM = "CIC_V_TRUE";
 			else
 				hasMTM = "CIC_V_FALSE";
@@ -645,7 +727,7 @@ public class CIC {
 					+ Integer.toString(
 							funcSimPeriod / Integer.parseInt(task.getPeriod()) / Integer.parseInt(task.getRunRate()))
 					+ ", " + hasMTM + ", " + hasSubgraph + ", " + isSrcTask + ", " + isChildTask + ", " + parentTaskId
-					+ ", " + isParentVirtual + ", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
+					+ ", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
 
 			index++;
 		}
@@ -730,7 +812,7 @@ public class CIC {
 		String externalMTMFunctions = "";
 		index = 0;
 		for (Task t : mTask.values()) {
-			if (t.getHasMTM().equalsIgnoreCase("Yes")) {
+			if (t.getHasMTM() == true) {
 				String isSDF = "CIC_V_FALSE";
 				if (t.getMTM().getModes().size() == 1) {
 					isSDF = "CIC_V_TRUE";
@@ -746,6 +828,7 @@ public class CIC {
 						+ "CIC_EXTERN CIC_T_BOOL " + t.getName() + "_Transition(CIC_T_VOID);\n"
 						+ "CIC_EXTERN CIC_T_INT " + t.getName() + "_UpdateCurrentMode(CIC_T_CHAR*);\n"
 						+ "CIC_EXTERN CIC_T_INT " + t.getName() + "_GetTaskIterCount(CIC_T_CHAR*);\n"
+						+ "CIC_EXTERN CIC_T_INT " + t.getName() + "_GetTaskIterCountFromModeName(CIC_T_CHAR*, CIC_T_CHAR*);\n"
 						+ "CIC_EXTERN CIC_T_INT " + t.getName() + "_GetTaskRepeatCount(CIC_T_CHAR*, CIC_T_INT);\n";
 				index++;
 			}
@@ -760,19 +843,13 @@ public class CIC {
 					+ "CIC_EXTERN CIC_T_VOID " + t.getName() + "_SetVariableInt(CIC_T_CHAR*, CIC_T_INT);\n"
 					+ "CIC_EXTERN CIC_T_CHAR* " + t.getName() + "_GetVariableString(CIC_T_CHAR*);\n"
 					+ "CIC_EXTERN CIC_T_VOID " + t.getName() + "_SetVariableString(CIC_T_CHAR*, CIC_T_CHAR*);\n"
-					+ "CIC_EXTERN CIC_T_BOOL " + t.getName() + "_Transition(CIC_T_VOID);\n" + "CIC_EXTERN CIC_T_INT "
-					+ t.getName() + "_UpdateCurrentMode(CIC_T_CHAR*);\n" + "CIC_EXTERN CIC_T_INT " + t.getName()
-					+ "_GetTaskIterCount(CIC_T_CHAR*);\n" + "CIC_EXTERN CIC_T_INT " + t.getName()
-					+ "_GetTaskRepeatCount(CIC_T_CHAR*, CIC_T_INT);\n";
+					+ "CIC_EXTERN CIC_T_BOOL " + t.getName() + "_Transition(CIC_T_VOID);\n" 
+					+ "CIC_EXTERN CIC_T_INT " + t.getName() + "_UpdateCurrentMode(CIC_T_CHAR*);\n" 
+					+ "CIC_EXTERN CIC_T_INT " + t.getName() + "_GetTaskIterCount(CIC_T_CHAR*);\n"
+					+ "CIC_EXTERN CIC_T_INT " + t.getName() + "_GetTaskIterCountFromModeName(CIC_T_CHAR*, CIC_T_CHAR*);\n"
+					+ "CIC_EXTERN CIC_T_INT " + t.getName() + "_GetTaskRepeatCount(CIC_T_CHAR*, CIC_T_INT);\n";
 			index++;
 		}
-
-		// removed by jhw (need to support zero entry compile)
-		// if (index == 0)
-		// mtmEntriesCode += "\t{0, CIC_V_FALSE, CIC_V_NULL, CIC_V_NULL,
-		// CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_NULL,
-		// CIC_V_NULL, CIC_V_NULL, CIC_V_NULL, CIC_V_MUTEX_INIT_INLINE,
-		// CIC_V_COND_INIT_INLINE}\n";
 
 		code = code.replace("##EXTERN_TASK_FUNCTION_DECLARATION", externalFunctions);
 		code = code.replace("##TASK_ENTRIES", taskEntriesCode);

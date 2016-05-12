@@ -131,6 +131,30 @@ GET_TASK_ITER_COUNT
     return task_iter_info[task_index].count[curr_mode];
 }
 
+GET_TASK_ITER_COUNT_FROM_MODE_NAME
+{
+	CIC_T_INT i=0;
+	CIC_T_INT task_index = 0;
+	CIC_T_INT curr_mode = 0;
+ 
+	// get task_id
+	for(i=0; i<CIC_ARRAYLEN(task_iter_info); i++){
+		if(CIC_F_STRING_COMPARE(task_name, task_iter_info[i].task_name) == 0){
+			task_index = i;
+			break;
+		}
+	}
+
+	// get current mode
+	for(i = 0; i < CIC_ARRAYLEN(mode_map); i++)
+	{
+		if(CIC_F_STRING_COMPARE(mode_name, mode_map[i].name) == 0){
+			curr_mode = mode_map[i].id;
+			break;
+		}
+	}
+	return task_iter_info[task_index].count[curr_mode];
+}
 
 GET_CURRENT_MODE_NAME
 {

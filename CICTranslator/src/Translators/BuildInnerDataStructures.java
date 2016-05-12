@@ -273,7 +273,7 @@ public class BuildInnerDataStructures {
 		for(Task task: parentTaskList){
 			ArrayList<Integer> usedProcList = new ArrayList<Integer>();
 			ArrayList<String> modeList = new ArrayList<String>();
-			if(task.getHasMTM().equals("Yes")){
+			if(task.getHasMTM() == true){
 				for(String mode: task.getMTM().getModes()){
 					modeList.add(mode);
 				}
@@ -447,7 +447,7 @@ public class BuildInnerDataStructures {
 		
 		//hierarchical graph 
 		for(Task task: tasks.values()){
-			if(task.getHasMTM().equals("Yes") && task.getHasSubgraph().equals("Yes")){
+			if(task.getHasMTM() == true && task.getHasSubgraph().equals("Yes")){
 				// initialize
 				//Map structure: <parent task name, <mode, <num_proc(schedule_id), processor id>>>
 				Map<String, Map<String, Map<String, List<Integer>>>> taskMapForModeForNumProc = new HashMap<String, Map<String, Map<String, List<Integer>>>>();
@@ -762,7 +762,11 @@ public class BuildInnerDataStructures {
 			if(task.getRunCondition() != null)	runCondition = task.getRunCondition().name();
 			else								runCondition = "run-once";
 			
-			String hasMTM = task.getHasMTM();
+			boolean hasMTM;
+			if(task.getHasMTM().equalsIgnoreCase("Yes"))
+				hasMTM = true;
+			else
+				hasMTM = false;
 			String hasSubgraph = task.getHasSubGraph();
 			String parentTask = task.getParentTask();
 			String taskType = task.getTaskType();
@@ -786,7 +790,7 @@ public class BuildInnerDataStructures {
 			if(inPortList.size() == 0)	isSrcTask = true;
 			
 	        MTM mtmInfo = null;
-			if(hasMTM.equalsIgnoreCase("Yes")){
+			if(hasMTM == true){
 		       	List<String> modes = new ArrayList<String> ();
 		       	List<Variable> variables = new ArrayList<Variable> ();
 		       	List<Transition> transitions = new ArrayList<Transition> ();
@@ -887,7 +891,7 @@ public class BuildInnerDataStructures {
 		Task parentTask = null;
 		String mode = null;
 		for(Task t: mTask.values()){
-			if(t.getHasMTM().equalsIgnoreCase("Yes")){ //first, find the parent task 
+			if(t.getHasMTM() == true){ //first, find the parent task 
 				if(t.getMTM() != null && t.getMTM().getModes().size() == 1){ //When the graph is SDF, mode has only one mode
 					parentTask = t; 
 					mode = t.getMTM().getModes().get(0);

@@ -39,7 +39,7 @@ public class Task {
 	private List<String> mPrev;
 	private List<String> mNext;
 	private String mHasSubgraph;
-	private String mHasMTM;
+	private boolean mHasMTM;
 	private MTM mMTMInfo;
 	private String mParentTask;
 	private String mTaskType;
@@ -51,7 +51,7 @@ public class Task {
 			, String cflag, String ldflag, String dataParallel, int width, int height
 			, List<VectorType> dependency, List<Integer> feedbackList, String runCondition
 			, List<String> extraHeader, List<String> extraSource, List<LibraryMasterPortType> libraryPort
-			, List<TaskParameterType> parameter, String hasSubgraph, String hasMTM, MTM mtmInfo
+			, List<TaskParameterType> parameter, String hasSubgraph, boolean hasMTM, MTM mtmInfo
 			, String parentTask, String taskType, Map<String, Map<String, Integer>> inPortList
 			, Map<String, Map<String, Integer>> outPortList, boolean isSrcTask)
 	{
@@ -126,7 +126,7 @@ public class Task {
 		mQueue = new ArrayList<Queue> ();
 		mControllingTask = new ArrayList<String> ();
 		mHasSubgraph = "Yes";
-		mHasMTM = "No";
+		mHasMTM = false;
 		mParentTask = parentTask;
 		mTaskType = "Computational";
 		mInPortList = null;
@@ -171,7 +171,7 @@ public class Task {
 	public String getCflag()						{return mCflag;}
 	public String getLDflag()						{return mLDflag;}
 	public String getHasSubgraph()					{return mHasSubgraph;}
-	public String getHasMTM()						{return mHasMTM;}
+	public boolean getHasMTM()						{return mHasMTM;}
 	public String getParentTask()					{return mParentTask;}
 	public String getTaskType()						{return mTaskType;}
 	public Map<String, Map<String, Integer>> getInPortList()	{return mInPortList;}

@@ -492,7 +492,7 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
     
     CIC_F_MUTEX_LOCK(&global_mutex);
     tasks[target_task_index].state = STATE_STOP;
-    CIC_F_COND_BRAODCAST(&global_cond);
+    CIC_F_COND_BROADCAST(&global_cond);
     CIC_F_MUTEX_UNLOCK(&global_mutex);
     
     return;
@@ -579,10 +579,14 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
             (*tasks[target_task_index].Wrapup)();
 
             tasks[target_task_index].state = STATE_STOP;
-            }
           }
-
         }
+		else
+		{        
+		    tasks[target_task_index].state = STATE_STOP;
+		    tasks[target_task_index].run_count = 0;
+		}
+       }
         break;
       }
 

@@ -590,7 +590,7 @@ public class Schedule {
 									+ tab + "\tif(" + sched.getTask().getStartTime().intValue() + " <= diff)\n" 
 									+ tab + "\t\tbreak;\n" 
 									+ tab + "}\n";
-						}						
+						}				
 					} else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)) {
 
 						code += tab + "\tcase " + mTask.get(task.getName()).getIndex() + ":\n";
@@ -613,7 +613,7 @@ public class Schedule {
 					}
 				}
 				go_skip = false;
-			} else {
+			} else {	//that means, if (sched.getTask().getRepetition().intValue() != 1) {
 				// fully-static : need to check
 				// RuntimeExecutionPolicy_StaticAssign : need to check
 				TaskInstanceType task = sched.getTask();
@@ -731,7 +731,8 @@ public class Schedule {
 				}
 				staticScheduleCode += ("\n}\n\n");
 
-				if (task.getHasMTM().equalsIgnoreCase("Yes")) {
+					System.out.println("$$$$$$$$$$$ task: " + task.getName());
+				if (task.getHasMTM() == true) {
 					staticScheduleCode += ("CIC_T_VOID " + task.getName() + "_Go(){\n");
 					staticScheduleCode += ("\tCIC_T_INT i=0;\n\tCIC_T_INT mtm_id = 0;\n\tCIC_T_CHAR* mode = 0;\n\tCIC_T_INT task_id = GetTaskIdFromTaskName(\""
 							+ task.getName() + "\");\n");
@@ -1371,6 +1372,8 @@ public class Schedule {
 
 				// we assume that we save only the first schedule 
 				schedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
+				if(!isSrcTask)
+					sched_time = 0;	
 				TaskGroupsType taskGroups = schedule.getTaskGroups();
 				List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
 				for (int i = 0; i < taskGroupList.size(); i++) {
