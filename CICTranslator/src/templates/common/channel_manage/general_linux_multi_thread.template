@@ -45,7 +45,7 @@ CIC_STATIC CIC_T_VOID InitChannels(CIC_T_VOID)
                 channels[i].head[j].avail_node->avail_index = j;
                 channels[i].head[j].avail_node->prev = channels[i].head[j].avail_node->next = CIC_V_NULL;
 
-                if(j<channels[i].init_data){
+                if(j< (channels[i].init_data/channels[i].sample_size)){
                     channels[i].head[j].used = 1;
                     CIC_UT_AC_DATA *ptr;
                     CIC_UT_CHANNEL *channel;
@@ -395,7 +395,7 @@ write_ac_start:
     CIC_F_MUTEX_LOCK(&(channel->mutex));
 
     if(ptr->used != 0){
-        channel->request_write = true;
+        channel->request_write = CIC_V_TRUE;
         if(task_id >= 0)	tasks[task_id].run_state = WRITE_BLOCK;
         if(channel->request_read == CIC_V_TRUE){
             CIC_T_CHAR task_channel_name[255], channel_id_name[10];
@@ -403,7 +403,7 @@ write_ac_start:
             CIC_F_STRING_COPY(task_channel_name, tasks[task_id].name);
             CIC_F_STRING_CONCATENATE(task_channel_name, ", ");
             CIC_F_STRING_CONCATENATE(task_channel_name, channel_id_name);
-            CIC_F_ERROR(task_channel_name, "WriteCPort(): deadlock!", CIC_V_ERROR_EXIT);
+            CIC_F_ERROR(task_channel_name, "WriteACPort(): deadlock!", CIC_V_ERROR_EXIT);
         }
          CIC_F_COND_WAIT(&(channel->cond), &(channel->mutex));
          CIC_F_MUTEX_UNLOCK(&(channel->mutex));
