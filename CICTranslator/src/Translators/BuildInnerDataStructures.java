@@ -450,10 +450,13 @@ public class BuildInnerDataStructures {
 			if(task.getHasMTM() == true && task.getHasSubgraph().equals("Yes")){
 				// initialize
 				//Map structure: <parent task name, <mode, <num_proc(schedule_id), processor id>>>
+				Map<String, Map<String, Map<String, List<Integer>>>> taskCallCountForModeForNumProc = new HashMap<String, Map<String, Map<String, List<Integer>>>>();
 				Map<String, Map<String, Map<String, List<Integer>>>> taskMapForModeForNumProc = new HashMap<String, Map<String, Map<String, List<Integer>>>>();
 				for(Task t: tasks.values()){
 					if(t.getParentTask().equals(task.getName()) && t.getHasSubgraph().equals("No") ){
+						Map<String, Map<String, List<Integer>>> taskCallCountForNumProc = new HashMap<String, Map<String, List<Integer>>> ();
 						Map<String, Map<String, List<Integer>>> taskMapForNumProc = new HashMap<String, Map<String, List<Integer>>> ();
+						taskCallCountForModeForNumProc.put(t.getName(), taskCallCountForNumProc);
 						taskMapForModeForNumProc.put(t.getName(), taskMapForNumProc);
 					}
 				}
@@ -476,7 +479,9 @@ public class BuildInnerDataStructures {
 					// initialize
 					for(Task t: tasks.values()){					
 						if(t.getParentTask().equals(task.getName()) && t.getHasSubgraph().equals("No") ){
+							Map<String, List<Integer>> taskCallMap = new HashMap<String, List<Integer>>();
 							Map<String, List<Integer>> taskProcMap = new HashMap<String, List<Integer>>();
+							taskCallCountForModeForNumProc.get(t.getName()).put(mode, taskCallMap);
 							taskMapForModeForNumProc.get(t.getName()).put(mode, taskProcMap);
 						}
 					}
@@ -495,7 +500,9 @@ public class BuildInnerDataStructures {
 						for(Task t: tasks.values()){
 							if(t.getParentTask().equals(task.getName()) && t.getHasSubgraph().equals("No") ){
 								List<Integer> procList = new ArrayList<Integer>();
+								List<Integer> callList = new ArrayList<Integer>();
 								taskMapForModeForNumProc.get(t.getName()).get(mode).put(Integer.toString(num_proc), procList);
+								taskCallCountForModeForNumProc.get(t.getName()).get(mode).put(Integer.toString(num_proc), callList);
 							}
 						}
 							
@@ -513,11 +520,20 @@ public class BuildInnerDataStructures {
 									}
 								}
 								List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
+								int call_count=0;
 								for(int k=0; k<scheds.size(); k++){
 									ScheduleElementType sched = scheds.get(k);
 									String taskName = sched.getTask().getName();
-									if(!taskMapForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).contains(proc_id))
+									if(!taskMapForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).contains(proc_id)){
 										taskMapForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).add(proc_id);
+										taskCallCountForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).add(1);
+									}
+									else{
+										int index = taskCallCountForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).size()-1;
+										int curr_count = taskCallCountForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).get(index);
+										curr_count++;
+										taskCallCountForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).set(index, curr_count);
+									}
 								}
 							}
 						}
@@ -528,26 +544,34 @@ public class BuildInnerDataStructures {
 				
 				for(Task t: tasks.values()){
 					if(t.getParentTask().equals(task.getName()) && t.getHasSubgraph().equals("No") ){
-						Map<String, Map<String, List<Integer>>> before = taskMapForModeForNumProc.get(t.getName());
-						Map<String, Map<String, List<Integer>>> after = new HashMap<String, Map<String, List<Integer>>>();
+						Map<String, Map<String, List<Integer>>> before_map = taskMapForModeForNumProc.get(t.getName());
+						Map<String, Map<String, List<Integer>>> after_map = new HashMap<String, Map<String, List<Integer>>>();
+						
+						Map<String, Map<String, List<Integer>>> before_call = taskCallCountForModeForNumProc.get(t.getName());
+						Map<String, Map<String, List<Integer>>> after_call = new HashMap<String, Map<String, List<Integer>>>();
 						
 						List<String> modeList = task.getMTM().getModes();
-						List<String> procNumList = new ArrayList<String> ();
 						
-						Set<String> pnl = before.get(modeList.get(0)).keySet();
+						List<String> procNumList = new ArrayList<String> ();
+						Set<String> pnl = before_map.get(modeList.get(0)).keySet();
 						for(String procNum: pnl){
 							procNumList.add(procNum);
 						}
 						
 						for(String procNum: procNumList){
 							Map<String, List<Integer>> modeMapList = new HashMap<String, List<Integer>>();
+							Map<String, List<Integer>> modeCallList = new HashMap<String, List<Integer>>();
 							for(String mode: modeList){
-								List<Integer> procList = before.get(mode).get(procNum);
+								List<Integer> procList = before_map.get(mode).get(procNum);
+								List<Integer> callList = before_call.get(mode).get(procNum);
 								modeMapList.put(mode, procList);
+								modeCallList.put(mode, callList);
 							}
-							after.put(procNum, modeMapList);
+							after_map.put(procNum, modeMapList);
+							after_call.put(procNum, modeCallList);
 						}
-						t.setProc(after);
+						t.setProc(after_map);
+						t.setCallCount(after_call);
 						done = true;
 //						System.out.println("-- " + t.getName() + ": " + t.getProc());
 					}
@@ -579,10 +603,13 @@ public class BuildInnerDataStructures {
 			// initialize
 			//Map structure: <parent task name, <mode, <num_proc(schedule_id), processor id>>>
 			Map<String, Map<String, Map<String, List<Integer>>>> taskMapForModeForNumProc = new HashMap<String, Map<String, Map<String, List<Integer>>>>();
+			Map<String, Map<String, Map<String, List<Integer>>>> taskCallCountForModeForNumProc = new HashMap<String, Map<String, Map<String, List<Integer>>>>();
 			for(Task t: tasks.values()){
 				if(t.getParentTask().equals(vTask.getName()) && t.getHasSubgraph().equals("No") ){
 					Map<String, Map<String, List<Integer>>> taskMapForNumProc = new HashMap<String, Map<String, List<Integer>>> ();
+					Map<String, Map<String, List<Integer>>> taskCallCountForNumProc = new HashMap<String, Map<String, List<Integer>>> ();
 					taskMapForModeForNumProc.put(t.getName(), taskMapForNumProc);
+					taskCallCountForModeForNumProc.put(t.getName(), taskCallCountForNumProc);
 				}
 			}
 			
@@ -611,7 +638,9 @@ public class BuildInnerDataStructures {
 				for(Task t: tasks.values()){					
 					if(t.getParentTask().equals(vTask.getName()) && t.getHasSubgraph().equals("No") ){
 						Map<String, List<Integer>> taskProcMap = new HashMap<String, List<Integer>>();
+						Map<String, List<Integer>> taskCallMap = new HashMap<String, List<Integer>>();
 						taskMapForModeForNumProc.get(t.getName()).put(mode, taskProcMap);
+						taskCallCountForModeForNumProc.get(t.getName()).put(mode, taskCallMap);
 					}
 				}
 
@@ -629,7 +658,9 @@ public class BuildInnerDataStructures {
 					for(Task t: tasks.values()){
 						if(t.getParentTask().equals(vTask.getName()) && t.getHasSubgraph().equals("No") ){
 							List<Integer> procList = new ArrayList<Integer>();
+							List<Integer> callList = new ArrayList<Integer>();
 							taskMapForModeForNumProc.get(t.getName()).get(mode).put(Integer.toString(num_proc), procList);
+							taskCallCountForModeForNumProc.get(t.getName()).get(mode).put(Integer.toString(num_proc), callList);
 						}
 					}
 						
@@ -650,8 +681,16 @@ public class BuildInnerDataStructures {
 							for(int k=0; k<scheds.size(); k++){
 								ScheduleElementType sched = scheds.get(k);
 								String taskName = sched.getTask().getName();
-								if(!taskMapForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).contains(proc_id))
+								if(!taskMapForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).contains(proc_id)){
 									taskMapForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).add(proc_id);
+									taskCallCountForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).add(1);
+								}
+								else{
+									int index = taskCallCountForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).size()-1;
+									int curr_count = taskCallCountForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).get(index);
+									curr_count++;
+									taskCallCountForModeForNumProc.get(taskName).get(mode).get(Integer.toString(num_proc)).set(index, curr_count);
+								}
 							}
 						}
 					}
@@ -662,25 +701,33 @@ public class BuildInnerDataStructures {
 			
 			for(Task t: tasks.values()){
 				if(t.getParentTask().equals(vTask.getName()) && t.getHasSubgraph().equals("No") ){
-					Map<String, Map<String, List<Integer>>> before = taskMapForModeForNumProc.get(t.getName());
-					Map<String, Map<String, List<Integer>>> after = new HashMap<String, Map<String, List<Integer>>>();
+					Map<String, Map<String, List<Integer>>> before_map = taskMapForModeForNumProc.get(t.getName());
+					Map<String, Map<String, List<Integer>>> after_map = new HashMap<String, Map<String, List<Integer>>>();
+					
+					Map<String, Map<String, List<Integer>>> before_call = taskCallCountForModeForNumProc.get(t.getName());
+					Map<String, Map<String, List<Integer>>> after_call = new HashMap<String, Map<String, List<Integer>>>();
 					
 					List<String> procNumList = new ArrayList<String> ();
 					
-					Set<String> pnl = before.get(modeList.get(0)).keySet();
+					Set<String> pnl = before_map.get(modeList.get(0)).keySet();
 					for(String procNum: pnl){
 						procNumList.add(procNum);
 					}
 					
 					for(String procNum: procNumList){
 						Map<String, List<Integer>> modeMapList = new HashMap<String, List<Integer>>();
+						Map<String, List<Integer>> modeCallList = new HashMap<String, List<Integer>>();
 						for(String mode: modeList){
-							List<Integer> procList = before.get(mode).get(procNum);
+							List<Integer> procList = before_map.get(mode).get(procNum);
+							List<Integer> callList = before_call.get(mode).get(procNum);
 							modeMapList.put(mode, procList);
+							modeCallList.put(mode, callList);
 						}
-						after.put(procNum, modeMapList);
+						after_map.put(procNum, modeMapList);
+						after_call.put(procNum, modeCallList);
 					}
-					t.setProc(after);
+					t.setProc(after_map);
+					t.setCallCount(after_call);
 //						System.out.println("-- " + t.getName() + ": " + t.getProc());
 				}
 			}

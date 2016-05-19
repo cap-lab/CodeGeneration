@@ -217,12 +217,25 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		code += "\tCIC_T_INT task_index;\n";
 		code += "\tCIC_T_INT proc_num_list[MAX_SCHED_NUM];\n";
 		code += "\tCIC_T_CHAR* mode_list[MAX_MODE_NUM];\n";
+		code += "\tCIC_T_BOOL is_external_dp;\n";
+		code += "\tCIC_T_BARRIER barrier;\n";
+		code += "\tCIC_T_INT thread_num[MAX_SCHED_NUM];\n";
+		code += "\tCIC_T_THREAD threads[MAX_PARALLEL_NUM];\n";
+		code += "\tCIC_T_INT call_count[MAX_SCHED_NUM][MAX_MODE_NUM][MAX_PARALLEL_NUM];\n";
 		code += "\tCIC_T_INT core_map[MAX_SCHED_NUM][MAX_MODE_NUM][MAX_PARALLEL_NUM];\n";
 		code += "}CIC_UT_TASK_TO_CORE_MAP;\n\n";
 
 		code += "CIC_UT_TASK_TO_CORE_MAP task_to_core_map[] = {\n";
 
-		for (Task task : mTask.values()) {
+		int index=0;
+		while (index < mTask.size()) {
+			Task task = null;
+			for (Task t : mTask.values()) {
+				if (Integer.parseInt(t.getIndex()) == index) {
+					task = t;
+					break;
+				}
+			}
 			code += "\t{" + task.getIndex() + ", {";
 			for (String pn : task.getProc().keySet()) {
 				String procNum = "";
@@ -237,6 +250,44 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 			for (String mode : task.getProc().get(task.getProc().keySet().iterator().next()).keySet()) {
 				code += "\"" + mode + "\", ";
 			}
+			code += "}, ";
+		
+			int max_thread_num = 1;
+			for (String procNum : task.getProc().keySet()) {
+				Map<String, List<Integer>> coreMap = task.getProc().get(procNum);
+				for (List<Integer> procList : coreMap.values()) {
+					int size = procList.size();
+					if(max_thread_num < size)	max_thread_num = size;
+				}
+			}
+			
+			String is_external_dp = "CIC_V_FALSE";
+			if(max_thread_num > 1)	is_external_dp = "CIC_V_TRUE";
+			
+			code += is_external_dp + ", {0, }, {" + max_thread_num + ", }, {0, }, {";
+			
+			if(task.getCallCount() == null){
+				code += "{{0, }, }, ";
+			}
+			else{
+				for (String procNum : task.getCallCount().keySet()) {
+					Map<String, List<Integer>> callMap = task.getCallCount().get(procNum);
+					code += "{";
+					for (List<Integer> callList : callMap.values()) {
+						code += "{";
+						if (callList.size() == 0) {
+							code += 0 + ", ";
+						} else {
+							for (int proc : callList) {
+								code += proc + ", ";
+							}
+						}
+						code += "}, ";
+					}
+					code += "}, ";
+				}
+			}
+			
 			code += "}, {";
 
 			for (String procNum : task.getProc().keySet()) {
@@ -257,6 +308,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 			}
 
 			code += "}},\n";
+			index++;
 		}
 		code += "};\n";
 
@@ -420,6 +472,15 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 						for (int i = 0; i < taskGroupList.size(); i++) {
 							List<ScheduleGroupType> scheduleGroup = taskGroupList.get(i).getScheduleGroup();
 							for (int j = 0; j < scheduleGroup.size(); j++) {
+								int proc_id = 0;
+								for(Processor proc: mProcessor.values()){
+									if(proc.getPoolName().equals(scheduleGroup.get(j).getPoolName()) 
+											&& proc.getLocalIndex() == scheduleGroup.get(j).getLocalId().intValue()){
+										proc_id = proc.getIndex();
+										break;
+									}
+								}
+								
 								int taskPriority = 10;
 								List<ScheduleElementType> schedules = scheduleGroup.get(j).getScheduleElement();
 								for (int k = 0; k < schedules.size(); k++) {
@@ -433,7 +494,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 											break;
 										}
 									}
-									taskPriorityDefineCode += "{" + taskId + ", " + j + ", \"" + mode + "\", "
+									taskPriorityDefineCode += "{" + taskId + ", " + proc_id + ", \"" + mode + "\", "
 											+ taskPriority + "},\n";
 									taskPriority++;
 								}
@@ -753,6 +814,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 
 		templateFile = mTranslatorPath + "templates/target/Multicore/target_dependent_code.template";
 		code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_PROCESSOR_ID");
+		code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_TASK_CALL_COUNT");
 
 		return code;
 	}
@@ -769,20 +831,20 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		} else if (mRuntimeExecutionPolicy.equals("Partitioned")) {
 			String outPath = mOutputPath + "/convertedSDF3xml/";
 			code = CommonLibraries.Schedule.generateMultiProcessorStaticScheduleCode(outPath, mTask,
-					mVTask, mPVTask);
+					mVTask, mPVTask, mProcessor);
 			code = code.replace("##SCHEDULE_CODE", code);
 		} else if (mRuntimeExecutionPolicy
 				.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) {
 			String outPath = mOutputPath + "/convertedSDF3xml/";
 			code = CommonLibraries.Schedule.generateMultiProcessorStaticScheduleCodeWithExecutionPolicy(
-					outPath, mTask, mVTask, mPVTask, mRuntimeExecutionPolicy);
+					outPath, mTask, mVTask, mPVTask, mRuntimeExecutionPolicy, mProcessor);
 			code = code.replace("##SCHEDULE_CODE", code);
 		} else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed)) {
 			if (mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_FunctionCall)) {
 				String outPath = mOutputPath + "/convertedSDF3xml/";
 				code = CommonLibraries.Schedule
 						.generateMultiProcessorStaticScheduleCodeWithExecutionPolicy(outPath, mTask, mVTask, mPVTask,
-								mRuntimeExecutionPolicy);
+								mRuntimeExecutionPolicy, mProcessor);
 				code = code.replace("##SCHEDULE_CODE", code);
 			}
 		} else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)) {
@@ -796,7 +858,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 				String outPath = mOutputPath + "/convertedSDF3xml/";
 				code += CommonLibraries.Schedule
 						.generateMultiProcessorStaticScheduleCodeWithExecutionPolicy(outPath, mTask, mVTask, mPVTask,
-								mRuntimeExecutionPolicy);
+								mRuntimeExecutionPolicy, mProcessor);
 				code = code.replace("##SCHEDULE_CODE", code);
 			}
 		}

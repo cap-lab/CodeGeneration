@@ -307,11 +307,11 @@ CIC_T_INT GetChannelIndexFromChannelId(CIC_T_INT channel_id)
 
 
 ///////////////////////////////// CHANNEL INIT/WRAPUP START /////////////////////////////////
+##INIT_WRAPUP_CHANNELS
+
 ##INIT_WRAPUP_TASK_CHANNELS
 
 ##INIT_WRAPUP_LIBRARY_CHANNELS
-
-##INIT_WRAPUP_CHANNELS
 ////////////////////////////////// CHANNEL INIT/WRAPUP END //////////////////////////////////
 
 

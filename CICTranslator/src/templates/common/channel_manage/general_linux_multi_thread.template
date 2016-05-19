@@ -1,95 +1,121 @@
 ##INIT_WRAPUP_CHANNELS_START
+
+CIC_STATIC CIC_T_VOID InitChannel(CIC_T_INT channel_index)
+{
+	CIC_T_INT i = channel_index;
+	CIC_F_MUTEX_INIT(&(channels[i].mutex));
+    CIC_F_COND_INIT(&(channels[i].cond));
+
+    if(channels[i].type == CIC_UT_CHANNEL_TYPE_NORMAL || channels[i].type == CIC_UT_CHANNEL_TYPE_BUFFER){
+        CIC_UT_BUFFER_DATA_TYPE ptr;
+        ptr = (CIC_UT_BUFFER_DATA_TYPE)CIC_F_MEM_ALLOC(channels[i].max_size);
+        if(ptr == CIC_V_NULL){
+            CIC_F_ERROR("proc", "InitChannels(): MEM_ALLOC failed!", CIC_V_ERROR_EXIT);
+        }
+        CIC_F_MEM_SET(ptr, 0x0, channels[i].init_data);
+        channels[i].buf = ptr;
+        channels[i].start = ptr;
+        channels[i].end = ptr + channels[i].init_data;
+        channels[i].cur_size = channels[i].init_data;
+    }
+    else if(channels[i].type == CIC_UT_CHANNEL_TYPE_ARRAY_CHANNEL){
+        if(channels[i].max_size <= 0)
+         	CIC_F_ERROR("proc", "InitChannels(): max_size should be positive!", CIC_V_ERROR_EXIT);
+
+        if(channels[i].sample_size <= 0)
+       		CIC_F_ERROR("proc", "InitChannels(): sample_size should be positive!", CIC_V_ERROR_EXIT);
+
+        if(channels[i].max_size % channels[i].sample_size != 0)
+        	CIC_F_ERROR("proc", "InitChannels(): max_size should be divided by sample_size!", CIC_V_ERROR_EXIT);
+
+        CIC_T_INT j;
+        CIC_CONST CIC_T_INT count = channels[i].max_size / channels[i].sample_size;
+        channels[i].head = (CIC_UT_AC_DATA*) CIC_F_MEM_ALLOC(count * CIC_SIZEOF(CIC_UT_AC_DATA));
+        if(channels[i].head == CIC_V_NULL){
+            CIC_F_ERROR("proc", "InitChannels(): MEM_ALLOC failed!", CIC_V_ERROR_EXIT);
+        }
+
+        channels[i].avail_index_start = channels[i].avail_index_end = CIC_V_NULL;
+
+        for(j=0;j<count;j++){
+            channels[i].head[j].avail_node = (CIC_UT_AC_AVAIL_LIST*) CIC_F_MEM_ALLOC(CIC_SIZEOF(CIC_UT_AC_AVAIL_LIST));
+            if(channels[i].head[j].avail_node == CIC_V_NULL){
+                CIC_F_ERROR("proc", "InitChannels(): MEM_ALLOC failed!", CIC_V_ERROR_EXIT);
+            }
+            channels[i].head[j].avail_node->avail_index = j;
+            channels[i].head[j].avail_node->prev = channels[i].head[j].avail_node->next = CIC_V_NULL;
+
+            if(j< (channels[i].init_data/channels[i].sample_size)){
+                channels[i].head[j].used = 1;
+                CIC_UT_AC_DATA *ptr;
+                CIC_UT_CHANNEL *channel;
+                ptr = &(channels[i].head[j]);
+                channel = &(channels[i]);
+                if(channel->avail_index_start == CIC_V_NULL){
+                    channel->avail_index_start = channel->avail_index_end = ptr->avail_node;
+                }
+                else{
+                    CIC_UT_AC_AVAIL_LIST *node;
+                    node = channel->avail_index_end;
+                    channel->avail_index_end = node->next = ptr->avail_node;
+                    ptr->avail_node->prev = node;
+                    ptr->avail_node->next = CIC_V_NULL;
+                }
+            }
+            else{
+                channels[i].head[j].used = 0;
+            }
+            channels[i].head[j].buf = CIC_F_MEM_ALLOC(channels[i].sample_size);
+            if(channels[i].head[j].buf == CIC_V_NULL){
+               CIC_F_ERROR("proc", "InitChannels(): MEM_ALLOC failed!", CIC_V_ERROR_EXIT);
+            }
+        }
+    }
+}
+
 CIC_STATIC CIC_T_VOID InitChannels(CIC_T_VOID)
 {
     CIC_T_UINT i;
     for(i=0; i<CIC_UV_NUM_CHANNELS; i++){
-        CIC_F_MUTEX_INIT(&(channels[i].mutex));
-        CIC_F_COND_INIT(&(channels[i].cond));
-
-        if(channels[i].type == CIC_UT_CHANNEL_TYPE_NORMAL || channels[i].type == CIC_UT_CHANNEL_TYPE_BUFFER){
-            CIC_UT_BUFFER_DATA_TYPE ptr;
-            ptr = (CIC_UT_BUFFER_DATA_TYPE)CIC_F_MEM_ALLOC(channels[i].max_size);
-            if(ptr == CIC_V_NULL){
-                CIC_F_ERROR("proc", "InitChannels(): MEM_ALLOC failed!", CIC_V_ERROR_EXIT);
-            }
-            CIC_F_MEM_SET(ptr, 0x0, channels[i].init_data);
-            channels[i].buf = ptr;
-            channels[i].start = ptr;
-            channels[i].end = ptr + channels[i].init_data;
-            channels[i].cur_size = channels[i].init_data;
-        }
-        else if(channels[i].type == CIC_UT_CHANNEL_TYPE_ARRAY_CHANNEL){
-            if(channels[i].max_size <= 0)
-             	CIC_F_ERROR("proc", "InitChannels(): max_size should be positive!", CIC_V_ERROR_EXIT);
-
-            if(channels[i].sample_size <= 0)
-           		CIC_F_ERROR("proc", "InitChannels(): sample_size should be positive!", CIC_V_ERROR_EXIT);
-
-            if(channels[i].max_size % channels[i].sample_size != 0)
-            	CIC_F_ERROR("proc", "InitChannels(): max_size should be divided by sample_size!", CIC_V_ERROR_EXIT);
-
-            CIC_T_INT j;
-            CIC_CONST CIC_T_INT count = channels[i].max_size / channels[i].sample_size;
-            channels[i].head = (CIC_UT_AC_DATA*) CIC_F_MEM_ALLOC(count * CIC_SIZEOF(CIC_UT_AC_DATA));
-            if(channels[i].head == CIC_V_NULL){
-                CIC_F_ERROR("proc", "InitChannels(): MEM_ALLOC failed!", CIC_V_ERROR_EXIT);
-            }
-
-            channels[i].avail_index_start = channels[i].avail_index_end = CIC_V_NULL;
-
-            for(j=0;j<count;j++){
-                channels[i].head[j].avail_node = (CIC_UT_AC_AVAIL_LIST*) CIC_F_MEM_ALLOC(CIC_SIZEOF(CIC_UT_AC_AVAIL_LIST));
-                if(channels[i].head[j].avail_node == CIC_V_NULL){
-                    CIC_F_ERROR("proc", "InitChannels(): MEM_ALLOC failed!", CIC_V_ERROR_EXIT);
-                }
-                channels[i].head[j].avail_node->avail_index = j;
-                channels[i].head[j].avail_node->prev = channels[i].head[j].avail_node->next = CIC_V_NULL;
-
-                if(j< (channels[i].init_data/channels[i].sample_size)){
-                    channels[i].head[j].used = 1;
-                    CIC_UT_AC_DATA *ptr;
-                    CIC_UT_CHANNEL *channel;
-                    ptr = &(channels[i].head[j]);
-                    channel = &(channels[i]);
-                    if(channel->avail_index_start == CIC_V_NULL){
-                        channel->avail_index_start = channel->avail_index_end = ptr->avail_node;
-                    }
-                    else{
-                        CIC_UT_AC_AVAIL_LIST *node;
-                        node = channel->avail_index_end;
-                        channel->avail_index_end = node->next = ptr->avail_node;
-                        ptr->avail_node->prev = node;
-                        ptr->avail_node->next = CIC_V_NULL;
-                    }
-                }
-                else{
-                    channels[i].head[j].used = 0;
-                }
-                channels[i].head[j].buf = CIC_F_MEM_ALLOC(channels[i].sample_size);
-                if(channels[i].head[j].buf == CIC_V_NULL){
-                   CIC_F_ERROR("proc", "InitChannels(): MEM_ALLOC failed!", CIC_V_ERROR_EXIT);
-                }
-            }
-        }
+        InitChannel(i);
     }
+}
+
+CIC_STATIC CIC_T_VOID WrapupChannel(CIC_T_INT channel_index)
+{
+	CIC_T_INT i = channel_index;
+	if(channels[i].type == CIC_UT_CHANNEL_TYPE_NORMAL || channels[i].type == CIC_UT_CHANNEL_TYPE_BUFFER){
+        if(channels[i].buf != CIC_V_NULL){
+        	CIC_F_MEM_FREE(channels[i].buf);
+			channels[i].buf = CIC_V_NULL;
+		}
+    }
+    else if(channels[i].type == CIC_UT_CHANNEL_TYPE_ARRAY_CHANNEL){
+        CIC_T_INT j;
+        
+		if(channels[i].head != CIC_V_NULL){
+			CIC_CONST CIC_T_INT count = channels[i].max_size / channels[i].sample_size;
+			for(j=0;j<count;j++){
+				if(channels[i].head[j].avail_node != CIC_V_NULL){
+					CIC_F_MEM_FREE(channels[i].head[j].avail_node);
+					channels[i].head[j].avail_node = CIC_V_NULL;
+				}
+				if(channels[i].head[j].buf != CIC_V_NULL){
+					CIC_F_MEM_FREE(channels[i].head[j].buf);
+					channels[i].head[j].buf = CIC_V_NULL;
+				}
+			}
+			CIC_F_MEM_FREE(channels[i].head);
+			channels[i].head = CIC_V_NULL;
+		}
+	}
 }
 
 CIC_STATIC CIC_T_VOID WrapupChannels(CIC_T_VOID)
 {
     CIC_T_UINT i;
     for(i=0; i<CIC_UV_NUM_CHANNELS; i++){
-        if(channels[i].type == CIC_UT_CHANNEL_TYPE_NORMAL || channels[i].type == CIC_UT_CHANNEL_TYPE_BUFFER){
-            CIC_F_MEM_FREE(channels[i].buf);
-        }
-        else if(channels[i].type == CIC_UT_CHANNEL_TYPE_ARRAY_CHANNEL){
-            CIC_T_INT j;
-            CIC_CONST CIC_T_INT count = channels[i].max_size / channels[i].sample_size;
-            for(j=0;j<count;j++){
-                CIC_F_MEM_FREE(channels[i].head[j].avail_node);
-                CIC_F_MEM_FREE(channels[i].head[j].buf);
-            }
-            CIC_F_MEM_FREE(channels[i].head);
-        }
+        WrapupChannel(i);
     }
 }
 ##INIT_WRAPUP_CHANNELS_END
@@ -104,16 +130,23 @@ CIC_STATIC CIC_T_VOID InitTaskChannels(CIC_T_INT parent_task_id){
             	&& tasks[addressmap[j].task_id].parent_task_id == parent_task_id) count++;
         }
         if(count == 2){
-            channels[i].start = channels[i].buf;
-            CIC_F_MEM_SET(channels[i].start, 0x0, channels[i].init_data);
-            channels[i].end = channels[i].start + channels[i].init_data;
-            channels[i].cur_size = channels[i].init_data;
+            InitChannel(i);
         }
     }
 }
 
-CIC_STATIC CIC_T_VOID WrapupTaskChannels(CIC_T_INT task_id){
-
+CIC_STATIC CIC_T_VOID WrapupTaskChannels(CIC_T_INT parent_task_id){
+CIC_T_INT i=0, j=0, count=0;
+    for(i=0; i<CIC_UV_NUM_CHANNELS; i++){
+        count = 0;
+        for(j=0; j< CIC_UV_NUM_PORTMAPS; j++){
+            if(channels[i].channel_id == addressmap[j].channel_id 
+            	&& tasks[addressmap[j].task_id].parent_task_id == parent_task_id) count++;
+        }
+        if(count == 2){
+            WrapupChannel(i);
+        }
+    }
 }
 ##INIT_WRAPUP_TASK_CHANNELS_END
 

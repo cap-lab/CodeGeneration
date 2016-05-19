@@ -347,13 +347,16 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
         if(target_task_id == tasks[i].parent_task_id && tasks[i].has_subgraph == CIC_V_FALSE){
-            if(tasks[i].state != STATE_STOP)	tasks[i].state = STATE_RUN;
-            CIC_F_COND_BROADCAST(&(tasks[i].cond));
-            CIC_F_PRINTF("Resume task %s(task_id: %d)\n", tasks[i].name, tasks[i].task_id);
+            if(tasks[i].state != STATE_STOP && tasks[i].state != STATE_END){
+            	tasks[i].state = STATE_RUN;
+            	CIC_F_COND_BROADCAST(&(tasks[i].cond));
+            	CIC_F_PRINTF("Resume task %s(task_id: %d)\n", tasks[i].name, tasks[i].task_id);
+            }
         }
     }   
     
-    if(tasks[target_task_index].state != STATE_STOP)	tasks[target_task_index].state = STATE_RUN;
+    if(tasks[target_task_index].state != STATE_STOP && tasks[target_task_index].state != STATE_END)
+    	tasks[target_task_index].state = STATE_RUN;
     
     return;
 ##CONTROL_RESUME_TASK_END
@@ -365,12 +368,15 @@ CIC_STATIC CIC_T_VOID ExecuteTasks(CIC_T_VOID)
 
     for(i=0; i<CIC_UV_NUM_TASKS; i++){
         if(target_task_id == tasks[i].parent_task_id && tasks[i].has_subgraph == CIC_V_FALSE){
-            if(tasks[i].state != STATE_STOP)	tasks[i].state = STATE_WAIT;
-            CIC_F_PRINTF("Suspend task %s(task_id: %d)\n", tasks[i].name, tasks[i].task_id);
+            if(tasks[i].state != STATE_STOP && tasks[i].state != STATE_END){
+            	tasks[i].state = STATE_WAIT;
+            	CIC_F_PRINTF("Suspend task %s(task_id: %d)\n", tasks[i].name, tasks[i].task_id);
+            }
         }
     }
     
-    if(tasks[target_task_index].state != STATE_STOP)	tasks[target_task_index].state = STATE_WAIT;
+    if(tasks[target_task_index].state != STATE_STOP && tasks[target_task_index].state != STATE_END)
+    	tasks[target_task_index].state = STATE_WAIT;
     
     return;
 ##CONTROL_SUSPEND_TASK_END

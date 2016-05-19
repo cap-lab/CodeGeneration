@@ -36,6 +36,7 @@ import mocgraph.Edge;
 import mocgraph.Node;
 import mocgraph.sched.Firing;
 import mocgraph.sched.ScheduleElement;
+import InnerDataStructures.Processor;
 import InnerDataStructures.Queue;
 import InnerDataStructures.Task;
 
@@ -890,7 +891,7 @@ public class Schedule {
 	}
 
 	public static String generateMultiProcessorStaticScheduleCode(String outputPath, Map<String, Task> mTask,
-			Map<String, Task> mVTask, Map<String, Task> mPVTask) {
+			Map<String, Task> mVTask, Map<String, Task> mPVTask, Map<Integer, Processor> processors) {
 		String staticScheduleCode = "";
 		String goCode = "";
 		String initCode = "";
@@ -970,9 +971,17 @@ public class Schedule {
 						boolean srcFlag = false;
 						for (int i = 0; i < taskGroupList.size(); i++) {
 							List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
-							for (int j = 0; j < schedGroup.size(); j++) {
-								if (schedGroup.get(j).getLocalId().intValue() == task.getProc().get("Default")
-										.get("Default").get(0)) // Need to fix
+							for (int j = 0; j < schedGroup.size(); j++) { 
+								int proc_id = 0;
+								for(Processor proc: processors.values()){
+									if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) 
+											&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
+										proc_id = proc.getIndex();
+										break;
+									}
+								}
+								
+								if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need to fix
 								{
 									List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
 
@@ -1041,8 +1050,16 @@ public class Schedule {
 						for (int i = 0; i < taskGroupList.size(); i++) {
 							List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
 							for (int j = 0; j < schedGroup.size(); j++) {
-								if (schedGroup.get(j).getLocalId().intValue() == task.getProc().get("Default")
-										.get("Default").get(0)) // Need to fix
+								int proc_id = 0;
+								for(Processor proc: processors.values()){
+									if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) 
+											&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
+										proc_id = proc.getIndex();
+										break;
+									}
+								}
+								
+								if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need to fix
 								{
 									List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
 
@@ -1114,8 +1131,16 @@ public class Schedule {
 					for (int i = 0; i < taskGroupList.size(); i++) {
 						List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
 						for (int j = 0; j < schedGroup.size(); j++) {
-							if (schedGroup.get(j).getLocalId().intValue() == task.getProc().get("Default")
-									.get("Default").get(0)) // Need to fix
+							int proc_id = 0;
+							for(Processor proc: processors.values()){
+								if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) 
+										&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
+									proc_id = proc.getIndex();
+									break;
+								}
+							}
+							
+							if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need to fix
 							{
 								List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
 
@@ -1168,7 +1193,7 @@ public class Schedule {
 	}
 
 	private static String generateInitcode(String outputPath, Map<String, Task> mTask,
-			CICScheduleTypeLoader scheduleLoader, List<String> modeList, Task task, String mRuntimeExecutionPolicy) {
+			CICScheduleTypeLoader scheduleLoader, List<String> modeList, Task task, String mRuntimeExecutionPolicy,  Map<Integer, Processor> processors) {
 		String code = "";
 		CICScheduleType schedule;
 
@@ -1218,8 +1243,16 @@ public class Schedule {
 					for (int i = 0; i < taskGroupList.size(); i++) {
 						List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
 						for (int j = 0; j < schedGroup.size(); j++) {
-							if (schedGroup.get(j).getLocalId().intValue() == task.getProc().get("Default")
-									.get("Default").get(0)) // Need to fix
+							int proc_id = 0;
+							for(Processor proc: processors.values()){
+								if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) 
+										&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
+									proc_id = proc.getIndex();
+									break;
+								}
+							}
+							
+							if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need to fix
 							{
 								List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
 
@@ -1280,7 +1313,7 @@ public class Schedule {
 	}
 
 	private static String generateSADFGocode(String outputPath, Map<String, Task> mTask,
-			CICScheduleTypeLoader scheduleLoader, List<String> modeList, Task task, String mRuntimeExecutionPolicy) {
+			CICScheduleTypeLoader scheduleLoader, List<String> modeList, Task task, String mRuntimeExecutionPolicy, Map<Integer, Processor> processors) {
 		String code = "";
 		CICScheduleType schedule;
 
@@ -1310,8 +1343,16 @@ public class Schedule {
 					for (int i = 0; i < taskGroupList.size(); i++) {
 						List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
 						for (int j = 0; j < schedGroup.size(); j++) {
-							if (schedGroup.get(j).getLocalId().intValue() == task.getProc().get("Default")
-									.get("Default").get(0)) // Need to fix
+							int proc_id = 0;
+							for(Processor proc: processors.values()){
+								if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) 
+										&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
+									proc_id = proc.getIndex();
+									break;
+								}
+							}
+							
+							if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need to fix
 							{
 								List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
 
@@ -1377,8 +1418,16 @@ public class Schedule {
 				for (int i = 0; i < taskGroupList.size(); i++) {
 					List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
 					for (int j = 0; j < schedGroup.size(); j++) {
-						if (schedGroup.get(j).getLocalId().intValue() == task.getProc().get("Default").get("Default")
-								.get(0)) // Need to fix
+						int proc_id = 0;
+						for(Processor proc: processors.values()){
+							if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) 
+									&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
+								proc_id = proc.getIndex();
+								break;
+							}
+						}
+						
+						if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need to fix
 						{
 							List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
 
@@ -1406,7 +1455,7 @@ public class Schedule {
 		return code;
 	}
 	
-	private static String generateSDFGocode(String outputPath, Map<String, Task> mTask, CICScheduleTypeLoader scheduleLoader, String mode, Task task, String mRuntimeExecutionPolicy)
+	private static String generateSDFGocode(String outputPath, Map<String, Task> mTask, CICScheduleTypeLoader scheduleLoader, String mode, Task task, String mRuntimeExecutionPolicy, Map<Integer, Processor> processors)
 	{
 		String code = "";
 		CICScheduleType schedule;					
@@ -1421,8 +1470,16 @@ public class Schedule {
 			for (int i = 0; i < taskGroupList.size(); i++) {
 				List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
 				for (int j = 0; j < schedGroup.size(); j++) {
-					if (schedGroup.get(j).getLocalId().intValue() == task.getProc().get("Default")
-							.get("Default").get(0)) // Need to fix
+					int proc_id = 0;
+					for(Processor proc: processors.values()){
+						if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) 
+								&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
+							proc_id = proc.getIndex();
+							break;
+						}
+					}
+					
+					if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need to fix
 					{
 						List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
 						if(mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign))
@@ -1482,7 +1539,7 @@ public class Schedule {
 	}
 
 	private static String generateGocode(String outputPath, Map<String, Task> mTask, Map<String, Task> mVTask,
-			CICScheduleTypeLoader scheduleLoader, List<String> modeList, Task task, String mRuntimeExecutionPolicy) {
+			CICScheduleTypeLoader scheduleLoader, List<String> modeList, Task task, String mRuntimeExecutionPolicy, Map<Integer, Processor> processors) {
 		String code = "";
 		CICScheduleType schedule;
 
@@ -1544,10 +1601,10 @@ public class Schedule {
 		}
 
 		if (modeList.size() > 1) // NOT support RuntimeExecutionPolicy_StaticAssign yet... 
-			code += generateSADFGocode(outputPath, mTask, scheduleLoader, modeList, task, mRuntimeExecutionPolicy);
+			code += generateSADFGocode(outputPath, mTask, scheduleLoader, modeList, task, mRuntimeExecutionPolicy, processors);
 		else
 			code += generateSDFGocode(outputPath, mTask, scheduleLoader,
-					modeList.get(0)/* Default mode */, task, mRuntimeExecutionPolicy);
+					modeList.get(0)/* Default mode */, task, mRuntimeExecutionPolicy, processors);
 
 		if(mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign))
 		{
@@ -1560,7 +1617,7 @@ public class Schedule {
 	}
 
 	private static String generateWrapupcode(String outputPath, CICScheduleTypeLoader scheduleLoader,
-			List<String> modeList, Task task) {
+			List<String> modeList, Task task, Map<Integer, Processor> processors) {
 		String code = "";
 		CICScheduleType schedule;
 
@@ -1608,8 +1665,16 @@ public class Schedule {
 					for (int i = 0; i < taskGroupList.size(); i++) {
 						List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
 						for (int j = 0; j < schedGroup.size(); j++) {
-							if (schedGroup.get(j).getLocalId().intValue() == task.getProc().get("Default")
-									.get("Default").get(0)) // Need to fix
+							int proc_id = 0;
+							for(Processor proc: processors.values()){
+								if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) 
+										&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
+									proc_id = proc.getIndex();
+									break;
+								}
+							}
+							
+							if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need to fix
 							{
 								List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
 
@@ -1640,7 +1705,7 @@ public class Schedule {
 
 	public static String generateMultiProcessorStaticScheduleCodeWithExecutionPolicy(String outputPath,
 			Map<String, Task> mTask, Map<String, Task> mVTask, Map<String, Task> mPVTask,
-			String mRuntimeExecutionPolicy) {
+			String mRuntimeExecutionPolicy, Map<Integer, Processor> processors) {
 		String staticScheduleCode = "";
 		String goCode = "";
 		String initCode = "";
@@ -1656,9 +1721,9 @@ public class Schedule {
 			else
 				modeList.add("Default");
 
-			initCode += generateInitcode(outputPath, mTask, scheduleLoader, modeList, task, mRuntimeExecutionPolicy);
-			goCode += generateGocode(outputPath, mTask, mVTask, scheduleLoader, modeList, task, mRuntimeExecutionPolicy);
-			wrapupCode += generateWrapupcode(outputPath, scheduleLoader, modeList, task);
+			initCode += generateInitcode(outputPath, mTask, scheduleLoader, modeList, task, mRuntimeExecutionPolicy, processors);
+			goCode += generateGocode(outputPath, mTask, mVTask, scheduleLoader, modeList, task, mRuntimeExecutionPolicy, processors);
+			wrapupCode += generateWrapupcode(outputPath, scheduleLoader, modeList, task, processors);
 
 			staticScheduleCode = initCode + goCode + wrapupCode;
 		}

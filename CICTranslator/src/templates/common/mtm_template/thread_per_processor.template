@@ -79,7 +79,7 @@ UPDATE_CURRENT_MODE
 		}
 	}
 	continue_count[task_index]++;
-	if(complete_task_count == 0)	CIC_F_COND_BROADCAST(&mtm_cond);
+	if(!is_transition && complete_task_count == 0)	CIC_F_COND_BROADCAST(&mtm_cond);
 	CIC_F_MUTEX_UNLOCK(&mtm_mutex);
 }
 

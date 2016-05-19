@@ -8,6 +8,7 @@ public class Task {
 	private String mName;
 	private String mCICFile;
 	private Map<String, Map<String, List<Integer>>> mProc;
+	private Map<String, Map<String, List<Integer>>> mCallCount;
 	private String mCflag;
 	private String mLDflag;
 	private String mDataParallel;
@@ -92,7 +93,7 @@ public class Task {
 		mIsSrcTask = isSrcTask;
 	}
 	
-	//virtual task ¸¸µé ¶§ »ç¿ëÇÏ´Â »ý¼ºÀÚ
+	//virtual task ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	public Task(int index, String name, String parentTask, int runRate, String periodMetric, String runCondition, int period)
 	{
 		mIndex = index;
@@ -148,6 +149,7 @@ public class Task {
 	public void setIsSlaveTask(boolean isSlaveTask)		{mIsSlaveTask = isSlaveTask;}
 	public void setParentTask(String parentTask)		{mParentTask = parentTask;}
 	public void setIsSrcTask(boolean isSrc)				{mIsSrcTask = isSrc;}
+	public void setCallCount(Map<String, Map<String, List<Integer>>> callCount)					{mCallCount = callCount;}
 	
 	public boolean getIsSrcTask()					{return mIsSrcTask;}
 	public String getRunCondition()					{return mRunCondition;}
@@ -186,4 +188,5 @@ public class Task {
 	public MTM getMTM()								{return mMTMInfo;}
 	public Map<String, Integer> getExecutionTimeValue()	{return mExecutionTimeValue;}
 	public Map<String, String > getExecutionTimeMetric()	{return mExecutionTimeMetric;}
+	public Map<String, Map<String, List<Integer>>> getCallCount()		{return mCallCount;}
 }
