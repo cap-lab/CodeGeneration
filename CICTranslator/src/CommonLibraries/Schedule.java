@@ -1571,17 +1571,24 @@ public class Schedule {
 							List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
 							if (isFirstTask) {
 								if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) {
-									code += "\t\tif(CIC_F_STRING_COMPARE(\"\", virtual_tasks[virtual_task_index].history_mode) == 0)\n"
-											+ "\t\t\tvirtual_tasks[virtual_task_index].history_mode = mode;\n";
-									code += "\t\tif(CIC_F_STRING_COMPARE(mode, virtual_tasks[virtual_task_index].history_mode) != 0){\n"
-											+ "\t\t\tvirtual_tasks[virtual_task_index].history_mode = mode;\n"
-											+ "\t\t\tclock_gettime(CLOCK_MONOTONIC, &start);\n" + "\t\t\t\twhile(1){\n"
-											+ "\t\t\t\t\tclock_gettime(CLOCK_MONOTONIC, &end);\n"
-											+ "\t\t\t\t\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
-											+ "\t\t\t\t\tif(" + taskGroupList.get(i).getModeTransitionDelay() + " <= diff)\n" 
-											+ "\t\t\t\t\t\tbreak;\n" 
-											+ "\t\t\t\t}\n" 
-											+ "\t\t}\n";
+									for (int k = 0; k < scheds.size(); k++) {
+										ScheduleElementType sched = scheds.get(k);
+										String firstTaskName = sched.getTask().getName();
+										if (mTask.get(firstTaskName).getInPortList().size() > 0) {
+											code += "\t\tif(CIC_F_STRING_COMPARE(\"\", virtual_tasks[virtual_task_index].history_mode) == 0)\n"
+													+ "\t\t\tvirtual_tasks[virtual_task_index].history_mode = mode;\n";
+											code += "\t\tif(CIC_F_STRING_COMPARE(mode, virtual_tasks[virtual_task_index].history_mode) != 0){\n"
+													+ "\t\t\tvirtual_tasks[virtual_task_index].history_mode = mode;\n"
+													+ "\t\t\tclock_gettime(CLOCK_MONOTONIC, &start);\n" + "\t\t\t\twhile(1){\n"
+													+ "\t\t\t\t\tclock_gettime(CLOCK_MONOTONIC, &end);\n"
+													+ "\t\t\t\t\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
+													+ "\t\t\t\t\tif(" + taskGroupList.get(i).getModeTransitionDelay() + " <= diff)\n" 
+													+ "\t\t\t\t\t\tbreak;\n" 
+													+ "\t\t\t\t}\n" 
+													+ "\t\t}\n";
+											break;
+										}
+									}									
 								}
 							}
 
