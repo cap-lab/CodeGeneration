@@ -40,7 +40,7 @@ public class BuildInnerDataStructures {
 				sched = elementType.getScheduler().name();
 				processorname = elementType.getModel();
 				poolname = element.getName();
-				// elmentType.archiType�� optional�̾ GPU�� �ƴ� ��쿡��, �ش� element�� ���� ���� �����Ƿ�, �Ʒ��� ���� ���������� �޴´�.
+				
 				if(elementType.getModel().equalsIgnoreCase("GPU"))	arch = elementType.getArchiType();
 				else												arch = "default";
 			}
@@ -493,6 +493,7 @@ public class BuildInnerDataStructures {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
+						
 						String temp = schedFileList.get(f_i).getName().replace(task.getParentTask() + "_" + mode + "_", "");
 						temp = temp.replace("_schedule.xml", "");
 						int num_proc = Integer.parseInt(temp);
@@ -775,8 +776,6 @@ public class BuildInnerDataStructures {
 			List<VectorType> dependencyList = new ArrayList();
 			List<Integer> feedbackList = new ArrayList();
 			
-			// ����� Wavefront parallelism�� ����ϴ� ��찡 ����.  
-			// ������ Cell�̳� HSim���� Static�ϰ� �������� �� ���Ǿ��µ�, ������ Array channel�� ���� dynamic�ϰ� �ϹǷ� ������ �ʰ� �ִ�.
 			/*
 			if(dataParallelType == "WAVEFRONT"){
 				if(!dataParallel.getVolume().getValue().isEmpty()){
@@ -1218,9 +1217,9 @@ public class BuildInnerDataStructures {
 								src = channel.getSrc().get(0).getTask();
 								srcPortId = t_index;
 								srcPortName = port.getName();
-								//[CODE_REVIEW]: hshong(4/21):sadf �����ϵ��� Ȯ��
+								//[CODE_REVIEW]: hshong(4/21):sadf 
 								if(port.getRate().size() > 0)
-									srcRate = port.getRate().get(0).getRate().intValue(); //����� sdf�� �����ϱ� ����
+									srcRate = port.getRate().get(0).getRate().intValue(); //sadf consider X 
 								else //process network
 									srcRate = 1;
 								//sampleSize = port.getSampleSize().intValue();
@@ -1244,9 +1243,9 @@ public class BuildInnerDataStructures {
 								dst = channel.getDst().get(0).getTask();
 								dstPortId = t_index;
 								dstPortName = port.getName();
-								//[CODE_REVIEW]: hshong(4/21):sadf �����ϵ��� Ȯ��
+								//[CODE_REVIEW]: hshong(4/21):sadf 
 								if(port.getRate().size() > 0)
-									dstRate = port.getRate().get(0).getRate().intValue(); //����� sdf�� �����ϱ� ����
+									dstRate = port.getRate().get(0).getRate().intValue(); //sadf consider X 
 								else //process network
 									dstRate = 1;
 								flag=1;

@@ -536,7 +536,7 @@ public class CIC {
 						+ task.getPeriodMetric().toUpperCase() + ", " + task.getRunRate() + "/*rate*/, "
 						+ task.getPeriod() + "/*period*/, " + funcSimPeriod + "/*funcSim period*/, "
 						+ "0/*run_count*/, " + hasMTM + ", " + hasSubgraph + ", " + isSrcTask + ", " + isChildTask
-						+ ", " + parentTaskId + ", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
+						+ ", " + parentTaskId + ", \"\", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
 			}
 
 			index++;
@@ -630,7 +630,7 @@ public class CIC {
 					+ Integer.toString(
 							funcSimPeriod / Integer.parseInt(task.getPeriod()) / Integer.parseInt(task.getRunRate()))
 					+ ", " + hasMTM + ", " + hasSubgraph + ", " + isSrcTask + ", " + isChildTask + ", " + parentTaskId
-					+ ", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
+					+ ", \"\", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
 
 			index++;
 		}
@@ -727,7 +727,7 @@ public class CIC {
 					+ Integer.toString(
 							funcSimPeriod / Integer.parseInt(task.getPeriod()) / Integer.parseInt(task.getRunRate()))
 					+ ", " + hasMTM + ", " + hasSubgraph + ", " + isSrcTask + ", " + isChildTask + ", " + parentTaskId
-					+ ", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
+					+ ", \"\", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
 
 			index++;
 		}

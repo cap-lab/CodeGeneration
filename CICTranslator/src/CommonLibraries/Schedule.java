@@ -48,6 +48,9 @@ public class Schedule {
 
 	private static int loopId = 0;
 	private static int sched_time;
+	private static ArrayList<Integer> src_end_time = new ArrayList<Integer>();
+	private static boolean isFirstTask;
+	private static boolean isSADFSrcTask;
 
 	public static void generateSDFschedule(Map<String, Task> mTask, Map<Integer, Queue> mQueue, String mOutputPath,
 			CICAlgorithmType mAlgorithm, Map<String, Task> mVTask) {
@@ -554,7 +557,7 @@ public class Schedule {
 	}
 
 	static boolean go_skip = false;
-		
+
 	public static String scheduleParsingWithExecutionPolicy(ScheduleElementType sched, int resultFlag, int depth,
 			String mRuntimeExecutionPolicy, Map<String, Task> mTask, String mode) {
 		String code = "";
@@ -584,14 +587,14 @@ public class Schedule {
 				TaskInstanceType task = sched.getTask();
 				if (go_skip == false) {
 					if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) {
-						if(sched.getTask().getStartTime().intValue() != sched_time){
-							code += tab + "while(1){\n" 
-									+ tab + "\tclock_gettime(CLOCK_MONOTONIC, &end);\n" 
-									+ tab + "\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
-									+ tab + "\tif(" + sched.getTask().getStartTime().intValue() + " <= diff)\n" 
-									+ tab + "\t\tbreak;\n" 
-									+ tab + "}\n";
-						}				
+						if (sched.getTask().getStartTime().intValue() != sched_time && isFirstTask == false) {
+							code += tab + "clock_gettime(CLOCK_MONOTONIC, &start);\n";
+							code += tab + "while(1){\n" + tab + "\tclock_gettime(CLOCK_MONOTONIC, &end);\n" + tab
+									+ "\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
+									+ tab + "\tif(" + (sched.getTask().getStartTime().intValue() - sched_time)
+									+ " <= diff)\n" + tab + "\t\tbreak;\n" + tab + "}\n";
+						}
+						code += tab + "clock_gettime(CLOCK_MONOTONIC, &start);\n";
 					} else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)) {
 
 						code += tab + "\tcase " + mTask.get(task.getName()).getIndex() + ":\n";
@@ -601,12 +604,12 @@ public class Schedule {
 					code += tab + task.getName() + "_Go();\n";
 					if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) {
 						// unit: us
-						code += tab + "while(1){\n" 
-								+ tab + "\tclock_gettime(CLOCK_MONOTONIC, &end);\n" 
-								+ tab + "\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
-								+ tab + "\tif(" + sched.getTask().getEndTime().intValue() + " <= diff)\n" 
-								+ tab + "\t\tbreak;\n" 
-								+ tab + "}\n\n";
+						int worstTime = sched.getTask().getEndTime().intValue()
+								- sched.getTask().getStartTime().intValue();
+						if(!isSADFSrcTask)
+							code += tab + "while(1){\n" + tab + "\tclock_gettime(CLOCK_MONOTONIC, &end);\n" + tab
+								+ "\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
+								+ tab + "\tif(" + worstTime + " <= diff)\n" + tab + "\t\tbreak;\n" + tab + "}\n\n";
 						sched_time = sched.getTask().getEndTime().intValue();
 					} else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)) {
 						code += tab + "\ttasks[" + mTask.get(task.getName()).getIndex() + "].run_count++;\n";
@@ -614,7 +617,8 @@ public class Schedule {
 					}
 				}
 				go_skip = false;
-			} else {	//that means, if (sched.getTask().getRepetition().intValue() != 1) {
+			} else { // that means, if
+						// (sched.getTask().getRepetition().intValue() != 1) {
 				// fully-static : need to check
 				// RuntimeExecutionPolicy_StaticAssign : need to check
 				TaskInstanceType task = sched.getTask();
@@ -677,7 +681,7 @@ public class Schedule {
 			}
 			code += tab + "\t\t\t}\n";
 			code += tab + "\t\t}\n";
-		} else {  // if (getLoop == null) -> sdf
+		} else { // if (getLoop == null) -> sdf
 			tab += "\t";
 			if (sched.getTask().getRepetition() == null)
 				System.out.println(sched.getTask().getName());
@@ -847,16 +851,19 @@ public class Schedule {
 					try {
 						go_skip = false;
 						staticScheduleCode += ("CIC_T_VOID " + task.getName() + "_Go(){\n");
-						
+
 						String split = "";
-						if (System.getProperty("os.name").contains("Windows"))	split = "\\";
-						else													split = "/";
-						
+						if (System.getProperty("os.name").contains("Windows"))
+							split = "\\";
+						else
+							split = "/";
+
 						if (!Util.fileIsLive(outputPath + split + task.getName() + "_" + "Default_1_schedule.xml")) {
 							JOptionPane.showMessageDialog(null, "You should execute 'Analysis' before build!");
 							System.exit(-1);
 						}
-						schedule = scheduleLoader.loadResource(outputPath + split + task.getName() + "_" + "Default_1_schedule.xml");
+						schedule = scheduleLoader
+								.loadResource(outputPath + split + task.getName() + "_" + "Default_1_schedule.xml");
 						TaskGroupsType taskGroups = schedule.getTaskGroups();
 						List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
 						for (int i = 0; i < taskGroupList.size(); i++) {
@@ -971,17 +978,19 @@ public class Schedule {
 						boolean srcFlag = false;
 						for (int i = 0; i < taskGroupList.size(); i++) {
 							List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
-							for (int j = 0; j < schedGroup.size(); j++) { 
+							for (int j = 0; j < schedGroup.size(); j++) {
 								int proc_id = 0;
-								for(Processor proc: processors.values()){
-									if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) 
-											&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
+								for (Processor proc : processors.values()) {
+									if (proc.getPoolName().equals(schedGroup.get(j).getPoolName())
+											&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()) {
 										proc_id = proc.getIndex();
 										break;
 									}
 								}
-								
-								if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need to fix
+
+								if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need
+																									// to
+																									// fix
 								{
 									List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
 
@@ -1051,15 +1060,17 @@ public class Schedule {
 							List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
 							for (int j = 0; j < schedGroup.size(); j++) {
 								int proc_id = 0;
-								for(Processor proc: processors.values()){
-									if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) 
-											&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
+								for (Processor proc : processors.values()) {
+									if (proc.getPoolName().equals(schedGroup.get(j).getPoolName())
+											&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()) {
 										proc_id = proc.getIndex();
 										break;
 									}
 								}
-								
-								if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need to fix
+
+								if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need
+																									// to
+																									// fix
 								{
 									List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
 
@@ -1132,15 +1143,17 @@ public class Schedule {
 						List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
 						for (int j = 0; j < schedGroup.size(); j++) {
 							int proc_id = 0;
-							for(Processor proc: processors.values()){
-								if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) 
-										&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
+							for (Processor proc : processors.values()) {
+								if (proc.getPoolName().equals(schedGroup.get(j).getPoolName())
+										&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()) {
 									proc_id = proc.getIndex();
 									break;
 								}
 							}
-							
-							if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need to fix
+
+							if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need
+																								// to
+																								// fix
 							{
 								List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
 
@@ -1193,7 +1206,8 @@ public class Schedule {
 	}
 
 	private static String generateInitcode(String outputPath, Map<String, Task> mTask,
-			CICScheduleTypeLoader scheduleLoader, List<String> modeList, Task task, String mRuntimeExecutionPolicy,  Map<Integer, Processor> processors) {
+			CICScheduleTypeLoader scheduleLoader, List<String> modeList, Task task, String mRuntimeExecutionPolicy,
+			Map<Integer, Processor> processors) {
 		String code = "";
 		CICScheduleType schedule;
 
@@ -1235,7 +1249,7 @@ public class Schedule {
 				}
 
 				for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
-					// we assume that we save only the first schedule 
+					// we assume that we save only the first schedule
 					schedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
 
 					TaskGroupsType taskGroups = schedule.getTaskGroups();
@@ -1244,15 +1258,17 @@ public class Schedule {
 						List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
 						for (int j = 0; j < schedGroup.size(); j++) {
 							int proc_id = 0;
-							for(Processor proc: processors.values()){
-								if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) 
-										&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
+							for (Processor proc : processors.values()) {
+								if (proc.getPoolName().equals(schedGroup.get(j).getPoolName())
+										&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()) {
 									proc_id = proc.getIndex();
 									break;
 								}
 							}
-							
-							if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need to fix
+
+							if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need
+																								// to
+																								// fix
 							{
 								List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
 
@@ -1311,11 +1327,57 @@ public class Schedule {
 
 		return schedFileList;
 	}
+	
+	private static String generateInitialIntervalCode(List<ScheduleElementType> scheds, int i, List<TaskGroupForScheduleType> taskGroupList, ScheduleElementType sched)
+	{
+		String code = "";
+		if(isFirstTask)
+		{
+			boolean ifStatement = false;
+			int total_task_lap_time = 0; 
+			for(int x = 0; x < scheds.size(); x++){
+				ScheduleElementType sc = scheds.get(x);
+				total_task_lap_time += (sc.getTask().getEndTime().intValue() - sc.getTask().getStartTime().intValue());										
+			}
+			if(total_task_lap_time != taskGroupList.get(i).getInitiationInterval().intValue()){
+				code += "if(virtual_tasks[virtual_task_index].run_count != 0){\n"
+						+ "\tclock_gettime(CLOCK_MONOTONIC, &start);\n"
+						+ "\twhile(1){\n" 
+						+ "\t\tclock_gettime(CLOCK_MONOTONIC, &end);\n" 
+						+ "\t\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
+						+ "\t\tif(" + (taskGroupList.get(i).getInitiationInterval().intValue() - total_task_lap_time)  + " <= diff)\n" 
+						+ "\t\t\tbreak;\n" 
+						+ "\t}\n"
+						+ "}\n";
+				ifStatement = true;
+			}
+			if(sched.getTask().getStartTime().intValue() != sched_time){
+				if(ifStatement)
+					code += "else {\n";
+				else
+					code += "if(virtual_tasks[virtual_task_index].run_count == 0){\n";
+				code += "\tclock_gettime(CLOCK_MONOTONIC, &start);\n"
+						+ "\twhile(1){\n" 
+						+ "\t\tclock_gettime(CLOCK_MONOTONIC, &end);\n" 
+						+ "\t\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
+						+ "\t\tif(" + (sched.getTask().getStartTime().intValue() - sched_time)  + " <= diff)\n" 
+						+ "\t\t\tbreak;\n" 
+						+ "\t}\n"
+						+ "}\n";
+			}
+
+		}
+		return code;
+	}
 
 	private static String generateSADFGocode(String outputPath, Map<String, Task> mTask,
-			CICScheduleTypeLoader scheduleLoader, List<String> modeList, Task task, String mRuntimeExecutionPolicy, Map<Integer, Processor> processors) {
+			CICScheduleTypeLoader scheduleLoader, List<String> modeList, Task task, String mRuntimeExecutionPolicy,
+			Map<Integer, Processor> processors) {
 		String code = "";
 		CICScheduleType schedule;
+		
+		if(src_end_time != null)
+			src_end_time.clear();
 
 		if (modeList.size() > 1) {
 			code += "\tCIC_T_INT i=0;\n";
@@ -1327,14 +1389,15 @@ public class Schedule {
 		}
 		// Current assumption: A source task should be mapped on to the same
 		// processor for all modes
-		boolean isSrcTask = false; // in sadf, we assume there is only ONE! SrcTask!
+		boolean isSrcTask = false; // in sadf, we assume there is only ONE!
+									// SrcTask!
 		String srcGoCode = "";
 		for (String mode : modeList) {
 			try {
 				ArrayList<File> schedFileList = getSchedFileList(outputPath, task, mode);
 
 				for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
-					// we assume that we save only the first schedule 
+					// we assume that we save only the first schedule
 					schedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
 					int num_proc = schedule.getTaskGroups().getTaskGroup().get(0).getScheduleGroup().size();
 
@@ -1344,32 +1407,90 @@ public class Schedule {
 						List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
 						for (int j = 0; j < schedGroup.size(); j++) {
 							int proc_id = 0;
-							for(Processor proc: processors.values()){
-								if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) 
-										&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
+							for (Processor proc : processors.values()) {
+								if (proc.getPoolName().equals(schedGroup.get(j).getPoolName())
+										&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()) {
 									proc_id = proc.getIndex();
 									break;
 								}
 							}
-							
-							if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need to fix
+
+							//need to fix 
+							if (proc_id == task.getProc().get("Default").get("Default").get(0)) 
 							{
 								List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
-
+								sched_time = 0;
 								for (int k = 0; k < scheds.size(); k++) {
 									ScheduleElementType sched = scheds.get(k);
 									String firstTaskName = sched.getTask().getName();
 
 									if (k == 0 && mTask.get(firstTaskName).getInPortList().size() == 0) {
-										srcGoCode += scheduleParsingWithExecutionPolicy(sched, 0, 0,
-												mRuntimeExecutionPolicy, mTask, mode);
+										isFirstTask = true;
+//										if(mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic))
+//											srcGoCode += generateInitialIntervalCode(scheds, proc_id, taskGroupList, sched);
+										if(isFirstTask && mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic))
+										{
+											boolean ifStatement = false;
+											int total_task_lap_time = 0; 
+											for(int x = 0; x < scheds.size(); x++){
+												ScheduleElementType sc = scheds.get(x);
+												total_task_lap_time += (sc.getTask().getEndTime().intValue() - sc.getTask().getStartTime().intValue());										
+											}
+											if(total_task_lap_time != taskGroupList.get(i).getInitiationInterval().intValue()){
+												code += "if(virtual_tasks[virtual_task_index].run_count != 0){\n"
+														+ "\tclock_gettime(CLOCK_MONOTONIC, &start);\n"
+														+ "\twhile(1){\n" 
+														+ "\t\tclock_gettime(CLOCK_MONOTONIC, &end);\n" 
+														+ "\t\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
+														+ "\t\tif(" + (taskGroupList.get(i).getInitiationInterval().intValue() - total_task_lap_time)  + " <= diff)\n" 
+														+ "\t\t\tbreak;\n" 
+														+ "\t}\n"
+														+ "}\n";
+												ifStatement = true;
+											}
+											if(sched.getTask().getStartTime().intValue() != sched_time){
+												if(ifStatement)
+													code += "else {\n";
+												else
+													code += "if(virtual_tasks[virtual_task_index].run_count == 0){\n";
+												code += "\tclock_gettime(CLOCK_MONOTONIC, &start);\n"
+														+ "\twhile(1){\n" 
+														+ "\t\tclock_gettime(CLOCK_MONOTONIC, &end);\n" 
+														+ "\t\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
+														+ "\t\tif(" + (sched.getTask().getStartTime().intValue() - sched_time)  + " <= diff)\n" 
+														+ "\t\t\tbreak;\n" 
+														+ "\t}\n"
+														+ "}\n";
+											}
+
+										}
+										isSADFSrcTask = true;										
+										if(!isSrcTask){
+											srcGoCode += scheduleParsingWithExecutionPolicy(sched, 0, 0,
+													mRuntimeExecutionPolicy, mTask, mode);
+
+											srcGoCode += "\tmode = mtms[mtm_index].GetCurrentModeName(\"" + task.getName() + "\");\n";
+										}
 										isSrcTask = true;
+//										isFirstTask = false;
+										src_end_time.add(sched.getTask().getEndTime().intValue());
+										if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) {										
+											int worstTime = sched.getTask().getEndTime().intValue() - sched.getTask().getStartTime().intValue();
+											srcGoCode += "if(CIC_F_STRING_COMPARE(mode, \"" + mode + "\") == 0){\n";
+											srcGoCode += "\twhile(1){\n" 
+													+ "\t\tclock_gettime(CLOCK_MONOTONIC, &end);\n" 
+													+ "\t\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
+													+ "\t\tif(" + worstTime + " <= diff)\n" 
+													+ "\t\t\tbreak;\n" 
+													+ "\t}\n\n";
+											srcGoCode += "}\n";
+										}
 										break;
 									}
 								}
 							}
-							if (isSrcTask)
-								break;
+//							if (isSrcTask)
+//								break;
 						}
 						if (isSrcTask)
 							break;
@@ -1377,8 +1498,9 @@ public class Schedule {
 					if (isSrcTask)
 						break;
 				}
-				if (isSrcTask)
-					break;
+//				if (isSrcTask)
+//					break;
+				
 
 			} catch (CICXMLException e) {
 				// TODO Auto-generated catch block
@@ -1387,6 +1509,7 @@ public class Schedule {
 		}
 
 		if (isSrcTask) {
+			isSADFSrcTask = false;			
 			code += srcGoCode;
 			if (modeList.size() > 1)
 				code += "\tmtms[mtm_index].Transition();\n";
@@ -1409,35 +1532,92 @@ public class Schedule {
 
 				ArrayList<File> schedFileList = getSchedFileList(outputPath, task, mode);
 
-				// we assume that we save only the first schedule 
+				// we assume that we save only the first schedule
 				schedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
-				if(!isSrcTask)
-					sched_time = 0;	
+				if (!isSrcTask) {
+					sched_time = 0;
+				} else {
+					sched_time = src_end_time.get(index);
+				}
+				isFirstTask = true;
+
 				TaskGroupsType taskGroups = schedule.getTaskGroups();
 				List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
 				for (int i = 0; i < taskGroupList.size(); i++) {
 					List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
 					for (int j = 0; j < schedGroup.size(); j++) {
 						int proc_id = 0;
-						for(Processor proc: processors.values()){
-							if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) 
-									&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
+						for (Processor proc : processors.values()) {
+							if (proc.getPoolName().equals(schedGroup.get(j).getPoolName())
+									&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()) {
 								proc_id = proc.getIndex();
 								break;
 							}
 						}
-						
-						if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need to fix
+
+						//need to fix
+						if (proc_id == task.getProc().get("Default").get("Default").get(0))
 						{
 							List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
+							if (isFirstTask) {
+								if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) {
+									code += "\t\tif(CIC_F_STRING_COMPARE(\"\", virtual_tasks[virtual_task_index].history_mode) == 0)\n"
+											+ "\t\t\tvirtual_tasks[virtual_task_index].history_mode = mode;\n";
+									code += "\t\tif(CIC_F_STRING_COMPARE(mode, virtual_tasks[virtual_task_index].history_mode) != 0){\n"
+											+ "\t\t\tvirtual_tasks[virtual_task_index].history_mode = mode;\n"
+											+ "\t\t\tclock_gettime(CLOCK_MONOTONIC, &start);\n" + "\t\t\t\twhile(1){\n"
+											+ "\t\t\t\t\tclock_gettime(CLOCK_MONOTONIC, &end);\n"
+											+ "\t\t\t\t\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
+											+ "\t\t\t\t\tif(" + taskGroupList.get(i).getModeTransitionDelay() + " <= diff)\n" 
+											+ "\t\t\t\t\t\tbreak;\n" 
+											+ "\t\t\t\t}\n" 
+											+ "\t\t}\n";
+								}
+							}
 
 							for (int k = 0; k < scheds.size(); k++) {
 								ScheduleElementType sched = scheds.get(k);
 								String firstTaskName = sched.getTask().getName();
 								if (mTask.get(firstTaskName).getInPortList().size() > 0) {
+									if(isFirstTask && mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic))
+									{
+										boolean ifStatement = false;
+										int total_task_lap_time = 0; 
+										for(int x = 0; x < scheds.size(); x++){
+											ScheduleElementType sc = scheds.get(x);
+											total_task_lap_time += (sc.getTask().getEndTime().intValue() - sc.getTask().getStartTime().intValue());										
+										}
+										if(total_task_lap_time != taskGroupList.get(i).getInitiationInterval().intValue()){
+											code += "if(virtual_tasks[virtual_task_index].run_count != 0){\n"
+													+ "\tclock_gettime(CLOCK_MONOTONIC, &start);\n"
+													+ "\twhile(1){\n" 
+													+ "\t\tclock_gettime(CLOCK_MONOTONIC, &end);\n" 
+													+ "\t\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
+													+ "\t\tif(" + (taskGroupList.get(i).getInitiationInterval().intValue() - total_task_lap_time)  + " <= diff)\n" 
+													+ "\t\t\tbreak;\n" 
+													+ "\t}\n"
+													+ "}\n";
+											ifStatement = true;
+										}
+										if(sched.getTask().getStartTime().intValue() != sched_time){
+											if(ifStatement)
+												code += "else {\n";
+											else
+												code += "if(virtual_tasks[virtual_task_index].run_count == 0){\n";
+											code += "\tclock_gettime(CLOCK_MONOTONIC, &start);\n"
+													+ "\twhile(1){\n" 
+													+ "\t\tclock_gettime(CLOCK_MONOTONIC, &end);\n" 
+													+ "\t\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
+													+ "\t\tif(" + (sched.getTask().getStartTime().intValue() - sched_time)  + " <= diff)\n" 
+													+ "\t\t\tbreak;\n" 
+													+ "\t}\n"
+													+ "}\n";
+										}
+
+									}
 									code += scheduleParsingWithExecutionPolicy(sched, 0, 0, mRuntimeExecutionPolicy,
 											mTask, mode);
-
+									isFirstTask = false;
 								}
 							}
 						}
@@ -1454,7 +1634,7 @@ public class Schedule {
 		}
 		return code;
 	}
-	
+
 	private static String generateSDFGocode(String outputPath, Map<String, Task> mTask, CICScheduleTypeLoader scheduleLoader, String mode, Task task, String mRuntimeExecutionPolicy, Map<Integer, Processor> processors)
 	{
 		String code = "";
@@ -1465,6 +1645,9 @@ public class Schedule {
 			
 			// we assume that we save only the first schedule 
 			schedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
+			
+			isFirstTask = true;
+			
 			TaskGroupsType taskGroups = schedule.getTaskGroups();
 			List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
 			for (int i = 0; i < taskGroupList.size(); i++) {
@@ -1517,6 +1700,47 @@ public class Schedule {
 									history.add(sched.getTask().getName());
 								}
 							}
+							else if(mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic))
+							{
+								if(isFirstTask && mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic))
+								{
+									boolean ifStatement = false;
+									int total_task_lap_time = 0; 
+									for(int x = 0; x < scheds.size(); x++){
+										ScheduleElementType sc = scheds.get(x);
+										total_task_lap_time += (sc.getTask().getEndTime().intValue() - sc.getTask().getStartTime().intValue());										
+									}
+									if(total_task_lap_time != taskGroupList.get(i).getInitiationInterval().intValue()){
+										code += "if(virtual_tasks[virtual_task_index].run_count != 0){\n"
+												+ "\tclock_gettime(CLOCK_MONOTONIC, &start);\n"
+												+ "\twhile(1){\n" 
+												+ "\t\tclock_gettime(CLOCK_MONOTONIC, &end);\n" 
+												+ "\t\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
+												+ "\t\tif(" + (taskGroupList.get(i).getInitiationInterval().intValue() - total_task_lap_time)  + " <= diff)\n" 
+												+ "\t\t\tbreak;\n" 
+												+ "\t}\n"
+												+ "}\n";
+										ifStatement = true;
+									}
+									if(sched.getTask().getStartTime().intValue() != sched_time){
+										if(ifStatement)
+											code += "else {\n";
+										else
+											code += "if(virtual_tasks[virtual_task_index].run_count == 0){\n";
+										code += "\tclock_gettime(CLOCK_MONOTONIC, &start);\n"
+												+ "\twhile(1){\n" 
+												+ "\t\tclock_gettime(CLOCK_MONOTONIC, &end);\n" 
+												+ "\t\tdiff = (end.tv_sec - start.tv_sec)*1000000 + ((end.tv_nsec - start.tv_nsec)/1000);\n"
+												+ "\t\tif(" + (sched.getTask().getStartTime().intValue() - sched_time)  + " <= diff)\n" 
+												+ "\t\t\tbreak;\n" 
+												+ "\t}\n"
+												+ "}\n";
+									}
+
+								}
+								code += scheduleParsingWithExecutionPolicy(sched, 0, 0, mRuntimeExecutionPolicy, mTask, mode);
+								isFirstTask = false;
+							}
 							else
 							{
 								code += scheduleParsingWithExecutionPolicy(sched, 0, 0, mRuntimeExecutionPolicy, mTask, mode);
@@ -1539,35 +1763,41 @@ public class Schedule {
 	}
 
 	private static String generateGocode(String outputPath, Map<String, Task> mTask, Map<String, Task> mVTask,
-			CICScheduleTypeLoader scheduleLoader, List<String> modeList, Task task, String mRuntimeExecutionPolicy, Map<Integer, Processor> processors) {
+			CICScheduleTypeLoader scheduleLoader, List<String> modeList, Task task, String mRuntimeExecutionPolicy,
+			Map<Integer, Processor> processors) {
 		String code = "";
 		CICScheduleType schedule;
 
 		code += "CIC_T_VOID " + task.getName() + "_Go(){\n";
-		
+
 		String parent_task_id = "-1";
-		for(Task t: mTask.values())
-		{
-			if(t.getName().equals(task.getParentTask())){
-				parent_task_id = t.getIndex();			
+		for (Task t : mTask.values()) {
+			if (t.getName().equals(task.getParentTask())) {
+				parent_task_id = t.getIndex();
 				break;
 			}
 		}
-		for(Task vt: mVTask.values())
-		{
-			if(vt.getName().equals(task.getParentTask())){
-				parent_task_id = vt.getIndex();			
+		for (Task vt : mVTask.values()) {
+			if (vt.getName().equals(task.getParentTask())) {
+				parent_task_id = vt.getIndex();
 				break;
 			}
 		}
 
-		if (mRuntimeExecutionPolicy
-				.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) 
-		{
+		if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) {
 			code += "\tunsigned long diff;\n";
 			code += "\tCIC_T_STRUCT timespec start, end;\n\n";
-			code += "\tclock_gettime(CLOCK_MONOTONIC, &start);\n\n";
-			
+			code += "\tCIC_T_THREAD cur_thread = CIC_F_THREAD_SELF();\n";
+			code += "\tCIC_T_INT virtual_task_index = -1;\n";
+			code += "\tCIC_T_INT j = 0;\n";
+			code += "\tfor(j = 0; j < CIC_UV_NUM_VIRTUAL_TASKS; j++){\n";
+			code += "\t\tif(CIC_F_THREAD_EQUAL(cur_thread, virtual_tasks[j].thread)){\n";
+			code += "\t\t\tvirtual_task_index = j;\n";
+			code += "\t\t\tbreak;\n";
+			code += "\t\t}\n";
+			code += "\t}\n\n";
+			// code += "\tclock_gettime(CLOCK_MONOTONIC, &start);\n\n";
+
 			sched_time = 0;
 		} else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)) {
 			String[] result = task.getName().split("_");
@@ -1580,36 +1810,29 @@ public class Schedule {
 			code += "\tCIC_T_BOOL executable = CIC_V_FALSE;\n";
 			code += "\tCIC_T_INT num_task_stop = 0;\n\n";
 
-			code += "\twhile(executable == CIC_V_FALSE){\n" 
-					+ "\t\tnum_task_stop = 0;\n"
+			code += "\twhile(executable == CIC_V_FALSE){\n" + "\t\tnum_task_stop = 0;\n"
 					+ "\t\tfor(i = 0; i < schedules[sched_index].max_schedule_length; i++){\n"
 					+ "\t\t\tCIC_T_INT candidate_task_id = schedules[sched_index].task_execution_order[i];\n"
 					+ "\t\t\tif(candidate_task_id == -1) continue;\n"
-					+ "\t\t\tif(tasks[candidate_task_id].state == STATE_STOP){\n" 
-					+ "\t\t\t\tnum_task_stop++;\n"
-					+ "\t\t\t\tcontinue;\n" 
-					+ "\t\t\t}\n"
-					+ "\t\t\tif(firable_task[candidate_task_id] == CIC_V_TRUE){\n" 
-					+ "\t\t\t\ttask_id = candidate_task_id;\n" 
-					+ "\t\t\t\texecutable = CIC_V_TRUE;\n"
-					+ "\t\t\t\tbreak;\n"
-					+ "\t\t\t}\n" 
-					+ "\t\t}\n" 
+					+ "\t\t\tif(tasks[candidate_task_id].state == STATE_STOP){\n" + "\t\t\t\tnum_task_stop++;\n"
+					+ "\t\t\t\tcontinue;\n" + "\t\t\t}\n" + "\t\t\tif(firable_task[candidate_task_id] == CIC_V_TRUE){\n"
+					+ "\t\t\t\ttask_id = candidate_task_id;\n" + "\t\t\t\texecutable = CIC_V_TRUE;\n"
+					+ "\t\t\t\tbreak;\n" + "\t\t\t}\n" + "\t\t}\n"
 					+ "\t\tif(num_task_stop == schedules[sched_index].max_schedule_length)\n"
-					+ "\t\t\texecutable = CIC_V_TRUE;\n" 
-					+ "\t}\n\n";
+					+ "\t\t\texecutable = CIC_V_TRUE;\n" + "\t}\n\n";
 		}
 
-		if (modeList.size() > 1) // NOT support RuntimeExecutionPolicy_StaticAssign yet... 
-			code += generateSADFGocode(outputPath, mTask, scheduleLoader, modeList, task, mRuntimeExecutionPolicy, processors);
+		if (modeList.size() > 1) // NOT support
+									// RuntimeExecutionPolicy_StaticAssign
+									// yet...
+			code += generateSADFGocode(outputPath, mTask, scheduleLoader, modeList, task, mRuntimeExecutionPolicy,
+					processors);
 		else
 			code += generateSDFGocode(outputPath, mTask, scheduleLoader,
 					modeList.get(0)/* Default mode */, task, mRuntimeExecutionPolicy, processors);
 
-		if(mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign))
-		{
-			code += "\tif(task_id != -1)\n"
-				+ "\t\tupdateRunQueueFromTaskId(task_id);\n";
+		if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)) {
+			code += "\tif(task_id != -1)\n" + "\t\tupdateRunQueueFromTaskId(task_id);\n";
 		}
 
 		code += ("}\n\n");
@@ -1657,7 +1880,7 @@ public class Schedule {
 				}
 
 				for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
-					// we assume that we save only the first schedule 
+					// we assume that we save only the first schedule
 					schedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
 
 					TaskGroupsType taskGroups = schedule.getTaskGroups();
@@ -1666,15 +1889,17 @@ public class Schedule {
 						List<ScheduleGroupType> schedGroup = taskGroupList.get(i).getScheduleGroup();
 						for (int j = 0; j < schedGroup.size(); j++) {
 							int proc_id = 0;
-							for(Processor proc: processors.values()){
-								if(proc.getPoolName().equals(schedGroup.get(j).getPoolName()) 
-										&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()){
+							for (Processor proc : processors.values()) {
+								if (proc.getPoolName().equals(schedGroup.get(j).getPoolName())
+										&& proc.getLocalIndex() == schedGroup.get(j).getLocalId().intValue()) {
 									proc_id = proc.getIndex();
 									break;
 								}
 							}
-							
-							if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need to fix
+
+							if (proc_id == task.getProc().get("Default").get("Default").get(0)) // Need
+																								// to
+																								// fix
 							{
 								List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
 
@@ -1721,8 +1946,10 @@ public class Schedule {
 			else
 				modeList.add("Default");
 
-			initCode += generateInitcode(outputPath, mTask, scheduleLoader, modeList, task, mRuntimeExecutionPolicy, processors);
-			goCode += generateGocode(outputPath, mTask, mVTask, scheduleLoader, modeList, task, mRuntimeExecutionPolicy, processors);
+			initCode += generateInitcode(outputPath, mTask, scheduleLoader, modeList, task, mRuntimeExecutionPolicy,
+					processors);
+			goCode += generateGocode(outputPath, mTask, mVTask, scheduleLoader, modeList, task, mRuntimeExecutionPolicy,
+					processors);
 			wrapupCode += generateWrapupcode(outputPath, scheduleLoader, modeList, task, processors);
 
 			staticScheduleCode = initCode + goCode + wrapupCode;
