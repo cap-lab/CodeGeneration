@@ -529,7 +529,7 @@ public class CIC {
 													 * getRunRate())
 													 */)
 						+ "/*run_count*/, " + hasMTM + ", " + hasSubgraph + ", " + isSrcTask + ", " + isChildTask + ", "
-						+ parentTaskId 	+ ", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
+						+ parentTaskId 	+ ", \"\", CIC_V_MUTEX_INIT_INLINE, CIC_V_COND_INIT_INLINE),\n";
 			} else {
 				taskEntriesCode += "\tENTRY(" + task.getIndex() + ", \"" + task.getName() + "\", " + taskType + ", "
 						+ task.getName() + ", " + taskDrivenType + ", " + state + ", " + runState + ", "
