@@ -1400,6 +1400,7 @@ public class Schedule {
 											total_task_lap_time = last_task_end_time - first_task_start_time;
 											if(total_task_lap_time != taskGroupList.get(i).getInitiationInterval().intValue()){
 												srcGoCode += "if(virtual_tasks[virtual_task_index].run_count != 0){\n";
+												srcGoCode += "\tmode = mtms[mtm_index].GetCurrentModeName(\"" + task.getName() + "\");\n";
 												srcGoCode += "\tif(CIC_F_STRING_COMPARE(mode, \"" + mode + "\") == 0){\n"
 														+ "\t\tclock_gettime(CLOCK_MONOTONIC, &start);\n"
 														+ "\t\twhile(1){\n" 
