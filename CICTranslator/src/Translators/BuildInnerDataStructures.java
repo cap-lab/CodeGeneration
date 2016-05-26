@@ -647,7 +647,6 @@ public class BuildInnerDataStructures {
 
 				for(int f_i=0; f_i < schedFileList.size(); f_i++){
 					try {
-						System.out.println("\n\n@@@@@@@@@@@@@@" + schedFileList.get(f_i).getAbsolutePath());
 						schedule = scheduleLoader.loadResource(schedFileList.get(f_i).getAbsolutePath());
 					} catch (CICXMLException e) {
 						// TODO Auto-generated catch block
