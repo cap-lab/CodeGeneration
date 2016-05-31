@@ -496,7 +496,8 @@ public class BuildInnerDataStructures {
 						
 						String temp = schedFileList.get(f_i).getName().replace(task.getParentTask() + "_" + mode + "_", "");
 						temp = temp.replace("_schedule.xml", "");
-						int num_proc = Integer.parseInt(temp);
+						String temp2[] = temp.split("_");
+						int num_proc = Integer.parseInt(temp2[0]);
 						// initialize
 						for(Task t: tasks.values()){
 							if(t.getParentTask().equals(task.getName()) && t.getHasSubgraph().equals("No") ){
@@ -506,7 +507,7 @@ public class BuildInnerDataStructures {
 								taskCallCountForModeForNumProc.get(t.getName()).get(mode).put(Integer.toString(num_proc), callList);
 							}
 						}
-							
+						
 						TaskGroupsType taskGroups = schedule.getTaskGroups();
 						List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
 						for(int i=0; i<taskGroupList.size();i++){
