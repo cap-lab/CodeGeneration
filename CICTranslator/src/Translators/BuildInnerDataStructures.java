@@ -655,7 +655,8 @@ public class BuildInnerDataStructures {
 					}
 					String temp = schedFileList.get(f_i).getName().replace(vTask.getParentTask() + "_" + mode + "_", "");
 					temp = temp.replace("_schedule.xml", "");
-					int num_proc = Integer.parseInt(temp);
+					String temp2[] = temp.split("_");
+					int num_proc = Integer.parseInt(temp2[0]);
 					// initialize
 					for(Task t: tasks.values()){
 						if(t.getParentTask().equals(vTask.getName()) && t.getHasSubgraph().equals("No") ){

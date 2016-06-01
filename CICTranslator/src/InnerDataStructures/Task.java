@@ -93,7 +93,7 @@ public class Task {
 		mIsSrcTask = isSrcTask;
 	}
 	
-	//virtual task ���� �� ����ϴ� ������
+	//constructor when generating virtual tasks (ex. task_proc_0, SDF_5)
 	public Task(int index, String name, String parentTask, int runRate, String periodMetric, String runCondition, int period)
 	{
 		mIndex = index;
@@ -143,6 +143,7 @@ public class Task {
 	public void setDeadline(int deadline)			{mDeadline = deadline;}
 	public void setPriority(int priority)			{mPriority = priority;}
 	public void setRunRate(int runRate)				{mRunRate = runRate;}
+
 	public void setProc(Map<String, Map<String, List<Integer>>> proc)					{mProc = proc;}
 	public void setExecutionTimeValue(Map<String, Integer> executionTime)	{mExecutionTimeValue = executionTime;}
 	public void setExecutionTimeMetric(Map<String, String> metric)		{mExecutionTimeMetric = metric;}

@@ -113,7 +113,7 @@ CIC_STATIC CIC_T_INT GetMTMIndexFromTaskId(CIC_T_INT task_id){
     return CIC_V_ERROR;
 }
 
-CIC_STATIC CIC_T_CHAR *GetTaskIndexFromTaskId(CIC_T_INT task_id)
+CIC_STATIC CIC_T_INT GetTaskIndexFromTaskId(CIC_T_INT task_id)
 {
     CIC_T_INT i;
 

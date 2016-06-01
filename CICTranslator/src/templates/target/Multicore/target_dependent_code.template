@@ -1,16 +1,15 @@
 ##GET_PROCESSOR_ID_START
-CIC_STATIC CIC_T_INT GetProcessorId(CIC_T_INT task_index, CIC_T_INT proc_num, CIC_T_CHAR* mode_name, CIC_T_INT local_id){
+CIC_STATIC CIC_T_INT GetProcessorId(CIC_T_INT task_id, CIC_T_INT proc_num, CIC_T_CHAR* mode_name, CIC_T_INT local_id){
 	CIC_T_INT i=0, j=0, ret=0;
 
 	for(i=0; i<CIC_ARRAYLEN(task_to_core_map); i++){
-		if(task_to_core_map[i].task_index == task_index){
+		if(task_to_core_map[i].task_id == task_id){
 			CIC_T_INT proc_num_index = 0, mode_index = 0;
 			for(j=0; j<MAX_SCHED_NUM; j++){
-				//NEED TO FIX!! - MULTI SCHEDULE
-				//if(task_to_core_map[i].proc_num_list[j] == proc_num){
+				if(task_to_core_map[i].proc_num_list[j] == proc_num){
 					proc_num_index = j;
 					break;
-				//}
+				}
 			}
 			for(j=0; j<MAX_MODE_NUM; j++){
 				if(CIC_F_STRING_COMPARE(task_to_core_map[i].mode_list[j], mode_name) == 0){
@@ -26,12 +25,31 @@ CIC_STATIC CIC_T_INT GetProcessorId(CIC_T_INT task_index, CIC_T_INT proc_num, CI
 }
 ##GET_PROCESSOR_ID_END
 
+##GET_SCHEDULE_ID_START
+CIC_T_INT GetScheduleIdFromTaskIndex(CIC_T_INT task_index)
+{
+	CIC_T_INT i = 0;
+	CIC_T_INT schedule_id = 0;
+
+	CIC_T_INT parent_task_id = tasks[task_index].parent_task_id;
+
+	for(i = 0; i < CIC_ARRAYLEN(task_to_core_map); i++)
+	{
+		if(task_to_core_map[i].task_id == parent_task_id){
+			schedule_id = task_to_core_map[i].schedule_id;
+			break;
+		}
+	}
+	return schedule_id;
+}
+##GET_SCHEDULE_ID_END
+
 ##GET_TASK_CALL_COUNT_START
-CIC_STATIC CIC_T_INT GetCallCount(CIC_T_INT task_index, CIC_T_INT proc_num, CIC_T_CHAR* mode_name, CIC_T_INT local_id){
+CIC_STATIC CIC_T_INT GetCallCount(CIC_T_INT task_id, CIC_T_INT proc_num, CIC_T_CHAR* mode_name, CIC_T_INT local_id){
 	CIC_T_INT i=0, j=0, ret=0;
 
 	for(i=0; i<CIC_ARRAYLEN(task_to_core_map); i++){
-		if(task_to_core_map[i].task_index == task_index){
+		if(task_to_core_map[i].task_id == task_id){
 			CIC_T_INT proc_num_index = 0, mode_index = 0;
 			for(j=0; j<MAX_SCHED_NUM; j++){
 				//NEED TO FIX!! - MULTI SCHEDULE
@@ -93,21 +111,25 @@ CIC_T_INT GetVirtualTaskIndexFromThread(CIC_T_THREAD th)
 ##GET_VIRTUAL_TASK_INDEX_FROM_THREAD_END
 
 ##GET_TASK_PRIORITY_FROM_TASK_ID_START
-CIC_T_INT GetTaskPriorityFromTaskIdAndModeNameAndProcId(CIC_T_INT task_id, CIC_T_CHAR* mode_name, CIC_T_INT processor_id)
+CIC_T_INT GetTaskPriorityFromTaskIdAndModeNameAndProcIdAndSchedId(CIC_T_INT task_id, CIC_T_CHAR* mode_name, CIC_T_INT processor_id, CIC_T_INT schedule_id)
 {
   CIC_T_INT i;
-  CIC_T_CHAR task_id_name[255], mode_name_ch[20], processor_id_name[10];
+  CIC_T_CHAR task_id_name[255], mode_name_ch[20], processor_id_name[10], schedule_id_name[10];
   CIC_F_INTEGER_TO_STRING(task_id_name, task_id);
   CIC_F_INTEGER_TO_STRING(processor_id_name, processor_id);
+  CIC_F_INTEGER_TO_STRING(schedule_id_name, schedule_id);
   CIC_F_STRING_COPY(mode_name_ch, mode_name);
   CIC_F_STRING_CONCATENATE(task_id_name, ", ");
   CIC_F_STRING_CONCATENATE(task_id_name, mode_name_ch);
   CIC_F_STRING_CONCATENATE(task_id_name, ", ");
   CIC_F_STRING_CONCATENATE(task_id_name, processor_id_name);
+  CIC_F_STRING_CONCATENATE(task_id_name, ", ");
+  CIC_F_STRING_CONCATENATE(task_id_name, schedule_id_name);
 
   for(i = 0; i < CIC_ARRAYLEN(task_to_priority); i++)
   {
     if(task_to_priority[i].task_id == task_id && task_to_priority[i].processor_id == processor_id
+     	&& task_to_priority[i].schedule_id == schedule_id
         && (CIC_F_STRING_COMPARE(task_to_priority[i].mode_name, mode_name) == 0))
       return task_to_priority[i].task_priority;
   }

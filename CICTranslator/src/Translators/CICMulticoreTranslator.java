@@ -214,7 +214,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		code += "#define MAX_PARALLEL_NUM " + max_parallel_num + "\n\n";
 
 		code += "CIC_TYPEDEF CIC_T_STRUCT{\n";
-		code += "\tCIC_T_INT task_index;\n";
+		code += "\tCIC_T_INT task_id;\n";
 		code += "\tCIC_T_INT proc_num_list[MAX_SCHED_NUM];\n";
 		code += "\tCIC_T_CHAR* mode_list[MAX_MODE_NUM];\n";
 		code += "\tCIC_T_BOOL is_external_dp;\n";
@@ -223,6 +223,8 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		code += "\tCIC_T_THREAD threads[MAX_PARALLEL_NUM];\n";
 		code += "\tCIC_T_INT call_count[MAX_SCHED_NUM][MAX_MODE_NUM][MAX_PARALLEL_NUM];\n";
 		code += "\tCIC_T_INT core_map[MAX_SCHED_NUM][MAX_MODE_NUM][MAX_PARALLEL_NUM];\n";
+		code += "\tCIC_T_INT schedule_id;\n";
+		code += "\tCIC_T_INT throughput_constraint[MAX_SCHED_NUM];\n";
 		code += "}CIC_UT_TASK_TO_CORE_MAP;\n\n";
 
 		code += "CIC_UT_TASK_TO_CORE_MAP task_to_core_map[] = {\n";
@@ -236,6 +238,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 					break;
 				}
 			}
+						
 			code += "\t{" + task.getIndex() + ", {";
 			for (String pn : task.getProc().keySet()) {
 				String procNum = "";
@@ -289,7 +292,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 			}
 			
 			code += "}, {";
-
+			
 			for (String procNum : task.getProc().keySet()) {
 				Map<String, List<Integer>> coreMap = task.getProc().get(procNum);
 				code += "{";
@@ -307,8 +310,119 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 				code += "}, ";
 			}
 
+			code += "}, "; 
+			
+			//throughput_constraint
+			String mode;
+			if(mTask.get(task.getParentTask()) == null) //Flatten graph
+				mode = "Default";
+			else if(mTask.get(task.getParentTask()).getMTM().getModes() == null)
+				mode = "Default";				
+			else
+				mode = mTask.get(task.getParentTask()).getMTM().getModes().get(0);
+			String schedulePath = mOutputPath + "/convertedSDF3xml/";
+			ArrayList<File> schedFileList = new ArrayList<File>();
+			File file = new File(schedulePath);
+			File[] fileList = file.listFiles();
+			for (File f : fileList) {
+				if (f.getName().contains(task.getParentTask() + "_" + mode + "_")
+						&& f.getName().endsWith("_schedule.xml")) {
+					schedFileList.add(f);
+				}
+			}
+			if (schedFileList.size() <= 0) {
+				code += "0, {0, ";
+			}
+			else
+			{
+				String temp = schedFileList.get(0).getName().replace(task.getParentTask() + "_" + mode + "_", "");
+				temp = temp.replace("_schedule.xml", "");
+				String temp2[] = temp.split("_");
+				int sched_id = Integer.parseInt(temp2[0]);
+				code += sched_id +", {";
+				for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
+					temp = schedFileList.get(f_i).getName().replace(task.getParentTask() + "_" + mode + "_", "");
+					temp = temp.replace("_schedule.xml", "");
+					String temp3[] = temp.split("_");
+					int constraint = Integer.parseInt(temp3[1]);
+					code += constraint +", ";
+				}
+			}	
+			
 			code += "}},\n";
 			index++;
+		}
+		
+		int v_index = 0; 
+		while (v_index < mVTask.size()) {
+			Task task = null;
+			for (Task t : mVTask.values()) {
+				if (Integer.parseInt(t.getIndex()) == index) {
+					task = t;
+					break;
+				}
+			}
+						
+			code += "\t{" + task.getIndex() + ", {0, }, {\"Default\", }, ";
+			
+			code += "CIC_V_FALSE" + ", {0, }, {1, }, {0, }, {";
+			
+			if(task.getCallCount() == null){
+				code += "{{0, }, }, ";
+			}
+			else{
+				for (String procNum : task.getCallCount().keySet()) {
+					Map<String, List<Integer>> callMap = task.getCallCount().get(procNum);
+					code += "{";
+					for (List<Integer> callList : callMap.values()) {
+						code += "{";
+						if (callList.size() == 0) {
+							code += 0 + ", ";
+						} else {
+							for (int proc : callList) {
+								code += proc + ", ";
+							}
+						}
+						code += "}, ";
+					}
+					code += "}, ";
+				}
+			}
+			
+			code += "}, {{{-1, }, }, }, ";
+
+			//throughput_constraint
+			String mode;
+			if(task.getMTM() == null)
+				mode = "Default";
+			else
+				mode = task.getMTM().getModes().get(0);
+			String schedulePath = mOutputPath + "/convertedSDF3xml/";
+			ArrayList<File> schedFileList = new ArrayList<File>();
+			File file = new File(schedulePath);
+			File[] fileList = file.listFiles();
+			for (File f : fileList) {
+				if (f.getName().contains(task.getName() + "_" + mode + "_")
+						&& f.getName().endsWith("_schedule.xml")) {
+					schedFileList.add(f);
+				}
+			}
+			if (schedFileList.size() <= 0) {
+				code += "0, {0, ";
+			}
+			else
+			{
+				String temp = schedFileList.get(0).getName().replace(task.getName() + "_" + mode + "_", "");
+				temp = temp.replace("_schedule.xml", "");
+				String temp2[] = temp.split("_");
+				int sched_id = Integer.parseInt(temp2[0]);
+				code += sched_id +", {0, ";
+				
+			}	
+			
+			code += "}},\n";
+			index++;
+			v_index++;
 		}
 		code += "};\n";
 
@@ -381,8 +495,9 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		//To support SADF, we need to insert mode information, because there are task_priorities per mode => We need to fix it! 
 		String code = "";
 
-		code += "\nCIC_TYPEDEF CIC_T_STRUCT{\n" + "\tCIC_T_INT task_id; \n" + "\tCIC_T_INT processor_id; \n"
-				+ "\tCIC_T_CHAR* mode_name; \n" + "\tCIC_T_INT task_priority; \n" + "}CIC_UT_TASK_TO_PRIORITY;  \n";
+		code += "\nCIC_TYPEDEF CIC_T_STRUCT{\n" + "\tCIC_T_INT task_id; \n" + "\tCIC_T_INT schedule_id; \n" 
+				+"\tCIC_T_INT processor_id; \n" + "\tCIC_T_CHAR* mode_name; \n" + "\tCIC_T_INT task_priority; \n" 
+				+ "}CIC_UT_TASK_TO_PRIORITY;  \n";
 
 		code += "\nCIC_UT_TASK_TO_PRIORITY task_to_priority[] = {\n";
 
@@ -444,8 +559,6 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 			else
 				modeList.add("Default");
 
-			if(modeList == null)
-				System.out.println("parentTask: " + parentTask.getName());
 			for (String mode : modeList) {
 				ArrayList<String> history = new ArrayList<String>();
 				try {
@@ -464,9 +577,13 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 					}
 
 					for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
-						// we assume that we save only the first schedule 
-						mSchedule = scheduleLoader.loadResource(schedFileList.get(0).getAbsolutePath());
+						mSchedule = scheduleLoader.loadResource(schedFileList.get(f_i).getAbsolutePath());
 
+						String temp = schedFileList.get(f_i).getName().replace(task.getParentTask() + "_" + mode + "_", "");
+						temp = temp.replace("_schedule.xml", "");
+						String temp2[] = temp.split("_");
+						int sched_id = Integer.parseInt(temp2[0]);
+						
 						TaskGroupsType taskGroups = mSchedule.getTaskGroups();
 						List<TaskGroupForScheduleType> taskGroupList = taskGroups.getTaskGroup();
 						for (int i = 0; i < taskGroupList.size(); i++) {
@@ -494,7 +611,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 											break;
 										}
 									}
-									taskPriorityDefineCode += "{" + taskId + ", " + proc_id + ", \"" + mode + "\", "
+									taskPriorityDefineCode += "{" + taskId + ", " + sched_id + ", " + proc_id + ", \"" + mode + "\", "
 											+ taskPriority + "},\n";
 									taskPriority++;
 								}
@@ -813,6 +930,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		}
 
 		templateFile = mTranslatorPath + "templates/target/Multicore/target_dependent_code.template";
+		code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_SCHEDULE_ID");
 		code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_PROCESSOR_ID");
 		code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_TASK_CALL_COUNT");
 
@@ -1036,7 +1154,9 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		// SET_PROC //
 		if (!mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic))
 		{
-			String setProc = "\tproc_id = GetProcessorId(task_id, 0, mode_name, 0);\n" + "\tcpu_set_t cpuset;\n"
+			String setProc = "\tschedule_id = GetScheduleIdFromTaskIndex(task_index);\n";
+			setProc +=  "\tproc_id = GetProcessorId(task_id, schedule_id, mode_name, 0);\n";
+			setProc += "\tcpu_set_t cpuset;\n"
 					+ "\tCPU_ZERO(&cpuset);\n" + "\tCPU_SET(proc_id, &cpuset);\n"
 					+ "\tpthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);\n";
 			code = code.replace("##SET_PROC", setProc);
