@@ -108,7 +108,8 @@ CIC_UT_THREAD_FUNC_RET_TYPE TaskRoutine(CIC_UT_THREAD_FUNC_ARG_TYPE pdata)
   CIC_T_INT task_index = GetTaskIndexFromTaskId(task_id);
   CIC_T_INT proc_id = 0;
   CIC_T_CHAR* mode_name = "Default";
-
+  CIC_T_INT schedule_id = 0;
+  
   if(tasks[task_index].period <= 0)	return CIC_V_NULL;
 
 ##SET_PROC  

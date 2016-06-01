@@ -392,11 +392,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 			code += "}, {{{-1, }, }, }, ";
 
 			//throughput_constraint
-			String mode;
-			if(task.getMTM() == null)
-				mode = "Default";
-			else
-				mode = task.getMTM().getModes().get(0);
+			String mode = "Default";
 			String schedulePath = mOutputPath + "/convertedSDF3xml/";
 			ArrayList<File> schedFileList = new ArrayList<File>();
 			File file = new File(schedulePath);

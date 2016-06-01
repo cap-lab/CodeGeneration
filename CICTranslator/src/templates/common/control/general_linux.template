@@ -206,11 +206,11 @@ CIC_T_VOID SetProperScheduleFromTaskIdAndScheduleId(CIC_T_INT parent_task_id, CI
     }
   }
 
-  printf("-------------SetProperScheduleFromTaskIdAndScheduleId-----------------\n");
-  for(i = 0; i < CIC_UV_NUM_TASKS; i++)
-  {
-    printf("[%d] %d : %d\n", i, task_to_core_map[i].task_id, task_to_core_map[i].schedule_id);
-  }
+//  printf("-------------SetProperScheduleFromTaskIdAndScheduleId-----------------\n");
+//  for(i = 0; i < CIC_UV_NUM_TASKS; i++)
+//  {
+//    printf("[%d] %d : %d\n", i, task_to_core_map[i].task_id, task_to_core_map[i].schedule_id);
+//  }
 }
 
 CIC_T_VOID SetThroughput(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, CIC_T_CHAR* value, CIC_T_CHAR* unit)
