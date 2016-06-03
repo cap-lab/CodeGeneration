@@ -79,7 +79,6 @@ UPDATE_CURRENT_MODE
 		}
 	}
 	continue_count[task_index]++;
-	if(!is_transition && complete_task_count == 0)	CIC_F_COND_BROADCAST(&mtm_cond);
 	CIC_F_MUTEX_UNLOCK(&mtm_mutex);
 }
 
@@ -103,7 +102,7 @@ GET_TASK_ITER_COUNT_FROM_MODE_NAME
 	for(i=0; i<CIC_ARRAYLEN(task_iter_info); i++){
 		if(CIC_F_STRING_COMPARE(task_name, task_iter_info[i].task_name) == 0){
 			task_index = i;
-			break;
+			break;	
 		}
 	}
 
@@ -183,18 +182,15 @@ TRANSITION
 			current_mode = next_mode;
 			src_continue_count = 1;
 			is_transition = CIC_V_FALSE;
+			CIC_F_COND_BROADCAST(&mtm_cond);
 		}
 		else{
 			CIC_F_COND_WAIT(&mtm_cond, &mtm_mutex);
 		}
 	}
 	else{
-		if(complete_task_count != 0){
-			CIC_F_COND_BROADCAST(&mtm_cond);
-			CIC_F_COND_WAIT(&mtm_cond, &mtm_mutex);
-		}
+		CIC_F_COND_BROADCAST(&mtm_cond);
 	}
 	
-	CIC_F_COND_BROADCAST(&mtm_cond);
 	CIC_F_MUTEX_UNLOCK(&mtm_mutex);
 }
