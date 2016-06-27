@@ -128,7 +128,7 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 				}				
 			}
 		}
-		//hshong: 2016/04/26
+		
 		//generate mtm files when this graph is SDF
 		for (Task vt : mVTask.values()) {
 			templateFile = mTranslatorPath + "templates/common/mtm_template/thread_per_processor.template";
