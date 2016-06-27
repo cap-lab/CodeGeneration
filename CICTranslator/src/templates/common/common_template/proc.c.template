@@ -197,7 +197,7 @@ CIC_STATIC CIC_T_INT GetTaskIdFromChannelIdAndOp(CIC_T_INT channel_id, CIC_T_CHA
 }
 
 CIC_STATIC CIC_T_VOID WaitDataTasksEnd(){
-	// if (all data-driven tasks are WaitBlock or ReadBlock state) && (remaining data size in all channels are less than sample size or 0)
+	// if (all data-driven tasks are WriteBlock or ReadBlock state) && (remaining data size in all channels are less than sample size or 0)
 	CIC_T_INT i=0;
 	CIC_T_BOOL task_flag = CIC_V_FALSE, data_flag = CIC_V_FALSE;
 	

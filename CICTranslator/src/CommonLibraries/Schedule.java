@@ -1543,7 +1543,18 @@ public class Schedule {
 					e.printStackTrace();
 				}
 			}
-		}		
+		}	
+		else
+		{
+			for (String mode : modeList) {
+				ArrayList<File> schedFileList = getSchedFileList(outputPath, task, mode);
+				for (int f_i = 0; f_i < schedFileList.size(); f_i++) {
+					isFirstTask.add(true);
+					sched_time.add(0);
+				}
+			}			
+				
+		}
 		//----
 		boolean sched_first = true;
 		for (String mode : modeList) {
@@ -1570,8 +1581,11 @@ public class Schedule {
 							if (proc_id == task.getProc().get("Default").get("Default").get(0)) 
 							{
 								List<ScheduleElementType> scheds = schedGroup.get(j).getScheduleElement();
-//								sched_time = 0;								
-								sched_time.set(f_i, 0);
+								if(mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic))
+								{
+	//								sched_time = 0;								
+									sched_time.set(f_i, 0);
+								}
 								for (int k = 0; k < scheds.size(); k++) {
 									ScheduleElementType sched = scheds.get(k);
 									String firstTaskName = sched.getTask().getName();
@@ -1601,7 +1615,10 @@ public class Schedule {
 											srcGoCode += "\tmode = mtms[mtm_index].GetCurrentModeName(\"" + task.getName() + "\");\n";
 										}
 										isSrcTask.set(f_i, true);
-										src_end_time.set(f_i, sched.getTask().getEndTime().intValue());
+										if(mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic))
+										{
+											src_end_time.set(f_i, sched.getTask().getEndTime().intValue());
+										}
 										if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) {										
 											int worstTime = sched.getTask().getEndTime().intValue() - sched.getTask().getStartTime().intValue();
 											srcGoCode += "if(CIC_F_STRING_COMPARE(mode, \"" + mode + "\") == 0){\n";
