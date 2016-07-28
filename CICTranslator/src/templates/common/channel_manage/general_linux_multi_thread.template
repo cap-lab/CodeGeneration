@@ -503,6 +503,8 @@ CIC_T_INT CheckACPort(CIC_T_INT channel_index)
     CIC_T_INT ret = -1;
 
     CIC_UT_CHANNEL *channel = &channels[channel_index];
+    CIC_T_INT channel_id = channels[channel_index].channel_id;
+    CIC_T_INT task_id = GetTaskIdFromChannelIdAndOp(channel_id, 'r'); 
 
 check_ac_start:
 
@@ -512,8 +514,10 @@ check_ac_start:
     node = channel->avail_index_start;
 
     if(node == CIC_V_NULL){	 // blocking case
+    	tasks[task_id].run_state = READ_BLOCK;
         CIC_F_COND_WAIT(&(channel->cond), &(channel->mutex));
         CIC_F_MUTEX_UNLOCK(&(channel->mutex));
+        tasks[task_id].run_state = RUNNING;
         goto check_ac_start;
     }
     else{

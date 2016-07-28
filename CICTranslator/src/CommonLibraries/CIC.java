@@ -153,14 +153,8 @@ public class CIC {
 		String numSubTasks = "";
 		String srcTaskIndex = "";
 
-		if (runtimeExecutionPolicy.equals("Global")
-				|| (runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed)
-						&& codeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
-				|| (runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)
-						&& codeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
-				|| (runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic)
-						&& codeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread)))
-
+		if (runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)
+				|| runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic))
 		{
 			String srcTaskName = "";
 			int srcTaskId = 0;
@@ -254,13 +248,8 @@ public class CIC {
 
 			numSubTasks += "#define NUM_SUB_TASKS " + subTaskCount;
 			srcTaskIndex += "CIC_STATIC CIC_T_INT src_task_index = " + srcTaskId + ";";
-		} else if (runtimeExecutionPolicy.equals("Partitioned")
-				|| runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)
-				|| (runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed)
-						&& codeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_FunctionCall))
-				|| (runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)
-						&& codeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_FunctionCall)))
-
+		} else if (runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)
+				|| runtimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed))
 		{
 			int subTaskCount = 0;
 			for (Task pt : mPVTask.values()) {
@@ -751,13 +740,8 @@ public class CIC {
 				externalFunctions += "CIC_STATIC CIC_T_VOID " + task.getName() + "_Go(CIC_T_VOID);\n";
 				externalFunctions += "CIC_STATIC CIC_T_VOID " + task.getName() + "_Wrapup(CIC_T_VOID);\n";
 			}
-		} else if (mRuntimeExecutionPolicy.equals("Global")
-				|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)
-						&& mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
-				|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic)
-						&& mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))
-				|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed)
-						&& mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_Thread))) {
+		} else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)
+				|| mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic)) {
 			for (Task task : mTask.values()) {
 				if (task.getHasSubgraph().equals("No")) {
 					externalFunctions += "CIC_EXTERN CIC_T_VOID " + task.getName() + "_Init(CIC_T_INT);\n";
@@ -775,12 +759,8 @@ public class CIC {
 				externalFunctions += "CIC_STATIC CIC_T_VOID " + task.getName() + "_Go(CIC_T_VOID){}\n";
 				externalFunctions += "CIC_STATIC CIC_T_VOID " + task.getName() + "_Wrapup(CIC_T_VOID){}\n";
 			}
-		} else if (mRuntimeExecutionPolicy.equals("Partitioned")
-				|| mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)
-				|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed)
-						&& mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_FunctionCall))
-				|| (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)
-						&& mCodeGenerationStyle.equals(HopesInterface.CodeGenerationPolicy_FunctionCall))) {
+		} else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)
+				|| mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed)) {
 			for (Task task : mTask.values()) {
 				if (task.getHasSubgraph().equals("No")) {
 					externalFunctions += "CIC_EXTERN CIC_T_VOID " + task.getName() + "_Init(CIC_T_INT);\n";
