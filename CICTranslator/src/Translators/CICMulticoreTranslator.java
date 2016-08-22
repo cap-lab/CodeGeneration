@@ -852,37 +852,45 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		String code = "";
 		String templateFile = getTaskExecutionTemplateFile(mGraphType, mRuntimeExecutionPolicy, mCodeGenerationStyle);
 		
-		code += generateTaskToCoreMap();
-		if (mRuntimeExecutionPolicy
-				.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) {
-			code += generateTaskToWCET();
-			code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##WORST_CASE_EXECUTION_TIME");
+		if (mGraphType.equals("ProcessNetwork"))
+		{
+			;
+		}
+		else
+		{
+			code += generateTaskToCoreMap();
+			if (mRuntimeExecutionPolicy
+					.equals(HopesInterface.RuntimeExecutionPolicy_FullyStatic)) {
+				code += generateTaskToWCET();
+				code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##WORST_CASE_EXECUTION_TIME");
 
-			code += generateVirtualTaskToCoreMap();
-			templateFile = mTranslatorPath + "templates/target/Multicore/target_dependent_code.template";
-			code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##PROCESSOR_ID_FROM_VIRTUAL_TASK_ID");
-			code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_VIRTUAL_TASK_INDEX_FROM_THREAD");
-		} else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed)) {
-			code += generateVirtualTaskToCoreMap();
-			templateFile = mTranslatorPath + "templates/target/Multicore/target_dependent_code.template";
-			code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##PROCESSOR_ID_FROM_VIRTUAL_TASK_ID");
-			code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_VIRTUAL_TASK_INDEX_FROM_THREAD"); 
-		} else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)) {
-			code += generateTaskToPriority();
-			templateFile = mTranslatorPath + "templates/target/Multicore/target_dependent_code.template";
-			code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_TASK_PRIORITY_FROM_TASK_ID");
-			code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_VIRTUAL_TASK_INDEX_FROM_THREAD");
-		} else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic)) {
-			code += generateTaskToPriority();
-			templateFile = mTranslatorPath + "templates/target/Multicore/target_dependent_code.template";
-			code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_TASK_PRIORITY_FROM_TASK_ID");
-			code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_VIRTUAL_TASK_INDEX_FROM_THREAD");
-		} 
+				code += generateVirtualTaskToCoreMap();
+				templateFile = mTranslatorPath + "templates/target/Multicore/target_dependent_code.template";
+				code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##PROCESSOR_ID_FROM_VIRTUAL_TASK_ID");
+				code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_VIRTUAL_TASK_INDEX_FROM_THREAD");
+			} else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_SelfTimed)) {
+				code += generateVirtualTaskToCoreMap();
+				templateFile = mTranslatorPath + "templates/target/Multicore/target_dependent_code.template";
+				code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##PROCESSOR_ID_FROM_VIRTUAL_TASK_ID");
+				code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_VIRTUAL_TASK_INDEX_FROM_THREAD"); 
+			} else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_StaticAssign)) {
+				code += generateTaskToPriority();
+				templateFile = mTranslatorPath + "templates/target/Multicore/target_dependent_code.template";
+				code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_TASK_PRIORITY_FROM_TASK_ID");
+				code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_VIRTUAL_TASK_INDEX_FROM_THREAD");
+			} else if (mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic)) {
+				code += generateTaskToPriority();
+				templateFile = mTranslatorPath + "templates/target/Multicore/target_dependent_code.template";
+				code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_TASK_PRIORITY_FROM_TASK_ID");
+				code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_VIRTUAL_TASK_INDEX_FROM_THREAD");
+			} 
 
-		templateFile = mTranslatorPath + "templates/target/Multicore/target_dependent_code.template";
-		code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_SCHEDULE_ID");
-		code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_PROCESSOR_ID");
-		code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_TASK_CALL_COUNT");
+			templateFile = mTranslatorPath + "templates/target/Multicore/target_dependent_code.template";
+			code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_SCHEDULE_ID");
+			code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_PROCESSOR_ID");
+			code += CommonLibraries.Util.getCodeFromTemplate(templateFile, "##GET_TASK_CALL_COUNT");
+		}
+		
 
 		return code;
 	}
