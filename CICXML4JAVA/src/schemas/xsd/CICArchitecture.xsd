@@ -53,7 +53,8 @@
     <xs:attribute name="clock" type="xs:nonNegativeInteger" use="optional" />
     <!-- Clock frequency in MHz -->
     <xs:attribute name="archiType" type="xs:string" use="optional" />
-    <xs:attribute name="power" type="xs:nonNegativeInteger" use="optional" />
+    <xs:attribute name="activePower" type="xs:nonNegativeInteger" use="optional" />
+    <xs:attribute name="sleepPower" type="xs:nonNegativeInteger" use="optional" />
     <!-- Power consumtion in mW -->
     <xs:attribute name="nMasterPorts" type="xs:nonNegativeInteger" use="optional" />
     <xs:attribute name="nInterruptPorts" type="xs:nonNegativeInteger" use="optional" />
@@ -91,7 +92,7 @@
     <xs:attribute name="name" type="NameType" use="required" />
     <xs:attribute name="type" type="NameType" use="required" />
     <xs:attribute name="poolSize" type="xs:nonNegativeInteger" use="optional" default="1" />
-    <!-- If it is a pool. -->
+    <!-- If it is a pool. Need to be deleted, because core should be allowed Data Parallel Mapping when the task is data-parallel-->
     <xs:attribute name="allowDataParallelMapping" type="xs:boolean" use="optional" default="false"/>
   </xs:complexType>
 

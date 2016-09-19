@@ -25,6 +25,7 @@ import javax.xml.bind.annotation.XmlType;
  *         &lt;element name="extraSource" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/>
  *         &lt;element name="extraCIC" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/>
  *         &lt;element name="extraFile" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;element name="function" type="{http://peace.snu.ac.kr/CICXMLSchema}LibraryFunctionType" maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
  *       &lt;attribute name="cflags" type="{http://www.w3.org/2001/XMLSchema}string" />
  *       &lt;attribute name="description" type="{http://www.w3.org/2001/XMLSchema}string" />
@@ -47,7 +48,8 @@ import javax.xml.bind.annotation.XmlType;
     "extraHeader",
     "extraSource",
     "extraCIC",
-    "extraFile"
+    "extraFile",
+    "function"
 })
 public class LibraryType {
 
@@ -61,6 +63,8 @@ public class LibraryType {
     protected List<String> extraCIC;
     @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
     protected List<String> extraFile;
+    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    protected List<LibraryFunctionType> function;
     @XmlAttribute
     protected String cflags;
     @XmlAttribute
@@ -221,6 +225,35 @@ public class LibraryType {
             extraFile = new ArrayList<String>();
         }
         return this.extraFile;
+    }
+
+    /**
+     * Gets the value of the function property.
+     * 
+     * <p>
+     * This accessor method returns a reference to the live list,
+     * not a snapshot. Therefore any modification you make to the
+     * returned list will be present inside the JAXB object.
+     * This is why there is not a <CODE>set</CODE> method for the function property.
+     * 
+     * <p>
+     * For example, to add a new item, do as follows:
+     * <pre>
+     *    getFunction().add(newItem);
+     * </pre>
+     * 
+     * 
+     * <p>
+     * Objects of the following type(s) are allowed in the list
+     * {@link LibraryFunctionType }
+     * 
+     * 
+     */
+    public List<LibraryFunctionType> getFunction() {
+        if (function == null) {
+            function = new ArrayList<LibraryFunctionType>();
+        }
+        return this.function;
     }
 
     /**

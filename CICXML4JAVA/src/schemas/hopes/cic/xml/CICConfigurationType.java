@@ -18,6 +18,7 @@ import javax.xml.bind.annotation.XmlType;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
  *         &lt;element name="simulation" type="{http://peace.snu.ac.kr/CICXMLSchema}SimulationType" minOccurs="0"/>
+ *         &lt;element name="codeGeneration" type="{http://peace.snu.ac.kr/CICXMLSchema}CodeGenerationType" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -28,12 +29,15 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "CICConfigurationType", propOrder = {
-    "simulation"
+    "simulation",
+    "codeGeneration"
 })
 public class CICConfigurationType {
 
     @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected SimulationType simulation;
+    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
+    protected CodeGenerationType codeGeneration;
 
     /**
      * Gets the value of the simulation property.
@@ -57,6 +61,30 @@ public class CICConfigurationType {
      */
     public void setSimulation(SimulationType value) {
         this.simulation = value;
+    }
+
+    /**
+     * Gets the value of the codeGeneration property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link CodeGenerationType }
+     *     
+     */
+    public CodeGenerationType getCodeGeneration() {
+        return codeGeneration;
+    }
+
+    /**
+     * Sets the value of the codeGeneration property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link CodeGenerationType }
+     *     
+     */
+    public void setCodeGeneration(CodeGenerationType value) {
+        this.codeGeneration = value;
     }
 
 }

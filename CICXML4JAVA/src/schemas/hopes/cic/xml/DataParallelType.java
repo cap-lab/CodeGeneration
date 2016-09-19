@@ -16,6 +16,7 @@ import javax.xml.bind.annotation.XmlEnumValue;
  *     &lt;enumeration value="none"/>
  *     &lt;enumeration value="loop"/>
  *     &lt;enumeration value="wavefront"/>
+ *     &lt;enumeration value="loopStructure"/>
  *   &lt;/restriction>
  * &lt;/simpleType>
  * </pre>
@@ -26,6 +27,8 @@ public enum DataParallelType {
 
     @XmlEnumValue("loop")
     LOOP("loop"),
+    @XmlEnumValue("loopStructure")
+    LOOP_STRUCTURE("loopStructure"),
     @XmlEnumValue("none")
     NONE("none"),
     @XmlEnumValue("wavefront")

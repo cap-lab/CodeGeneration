@@ -36,6 +36,7 @@
       <xs:enumeration value="none" />
       <xs:enumeration value="loop" />
       <xs:enumeration value="wavefront" />
+      <xs:enumeration value="loopStructure" />
     </xs:restriction>
   </xs:simpleType>
 

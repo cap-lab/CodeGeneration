@@ -22,6 +22,7 @@ import javax.xml.bind.annotation.XmlType;
  *         &lt;element name="volume" type="{http://peace.snu.ac.kr/CICXMLSchema}VectorType" minOccurs="0"/>
  *         &lt;element name="dependencyVector" type="{http://peace.snu.ac.kr/CICXMLSchema}VectorListType" minOccurs="0"/>
  *       &lt;/sequence>
+ *       &lt;attribute name="loopCount" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
  *       &lt;attribute name="maxParallel" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
  *       &lt;attribute name="type" type="{http://peace.snu.ac.kr/CICXMLSchema}DataParallelType" />
  *     &lt;/restriction>
@@ -42,6 +43,8 @@ public class TaskDataParallelType {
     protected VectorType volume;
     @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected VectorListType dependencyVector;
+    @XmlAttribute
+    protected BigInteger loopCount;
     @XmlAttribute
     protected BigInteger maxParallel;
     @XmlAttribute
@@ -93,6 +96,30 @@ public class TaskDataParallelType {
      */
     public void setDependencyVector(VectorListType value) {
         this.dependencyVector = value;
+    }
+
+    /**
+     * Gets the value of the loopCount property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link BigInteger }
+     *     
+     */
+    public BigInteger getLoopCount() {
+        return loopCount;
+    }
+
+    /**
+     * Sets the value of the loopCount property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link BigInteger }
+     *     
+     */
+    public void setLoopCount(BigInteger value) {
+        this.loopCount = value;
     }
 
     /**

@@ -44,347 +44,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link MappingProcessorIdType }
-     * 
-     */
-    public MappingProcessorIdType createMappingProcessorIdType() {
-        return new MappingProcessorIdType();
-    }
-
-    /**
-     * Create an instance of {@link TaskPortType }
-     * 
-     */
-    public TaskPortType createTaskPortType() {
-        return new TaskPortType();
-    }
-
-    /**
-     * Create an instance of {@link DisplayListType }
-     * 
-     */
-    public DisplayListType createDisplayListType() {
-        return new DisplayListType();
-    }
-
-    /**
-     * Create an instance of {@link Task }
-     * 
-     */
-    public Task createTaskGroupTypeTask() {
-        return new Task();
-    }
-
-    /**
-     * Create an instance of {@link ActuatorListType }
-     * 
-     */
-    public ActuatorListType createActuatorListType() {
-        return new ActuatorListType();
-    }
-
-    /**
-     * Create an instance of {@link CICArchitectureType }
-     * 
-     */
-    public CICArchitectureType createCICArchitectureType() {
-        return new CICArchitectureType();
-    }
-
-    /**
-     * Create an instance of {@link ArchitectureElementSlavePortType }
-     * 
-     */
-    public ArchitectureElementSlavePortType createArchitectureElementSlavePortType() {
-        return new ArchitectureElementSlavePortType();
-    }
-
-    /**
      * Create an instance of {@link CICScheduleType }
      * 
      */
     public CICScheduleType createCICScheduleType() {
         return new CICScheduleType();
-    }
-
-    /**
-     * Create an instance of {@link DisplayType }
-     * 
-     */
-    public DisplayType createDisplayType() {
-        return new DisplayType();
-    }
-
-    /**
-     * Create an instance of {@link LibraryMasterPortType }
-     * 
-     */
-    public LibraryMasterPortType createLibraryMasterPortType() {
-        return new LibraryMasterPortType();
-    }
-
-    /**
-     * Create an instance of {@link ArchitectureConnectionVRepSBType }
-     * 
-     */
-    public ArchitectureConnectionVRepSBType createArchitectureConnectionVRepSBType() {
-        return new ArchitectureConnectionVRepSBType();
-    }
-
-    /**
-     * Create an instance of {@link TaskGroupListType }
-     * 
-     */
-    public TaskGroupListType createTaskGroupListType() {
-        return new TaskGroupListType();
-    }
-
-    /**
-     * Create an instance of {@link CICControlType }
-     * 
-     */
-    public CICControlType createCICControlType() {
-        return new CICControlType();
-    }
-
-    /**
-     * Create an instance of {@link LibraryLibraryConnectionType }
-     * 
-     */
-    public LibraryLibraryConnectionType createLibraryLibraryConnectionType() {
-        return new LibraryLibraryConnectionType();
-    }
-
-    /**
-     * Create an instance of {@link TaskInstanceType }
-     * 
-     */
-    public TaskInstanceType createTaskInstanceType() {
-        return new TaskInstanceType();
-    }
-
-    /**
-     * Create an instance of {@link VectorType }
-     * 
-     */
-    public VectorType createVectorType() {
-        return new VectorType();
-    }
-
-    /**
-     * Create an instance of {@link ModeListType }
-     * 
-     */
-    public ModeListType createModeListType() {
-        return new ModeListType();
-    }
-
-    /**
-     * Create an instance of {@link ModeTaskGroupType }
-     * 
-     */
-    public ModeTaskGroupType createModeTaskGroupType() {
-        return new ModeTaskGroupType();
-    }
-
-    /**
-     * Create an instance of {@link GPUTaskType }
-     * 
-     */
-    public GPUTaskType createGPUTaskType() {
-        return new GPUTaskType();
-    }
-
-    /**
-     * Create an instance of {@link MTMTransitionListType }
-     * 
-     */
-    public MTMTransitionListType createMTMTransitionListType() {
-        return new MTMTransitionListType();
-    }
-
-    /**
-     * Create an instance of {@link MTMModeListType }
-     * 
-     */
-    public MTMModeListType createMTMModeListType() {
-        return new MTMModeListType();
-    }
-
-    /**
-     * Create an instance of {@link MTMType }
-     * 
-     */
-    public MTMType createMTMType() {
-        return new MTMType();
-    }
-
-    /**
-     * Create an instance of {@link ArchitectureConnectionWIFIclientType }
-     * 
-     */
-    public ArchitectureConnectionWIFIclientType createArchitectureConnectionWIFIclientType() {
-        return new ArchitectureConnectionWIFIclientType();
-    }
-
-    /**
-     * Create an instance of {@link ArchitectureConnectionWIFIserverType }
-     * 
-     */
-    public ArchitectureConnectionWIFIserverType createArchitectureConnectionWIFIserverType() {
-        return new ArchitectureConnectionWIFIserverType();
-    }
-
-    /**
-     * Create an instance of {@link MappingLibraryType }
-     * 
-     */
-    public MappingLibraryType createMappingLibraryType() {
-        return new MappingLibraryType();
-    }
-
-    /**
-     * Create an instance of {@link ArchitectureConnectionBTSlaveType }
-     * 
-     */
-    public ArchitectureConnectionBTSlaveType createArchitectureConnectionBTSlaveType() {
-        return new ArchitectureConnectionBTSlaveType();
-    }
-
-    /**
-     * Create an instance of {@link CICGPUSetupType }
-     * 
-     */
-    public CICGPUSetupType createCICGPUSetupType() {
-        return new CICGPUSetupType();
-    }
-
-    /**
-     * Create an instance of {@link ArchitectureElementTypeType }
-     * 
-     */
-    public ArchitectureElementTypeType createArchitectureElementTypeType() {
-        return new ArchitectureElementTypeType();
-    }
-
-    /**
-     * Create an instance of {@link TaskGroupType }
-     * 
-     */
-    public TaskGroupType createTaskGroupType() {
-        return new TaskGroupType();
-    }
-
-    /**
-     * Create an instance of {@link MappingTaskType }
-     * 
-     */
-    public MappingTaskType createMappingTaskType() {
-        return new MappingTaskType();
-    }
-
-    /**
-     * Create an instance of {@link CICDeviceIOType }
-     * 
-     */
-    public CICDeviceIOType createCICDeviceIOType() {
-        return new CICDeviceIOType();
-    }
-
-    /**
-     * Create an instance of {@link ExclusiveControlTasksType }
-     * 
-     */
-    public ExclusiveControlTasksType createExclusiveControlTasksType() {
-        return new ExclusiveControlTasksType();
-    }
-
-    /**
-     * Create an instance of {@link ChannelPortType }
-     * 
-     */
-    public ChannelPortType createChannelPortType() {
-        return new ChannelPortType();
-    }
-
-    /**
-     * Create an instance of {@link SensorType }
-     * 
-     */
-    public SensorType createSensorType() {
-        return new SensorType();
-    }
-
-    /**
-     * Create an instance of {@link TaskParameterType }
-     * 
-     */
-    public TaskParameterType createTaskParameterType() {
-        return new TaskParameterType();
-    }
-
-    /**
-     * Create an instance of {@link ScheduleGroupType }
-     * 
-     */
-    public ScheduleGroupType createScheduleGroupType() {
-        return new ScheduleGroupType();
-    }
-
-    /**
-     * Create an instance of {@link ScheduleElementType }
-     * 
-     */
-    public ScheduleElementType createScheduleElementType() {
-        return new ScheduleElementType();
-    }
-
-    /**
-     * Create an instance of {@link ArchitectureConnectionI2CType }
-     * 
-     */
-    public ArchitectureConnectionI2CType createArchitectureConnectionI2CType() {
-        return new ArchitectureConnectionI2CType();
-    }
-
-    /**
-     * Create an instance of {@link ArchitectureConnectType }
-     * 
-     */
-    public ArchitectureConnectType createArchitectureConnectType() {
-        return new ArchitectureConnectType();
-    }
-
-    /**
-     * Create an instance of {@link ChannelType }
-     * 
-     */
-    public ChannelType createChannelType() {
-        return new ChannelType();
-    }
-
-    /**
-     * Create an instance of {@link CICAlgorithmType }
-     * 
-     */
-    public CICAlgorithmType createCICAlgorithmType() {
-        return new CICAlgorithmType();
-    }
-
-    /**
-     * Create an instance of {@link SimulationType }
-     * 
-     */
-    public SimulationType createSimulationType() {
-        return new SimulationType();
-    }
-
-    /**
-     * Create an instance of {@link GPUTaskListType }
-     * 
-     */
-    public GPUTaskListType createGPUTaskListType() {
-        return new GPUTaskListType();
     }
 
     /**
@@ -396,19 +60,107 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link TimeType }
+     * Create an instance of {@link LibraryConnectionListType }
      * 
      */
-    public TimeType createTimeType() {
-        return new TimeType();
+    public LibraryConnectionListType createLibraryConnectionListType() {
+        return new LibraryConnectionListType();
     }
 
     /**
-     * Create an instance of {@link ArchitectureConnectionBTMasterType }
+     * Create an instance of {@link ArchitectureConnectType }
      * 
      */
-    public ArchitectureConnectionBTMasterType createArchitectureConnectionBTMasterType() {
-        return new ArchitectureConnectionBTMasterType();
+    public ArchitectureConnectType createArchitectureConnectType() {
+        return new ArchitectureConnectType();
+    }
+
+    /**
+     * Create an instance of {@link VectorType }
+     * 
+     */
+    public VectorType createVectorType() {
+        return new VectorType();
+    }
+
+    /**
+     * Create an instance of {@link MappingTaskType }
+     * 
+     */
+    public MappingTaskType createMappingTaskType() {
+        return new MappingTaskType();
+    }
+
+    /**
+     * Create an instance of {@link SensorParameterType }
+     * 
+     */
+    public SensorParameterType createSensorParameterType() {
+        return new SensorParameterType();
+    }
+
+    /**
+     * Create an instance of {@link TaskGroupType }
+     * 
+     */
+    public TaskGroupType createTaskGroupType() {
+        return new TaskGroupType();
+    }
+
+    /**
+     * Create an instance of {@link DisplayListType }
+     * 
+     */
+    public DisplayListType createDisplayListType() {
+        return new DisplayListType();
+    }
+
+    /**
+     * Create an instance of {@link MTMVariableType }
+     * 
+     */
+    public MTMVariableType createMTMVariableType() {
+        return new MTMVariableType();
+    }
+
+    /**
+     * Create an instance of {@link LibraryFunctionArgumentType }
+     * 
+     */
+    public LibraryFunctionArgumentType createLibraryFunctionArgumentType() {
+        return new LibraryFunctionArgumentType();
+    }
+
+    /**
+     * Create an instance of {@link ModeTaskGroupType }
+     * 
+     */
+    public ModeTaskGroupType createModeTaskGroupType() {
+        return new ModeTaskGroupType();
+    }
+
+    /**
+     * Create an instance of {@link CICAlgorithmType }
+     * 
+     */
+    public CICAlgorithmType createCICAlgorithmType() {
+        return new CICAlgorithmType();
+    }
+
+    /**
+     * Create an instance of {@link ArchitectureElementListType }
+     * 
+     */
+    public ArchitectureElementListType createArchitectureElementListType() {
+        return new ArchitectureElementListType();
+    }
+
+    /**
+     * Create an instance of {@link ScheduleElementType }
+     * 
+     */
+    public ScheduleElementType createScheduleElementType() {
+        return new ScheduleElementType();
     }
 
     /**
@@ -420,171 +172,19 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link LibraryListType }
+     * Create an instance of {@link TaskGroupsType }
      * 
      */
-    public LibraryListType createLibraryListType() {
-        return new LibraryListType();
+    public TaskGroupsType createTaskGroupsType() {
+        return new TaskGroupsType();
     }
 
     /**
-     * Create an instance of {@link CICMappingType }
+     * Create an instance of {@link ActuatorListType }
      * 
      */
-    public CICMappingType createCICMappingType() {
-        return new CICMappingType();
-    }
-
-    /**
-     * Create an instance of {@link LibraryType }
-     * 
-     */
-    public LibraryType createLibraryType() {
-        return new LibraryType();
-    }
-
-    /**
-     * Create an instance of {@link ControlTaskType }
-     * 
-     */
-    public ControlTaskType createControlTaskType() {
-        return new ControlTaskType();
-    }
-
-    /**
-     * Create an instance of {@link SensorValueType }
-     * 
-     */
-    public SensorValueType createSensorValueType() {
-        return new SensorValueType();
-    }
-
-    /**
-     * Create an instance of {@link ExclusiveControlTasksListType }
-     * 
-     */
-    public ExclusiveControlTasksListType createExclusiveControlTasksListType() {
-        return new ExclusiveControlTasksListType();
-    }
-
-    /**
-     * Create an instance of {@link LibraryConnectionListType }
-     * 
-     */
-    public LibraryConnectionListType createLibraryConnectionListType() {
-        return new LibraryConnectionListType();
-    }
-
-    /**
-     * Create an instance of {@link HeaderListType }
-     * 
-     */
-    public HeaderListType createHeaderListType() {
-        return new HeaderListType();
-    }
-
-    /**
-     * Create an instance of {@link CICProfileType }
-     * 
-     */
-    public CICProfileType createCICProfileType() {
-        return new CICProfileType();
-    }
-
-    /**
-     * Create an instance of {@link TaskGroup }
-     * 
-     */
-    public TaskGroup createTaskGroupTypeTaskGroup() {
-        return new TaskGroup();
-    }
-
-    /**
-     * Create an instance of {@link ChannelListType }
-     * 
-     */
-    public ChannelListType createChannelListType() {
-        return new ChannelListType();
-    }
-
-    /**
-     * Create an instance of {@link SizeType }
-     * 
-     */
-    public SizeType createSizeType() {
-        return new SizeType();
-    }
-
-    /**
-     * Create an instance of {@link ModeTaskType }
-     * 
-     */
-    public ModeTaskType createModeTaskType() {
-        return new ModeTaskType();
-    }
-
-    /**
-     * Create an instance of {@link ArchitectureElementTypeListType }
-     * 
-     */
-    public ArchitectureElementTypeListType createArchitectureElementTypeListType() {
-        return new ArchitectureElementTypeListType();
-    }
-
-    /**
-     * Create an instance of {@link TaskGroupForScheduleType }
-     * 
-     */
-    public TaskGroupForScheduleType createTaskGroupForScheduleType() {
-        return new TaskGroupForScheduleType();
-    }
-
-    /**
-     * Create an instance of {@link ProfileTaskModeType }
-     * 
-     */
-    public ProfileTaskModeType createProfileTaskModeType() {
-        return new ProfileTaskModeType();
-    }
-
-    /**
-     * Create an instance of {@link ArchitectureConnectionI2CMasterType }
-     * 
-     */
-    public ArchitectureConnectionI2CMasterType createArchitectureConnectionI2CMasterType() {
-        return new ArchitectureConnectionI2CMasterType();
-    }
-
-    /**
-     * Create an instance of {@link ArchitectureConnectionWIFIType }
-     * 
-     */
-    public ArchitectureConnectionWIFIType createArchitectureConnectionWIFIType() {
-        return new ArchitectureConnectionWIFIType();
-    }
-
-    /**
-     * Create an instance of {@link SensorListType }
-     * 
-     */
-    public SensorListType createSensorListType() {
-        return new SensorListType();
-    }
-
-    /**
-     * Create an instance of {@link CICConfigurationType }
-     * 
-     */
-    public CICConfigurationType createCICConfigurationType() {
-        return new CICConfigurationType();
-    }
-
-    /**
-     * Create an instance of {@link ActuatorValueType }
-     * 
-     */
-    public ActuatorValueType createActuatorValueType() {
-        return new ActuatorValueType();
+    public ActuatorListType createActuatorListType() {
+        return new ActuatorListType();
     }
 
     /**
@@ -596,91 +196,27 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ProfileCommType }
+     * Create an instance of {@link ControlTaskListType }
      * 
      */
-    public ProfileCommType createProfileCommType() {
-        return new ProfileCommType();
+    public ControlTaskListType createControlTaskListType() {
+        return new ControlTaskListType();
     }
 
     /**
-     * Create an instance of {@link TaskDataParallelType }
+     * Create an instance of {@link TaskGroupListType }
      * 
      */
-    public TaskDataParallelType createTaskDataParallelType() {
-        return new TaskDataParallelType();
+    public TaskGroupListType createTaskGroupListType() {
+        return new TaskGroupListType();
     }
 
     /**
-     * Create an instance of {@link MTMConditionType }
+     * Create an instance of {@link ModeListType }
      * 
      */
-    public MTMConditionType createMTMConditionType() {
-        return new MTMConditionType();
-    }
-
-    /**
-     * Create an instance of {@link TaskModeType }
-     * 
-     */
-    public TaskModeType createTaskModeType() {
-        return new TaskModeType();
-    }
-
-    /**
-     * Create an instance of {@link ArchitectureElementType }
-     * 
-     */
-    public ArchitectureElementType createArchitectureElementType() {
-        return new ArchitectureElementType();
-    }
-
-    /**
-     * Create an instance of {@link ArchitectureConnectionListType }
-     * 
-     */
-    public ArchitectureConnectionListType createArchitectureConnectionListType() {
-        return new ArchitectureConnectionListType();
-    }
-
-    /**
-     * Create an instance of {@link ArchitectureConnectionI2CSlaveType }
-     * 
-     */
-    public ArchitectureConnectionI2CSlaveType createArchitectureConnectionI2CSlaveType() {
-        return new ArchitectureConnectionI2CSlaveType();
-    }
-
-    /**
-     * Create an instance of {@link ModeType }
-     * 
-     */
-    public ModeType createModeType() {
-        return new ModeType();
-    }
-
-    /**
-     * Create an instance of {@link MTMModeType }
-     * 
-     */
-    public MTMModeType createMTMModeType() {
-        return new MTMModeType();
-    }
-
-    /**
-     * Create an instance of {@link ActuatorParameterType }
-     * 
-     */
-    public ActuatorParameterType createActuatorParameterType() {
-        return new ActuatorParameterType();
-    }
-
-    /**
-     * Create an instance of {@link VectorListType }
-     * 
-     */
-    public VectorListType createVectorListType() {
-        return new VectorListType();
+    public ModeListType createModeListType() {
+        return new ModeListType();
     }
 
     /**
@@ -692,27 +228,139 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link LoopType }
+     * Create an instance of {@link ControlTaskType }
      * 
      */
-    public LoopType createLoopType() {
-        return new LoopType();
+    public ControlTaskType createControlTaskType() {
+        return new ControlTaskType();
     }
 
     /**
-     * Create an instance of {@link TaskType }
+     * Create an instance of {@link CodeGenerationType }
      * 
      */
-    public TaskType createTaskType() {
-        return new TaskType();
+    public CodeGenerationType createCodeGenerationType() {
+        return new CodeGenerationType();
     }
 
     /**
-     * Create an instance of {@link ControlTaskListType }
+     * Create an instance of {@link ProfileType }
      * 
      */
-    public ControlTaskListType createControlTaskListType() {
-        return new ControlTaskListType();
+    public ProfileType createProfileType() {
+        return new ProfileType();
+    }
+
+    /**
+     * Create an instance of {@link CICArchitectureType }
+     * 
+     */
+    public CICArchitectureType createCICArchitectureType() {
+        return new CICArchitectureType();
+    }
+
+    /**
+     * Create an instance of {@link ExclusiveControlTasksListType }
+     * 
+     */
+    public ExclusiveControlTasksListType createExclusiveControlTasksListType() {
+        return new ExclusiveControlTasksListType();
+    }
+
+    /**
+     * Create an instance of {@link ArchitectureConnectionBTType }
+     * 
+     */
+    public ArchitectureConnectionBTType createArchitectureConnectionBTType() {
+        return new ArchitectureConnectionBTType();
+    }
+
+    /**
+     * Create an instance of {@link ProfileCommType }
+     * 
+     */
+    public ProfileCommType createProfileCommType() {
+        return new ProfileCommType();
+    }
+
+    /**
+     * Create an instance of {@link ArchitectureConnectionWIFIclientType }
+     * 
+     */
+    public ArchitectureConnectionWIFIclientType createArchitectureConnectionWIFIclientType() {
+        return new ArchitectureConnectionWIFIclientType();
+    }
+
+    /**
+     * Create an instance of {@link ChannelPortType }
+     * 
+     */
+    public ChannelPortType createChannelPortType() {
+        return new ChannelPortType();
+    }
+
+    /**
+     * Create an instance of {@link SensorListType }
+     * 
+     */
+    public SensorListType createSensorListType() {
+        return new SensorListType();
+    }
+
+    /**
+     * Create an instance of {@link MTMTransitionListType }
+     * 
+     */
+    public MTMTransitionListType createMTMTransitionListType() {
+        return new MTMTransitionListType();
+    }
+
+    /**
+     * Create an instance of {@link CICDeviceIOType }
+     * 
+     */
+    public CICDeviceIOType createCICDeviceIOType() {
+        return new CICDeviceIOType();
+    }
+
+    /**
+     * Create an instance of {@link ArchitectureConnectionBTSlaveType }
+     * 
+     */
+    public ArchitectureConnectionBTSlaveType createArchitectureConnectionBTSlaveType() {
+        return new ArchitectureConnectionBTSlaveType();
+    }
+
+    /**
+     * Create an instance of {@link ModeType }
+     * 
+     */
+    public ModeType createModeType() {
+        return new ModeType();
+    }
+
+    /**
+     * Create an instance of {@link ArchitectureConnectionWIFIType }
+     * 
+     */
+    public ArchitectureConnectionWIFIType createArchitectureConnectionWIFIType() {
+        return new ArchitectureConnectionWIFIType();
+    }
+
+    /**
+     * Create an instance of {@link ArchitectureConnectionWIFIserverType }
+     * 
+     */
+    public ArchitectureConnectionWIFIserverType createArchitectureConnectionWIFIserverType() {
+        return new ArchitectureConnectionWIFIserverType();
+    }
+
+    /**
+     * Create an instance of {@link ArchitectureConnectionI2CSlaveType }
+     * 
+     */
+    public ArchitectureConnectionI2CSlaveType createArchitectureConnectionI2CSlaveType() {
+        return new ArchitectureConnectionI2CSlaveType();
     }
 
     /**
@@ -732,59 +380,19 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link SensorParameterType }
+     * Create an instance of {@link SensorType }
      * 
      */
-    public SensorParameterType createSensorParameterType() {
-        return new SensorParameterType();
+    public SensorType createSensorType() {
+        return new SensorType();
     }
 
     /**
-     * Create an instance of {@link ProfileTaskType }
+     * Create an instance of {@link TaskPortType }
      * 
      */
-    public ProfileTaskType createProfileTaskType() {
-        return new ProfileTaskType();
-    }
-
-    /**
-     * Create an instance of {@link TaskGroupsType }
-     * 
-     */
-    public TaskGroupsType createTaskGroupsType() {
-        return new TaskGroupsType();
-    }
-
-    /**
-     * Create an instance of {@link MTMTransitionType }
-     * 
-     */
-    public MTMTransitionType createMTMTransitionType() {
-        return new MTMTransitionType();
-    }
-
-    /**
-     * Create an instance of {@link MTMVariableType }
-     * 
-     */
-    public MTMVariableType createMTMVariableType() {
-        return new MTMVariableType();
-    }
-
-    /**
-     * Create an instance of {@link ArchitectureConnectionBTType }
-     * 
-     */
-    public ArchitectureConnectionBTType createArchitectureConnectionBTType() {
-        return new ArchitectureConnectionBTType();
-    }
-
-    /**
-     * Create an instance of {@link ProfileType }
-     * 
-     */
-    public ProfileType createProfileType() {
-        return new ProfileType();
+    public TaskPortType createTaskPortType() {
+        return new TaskPortType();
     }
 
     /**
@@ -796,11 +404,443 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ArchitectureElementListType }
+     * Create an instance of {@link LibraryFunctionType }
      * 
      */
-    public ArchitectureElementListType createArchitectureElementListType() {
-        return new ArchitectureElementListType();
+    public LibraryFunctionType createLibraryFunctionType() {
+        return new LibraryFunctionType();
+    }
+
+    /**
+     * Create an instance of {@link VectorListType }
+     * 
+     */
+    public VectorListType createVectorListType() {
+        return new VectorListType();
+    }
+
+    /**
+     * Create an instance of {@link TaskGroup }
+     * 
+     */
+    public TaskGroup createTaskGroupTypeTaskGroup() {
+        return new TaskGroup();
+    }
+
+    /**
+     * Create an instance of {@link ModeTaskType }
+     * 
+     */
+    public ModeTaskType createModeTaskType() {
+        return new ModeTaskType();
+    }
+
+    /**
+     * Create an instance of {@link CICControlType }
+     * 
+     */
+    public CICControlType createCICControlType() {
+        return new CICControlType();
+    }
+
+    /**
+     * Create an instance of {@link TaskParameterType }
+     * 
+     */
+    public TaskParameterType createTaskParameterType() {
+        return new TaskParameterType();
+    }
+
+    /**
+     * Create an instance of {@link MTMModeType }
+     * 
+     */
+    public MTMModeType createMTMModeType() {
+        return new MTMModeType();
+    }
+
+    /**
+     * Create an instance of {@link MappingProcessorIdType }
+     * 
+     */
+    public MappingProcessorIdType createMappingProcessorIdType() {
+        return new MappingProcessorIdType();
+    }
+
+    /**
+     * Create an instance of {@link LibraryMasterPortType }
+     * 
+     */
+    public LibraryMasterPortType createLibraryMasterPortType() {
+        return new LibraryMasterPortType();
+    }
+
+    /**
+     * Create an instance of {@link ProfileLibraryFunctionType }
+     * 
+     */
+    public ProfileLibraryFunctionType createProfileLibraryFunctionType() {
+        return new ProfileLibraryFunctionType();
+    }
+
+    /**
+     * Create an instance of {@link CICMappingType }
+     * 
+     */
+    public CICMappingType createCICMappingType() {
+        return new CICMappingType();
+    }
+
+    /**
+     * Create an instance of {@link ArchitectureConnectionBTMasterType }
+     * 
+     */
+    public ArchitectureConnectionBTMasterType createArchitectureConnectionBTMasterType() {
+        return new ArchitectureConnectionBTMasterType();
+    }
+
+    /**
+     * Create an instance of {@link TaskDataParallelType }
+     * 
+     */
+    public TaskDataParallelType createTaskDataParallelType() {
+        return new TaskDataParallelType();
+    }
+
+    /**
+     * Create an instance of {@link TaskModeType }
+     * 
+     */
+    public TaskModeType createTaskModeType() {
+        return new TaskModeType();
+    }
+
+    /**
+     * Create an instance of {@link TimeType }
+     * 
+     */
+    public TimeType createTimeType() {
+        return new TimeType();
+    }
+
+    /**
+     * Create an instance of {@link ArchitectureConnectionListType }
+     * 
+     */
+    public ArchitectureConnectionListType createArchitectureConnectionListType() {
+        return new ArchitectureConnectionListType();
+    }
+
+    /**
+     * Create an instance of {@link LoopType }
+     * 
+     */
+    public LoopType createLoopType() {
+        return new LoopType();
+    }
+
+    /**
+     * Create an instance of {@link SizeType }
+     * 
+     */
+    public SizeType createSizeType() {
+        return new SizeType();
+    }
+
+    /**
+     * Create an instance of {@link HeaderListType }
+     * 
+     */
+    public HeaderListType createHeaderListType() {
+        return new HeaderListType();
+    }
+
+    /**
+     * Create an instance of {@link CICConfigurationType }
+     * 
+     */
+    public CICConfigurationType createCICConfigurationType() {
+        return new CICConfigurationType();
+    }
+
+    /**
+     * Create an instance of {@link LibraryType }
+     * 
+     */
+    public LibraryType createLibraryType() {
+        return new LibraryType();
+    }
+
+    /**
+     * Create an instance of {@link MTMTransitionType }
+     * 
+     */
+    public MTMTransitionType createMTMTransitionType() {
+        return new MTMTransitionType();
+    }
+
+    /**
+     * Create an instance of {@link GPUTaskListType }
+     * 
+     */
+    public GPUTaskListType createGPUTaskListType() {
+        return new GPUTaskListType();
+    }
+
+    /**
+     * Create an instance of {@link TaskInstanceType }
+     * 
+     */
+    public TaskInstanceType createTaskInstanceType() {
+        return new TaskInstanceType();
+    }
+
+    /**
+     * Create an instance of {@link CICProfileType }
+     * 
+     */
+    public CICProfileType createCICProfileType() {
+        return new CICProfileType();
+    }
+
+    /**
+     * Create an instance of {@link ArchitectureConnectionVRepSBType }
+     * 
+     */
+    public ArchitectureConnectionVRepSBType createArchitectureConnectionVRepSBType() {
+        return new ArchitectureConnectionVRepSBType();
+    }
+
+    /**
+     * Create an instance of {@link MTMType }
+     * 
+     */
+    public MTMType createMTMType() {
+        return new MTMType();
+    }
+
+    /**
+     * Create an instance of {@link TaskGroupForScheduleType }
+     * 
+     */
+    public TaskGroupForScheduleType createTaskGroupForScheduleType() {
+        return new TaskGroupForScheduleType();
+    }
+
+    /**
+     * Create an instance of {@link ArchitectureElementSlavePortType }
+     * 
+     */
+    public ArchitectureElementSlavePortType createArchitectureElementSlavePortType() {
+        return new ArchitectureElementSlavePortType();
+    }
+
+    /**
+     * Create an instance of {@link MTMConditionType }
+     * 
+     */
+    public MTMConditionType createMTMConditionType() {
+        return new MTMConditionType();
+    }
+
+    /**
+     * Create an instance of {@link ArchitectureConnectionI2CMasterType }
+     * 
+     */
+    public ArchitectureConnectionI2CMasterType createArchitectureConnectionI2CMasterType() {
+        return new ArchitectureConnectionI2CMasterType();
+    }
+
+    /**
+     * Create an instance of {@link TaskType }
+     * 
+     */
+    public TaskType createTaskType() {
+        return new TaskType();
+    }
+
+    /**
+     * Create an instance of {@link MTMModeListType }
+     * 
+     */
+    public MTMModeListType createMTMModeListType() {
+        return new MTMModeListType();
+    }
+
+    /**
+     * Create an instance of {@link ExclusiveControlTasksType }
+     * 
+     */
+    public ExclusiveControlTasksType createExclusiveControlTasksType() {
+        return new ExclusiveControlTasksType();
+    }
+
+    /**
+     * Create an instance of {@link ScheduleGroupType }
+     * 
+     */
+    public ScheduleGroupType createScheduleGroupType() {
+        return new ScheduleGroupType();
+    }
+
+    /**
+     * Create an instance of {@link CICGPUSetupType }
+     * 
+     */
+    public CICGPUSetupType createCICGPUSetupType() {
+        return new CICGPUSetupType();
+    }
+
+    /**
+     * Create an instance of {@link GPUTaskType }
+     * 
+     */
+    public GPUTaskType createGPUTaskType() {
+        return new GPUTaskType();
+    }
+
+    /**
+     * Create an instance of {@link SimulationType }
+     * 
+     */
+    public SimulationType createSimulationType() {
+        return new SimulationType();
+    }
+
+    /**
+     * Create an instance of {@link ProfileLibraryType }
+     * 
+     */
+    public ProfileLibraryType createProfileLibraryType() {
+        return new ProfileLibraryType();
+    }
+
+    /**
+     * Create an instance of {@link ActuatorValueType }
+     * 
+     */
+    public ActuatorValueType createActuatorValueType() {
+        return new ActuatorValueType();
+    }
+
+    /**
+     * Create an instance of {@link LibraryLibraryConnectionType }
+     * 
+     */
+    public LibraryLibraryConnectionType createLibraryLibraryConnectionType() {
+        return new LibraryLibraryConnectionType();
+    }
+
+    /**
+     * Create an instance of {@link MappingLibraryType }
+     * 
+     */
+    public MappingLibraryType createMappingLibraryType() {
+        return new MappingLibraryType();
+    }
+
+    /**
+     * Create an instance of {@link ArchitectureElementType }
+     * 
+     */
+    public ArchitectureElementType createArchitectureElementType() {
+        return new ArchitectureElementType();
+    }
+
+    /**
+     * Create an instance of {@link LibraryListType }
+     * 
+     */
+    public LibraryListType createLibraryListType() {
+        return new LibraryListType();
+    }
+
+    /**
+     * Create an instance of {@link ProfileTaskModeType }
+     * 
+     */
+    public ProfileTaskModeType createProfileTaskModeType() {
+        return new ProfileTaskModeType();
+    }
+
+    /**
+     * Create an instance of {@link DisplayType }
+     * 
+     */
+    public DisplayType createDisplayType() {
+        return new DisplayType();
+    }
+
+    /**
+     * Create an instance of {@link ChannelListType }
+     * 
+     */
+    public ChannelListType createChannelListType() {
+        return new ChannelListType();
+    }
+
+    /**
+     * Create an instance of {@link ArchitectureElementTypeType }
+     * 
+     */
+    public ArchitectureElementTypeType createArchitectureElementTypeType() {
+        return new ArchitectureElementTypeType();
+    }
+
+    /**
+     * Create an instance of {@link SensorValueType }
+     * 
+     */
+    public SensorValueType createSensorValueType() {
+        return new SensorValueType();
+    }
+
+    /**
+     * Create an instance of {@link ArchitectureElementTypeListType }
+     * 
+     */
+    public ArchitectureElementTypeListType createArchitectureElementTypeListType() {
+        return new ArchitectureElementTypeListType();
+    }
+
+    /**
+     * Create an instance of {@link ActuatorParameterType }
+     * 
+     */
+    public ActuatorParameterType createActuatorParameterType() {
+        return new ActuatorParameterType();
+    }
+
+    /**
+     * Create an instance of {@link Task }
+     * 
+     */
+    public Task createTaskGroupTypeTask() {
+        return new Task();
+    }
+
+    /**
+     * Create an instance of {@link ChannelType }
+     * 
+     */
+    public ChannelType createChannelType() {
+        return new ChannelType();
+    }
+
+    /**
+     * Create an instance of {@link ProfileTaskType }
+     * 
+     */
+    public ProfileTaskType createProfileTaskType() {
+        return new ProfileTaskType();
+    }
+
+    /**
+     * Create an instance of {@link ArchitectureConnectionI2CType }
+     * 
+     */
+    public ArchitectureConnectionI2CType createArchitectureConnectionI2CType() {
+        return new ArchitectureConnectionI2CType();
     }
 
     /**

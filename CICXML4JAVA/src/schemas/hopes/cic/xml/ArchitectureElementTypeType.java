@@ -24,6 +24,7 @@ import javax.xml.bind.annotation.XmlType;
  *         &lt;element name="slavePort" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureElementSlavePortType" maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
  *       &lt;attribute name="OS" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="activePower" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
  *       &lt;attribute name="archiType" type="{http://www.w3.org/2001/XMLSchema}string" />
  *       &lt;attribute name="category" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureElementCategoryType" />
  *       &lt;attribute name="clock" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
@@ -32,8 +33,8 @@ import javax.xml.bind.annotation.XmlType;
  *       &lt;attribute name="nInterruptPorts" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
  *       &lt;attribute name="nMasterPorts" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
  *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="power" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
  *       &lt;attribute name="scheduler" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureSchedulerType" />
+ *       &lt;attribute name="sleepPower" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
  *       &lt;attribute name="subcategory" type="{http://www.w3.org/2001/XMLSchema}string" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -53,6 +54,8 @@ public class ArchitectureElementTypeType {
     @XmlAttribute(name = "OS")
     protected String os;
     @XmlAttribute
+    protected BigInteger activePower;
+    @XmlAttribute
     protected String archiType;
     @XmlAttribute(required = true)
     protected ArchitectureElementCategoryType category;
@@ -69,9 +72,9 @@ public class ArchitectureElementTypeType {
     @XmlAttribute(required = true)
     protected String name;
     @XmlAttribute
-    protected BigInteger power;
-    @XmlAttribute
     protected ArchitectureSchedulerType scheduler;
+    @XmlAttribute
+    protected BigInteger sleepPower;
     @XmlAttribute
     protected String subcategory;
 
@@ -126,6 +129,30 @@ public class ArchitectureElementTypeType {
      */
     public void setOS(String value) {
         this.os = value;
+    }
+
+    /**
+     * Gets the value of the activePower property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link BigInteger }
+     *     
+     */
+    public BigInteger getActivePower() {
+        return activePower;
+    }
+
+    /**
+     * Sets the value of the activePower property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link BigInteger }
+     *     
+     */
+    public void setActivePower(BigInteger value) {
+        this.activePower = value;
     }
 
     /**
@@ -321,30 +348,6 @@ public class ArchitectureElementTypeType {
     }
 
     /**
-     * Gets the value of the power property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link BigInteger }
-     *     
-     */
-    public BigInteger getPower() {
-        return power;
-    }
-
-    /**
-     * Sets the value of the power property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link BigInteger }
-     *     
-     */
-    public void setPower(BigInteger value) {
-        this.power = value;
-    }
-
-    /**
      * Gets the value of the scheduler property.
      * 
      * @return
@@ -366,6 +369,30 @@ public class ArchitectureElementTypeType {
      */
     public void setScheduler(ArchitectureSchedulerType value) {
         this.scheduler = value;
+    }
+
+    /**
+     * Gets the value of the sleepPower property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link BigInteger }
+     *     
+     */
+    public BigInteger getSleepPower() {
+        return sleepPower;
+    }
+
+    /**
+     * Sets the value of the sleepPower property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link BigInteger }
+     *     
+     */
+    public void setSleepPower(BigInteger value) {
+        this.sleepPower = value;
     }
 
     /**
