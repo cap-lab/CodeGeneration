@@ -34,8 +34,6 @@ CIC_UT_THREAD_FUNC_RET_TYPE TaskRoutine(CIC_UT_THREAD_FUNC_ARG_TYPE pdata)
 	
 	if(tasks[task_index].period <= 0)	return CIC_V_NULL;
 	
-##SET_PROC
-
 	if(tasks[task_index].task_type == COMPUTATIONAL){
 		CIC_F_BARRIER_WAIT(&all_thread_barrier);
 	}

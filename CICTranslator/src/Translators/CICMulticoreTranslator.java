@@ -1059,12 +1059,12 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 
 			libraryInit += "CIC_STATIC CIC_T_VOID InitLibraries(){\n";
 			for (Library library : mLibrary.values())
-				libraryInit += "\tl_" + library.getName() + "_init();\n";
+				libraryInit += "\tl_" + library.getName() + "_Init();\n";
 			libraryInit += "}";
 
 			libraryWrapup += "CIC_STATIC CIC_T_VOID WrapupLibraries(){\n";
 			for (Library library : mLibrary.values())
-				libraryWrapup += "\tl_" + library.getName() + "_wrapup();\n";
+				libraryWrapup += "\tl_" + library.getName() + "_Wrapup();\n";
 			libraryWrapup += "}";
 		}
 
@@ -1085,16 +1085,16 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		code = code.replace("##TASK_ROUTINE", timeTaskRoutine);
 		//////////////////////////
 
-		// SET_PROC //
-		if (!mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic))
+		// 
+		if (!(mGraphType.equals("ProcessNetwork") || mRuntimeExecutionPolicy.equals(HopesInterface.RuntimeExecutionPolicy_FullyDynamic)))
 		{
 			String setProc = "\tschedule_id = GetScheduleIdFromTaskIndex(task_index);\n";
 			setProc +=  "\tproc_id = GetProcessorId(task_id, schedule_id, mode_name, 0);\n";
 			setProc += "\tcpu_set_t cpuset;\n"
 					+ "\tCPU_ZERO(&cpuset);\n" + "\tCPU_SET(proc_id, &cpuset);\n"
 					+ "\tpthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);\n";
-			code = code.replace("##SET_PROC", setProc);
-		}		
+			code = code.replace("##SET_PROC", setProc);		
+		}			
 		//////////////
 		
 		if (!mGraphType.equals("ProcessNetwork"))
