@@ -1052,19 +1052,19 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 		if (mLibrary != null) {
 			for (Library library : mLibrary.values()) {
 				externLibraryInitWrapupFunctionDecl += "CIC_EXTERN CIC_T_VOID l_" + library.getName()
-						+ "_Init(CIC_T_VOID);\n";
+						+ "_init(CIC_T_VOID);\n";
 				externLibraryInitWrapupFunctionDecl += "CIC_EXTERN CIC_T_VOID l_" + library.getName()
-						+ "_Wrapup(CIC_T_VOID);\n\n";
+						+ "_wrapup(CIC_T_VOID);\n\n";
 			}
 
 			libraryInit += "CIC_STATIC CIC_T_VOID InitLibraries(){\n";
 			for (Library library : mLibrary.values())
-				libraryInit += "\tl_" + library.getName() + "_Init();\n";
+				libraryInit += "\tl_" + library.getName() + "_init();\n";
 			libraryInit += "}";
 
 			libraryWrapup += "CIC_STATIC CIC_T_VOID WrapupLibraries(){\n";
 			for (Library library : mLibrary.values())
-				libraryWrapup += "\tl_" + library.getName() + "_Wrapup();\n";
+				libraryWrapup += "\tl_" + library.getName() + "_wrapup();\n";
 			libraryWrapup += "}";
 		}
 
