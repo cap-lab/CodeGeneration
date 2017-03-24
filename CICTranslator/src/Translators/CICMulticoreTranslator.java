@@ -1145,6 +1145,26 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 			String controlApi = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##CONTROL_API");
 			code = code.replace("##CONTROL_API", controlApi);
 			//////////////////////////
+			
+			templateFile = mTranslatorPath + "templates/target/Multicore/target_dependent_code.template";
+			// SET_THROUGHPUT_DEPENDENT_CODE // 
+			String set_throughput_dependent_code = "";			
+			set_throughput_dependent_code = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##SET_THROUGHPUT_DEPENDENT_CODE");
+			code = code.replace("##SET_THROUGHPUT_DEPENDENT_CODE", set_throughput_dependent_code);
+			
+			// SET_DEADLINE_DEPENDENT_CODE // 
+			String set_deadline_dependent_code = "";
+			code = code.replace("##SET_DEADLINE_DEPENDENT_CODE", set_deadline_dependent_code);
+			
+			// SET_THROUGHPUT //
+			String set_throughput_code = "";
+			set_throughput_code = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##SET_THROUGHPUT");		
+			code = code.replace("##SET_THROUGHPUT", set_throughput_code);
+			
+			// SET_DEADLINE //
+			String set_deadline_code = "";
+			code = code.replace("##SET_DEADLINE", set_deadline_code);
+			
 
 			templateFile = getTaskExecutionTemplateFile(mGraphType, mRuntimeExecutionPolicy, mCodeGenerationStyle);
 
@@ -1173,6 +1193,8 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 					"##CONTROL_SUSPEND_TASK");
 			code = code.replace("##CONTROL_SUSPEND_TASK", controlSuspendTask);
 			//////////////////////////
+			
+			
 		} else {
 			code = code.replace("##CONTROL_API", "");
 			
@@ -1183,10 +1205,35 @@ public class CICMulticoreTranslator implements CICTargetCodeTranslator {
 				// CONTROL_END_TASK //
 				String controlEndTask = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##CONTROL_END_TASK");
 				code = code.replace("##CONTROL_END_TASK", controlEndTask);
+				
+				// SET_THROUGHPUT_DEPENDENT_CODE // 		
+				code = code.replace("##SET_THROUGHPUT_DEPENDENT_CODE", "");
+				
+				// SET_DEADLINE_DEPENDENT_CODE // 
+				code = code.replace("##SET_DEADLINE_DEPENDENT_CODE", "");
+				
+				// SET_THROUGHPUT //
+				code = code.replace("##SET_THROUGHPUT", "");
+				
+				// SET_DEADLINE //
+				code = code.replace("##SET_DEADLINE", "");
 			}
 			else
 			{
+				// CONTROL_END_TASK //
 				code = code.replace("##CONTROL_END_TASK", "");
+				
+				// SET_THROUGHPUT_DEPENDENT_CODE // 		
+				code = code.replace("##SET_THROUGHPUT_DEPENDENT_CODE", "");
+				
+				// SET_DEADLINE_DEPENDENT_CODE // 
+				code = code.replace("##SET_DEADLINE_DEPENDENT_CODE", "");
+				
+				// SET_THROUGHPUT //
+				code = code.replace("##SET_THROUGHPUT", "");
+				
+				// SET_DEADLINE //
+				code = code.replace("##SET_DEADLINE", "");
 			}
 			//////////////////////////
 		}

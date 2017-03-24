@@ -158,3 +158,98 @@ CIC_STATIC CIC_T_INT GetScheduleIndexFromProcessorIdAndParentTaskId(CIC_T_INT pr
   return CIC_V_ERROR;
 }
 ##GET_SCHEDULE_INDEX_FROM_PROCESSOR_ID_END
+
+##SET_THROUGHPUT_START
+  CIC_T_INT target_task_id = GetTaskIdFromTaskName(t_name);
+  CIC_T_DOUBLE constraints = GetThroughputConstFromValueAndUnit(value, unit);
+  
+  CIC_T_INT schedule_id = GetScheduleIdFromTaskIdAndThroughputValue(target_task_id, constraints);
+  
+  CIC_F_PRINTF("SetThroughput: constraints:: %.2f - schedule_id:: %d\n", constraints, schedule_id);
+  SetProperScheduleFromTaskIdAndScheduleId(target_task_id, schedule_id);
+##SET_THROUGHPUT_END
+
+##SET_THROUGHPUT_DEPENDENT_CODE_START
+CIC_T_DOUBLE GetThroughputConstFromValueAndUnit(CIC_T_CHAR* value, CIC_T_CHAR* unit)
+{
+  CIC_T_DOUBLE result = 0;
+
+  result = atof(value);
+  
+  if(CIC_F_STRING_COMPARE("1/usec", unit) == 0)
+  {
+    result = result;
+  }
+  else if(CIC_F_STRING_COMPARE("1/msec", unit) == 0)
+  {
+    result = result * 1000;
+  }
+  else if(CIC_F_STRING_COMPARE("1/sec", unit) == 0)
+  {
+    result = result * 1000 * 1000;
+  }
+  else
+  {
+    result = result;
+  }
+
+  return result;
+}
+
+CIC_T_INT GetScheduleIdFromTaskIdAndThroughputValue(CIC_T_INT parent_task_id, CIC_T_DOUBLE constraints)
+{
+  CIC_T_INT schedule_id = -1;
+  CIC_T_INT i, j;
+  CIC_T_INT target_task_id = -1;  
+  CIC_T_CHAR parent_task_id_name[10];
+  
+  CIC_F_INTEGER_TO_STRING(parent_task_id_name, parent_task_id);
+    
+  for(i = 0; i < CIC_UV_NUM_TASKS; i++) 
+  {
+    if(tasks[i].parent_task_id == parent_task_id && tasks[i].is_child_task == CIC_V_TRUE)
+    {
+      target_task_id = tasks[i].task_id;
+      break;
+    }
+  }
+
+  for(i = 0; i < CIC_ARRAYLEN(task_to_core_map); i++)
+  {
+    if(task_to_core_map[i].task_id == target_task_id)
+    {
+      for(j = 0; j < CIC_ARRAYLEN(task_to_core_map[i].throughput_constraint); j++)
+      {
+        if(constraints >= task_to_core_map[i].throughput_constraint[j])
+        {
+          schedule_id = task_to_core_map[i].proc_num_list[j];
+          return schedule_id;
+        }
+      }
+    }
+  }
+  
+  CIC_F_ERROR(parent_task_id_name, "GetScheduleIdFromTaskIdAndThroughputValue() fail!", CIC_V_ERROR_EXIT);
+  return CIC_V_ERROR;
+}
+
+CIC_T_VOID SetProperScheduleFromTaskIdAndScheduleId(CIC_T_INT parent_task_id, CIC_T_INT schedule_id)
+{
+  CIC_T_INT i = 0; 
+
+  for(i = 0; i < CIC_ARRAYLEN(task_to_core_map); i++)
+  {
+    if(task_to_core_map[i].task_id == parent_task_id)
+    {
+      task_to_core_map[i].schedule_id = schedule_id;
+      break;
+    }
+  }
+
+//  printf("-------------SetProperScheduleFromTaskIdAndScheduleId-----------------\n");
+//  for(i = 0; i < CIC_UV_NUM_TASKS; i++)
+//  {
+//    printf("[%d] %d : %d\n", i, task_to_core_map[i].task_id, task_to_core_map[i].schedule_id);
+//  }
+}
+##SET_THROUGHPUT_DEPENDENT_CODE_END

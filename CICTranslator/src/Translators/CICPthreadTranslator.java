@@ -312,6 +312,7 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 					"##CONTROL_SUSPEND_TASK");
 			code = code.replace("##CONTROL_SUSPEND_TASK", controlSuspendTask);
 			//////////////////////////
+			
 		} else {
 			code = code.replace("##CONTROL_API", "");
 		}
@@ -320,6 +321,18 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 		String controlEndTask = CommonLibraries.Util.getCodeFromTemplate(templateFile, "##CONTROL_END_TASK");
 		code = code.replace("##CONTROL_END_TASK", controlEndTask);
 		//////////////////////////
+		
+		// SET_THROUGHPUT_DEPENDENT_CODE // 		
+		code = code.replace("##SET_THROUGHPUT_DEPENDENT_CODE", "");
+		
+		// SET_DEADLINE_DEPENDENT_CODE // 
+		code = code.replace("##SET_DEADLINE_DEPENDENT_CODE", "");
+		
+		// SET_THROUGHPUT //
+		code = code.replace("##SET_THROUGHPUT", "");
+		
+		// SET_DEADLINE //
+		code = code.replace("##SET_DEADLINE", "");
 
 		templateFile = mTranslatorPath + "templates/common/channel_manage/general_linux_multi_thread.template";
 			
