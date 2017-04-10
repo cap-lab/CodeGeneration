@@ -177,8 +177,14 @@ CIC_T_INT ReadPort(CIC_T_INT channel_index, CIC_UT_BUFFER_DATA_TYPE buf, CIC_T_I
    		CIC_F_ERROR(task_channel_name, "ReadPort(): max_size is too small!", CIC_V_ERROR_EXIT);
     }
 
-read_start:
 	CIC_F_MUTEX_LOCK(&(channel->mutex));
+read_start:
+	if(tasks[task_id].state == STATE_STOP) {
+		len = 0;
+		CIC_F_MUTEX_UNLOCK(&(channel->mutex));
+        goto _EXIT;
+    }
+
     if(channel->start < channel->end){
     	cur_size = (CIC_T_UINT)(channel->end - channel->start);
     }
@@ -191,7 +197,6 @@ read_start:
     if(len > cur_size){ 	// blocking case
     	if(task_id >= 0)	tasks[task_id].run_state = READ_BLOCK;
         CIC_F_COND_WAIT(&(channel->cond), &(channel->mutex));
-        CIC_F_MUTEX_UNLOCK(&(channel->mutex));
         goto read_start; 	// try reading again
     }
     else CIC_F_MUTEX_UNLOCK(&(channel->mutex));
@@ -201,24 +206,21 @@ read_start:
     if(channel->start + len <= channel->buf + channel->max_size){
         CIC_F_MEM_COPY(buf, channel->start, len);
         
-        CIC_F_MUTEX_LOCK(&(channel->mutex));
         channel->start += len;
         if(channel->end == channel->start)	channel->is_full = CIC_V_FALSE;
         CIC_F_COND_BROADCAST(&(channel->cond));
-		CIC_F_MUTEX_UNLOCK(&(channel->mutex)); 
     }
     else{
         CIC_T_INT part = channel->max_size - (channel->start - channel->buf);
         if(part != 0)	CIC_F_MEM_COPY(buf, channel->start, part);
         CIC_F_MEM_COPY(buf + part, channel->buf, len - part);
         
-        CIC_F_MUTEX_LOCK(&(channel->mutex));
         channel->start = channel->buf + (len - part);
         if(channel->end == channel->start)	channel->is_full = CIC_V_FALSE;
         CIC_F_COND_BROADCAST(&(channel->cond));
-		CIC_F_MUTEX_UNLOCK(&(channel->mutex));  
     }
-
+	CIC_F_MUTEX_UNLOCK(&(channel->mutex));  
+_EXIT:
     return len;
 }
 
@@ -227,6 +229,7 @@ CIC_T_INT WriteOnePort(CIC_T_INT channel_index, CIC_UT_BUFFER_DATA_TYPE buf, CIC
     CIC_T_INT cur_size=0;
     CIC_T_INT channel_id = channels[channel_index].channel_id;
     CIC_T_INT task_id = GetTaskIdFromChannelIdAndOp(channel_id, 'r');
+	CIC_T_INT src_task_id = GetTaskIdFromChannelIdAndOp(channel_id, 'w');
     CIC_T_INT task_index = GetTaskIndexFromTaskId(task_id);
     CIC_UT_CHANNEL *channel = &channels[channel_index];
     
@@ -248,8 +251,15 @@ CIC_T_INT WriteOnePort(CIC_T_INT channel_index, CIC_UT_BUFFER_DATA_TYPE buf, CIC
    		CIC_F_ERROR(task_channel_name, "WriteOnePort(): max_size is too small!", CIC_V_ERROR_EXIT);
     }
 
-write_start:
 	CIC_F_MUTEX_LOCK(&(channel->mutex));
+write_start:
+
+	if(tasks[src_task_id].state == STATE_STOP){
+		len  = 0;
+    	CIC_F_MUTEX_UNLOCK(&(channel->mutex));
+		goto _EXIT;
+	}
+
     if(channel->start < channel->end){
     	cur_size = (CIC_T_UINT)(channel->end - channel->start);
     }
@@ -264,11 +274,7 @@ write_start:
     if(len + cur_size > channel->max_size){ 	// blocking case
         if(task_id >= 0)	tasks[task_id].run_state = WRITE_BLOCK;
         CIC_F_COND_WAIT(&(channel->cond), &(channel->mutex));
-        CIC_F_MUTEX_UNLOCK(&(channel->mutex));
         goto write_start; 						// try writing again
-    }
-    else{
-    	CIC_F_MUTEX_UNLOCK(&(channel->mutex));
     }
     
     if(task_id >= 0)	tasks[task_id].run_state = RUNNING;
@@ -276,11 +282,9 @@ write_start:
     if(channel->buf + channel->max_size >= channel->end + len){
         CIC_F_MEM_COPY(channel->end, buf, len);
         
-        CIC_F_MUTEX_LOCK(&(channel->mutex));
         channel->end += len;
         if(channel->end == channel->start)	channel->is_full = CIC_V_TRUE;
         CIC_F_COND_BROADCAST(&(channel->cond));
-		CIC_F_MUTEX_UNLOCK(&(channel->mutex));
     }
     else{
         CIC_T_INT part = channel->max_size - (channel->end - channel->buf);
@@ -289,13 +293,12 @@ write_start:
         }
         CIC_F_MEM_COPY(channel->buf, buf + part, len - part);
         
-        CIC_F_MUTEX_LOCK(&(channel->mutex));
         channel->end = channel->buf + (len - part);
         if(channel->end == channel->start)	channel->is_full = CIC_V_TRUE;
         CIC_F_COND_BROADCAST(&(channel->cond));
-		CIC_F_MUTEX_UNLOCK(&(channel->mutex));
     }   
-    
+ 	CIC_F_MUTEX_UNLOCK(&(channel->mutex));
+   
 #if defined(BREAK_DEBUG) && (BREAK_DEBUG==1)
     if(channel->is_break){
     	DumpBreakChannelData(channel_id);
@@ -310,7 +313,7 @@ write_start:
 		UpdateWatch();
     }
 #endif
-
+_EXIT:
     return len;
 }
 

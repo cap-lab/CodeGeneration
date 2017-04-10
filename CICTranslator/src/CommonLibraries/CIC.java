@@ -724,11 +724,17 @@ public class CIC {
 		// EXTERN_FUNCTION_DECLARATION //
 		String externalFunctions = "";
 
-		if (mRuntimeExecutionPolicy.equals("Single")) {
+		if (mRuntimeExecutionPolicy.equals("Single")) {		
 			for (Task task : mTask.values()) {
-				externalFunctions += "CIC_EXTERN CIC_T_VOID " + task.getName() + "_Init(CIC_T_INT);\n";
-				externalFunctions += "CIC_EXTERN CIC_T_VOID " + task.getName() + "_Go(CIC_T_VOID);\n";
-				externalFunctions += "CIC_EXTERN CIC_T_VOID " + task.getName() + "_Wrapup(CIC_T_VOID);\n";
+				if (task.getHasSubgraph().equals("No")) {
+					externalFunctions += "CIC_EXTERN CIC_T_VOID " + task.getName() + "_Init(CIC_T_INT);\n";
+					externalFunctions += "CIC_EXTERN CIC_T_VOID " + task.getName() + "_Go(CIC_T_VOID);\n";
+					externalFunctions += "CIC_EXTERN CIC_T_VOID " + task.getName() + "_Wrapup(CIC_T_VOID);\n";
+				} else {
+					externalFunctions += "CIC_T_VOID " + task.getName() + "_Init(CIC_T_INT param) {};\n";
+					externalFunctions += "CIC_T_VOID " + task.getName() + "_Go(CIC_T_VOID) {};\n";
+					externalFunctions += "CIC_T_VOID " + task.getName() + "_Wrapup(CIC_T_VOID) {};\n";
+				}
 			}
 			for (Task task : mVTask.values()) {
 				externalFunctions += "CIC_STATIC CIC_T_VOID " + task.getName() + "_Init(CIC_T_INT);\n";
