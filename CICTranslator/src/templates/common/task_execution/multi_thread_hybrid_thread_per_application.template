@@ -327,21 +327,17 @@ go_continue:
                         channel_id = addressmap[k].channel_id;
                         for(j=0; j<CIC_UV_NUM_CHANNELS; j++){
                             if(channels[j].channel_id == channel_id) {
-
                                 CIC_F_MUTEX_LOCK(&(channels[j].mutex));
                                 tasks[i].state = STATE_STOP;
                                 tasks[i].run_state = NONE;
                                 CIC_F_COND_BROADCAST(&(channels[j].cond));
                                 CIC_F_MUTEX_UNLOCK(&(channels[j].mutex));
-                                if(i != task_id)
-                                	CIC_F_THREAD_JOIN(tasks[i].thread);
                             }
                         }
-
                     }
                 }
                 if(i != task_id) {
-                  	CIC_F_THREAD_JOIN(tasks[i].thread);
+                  	 CIC_F_THREAD_JOIN(tasks[i].thread);
                   	 CIC_F_PRINTF("Stop task %s (task_id: %d)\n", tasks[i].name, tasks[i].task_id);
                 }
             }

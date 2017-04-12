@@ -123,6 +123,7 @@ CIC_STATIC CIC_T_VOID WrapupChannels(CIC_T_VOID)
 ##INIT_WRAPUP_TASK_CHANNELS_START
 CIC_STATIC CIC_T_VOID InitTaskChannels(CIC_T_INT parent_task_id){
     CIC_T_INT i=0, j=0, count=0;
+    int cur_size = 0;
     for(i=0; i<CIC_UV_NUM_CHANNELS; i++){
         count = 0;
         for(j=0; j< CIC_UV_NUM_PORTMAPS; j++){
@@ -130,7 +131,17 @@ CIC_STATIC CIC_T_VOID InitTaskChannels(CIC_T_INT parent_task_id){
             	&& tasks[addressmap[j].task_id].parent_task_id == parent_task_id) count++;
         }
         if(count == 2){
-            InitChannel(i);
+            if(channels[i].start < channels[i].end){
+                cur_size = (CIC_T_UINT)(channels[i].end - channels[i].start);
+            }
+            else if(channels[i].start == channels[i].end){
+                if(channels[i].is_full)		cur_size = channels[i].max_size;
+                else						cur_size = 0;
+            }
+            else  cur_size = (CIC_T_UINT)(channels[i].end + channels[i].max_size - channels[i].start);
+
+            if(channels[i].buf != NULL && cur_size == 0)
+                InitChannel(i);
         }
     }
 }
@@ -179,12 +190,6 @@ CIC_T_INT ReadPort(CIC_T_INT channel_index, CIC_UT_BUFFER_DATA_TYPE buf, CIC_T_I
 
 	CIC_F_MUTEX_LOCK(&(channel->mutex));
 read_start:
-	if(tasks[task_id].state == STATE_STOP) {
-		len = 0;
-		CIC_F_MUTEX_UNLOCK(&(channel->mutex));
-        goto _EXIT;
-    }
-
     if(channel->start < channel->end){
     	cur_size = (CIC_T_UINT)(channel->end - channel->start);
     }
@@ -193,13 +198,18 @@ read_start:
      	else						cur_size = 0;
     }
     else  cur_size = (CIC_T_UINT)(channel->end + channel->max_size - channel->start);
+    
+    if(tasks[task_id].state == STATE_STOP) {
+		len = 0;
+		CIC_F_MUTEX_UNLOCK(&(channel->mutex));
+        goto _EXIT;
+    }
 
     if(len > cur_size){ 	// blocking case
     	if(task_id >= 0)	tasks[task_id].run_state = READ_BLOCK;
         CIC_F_COND_WAIT(&(channel->cond), &(channel->mutex));
         goto read_start; 	// try reading again
     }
-    else CIC_F_MUTEX_UNLOCK(&(channel->mutex));
 
 	if(task_id >= 0)	tasks[task_id].run_state = RUNNING;
 
@@ -254,12 +264,6 @@ CIC_T_INT WriteOnePort(CIC_T_INT channel_index, CIC_UT_BUFFER_DATA_TYPE buf, CIC
 	CIC_F_MUTEX_LOCK(&(channel->mutex));
 write_start:
 
-	if(tasks[src_task_id].state == STATE_STOP){
-		len  = 0;
-    	CIC_F_MUTEX_UNLOCK(&(channel->mutex));
-		goto _EXIT;
-	}
-
     if(channel->start < channel->end){
     	cur_size = (CIC_T_UINT)(channel->end - channel->start);
     }
@@ -272,12 +276,19 @@ write_start:
 	}
 	
     if(len + cur_size > channel->max_size){ 	// blocking case
+    
+        if(tasks[src_task_id].state == STATE_STOP){
+            len  = 0;
+            CIC_F_MUTEX_UNLOCK(&(channel->mutex));
+            goto _EXIT;
+        }
+    
         if(task_id >= 0)	tasks[task_id].run_state = WRITE_BLOCK;
         CIC_F_COND_WAIT(&(channel->cond), &(channel->mutex));
         goto write_start; 						// try writing again
     }
     
-    if(task_id >= 0)	tasks[task_id].run_state = RUNNING;
+    if(task_id >= 0 && tasks[task_id].state != STATE_STOP)	tasks[task_id].run_state = RUNNING;
 
     if(channel->buf + channel->max_size >= channel->end + len){
         CIC_F_MEM_COPY(channel->end, buf, len);
