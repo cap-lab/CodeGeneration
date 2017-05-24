@@ -69,7 +69,7 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 			String funcSimPeriodMetric, String cicxmlfile, String language, CICAlgorithmType algorithm,
 			CICControlType control, CICScheduleType schedule, CICGPUSetupType gpusetup, CICMappingType mapping,
 			Map<Integer, List<Task>> connectedtaskgraph, Map<Integer, List<List<Task>>> connectedsdftaskset,
-			Map<String, Task> vtask, Map<String, Task> pvtask, String mGraphType, String runtimeExecutionPolicy, String codeGenerationStyle)
+			Map<String, Task> vtask, Map<String, Task> pvtask, String graphType, String runtimeExecutionPolicy, String codeGenerationStyle)
 					throws FileNotFoundException {
 		mTarget = target;
 		mTranslatorPath = translatorPath;
@@ -95,6 +95,7 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 		mSchedule = schedule;
 		mGpusetup = gpusetup;
 		mMapping = mapping;
+		mGraphType = graphType;
 
 		Util.copyFile(mOutputPath + "target_task_model.h",
 				mTranslatorPath + "templates/common/task_model/pthread.template");
@@ -393,8 +394,9 @@ public class CICPthreadTranslator implements CICTargetCodeTranslator {
 
 		// SCHEDULE_CODE //
 		String outPath = mOutputPath + "/convertedSDF3xml/";
-		String staticScheduleCode = CommonLibraries.Schedule.generateSingleProcessorStaticScheduleCode(outPath, mTask,
-				mVTask);
+		String staticScheduleCode = "";
+		if(mGraphType.equals("Single") == true)
+		    staticScheduleCode = CommonLibraries.Schedule.generateSingleProcessorStaticScheduleCode(outPath, mTask,	mVTask);
 		code = code.replace("##SCHEDULE_CODE", staticScheduleCode);
 		///////////////////
 

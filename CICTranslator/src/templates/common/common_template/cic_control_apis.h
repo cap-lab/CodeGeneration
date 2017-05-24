@@ -1,6 +1,8 @@
 #ifndef __CIC_CONTROL_APIS_H__
 #define __CIC_CONTROL_APIS_H__
 
+CIC_TYPEDEF CIC_T_ENUM{ STATE_RUN, STATE_STOP, STATE_WAIT, STATE_END } CIC_UT_TASK_STATE;
+
 CIC_EXTERN CIC_T_VOID 		SetThroughput(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, CIC_T_CHAR* value, CIC_T_CHAR* unit);
 CIC_EXTERN CIC_T_VOID 		SetDeadline(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, CIC_T_CHAR* value, CIC_T_CHAR* unit);
 CIC_EXTERN CIC_T_LONG 		GetParamInt(CIC_T_CHAR* caller_task_name, CIC_T_CHAR* t_name, CIC_T_CHAR* p_name);

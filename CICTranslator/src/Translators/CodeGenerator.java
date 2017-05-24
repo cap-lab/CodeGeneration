@@ -218,7 +218,6 @@ public class CodeGenerator
 				mPVTask = new HashMap<String, Task>(); 
 			}
 			else if(mGraphType.equals("ProcessNetwork")){
-				mTask = mBuilder.removeParentTask(mTask);
 				mConnectedSDFTaskSet = new HashMap<Integer, List<List<Task>>>();
 				mVTask = new HashMap<String, Task>(); 
 				mBuilder.fillMappingForTask(mTask, mVTask, mProcessor, mMapping, mOutputPath, mGraphType);
