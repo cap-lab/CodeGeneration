@@ -15,7 +15,8 @@
   <xs:complexType name="CICArchitectureType">
     <xs:sequence>
       <xs:element name="elementTypes" type="ArchitectureElementTypeListType" minOccurs="1" maxOccurs="1" />
-      <xs:element name="elements" type="ArchitectureElementListType" minOccurs="1" maxOccurs="1" />
+	  <xs:element name="elements" type="ArchitectureElementListType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="devices" type="ArchitectureDeviceListType" minOccurs="0" maxOccurs="1" />
       <xs:element name="connections" type="ArchitectureConnectionListType" minOccurs="1" maxOccurs="1" />
     </xs:sequence>
     <xs:attribute name="target" type="xs:string" use="required" />
@@ -38,6 +39,44 @@
     	<xs:element name="connection" type="ArchitectureConnectType" minOccurs="0" maxOccurs="unbounded" />
     </xs:sequence>    
   </xs:complexType>
+
+  <xs:complexType name="ArchitectureDeviceListType">
+    <xs:sequence>
+    	<xs:element name="device" type="ArchitectureDeviceType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>    
+  </xs:complexType>
+
+  <xs:complexType name="ArchitectureDeviceType">
+    <xs:sequence>
+      <xs:element name="elements" type="ArchitectureElementListType" minOccurs="1" maxOccurs="1" />
+	  <xs:element name="connections" type="DeviceConnectionListType" minOccurs="0" maxOccurs="1" />
+	</xs:sequence>
+	<xs:attribute name="name" type="NameType" use="required" />
+	<xs:attribute name="architecture" type="NameType" use="required" />
+	<xs:attribute name="platform" type="NameType" use="required" />
+	<xs:attribute name="runtime" type="NameType" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="DeviceConnectionListType">
+    <xs:sequence>
+      <xs:element name="TCPConnection" type="TCPConnectionType" minOccurs="0" maxOccurs="unbounded" />
+	  <xs:element name="BluetoothConnection" type="BluetoothConnectionType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="TCPConnectionType">
+	<xs:attribute name="name" type="NameType" use="required" />
+	<xs:attribute name="role" type="TCPRoleType" use="required" />
+	<xs:attribute name="ip" type="xs:string" use="optional" />
+	<xs:attribute name="port" type="xs:nonNegativeInteger" use="optional" />
+  </xs:complexType>
+
+  <xs:complexType name="BluetoothConnectionType">
+	<xs:attribute name="name" type="NameType" use="required" />
+	<xs:attribute name="role" type="BluetoothRoleType" use="required" />
+	<xs:attribute name="friendlyName" type="xs:string" use="optional" />
+	<xs:attribute name="MAC" type="xs:string" use="required" />
+  </xs:complexType>  
 
   <!-- Type definitions for architecture element types -->
   <xs:complexType name="ArchitectureElementTypeType">
@@ -100,85 +139,29 @@
   <!-- Type definitions for memory-mapped I/O maps and interrupt maps -->
   <xs:complexType name="ArchitectureConnectType">
     <xs:sequence>
-      <xs:element name="Bluetoothconnection" type="ArchitectureConnectionBTType" minOccurs="0" maxOccurs="unbounded" />
-      <xs:element name="WIFIconnection" type="ArchitectureConnectionWIFIType" minOccurs="0" maxOccurs="unbounded" />
-      <xs:element name="I2Cconnection" type="ArchitectureConnectionI2CType" minOccurs="0" maxOccurs="unbounded" />
-      <xs:element name="VRep_SharedBusconnection" type="ArchitectureConnectionVRepSBType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="slave" type="ArchitectureConnectionSlaveType" minOccurs="1" maxOccurs="unbounded" />
     </xs:sequence>    
-    <xs:attribute name="type" type="ArchitectureConnectionCategoryType" use="required" />
+	<xs:attribute name="master" type="NameType" use="required" />
+    <xs:attribute name="connection" type="NameType" use="required" />	
   </xs:complexType>
 
-  <xs:simpleType name="ArchitectureConnectionCategoryType">
+  <xs:complexType name="ArchitectureConnectionSlaveType">
+	<xs:attribute name="device" type="NameType" use="required" />
+    <xs:attribute name="connection" type="NameType" use="required" />	
+  </xs:complexType>
+
+  <xs:simpleType name="TCPRoleType">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="Bluetooth" />
-      <xs:enumeration value="WIFI" />
-      <xs:enumeration value="I2CBus" />
-      <xs:enumeration value="VRep_SharedBus" />
+      <xs:enumeration value="server" />
+      <xs:enumeration value="client" />
     </xs:restriction>
   </xs:simpleType>
 
-  <xs:complexType name="ArchitectureConnectionBTType">
-    <xs:sequence>
-      <xs:element name="master" type="ArchitectureConnectionBTMasterType" minOccurs="1" maxOccurs="1" />
-      <xs:element name="slave" type="ArchitectureConnectionBTSlaveType" minOccurs="1" maxOccurs="unbounded" />
-    </xs:sequence>   
-  </xs:complexType>
-
-  <xs:complexType name="ArchitectureConnectionBTMasterType">
-    <xs:attribute name="name" type="NameType" use="required" />
-    <xs:attribute name="friendlyName" type="NameType" use="required" />
-    <xs:attribute name="MAC" type="xs:string" use="required" />   
-  </xs:complexType>
-
-  <xs:complexType name="ArchitectureConnectionBTSlaveType">
-    <xs:attribute name="name" type="NameType" use="required" />
-    <xs:attribute name="friendlyName" type="NameType" use="optional" />
-    <xs:attribute name="MAC" type="xs:string" use="required" />
-  </xs:complexType>
-
-  <xs:complexType name="ArchitectureConnectionWIFIType">
-    <xs:sequence>
-      <xs:element name="server" type="ArchitectureConnectionWIFIserverType" minOccurs="1" maxOccurs="1" />
-      <xs:element name="client" type="ArchitectureConnectionWIFIclientType" minOccurs="1" maxOccurs="unbounded" />
-    </xs:sequence>   
-  </xs:complexType>
-
-  <xs:complexType name="ArchitectureConnectionWIFIserverType">
-    <xs:attribute name="name" type="NameType" use="required" />
-    <xs:attribute name="ip" type="xs:string" use="required" />   
-  </xs:complexType>
-
-  <xs:complexType name="ArchitectureConnectionWIFIclientType">
-    <xs:attribute name="name" type="NameType" use="required" />
-  </xs:complexType>
-
-  <xs:complexType name="ArchitectureConnectionI2CType">
-    <xs:sequence>
-      <xs:element name="master" type="ArchitectureConnectionI2CMasterType" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="slave" type="ArchitectureConnectionI2CSlaveType" minOccurs="1" maxOccurs="unbounded"/>
-    </xs:sequence>   
-  </xs:complexType>
-
-  <xs:complexType name="ArchitectureConnectionI2CMasterType">
-    <xs:attribute name="name" type="NameType" use="required" />
-    <xs:attribute name="ID" type="xs:string" use="required" />   
-  </xs:complexType>
-
-  <xs:complexType name="ArchitectureConnectionI2CSlaveType">
-    <xs:attribute name="name" type="NameType" use="required" />
-    <xs:attribute name="ID" type="xs:string" use="required" />   
-  </xs:complexType>
-
-  <xs:complexType name="ArchitectureConnectionVRepSBType">
-    <xs:sequence>
-      <xs:element name="master" type="ArchitectureConnectionVRepSBMemberType" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="slave" type="ArchitectureConnectionVRepSBMemberType" minOccurs="1" maxOccurs="unbounded"/>
-    </xs:sequence>   
-    <xs:attribute name="key" type="xs:nonNegativeInteger" use="required" />
-  </xs:complexType>
-
-  <xs:complexType name="ArchitectureConnectionVRepSBMemberType">
-    <xs:attribute name="name" type="NameType" use="required" /> 
-  </xs:complexType>
+  <xs:simpleType name="BluetoothRoleType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="master" />
+      <xs:enumeration value="slave" />
+    </xs:restriction>
+  </xs:simpleType>   
   
 </xs:schema>

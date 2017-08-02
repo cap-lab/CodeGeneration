@@ -21,10 +21,18 @@
 
   <xs:complexType name="MappingTaskType">
     <xs:sequence>
-      <xs:element name="processor" type="MappingProcessorIdType" minOccurs="1" maxOccurs="unbounded" />
+      <xs:element name="processor" type="MappingProcessorIdType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="device" type="MappingDeviceType" minOccurs="0" maxOccurs="unbounded" />	  
     </xs:sequence>
     <xs:attribute name="name" type="NameType" use="required" />
     <xs:attribute name="dataParallel" type="DataParallelType" use="optional" />
+  </xs:complexType>
+
+  <xs:complexType name="MappingDeviceType">
+    <xs:sequence>
+      <xs:element name="processor" type="MappingProcessorIdType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+	<xs:attribute name="name" type="NameType" use="required" />
   </xs:complexType>
 
   <xs:complexType name="MappingLibraryType">

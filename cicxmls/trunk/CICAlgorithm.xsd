@@ -99,7 +99,8 @@
       <xs:element name="extraSource" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
       <xs:element name="extraCIC" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
       <xs:element name="extraFile" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
-      <xs:element name="mtm" type="MTMType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="mtm" type="MTMType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="loopStructure" type="MTMType" minOccurs="0" maxOccurs="1" />
     </xs:sequence>
     <xs:attribute name="name" type="NameType" use="required" />
     <xs:attribute name="hasInternalStates" type="YesNoType" use="optional" />
@@ -111,7 +112,8 @@
     <xs:attribute name="hasSubGraph" type="xs:string" use="optional" />
     <xs:attribute name="hasMTM" type="xs:string" use="optional" />
     <xs:attribute name="taskType" type="xs:string" use="required" />
-    <xs:attribute name="ParentTask" type="xs:string" use="required" />
+	<xs:attribute name="ParentTask" type="xs:string" use="required" />
+    <xs:attribute name="isHardwareDependent" type="YesNoType" use="optional" />
   </xs:complexType>
 
   <xs:complexType name="TaskDataParallelType">
@@ -199,11 +201,12 @@
       <xs:element name="src" type="ChannelPortType" minOccurs="1" maxOccurs="unbounded" />
       <xs:element name="dst" type="ChannelPortType" minOccurs="1" maxOccurs="unbounded" />
     </xs:sequence>
-    <xs:attribute name="type" type="ChannelTypeType" use="required" />
+    <xs:attribute name="type" type="ChannelTypeType" use="optional" />
     <xs:attribute name="size" type="xs:nonNegativeInteger" use="required" />
     <xs:attribute name="sampleSize" type="xs:nonNegativeInteger" use="required" />
     <xs:attribute name="sampleType" type="xs:string" use="optional" />
-    <xs:attribute name="initialDataSize" type="xs:nonNegativeInteger" use="optional" />
+	<xs:attribute name="initialDataSize" type="xs:nonNegativeInteger" use="optional" />
+	<xs:attribute name="portMap" type="PortMapTypeType" use="optional" />
   </xs:complexType>
 
   <xs:complexType name="ChannelPortType">
@@ -280,7 +283,13 @@
     <xs:attribute name="comparator" type="xs:string" use="required" />
     <xs:attribute name="value" type="xs:string" use="required" />
   </xs:complexType>
-  
+
+  <xs:complexType name="LoopStructureType">
+    <xs:attribute name="type" type="LoopStructureTypeType" use="required" />
+    <xs:attribute name="loopCount" type="xs:nonNegativeInteger" use="required" />
+	<xs:attribute name="designatedTask" type="xs:string" use="optional" />
+  </xs:complexType>
+
   <!-- Type definitions for mode specification -->
   <xs:complexType name="ModeType">
     <xs:sequence>
@@ -340,17 +349,17 @@
 
   <xs:simpleType name="PortTypeType">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="fifo" />
-      <xs:enumeration value="array" />
-      <xs:enumeration value="overwritable" />
+      <xs:enumeration value="queue" />
+      <xs:enumeration value="array" />			
+      <xs:enumeration value="buffer" />
     </xs:restriction>
   </xs:simpleType>
 
   <xs:simpleType name="ChannelTypeType">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="fifo" />
+      <xs:enumeration value="queue" />
       <xs:enumeration value="array" />
-      <xs:enumeration value="overwritable" />
+      <xs:enumeration value="buffer" />
     </xs:restriction>
   </xs:simpleType>
   
@@ -360,5 +369,19 @@
       <xs:enumeration value="nonPreemptive" />
     </xs:restriction>
   </xs:simpleType>
+
+  <xs:simpleType name="LoopStructureTypeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="data" />
+      <xs:enumeration value="convergent" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="PortMapTypeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="distributing" />
+      <xs:enumeration value="broadcasting" />
+    </xs:restriction>
+  </xs:simpleType>  
 
 </xs:schema>
