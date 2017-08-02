@@ -100,7 +100,7 @@
       <xs:element name="extraCIC" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
       <xs:element name="extraFile" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
 	  <xs:element name="mtm" type="MTMType" minOccurs="0" maxOccurs="1" />
-      <xs:element name="loopStructure" type="MTMType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="loopStructure" type="LoopStructureType" minOccurs="0" maxOccurs="1" />
     </xs:sequence>
     <xs:attribute name="name" type="NameType" use="required" />
     <xs:attribute name="hasInternalStates" type="YesNoType" use="optional" />
@@ -122,7 +122,8 @@
       <xs:element name="dependencyVector" type="VectorListType" minOccurs="0" maxOccurs="1" />
     </xs:sequence>
     <xs:attribute name="type" type="DataParallelType" use="optional" />
-    <xs:attribute name="maxParallel" type="xs:nonNegativeInteger" use="optional" />
+	<xs:attribute name="maxParallel" type="xs:nonNegativeInteger" use="optional" />
+    <xs:attribute name="loopCount" type="xs:nonNegativeInteger" use="optional" />
   </xs:complexType>
 
   <xs:complexType name="TaskPortType">
@@ -349,17 +350,17 @@
 
   <xs:simpleType name="PortTypeType">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="queue" />
+      <xs:enumeration value="fifo" />
       <xs:enumeration value="array" />			
-      <xs:enumeration value="buffer" />
+      <xs:enumeration value="overwritable" />
     </xs:restriction>
   </xs:simpleType>
 
   <xs:simpleType name="ChannelTypeType">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="queue" />
+      <xs:enumeration value="fifo" />
       <xs:enumeration value="array" />
-      <xs:enumeration value="buffer" />
+      <xs:enumeration value="overwritable" />
     </xs:restriction>
   </xs:simpleType>
   
