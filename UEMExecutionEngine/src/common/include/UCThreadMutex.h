@@ -15,7 +15,14 @@ extern "C"
 {
 #endif
 
-uem_result UCThreadMutex_Create();
+typedef struct _SThreadMutex;
+
+typedef HThreadMutex;
+
+uem_result UCThreadMutex_Create(HThreadMutex *phMutex);
+uem_result UCThreadMutex_Lock(HThreadMutex hMutex);
+uem_result UCThreadMutex_Unlock(HThreadMutex hMutex);
+uem_result UCThreadMutex_Destroy(HThreadMutex *phMutex);
 
 #ifdef __cplusplus
 }

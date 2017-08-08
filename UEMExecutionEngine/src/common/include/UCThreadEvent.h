@@ -18,8 +18,6 @@ extern "C"
 
 typedef struct _SThreadEvent;
 
-//typedef struct _SThreadEvent *HThreadEvent;
-
 typedef HThreadEvent;
 
 uem_result UCThreadEvent_Create(HThreadEvent *phEvent);
