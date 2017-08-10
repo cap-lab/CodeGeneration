@@ -15,9 +15,13 @@ extern "C"
 {
 #endif
 
-typedef struct _SThreadMutex;
+typedef struct _SThreadMutex {
+	int enId;
+	uem_bool bInMutex;
+    pthread_mutex_t hMutex;
+} SThreadMutex;
 
-typedef HThreadMutex;
+typedef SThreadMutex *HThreadMutex;
 
 uem_result UCThreadMutex_Create(HThreadMutex *phMutex);
 uem_result UCThreadMutex_Lock(HThreadMutex hMutex);

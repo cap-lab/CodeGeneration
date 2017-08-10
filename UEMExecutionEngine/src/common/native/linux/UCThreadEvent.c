@@ -9,16 +9,6 @@
 
 #include <UCThreadEvent.h>
 
-typedef struct _SThreadEvent {
-	int id;
-	uem_bool bIsSet;
-	pthread_mutex_t hCond;
-	pthread_cond_t hMutex;
-} SThreadEvent;
-
-
-typedef SThreadEvent *HThreadEvent;
-
 uem_result UCThreadEvent_Create(HThreadEvent *phEvent)
 {
 	uem_result result = ERR_UEM_UNKNOWN;

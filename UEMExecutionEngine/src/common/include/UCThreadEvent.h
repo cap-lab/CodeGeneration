@@ -15,10 +15,14 @@ extern "C"
 {
 #endif
 
+typedef struct _SThreadEvent {
+	int enId;
+	uem_bool bIsSet;
+	pthread_mutex_t hCond;
+	pthread_cond_t hMutex;
+} SThreadEvent;
 
-typedef struct _SThreadEvent;
-
-typedef HThreadEvent;
+typedef SThreadEvent *HThreadEvent;
 
 uem_result UCThreadEvent_Create(HThreadEvent *phEvent);
 uem_result UCThreadEvent_SetEvent(HThreadEvent hEvent);

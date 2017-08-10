@@ -9,16 +9,6 @@
 
 #include <UCThreadMutex.h>
 
-typedef struct _SThreadMutex {
-	int enId;
-	uem_bool bInMutex;
-    pthread_mutex_t hMutex;
-} SThreadMutex;
-
-
-typedef SThreadMutex *HThreadMutex;
-
-
 uem_result UCThreadMutex_Create(HThreadMutex *phMutex)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
