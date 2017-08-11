@@ -13,21 +13,26 @@ extern "C"
 {
 #endif
 
-#ifndef TRUE
-	#define TRUE 1
-#endif
-
-#ifndef FALSE
-	#define FALSE 0
-#endif
-
 #ifndef IN
-	#define IN
+    #define IN
 #endif
 
 #ifndef OUT
-	#define OUT
+    #define OUT
 #endif
+
+#ifndef TRUE
+#   define TRUE (1)
+#endif
+
+#ifndef FALSE
+#   define FALSE (0)
+#endif
+
+#ifndef NULL
+#   define NULL (void *) (0)
+#endif
+
 
 #define UEM_RESULT_CATEGORY_INFO  0x10000000
 #define UEM_RESULT_CATEGORY_ERROR 0x20000000
