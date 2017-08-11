@@ -9,6 +9,8 @@
 
 #include <UCThreadEvent.h>
 
+#include <UCThreadEvent_data.h>
+
 uem_result UCThreadEvent_Create(HThreadEvent *phEvent)
 {
 	uem_result result = ERR_UEM_UNKNOWN;

@@ -9,6 +9,10 @@
 
 #include <UCThread.h>
 
+typedef struct _SThread {
+	EUemModuleId enId;
+	pthread_t hNativeThread;
+} SThread;
 
 uem_result UCThread_Create(FnNativeThread fnThreadRoutine, void *pUserData, HThread *phThread)
 {

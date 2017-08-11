@@ -9,6 +9,8 @@
 
 #include <UCThreadMutex.h>
 
+#include <UCThreadMutex_data.h>
+
 uem_result UCThreadMutex_Create(HThreadMutex *phMutex)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
