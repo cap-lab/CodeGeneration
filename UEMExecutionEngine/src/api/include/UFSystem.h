@@ -16,6 +16,10 @@ extern "C"
 #endif
 
 
+void UFSystem_Kill();
+void UFSystem_Stop();
+
+
 #ifdef __cplusplus
 }
 #endif
