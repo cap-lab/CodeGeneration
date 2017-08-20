@@ -113,6 +113,8 @@ typedef struct _SChunk {
 	void *pDataStart;
 	void *pDataEnd;
 	int nChunkDataLen;
+	int nAvailableNum;
+	int nMaxAvailableDataNum;
 	HThreadMutex hChunkMutex; // chunk mutex
 	HThreadEvent hChunkEvent; // chunk event for blocking/read
 } SChunk;
@@ -148,6 +150,63 @@ typedef struct _SChannel {
 	SPort stInputPort;
 	SPort stOutputPort;
 } SChannel;
+
+void Loop1_Replace_init();
+void Loop1_Replace_go();
+void Loop1_Replace_wrapup();
+
+
+SChannel g_pstChannels[] = {
+		{
+			0,
+			4,
+			NULL,
+			4,
+			NULL,
+			{
+					0,
+					"in_f",
+					4,
+					PORT_TYPE_QUEUE,
+					PORTMAP_TYPE_DISTRIBUTING,
+					NULL,
+					1,
+					0,
+			},
+			{
+					0,
+					"out_r",
+					4,
+					PORT_TYPE_QUEUE,
+					PORTMAP_TYPE_DISTRIBUTING,
+					NULL,
+					1,
+					0,
+			},
+		},
+};
+
+STask g_pstTopTasks[] = {
+		{ 	0,
+			"Loop1_Replace",
+			TASK_TYPE_COMPUTATIONAL,
+			Loop1_Replace_init,
+			Loop1_Replace_go,
+			Loop1_Replace_wrapup,
+			RUN_CONDITION_DATA_DRIVEN,
+			1,
+			1,
+			TIME_METRIC_MICROSEC,
+			1,
+			NULL,
+			g_pstTopGraph,
+			NULL,
+			NULL,
+			NULL,
+		},
+};
+
+STaskGraph g_pstTopGraph[] = { g_pstTopTasks, NULL };
 
 
 #ifdef __cplusplus
