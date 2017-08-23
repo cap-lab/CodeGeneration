@@ -223,10 +223,10 @@
 
   <!-- Type definitions for port map specification -->
   <xs:complexType name="PortMapType">
-    <xs:attribute name="parentTask" type="NameType" use="required" />
-    <xs:attribute name="parentPort" type="NameType" use="required" />
     <xs:attribute name="task" type="NameType" use="required" />
     <xs:attribute name="port" type="NameType" use="required" />
+    <xs:attribute name="childTask" type="NameType" use="optional" />
+    <xs:attribute name="childTaskPort" type="NameType" use="optional" />
 	<xs:attribute name="direction" type="PortDirectionType" use="required" />
 	<xs:attribute name="type" type="PortMapTypeType" use="required" />
   </xs:complexType>
