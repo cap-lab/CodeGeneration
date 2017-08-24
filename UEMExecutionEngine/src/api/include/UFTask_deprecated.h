@@ -8,6 +8,8 @@
 #ifndef SRC_API_INCLUDE_UFTASK_DEPRECATED_H_
 #define SRC_API_INCLUDE_UFTASK_DEPRECATED_H_
 
+#include <uem_common.h>
+
 #ifdef __cplusplus
 extern "C"
 {

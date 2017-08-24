@@ -15,6 +15,10 @@ extern "C"
 {
 #endif
 
+#define INVALID_TASK_ID (-1)
+#define INVALID_CHANNEL_ID (-1)
+
+
 typedef enum _ETaskType {
 	TASK_TYPE_COMPUTATIONAL,
 	TASK_TYPE_CONTROL,
@@ -34,7 +38,7 @@ typedef enum _EPortType {
 
 typedef enum _EPortMapType {
 	PORTMAP_TYPE_DISTRIBUTING,
-	PORTMAP_TYPE_BUFFER,
+	PORTMAP_TYPE_BROADCASTING,
 } EPortMapType;
 
 typedef enum _ETimeMetric {
@@ -100,7 +104,7 @@ typedef struct _STask {
 	int nRunRate;
 	int nPeriod;
 	ETimeMetric enPeriodMetric;
-	int nThreadNum;
+	int nThreadNum; // data-type loop count
 	STaskGraph *pstSubGraph;
 	STaskGraph *pstParentGraph;
 	SModeTransitionMachine *pstMTMInfo;
@@ -109,12 +113,11 @@ typedef struct _STask {
 } STask;
 
 typedef struct _SChunk {
-	void *pChunkStart;
-	void *pDataStart;
-	void *pDataEnd;
-	int nChunkDataLen;
-	int nAvailableNum;
-	int nMaxAvailableDataNum;
+	void *pChunkStart; // fixed
+	char *pDataStart; // vary
+	char *pDataEnd; // vary
+	int nChunkDataLen; // written data length
+	int nAvailableDataNum; // for broadcast loop
 	HThreadMutex hChunkMutex; // chunk mutex
 	HThreadEvent hChunkEvent; // chunk event for blocking/read
 } SChunk;
@@ -128,28 +131,50 @@ typedef struct _SAvailableChunk {
 } SAvailableChunk;
 
 
+// nBufSize /  (nTotalSampleRate *nSampleSize) => number of loop queue?
+
 typedef struct _SPort {
 	int nTaskId;
 	char *pszPortName;
+	int nTotalSampleRate; // for nested loop : this becomes outer loop task's sample size  (or most inner-task's sample size * (all loop counts except broadcasting port)
+	int nSampleRate; // most inner-task's sample rate (for general task, nSampleRate and nTotalSampleRate are same)
 	int nSampleSize;
 	EPortType enPortType;
-	EPortMapType enPortMapType;
 	SChunk *astChunk;
-	int nChunkNum; // loop count number, all channel has at least one chunk
-	int nChunkLen; // nChunkLen * nChunkNum = SChannel's nBufSize
-	SAvailableChunk *astAvailableChunkList;
+	int nChunkNum; // nTotalSampleRate / nSampleRate
+	int nMaxAvailableDataNum; // for broadcast loop
+	int nChunkLen; // nSampleRate * nSampleSize => maximum size of each chunk item
+	SAvailableChunk *astAvailableChunkList; // Same size of nChunkNum
+	SAvailableChunk *pstAvailableChunkHead;
+	SAvailableChunk *pstAvailableChunkTail;
 } SPort;
 
 
+/*
+typedef struct _SPortMap {
+	int nTaskId;
+	char *pszPortName;
+	int nChildTaskId;
+	char *pszChildTaskPortName;
+	EPortDirection enPortDirection;
+	EPortMapType enPortMapType;
+} SPortMap;
+*/
+
 typedef struct _SChannel {
 	int nChannelIndex;
-	int nSampleSize;
 	void *pBuffer;
 	int nBufSize;
 	HThreadMutex hMutex; // channel global mutex
 	SPort stInputPort;
 	SPort stOutputPort;
 } SChannel;
+
+
+typedef struct _STaskIdToTaskMap {
+	int nTaskId;
+	STask *pstTask;
+} TaskIdToTaskMap;
 
 void Loop1_Replace_init();
 void Loop1_Replace_go();
