@@ -23,6 +23,7 @@ typedef enum _ETaskType {
 	TASK_TYPE_COMPUTATIONAL,
 	TASK_TYPE_CONTROL,
 	TASK_TYPE_LOOP,
+	TASK_TYPE_COMPOSITE,
 } ETaskType;
 
 typedef enum _ERunCondition {
@@ -112,6 +113,11 @@ typedef struct _STask {
 	HThreadEvent hEvent;
 } STask;
 
+
+typedef struct _SCompoisteTask {
+
+} SCompositeTask;
+
 typedef struct _SChunk {
 	void *pChunkStart; // fixed
 	char *pDataStart; // vary
@@ -170,11 +176,22 @@ typedef struct _SChannel {
 	SPort stOutputPort;
 } SChannel;
 
-
 typedef struct _STaskIdToTaskMap {
 	int nTaskId;
 	STask *pstTask;
 } TaskIdToTaskMap;
+
+typedef struct _SProcessor {
+	int nProcessorId;
+	char *pszProcessorName;
+	int nPoolSize;
+} SProcessor;
+
+typedef struct _STaskToProcessorMap {
+	int nTaskId;
+	int nProcessorId;
+	int nLocalId;
+} STaskToProcessorMap;
 
 void Loop1_Replace_init();
 void Loop1_Replace_go();
