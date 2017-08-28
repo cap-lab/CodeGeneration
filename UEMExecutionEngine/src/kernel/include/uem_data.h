@@ -17,6 +17,8 @@ extern "C"
 
 #define INVALID_TASK_ID (-1)
 #define INVALID_CHANNEL_ID (-1)
+#define VARIABLE_SAMPLE_RATE (-1)
+#define MAPPING_NOT_SPECIFIED (-1)
 
 
 typedef enum _ETaskType {
@@ -58,6 +60,11 @@ typedef enum _EPortDirection {
 	PORT_DIRECTION_INPUT,
 } EPortDirection;
 
+typedef enum _EPortSampleRateType {
+	PORT_SAMPLE_RATE_FIXED,
+	PORT_SAMPLE_RATE_VARIABLE,
+	PORT_SAMPLE_RATE_MULTIPLE,
+} EPortSampleRateType;
 
 typedef void (*FnUemTaskInit)(int nTaskId);
 typedef void (*FnUemTaskGo)();
@@ -109,14 +116,10 @@ typedef struct _STask {
 	STaskGraph *pstSubGraph;
 	STaskGraph *pstParentGraph;
 	SModeTransitionMachine *pstMTMInfo;
+	uem_bool bStaticScheduled; // static-scheduled task
 	HThreadMutex hMutex;
 	HThreadEvent hEvent;
 } STask;
-
-
-typedef struct _SCompoisteTask {
-
-} SCompositeTask;
 
 typedef struct _SChunk {
 	void *pChunkStart; // fixed
@@ -137,20 +140,28 @@ typedef struct _SAvailableChunk {
 } SAvailableChunk;
 
 
+typedef struct _SPortSampleRate {
+	char *pszModeName; // Except MTM, all mode name becomes "Default"
+	int nTotalSampleRate; // for nested loop : this becomes outer loop task's sample size  (or most inner-task's sample size * (all loop counts except broadcasting port)
+	int nSampleRate; // most inner-task's sample rate (for general task, nSampleRate and nTotalSampleRate are same)
+	SChunk *astChunk;
+	SAvailableChunk *astAvailableChunkList; // Same size of nChunkNum
+	int nChunkNum; // nTotalSampleRate / nSampleRate
+	int nChunkLen; // nSampleRate * nSampleSize => maximum size of each chunk item
+	int nMaxAvailableDataNum; // for broadcast loop
+} SPortSampleRate;
+
+
 // nBufSize /  (nTotalSampleRate *nSampleSize) => number of loop queue?
 
 typedef struct _SPort {
 	int nTaskId;
 	char *pszPortName;
-	int nTotalSampleRate; // for nested loop : this becomes outer loop task's sample size  (or most inner-task's sample size * (all loop counts except broadcasting port)
-	int nSampleRate; // most inner-task's sample rate (for general task, nSampleRate and nTotalSampleRate are same)
+	EPortSampleRateType enSampleRateType;
+	SPortSampleRate *astSampleRate; // If the task is MTM, multiple sample rates can be existed.
+	int nNumOfSampleRates;
 	int nSampleSize;
 	EPortType enPortType;
-	SChunk *astChunk;
-	int nChunkNum; // nTotalSampleRate / nSampleRate
-	int nMaxAvailableDataNum; // for broadcast loop
-	int nChunkLen; // nSampleRate * nSampleSize => maximum size of each chunk item
-	SAvailableChunk *astAvailableChunkList; // Same size of nChunkNum
 	SAvailableChunk *pstAvailableChunkHead;
 	SAvailableChunk *pstAvailableChunkTail;
 } SPort;
@@ -181,17 +192,52 @@ typedef struct _STaskIdToTaskMap {
 	STask *pstTask;
 } TaskIdToTaskMap;
 
+typedef struct _SScheduleItem {
+	int nTaskId;
+	FnUemTaskGo fnGo;
+	int nRepetition;
+} SScheduleItem;
+
+typedef struct _SScheduleList {
+	int nScheduleId;
+	SScheduleItem *astScheduleItemList;
+	int nScheduleItemNum;
+	int nThroughputConstraint;
+} SScheduleList;
+
+typedef struct _SScheduleMode {
+	char *pszModeName;
+	FnUemTaskInit *afnInitList;
+	FnUemTaskWrapup *afnWrapupList;
+	int nScheduledTaskNum;
+	SScheduleList *astScheduleList;
+	int nScheduleNum;
+} SScheduleMode;
+
+typedef struct _SScheduledTasks {
+	SScheduleMode *astScheduleModeList;
+	int nNumOfScheduleMode;
+} SScheduledTasks;
+
 typedef struct _SProcessor {
 	int nProcessorId;
 	char *pszProcessorName;
 	int nPoolSize;
 } SProcessor;
 
-typedef struct _STaskToProcessorMap {
+typedef union _UMappingTarget {
 	int nTaskId;
+	SScheduledTasks stScheduledTasks;
+} UMappingTarget;
+
+typedef struct _SMappingSchedulingInfo {
+	ETaskType enType;
+	UMappingTarget uMappedTask;
 	int nProcessorId;
 	int nLocalId;
-} STaskToProcessorMap;
+} SMappingSchedulingInfo;
+
+SMappingSchedulingInfo g_astMappingAndSchedulingInfo[] = {};
 
 void Loop1_Replace_init();
 void Loop1_Replace_go();
