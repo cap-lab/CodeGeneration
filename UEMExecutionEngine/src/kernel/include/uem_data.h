@@ -139,18 +139,14 @@ typedef struct _SAvailableChunk {
 	SAvailableChunk *pstNext;
 } SAvailableChunk;
 
-
 typedef struct _SPortSampleRate {
 	char *pszModeName; // Except MTM, all mode name becomes "Default"
-	int nTotalSampleRate; // for nested loop : this becomes outer loop task's sample size  (or most inner-task's sample size * (all loop counts except broadcasting port)
-	int nSampleRate; // most inner-task's sample rate (for general task, nSampleRate and nTotalSampleRate are same)
-	SChunk *astChunk;
-	SAvailableChunk *astAvailableChunkList; // Same size of nChunkNum
-	int nChunkNum; // nTotalSampleRate / nSampleRate
-	int nChunkLen; // nSampleRate * nSampleSize => maximum size of each chunk item
+	int nSampleRate; // sample rate (for general task, nSampleRate and nTotalSampleRate are same)
 	int nMaxAvailableDataNum; // for broadcast loop
 } SPortSampleRate;
 
+
+typedef struct _SPort SPort;
 
 // nBufSize /  (nTotalSampleRate *nSampleSize) => number of loop queue?
 
@@ -162,8 +158,7 @@ typedef struct _SPort {
 	int nNumOfSampleRates;
 	int nSampleSize;
 	EPortType enPortType;
-	SAvailableChunk *pstAvailableChunkHead;
-	SAvailableChunk *pstAvailableChunkTail;
+	SPort *pstSubGraphPort;
 } SPort;
 
 
@@ -183,8 +178,17 @@ typedef struct _SChannel {
 	void *pBuffer;
 	int nBufSize;
 	HThreadMutex hMutex; // channel global mutex
+
 	SPort stInputPort;
 	SPort stOutputPort;
+
+	// These values can be changed during execution depending on Mode transition
+	SChunk *astChunk;
+	int nChunkNum; // nTotalSampleRate / nSampleRate
+	int nChunkLen; // nSampleRate * nSampleSize => maximum size of each chunk item
+	SAvailableChunk *astAvailableChunkList; // Same size of nChunkNum
+	SAvailableChunk *pstAvailableChunkHead;
+	SAvailableChunk *pstAvailableChunkTail;
 } SChannel;
 
 typedef struct _STaskIdToTaskMap {
