@@ -66,6 +66,13 @@ typedef enum _EPortSampleRateType {
 	PORT_SAMPLE_RATE_MULTIPLE,
 } EPortSampleRateType;
 
+
+typedef enum _EChannelType {
+	CHANNEL_TYPE_SHARED_MEMORY,
+	CHANNEL_TYPE_TCP_SERVER,
+	CHANNEL_TYPE_TCP_CLIENT,
+} EChannelType;
+
 typedef void (*FnUemTaskInit)(int nTaskId);
 typedef void (*FnUemTaskGo)();
 typedef void (*FnUemTaskWrapup)();
@@ -93,6 +100,7 @@ typedef struct _SModeTransitionMachine {
 	SModeMap *astModeMap;
 	SVariableIntMap *astVarIntMap;
 	FnTaskModeTranstion fnTransition;
+	char *pszCurrentMode;
 } SModeTransitionMachine;
 
 typedef struct _STaskGraph {
@@ -154,7 +162,7 @@ typedef struct _SPort {
 	int nTaskId;
 	char *pszPortName;
 	EPortSampleRateType enSampleRateType;
-	SPortSampleRate *astSampleRate; // If the task is MTM, multiple sample rates can be existed.
+	SPortSampleRate *astSampleRates; // If the task is MTM, multiple sample rates can be existed.
 	int nNumOfSampleRates;
 	int nSampleSize;
 	EPortType enPortType;
@@ -173,22 +181,32 @@ typedef struct _SPortMap {
 } SPortMap;
 */
 
-typedef struct _SChannel {
-	int nChannelIndex;
-	void *pBuffer;
-	int nBufSize;
-	HThreadMutex hMutex; // channel global mutex
-
-	SPort stInputPort;
-	SPort stOutputPort;
-
+typedef struct _SChunkInfo {
 	// These values can be changed during execution depending on Mode transition
 	SChunk *astChunk;
 	int nChunkNum; // nTotalSampleRate / nSampleRate
 	int nChunkLen; // nSampleRate * nSampleSize => maximum size of each chunk item
-	SAvailableChunk *astAvailableChunkList; // Same size of nChunkNum
-	SAvailableChunk *pstAvailableChunkHead;
-	SAvailableChunk *pstAvailableChunkTail;
+} SChunkInfo;
+
+typedef struct _SChannel {
+	int nChannelIndex;
+	EChannelType enType;
+	void *pBuffer;
+	int nBufSize;
+	void *pDataStart;
+	int nDataLen;
+	HThreadMutex hMutex; // channel global mutex
+
+	SPort stInputPort;
+	SPort stOutputPort;
+	SChunkInfo stInputPortChunk;
+	SChunkInfo stOutputPortChunk;
+
+	// These values can be changed during execution depending on Mode transition
+	SAvailableChunk *astAvailableInputChunkList; // Same size of nChunkNum
+	SAvailableChunk *pstAvailableInputChunkHead;
+	SAvailableChunk *pstAvailableInputChunkTail;
+
 } SChannel;
 
 typedef struct _STaskIdToTaskMap {

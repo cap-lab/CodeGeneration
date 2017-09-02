@@ -58,6 +58,8 @@ typedef enum _EUemModuleId {
 	ID_UEM_THREAD_EVENT       = 2,
 } EUemModuleId;
 
+#define ARRAYLEN(array)	 		(sizeof(array)/sizeof(array[0]))
+
 #ifdef __cplusplus
 }
 #endif
