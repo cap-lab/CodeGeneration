@@ -73,6 +73,11 @@ typedef enum _EChannelType {
 	CHANNEL_TYPE_TCP_CLIENT,
 } EChannelType;
 
+typedef enum _ELoopType {
+	LOOP_TYPE_CONVERGENT,
+	LOOP_TYPE_DATA,
+} ELoopType;
+
 typedef void (*FnUemTaskInit)(int nTaskId);
 typedef void (*FnUemTaskGo)();
 typedef void (*FnUemTaskWrapup)();
@@ -103,6 +108,12 @@ typedef struct _SModeTransitionMachine {
 	char *pszCurrentMode;
 } SModeTransitionMachine;
 
+typedef struct _SLoopInfo {
+	ELoopType enType;
+	int nLoopCount;
+	int nDesignatedTaskId;
+} SLoopInfo;
+
 typedef struct _STaskGraph {
 	STask *astTasks;
 	STask *pstParentTask;
@@ -120,10 +131,10 @@ typedef struct _STask {
 	int nRunRate;
 	int nPeriod;
 	ETimeMetric enPeriodMetric;
-	int nThreadNum; // data-type loop count
 	STaskGraph *pstSubGraph;
 	STaskGraph *pstParentGraph;
 	SModeTransitionMachine *pstMTMInfo;
+	SLoopInfo *pstLoopInfo;
 	uem_bool bStaticScheduled; // static-scheduled task
 	HThreadMutex hMutex;
 	HThreadEvent hEvent;
@@ -212,7 +223,7 @@ typedef struct _SChannel {
 typedef struct _STaskIdToTaskMap {
 	int nTaskId;
 	STask *pstTask;
-} TaskIdToTaskMap;
+} STaskIdToTaskMap;
 
 typedef struct _SScheduleItem {
 	int nTaskId;
@@ -261,62 +272,161 @@ typedef struct _SMappingSchedulingInfo {
 
 SMappingSchedulingInfo g_astMappingAndSchedulingInfo[] = {};
 
-void Loop1_Replace_init();
-void Loop1_Replace_go();
-void Loop1_Replace_wrapup();
+
+void MatA_init();
+void MatA_go();
+void MatA_wrapup();
+
+void MatB_init();
+void MatB_go();
+void MatB_wrapup();
+
+void VecMul_init();
+void VecMul_go();
+void VecMul_wrapup();
+
+void Display_init();
+void Display_go();
+void Display_wrapup();
+
+SPortSampleRate g_astPortSampleRate_sdf_matrix_MatA_out[] = {
+	{ "Default", // Mode name
+	   1, // Sample rate
+	   1, // Available number of data
+	},
+};
+
+SPortSampleRate g_astPortSampleRate_sdf_matrix_VecMul_in1[] = {
+	{ "Default", // Mode name
+	   1, // Sample rate
+	   1, // Available number of data
+	},
+};
+
+// ports which located inside a subgraph and port-mapped to outer graph
+//SPort g_astPortMapList[] = {
+//	// all port information which are port-mapped by other ports
+//};
 
 
-SChannel g_pstChannels[] = {
+SChannel g_astChannels[] = {
+	{
+		0, // Channel ID
+		CHANNEL_TYPE_SHARED_MEMORY, // Channel type
+		NULL, // Channel buffer size
+		3, // Channel size
+		NULL, // Channel data size
+		0, // Channel data length
+		NULL, // Mutex
 		{
-			0,
-			4,
+			2, // Task ID
+			"in1", // Port name
+			PORT_SAMPLE_RATE_FIXED, // Port sample rate type
+			g_astPortSampleRate_sdf_matrix_VecMul_in1, // Array of sample rate list
+			1, // Array element number of sample rate list
+			12, // Sample size
+			PORT_TYPE_QUEUE, // Port type
+			NULL, // Pointer to Subgraph port
+		}, // Input port information
+		{
+			0, // Task ID
+			"out", // Port name
+			PORT_SAMPLE_RATE_FIXED, // Port sample rate type
+			g_astPortSampleRate_sdf_matrix_MatA_out, // Array of sample rate list
+			1, // Array element number of sample rate list
+			12, // Sample size
+			PORT_TYPE_QUEUE, // Port type
+			NULL, // Pointer to Subgraph port
+		}, // Output port information
+		{
 			NULL,
-			4,
+			1,
+			1,
+		}, // input chunk information
+		{
 			NULL,
-			{
-					0,
-					"in_f",
-					4,
-					PORT_TYPE_QUEUE,
-					PORTMAP_TYPE_DISTRIBUTING,
-					NULL,
-					1,
-					0,
-			},
-			{
-					0,
-					"out_r",
-					4,
-					PORT_TYPE_QUEUE,
-					PORTMAP_TYPE_DISTRIBUTING,
-					NULL,
-					1,
-					0,
-			},
-		},
+			1,
+			1,
+		}, // output chunk information
+	},
 };
 
-STask g_pstTopTasks[] = {
-		{ 	0,
-			"Loop1_Replace",
-			TASK_TYPE_COMPUTATIONAL,
-			Loop1_Replace_init,
-			Loop1_Replace_go,
-			Loop1_Replace_wrapup,
-			RUN_CONDITION_DATA_DRIVEN,
-			1,
-			1,
-			TIME_METRIC_MICROSEC,
-			1,
-			NULL,
-			g_pstTopGraph,
-			NULL,
-			NULL,
-			NULL,
-		},
+STask g_astTopTasks[] = {
+	{ 	0, // Task ID
+		"MatA", // Task name
+		TASK_TYPE_COMPUTATIONAL, // Task Type
+		MatA_init, // Task init function
+		MatA_go, // Task go function
+		MatA_wrapup, // Task wrapup function
+		RUN_CONDITION_TIME_DRIVEN, // Run condition
+		1, // Run rate
+		10, // Period
+		TIME_METRIC_MICROSEC, // Period metric
+		NULL, // Subgraph
+		g_pstTopGraph, // Parent task graph
+		NULL, // MTM information
+		NULL, // Loop information
+		FALSE, // Statically scheduled or not
+		NULL, // Mutex
+		NULL, // Conditional variable
+	},
+	{ 	1, // Task ID
+		"MatB", // Task name
+		TASK_TYPE_COMPUTATIONAL, // Task Type
+		MatB_init, // Task init function
+		MatB_go, // Task go function
+		MatB_wrapup, // Task wrapup function
+		RUN_CONDITION_TIME_DRIVEN, // Run condition
+		1, // Run rate
+		10, // Period
+		TIME_METRIC_MICROSEC, // Period metric
+		NULL, // subgraph
+		g_pstTopGraph, //parent task graph
+		NULL, // MTM information
+		NULL, // Loop information
+		FALSE, // statically scheduled (run by difference tasks)
+		NULL, // mutex
+		NULL, // conditional variable
+	},
+	{ 	2, // Task ID
+		"VecMul", // Task name
+		TASK_TYPE_COMPUTATIONAL, // Task Type
+		VecMul_init, // Task init function
+		VecMul_go, // Task go function
+		VecMul_wrapup, // Task wrapup function
+		RUN_CONDITION_DATA_DRIVEN, // Run condition
+		1, // Run rate
+		10, // Period
+		TIME_METRIC_MICROSEC, // Period metric
+		NULL, // subgraph
+		g_pstTopGraph, //parent task graph
+		NULL, // MTM information
+		NULL, // Loop information
+		FALSE, // statically scheduled (run by difference tasks)
+		NULL, // mutex
+		NULL, // conditional variable
+	},
+	{ 	3, // Task ID
+		"Display", // Task name
+		TASK_TYPE_COMPUTATIONAL, // Task Type
+		VecMul_init, // Task init function
+		VecMul_go, // Task go function
+		VecMul_wrapup, // Task wrapup function
+		RUN_CONDITION_DATA_DRIVEN, // Run condition
+		1, // Run rate
+		10, // Period
+		TIME_METRIC_MICROSEC, // Period metric
+		NULL, // subgraph
+		g_pstTopGraph, //parent task graph
+		NULL, // MTM information
+		NULL, // Loop information
+		FALSE, // statically scheduled (run by difference tasks)
+		NULL, // mutex
+		NULL, // conditional variable
+	},
 };
 
-STaskGraph g_pstTopGraph[] = { g_pstTopTasks, NULL };
+STaskGraph g_pstTopGraph[] = { g_astTopTasks, NULL };
 
 
 #ifdef __cplusplus
