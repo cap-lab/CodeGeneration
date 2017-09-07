@@ -13,9 +13,9 @@ uem_result UKChannel_Initialize()
 	uem_result result = ERR_UEM_NOERROR;
 	int nLoop = 0;
 
-	for(nLoop = 0; nLoop < ARRAYLEN(g_pstChannels) ; nLoop++)
+	for(nLoop = 0; nLoop < ARRAYLEN(g_astChannels) ; nLoop++)
 	{
-		switch(g_pstChannels[nLoop].enType)
+		switch(g_astChannels[nLoop].enType)
 		{
 		case CHANNEL_TYPE_SHARED_MEMORY:
 			break;
@@ -27,12 +27,12 @@ uem_result UKChannel_Initialize()
 			break;
 		}
 
-		if( g_pstChannels[nLoop].stInputPortChunk.nChunkNum > 1 )
+		if( g_astChannels[nLoop].stInputPortChunk.nChunkNum > 1 )
 		{
 			//channel is read by multiple tasks
 		}
 
-		if( g_pstChannels[nLoop].stOutputPortChunk.nChunkNum > 1 )
+		if( g_astChannels[nLoop].stOutputPortChunk.nChunkNum > 1 )
 		{
 			// channel is written by multiple tasks
 		}
