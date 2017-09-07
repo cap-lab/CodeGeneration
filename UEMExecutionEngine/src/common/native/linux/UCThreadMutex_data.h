@@ -24,7 +24,7 @@ typedef struct _SThreadMutex {
     pthread_mutex_t hMutex;
 } SThreadMutex;
 
-
+// ##TARGET_MUTEX_CREATION_SECTION:START
 static SThreadMutex thread_mutexes_data[] = {
 	{ID_UEM_THREAD_MUTEX, FALSE, TRUE, PTHREAD_MUTEX_INITIALIZER},
 };
@@ -34,6 +34,7 @@ static HThreadMutex thread_mutexes[] = {
 };
 
 HThreadMutex *g_ahStaticThreadMutexes = thread_mutexes;
+// ##TARGET_MUTEX_CREATION_SECTION::END
 
 #ifdef __cplusplus
 }

@@ -7,6 +7,7 @@
 
 #include <uem_data.h>
 
+// ##TASK_CODE_DECLARATION_SECTION:START
 void MatA_Init(int nTaskId);
 void MatA_Go();
 void MatA_Wrapup();
@@ -22,7 +23,9 @@ void VecMul_Wrapup();
 void Display_Init(int nTaskId);
 void Display_Go();
 void Display_Wrapup();
+// ##TASK_CODE_DECLARATION_SECTION::END
 
+// ##UEM_DATA_GENERATION_SECTION::START
 #define CHANNEL_0_SIZE (3)
 #define CHANNEL_1_SIZE (3)
 #define CHANNEL_2_SIZE (36)
@@ -31,20 +34,19 @@ char s_pChannel_0_buffer[CHANNEL_0_SIZE];
 char s_pChannel_1_buffer[CHANNEL_1_SIZE];
 char s_pChannel_2_buffer[CHANNEL_2_SIZE];
 
-
-SChunk g_astChunk_sdf_matrix_channel_0_out[] = {
+SChunk g_astChunk_channel_0_out[] = {
 	{
 		s_pChannel_0_buffer, // Chunk start pointer
 		s_pChannel_0_buffer, // Data start pointer
 		s_pChannel_0_buffer, // Data end pointer
-		0, // wWitten data length
+		0, // Written data length
 		0, // Available data number;
 		NULL, // Chunk mutex
 		NULL, // Chunk conditional variable
 	},
 };
 
-SChunk g_astChunk_sdf_matrix_channel_0_in[] = {
+SChunk g_astChunk_channel_0_in[] = {
 	{
 		s_pChannel_0_buffer, // Chunk start pointer
 		s_pChannel_0_buffer, // Data start pointer
@@ -56,7 +58,7 @@ SChunk g_astChunk_sdf_matrix_channel_0_in[] = {
 	},
 };
 
-SChunk g_astChunk_sdf_matrix_channel_1_out[] = {
+SChunk g_astChunk_channel_1_out[] = {
 	{
 		s_pChannel_1_buffer, // Chunk start pointer
 		s_pChannel_1_buffer, // Data start pointer
@@ -68,7 +70,7 @@ SChunk g_astChunk_sdf_matrix_channel_1_out[] = {
 	},
 };
 
-SChunk g_astChunk_sdf_matrix_channel_1_in[] = {
+SChunk g_astChunk_channel_1_in[] = {
 	{
 		s_pChannel_1_buffer, // Chunk start pointer
 		s_pChannel_1_buffer, // Data start pointer
@@ -80,7 +82,7 @@ SChunk g_astChunk_sdf_matrix_channel_1_in[] = {
 	},
 };
 
-SChunk g_astChunk_sdf_matrix_channel_2_out[] = {
+SChunk g_astChunk_channel_2_out[] = {
 	{
 		s_pChannel_2_buffer, // Chunk start pointer
 		s_pChannel_2_buffer, // Data start pointer
@@ -92,7 +94,7 @@ SChunk g_astChunk_sdf_matrix_channel_2_out[] = {
 	},
 };
 
-SChunk g_astChunk_sdf_matrix_channel_2_in[] = {
+SChunk g_astChunk_channel_2_in[] = {
 	{
 		s_pChannel_2_buffer, // Chunk start pointer
 		s_pChannel_2_buffer, // Data start pointer
@@ -188,12 +190,12 @@ SChannel g_astChannels[] = {
 			NULL, // Pointer to Subgraph port
 		}, // Output port information
 		{
-			g_astChunk_sdf_matrix_channel_0_in, // Array of chunk
+			g_astChunk_channel_0_in, // Array of chunk
 			1, // Chunk number
 			1, // Chunk size
 		}, // Input chunk information
 		{
-			g_astChunk_sdf_matrix_channel_0_out, // Array of chunk
+			g_astChunk_channel_0_out, // Array of chunk
 			1, // Chunk number
 			1, // Chunk size
 		}, // Output chunk information
@@ -230,12 +232,12 @@ SChannel g_astChannels[] = {
 			NULL, // Pointer to Subgraph port
 		}, // Output port information
 		{
-			g_astChunk_sdf_matrix_channel_1_in, // Array of chunk
+			g_astChunk_channel_1_in, // Array of chunk
 			1, // Chunk number
 			1, // Chunk size
 		}, // Input chunk information
 		{
-			g_astChunk_sdf_matrix_channel_1_out, // Array of chunk
+			g_astChunk_channel_1_out, // Array of chunk
 			1, // Chunk number
 			1, // Chunk size
 		}, // Output chunk information
@@ -272,12 +274,12 @@ SChannel g_astChannels[] = {
 			NULL, // Pointer to Subgraph port
 		}, // Output port information
 		{
-			g_astChunk_sdf_matrix_channel_2_in, // Array of chunk
+			g_astChunk_channel_2_in, // Array of chunk
 			1, // Chunk number
 			1, // Chunk size
 		}, // Input chunk information
 		{
-			g_astChunk_sdf_matrix_channel_2_out, // Array of chunk
+			g_astChunk_channel_2_out, // Array of chunk
 			1, // Chunk number
 			1, // Chunk size
 		}, // Output chunk information
@@ -405,5 +407,6 @@ SMappingSchedulingInfo g_astMappingAndSchedulingInfo[] = {
 		3, // Processor local ID
 	},
 };
+// ##UEM_DATA_GENERATION_SECTION::END
 
 

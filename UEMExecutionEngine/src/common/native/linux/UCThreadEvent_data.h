@@ -25,6 +25,7 @@ typedef struct _SThreadEvent {
 	pthread_cond_t hMutex;
 } SThreadEvent;
 
+// ##TARGET_EVENT_CREATION_SECTION:START
 SThreadEvent thread_events_data[] = {
 	{ID_UEM_THREAD_EVENT, FALSE, TRUE, PTHREAD_MUTEX_INITIALIZER, PTHREAD_COND_INITIALIZER},
 };
@@ -34,6 +35,7 @@ HThreadEvent thread_events[] = {
 };
 
 HThreadEvent *g_ahStaticThreadEvents = thread_events;
+// ##TARGET_EVENT_CREATION_SECTION::END
 
 #ifdef __cplusplus
 }
