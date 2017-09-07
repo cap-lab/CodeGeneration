@@ -13,8 +13,7 @@
 
 int main(int argc, char *argv[])
 {
-
-	printf("Hello world\n");
+	printf("Hello world: %d\n", g_astChannels[0].nChannelIndex);
 	return 0;
 }
 

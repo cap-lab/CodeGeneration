@@ -50,9 +50,18 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 = proc-main.$(OBJEXT)
-am__objects_2 =
-am_proc_OBJECTS = $(am__objects_1) $(am__objects_2) $(am__objects_2) \
-	$(am__objects_2)
+am__objects_2 = proc-Display.$(OBJEXT) proc-VecMul.$(OBJEXT) \
+	proc-MatA.$(OBJEXT) proc-MatB.$(OBJEXT)
+am__objects_3 = proc-UFControl_deprecated.$(OBJEXT) \
+	proc-UFControl.$(OBJEXT) proc-UFPort_deprecated.$(OBJEXT) \
+	proc-UFPort.$(OBJEXT) proc-UFSystem_deprecated.$(OBJEXT) \
+	proc-UFSystem.$(OBJEXT) proc-UFTask_deprecated.$(OBJEXT) \
+	proc-UFTask.$(OBJEXT) proc-UFTimer_deprecated.$(OBJEXT) \
+	proc-UFTimer.$(OBJEXT)
+am__objects_4 = proc-uem_data.$(OBJEXT)
+am__objects_5 =
+am_proc_OBJECTS = $(am__objects_1) $(am__objects_2) $(am__objects_3) \
+	$(am__objects_4) $(am__objects_5)
 proc_OBJECTS = $(am_proc_OBJECTS)
 am__DEPENDENCIES_1 =
 proc_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
@@ -166,15 +175,31 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAIN_DIR = src/main
+APPLICATION_DIR = src/application
 API_DIR = src/api
 KERNEL_DIR = src/kernel
 COMMON_DIR = src/common
 PLATFORM_DIR = native/linux
 MAIN_SOURCES = $(MAIN_DIR)/$(PLATFORM_DIR)/main.c
-API_SOURCES = 
-KERNEL_SOURCES = 
+APPLICATION_SOURCES = $(APPLICATION_DIR)/Display.c\
+					$(APPLICATION_DIR)/VecMul.c\
+					$(APPLICATION_DIR)/MatA.c\
+					$(APPLICATION_DIR)/MatB.c
+
+API_SOURCES = $(API_DIR)/UFControl_deprecated.c\
+			$(API_DIR)/UFControl.c\
+			$(API_DIR)/UFPort_deprecated.c\
+			$(API_DIR)/UFPort.c\
+			$(API_DIR)/UFSystem_deprecated.c\
+			$(API_DIR)/UFSystem.c\
+			$(API_DIR)/UFTask_deprecated.c\
+			$(API_DIR)/UFTask.c\
+			$(API_DIR)/UFTimer_deprecated.c\
+			$(API_DIR)/UFTimer.c
+
+KERNEL_SOURCES = $(KERNEL_DIR)/uem_data.c
 COMMON_SOURCES = 
-proc_SOURCES = $(MAIN_SOURCES) $(API_SOURCES) $(KERNEL_SOURCES) $(COMMON_SOURCES)
+proc_SOURCES = $(MAIN_SOURCES) $(APPLICATION_SOURCES) $(API_SOURCES) $(KERNEL_SOURCES) $(COMMON_SOURCES)
 MAIN_CFLAGS = -I$(MAIN_DIR)/include
 API_CFLAGS = -I$(API_DIR)/include
 KERNEL_CFLAGS = -I$(KERNEL_DIR)/include
@@ -288,7 +313,22 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-Display.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-MatA.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-MatB.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UFControl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UFControl_deprecated.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UFPort.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UFPort_deprecated.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UFSystem.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UFSystem_deprecated.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UFTask.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UFTask_deprecated.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UFTimer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UFTimer_deprecated.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-VecMul.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-uem_data.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -317,6 +357,216 @@ proc-main.obj: $(MAIN_DIR)/$(PLATFORM_DIR)/main.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(MAIN_DIR)/$(PLATFORM_DIR)/main.c' object='proc-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-main.obj `if test -f '$(MAIN_DIR)/$(PLATFORM_DIR)/main.c'; then $(CYGPATH_W) '$(MAIN_DIR)/$(PLATFORM_DIR)/main.c'; else $(CYGPATH_W) '$(srcdir)/$(MAIN_DIR)/$(PLATFORM_DIR)/main.c'; fi`
+
+proc-Display.o: $(APPLICATION_DIR)/Display.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-Display.o -MD -MP -MF $(DEPDIR)/proc-Display.Tpo -c -o proc-Display.o `test -f '$(APPLICATION_DIR)/Display.c' || echo '$(srcdir)/'`$(APPLICATION_DIR)/Display.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-Display.Tpo $(DEPDIR)/proc-Display.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(APPLICATION_DIR)/Display.c' object='proc-Display.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-Display.o `test -f '$(APPLICATION_DIR)/Display.c' || echo '$(srcdir)/'`$(APPLICATION_DIR)/Display.c
+
+proc-Display.obj: $(APPLICATION_DIR)/Display.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-Display.obj -MD -MP -MF $(DEPDIR)/proc-Display.Tpo -c -o proc-Display.obj `if test -f '$(APPLICATION_DIR)/Display.c'; then $(CYGPATH_W) '$(APPLICATION_DIR)/Display.c'; else $(CYGPATH_W) '$(srcdir)/$(APPLICATION_DIR)/Display.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-Display.Tpo $(DEPDIR)/proc-Display.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(APPLICATION_DIR)/Display.c' object='proc-Display.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-Display.obj `if test -f '$(APPLICATION_DIR)/Display.c'; then $(CYGPATH_W) '$(APPLICATION_DIR)/Display.c'; else $(CYGPATH_W) '$(srcdir)/$(APPLICATION_DIR)/Display.c'; fi`
+
+proc-VecMul.o: $(APPLICATION_DIR)/VecMul.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-VecMul.o -MD -MP -MF $(DEPDIR)/proc-VecMul.Tpo -c -o proc-VecMul.o `test -f '$(APPLICATION_DIR)/VecMul.c' || echo '$(srcdir)/'`$(APPLICATION_DIR)/VecMul.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-VecMul.Tpo $(DEPDIR)/proc-VecMul.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(APPLICATION_DIR)/VecMul.c' object='proc-VecMul.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-VecMul.o `test -f '$(APPLICATION_DIR)/VecMul.c' || echo '$(srcdir)/'`$(APPLICATION_DIR)/VecMul.c
+
+proc-VecMul.obj: $(APPLICATION_DIR)/VecMul.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-VecMul.obj -MD -MP -MF $(DEPDIR)/proc-VecMul.Tpo -c -o proc-VecMul.obj `if test -f '$(APPLICATION_DIR)/VecMul.c'; then $(CYGPATH_W) '$(APPLICATION_DIR)/VecMul.c'; else $(CYGPATH_W) '$(srcdir)/$(APPLICATION_DIR)/VecMul.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-VecMul.Tpo $(DEPDIR)/proc-VecMul.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(APPLICATION_DIR)/VecMul.c' object='proc-VecMul.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-VecMul.obj `if test -f '$(APPLICATION_DIR)/VecMul.c'; then $(CYGPATH_W) '$(APPLICATION_DIR)/VecMul.c'; else $(CYGPATH_W) '$(srcdir)/$(APPLICATION_DIR)/VecMul.c'; fi`
+
+proc-MatA.o: $(APPLICATION_DIR)/MatA.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-MatA.o -MD -MP -MF $(DEPDIR)/proc-MatA.Tpo -c -o proc-MatA.o `test -f '$(APPLICATION_DIR)/MatA.c' || echo '$(srcdir)/'`$(APPLICATION_DIR)/MatA.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-MatA.Tpo $(DEPDIR)/proc-MatA.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(APPLICATION_DIR)/MatA.c' object='proc-MatA.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-MatA.o `test -f '$(APPLICATION_DIR)/MatA.c' || echo '$(srcdir)/'`$(APPLICATION_DIR)/MatA.c
+
+proc-MatA.obj: $(APPLICATION_DIR)/MatA.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-MatA.obj -MD -MP -MF $(DEPDIR)/proc-MatA.Tpo -c -o proc-MatA.obj `if test -f '$(APPLICATION_DIR)/MatA.c'; then $(CYGPATH_W) '$(APPLICATION_DIR)/MatA.c'; else $(CYGPATH_W) '$(srcdir)/$(APPLICATION_DIR)/MatA.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-MatA.Tpo $(DEPDIR)/proc-MatA.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(APPLICATION_DIR)/MatA.c' object='proc-MatA.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-MatA.obj `if test -f '$(APPLICATION_DIR)/MatA.c'; then $(CYGPATH_W) '$(APPLICATION_DIR)/MatA.c'; else $(CYGPATH_W) '$(srcdir)/$(APPLICATION_DIR)/MatA.c'; fi`
+
+proc-MatB.o: $(APPLICATION_DIR)/MatB.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-MatB.o -MD -MP -MF $(DEPDIR)/proc-MatB.Tpo -c -o proc-MatB.o `test -f '$(APPLICATION_DIR)/MatB.c' || echo '$(srcdir)/'`$(APPLICATION_DIR)/MatB.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-MatB.Tpo $(DEPDIR)/proc-MatB.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(APPLICATION_DIR)/MatB.c' object='proc-MatB.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-MatB.o `test -f '$(APPLICATION_DIR)/MatB.c' || echo '$(srcdir)/'`$(APPLICATION_DIR)/MatB.c
+
+proc-MatB.obj: $(APPLICATION_DIR)/MatB.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-MatB.obj -MD -MP -MF $(DEPDIR)/proc-MatB.Tpo -c -o proc-MatB.obj `if test -f '$(APPLICATION_DIR)/MatB.c'; then $(CYGPATH_W) '$(APPLICATION_DIR)/MatB.c'; else $(CYGPATH_W) '$(srcdir)/$(APPLICATION_DIR)/MatB.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-MatB.Tpo $(DEPDIR)/proc-MatB.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(APPLICATION_DIR)/MatB.c' object='proc-MatB.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-MatB.obj `if test -f '$(APPLICATION_DIR)/MatB.c'; then $(CYGPATH_W) '$(APPLICATION_DIR)/MatB.c'; else $(CYGPATH_W) '$(srcdir)/$(APPLICATION_DIR)/MatB.c'; fi`
+
+proc-UFControl_deprecated.o: $(API_DIR)/UFControl_deprecated.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFControl_deprecated.o -MD -MP -MF $(DEPDIR)/proc-UFControl_deprecated.Tpo -c -o proc-UFControl_deprecated.o `test -f '$(API_DIR)/UFControl_deprecated.c' || echo '$(srcdir)/'`$(API_DIR)/UFControl_deprecated.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFControl_deprecated.Tpo $(DEPDIR)/proc-UFControl_deprecated.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFControl_deprecated.c' object='proc-UFControl_deprecated.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFControl_deprecated.o `test -f '$(API_DIR)/UFControl_deprecated.c' || echo '$(srcdir)/'`$(API_DIR)/UFControl_deprecated.c
+
+proc-UFControl_deprecated.obj: $(API_DIR)/UFControl_deprecated.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFControl_deprecated.obj -MD -MP -MF $(DEPDIR)/proc-UFControl_deprecated.Tpo -c -o proc-UFControl_deprecated.obj `if test -f '$(API_DIR)/UFControl_deprecated.c'; then $(CYGPATH_W) '$(API_DIR)/UFControl_deprecated.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFControl_deprecated.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFControl_deprecated.Tpo $(DEPDIR)/proc-UFControl_deprecated.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFControl_deprecated.c' object='proc-UFControl_deprecated.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFControl_deprecated.obj `if test -f '$(API_DIR)/UFControl_deprecated.c'; then $(CYGPATH_W) '$(API_DIR)/UFControl_deprecated.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFControl_deprecated.c'; fi`
+
+proc-UFControl.o: $(API_DIR)/UFControl.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFControl.o -MD -MP -MF $(DEPDIR)/proc-UFControl.Tpo -c -o proc-UFControl.o `test -f '$(API_DIR)/UFControl.c' || echo '$(srcdir)/'`$(API_DIR)/UFControl.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFControl.Tpo $(DEPDIR)/proc-UFControl.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFControl.c' object='proc-UFControl.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFControl.o `test -f '$(API_DIR)/UFControl.c' || echo '$(srcdir)/'`$(API_DIR)/UFControl.c
+
+proc-UFControl.obj: $(API_DIR)/UFControl.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFControl.obj -MD -MP -MF $(DEPDIR)/proc-UFControl.Tpo -c -o proc-UFControl.obj `if test -f '$(API_DIR)/UFControl.c'; then $(CYGPATH_W) '$(API_DIR)/UFControl.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFControl.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFControl.Tpo $(DEPDIR)/proc-UFControl.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFControl.c' object='proc-UFControl.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFControl.obj `if test -f '$(API_DIR)/UFControl.c'; then $(CYGPATH_W) '$(API_DIR)/UFControl.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFControl.c'; fi`
+
+proc-UFPort_deprecated.o: $(API_DIR)/UFPort_deprecated.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFPort_deprecated.o -MD -MP -MF $(DEPDIR)/proc-UFPort_deprecated.Tpo -c -o proc-UFPort_deprecated.o `test -f '$(API_DIR)/UFPort_deprecated.c' || echo '$(srcdir)/'`$(API_DIR)/UFPort_deprecated.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFPort_deprecated.Tpo $(DEPDIR)/proc-UFPort_deprecated.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFPort_deprecated.c' object='proc-UFPort_deprecated.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFPort_deprecated.o `test -f '$(API_DIR)/UFPort_deprecated.c' || echo '$(srcdir)/'`$(API_DIR)/UFPort_deprecated.c
+
+proc-UFPort_deprecated.obj: $(API_DIR)/UFPort_deprecated.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFPort_deprecated.obj -MD -MP -MF $(DEPDIR)/proc-UFPort_deprecated.Tpo -c -o proc-UFPort_deprecated.obj `if test -f '$(API_DIR)/UFPort_deprecated.c'; then $(CYGPATH_W) '$(API_DIR)/UFPort_deprecated.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFPort_deprecated.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFPort_deprecated.Tpo $(DEPDIR)/proc-UFPort_deprecated.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFPort_deprecated.c' object='proc-UFPort_deprecated.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFPort_deprecated.obj `if test -f '$(API_DIR)/UFPort_deprecated.c'; then $(CYGPATH_W) '$(API_DIR)/UFPort_deprecated.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFPort_deprecated.c'; fi`
+
+proc-UFPort.o: $(API_DIR)/UFPort.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFPort.o -MD -MP -MF $(DEPDIR)/proc-UFPort.Tpo -c -o proc-UFPort.o `test -f '$(API_DIR)/UFPort.c' || echo '$(srcdir)/'`$(API_DIR)/UFPort.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFPort.Tpo $(DEPDIR)/proc-UFPort.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFPort.c' object='proc-UFPort.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFPort.o `test -f '$(API_DIR)/UFPort.c' || echo '$(srcdir)/'`$(API_DIR)/UFPort.c
+
+proc-UFPort.obj: $(API_DIR)/UFPort.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFPort.obj -MD -MP -MF $(DEPDIR)/proc-UFPort.Tpo -c -o proc-UFPort.obj `if test -f '$(API_DIR)/UFPort.c'; then $(CYGPATH_W) '$(API_DIR)/UFPort.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFPort.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFPort.Tpo $(DEPDIR)/proc-UFPort.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFPort.c' object='proc-UFPort.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFPort.obj `if test -f '$(API_DIR)/UFPort.c'; then $(CYGPATH_W) '$(API_DIR)/UFPort.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFPort.c'; fi`
+
+proc-UFSystem_deprecated.o: $(API_DIR)/UFSystem_deprecated.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFSystem_deprecated.o -MD -MP -MF $(DEPDIR)/proc-UFSystem_deprecated.Tpo -c -o proc-UFSystem_deprecated.o `test -f '$(API_DIR)/UFSystem_deprecated.c' || echo '$(srcdir)/'`$(API_DIR)/UFSystem_deprecated.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFSystem_deprecated.Tpo $(DEPDIR)/proc-UFSystem_deprecated.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFSystem_deprecated.c' object='proc-UFSystem_deprecated.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFSystem_deprecated.o `test -f '$(API_DIR)/UFSystem_deprecated.c' || echo '$(srcdir)/'`$(API_DIR)/UFSystem_deprecated.c
+
+proc-UFSystem_deprecated.obj: $(API_DIR)/UFSystem_deprecated.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFSystem_deprecated.obj -MD -MP -MF $(DEPDIR)/proc-UFSystem_deprecated.Tpo -c -o proc-UFSystem_deprecated.obj `if test -f '$(API_DIR)/UFSystem_deprecated.c'; then $(CYGPATH_W) '$(API_DIR)/UFSystem_deprecated.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFSystem_deprecated.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFSystem_deprecated.Tpo $(DEPDIR)/proc-UFSystem_deprecated.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFSystem_deprecated.c' object='proc-UFSystem_deprecated.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFSystem_deprecated.obj `if test -f '$(API_DIR)/UFSystem_deprecated.c'; then $(CYGPATH_W) '$(API_DIR)/UFSystem_deprecated.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFSystem_deprecated.c'; fi`
+
+proc-UFSystem.o: $(API_DIR)/UFSystem.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFSystem.o -MD -MP -MF $(DEPDIR)/proc-UFSystem.Tpo -c -o proc-UFSystem.o `test -f '$(API_DIR)/UFSystem.c' || echo '$(srcdir)/'`$(API_DIR)/UFSystem.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFSystem.Tpo $(DEPDIR)/proc-UFSystem.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFSystem.c' object='proc-UFSystem.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFSystem.o `test -f '$(API_DIR)/UFSystem.c' || echo '$(srcdir)/'`$(API_DIR)/UFSystem.c
+
+proc-UFSystem.obj: $(API_DIR)/UFSystem.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFSystem.obj -MD -MP -MF $(DEPDIR)/proc-UFSystem.Tpo -c -o proc-UFSystem.obj `if test -f '$(API_DIR)/UFSystem.c'; then $(CYGPATH_W) '$(API_DIR)/UFSystem.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFSystem.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFSystem.Tpo $(DEPDIR)/proc-UFSystem.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFSystem.c' object='proc-UFSystem.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFSystem.obj `if test -f '$(API_DIR)/UFSystem.c'; then $(CYGPATH_W) '$(API_DIR)/UFSystem.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFSystem.c'; fi`
+
+proc-UFTask_deprecated.o: $(API_DIR)/UFTask_deprecated.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFTask_deprecated.o -MD -MP -MF $(DEPDIR)/proc-UFTask_deprecated.Tpo -c -o proc-UFTask_deprecated.o `test -f '$(API_DIR)/UFTask_deprecated.c' || echo '$(srcdir)/'`$(API_DIR)/UFTask_deprecated.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFTask_deprecated.Tpo $(DEPDIR)/proc-UFTask_deprecated.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFTask_deprecated.c' object='proc-UFTask_deprecated.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFTask_deprecated.o `test -f '$(API_DIR)/UFTask_deprecated.c' || echo '$(srcdir)/'`$(API_DIR)/UFTask_deprecated.c
+
+proc-UFTask_deprecated.obj: $(API_DIR)/UFTask_deprecated.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFTask_deprecated.obj -MD -MP -MF $(DEPDIR)/proc-UFTask_deprecated.Tpo -c -o proc-UFTask_deprecated.obj `if test -f '$(API_DIR)/UFTask_deprecated.c'; then $(CYGPATH_W) '$(API_DIR)/UFTask_deprecated.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFTask_deprecated.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFTask_deprecated.Tpo $(DEPDIR)/proc-UFTask_deprecated.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFTask_deprecated.c' object='proc-UFTask_deprecated.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFTask_deprecated.obj `if test -f '$(API_DIR)/UFTask_deprecated.c'; then $(CYGPATH_W) '$(API_DIR)/UFTask_deprecated.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFTask_deprecated.c'; fi`
+
+proc-UFTask.o: $(API_DIR)/UFTask.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFTask.o -MD -MP -MF $(DEPDIR)/proc-UFTask.Tpo -c -o proc-UFTask.o `test -f '$(API_DIR)/UFTask.c' || echo '$(srcdir)/'`$(API_DIR)/UFTask.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFTask.Tpo $(DEPDIR)/proc-UFTask.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFTask.c' object='proc-UFTask.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFTask.o `test -f '$(API_DIR)/UFTask.c' || echo '$(srcdir)/'`$(API_DIR)/UFTask.c
+
+proc-UFTask.obj: $(API_DIR)/UFTask.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFTask.obj -MD -MP -MF $(DEPDIR)/proc-UFTask.Tpo -c -o proc-UFTask.obj `if test -f '$(API_DIR)/UFTask.c'; then $(CYGPATH_W) '$(API_DIR)/UFTask.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFTask.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFTask.Tpo $(DEPDIR)/proc-UFTask.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFTask.c' object='proc-UFTask.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFTask.obj `if test -f '$(API_DIR)/UFTask.c'; then $(CYGPATH_W) '$(API_DIR)/UFTask.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFTask.c'; fi`
+
+proc-UFTimer_deprecated.o: $(API_DIR)/UFTimer_deprecated.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFTimer_deprecated.o -MD -MP -MF $(DEPDIR)/proc-UFTimer_deprecated.Tpo -c -o proc-UFTimer_deprecated.o `test -f '$(API_DIR)/UFTimer_deprecated.c' || echo '$(srcdir)/'`$(API_DIR)/UFTimer_deprecated.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFTimer_deprecated.Tpo $(DEPDIR)/proc-UFTimer_deprecated.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFTimer_deprecated.c' object='proc-UFTimer_deprecated.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFTimer_deprecated.o `test -f '$(API_DIR)/UFTimer_deprecated.c' || echo '$(srcdir)/'`$(API_DIR)/UFTimer_deprecated.c
+
+proc-UFTimer_deprecated.obj: $(API_DIR)/UFTimer_deprecated.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFTimer_deprecated.obj -MD -MP -MF $(DEPDIR)/proc-UFTimer_deprecated.Tpo -c -o proc-UFTimer_deprecated.obj `if test -f '$(API_DIR)/UFTimer_deprecated.c'; then $(CYGPATH_W) '$(API_DIR)/UFTimer_deprecated.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFTimer_deprecated.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFTimer_deprecated.Tpo $(DEPDIR)/proc-UFTimer_deprecated.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFTimer_deprecated.c' object='proc-UFTimer_deprecated.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFTimer_deprecated.obj `if test -f '$(API_DIR)/UFTimer_deprecated.c'; then $(CYGPATH_W) '$(API_DIR)/UFTimer_deprecated.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFTimer_deprecated.c'; fi`
+
+proc-UFTimer.o: $(API_DIR)/UFTimer.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFTimer.o -MD -MP -MF $(DEPDIR)/proc-UFTimer.Tpo -c -o proc-UFTimer.o `test -f '$(API_DIR)/UFTimer.c' || echo '$(srcdir)/'`$(API_DIR)/UFTimer.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFTimer.Tpo $(DEPDIR)/proc-UFTimer.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFTimer.c' object='proc-UFTimer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFTimer.o `test -f '$(API_DIR)/UFTimer.c' || echo '$(srcdir)/'`$(API_DIR)/UFTimer.c
+
+proc-UFTimer.obj: $(API_DIR)/UFTimer.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UFTimer.obj -MD -MP -MF $(DEPDIR)/proc-UFTimer.Tpo -c -o proc-UFTimer.obj `if test -f '$(API_DIR)/UFTimer.c'; then $(CYGPATH_W) '$(API_DIR)/UFTimer.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFTimer.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UFTimer.Tpo $(DEPDIR)/proc-UFTimer.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(API_DIR)/UFTimer.c' object='proc-UFTimer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UFTimer.obj `if test -f '$(API_DIR)/UFTimer.c'; then $(CYGPATH_W) '$(API_DIR)/UFTimer.c'; else $(CYGPATH_W) '$(srcdir)/$(API_DIR)/UFTimer.c'; fi`
+
+proc-uem_data.o: $(KERNEL_DIR)/uem_data.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-uem_data.o -MD -MP -MF $(DEPDIR)/proc-uem_data.Tpo -c -o proc-uem_data.o `test -f '$(KERNEL_DIR)/uem_data.c' || echo '$(srcdir)/'`$(KERNEL_DIR)/uem_data.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-uem_data.Tpo $(DEPDIR)/proc-uem_data.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(KERNEL_DIR)/uem_data.c' object='proc-uem_data.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-uem_data.o `test -f '$(KERNEL_DIR)/uem_data.c' || echo '$(srcdir)/'`$(KERNEL_DIR)/uem_data.c
+
+proc-uem_data.obj: $(KERNEL_DIR)/uem_data.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-uem_data.obj -MD -MP -MF $(DEPDIR)/proc-uem_data.Tpo -c -o proc-uem_data.obj `if test -f '$(KERNEL_DIR)/uem_data.c'; then $(CYGPATH_W) '$(KERNEL_DIR)/uem_data.c'; else $(CYGPATH_W) '$(srcdir)/$(KERNEL_DIR)/uem_data.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-uem_data.Tpo $(DEPDIR)/proc-uem_data.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(KERNEL_DIR)/uem_data.c' object='proc-uem_data.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-uem_data.obj `if test -f '$(KERNEL_DIR)/uem_data.c'; then $(CYGPATH_W) '$(KERNEL_DIR)/uem_data.c'; else $(CYGPATH_W) '$(srcdir)/$(KERNEL_DIR)/uem_data.c'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

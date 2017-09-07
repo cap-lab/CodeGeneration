@@ -7,21 +7,21 @@
 
 #include <uem_data.h>
 
-void MatA_init();
-void MatA_go();
-void MatA_wrapup();
+void MatA_Init(int nTaskId);
+void MatA_Go();
+void MatA_Wrapup();
 
-void MatB_init();
-void MatB_go();
-void MatB_wrapup();
+void MatB_Init(int nTaskId);
+void MatB_Go();
+void MatB_Wrapup();
 
-void VecMul_init();
-void VecMul_go();
-void VecMul_wrapup();
+void VecMul_Init(int nTaskId);
+void VecMul_Go();
+void VecMul_Wrapup();
 
-void Display_init();
-void Display_go();
-void Display_wrapup();
+void Display_Init(int nTaskId);
+void Display_Go();
+void Display_Wrapup();
 
 #define CHANNEL_0_SIZE (3)
 #define CHANNEL_1_SIZE (3)
@@ -32,7 +32,7 @@ char s_pChannel_1_buffer[CHANNEL_1_SIZE];
 char s_pChannel_2_buffer[CHANNEL_2_SIZE];
 
 
-SChunk *g_astChunk_sdf_matrix_channel_0_out[] = {
+SChunk g_astChunk_sdf_matrix_channel_0_out[] = {
 	{
 		s_pChannel_0_buffer, // Chunk start pointer
 		s_pChannel_0_buffer, // Data start pointer
@@ -44,7 +44,7 @@ SChunk *g_astChunk_sdf_matrix_channel_0_out[] = {
 	},
 };
 
-SChunk *g_astChunk_sdf_matrix_channel_0_in[] = {
+SChunk g_astChunk_sdf_matrix_channel_0_in[] = {
 	{
 		s_pChannel_0_buffer, // Chunk start pointer
 		s_pChannel_0_buffer, // Data start pointer
@@ -56,7 +56,7 @@ SChunk *g_astChunk_sdf_matrix_channel_0_in[] = {
 	},
 };
 
-SChunk *g_astChunk_sdf_matrix_channel_1_out[] = {
+SChunk g_astChunk_sdf_matrix_channel_1_out[] = {
 	{
 		s_pChannel_1_buffer, // Chunk start pointer
 		s_pChannel_1_buffer, // Data start pointer
@@ -68,7 +68,7 @@ SChunk *g_astChunk_sdf_matrix_channel_1_out[] = {
 	},
 };
 
-SChunk *g_astChunk_sdf_matrix_channel_1_in[] = {
+SChunk g_astChunk_sdf_matrix_channel_1_in[] = {
 	{
 		s_pChannel_1_buffer, // Chunk start pointer
 		s_pChannel_1_buffer, // Data start pointer
@@ -80,7 +80,7 @@ SChunk *g_astChunk_sdf_matrix_channel_1_in[] = {
 	},
 };
 
-SChunk *g_astChunk_sdf_matrix_channel_2_out[] = {
+SChunk g_astChunk_sdf_matrix_channel_2_out[] = {
 	{
 		s_pChannel_2_buffer, // Chunk start pointer
 		s_pChannel_2_buffer, // Data start pointer
@@ -92,7 +92,7 @@ SChunk *g_astChunk_sdf_matrix_channel_2_out[] = {
 	},
 };
 
-SChunk *g_astChunk_sdf_matrix_channel_2_in[] = {
+SChunk g_astChunk_sdf_matrix_channel_2_in[] = {
 	{
 		s_pChannel_2_buffer, // Chunk start pointer
 		s_pChannel_2_buffer, // Data start pointer
@@ -291,9 +291,9 @@ STask g_astTopTasks[] = {
 	{ 	0, // Task ID
 		"MatA", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		MatA_init, // Task init function
-		MatA_go, // Task go function
-		MatA_wrapup, // Task wrapup function
+		MatA_Init, // Task init function
+		MatA_Go, // Task go function
+		MatA_Wrapup, // Task wrapup function
 		RUN_CONDITION_TIME_DRIVEN, // Run condition
 		1, // Run rate
 		10, // Period
@@ -309,9 +309,9 @@ STask g_astTopTasks[] = {
 	{ 	1, // Task ID
 		"MatB", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		MatB_init, // Task init function
-		MatB_go, // Task go function
-		MatB_wrapup, // Task wrapup function
+		MatB_Init, // Task init function
+		MatB_Go, // Task go function
+		MatB_Wrapup, // Task wrapup function
 		RUN_CONDITION_TIME_DRIVEN, // Run condition
 		1, // Run rate
 		10, // Period
@@ -327,9 +327,9 @@ STask g_astTopTasks[] = {
 	{ 	2, // Task ID
 		"VecMul", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		VecMul_init, // Task init function
-		VecMul_go, // Task go function
-		VecMul_wrapup, // Task wrapup function
+		VecMul_Init, // Task init function
+		VecMul_Go, // Task go function
+		VecMul_Wrapup, // Task wrapup function
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		10, // Period
@@ -345,9 +345,9 @@ STask g_astTopTasks[] = {
 	{ 	3, // Task ID
 		"Display", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		Display_init, // Task init function
-		Display_go, // Task go function
-		Display_wrapup, // Task wrapup function
+		Display_Init, // Task init function
+		Display_Go, // Task go function
+		Display_Wrapup, // Task wrapup function
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		10, // Period
@@ -366,13 +366,13 @@ STaskGraph g_pstTopGraph[] = { g_astTopTasks, NULL };
 
 STaskIdToTaskMap g_astTaskIdToTask[] = {
 	{ 	0, // Task ID
-		g_astTopTasks[0] // Task structure pointer
+		&g_astTopTasks[0], // Task structure pointer
 	},
 	{ 	1, // Task ID
-		g_astTopTasks[1] // Task structure pointer
+		&g_astTopTasks[1], // Task structure pointer
 	},
 	{ 	2, // Task ID
-		g_astTopTasks[2] // Task structure pointer
+		&g_astTopTasks[2], // Task structure pointer
 	},
 };
 

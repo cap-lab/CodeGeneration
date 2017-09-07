@@ -60,7 +60,7 @@ _EXIT:
 }
 
 
-uem_result UFTask_GetState (IN char *pszTaskName, OUT int *pnTaskState)
+uem_result UFTask_GetState (IN char *pszTaskName, OUT ETaskState *penTaskState)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
