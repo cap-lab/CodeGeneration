@@ -274,8 +274,8 @@ typedef struct _SMappingSchedulingInfo {
 } SMappingSchedulingInfo;
 
 extern SChannel g_astChannels[];
-extern STask g_astTopTasks[];
-extern STaskGraph g_pstTopGraph[];
+extern STask g_astTasks_top[];
+extern STaskGraph g_pstGraph_top[];
 extern STaskIdToTaskMap g_astTaskIdToTask[];
 extern SProcessor g_astProcessorInfo[];
 extern SMappingSchedulingInfo g_astMappingAndSchedulingInfo[];

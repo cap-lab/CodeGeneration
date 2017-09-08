@@ -106,7 +106,7 @@ SChunk g_astChunk_channel_2_in[] = {
 	},
 };
 
-SPortSampleRate g_astPortSampleRate_sdf_matrix_MatA_out[] = {
+SPortSampleRate g_astPortSampleRate_MatA_out[] = {
 	{ "Default", // Mode name
 	   1, // Sample rate
 	   1, // Available number of data
@@ -114,7 +114,7 @@ SPortSampleRate g_astPortSampleRate_sdf_matrix_MatA_out[] = {
 };
 
 
-SPortSampleRate g_astPortSampleRate_sdf_matrix_VecMul_in1[] = {
+SPortSampleRate g_astPortSampleRate_VecMul_in1[] = {
 	{ "Default", // Mode name
 	   1, // Sample rate
 	   1, // Available number of data
@@ -122,7 +122,7 @@ SPortSampleRate g_astPortSampleRate_sdf_matrix_VecMul_in1[] = {
 };
 
 
-SPortSampleRate g_astPortSampleRate_sdf_matrix_MatB_out[] = {
+SPortSampleRate g_astPortSampleRate_MatB_out[] = {
 	{ "Default", // Mode name
 	   1, // Sample rate
 	   1, // Available number of data
@@ -130,7 +130,7 @@ SPortSampleRate g_astPortSampleRate_sdf_matrix_MatB_out[] = {
 };
 
 
-SPortSampleRate g_astPortSampleRate_sdf_matrix_VecMul_in2[] = {
+SPortSampleRate g_astPortSampleRate_VecMul_in2[] = {
 	{ "Default", // Mode name
 	   1, // Sample rate
 	   1, // Available number of data
@@ -138,7 +138,7 @@ SPortSampleRate g_astPortSampleRate_sdf_matrix_VecMul_in2[] = {
 };
 
 
-SPortSampleRate g_astPortSampleRate_sdf_matrix_VecMul_out[] = {
+SPortSampleRate g_astPortSampleRate_VecMul_out[] = {
 	{ "Default", // Mode name
 	   1, // Sample rate
 	   1, // Available number of data
@@ -146,7 +146,7 @@ SPortSampleRate g_astPortSampleRate_sdf_matrix_VecMul_out[] = {
 };
 
 
-SPortSampleRate g_astPortSampleRate_sdf_matrix_Display_in[] = {
+SPortSampleRate g_astPortSampleRate_Display_in[] = {
 	{ "Default", // Mode name
 	   9, // Sample rate
 	   1, // Available number of data
@@ -173,7 +173,7 @@ SChannel g_astChannels[] = {
 			2, // Task ID
 			"in1", // Port name
 			PORT_SAMPLE_RATE_FIXED, // Port sample rate type
-			g_astPortSampleRate_sdf_matrix_VecMul_in1, // Array of sample rate list
+			g_astPortSampleRate_VecMul_in1, // Array of sample rate list
 			1, // Array element number of sample rate list
 			12, // Sample size
 			PORT_TYPE_QUEUE, // Port type
@@ -183,7 +183,7 @@ SChannel g_astChannels[] = {
 			0, // Task ID
 			"out", // Port name
 			PORT_SAMPLE_RATE_FIXED, // Port sample rate type
-			g_astPortSampleRate_sdf_matrix_MatA_out, // Array of sample rate list
+			g_astPortSampleRate_MatA_out, // Array of sample rate list
 			1, // Array element number of sample rate list
 			12, // Sample size
 			PORT_TYPE_QUEUE, // Port type
@@ -215,7 +215,7 @@ SChannel g_astChannels[] = {
 			2, // Task ID
 			"in2", // Port name
 			PORT_SAMPLE_RATE_FIXED, // Port sample rate type
-			g_astPortSampleRate_sdf_matrix_VecMul_in2, // Array of sample rate list
+			g_astPortSampleRate_VecMul_in2, // Array of sample rate list
 			1, // Array element number of sample rate list
 			12, // Sample size
 			PORT_TYPE_QUEUE, // Port type
@@ -225,7 +225,7 @@ SChannel g_astChannels[] = {
 			1, // Task ID
 			"out", // Port name
 			PORT_SAMPLE_RATE_FIXED, // Port sample rate type
-			g_astPortSampleRate_sdf_matrix_MatB_out, // Array of sample rate list
+			g_astPortSampleRate_MatB_out, // Array of sample rate list
 			1, // Array element number of sample rate list
 			12, // Sample size
 			PORT_TYPE_QUEUE, // Port type
@@ -257,7 +257,7 @@ SChannel g_astChannels[] = {
 			3, // Task ID
 			"in", // Port name
 			PORT_SAMPLE_RATE_FIXED, // Port sample rate type
-			g_astPortSampleRate_sdf_matrix_Display_in, // Array of sample rate list
+			g_astPortSampleRate_Display_in, // Array of sample rate list
 			1, // Array element number of sample rate list
 			36, // Sample size
 			PORT_TYPE_QUEUE, // Port type
@@ -267,7 +267,7 @@ SChannel g_astChannels[] = {
 			2, // Task ID
 			"out", // Port name
 			PORT_SAMPLE_RATE_FIXED, // Port sample rate type
-			g_astPortSampleRate_sdf_matrix_VecMul_out, // Array of sample rate list
+			g_astPortSampleRate_VecMul_out, // Array of sample rate list
 			1, // Array element number of sample rate list
 			4, // Sample size
 			PORT_TYPE_QUEUE, // Port type
@@ -289,7 +289,7 @@ SChannel g_astChannels[] = {
 	},
 };
 
-STask g_astTopTasks[] = {
+STask g_astTasks_top[] = {
 	{ 	0, // Task ID
 		"MatA", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
@@ -301,7 +301,7 @@ STask g_astTopTasks[] = {
 		10, // Period
 		TIME_METRIC_MICROSEC, // Period metric
 		NULL, // Subgraph
-		g_pstTopGraph, // Parent task graph
+		g_pstGraph_top, // Parent task graph
 		NULL, // MTM information
 		NULL, // Loop information
 		FALSE, // Statically scheduled or not
@@ -319,7 +319,7 @@ STask g_astTopTasks[] = {
 		10, // Period
 		TIME_METRIC_MICROSEC, // Period metric
 		NULL, // subgraph
-		g_pstTopGraph, //parent task graph
+		g_pstGraph_top, //parent task graph
 		NULL, // MTM information
 		NULL, // Loop information
 		FALSE, // statically scheduled (run by difference tasks)
@@ -337,7 +337,7 @@ STask g_astTopTasks[] = {
 		10, // Period
 		TIME_METRIC_MICROSEC, // Period metric
 		NULL, // subgraph
-		g_pstTopGraph, //parent task graph
+		g_pstGraph_top, //parent task graph
 		NULL, // MTM information
 		NULL, // Loop information
 		FALSE, // statically scheduled (run by difference tasks)
@@ -355,7 +355,7 @@ STask g_astTopTasks[] = {
 		10, // Period
 		TIME_METRIC_MICROSEC, // Period metric
 		NULL, // subgraph
-		g_pstTopGraph, //parent task graph
+		g_pstGraph_top, //parent task graph
 		NULL, // MTM information
 		NULL, // Loop information
 		FALSE, // statically scheduled (run by difference tasks)
@@ -364,17 +364,22 @@ STask g_astTopTasks[] = {
 	},
 };
 
-STaskGraph g_pstTopGraph[] = { g_astTopTasks, NULL };
+STaskGraph g_pstGraph_top[] = {
+	{
+		g_astTasks_top, // current task graph's task list
+		NULL, // parent task
+	},
+};
 
 STaskIdToTaskMap g_astTaskIdToTask[] = {
 	{ 	0, // Task ID
-		&g_astTopTasks[0], // Task structure pointer
+		&g_astTasks_top[0], // Task structure pointer
 	},
 	{ 	1, // Task ID
-		&g_astTopTasks[1], // Task structure pointer
+		&g_astTasks_top[1], // Task structure pointer
 	},
 	{ 	2, // Task ID
-		&g_astTopTasks[2], // Task structure pointer
+		&g_astTasks_top[2], // Task structure pointer
 	},
 };
 
