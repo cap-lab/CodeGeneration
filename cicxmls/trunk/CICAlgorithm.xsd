@@ -16,7 +16,8 @@
     <xs:sequence>
       <xs:element name="tasks" type="TaskListType" minOccurs="1" maxOccurs="1" />
       <xs:element name="libraries" type="LibraryListType" minOccurs="0" maxOccurs="1" />
-      <xs:element name="channels" type="ChannelListType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="channels" type="ChannelListType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="portMaps" type="PortMapListType" minOccurs="0" maxOccurs="1" />
       <xs:element name="libraryConnections" type="LibraryConnectionListType" minOccurs="0" maxOccurs="1" />
       <xs:element name="taskGroups" type="TaskGroupListType" minOccurs="0" maxOccurs="1" />
       <xs:element name="modes" type="ModeListType" minOccurs="1" maxOccurs="1" />
@@ -40,6 +41,12 @@
   <xs:complexType name="ChannelListType">
     <xs:sequence>
       <xs:element name="channel" type="ChannelType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="PortMapListType">
+    <xs:sequence>
+      <xs:element name="portMap" type="PortMapType" minOccurs="1" maxOccurs="unbounded" />
     </xs:sequence>
   </xs:complexType>
 
@@ -207,12 +214,21 @@
     <xs:attribute name="sampleSize" type="xs:nonNegativeInteger" use="required" />
     <xs:attribute name="sampleType" type="xs:string" use="optional" />
 	<xs:attribute name="initialDataSize" type="xs:nonNegativeInteger" use="optional" />
-	<xs:attribute name="portMap" type="PortMapTypeType" use="optional" />
   </xs:complexType>
 
   <xs:complexType name="ChannelPortType">
     <xs:attribute name="task" type="NameType" use="required" />
     <xs:attribute name="port" type="NameType" use="required" />
+  </xs:complexType>
+
+  <!-- Type definitions for port map specification -->
+  <xs:complexType name="PortMapType">
+    <xs:attribute name="task" type="NameType" use="required" />
+    <xs:attribute name="port" type="NameType" use="required" />
+    <xs:attribute name="childTask" type="NameType" use="optional" />
+    <xs:attribute name="childTaskPort" type="NameType" use="optional" />
+	<xs:attribute name="direction" type="PortDirectionType" use="required" />
+	<xs:attribute name="type" type="PortMapTypeType" use="required" />
   </xs:complexType>
 
 
@@ -383,6 +399,6 @@
       <xs:enumeration value="distributing" />
       <xs:enumeration value="broadcasting" />
     </xs:restriction>
-  </xs:simpleType>  
+  </xs:simpleType>
 
 </xs:schema>

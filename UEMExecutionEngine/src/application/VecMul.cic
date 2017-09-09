@@ -1,0 +1,83 @@
+/************************************
+ *
+ * File : Ve.cic
+ * Date : Oct 30, 2013 4:10 PM
+ *
+*************************************/
+
+/////////////////////////////////////
+// include header section
+/////////////////////////////////////
+
+// ##DEFINE_SECTION::START
+// ##DEFINE_SECTION::END
+
+
+TASK_CODE_BEGIN
+
+/////////////////////////////////////
+// global definition
+/////////////////////////////////////
+
+// ##DEFINE_PORT_SECTION::START
+STATIC int port_in1;
+STATIC int port_in2;
+STATIC int port_out;
+// ##DEFINE_PORT_SECTION::END
+
+
+
+/////////////////////////////////////
+// init code
+/////////////////////////////////////
+
+TASK_INIT
+{
+// ##INIT_PORT_SECTION::START
+    port_in1 = PORT_INITIALIZE(TASK_ID, "in1");
+    port_in2 = PORT_INITIALIZE(TASK_ID, "in2");
+    port_out = PORT_INITIALIZE(TASK_ID, "out");
+// ##INIT_PORT_SECTION::END
+
+    // TODO: task initialize code
+
+}
+
+
+/////////////////////////////////////
+// go code
+/////////////////////////////////////
+
+TASK_GO
+{
+    int vecA[3];
+    int vecB[3];
+    int val=0;
+    int i;
+
+    MQ_RECEIVE(port_in1, (unsigned char*) vecA, sizeof(int)*3);
+    MQ_RECEIVE(port_in2, (unsigned char*) vecB, sizeof(int)*3);
+
+    for (i=0 ; i<3 ; i++){
+        val += vecA[i]*vecB[i];
+       
+    }
+  
+    MQ_SEND(port_out, (unsigned char*) &val, sizeof(int));
+    
+
+}
+
+
+
+/////////////////////////////////////
+// wrapup code
+/////////////////////////////////////
+
+TASK_WRAPUP
+{
+    // TODO: task wrapup code
+
+}
+
+TASK_CODE_END
