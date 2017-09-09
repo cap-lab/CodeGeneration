@@ -89,9 +89,11 @@ public class CICMappingXMLHandler {
 				taskList.add(task);
 			}
 			
-			for( MappingLibraryType libraryType: mapping.getLibrary() ) {
+			//delete SDG 2017.8.17
+			//The taskList doesn't need to add LibararyTask. Because I don't want to display Librarytask on the mapping table.
+			/*for( MappingLibraryType libraryType: mapping.getLibrary() ) {
 				taskList.add(libraryType);
-			}
+			}*/
 
 			processed = true;
 		}
