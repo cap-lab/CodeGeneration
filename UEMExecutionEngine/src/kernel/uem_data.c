@@ -41,8 +41,6 @@ SChunk g_astChunk_channel_0_out[] = {
 		s_pChannel_0_buffer, // Data end pointer
 		0, // Written data length
 		0, // Available data number;
-		NULL, // Chunk mutex
-		NULL, // Chunk conditional variable
 	},
 };
 
@@ -53,8 +51,6 @@ SChunk g_astChunk_channel_0_in[] = {
 		s_pChannel_0_buffer, // Data end pointer
 		0, // Written data length
 		0, // Available data number (for broadcast loop)
-		NULL, // Chunk mutex
-		NULL, // Chunk conditional variable
 	},
 };
 
@@ -65,8 +61,6 @@ SChunk g_astChunk_channel_1_out[] = {
 		s_pChannel_1_buffer, // Data end pointer
 		0, // wWitten data length
 		0, // Available data number;
-		NULL, // Chunk mutex
-		NULL, // Chunk conditional variable
 	},
 };
 
@@ -77,8 +71,6 @@ SChunk g_astChunk_channel_1_in[] = {
 		s_pChannel_1_buffer, // Data end pointer
 		0, // Written data length
 		0, // Available data number (for broadcast loop)
-		NULL, // Chunk mutex
-		NULL, // Chunk conditional variable
 	},
 };
 
@@ -89,8 +81,6 @@ SChunk g_astChunk_channel_2_out[] = {
 		s_pChannel_2_buffer, // Data end pointer
 		0, // wWitten data length
 		0, // Available data number;
-		NULL, // Chunk mutex
-		NULL, // Chunk conditional variable
 	},
 };
 
@@ -101,8 +91,6 @@ SChunk g_astChunk_channel_2_in[] = {
 		s_pChannel_2_buffer, // Data end pointer
 		0, // Written data length
 		0, // Available data number (for broadcast loop)
-		NULL, // Chunk mutex
-		NULL, // Chunk conditional variable
 	},
 };
 
@@ -163,18 +151,20 @@ SPortSampleRate g_astPortSampleRate_Display_in[] = {
 SChannel g_astChannels[] = {
 	{
 		0, // Channel ID
-		CHANNEL_TYPE_SHARED_MEMORY, // Channel type
+		COMMUNICATION_TYPE_SHARED_MEMORY, // Channel type
 		s_pChannel_0_buffer, // Channel buffer pointer
 		CHANNEL_0_SIZE, // Channel size
 		s_pChannel_0_buffer, // Channel data start
 		0, // Channel data length
 		NULL, // Mutex
+		NULL, // Event
 		{
 			2, // Task ID
 			"in1", // Port name
 			PORT_SAMPLE_RATE_FIXED, // Port sample rate type
 			g_astPortSampleRate_VecMul_in1, // Array of sample rate list
 			1, // Array element number of sample rate list
+			0, // Selected sample rate index
 			12, // Sample size
 			PORT_TYPE_QUEUE, // Port type
 			NULL, // Pointer to Subgraph port
@@ -185,6 +175,7 @@ SChannel g_astChannels[] = {
 			PORT_SAMPLE_RATE_FIXED, // Port sample rate type
 			g_astPortSampleRate_MatA_out, // Array of sample rate list
 			1, // Array element number of sample rate list
+			0, // Selected sample rate index
 			12, // Sample size
 			PORT_TYPE_QUEUE, // Port type
 			NULL, // Pointer to Subgraph port
@@ -205,18 +196,20 @@ SChannel g_astChannels[] = {
 	},
 	{
 		1, // Channel ID
-		CHANNEL_TYPE_SHARED_MEMORY, // Channel type
+		COMMUNICATION_TYPE_SHARED_MEMORY, // Channel type
 		s_pChannel_1_buffer, // Channel buffer pointer
 		CHANNEL_1_SIZE, // Channel size
 		s_pChannel_1_buffer, // Channel data start
 		0, // Channel data length
 		NULL, // Mutex
+		NULL, // Event
 		{
 			2, // Task ID
 			"in2", // Port name
 			PORT_SAMPLE_RATE_FIXED, // Port sample rate type
 			g_astPortSampleRate_VecMul_in2, // Array of sample rate list
 			1, // Array element number of sample rate list
+			0, // Selected sample rate index
 			12, // Sample size
 			PORT_TYPE_QUEUE, // Port type
 			NULL, // Pointer to Subgraph port
@@ -227,6 +220,7 @@ SChannel g_astChannels[] = {
 			PORT_SAMPLE_RATE_FIXED, // Port sample rate type
 			g_astPortSampleRate_MatB_out, // Array of sample rate list
 			1, // Array element number of sample rate list
+			0, // Selected sample rate index
 			12, // Sample size
 			PORT_TYPE_QUEUE, // Port type
 			NULL, // Pointer to Subgraph port
@@ -247,18 +241,20 @@ SChannel g_astChannels[] = {
 	},
 	{
 		2, // Channel ID
-		CHANNEL_TYPE_SHARED_MEMORY, // Channel type
+		COMMUNICATION_TYPE_SHARED_MEMORY, // Channel type
 		s_pChannel_2_buffer, // Channel buffer pointer
 		CHANNEL_2_SIZE, // Channel size
 		s_pChannel_2_buffer, // Channel data start
 		0, // Channel data length
 		NULL, // Mutex
+		NULL, // Event
 		{
 			3, // Task ID
 			"in", // Port name
 			PORT_SAMPLE_RATE_FIXED, // Port sample rate type
 			g_astPortSampleRate_Display_in, // Array of sample rate list
 			1, // Array element number of sample rate list
+			0, // Selected sample rate index
 			36, // Sample size
 			PORT_TYPE_QUEUE, // Port type
 			NULL, // Pointer to Subgraph port
@@ -269,6 +265,7 @@ SChannel g_astChannels[] = {
 			PORT_SAMPLE_RATE_FIXED, // Port sample rate type
 			g_astPortSampleRate_VecMul_out, // Array of sample rate list
 			1, // Array element number of sample rate list
+			0, // Selected sample rate index
 			4, // Sample size
 			PORT_TYPE_QUEUE, // Port type
 			NULL, // Pointer to Subgraph port
@@ -284,8 +281,8 @@ SChannel g_astChannels[] = {
 			1, // Chunk size
 		}, // Output chunk information
 		NULL, // Available chunk list
-		NULL, // Chunk list head
-		NULL, // Chunk list tail
+		NULL, // Available Chunk list head
+		NULL, // Available Chunk list tail
 	},
 };
 

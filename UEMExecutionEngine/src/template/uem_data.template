@@ -36,8 +36,6 @@ SChunk g_astChunk_channel_/*[CHANNEL_ID]*/_out[] = {
 		s_pChannel_/*[CHANNEL_ID]*/_buffer/*[CHUNK_LOOP_ADDRESS]*/, // Data end pointer
 		0, // Written data length
 		0, // Available data number;
-		NULL, // Chunk mutex
-		NULL, // Chunk conditional variable
 	},
 // ##CHUNK_LOOP::END
 };
@@ -50,8 +48,6 @@ SChunk g_astChunk_channel_/*[CHANNEL_ID]*/_in[] = {
 		s_pChannel_/*[CHANNEL_ID]*/_buffer/*[CHUNK_LOOP_ADDRESS]*/, // Data end pointer
 		0, // Written data length
 		0, // Available data number;
-		NULL, // Chunk mutex
-		NULL, // Chunk conditional variable
 	},
 // ##CHUNK_LOOP::END
 };
@@ -89,18 +85,20 @@ SChannel g_astChannels[] = {
 // ##CHANNEL_LOOP::START
 	{
 		/*[CHANNEL_ID]*/, // Channel ID
-		/*[CHANNEL_TYPE]*/, // Channel type
+		/*[CHANNEL_COMMUNICATION_TYPE]*/, // Channel communication type
 		s_pChannel_/*[CHANNEL_ID]*/_buffer, // Channel buffer pointer
 		CHANNEL_/*[CHANNEL_ID]*/_SIZE, // Channel size
 		s_pChannel_/*[CHANNEL_ID]*/_buffer, // Channel data start
 		0, // Channel data length
 		NULL, // Mutex
+		NULL, // Event
 		{
 			/*[INPUT_PORT_TASK_ID]*/, // Task ID
 			/*[INPUT_PORT_NAME]*/, // Port name
 			/*[INPUT_PORT_SAMPLE_RATE_TYPE]*/, // Port sample rate type
 			g_astPortSampleRate_/*[INPUT_PORT_NESTED_TASK_NAME]*/_/*[INPUT_PORT_NAME]*/, // Array of sample rate list
 			/*[INPUT_PORT_MODE_NUM]*/, // Array element number of sample rate list
+			0, //Selected sample rate index
 			/*[INPUT_PORT_SAMPLE_SIZE]*/, // Sample size
 			/*[INPUT_PORT_TYPE]*/, // Port type
 			NULL, // Pointer to Subgraph port
@@ -111,6 +109,7 @@ SChannel g_astChannels[] = {
 			/*[OUTPUT_PORT_SAMPLE_RATE_TYPE]*/, // Port sample rate type
 			g_astPortSampleRate_/*[OUTPUT_PORT_NESTED_TASK_NAME]*/_/*[OUTPUT_PORT_NAME]*/, // Array of sample rate list
 			/*[OUTPUT_PORT_MODE_NUM]*/, // Array element number of sample rate list
+			0, //Selected sample rate index
 			/*[OUTPUT_PORT_SAMPLE_SIZE]*/, // Sample size
 			/*[OUTPUT_PORT_TYPE]*/, // Port type
 			NULL, // Pointer to Subgraph port

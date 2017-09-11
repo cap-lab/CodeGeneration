@@ -70,11 +70,11 @@ typedef enum _EPortSampleRateType {
 } EPortSampleRateType;
 
 
-typedef enum _EChannelType {
-	CHANNEL_TYPE_SHARED_MEMORY,
-	CHANNEL_TYPE_TCP_SERVER,
-	CHANNEL_TYPE_TCP_CLIENT,
-} EChannelType;
+typedef enum _ECommunicationType {
+	COMMUNICATION_TYPE_SHARED_MEMORY,
+	COMMUNICATION_TYPE_TCP_SERVER,
+	COMMUNICATION_TYPE_TCP_CLIENT,
+} ECommunicationType;
 
 typedef enum _ELoopType {
 	LOOP_TYPE_CONVERGENT,
@@ -149,8 +149,6 @@ typedef struct _SChunk {
 	char *pDataEnd; // vary
 	int nChunkDataLen; // written data length
 	int nAvailableDataNum; // for broadcast loop
-	HThreadMutex hChunkMutex; // chunk mutex
-	HThreadEvent hChunkEvent; // chunk event for blocking/read
 } SChunk;
 
 typedef struct _SAvailableChunk SAvailableChunk;
@@ -178,6 +176,7 @@ typedef struct _SPort {
 	EPortSampleRateType enSampleRateType;
 	SPortSampleRate *astSampleRates; // If the task is MTM, multiple sample rates can be existed.
 	int nNumOfSampleRates;
+	int nCurrentSampleRateIndex;
 	int nSampleSize;
 	EPortType enPortType;
 	SPort *pstSubGraphPort;
@@ -204,12 +203,13 @@ typedef struct _SChunkInfo {
 
 typedef struct _SChannel {
 	int nChannelIndex;
-	EChannelType enType;
+	ECommunicationType enType;
 	void *pBuffer;
 	int nBufSize;
 	void *pDataStart;
 	int nDataLen;
-	HThreadMutex hMutex; // channel global mutex
+	HThreadMutex hMutex; // Channel global mutex
+	HThreadEvent hEvent; // Channel global conditional variable
 
 	SPort stInputPort;
 	SPort stOutputPort;
@@ -222,6 +222,7 @@ typedef struct _SChannel {
 	SAvailableChunk *pstAvailableInputChunkTail;
 
 } SChannel;
+
 
 typedef struct _STaskIdToTaskMap {
 	int nTaskId;
