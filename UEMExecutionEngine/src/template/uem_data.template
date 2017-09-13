@@ -79,6 +79,17 @@ SPortSampleRate g_astPortSampleRate_/*[OUTPUT_PORT_NESTED_TASK_NAME]*/_/*[OUTPUT
 // ##PORT_SAMPLE_RATE_TEMPLATE::END
 
 
+// ##AVAILABLE_CHUNK_LIST_TEMPLATE::START
+// ##CHANNEL_LOOP::START
+SAvailableChunk g_astAvailableInputChunk_channel_/*[CHANNEL_ID]*/[] = {
+// ##CHUNK_LOOP::START
+	{ /*[CHUNK_LOOP_INDEX]*/, NULL, NULL, },
+// ##CHUNK_LOOP::END
+};
+// ##CHANNEL_LOOP::END
+// ##AVAILABLE_CHUNK_LIST_TEMPLATE::END
+
+
 
 // ##CHANNEL_LIST_TEMPLATE::START
 SChannel g_astChannels[] = {
@@ -86,10 +97,12 @@ SChannel g_astChannels[] = {
 	{
 		/*[CHANNEL_ID]*/, // Channel ID
 		/*[CHANNEL_COMMUNICATION_TYPE]*/, // Channel communication type
+		/*[CHANNEL_TYPE]*/, // Channel type
 		s_pChannel_/*[CHANNEL_ID]*/_buffer, // Channel buffer pointer
 		CHANNEL_/*[CHANNEL_ID]*/_SIZE, // Channel size
 		s_pChannel_/*[CHANNEL_ID]*/_buffer, // Channel data start
 		0, // Channel data length
+		0, // reference count
 		NULL, // Mutex
 		NULL, // Event
 		{
@@ -124,7 +137,8 @@ SChannel g_astChannels[] = {
 			1, // Chunk number
 			1, // Chunk size
 		}, // Output chunk information
-		NULL, // Available chunk list
+		g_astAvailableInputChunk_channel_/*[CHANNEL_ID]*/, // Available chunk list
+		/*[MAXIMUM_CHUNK_NUM]*/,
 		NULL, // Chunk list head
 		NULL, // Chunk list tail
 	},

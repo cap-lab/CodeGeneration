@@ -76,6 +76,13 @@ typedef enum _ECommunicationType {
 	COMMUNICATION_TYPE_TCP_CLIENT,
 } ECommunicationType;
 
+typedef enum _EChannelType {
+	CHANNEL_TYPE_GENERAL,
+	CHANNEL_TYPE_INPUT_ARRAY,
+	CHANNEL_TYPE_OUTPUT_ARRAY,
+	CHANNEL_TYPE_FULL_ARRAY,
+} EChannelType;
+
 typedef enum _ELoopType {
 	LOOP_TYPE_CONVERGENT,
 	LOOP_TYPE_DATA,
@@ -204,10 +211,12 @@ typedef struct _SChunkInfo {
 typedef struct _SChannel {
 	int nChannelIndex;
 	ECommunicationType enType;
+	EChannelType enChannelType;
 	void *pBuffer;
 	int nBufSize;
 	void *pDataStart;
 	int nDataLen;
+	int nReferenceCount;
 	HThreadMutex hMutex; // Channel global mutex
 	HThreadEvent hEvent; // Channel global conditional variable
 
@@ -217,7 +226,8 @@ typedef struct _SChannel {
 	SChunkInfo stOutputPortChunk;
 
 	// These values can be changed during execution depending on Mode transition
-	SAvailableChunk *astAvailableInputChunkList; // Same size of nChunkNum
+	SAvailableChunk *astAvailableInputChunkList; // size
+	int nMaxChunkNum; // maximum chunk size for all port sample rate cases
 	SAvailableChunk *pstAvailableInputChunkHead;
 	SAvailableChunk *pstAvailableInputChunkTail;
 
