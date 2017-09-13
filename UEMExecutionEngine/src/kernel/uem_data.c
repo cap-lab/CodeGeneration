@@ -141,6 +141,17 @@ SPortSampleRate g_astPortSampleRate_Display_in[] = {
 	},
 };
 
+SAvailableChunk g_astAvailableInputChunk_channel_0[] = {
+	{ 0, NULL, NULL, },
+};
+
+SAvailableChunk g_astAvailableInputChunk_channel_1[] = {
+	{ 0, NULL, NULL, },
+};
+
+SAvailableChunk g_astAvailableInputChunk_channel_2[] = {
+	{ 0, NULL, NULL, },
+};
 
 // ports which located inside a subgraph and port-mapped to outer graph
 //SPort g_astPortMapList[] = {
@@ -151,11 +162,13 @@ SPortSampleRate g_astPortSampleRate_Display_in[] = {
 SChannel g_astChannels[] = {
 	{
 		0, // Channel ID
-		COMMUNICATION_TYPE_SHARED_MEMORY, // Channel type
+		COMMUNICATION_TYPE_SHARED_MEMORY, // Communication type
+		CHANNEL_TYPE_GENERAL, // Channel type
 		s_pChannel_0_buffer, // Channel buffer pointer
 		CHANNEL_0_SIZE, // Channel size
 		s_pChannel_0_buffer, // Channel data start
 		0, // Channel data length
+		0, // reference count
 		NULL, // Mutex
 		NULL, // Event
 		{
@@ -190,17 +203,20 @@ SChannel g_astChannels[] = {
 			1, // Chunk number
 			1, // Chunk size
 		}, // Output chunk information
-		NULL, // Available chunk list
+		g_astAvailableInputChunk_channel_0, // Available chunk list
+		1, // Maximum chunk size
 		NULL, // Chunk list head
 		NULL, // Chunk list tail
 	},
 	{
 		1, // Channel ID
-		COMMUNICATION_TYPE_SHARED_MEMORY, // Channel type
+		COMMUNICATION_TYPE_SHARED_MEMORY, // Communication type
+		CHANNEL_TYPE_GENERAL, // Channel type
 		s_pChannel_1_buffer, // Channel buffer pointer
 		CHANNEL_1_SIZE, // Channel size
 		s_pChannel_1_buffer, // Channel data start
 		0, // Channel data length
+		0, // reference count
 		NULL, // Mutex
 		NULL, // Event
 		{
@@ -235,17 +251,20 @@ SChannel g_astChannels[] = {
 			1, // Chunk number
 			1, // Chunk size
 		}, // Output chunk information
-		NULL, // Available chunk list
+		g_astAvailableInputChunk_channel_1, // Available chunk list
+		1, // Maximum chunk size
 		NULL, // Chunk list head
 		NULL, // Chunk list tail
 	},
 	{
 		2, // Channel ID
-		COMMUNICATION_TYPE_SHARED_MEMORY, // Channel type
+		COMMUNICATION_TYPE_SHARED_MEMORY, // Communication type
+		CHANNEL_TYPE_GENERAL, // Channel type
 		s_pChannel_2_buffer, // Channel buffer pointer
 		CHANNEL_2_SIZE, // Channel size
 		s_pChannel_2_buffer, // Channel data start
 		0, // Channel data length
+		0, // reference count
 		NULL, // Mutex
 		NULL, // Event
 		{
@@ -280,7 +299,8 @@ SChannel g_astChannels[] = {
 			1, // Chunk number
 			1, // Chunk size
 		}, // Output chunk information
-		NULL, // Available chunk list
+		g_astAvailableInputChunk_channel_2, // Available chunk list
+		1, // Maximum chunk size
 		NULL, // Available Chunk list head
 		NULL, // Available Chunk list tail
 	},
