@@ -83,7 +83,7 @@ SPortSampleRate g_astPortSampleRate_/*[OUTPUT_PORT_NESTED_TASK_NAME]*/_/*[OUTPUT
 // ##CHANNEL_LOOP::START
 SAvailableChunk g_astAvailableInputChunk_channel_/*[CHANNEL_ID]*/[] = {
 // ##CHUNK_LOOP::START
-	{ /*[CHUNK_LOOP_INDEX]*/, NULL, NULL, },
+	{ /*[CHUNK_LOOP_INDEX]*/, 0, NULL, NULL, },
 // ##CHUNK_LOOP::END
 };
 // ##CHANNEL_LOOP::END
@@ -101,6 +101,7 @@ SChannel g_astChannels[] = {
 		s_pChannel_/*[CHANNEL_ID]*/_buffer, // Channel buffer pointer
 		CHANNEL_/*[CHANNEL_ID]*/_SIZE, // Channel size
 		s_pChannel_/*[CHANNEL_ID]*/_buffer, // Channel data start
+		s_pChannel_/*[CHANNEL_ID]*/_buffer, // Channel data end
 		0, // Channel data length
 		0, // reference count
 		NULL, // Mutex
@@ -137,6 +138,7 @@ SChannel g_astChannels[] = {
 			1, // Chunk number
 			1, // Chunk size
 		}, // Output chunk information
+		CHUNK_NUM_NOT_INITIALIZED, // Written output chunk number
 		g_astAvailableInputChunk_channel_/*[CHANNEL_ID]*/, // Available chunk list
 		/*[MAXIMUM_CHUNK_NUM]*/,
 		NULL, // Chunk list head
@@ -161,7 +163,7 @@ STask g_astTasks_/*[TASKGRAPH_NAME]*/[] = {
 		/*[TASK_PERIOD]*/, // Period
 		/*[TASK_PERIOD_METRIC]*/, // Period metric
 		NULL, // Subgraph
-		/*[PARENT_TASK_GRAPH]*/, // Parent task graph
+		&/*[PARENT_TASK_GRAPH]*/, // Parent task graph
 		NULL, // MTM information
 		NULL, // Loop information
 		/*[TASK_SCHEDULED]*/, // Statically scheduled or not
@@ -175,11 +177,9 @@ STask g_astTasks_/*[TASKGRAPH_NAME]*/[] = {
 
 // ##TASK_GRAPH_TEMPLATE::START
 // ##TASKGRAPH_LOOP::START
-STaskGraph g_pstGraph_/*[TASKGRAPH_NAME]*/[] = {
-	{
+STaskGraph g_stGraph_/*[TASKGRAPH_NAME]*/ = {
 		g_astTasks_/*[TASKGRAPH_NAME]*/, // current task graph's task list
 		NULL, // parent task
-	},
 };
 // ##TASKGRAPH_LOOP::END
 // ##TASK_GRAPH_TEMPLATE::END

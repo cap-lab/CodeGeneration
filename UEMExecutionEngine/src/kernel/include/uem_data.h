@@ -22,6 +22,7 @@ extern "C"
 #define INVALID_CHANNEL_ID (-1)
 #define VARIABLE_SAMPLE_RATE (-1)
 #define MAPPING_NOT_SPECIFIED (-1)
+#define CHUNK_NUM_NOT_INITIALIZED (-1)
 
 
 typedef enum _ETaskType {
@@ -162,6 +163,7 @@ typedef struct _SAvailableChunk SAvailableChunk;
 
 typedef struct _SAvailableChunk {
 	int nChunkIndex;
+	int nSampleNum;
 	SAvailableChunk *pstPrev;
 	SAvailableChunk *pstNext;
 } SAvailableChunk;
@@ -215,6 +217,7 @@ typedef struct _SChannel {
 	void *pBuffer;
 	int nBufSize;
 	void *pDataStart;
+	void *pDataEnd;
 	int nDataLen;
 	int nReferenceCount;
 	HThreadMutex hMutex; // Channel global mutex
@@ -224,6 +227,7 @@ typedef struct _SChannel {
 	SPort stOutputPort;
 	SChunkInfo stInputPortChunk;
 	SChunkInfo stOutputPortChunk;
+	int nWrittenOutputChunkNum;
 
 	// These values can be changed during execution depending on Mode transition
 	SAvailableChunk *astAvailableInputChunkList; // size
@@ -285,12 +289,21 @@ typedef struct _SMappingSchedulingInfo {
 } SMappingSchedulingInfo;
 
 extern SChannel g_astChannels[];
-extern STask g_astTasks_top[];
-extern STaskGraph g_pstGraph_top[];
-extern STaskIdToTaskMap g_astTaskIdToTask[];
-extern SProcessor g_astProcessorInfo[];
-extern SMappingSchedulingInfo g_astMappingAndSchedulingInfo[];
+extern int g_nChannelNum;
 
+extern STask g_astTasks_top[];
+extern int g_nNumOfTasks_top;
+
+extern STaskGraph g_stGraph_top;
+
+extern STaskIdToTaskMap g_astTaskIdToTask[];
+extern int g_nTaskIdToTaskNum;
+
+extern SProcessor g_astProcessorInfo[];
+extern int g_nProcessorInfoNum;
+
+extern SMappingSchedulingInfo g_astMappingAndSchedulingInfo[];
+extern int g_nMappingAndSchedulingInfoNum;
 
 #ifdef __cplusplus
 }

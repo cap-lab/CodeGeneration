@@ -142,15 +142,15 @@ SPortSampleRate g_astPortSampleRate_Display_in[] = {
 };
 
 SAvailableChunk g_astAvailableInputChunk_channel_0[] = {
-	{ 0, NULL, NULL, },
+	{ 0, 0, NULL, NULL, },
 };
 
 SAvailableChunk g_astAvailableInputChunk_channel_1[] = {
-	{ 0, NULL, NULL, },
+	{ 0, 0, NULL, NULL, },
 };
 
 SAvailableChunk g_astAvailableInputChunk_channel_2[] = {
-	{ 0, NULL, NULL, },
+	{ 0, 0, NULL, NULL, },
 };
 
 // ports which located inside a subgraph and port-mapped to outer graph
@@ -167,6 +167,7 @@ SChannel g_astChannels[] = {
 		s_pChannel_0_buffer, // Channel buffer pointer
 		CHANNEL_0_SIZE, // Channel size
 		s_pChannel_0_buffer, // Channel data start
+		s_pChannel_0_buffer, // Channel data end
 		0, // Channel data length
 		0, // reference count
 		NULL, // Mutex
@@ -203,6 +204,7 @@ SChannel g_astChannels[] = {
 			1, // Chunk number
 			1, // Chunk size
 		}, // Output chunk information
+		CHUNK_NUM_NOT_INITIALIZED, // Written output chunk number
 		g_astAvailableInputChunk_channel_0, // Available chunk list
 		1, // Maximum chunk size
 		NULL, // Chunk list head
@@ -215,6 +217,7 @@ SChannel g_astChannels[] = {
 		s_pChannel_1_buffer, // Channel buffer pointer
 		CHANNEL_1_SIZE, // Channel size
 		s_pChannel_1_buffer, // Channel data start
+		s_pChannel_1_buffer, // Channel data end
 		0, // Channel data length
 		0, // reference count
 		NULL, // Mutex
@@ -251,6 +254,7 @@ SChannel g_astChannels[] = {
 			1, // Chunk number
 			1, // Chunk size
 		}, // Output chunk information
+		CHUNK_NUM_NOT_INITIALIZED, // Written output chunk number
 		g_astAvailableInputChunk_channel_1, // Available chunk list
 		1, // Maximum chunk size
 		NULL, // Chunk list head
@@ -263,6 +267,7 @@ SChannel g_astChannels[] = {
 		s_pChannel_2_buffer, // Channel buffer pointer
 		CHANNEL_2_SIZE, // Channel size
 		s_pChannel_2_buffer, // Channel data start
+		s_pChannel_2_buffer, // Channel data end
 		0, // Channel data length
 		0, // reference count
 		NULL, // Mutex
@@ -299,6 +304,7 @@ SChannel g_astChannels[] = {
 			1, // Chunk number
 			1, // Chunk size
 		}, // Output chunk information
+		CHUNK_NUM_NOT_INITIALIZED, // Written output chunk number
 		g_astAvailableInputChunk_channel_2, // Available chunk list
 		1, // Maximum chunk size
 		NULL, // Available Chunk list head
@@ -318,7 +324,7 @@ STask g_astTasks_top[] = {
 		10, // Period
 		TIME_METRIC_MICROSEC, // Period metric
 		NULL, // Subgraph
-		g_pstGraph_top, // Parent task graph
+		&g_stGraph_top, // Parent task graph
 		NULL, // MTM information
 		NULL, // Loop information
 		FALSE, // Statically scheduled or not
@@ -336,7 +342,7 @@ STask g_astTasks_top[] = {
 		10, // Period
 		TIME_METRIC_MICROSEC, // Period metric
 		NULL, // subgraph
-		g_pstGraph_top, //parent task graph
+		&g_stGraph_top, //parent task graph
 		NULL, // MTM information
 		NULL, // Loop information
 		FALSE, // statically scheduled (run by difference tasks)
@@ -354,7 +360,7 @@ STask g_astTasks_top[] = {
 		10, // Period
 		TIME_METRIC_MICROSEC, // Period metric
 		NULL, // subgraph
-		g_pstGraph_top, //parent task graph
+		&g_stGraph_top, //parent task graph
 		NULL, // MTM information
 		NULL, // Loop information
 		FALSE, // statically scheduled (run by difference tasks)
@@ -372,7 +378,7 @@ STask g_astTasks_top[] = {
 		10, // Period
 		TIME_METRIC_MICROSEC, // Period metric
 		NULL, // subgraph
-		g_pstGraph_top, //parent task graph
+		&g_stGraph_top, //parent task graph
 		NULL, // MTM information
 		NULL, // Loop information
 		FALSE, // statically scheduled (run by difference tasks)
@@ -381,11 +387,9 @@ STask g_astTasks_top[] = {
 	},
 };
 
-STaskGraph g_pstGraph_top[] = {
-	{
+STaskGraph g_stGraph_top = {
 		g_astTasks_top, // current task graph's task list
 		NULL, // parent task
-	},
 };
 
 STaskIdToTaskMap g_astTaskIdToTask[] = {
@@ -430,5 +434,13 @@ SMappingSchedulingInfo g_astMappingAndSchedulingInfo[] = {
 	},
 };
 // ##UEM_DATA_GENERATION_SECTION::END
+
+int g_nChannelNum = ARRAYLEN(g_astChannels);
+int g_nNumOfTasks_top = ARRAYLEN(g_astTasks_top);
+int g_nTaskIdToTaskNum = ARRAYLEN(g_astTaskIdToTask);
+int g_nProcessorInfoNum = ARRAYLEN(g_astProcessorInfo);
+int g_nMappingAndSchedulingInfoNum = ARRAYLEN(g_astMappingAndSchedulingInfo);
+
+
 
 

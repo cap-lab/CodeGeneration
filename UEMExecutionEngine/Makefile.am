@@ -27,7 +27,8 @@ API_SOURCES=$(API_DIR)/UFControl_deprecated.c\
 			$(API_DIR)/UFTimer_deprecated.c\
 			$(API_DIR)/UFTimer.c
 
-KERNEL_SOURCES=$(KERNEL_DIR)/uem_data.c
+KERNEL_SOURCES=$(KERNEL_DIR)/uem_data.c\
+			   $(KERNEL_DIR)/UKChannel.c
 
 COMMON_SOURCES=
 

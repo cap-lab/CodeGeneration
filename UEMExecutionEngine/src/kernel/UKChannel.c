@@ -8,43 +8,6 @@
 
 #include <uem_data.h>
 
-uem_result UKChannel_Initialize()
-{
-	uem_result result = ERR_UEM_NOERROR;
-	int nLoop = 0;
-
-	for(nLoop = 0; nLoop < ARRAYLEN(g_astChannels) ; nLoop++)
-	{
-		switch(g_astChannels[nLoop].enType)
-		{
-		case CHANNEL_TYPE_SHARED_MEMORY:
-			UKChannel_InitializeSharedMemory(&g_astChannels[nLoop]);
-			// Shared memory initialization
-			break;
-		case CHANNEL_TYPE_TCP_SERVER:
-			// Server-side TCP channel initialization
-			break;
-		case CHANNEL_TYPE_TCP_CLIENT:
-			// Client-side TCP channel initialization
-			break;
-		default:
-			break;
-		}
-
-		if( g_astChannels[nLoop].stInputPortChunk.nChunkNum > 1 )
-		{
-			//channel is read by multiple tasks
-		}
-
-		if( g_astChannels[nLoop].stOutputPortChunk.nChunkNum > 1 )
-		{
-			// channel is written by multiple tasks
-		}
-	}
-
-	return result;
-}
-
 
 uem_result UKChannel_InitializeSharedMemory(SChannel *pstChannel)
 {
@@ -58,6 +21,7 @@ uem_result UKChannel_InitializeSharedMemory(SChannel *pstChannel)
 	// pDataStart => clear (pBuffer)
 	// nDataLen => clear (0)
 	// hMutex => initialize/create
+	// hEvent => initialize/create
 
 	// SPort
 	// nCurrentSampleRateIndex
@@ -73,22 +37,6 @@ uem_result UKChannel_InitializeSharedMemory(SChannel *pstChannel)
 	// data end pointer clear
 	// written data length = 0
 	// available data number clear
-	// mutex
-	// conditional variable
-
-
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-uem_result UKChannel_Read(int nChannelId, int nChunkIndex)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-
-	//Assign chunk
-	g_astChannels[nChannelId].stInputPortChunk.astChunk[nChunkIndex].pChunkStart;
 
 
 
@@ -119,6 +67,62 @@ uem_result UKChannel_InitializeTCPClient()
 _EXIT:
 	return result;
 }
+
+uem_result UKChannel_Initialize()
+{
+	uem_result result = ERR_UEM_NOERROR;
+	int nLoop = 0;
+
+	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
+	{
+		switch(g_astChannels[nLoop].enType)
+		{
+		case COMMUNICATION_TYPE_SHARED_MEMORY:
+			UKChannel_InitializeSharedMemory(&(g_astChannels[nLoop]));
+			// Shared memory initialization
+			break;
+		case COMMUNICATION_TYPE_TCP_SERVER:
+			// Server-side TCP channel initialization
+			break;
+		case COMMUNICATION_TYPE_TCP_CLIENT:
+			// Client-side TCP channel initialization
+			break;
+		default:
+			break;
+		}
+
+		if( g_astChannels[nLoop].stInputPortChunk.nChunkNum > 1 )
+		{
+			//channel is read by multiple tasks
+		}
+
+		if( g_astChannels[nLoop].stOutputPortChunk.nChunkNum > 1 )
+		{
+			// channel is written by multiple tasks
+		}
+	}
+
+	return result;
+}
+
+
+
+
+uem_result UKChannel_Read(int nChannelId, int nChunkIndex)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	//Assign chunk
+	//g_astChannels[nChannelId].stInputPortChunk.astChunk[nChunkIndex].pChunkStart;
+
+
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 
 
 uem_result UKChannel_Finalize()
