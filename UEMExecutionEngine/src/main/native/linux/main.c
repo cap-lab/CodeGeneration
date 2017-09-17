@@ -12,6 +12,8 @@
 #include <uem_data.h>
 
 
+#include <UKChannel.h>
+
 uem_result executeTasks()
 {
 	uem_result result = ERR_UEM_UNKNOWN;
