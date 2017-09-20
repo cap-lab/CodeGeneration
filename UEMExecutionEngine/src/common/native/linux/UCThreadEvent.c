@@ -29,7 +29,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UCThreadEvent_Create(HThreadEvent *phEvent)
+uem_result UCThreadEvent_WaitEvent(HThreadEvent hEvent)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 

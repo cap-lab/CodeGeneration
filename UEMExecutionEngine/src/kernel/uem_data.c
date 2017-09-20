@@ -327,6 +327,7 @@ STask g_astTasks_top[] = {
 		&g_stGraph_top, // Parent task graph
 		NULL, // MTM information
 		NULL, // Loop information
+		NULL, // Task parameter information
 		FALSE, // Statically scheduled or not
 		NULL, // Mutex
 		NULL, // Conditional variable
@@ -345,7 +346,8 @@ STask g_astTasks_top[] = {
 		&g_stGraph_top, //parent task graph
 		NULL, // MTM information
 		NULL, // Loop information
-		FALSE, // statically scheduled (run by difference tasks)
+		NULL, // Task parameter information
+		FALSE, // statically scheduled (run by different tasks)
 		NULL, // mutex
 		NULL, // conditional variable
 	},
@@ -363,7 +365,8 @@ STask g_astTasks_top[] = {
 		&g_stGraph_top, //parent task graph
 		NULL, // MTM information
 		NULL, // Loop information
-		FALSE, // statically scheduled (run by difference tasks)
+		NULL, // Task parameter information
+		FALSE, // statically scheduled (run by different tasks)
 		NULL, // mutex
 		NULL, // conditional variable
 	},
@@ -381,7 +384,8 @@ STask g_astTasks_top[] = {
 		&g_stGraph_top, //parent task graph
 		NULL, // MTM information
 		NULL, // Loop information
-		FALSE, // statically scheduled (run by difference tasks)
+		NULL, // Task parameter information
+		FALSE, // statically scheduled (run by different tasks)
 		NULL, // mutex
 		NULL, // conditional variable
 	},

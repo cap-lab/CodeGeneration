@@ -131,6 +131,17 @@ typedef struct _STaskGraph {
 } STaskGraph;
 
 
+typedef union _UParamValue {
+	int nParam;
+	double dbParam;
+} UParamValue;
+
+typedef struct _STaskParameter {
+	int nParamId;
+	const char *pszParamName;
+	UParamValue uParamValue;
+} STaskParameter;
+
 typedef struct _STask {
 	int nTaskId;
 	const char *pszTaskName;
@@ -146,7 +157,8 @@ typedef struct _STask {
 	STaskGraph *pstParentGraph;
 	SModeTransitionMachine *pstMTMInfo;
 	SLoopInfo *pstLoopInfo;
-	uem_bool bStaticScheduled; // static-scheduled task
+	STaskParameter *astTaskParam;
+	uem_bool bStaticScheduled; // TRUE if a task is mapped or scheduled
 	HThreadMutex hMutex;
 	HThreadEvent hEvent;
 } STask;
@@ -266,6 +278,7 @@ typedef struct _SScheduleMode {
 } SScheduleMode;
 
 typedef struct _SScheduledTasks {
+	int nParentTaskId;
 	SScheduleMode *astScheduleModeList;
 	int nNumOfScheduleMode;
 } SScheduledTasks;

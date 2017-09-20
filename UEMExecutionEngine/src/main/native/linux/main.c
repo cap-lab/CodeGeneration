@@ -14,6 +14,37 @@
 
 #include <UKChannel.h>
 
+
+
+
+uem_result createTasks()
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+
+
+	return result;
+}
+
+
+uem_result runTasks()
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+
+
+	return result;
+}
+
+uem_result destroyTasks()
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+
+
+	return result;
+}
+
 uem_result executeTasks()
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -39,7 +70,6 @@ uem_result executeTasks()
 
 int main(int argc, char *argv[])
 {
-	printf("Hello world: %d\n", g_astChannels[0].nChannelIndex);
 	printf("Hello world: %d\n", g_astChannels[0].nChannelIndex);
 
 	// Channel initialization

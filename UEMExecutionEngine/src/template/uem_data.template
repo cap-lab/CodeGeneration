@@ -166,6 +166,7 @@ STask g_astTasks_/*[TASKGRAPH_NAME]*/[] = {
 		&/*[PARENT_TASK_GRAPH]*/, // Parent task graph
 		NULL, // MTM information
 		NULL, // Loop information
+		NULL, // Task parameter information
 		/*[TASK_SCHEDULED]*/, // Statically scheduled or not
 		NULL, // Mutex
 		NULL, // Conditional variable
