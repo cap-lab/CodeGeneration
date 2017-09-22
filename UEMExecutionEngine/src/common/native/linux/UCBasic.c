@@ -5,29 +5,47 @@
  *      Author: jej
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <stdlib.h>
+
 #include <uem_common.h>
 
 #include <UCBasic.h>
 
 void *UC_malloc(int nSize)
 {
-	return NULL;
+	void *pMemory = NULL;
+
+	pMemory = malloc(nSize);
+
+	return pMemory;
 }
 
 
 void *UC_calloc(int nNumOfElements, int nSize)
 {
-	return NULL;
+	void *pMemory = NULL;
+
+	pMemory = calloc(nNumOfElements, nSize);
+
+	return pMemory;
 }
 
 
 void *UC_realloc(void *pMem, int nSize)
 {
-	return NULL;
+	void *pMemory = NULL;
+
+	pMemory = realloc(pMem, nSize);
+
+	return pMemory;
 }
 
 void UC_free(void *pMem)
 {
-
+	free(pMem);
 }
 

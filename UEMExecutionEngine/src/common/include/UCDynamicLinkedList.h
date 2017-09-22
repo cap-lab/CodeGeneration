@@ -8,7 +8,7 @@
 #ifndef SRC_COMMON_INCLUDE_UCDYNAMICLINKEDLIST_H_
 #define SRC_COMMON_INCLUDE_UCDYNAMICLINKEDLIST_H_
 
-#include "uem_common.h";
+#include "uem_common.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -28,7 +28,7 @@ typedef uem_result (*CbFnUCDynamicLinkedList)(IN int nOffset, IN void *pData, IN
 typedef uem_result (*CbFnUCDynamicLinkedListDup)(IN int nOffset, IN void *pDataSrc, IN void *pUserData, OUT void **ppDataDst);
 
 
-uem_result UCDynamicLinkedList_Create(int nSize);
+uem_result UCDynamicLinkedList_Create(OUT HLinkedList *phLinkedList);
 uem_result UCDynamicLinkedList_Add(HLinkedList hLinkedList, IN ELinkedListOffset enOffset, IN int nIndex, IN void *pData);
 uem_result UCDynamicLinkedList_Seek(HLinkedList hLinkedList, IN ELinkedListOffset enOffset, IN int nIndex);
 uem_result UCDynamicLinkedList_Get(HLinkedList hLinkedList, IN ELinkedListOffset enOffset, IN int nIndex, OUT void **ppData);

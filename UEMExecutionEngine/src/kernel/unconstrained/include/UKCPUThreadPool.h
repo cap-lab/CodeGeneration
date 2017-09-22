@@ -5,8 +5,8 @@
  *      Author: jej
  */
 
-#ifndef SRC_MAIN_NATIVE_LINUX_CPUTHREADPOOL_H_
-#define SRC_MAIN_NATIVE_LINUX_CPUTHREADPOOL_H_
+#ifndef SRC_KERNEL_UNCONSTRAINED_INCLUDE_CPUTHREADPOOL_H_
+#define SRC_KERNEL_UNCONSTRAINED_INCLUDE_CPUTHREADPOOL_H_
 
 #include <uem_common.h>
 
@@ -21,7 +21,7 @@ extern "C"
 typedef enum _ETaskState {
 	TASK_STATE_STOP,
 	TASK_STATE_RUNNING,
-	TASK_STATE_
+	TASK_STATE_SUSPEND,
 };
 
 typedef union _UTargetTask {
@@ -43,13 +43,13 @@ typedef struct _SCPUThreadPool {
 
 typedef struct _SCPUThreadPool *HCPUThreadPool;
 
-uem_result CPUThreadPool_Create(OUT HCPUThreadPool *phCPUThreadPool);
-uem_result CPUThreadPool_RegisterTask(HCPUThreadPool hCPUThreadPool, STask *pstTask, int nCPUId);
-uem_result CPUThreadPool_RegisterCompositeTask(HCPUThreadPool hCPUThreadPool, SScheduledTasks *pstScheduledTasks, int nCPUId);
-uem_result CPUThreadPool_Destroy(IN OUT HCPUThreadPool *phCPUThreadPool);
+uem_result UKCPUThreadPool_Create(OUT HCPUThreadPool *phCPUThreadPool);
+uem_result UKCPUThreadPool_RegisterTask(HCPUThreadPool hCPUThreadPool, STask *pstTask, int nCPUId);
+uem_result UKCPUThreadPool_RegisterCompositeTask(HCPUThreadPool hCPUThreadPool, SScheduledTasks *pstScheduledTasks, int nCPUId);
+uem_result UKCPUThreadPool_Destroy(IN OUT HCPUThreadPool *phCPUThreadPool);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* SRC_MAIN_NATIVE_LINUX_CPUTHREADPOOL_H_ */
+#endif /* SRC_KERNEL_UNCONSTRAINED_INCLUDE_CPUTHREADPOOL_H_ */
