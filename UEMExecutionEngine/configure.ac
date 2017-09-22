@@ -9,14 +9,19 @@ AM_INIT_AUTOMAKE()
 
 # Checks for programs.
 AC_PROG_CC
+AX_PTHREAD
+
 
 # Checks for libraries.
 
 # Checks for header files.
+AC_CHECK_HEADERS([stdlib.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 
 # Checks for library functions.
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

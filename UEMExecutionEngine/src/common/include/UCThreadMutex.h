@@ -15,7 +15,7 @@ extern "C"
 {
 #endif
 
-typedef void *HThreadMutex;
+typedef struct _SThreadMutex *HThreadMutex;
 
 extern HThreadMutex *g_ahStaticThreadMutexes;
 

@@ -15,7 +15,7 @@ extern "C"
 {
 #endif
 
-typedef void *HThreadEvent;
+typedef struct _SThreadEvent *HThreadEvent;
 
 extern HThreadEvent *g_ahStaticThreadEvents;
 

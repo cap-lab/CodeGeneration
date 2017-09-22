@@ -53,6 +53,7 @@ typedef enum _EUemResult {
 	ERR_UEM_INVALID_HANDLE,
 	ERR_UEM_OUT_OF_MEMORY,
 	ERR_UEM_NO_DATA,
+	ERR_UEM_INTERNAL_FAIL,
 
 } uem_result;
 

@@ -15,7 +15,7 @@ extern "C"
 {
 #endif
 
-typedef void *HThread;
+typedef struct _SThread *HThread;
 
 typedef void * (*FnNativeThread)(void *pData);
 

@@ -15,7 +15,7 @@ extern "C"
 {
 #endif
 
-typedef void *HLinkedList;
+typedef struct _SUCLinkedList *HLinkedList;
 
 typedef enum _ELinkedListOffset {
     LINKED_LIST_OFFSET_FIRST,
