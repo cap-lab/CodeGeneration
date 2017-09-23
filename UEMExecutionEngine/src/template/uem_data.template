@@ -179,6 +179,7 @@ STask g_astTasks_/*[TASKGRAPH_NAME]*/[] = {
 // ##TASK_GRAPH_TEMPLATE::START
 // ##TASKGRAPH_LOOP::START
 STaskGraph g_stGraph_/*[TASKGRAPH_NAME]*/ = {
+		/*[TASK_GRAPH_TYPE]*/, // Task graph type
 		g_astTasks_/*[TASKGRAPH_NAME]*/, // current task graph's task list
 		NULL, // parent task
 };

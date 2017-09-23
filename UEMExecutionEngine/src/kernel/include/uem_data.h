@@ -89,6 +89,11 @@ typedef enum _ELoopType {
 	LOOP_TYPE_DATA,
 } ELoopType;
 
+typedef enum _ETaskGraphType {
+	GRAPH_TYPE_PROCESS_NETWORK,
+	GRAPH_TYPE_DATAFLOW,
+} ETaskGraphType;
+
 typedef void (*FnUemTaskInit)(int nTaskId);
 typedef void (*FnUemTaskGo)();
 typedef void (*FnUemTaskWrapup)();
@@ -126,6 +131,7 @@ typedef struct _SLoopInfo {
 } SLoopInfo;
 
 typedef struct _STaskGraph {
+	ETaskGraphType enType;
 	STask *astTasks;
 	STask *pstParentTask;
 } STaskGraph;

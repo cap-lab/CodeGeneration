@@ -392,8 +392,9 @@ STask g_astTasks_top[] = {
 };
 
 STaskGraph g_stGraph_top = {
-		g_astTasks_top, // current task graph's task list
-		NULL, // parent task
+		GRAPH_TYPE_DATAFLOW, // Task graph type
+		g_astTasks_top, // Current task graph's task list
+		NULL, // Parent task
 };
 
 STaskIdToTaskMap g_astTaskIdToTask[] = {
