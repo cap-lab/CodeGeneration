@@ -201,6 +201,7 @@ STaskIdToTaskMap g_astTaskIdToTask[] = {
 SProcessor g_astProcessorInfo[] = {
 // ##PROCESSOR_LOOP::START
 	{ 	/*[PROCESSOR_ID]*/, // Processor ID
+		/*[PROCESSOR_IS_CPU]*/, // Processor is CPU?			
 		/*[PROCESSOR_NAME]*/, // Processor name
 		/*[PROCESSOR_POOL_SIZE]*/, // Processor pool size
 	},

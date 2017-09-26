@@ -37,6 +37,8 @@ extern "C"
 #define UEM_RESULT_CATEGORY_INFO  0x10000000
 #define UEM_RESULT_CATEGORY_ERROR 0x20000000
 
+#define UEM_MODULE_KERNEL 0x10000000
+
 typedef enum _EUemResult {
     ERR_UEM_NOERROR            = 0,
 
@@ -60,10 +62,17 @@ typedef enum _EUemResult {
 typedef int uem_bool;
 
 typedef enum _EUemModuleId {
+	// UEM Common module
 	ID_UEM_THREAD             = 0,
 	ID_UEM_THREAD_MUTEX       = 1,
 	ID_UEM_THREAD_EVENT       = 2,
 	ID_UEM_DYNAMIC_LINKED_LIST= 3,
+
+	// UEM Kernel module
+	ID_UEM_KERNEL_MODULE = UEM_MODULE_KERNEL,
+	ID_UEM_CPU_TASK_MANAGER,
+
+
 } EUemModuleId;
 
 #define ARRAYLEN(array)	 		(sizeof(array)/sizeof(array[0]))

@@ -291,6 +291,7 @@ typedef struct _SScheduledTasks {
 
 typedef struct _SProcessor {
 	int nProcessorId;
+	uem_bool bIsCPU;
 	char *pszProcessorName;
 	int nPoolSize;
 } SProcessor;

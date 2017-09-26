@@ -411,6 +411,7 @@ STaskIdToTaskMap g_astTaskIdToTask[] = {
 
 SProcessor g_astProcessorInfo[] = {
 	{ 	0, // Processor ID
+		TRUE, // Processor is CPU?
 		"i7_0", // Processor name
 		4, // Processor pool size
 	},
