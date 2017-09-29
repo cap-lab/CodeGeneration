@@ -36,6 +36,7 @@ KERNEL_SOURCES=$(KERNEL_DIR)/uem_data.c\
 			   $(KERNEL_DIR)/UKChannel.c
 
 COMMON_SOURCES=$(COMMON_DIR)/$(PLATFORM_DIR)/UCThread.c\
+				$(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c\
 				$(COMMON_DIR)/$(PLATFORM_DIR)/UCDynamicLinkedList.c\
 				$(COMMON_DIR)/$(PLATFORM_DIR)/UCBasic.c
 

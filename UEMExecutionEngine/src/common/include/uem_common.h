@@ -60,6 +60,8 @@ typedef enum _EUemResult {
 } uem_result;
 
 typedef int uem_bool;
+typedef int uem_size;
+
 
 typedef enum _EUemModuleId {
 	// UEM Common module
