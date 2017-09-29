@@ -20,12 +20,14 @@
 #include <UKChannel.h>
 
 
-
+#include <UCThreadMutex.h>
 
 uem_result createTasks()
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	HThreadMutex hMutex = NULL;
 
+	hMutex = NULL;
 
 
 	return result;

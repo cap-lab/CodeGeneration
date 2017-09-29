@@ -56,6 +56,7 @@ typedef enum _EUemResult {
 	ERR_UEM_OUT_OF_MEMORY,
 	ERR_UEM_NO_DATA,
 	ERR_UEM_INTERNAL_FAIL,
+	ERR_UEM_MUTEX_ERROR,
 
 } uem_result;
 
@@ -76,6 +77,8 @@ typedef enum _EUemModuleId {
 
 
 } EUemModuleId;
+
+#define ARGUMENT_CHECK
 
 #define ARRAYLEN(array)	 		(sizeof(array)/sizeof(array[0]))
 
