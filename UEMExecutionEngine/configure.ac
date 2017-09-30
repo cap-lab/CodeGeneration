@@ -15,12 +15,13 @@ AX_PTHREAD
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([stdlib.h])
-AC_CHECK_HEADERS([pthread_time.h])
+AC_CHECK_HEADERS([stdlib.h pthread_time.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 
 # Checks for library functions.
+AC_CHECK_FUNCS(mingw_gettimeofday)
+
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 

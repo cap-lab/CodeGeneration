@@ -8,7 +8,7 @@
 #ifndef SRC_COMMON_INCLUDE_UCTIME_H_
 #define SRC_COMMON_INCLUDE_UCTIME_H_
 
-#include "uem_common.h";
+#include "uem_common.h"
 
 #ifdef __cplusplus
 extern "C"

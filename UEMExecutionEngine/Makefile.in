@@ -84,7 +84,7 @@ am__objects_4 = proc-uem_data.$(OBJEXT) proc-UKChannel.$(OBJEXT)
 am__objects_5 = proc-UCThread.$(OBJEXT) proc-UCCPUSchedule.$(OBJEXT) \
 	proc-UCDynamicLinkedList.$(OBJEXT) \
 	proc-UCThreadEvent.$(OBJEXT) proc-UCThreadMutex.$(OBJEXT) \
-	proc-UCBasic.$(OBJEXT)
+	proc-UCTime.$(OBJEXT) proc-UCBasic.$(OBJEXT)
 am_proc_OBJECTS = $(am__objects_1) $(am__objects_2) $(am__objects_3) \
 	$(am__objects_4) $(am__objects_5)
 proc_OBJECTS = $(am_proc_OBJECTS)
@@ -262,6 +262,7 @@ COMMON_SOURCES = $(COMMON_DIR)/$(PLATFORM_DIR)/UCThread.c\
 				$(COMMON_DIR)/$(PLATFORM_DIR)/UCDynamicLinkedList.c\
 				$(COMMON_DIR)/$(PLATFORM_DIR)/UCThreadEvent.c\
 				$(COMMON_DIR)/$(PLATFORM_DIR)/UCThreadMutex.c\
+				$(COMMON_DIR)/$(PLATFORM_DIR)/UCTime.c\
 				$(COMMON_DIR)/$(PLATFORM_DIR)/UCBasic.c
 
 proc_SOURCES = $(MAIN_SOURCES) $(APPLICATION_SOURCES) $(API_SOURCES) $(KERNEL_SOURCES) $(COMMON_SOURCES)
@@ -389,6 +390,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UCThread.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UCThreadEvent.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UCThreadMutex.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UCTime.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UFControl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UFControl_deprecated.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UFPort.Po@am__quote@
@@ -725,6 +727,20 @@ proc-UCThreadMutex.obj: $(COMMON_DIR)/$(PLATFORM_DIR)/UCThreadMutex.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(COMMON_DIR)/$(PLATFORM_DIR)/UCThreadMutex.c' object='proc-UCThreadMutex.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UCThreadMutex.obj `if test -f '$(COMMON_DIR)/$(PLATFORM_DIR)/UCThreadMutex.c'; then $(CYGPATH_W) '$(COMMON_DIR)/$(PLATFORM_DIR)/UCThreadMutex.c'; else $(CYGPATH_W) '$(srcdir)/$(COMMON_DIR)/$(PLATFORM_DIR)/UCThreadMutex.c'; fi`
+
+proc-UCTime.o: $(COMMON_DIR)/$(PLATFORM_DIR)/UCTime.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UCTime.o -MD -MP -MF $(DEPDIR)/proc-UCTime.Tpo -c -o proc-UCTime.o `test -f '$(COMMON_DIR)/$(PLATFORM_DIR)/UCTime.c' || echo '$(srcdir)/'`$(COMMON_DIR)/$(PLATFORM_DIR)/UCTime.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UCTime.Tpo $(DEPDIR)/proc-UCTime.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(COMMON_DIR)/$(PLATFORM_DIR)/UCTime.c' object='proc-UCTime.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UCTime.o `test -f '$(COMMON_DIR)/$(PLATFORM_DIR)/UCTime.c' || echo '$(srcdir)/'`$(COMMON_DIR)/$(PLATFORM_DIR)/UCTime.c
+
+proc-UCTime.obj: $(COMMON_DIR)/$(PLATFORM_DIR)/UCTime.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UCTime.obj -MD -MP -MF $(DEPDIR)/proc-UCTime.Tpo -c -o proc-UCTime.obj `if test -f '$(COMMON_DIR)/$(PLATFORM_DIR)/UCTime.c'; then $(CYGPATH_W) '$(COMMON_DIR)/$(PLATFORM_DIR)/UCTime.c'; else $(CYGPATH_W) '$(srcdir)/$(COMMON_DIR)/$(PLATFORM_DIR)/UCTime.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UCTime.Tpo $(DEPDIR)/proc-UCTime.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(COMMON_DIR)/$(PLATFORM_DIR)/UCTime.c' object='proc-UCTime.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UCTime.obj `if test -f '$(COMMON_DIR)/$(PLATFORM_DIR)/UCTime.c'; then $(CYGPATH_W) '$(COMMON_DIR)/$(PLATFORM_DIR)/UCTime.c'; else $(CYGPATH_W) '$(srcdir)/$(COMMON_DIR)/$(PLATFORM_DIR)/UCTime.c'; fi`
 
 proc-UCBasic.o: $(COMMON_DIR)/$(PLATFORM_DIR)/UCBasic.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UCBasic.o -MD -MP -MF $(DEPDIR)/proc-UCBasic.Tpo -c -o proc-UCBasic.o `test -f '$(COMMON_DIR)/$(PLATFORM_DIR)/UCBasic.c' || echo '$(srcdir)/'`$(COMMON_DIR)/$(PLATFORM_DIR)/UCBasic.c
