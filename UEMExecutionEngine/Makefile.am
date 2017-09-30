@@ -38,6 +38,7 @@ KERNEL_SOURCES=$(KERNEL_DIR)/uem_data.c\
 COMMON_SOURCES=$(COMMON_DIR)/$(PLATFORM_DIR)/UCThread.c\
 				$(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c\
 				$(COMMON_DIR)/$(PLATFORM_DIR)/UCDynamicLinkedList.c\
+				$(COMMON_DIR)/$(PLATFORM_DIR)/UCThreadEvent.c\
 				$(COMMON_DIR)/$(PLATFORM_DIR)/UCThreadMutex.c\
 				$(COMMON_DIR)/$(PLATFORM_DIR)/UCBasic.c
 

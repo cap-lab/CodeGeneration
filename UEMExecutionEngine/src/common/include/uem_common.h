@@ -57,6 +57,8 @@ typedef enum _EUemResult {
 	ERR_UEM_NO_DATA,
 	ERR_UEM_INTERNAL_FAIL,
 	ERR_UEM_MUTEX_ERROR,
+	ERR_UEM_STATIC_HANDLE,
+	ERR_UEM_TIME_EXPIRED,
 
 } uem_result;
 

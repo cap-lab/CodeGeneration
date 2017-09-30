@@ -114,27 +114,36 @@ _EXIT:
 uem_result UCThreadMutex_Destroy(HThreadMutex *phMutex)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	SThreadMutex *pstLock = NULL;
+	SThreadMutex *pstMutex = NULL;
 
+#ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(phMutex, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
 	if(IS_VALID_HANDLE(*phMutex, ID_UEM_THREAD_MUTEX) == FALSE)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
+#endif
+	pstMutex = (SThreadMutex *) *phMutex;
 
-	pstLock = (SThreadMutex *) *phMutex;
-
-	if(pstLock->bInMutex == TRUE) // if the mutex is locked, unlock the mutex
+#ifdef ARGUMENT_CHECK
+	if(pstMutex->bIsStatic == TRUE)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_STATIC_HANDLE, _EXIT);
+	}
+#endif
+	if(pstMutex->bInMutex == TRUE) // if the mutex is locked, unlock the mutex
 	{
 		// ignore error
-		pthread_mutex_unlock(&(pstLock->hMutex));
+		pthread_mutex_unlock(&(pstMutex->hMutex));
 	}
 
-	if(pthread_mutex_destroy(&(pstLock->hMutex)) != 0)
+	if(pthread_mutex_destroy(&(pstMutex->hMutex)) != 0)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_MUTEX_ERROR, _EXIT);
 	}
+
+	SAFEMEMFREE(pstMutex);
 
 	*phMutex = NULL;
 
