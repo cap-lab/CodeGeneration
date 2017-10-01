@@ -69,6 +69,9 @@
    your system. */
 #undef PTHREAD_CREATE_JOINABLE
 
+/* The size of `size_t', as computed by sizeof. */
+#undef SIZEOF_SIZE_T
+
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 

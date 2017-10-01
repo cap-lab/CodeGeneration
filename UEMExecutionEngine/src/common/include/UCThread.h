@@ -17,7 +17,6 @@ extern "C"
 
 typedef struct _SThread *HThread;
 
-typedef int uem_cpu_set;
 
 
 typedef void * (*FnNativeThread)(void *pData);
@@ -25,8 +24,10 @@ typedef void * (*FnNativeThread)(void *pData);
 uem_result UCThread_Create(FnNativeThread fnThreadRoutine, void *pUserData, HThread *phThread);
 uem_result UCThread_Destroy(HThread *phThread);
 
-uem_result UCThread_SetCPUAffinityMask(HThread hThread, uem_size nCPUSetSize, uem_cpu_set cpu_set);
-uem_result UCThread_GetCPUAffinityMask(HThread hThread, uem_size nCPUSetSize, uem_cpu_set cpu_set);
+uem_result UCThread_SetMappedCPU(HThread hThread, int nCoreId);
+//uem_result UCThread_GetCPUAffinityMask(HThread hThread, unsigned long long *pnThreadAffinity);
+
+
 
 #ifdef __cplusplus
 }

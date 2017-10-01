@@ -80,14 +80,14 @@ _EXIT:
 }
 #endif
 
-uem_result UCThread_Create(FnNativeThread fnThreadRoutine, void *pUserData, HThread *phThread)
+uem_result UCThread_Create(FnNativeThread fnThreadRoutine, void *pUserData, OUT HThread *phThread)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SUCThread *pstThread = NULL;
-
+#ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(phThread, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 	IFVARERRASSIGNGOTO(fnThreadRoutine, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-
+#endif
 	pstThread = (SUCThread *) UC_malloc(sizeof(SUCThread));
 	ERRMEMGOTO(pstThread, result, _EXIT);
 
@@ -119,13 +119,13 @@ uem_result UCThread_Destroy(HThread *phThread)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SUCThread *pstThread = NULL;
-
+#ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(phThread, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
 	if(IS_VALID_HANDLE(*phThread, ID_UEM_THREAD) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
-
+#endif
 	pstThread = (SUCThread *) *phThread;
 
 #ifndef WIN32
@@ -155,29 +155,109 @@ _EXIT:
 	return result;
 }
 
+static int getCPUSetSize()
+{
+#ifndef WIN32
+	return sizeof(cpu_set_t);
+#else
+	return sizeof(DWORD_PTR);
+#endif
+}
 
-uem_result UCThread_SetCPUAffinityMask(HThread hThread, uem_size nCPUSetSize, uem_cpu_set cpu_set)
+
+#ifndef WIN32
+static uem_result setCPUInLinux(SUCThread *pstThread, int nCoreId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	cpu_set_t cpuset;
+	int nError = 0;
 
-	//pthread_attr_setaffinity_np();
+	CPU_ZERO(&cpuset);
+	CPU_SET(nCoreId, &cpuset);
+
+	nError = pthread_setaffinity_np(pstThread->hNativeThread, sizeof(cpu_set_t), &cpuset);
+	if(nError != 0) {
+		ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
 }
-
-
-
-
-uem_result UCThread_GetCPUAffinityMask(HThread hThread, uem_size nCPUSetSize, uem_cpu_set cpu_set)
+#else
+static uem_result setCPUInMinGW(SUCThread *pstThread, int nCoreId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	DWORD_PTR dwThreadAffinityMask;
+	int nLoop = 0;
+	DWORD_PTR dwOldAffinity = 0;
+
+	dwThreadAffinityMask = 1 << nCoreId;
+
+	dwOldAffinity = SetThreadAffinityMask(pstThread->hNativeThread, dwThreadAffinityMask);
+	if(dwOldAffinity == 0) {
+		ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
 }
+#endif
+
+
+uem_result UCThread_SetMappedCPU(HThread hThread, int nCoreId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SUCThread *pstThread = NULL;
+#ifdef ARGUMENT_CHECK
+	if(IS_VALID_HANDLE(hThread, ID_UEM_THREAD) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+
+	if(nCoreId >= getCPUSetSize()) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+#endif
+	pstThread = (SUCThread *) hThread;
+
+#ifndef WIN32
+	result = setCPUInLinux(pstThread, nCoreId);
+#else
+	result = setCPUInMinGW(pstThread, nCoreId);
+#endif
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+/*
+uem_result UCThread_GetCPUAffinityMask(HThread hThread, unsigned long long *pnThreadAffinity)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SUCThread *pstThread = NULL;
+#ifdef ARGUMENT_CHECK
+	if(IS_VALID_HANDLE(hThread, ID_UEM_THREAD) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+
+	IFVARERRASSIGNGOTO(pnThreadAffinity, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+#endif
+	pstThread = (SUCThread *) hThread;
+
+#ifndef WIN32
+	//pthread_getaffinity_np(pthread_t thread, size_t cpusetsize, cpu_set_t *cpuset);
+#else
+	SetThreadAffinityMask(hThread, dwThreadAffinityMask);
+
+	SetThreadAffinityMask(hThread, dwThreadAffinityMask);
+#endif
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}*/
 
 
 
