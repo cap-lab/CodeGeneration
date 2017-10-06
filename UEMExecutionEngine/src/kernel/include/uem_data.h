@@ -20,6 +20,8 @@ extern "C"
 
 #define INVALID_TASK_ID (-1)
 #define INVALID_CHANNEL_ID (-1)
+#define INVALID_CHUNK_INDEX (-1)
+#define INVALID_TIMER_SLOT_ID (-1)
 #define VARIABLE_SAMPLE_RATE (-1)
 #define MAPPING_NOT_SPECIFIED (-1)
 #define CHUNK_NUM_NOT_INITIALIZED (-1)

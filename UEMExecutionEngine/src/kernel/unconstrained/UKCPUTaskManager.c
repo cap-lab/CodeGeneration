@@ -8,17 +8,20 @@
 
 #include <uem_common.h>
 
+#include <UCDynamicLinkedList.h>
 #include <UCThreadMutex.h>
+#include <UCThread.h>
 
 #include <uem_data.h>
 
 #include <UKCPUTaskManager.h>
 
-typedef enum _ETaskState {
+typedef enum _ECPUTaskState {
 	TASK_STATE_STOP,
 	TASK_STATE_RUNNING,
 	TASK_STATE_SUSPEND,
-} ETaskState;
+	TASK_STATE_STOPPING,
+} ECPUTaskState;
 
 typedef union _UTargetTask {
 	STask *pstTask;
@@ -35,7 +38,7 @@ typedef struct _STaskThread {
 	HThread hThread;
 	HThreadEvent hEvent;
 	UTargetTask uTargetTask;
-	ETaskState enTaskState;
+	ECPUTaskState enTaskState;
 	UMappedCPUList uMappedCPUList;
 } STaskThread;
 

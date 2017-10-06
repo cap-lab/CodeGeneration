@@ -20,13 +20,14 @@ long SYS_REQ_GET_PARAM_INT(char *pszTaskName, char *pszParamName);
 void SYS_REQ_SET_PARAM_INT(char *pszTaskName, char *pszParamName, long lParamVal);
 double SYS_REQ_GET_PARAM_FLOAT(char *pszTaskName, char *pszParamName);
 void SYS_REQ_SET_PARAM_FLOAT(char *pszTaskName, char *pszParamName, double dbParamVal);
-void SYS_REQ_CHECK_TASK_STATE(char *pszTaskName);
+int SYS_REQ_CHECK_TASK_STATE(char *pszTaskName);
 
 void SYS_REQ_EXECUTE_TRANSITION(char *pszTaskName);
 void SYS_REQ_SET_MTM_PARAM_INT(char *pszTaskName, char *pszParamName, long lParamVal);
 
 char *SYS_REQ_GET_MODE(char *pszTaskName);
-char *SYS_REQ_GET_CURRENT_MODE_NAME();
+
+#define SYS_REQ_GET_CURRENT_MODE_NAME() SYS_REQ_GET_MODE(TASK_NAME)
 
 #ifdef __cplusplus
 }

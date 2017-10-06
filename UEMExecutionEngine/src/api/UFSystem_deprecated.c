@@ -5,15 +5,19 @@
  *      Author: jej
  */
 
+#include <uem_common.h>
+
+#include <UFSystem.h>
+
 void SYS_REQ_KILL()
 {
-
+	UFSystem_Kill();
 }
 
 
 void SYS_REQ_STOP()
 {
-
+	UFSystem_Stop();
 }
 
 
