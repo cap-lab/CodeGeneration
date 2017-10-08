@@ -19,6 +19,7 @@ AC_CHECK_HEADERS([stdlib.h pthread_time.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_SIZEOF([size_t])
+AC_CHECK_SIZEOF([void *])
 
 # Checks for library functions.
 AC_CHECK_FUNCS(mingw_gettimeofday)

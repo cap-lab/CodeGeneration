@@ -29,6 +29,8 @@ extern "C"
 #   define FALSE (0)
 #endif
 
+#undef NULL
+
 #ifndef NULL
 #   define NULL (void *) (0)
 #endif
@@ -60,6 +62,7 @@ typedef enum _EUemResult {
 	ERR_UEM_STATIC_HANDLE,
 	ERR_UEM_TIME_EXPIRED,
 	ERR_UEM_INTERRUPT,
+	ERR_UEM_DATA_DUPLICATED,
 
 } uem_result;
 
