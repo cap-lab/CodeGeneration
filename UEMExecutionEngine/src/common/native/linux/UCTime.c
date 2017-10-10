@@ -11,7 +11,11 @@
 
 #include <stdlib.h>
 #include <errno.h>
+#ifdef HAVE_MINGW_GETTIMEOFDAY
 #include <time.h>
+#else
+#include <sys/time.h>
+#endif
 
 #include <UCTime.h>
 

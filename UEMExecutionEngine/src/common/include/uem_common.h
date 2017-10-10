@@ -48,6 +48,7 @@ typedef enum _EUemResult {
 	// Insert information here
 	ERR_UEM_USER_CANCELED,
 	ERR_UEM_FOUND_DATA,
+	ERR_UEM_ALREADY_DONE,
 
 	ERR_UEM_ERROR            = UEM_RESULT_CATEGORY_ERROR,
 
@@ -63,6 +64,7 @@ typedef enum _EUemResult {
 	ERR_UEM_TIME_EXPIRED,
 	ERR_UEM_INTERRUPT,
 	ERR_UEM_DATA_DUPLICATED,
+	ERR_UEM_ILLEGAL_CONTROL,
 
 } uem_result;
 

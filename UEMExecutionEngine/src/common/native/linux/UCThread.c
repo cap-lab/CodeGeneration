@@ -115,7 +115,7 @@ _EXIT:
 }
 
 
-uem_result UCThread_Destroy(HThread *phThread)
+uem_result UCThread_Destroy(HThread *phThread, uem_bool bDetach)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SUCThread *pstThread = NULL;
@@ -129,11 +129,24 @@ uem_result UCThread_Destroy(HThread *phThread)
 	pstThread = (SUCThread *) *phThread;
 
 #ifndef WIN32
-	if(pthread_join(pstThread->hNativeThread, NULL) != 0) {
-		// free the memory even though pthread_join is failed.
-		//ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+	if(bDetach == TRUE)
+	{
+		if(pthread_detach(pstThread->hNativeThread) != 0) {
+			// free the memory even though pthread_detach is failed.
+			// debug exit for entering this case
+			ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+		}
+	}
+	else
+	{
+		if(pthread_join(pstThread->hNativeThread, NULL) != 0) {
+			// free the memory even though pthread_join is failed.
+			// debug exit for entering this case
+			ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+		}
 	}
 #else
+	if(bDetach == FALSE)
 	{
 		DWORD dwErrorCode;
 
@@ -142,9 +155,19 @@ uem_result UCThread_Destroy(HThread *phThread)
 			// ignore error
 			// possible error cases
 			// WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT, WAIT_FAILED
+			// debug exit for entering this case
+			ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
 		}
+	}
+	else
+	{
+		// for detach, just close the handle without waiting
+	}
 
-		CloseHandle(pstThread->hNativeThread);
+	if( CloseHandle(pstThread->hNativeThread) == FALSE) {
+		// free the memory even though CloseHandle is failed.
+		// debug exit for entering this case
+		ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
 	}
 #endif
 

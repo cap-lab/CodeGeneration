@@ -233,8 +233,6 @@ static uem_result destroyTaskThread(IN OUT STaskThread **ppstTaskThread)
 
 	pstTaskThread = *ppstTaskThread;
 
-	// Traverse destruction is needed
-
 	UCDynamicLinkedList_Destroy(&(pstTaskThread->uMappedCPUList.hMappedCPUList));
 
 	UCThreadEvent_Destroy(&(pstTaskThread->hEvent));
@@ -422,8 +420,15 @@ uem_result UKCPUTaskManager_SuspendTask(HCPUTaskManager hCPUThreadPool, int nTas
 	}
 	else // result == ERR_UEM_FOUND_DATA
 	{
+		// TODO: general task or scheduled task?
 		if(stCallbackData.pstTargetThread->enTaskState == TASK_STATE_RUNNING)
+		{
 			stCallbackData.pstTargetThread->enTaskState = TASK_STATE_SUSPEND;
+		}
+		else
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT_LOCK);
+		}
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -438,6 +443,7 @@ uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUThreadPool, int nTaskId
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
+	struct _STaskSearchUserData stCallbackData;
 #ifdef ARGUMENT_CHECK
 	if (IS_VALID_HANDLE(hCPUThreadPool, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
@@ -448,9 +454,50 @@ uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUThreadPool, int nTaskId
 	}
 #endif
 	pstManager = hCPUThreadPool;
+
+	stCallbackData.nTaskId = nTaskId;
+	stCallbackData.pstTargetThread = NULL;
+
+	result = UCThreadMutex_Lock(pstManager->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCDynamicLinkedList_Traverse(pstManager->uTaskList.hTaskList, findTaskFromTaskId, &stCallbackData);
+	ERRIFGOTO(result, _EXIT_LOCK);
+	if(result == ERR_UEM_NOERROR)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_NO_DATA, _EXIT_LOCK);
+	}
+	else // result == ERR_UEM_FOUND_DATA
+	{
+		if(stCallbackData.pstTargetThread->enTaskState == TASK_STATE_RUNNING ||
+			stCallbackData.pstTargetThread->enTaskState == TASK_STATE_SUSPEND)
+		{
+			stCallbackData.pstTargetThread->enTaskState = TASK_STATE_STOPPING;
+
+			// TODO: release all channel block
+
+			// than perform UCThread_destroy
+			result = UCThread_Destroy(&(stCallbackData.pstTargetThread->hThread), FALSE);
+			ERRIFGOTO(result, _EXIT_LOCK);
+
+			stCallbackData.pstTargetThread->enTaskState = TASK_STATE_STOP;
+		}
+		else
+		{
+			UEMASSIGNGOTO(result, ERR_UEM_ALREADY_DONE, _EXIT_LOCK);
+		}
+	}
+
 	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstManager->hMutex);
 _EXIT:
 	return result;
+}
+
+static void * taskThreadRoutine(void *pData)
+{
+	return NULL;
 }
 
 
@@ -458,14 +505,48 @@ uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUThreadPool, int nTaskId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
+	struct _STaskSearchUserData stCallbackData;
 #ifdef ARGUMENT_CHECK
 	if (IS_VALID_HANDLE(hCPUThreadPool, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
 
+	if(nTaskId < 0) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
 #endif
 	pstManager = hCPUThreadPool;
+
+	stCallbackData.nTaskId = nTaskId;
+	stCallbackData.pstTargetThread = NULL;
+
+	result = UCThreadMutex_Lock(pstManager->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCDynamicLinkedList_Traverse(pstManager->uTaskList.hTaskList, findTaskFromTaskId, &stCallbackData);
+	ERRIFGOTO(result, _EXIT_LOCK);
+	if(result == ERR_UEM_NOERROR)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_NO_DATA, _EXIT_LOCK);
+	}
+	else // result == ERR_UEM_FOUND_DATA
+	{
+		if(stCallbackData.pstTargetThread->enTaskState == TASK_STATE_STOP)
+		{
+			// TODO: pass proper argument to task thread routine
+			result = UCThread_Create(taskThreadRoutine, NULL, &(stCallbackData.pstTargetThread->hThread));
+			ERRIFGOTO(result, _EXIT);
+		}
+		else // consider as an error for other cases
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+		}
+	}
+
 	result = ERR_UEM_NOERROR;
+
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstManager->hMutex);
 _EXIT:
 	return result;
 }
@@ -475,14 +556,60 @@ uem_result UKCPUTaskManager_ResumeTask(HCPUTaskManager hCPUThreadPool, int nTask
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
+	struct _STaskSearchUserData stCallbackData;
 #ifdef ARGUMENT_CHECK
 	if (IS_VALID_HANDLE(hCPUThreadPool, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
 
+	if(nTaskId < 0) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
 #endif
 
 	pstManager = hCPUThreadPool;
+
+	stCallbackData.nTaskId = nTaskId;
+	stCallbackData.pstTargetThread = NULL;
+
+	result = UCThreadMutex_Lock(pstManager->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCDynamicLinkedList_Traverse(pstManager->uTaskList.hTaskList, findTaskFromTaskId, &stCallbackData);
+	ERRIFGOTO(result, _EXIT_LOCK);
+	if(result == ERR_UEM_NOERROR)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_NO_DATA, _EXIT_LOCK);
+	}
+	else // result == ERR_UEM_FOUND_DATA
+	{
+		// TODO: general task or scheduled task?
+		if(stCallbackData.pstTargetThread->enTaskState == TASK_STATE_SUSPEND)
+		{
+			stCallbackData.pstTargetThread->enTaskState = TASK_STATE_RUNNING;
+		}
+		else
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+		}
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstManager->hMutex);
+_EXIT:
+	return result;
+}
+
+
+static uem_result traverseAndDestroyTaskThread(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	struct _STaskSearchUserData *pstUserData = pUserData;
+	STaskThread *pstTaskThread = (STaskThread *) pData;
+
+	destroyTaskThread(&pstTaskThread);
+
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
@@ -502,7 +629,21 @@ uem_result UKCPUTaskManager_Destroy(IN OUT HCPUTaskManager *phCPUThreadPool)
 
 #endif
 	pstManager = *phCPUThreadPool;
+#ifdef ARGUMENT_CHECK
+	if(pstManager->bListStatic == TRUE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+#endif
+	result = UCDynamicLinkedList_Traverse(pstManager->uTaskList.hTaskList, traverseAndDestroyTaskThread, NULL);
+	ERRIFGOTO(result, _EXIT);
 
+	result = UCDynamicLinkedList_Destroy(&(pstManager->uTaskList.hTaskList));
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadMutex_Destroy(&(pstManager->hMutex));
+	ERRIFGOTO(result, _EXIT);
+
+	SAFEMEMFREE(pstManager);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

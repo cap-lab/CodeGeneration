@@ -22,7 +22,7 @@ AC_CHECK_SIZEOF([size_t])
 AC_CHECK_SIZEOF([void *])
 
 # Checks for library functions.
-AC_CHECK_FUNCS(mingw_gettimeofday)
+AC_CHECK_FUNCS(mingw_gettimeofday pthread_timedjoin_np)
 
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
