@@ -42,9 +42,8 @@ typedef union _UMappedCPUList {
 	HLinkedList hMappedCPUList;
 } UMappedCPUList;
 
-
 typedef struct _STaskThread {
-	HThread hThread;
+	HLinkedList hThreadList;
 	HThreadEvent hEvent;
 	UTargetTask uTargetTask;
 	ECPUTaskState enTaskState;
@@ -190,6 +189,40 @@ _EXIT:
     return result;
 }
 
+
+static uem_result destroyTaskThread(IN OUT STaskThread **ppstTaskThread)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STaskThread *pstTaskThread = NULL;
+
+	pstTaskThread = *ppstTaskThread;
+
+	// TODO: Traverse all thread to be destroyed
+
+	if(pstTaskThread->hThreadList != NULL)
+	{
+		UCDynamicLinkedList_Destroy(&(pstTaskThread->hThreadList));
+	}
+
+	if(pstTaskThread->uMappedCPUList.hMappedCPUList != NULL)
+	{
+		UCDynamicLinkedList_Destroy(&(pstTaskThread->uMappedCPUList.hMappedCPUList));
+	}
+
+	if(pstTaskThread->hEvent != NULL)
+	{
+		UCThreadEvent_Destroy(&(pstTaskThread->hEvent));
+	}
+
+	SAFEMEMFREE(pstTaskThread);
+
+	*ppstTaskThread = NULL;
+
+	result = ERR_UEM_NOERROR;
+
+	return result;
+}
+
 static uem_result createTaskThread(uem_bool bIsCompositeTask, UTargetTask uTargetTask, OUT STaskThread **ppstTaskThread)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -200,7 +233,7 @@ static uem_result createTaskThread(uem_bool bIsCompositeTask, UTargetTask uTarge
 
 	pstTaskThread->enTaskState = TASK_STATE_STOP;
 	pstTaskThread->hEvent = NULL;
-	pstTaskThread->hThread = NULL;
+	pstTaskThread->hThreadList = NULL;
 	pstTaskThread->uMappedCPUList.hMappedCPUList = NULL;
 	if(bIsCompositeTask == TRUE)
 	{
@@ -219,32 +252,20 @@ static uem_result createTaskThread(uem_bool bIsCompositeTask, UTargetTask uTarge
 	result = UCDynamicLinkedList_Create(&(pstTaskThread->uMappedCPUList.hMappedCPUList));
 	ERRIFGOTO(result, _EXIT);
 
+	result = UCDynamicLinkedList_Create(&(pstTaskThread->hThreadList));
+	ERRIFGOTO(result, _EXIT);
+
 	*ppstTaskThread = pstTaskThread;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
+	if(result != ERR_UEM_NOERROR && pstTaskThread != NULL)
+	{
+		destroyTaskThread(&pstTaskThread);
+	}
 	return result;
 }
 
-static uem_result destroyTaskThread(IN OUT STaskThread **ppstTaskThread)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	STaskThread *pstTaskThread = NULL;
-
-	pstTaskThread = *ppstTaskThread;
-
-	UCDynamicLinkedList_Destroy(&(pstTaskThread->uMappedCPUList.hMappedCPUList));
-
-	UCThreadEvent_Destroy(&(pstTaskThread->hEvent));
-
-	SAFEMEMFREE(pstTaskThread);
-
-	*ppstTaskThread = NULL;
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
 
 uem_result UKCPUTaskManager_RegisterTask(HCPUTaskManager hCPUThreadPool, STask *pstTask, int nCPUId)
 {
@@ -438,12 +459,163 @@ _EXIT:
 	return result;
 }
 
+static void * taskThreadRoutine(void *pData)
+{
+	int nNum;
+
+	return NULL;
+}
+
+
+static void * scheduledTaskThreadRoutine(void *pData)
+{
+	int nNum;
+
+	return NULL;
+}
+
+static uem_result createMultipleThreads(HLinkedList hThreadList, HLinkedList hMappedCPUList)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	result = ERR_UEM_NOERROR;
+	HThread hThread = NULL;
+	int nLoop = 0;
+	int nTaskInstanceNumber = 0;
+
+	result = UCDynamicLinkedList_GetLength(hMappedCPUList, &nTaskInstanceNumber);
+	ERRIFGOTO(result, _EXIT);
+
+	for(nLoop = 0 ; nLoop < nTaskInstanceNumber ; nLoop++)
+	{
+		result = UCThread_Create(taskThreadRoutine, NULL, &hThread);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UCDynamicLinkedList_Add(hThreadList, LINKED_LIST_OFFSET_LAST, 0, (void *) hThread);
+		ERRIFGOTO(result, _EXIT);
+
+		hThread = NULL;
+	}
+_EXIT:
+	if(hThread != NULL)
+	{
+		UCThread_Destroy(&hThread, TRUE);
+	}
+	return result;
+}
+
+static uem_result traverseAndCreateControlTasks(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STaskThread *pstTaskThread = (STaskThread *) pData;
+	int nCreatedThreadNum = 0;
+
+	result = UCDynamicLinkedList_GetLength(pstTaskThread->hThreadList, &nCreatedThreadNum);
+	ERRIFGOTO(result, _EXIT);
+
+	if(nCreatedThreadNum == 0 && pstTaskThread->enMappedTaskType == MAPPED_TYPE_GENERAL_TASK &&
+		pstTaskThread->uTargetTask.pstTask->enType == TASK_TYPE_CONTROL)
+	{
+		result = createMultipleThreads(pstTaskThread->hThreadList, pstTaskThread->uMappedCPUList.hMappedCPUList);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+static uem_result traverseAndCreateGeneralTasks(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STaskThread *pstTaskThread = (STaskThread *) pData;
+	int nCreatedThreadNum = 0;
+
+	result = UCDynamicLinkedList_GetLength(pstTaskThread->hThreadList, &nCreatedThreadNum);
+	ERRIFGOTO(result, _EXIT);
+
+	if(nCreatedThreadNum == 0 && pstTaskThread->enMappedTaskType == MAPPED_TYPE_GENERAL_TASK &&
+		pstTaskThread->uTargetTask.pstTask->enType == TASK_TYPE_COMPUTATIONAL)
+	{
+		result = createMultipleThreads(pstTaskThread->hThreadList, pstTaskThread->uMappedCPUList.hMappedCPUList);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+static uem_result traverseAndCreateCompositeTasks(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STaskThread *pstTaskThread = (STaskThread *) pData;
+	int nCreatedThreadNum = 0;
+
+	result = UCDynamicLinkedList_GetLength(pstTaskThread->hThreadList, &nCreatedThreadNum);
+	ERRIFGOTO(result, _EXIT);
+
+	if(nCreatedThreadNum == 0 && pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK)
+	{
+		result = createMultipleThreads(pstTaskThread->hThreadList, pstTaskThread->uMappedCPUList.hMappedCPUList);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+uem_result UKCPUTaskManager_RunRegisteredTasks(HCPUTaskManager hCPUThreadPool)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCPUTaskManager *pstManager = NULL;
+
+#ifdef ARGUMENT_CHECK
+	if (IS_VALID_HANDLE(hCPUThreadPool, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+#endif
+	pstManager = hCPUThreadPool;
+
+	result = UCDynamicLinkedList_Traverse(pstManager->uTaskList.hTaskList, traverseAndCreateControlTasks, NULL);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCDynamicLinkedList_Traverse(pstManager->uTaskList.hTaskList, traverseAndCreateGeneralTasks, NULL);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCDynamicLinkedList_Traverse(pstManager->uTaskList.hTaskList, traverseAndCreateCompositeTasks, NULL);
+	ERRIFGOTO(result, _EXIT);
+
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result traverseAndDestroyThread(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	HThread hThread = NULL;
+
+	hThread = (HThread) pData;
+
+	result = UCThread_Destroy(&(hThread), TRUE);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
 
 uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUThreadPool, int nTaskId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
 	struct _STaskSearchUserData stCallbackData;
+	int nLoop = 0;
+	int nTaskInstanceNumber = 0;
 #ifdef ARGUMENT_CHECK
 	if (IS_VALID_HANDLE(hCPUThreadPool, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
@@ -476,9 +648,17 @@ uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUThreadPool, int nTaskId
 
 			// TODO: release all channel block
 
-			// than perform UCThread_destroy
-			result = UCThread_Destroy(&(stCallbackData.pstTargetThread->hThread), FALSE);
+			result = UCDynamicLinkedList_GetLength(stCallbackData.pstTargetThread->hThreadList, &nTaskInstanceNumber);
 			ERRIFGOTO(result, _EXIT_LOCK);
+
+			result = UCDynamicLinkedList_Traverse(stCallbackData.pstTargetThread->hThreadList, traverseAndDestroyThread, NULL);
+			ERRIFGOTO(result, _EXIT_LOCK);
+
+			for(nLoop = 0 ; nLoop < nTaskInstanceNumber ; nLoop++)
+			{
+				result = UCDynamicLinkedList_Remove(stCallbackData.pstTargetThread->hThreadList, LINKED_LIST_OFFSET_FIRST, 0);
+				ERRIFGOTO(result, _EXIT_LOCK);
+			}
 
 			stCallbackData.pstTargetThread->enTaskState = TASK_STATE_STOP;
 		}
@@ -495,10 +675,7 @@ _EXIT:
 	return result;
 }
 
-static void * taskThreadRoutine(void *pData)
-{
-	return NULL;
-}
+
 
 
 uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUThreadPool, int nTaskId)
@@ -533,13 +710,13 @@ uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUThreadPool, int nTaskId)
 	{
 		if(stCallbackData.pstTargetThread->enTaskState == TASK_STATE_STOP)
 		{
-			// TODO: pass proper argument to task thread routine
-			result = UCThread_Create(taskThreadRoutine, NULL, &(stCallbackData.pstTargetThread->hThread));
-			ERRIFGOTO(result, _EXIT);
+			result = createMultipleThreads(stCallbackData.pstTargetThread->hThreadList, stCallbackData.pstTargetThread->uMappedCPUList.hMappedCPUList);
+			ERRIFGOTO(result, _EXIT_LOCK);
+			// TODO: send event signal to execute
 		}
 		else // consider as an error for other cases
 		{
-			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT_LOCK);
 		}
 	}
 
@@ -605,13 +782,12 @@ _EXIT:
 static uem_result traverseAndDestroyTaskThread(IN int nOffset, IN void *pData, IN void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	struct _STaskSearchUserData *pstUserData = pUserData;
 	STaskThread *pstTaskThread = (STaskThread *) pData;
 
 	destroyTaskThread(&pstTaskThread);
 
 	result = ERR_UEM_NOERROR;
-_EXIT:
+
 	return result;
 }
 
