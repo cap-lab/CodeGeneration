@@ -21,8 +21,8 @@ typedef struct _SThreadEvent {
 	EUemModuleId enId;
 	uem_bool bIsSet;
 	uem_bool bIsStatic;
-	pthread_mutex_t hCond;
-	pthread_cond_t hMutex;
+	pthread_mutex_t hMutex;
+	pthread_cond_t hCond;
 } SThreadEvent;
 
 // ##TARGET_EVENT_CREATION_SECTION:START

@@ -131,7 +131,7 @@ uem_result UCThread_Destroy(HThread *phThread)
 #ifndef WIN32
 	if(pthread_join(pstThread->hNativeThread, NULL) != 0) {
 		// free the memory even though pthread_join is failed.
-		ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+		//ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
 	}
 #else
 	{
@@ -143,6 +143,8 @@ uem_result UCThread_Destroy(HThread *phThread)
 			// possible error cases
 			// WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT, WAIT_FAILED
 		}
+
+		CloseHandle(pstThread->hNativeThread);
 	}
 #endif
 

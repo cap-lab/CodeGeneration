@@ -13,10 +13,11 @@
 #include <pthread_time.h>
 #endif
 
+#include <errno.h>
+
 #include <pthread.h>
 
 #include <UCBasic.h>
-
 #include <UCThreadEvent.h>
 
 #include "UCThreadEvent_data.h"
