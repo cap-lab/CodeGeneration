@@ -84,6 +84,7 @@ int SYS_REQ_CHECK_TASK_STATE(char *pszTaskName)
 		nTaskState = 3;
 		break;
 	default:
+		nTaskState = 1;
 		break;
 	}
 

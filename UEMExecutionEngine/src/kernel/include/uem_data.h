@@ -108,6 +108,8 @@ typedef struct _STask STask;
 typedef struct _SModeMap {
 	int nModeId;
 	char *pszModeName;
+	STask *astRelatedTasks;
+	int nRelatedTaskNum;
 } SModeMap;
 
 
@@ -269,6 +271,7 @@ typedef struct _SScheduleItem {
 	int nRepetition;
 } SScheduleItem;
 
+
 typedef struct _SScheduleList {
 	int nScheduleId;
 	SScheduleItem *astScheduleItemList;
@@ -276,13 +279,11 @@ typedef struct _SScheduleList {
 	int nThroughputConstraint;
 } SScheduleList;
 
+
 typedef struct _SScheduleMode {
 	char *pszModeName;
-	FnUemTaskInit *afnInitList;
-	FnUemTaskWrapup *afnWrapupList;
-	int nScheduledTaskNum;
 	SScheduleList *astScheduleList;
-	int nScheduleNum;
+	int nScheduleNum; // number of schedules which satisfies throughput constraint
 } SScheduleMode;
 
 typedef struct _SScheduledTasks {
@@ -302,6 +303,7 @@ typedef union _UMappingTarget {
 	int nTaskId;
 	SScheduledTasks stScheduledTasks;
 } UMappingTarget;
+
 
 typedef struct _SMappingSchedulingInfo {
 	ETaskType enType;
