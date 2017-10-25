@@ -465,6 +465,7 @@ static void *taskThreadRoutine(void *pData)
 	uem_result result = ERR_UEM_UNKNOWN;
 	STaskThreadData *pstThreadData = NULL;
 	STaskThread *pstTaskThread = NULL;
+	STask *pstCurrentTask = NULL;
 
 	pstThreadData = (STaskThreadData *) pData;
 
@@ -474,11 +475,17 @@ static void *taskThreadRoutine(void *pData)
 	result = UCThreadEvent_WaitEvent(pstTaskThread->hEvent);
 	ERRIFGOTO(result, _EXIT);
 
+	pstCurrentTask = pstTaskThread->uTargetTask.pstTask;
+
 	// if nSeqId is changed, it means this thread is detached from the CPU task manager.
 	// So, end this thread
 	while(pstThreadData->nCurSeqId == pstTaskThread->nSeqId)
 	{
+		pstCurrentTask->fnInit(pstCurrentTask->nTaskId);
 
+		pstCurrentTask->fnGo();
+
+		pstCurrentTask->fnWrapup();
 	}
 
 
@@ -653,7 +660,8 @@ static uem_result traverseAndCreateControlTasks(IN int nOffset, IN void *pData, 
 	ERRIFGOTO(result, _EXIT);
 
 	if(nCreatedThreadNum == 0 && pstTaskThread->enMappedTaskType == MAPPED_TYPE_GENERAL_TASK &&
-		pstTaskThread->uTargetTask.pstTask->enType == TASK_TYPE_CONTROL)
+		pstTaskThread->uTargetTask.pstTask->enType == TASK_TYPE_CONTROL &&
+		pstTaskThread->uTargetTask.pstTask->enRunCondition != RUN_CONDITION_CONTROL_DRIVEN)
 	{
 		result = createMultipleThreads(pstTaskThread->uMappedCPUList.hMappedCPUList, pstTaskThread);
 		ERRIFGOTO(result, _EXIT);
@@ -676,15 +684,22 @@ static uem_result traverseAndCreateComputationalTasks(IN int nOffset, IN void *p
 	if(nCreatedThreadNum == 0)
 	{
 		if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_GENERAL_TASK &&
-		pstTaskThread->uTargetTask.pstTask->enType == TASK_TYPE_COMPUTATIONAL)
+		pstTaskThread->uTargetTask.pstTask->enType == TASK_TYPE_COMPUTATIONAL &&
+		pstTaskThread->uTargetTask.pstTask->enRunCondition != RUN_CONDITION_CONTROL_DRIVEN)
 		{
 			result = createMultipleThreads(pstTaskThread->uMappedCPUList.hMappedCPUList, pstTaskThread);
 			ERRIFGOTO(result, _EXIT);
 		}
 		else if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK)
 		{
+			// convert pstTaskThread->uTargetTask.pstScheduledTasks->nParentTaskId to STask
+			// Get enRunCondition
+			// if(pstTask->enRunCondition != RUN_CONDITION_CONTROL_DRIVEN)
 			result = createCompositeTaskThread(pstTaskThread->hThreadList, pstTaskThread);
 			ERRIFGOTO(result, _EXIT);
+			// else
+			// do nothing - do not run CONTROL_DRIVEN tasks
+
 		}
 		else
 		{

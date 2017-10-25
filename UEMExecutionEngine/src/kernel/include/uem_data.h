@@ -108,8 +108,8 @@ typedef struct _STask STask;
 typedef struct _SModeMap {
 	int nModeId;
 	char *pszModeName;
-	STask *astRelatedTasks;
-	int nRelatedTaskNum;
+	STask *astRelatedChildTasks;
+	int nRelatedChildTaskNum;
 } SModeMap;
 
 
@@ -279,17 +279,13 @@ typedef struct _SScheduleList {
 	int nThroughputConstraint;
 } SScheduleList;
 
-
-typedef struct _SScheduleMode {
-	char *pszModeName;
-	SScheduleList *astScheduleList;
-	int nScheduleNum; // number of schedules which satisfies throughput constraint
-} SScheduleMode;
-
+// SScheduledTasks can be existed per each task mode
 typedef struct _SScheduledTasks {
 	int nParentTaskId;
-	SScheduleMode *astScheduleModeList;
-	int nNumOfScheduleMode;
+	int nModeId; // mode ID
+	SScheduleList *astScheduleList;
+	int nScheduleNum; // number of schedules which satisfies throughput constraint
+	int nScheduledIndex; // target schedule to be scheduled
 } SScheduledTasks;
 
 typedef struct _SProcessor {

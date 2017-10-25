@@ -210,6 +210,20 @@ SProcessor g_astProcessorInfo[] = {
 // ##PROCESSOR_INFO_TEMPLATE::END
 
 
+// ##SCHEDULED_COMPOSITE_TASKS_TEMPLATE::START
+
+// ##SCHEDULED_COMPOSITE_TASKS_TEMPLATE::END
+SScheduledTasks g_astScheduledTaskList[] = {
+// ##SCHEDULED_TASKS_LOOP::START
+	{	/*[PARENT_TASK_ID]*/, // Parent Task ID
+		/*[MODE_ID]*/, // Mode transition mode ID
+		/*[SCHEDULE_LIST]*/, // schedule list per throught constraint
+		/*[NUM_OF_SCHEDULES]*/, // The number of schedules in the schedule list
+		0, // Schedule Index (Default to set 0)
+	},
+// ##SCHEDULED_TASKS_LOOP::END
+};
+
 // ##MAPPING_SCHEDULING_INFO_TEMPLATE::START
 SMappingSchedulingInfo g_astMappingAndSchedulingInfo[] = {
 // ##TASK_MAPPING_LOOP::START
