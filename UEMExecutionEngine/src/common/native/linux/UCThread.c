@@ -22,19 +22,36 @@
 #include <UCBasic.h>
 
 #include <UCThread.h>
+#include <UCThreadEvent.h>
 
 typedef struct _SThread {
 	EUemModuleId enId;
 #ifndef WIN32
 	pthread_t hNativeThread;
+
 #else
 	HANDLE  hNativeThread;
 #endif
+	HThreadEvent hEvent;
 	FnNativeThread fnThreadFunction;
 	void *pUserData;
 } SUCThread;
 
 #ifndef WIN32
+
+static void *posixThread(void *pParam)
+{
+	SUCThread *pstThread = NULL;
+
+	pstThread = (SUCThread *) pParam;
+
+	pstThread->fnThreadFunction(pstThread->pUserData);
+
+	UCThreadEvent_SetEvent(pstThread->hEvent);
+
+	return NULL;
+}
+
 static uem_result createPthread(SUCThread *pstThread)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -44,12 +61,52 @@ static uem_result createPthread(SUCThread *pstThread)
 		ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
 	}
 
-	if(pthread_create(&(pstThread->hNativeThread), &threadAttr, pstThread->fnThreadFunction, (void *) pstThread->pUserData) != 0) {
+	if(pthread_create(&(pstThread->hNativeThread), &threadAttr, posixThread, (void *) pstThread) != 0) {
 		ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
 	}
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	pthread_attr_destroy( &threadAttr );
+	return result;
+}
+
+static uem_result destroyPosixThread(SUCThread *pstThread, uem_bool bDetach, int nTimeoutInMS)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	if(bDetach == TRUE)
+	{
+		if(pthread_detach(pstThread->hNativeThread) != 0) {
+			// free the memory even though pthread_detach is failed.
+			// debug exit for entering this case
+			ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+		}
+	}
+	else
+	{
+		if(nTimeoutInMS > 0)
+		{
+			result = UCThreadEvent_WaitTimeEvent(pstThread->hEvent, (long long) nTimeoutInMS);
+			if(result == ERR_UEM_TIME_EXPIRED)
+			{
+				if(pthread_cancel(pstThread->hNativeThread) != 0) {
+					ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+				}
+				result = ERR_UEM_NOERROR;
+			}
+			ERRIFGOTO(result, _EXIT);
+		}
+		// otherwise, wait for infinite seconds
+
+		if(pthread_join(pstThread->hNativeThread, NULL) != 0) {
+			// free the memory even though pthread_join is failed.
+			// debug exit for entering this case
+			ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+		}
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
 	return result;
 }
 
@@ -78,6 +135,48 @@ static uem_result createWindowsThread(SUCThread *pstThread)
 _EXIT:
 	return result;
 }
+
+static uem_result destroyWindowsThread(SUCThread *pstThread, uem_bool bDetach, int nTimeoutInMS)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	if(bDetach == FALSE)
+	{
+		DWORD dwErrorCode;
+
+		if(nTimeoutInMS > 0)
+		{
+			dwErrorCode = WaitForSingleObject(pstThread->hNativeThread, nTimeoutInMS);
+		}
+		else
+		{
+			dwErrorCode = WaitForSingleObject(pstThread->hNativeThread, INFINITE);
+		}
+
+		if(dwErrorCode != 0) {
+			// ignore error
+			// possible error cases: WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT, WAIT_FAILED
+			// debug exit for entering this case
+			ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+		}
+	}
+	else
+	{
+		// for detach, just close the handle without waiting
+	}
+
+	if( CloseHandle(pstThread->hNativeThread) == FALSE) {
+		// free the memory even though CloseHandle is failed.
+		// debug exit for entering this case
+		ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 #endif
 
 uem_result UCThread_Create(FnNativeThread fnThreadRoutine, void *pUserData, OUT HThread *phThread)
@@ -94,8 +193,12 @@ uem_result UCThread_Create(FnNativeThread fnThreadRoutine, void *pUserData, OUT 
 	pstThread->enId = ID_UEM_THREAD;
 	pstThread->fnThreadFunction = fnThreadRoutine;
 	pstThread->pUserData = pUserData;
+	pstThread->hEvent = NULL;
 
 #ifndef WIN32
+	result = UCThreadEvent_Create(&(pstThread->hEvent));
+	ERRIFGOTO(result, _EXIT);
+
 	result = createPthread(pstThread);
 	ERRIFGOTO(result, _EXIT);
 #else
@@ -107,7 +210,10 @@ uem_result UCThread_Create(FnNativeThread fnThreadRoutine, void *pUserData, OUT 
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
-	if(result != ERR_UEM_NOERROR) {
+	if(result != ERR_UEM_NOERROR && pstThread != NULL) {
+		if(pstThread->hEvent != NULL) {
+			UCThreadEvent_Destroy(&(pstThread->hEvent));
+		}
 		SAFEMEMFREE(pstThread);
 	}
 
@@ -115,7 +221,7 @@ _EXIT:
 }
 
 
-uem_result UCThread_Destroy(HThread *phThread, uem_bool bDetach)
+uem_result UCThread_Destroy(HThread *phThread, uem_bool bDetach, int nTimeoutInMS)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SUCThread *pstThread = NULL;
@@ -125,51 +231,29 @@ uem_result UCThread_Destroy(HThread *phThread, uem_bool bDetach)
 	if(IS_VALID_HANDLE(*phThread, ID_UEM_THREAD) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
+
+	if(bDetach != TRUE && bDetach != FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+
+	// 0 for infinite wait
+	if(nTimeoutInMS < 0) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
 #endif
 	pstThread = (SUCThread *) *phThread;
 
 #ifndef WIN32
-	if(bDetach == TRUE)
-	{
-		if(pthread_detach(pstThread->hNativeThread) != 0) {
-			// free the memory even though pthread_detach is failed.
-			// debug exit for entering this case
-			ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
-		}
-	}
-	else
-	{
-		if(pthread_join(pstThread->hNativeThread, NULL) != 0) {
-			// free the memory even though pthread_join is failed.
-			// debug exit for entering this case
-			ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
-		}
-	}
+	result = destroyPosixThread(pstThread, bDetach, nTimeoutInMS);
+	ERRIFGOTO(result, _EXIT);
 #else
-	if(bDetach == FALSE)
-	{
-		DWORD dwErrorCode;
-
-		dwErrorCode = WaitForSingleObject(pstThread->hNativeThread, INFINITE);
-		if(dwErrorCode != 0) {
-			// ignore error
-			// possible error cases
-			// WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT, WAIT_FAILED
-			// debug exit for entering this case
-			ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
-		}
-	}
-	else
-	{
-		// for detach, just close the handle without waiting
-	}
-
-	if( CloseHandle(pstThread->hNativeThread) == FALSE) {
-		// free the memory even though CloseHandle is failed.
-		// debug exit for entering this case
-		ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
-	}
+	result = destroyWindowsThread(pstThread, bDetach, nTimeoutInMS);
+	ERRIFGOTO(result, _EXIT);
 #endif
+
+	if(pstThread->hEvent != NULL) {
+		UCThreadEvent_Destroy(&(pstThread->hEvent));
+	}
 
 	SAFEMEMFREE(pstThread);
 
@@ -189,7 +273,7 @@ static int getCPUSetSize()
 #endif
 }
 
-
+// Setting CPU is not portable in POSIX
 #ifndef WIN32
 static uem_result setCPUInLinux(SUCThread *pstThread, int nCoreId)
 {
@@ -214,7 +298,6 @@ static uem_result setCPUInMinGW(SUCThread *pstThread, int nCoreId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	DWORD_PTR dwThreadAffinityMask;
-	int nLoop = 0;
 	DWORD_PTR dwOldAffinity = 0;
 
 	dwThreadAffinityMask = 1 << nCoreId;

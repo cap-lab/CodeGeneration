@@ -20,6 +20,9 @@
 
 #include <UKCPUTaskManager.h>
 
+
+#define THREAD_DESTROY_TIMEOUT (5000)
+
 typedef enum _EMappedTaskType {
 	MAPPED_TYPE_COMPOSITE_TASK,
 	MAPPED_TYPE_GENERAL_TASK,
@@ -477,17 +480,16 @@ static void *taskThreadRoutine(void *pData)
 
 	pstCurrentTask = pstTaskThread->uTargetTask.pstTask;
 
+	pstCurrentTask->fnInit(pstCurrentTask->nTaskId);
+
 	// if nSeqId is changed, it means this thread is detached from the CPU task manager.
 	// So, end this thread
 	while(pstThreadData->nCurSeqId == pstTaskThread->nSeqId)
 	{
-		pstCurrentTask->fnInit(pstCurrentTask->nTaskId);
-
 		pstCurrentTask->fnGo();
-
-		pstCurrentTask->fnWrapup();
 	}
 
+	pstCurrentTask->fnWrapup();
 
 _EXIT:
 	SAFEMEMFREE(pstThreadData);
@@ -556,7 +558,7 @@ static uem_result createThread(STaskThread *pstTaskThread, int nMappedCPU, FnNat
 _EXIT:
 	if(hThread != NULL)
 	{
-		UCThread_Destroy(&hThread, TRUE);
+		UCThread_Destroy(&hThread, FALSE, THREAD_DESTROY_TIMEOUT);
 	}
 	SAFEMEMFREE(pstThreadData);
 	return result;
@@ -692,13 +694,13 @@ static uem_result traverseAndCreateComputationalTasks(IN int nOffset, IN void *p
 		}
 		else if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK)
 		{
-			// convert pstTaskThread->uTargetTask.pstScheduledTasks->nParentTaskId to STask
-			// Get enRunCondition
-			// if(pstTask->enRunCondition != RUN_CONDITION_CONTROL_DRIVEN)
+			// TODO: 1. convert pstTaskThread->uTargetTask.pstScheduledTasks->nParentTaskId to STask
+			// 2. Get enRunCondition
+			// 3. if(pstTask->enRunCondition != RUN_CONDITION_CONTROL_DRIVEN)
 			result = createCompositeTaskThread(pstTaskThread->hThreadList, pstTaskThread);
 			ERRIFGOTO(result, _EXIT);
-			// else
-			// do nothing - do not run CONTROL_DRIVEN tasks
+			// 4. else
+			// 5. do nothing - do not run CONTROL_DRIVEN tasks
 
 		}
 		else
@@ -748,7 +750,7 @@ static uem_result traverseAndDestroyThread(IN int nOffset, IN void *pData, IN vo
 
 	hThread = (HThread) pData;
 
-	result = UCThread_Destroy(&(hThread), TRUE);
+	result = UCThread_Destroy(&(hThread), FALSE, THREAD_DESTROY_TIMEOUT);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
