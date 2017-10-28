@@ -125,7 +125,7 @@ typedef struct _SModeTransitionMachine {
 	SModeMap *astModeMap;
 	SVariableIntMap *astVarIntMap;
 	FnTaskModeTranstion fnTransition;
-	char *pszCurrentMode;
+	int nCurModeIndex;
 } SModeTransitionMachine;
 
 typedef struct _SLoopInfo {
@@ -262,6 +262,7 @@ typedef struct _SChannel {
 
 typedef struct _STaskIdToTaskMap {
 	int nTaskId;
+	char *pszTaskName;
 	STask *pstTask;
 } STaskIdToTaskMap;
 
@@ -281,11 +282,12 @@ typedef struct _SScheduleList {
 
 // SScheduledTasks can be existed per each task mode
 typedef struct _SScheduledTasks {
-	int nParentTaskId;
+	STask *pstParentTask;
 	int nModeId; // mode ID
 	SScheduleList *astScheduleList;
 	int nScheduleNum; // number of schedules which satisfies throughput constraint
 	int nScheduledIndex; // target schedule to be scheduled
+	int nSeqInMode;
 } SScheduledTasks;
 
 typedef struct _SProcessor {
@@ -296,8 +298,8 @@ typedef struct _SProcessor {
 } SProcessor;
 
 typedef union _UMappingTarget {
-	int nTaskId;
-	SScheduledTasks stScheduledTasks;
+	STask *pstTask;
+	SScheduledTasks *pstScheduledTasks;
 } UMappingTarget;
 
 

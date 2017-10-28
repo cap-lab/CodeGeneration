@@ -399,13 +399,20 @@ STaskGraph g_stGraph_top = {
 
 STaskIdToTaskMap g_astTaskIdToTask[] = {
 	{ 	0, // Task ID
+		"MatA", // Task name
 		&g_astTasks_top[0], // Task structure pointer
 	},
 	{ 	1, // Task ID
+		"MatB", // Task name
 		&g_astTasks_top[1], // Task structure pointer
 	},
 	{ 	2, // Task ID
+		"VecMul", // Task name
 		&g_astTasks_top[2], // Task structure pointer
+	},
+	{ 	3, // Task ID
+		"Display", // Task name
+		&g_astTasks_top[3], // Task structure pointer
 	},
 };
 
@@ -419,22 +426,22 @@ SProcessor g_astProcessorInfo[] = {
 
 SMappingSchedulingInfo g_astMappingAndSchedulingInfo[] = {
 	{	TASK_TYPE_COMPUTATIONAL, // Task type
-		{ .nTaskId = 0 }, // Task ID or composite task information
+		{ .pstTask = &g_astTasks_top[0] }, // Task structure pointer or composite task information
 		0, // Processor ID
 		0, // Processor local ID
 	},
 	{	TASK_TYPE_COMPUTATIONAL, // Task type
-		{ .nTaskId = 1 }, // Task ID or composite task information
+		{ .pstTask = &g_astTasks_top[1] }, // Task structure pointer or composite task information
 		0, // Processor ID
 		1, // Processor local ID
 	},
 	{	TASK_TYPE_COMPUTATIONAL, // Task type
-		{ .nTaskId = 2 }, // Task ID or composite task information
+		{ .pstTask = &g_astTasks_top[2] }, // Task structure pointer or composite task information
 		0, // Processor ID
 		2, // Processor local ID
 	},
 	{	TASK_TYPE_COMPUTATIONAL, // Task type
-		{ .nTaskId = 3 }, // Task ID or composite task information
+		{ .pstTask = &g_astTasks_top[3] }, // Task structure pointer or composite task information
 		0, // Processor ID
 		3, // Processor local ID
 	},

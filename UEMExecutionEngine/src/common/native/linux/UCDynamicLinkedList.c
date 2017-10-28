@@ -5,13 +5,6 @@
  *      Author: jej
  */
 
-/*
- * CAPLinkedList.c
- *
- *  Created on: 2015. 5. 21.
- *      Author: chjej202
- */
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

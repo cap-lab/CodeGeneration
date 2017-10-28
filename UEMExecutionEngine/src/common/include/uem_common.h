@@ -78,6 +78,7 @@ typedef enum _EUemModuleId {
 	ID_UEM_THREAD_MUTEX       = 1,
 	ID_UEM_THREAD_EVENT       = 2,
 	ID_UEM_DYNAMIC_LINKED_LIST= 3,
+	ID_UEM_STACK			  = 4,
 
 	// UEM Kernel module
 	ID_UEM_KERNEL_MODULE = UEM_MODULE_KERNEL,

@@ -190,6 +190,7 @@ STaskGraph g_stGraph_/*[TASKGRAPH_NAME]*/ = {
 STaskIdToTaskMap g_astTaskIdToTask[] = {
 // ##TASKGRAPH_LOOP::START
 	{ 	/*[TASK_ID]*/, // Task ID
+		/*[NESTED_TASK_NAME]*/, // Task name
 		&/*[TASK_POINTER_NAME]*/, // Task structure pointer
 	},
 // ##TASKGRAPH_LOOP::END
@@ -220,6 +221,7 @@ SScheduledTasks g_astScheduledTaskList[] = {
 		/*[SCHEDULE_LIST]*/, // schedule list per throught constraint
 		/*[NUM_OF_SCHEDULES]*/, // The number of schedules in the schedule list
 		0, // Schedule Index (Default to set 0)
+		/*[SEQUENCE_IN_MODE]*/, // Mode Sequence ID 
 	},
 // ##SCHEDULED_TASKS_LOOP::END
 };
