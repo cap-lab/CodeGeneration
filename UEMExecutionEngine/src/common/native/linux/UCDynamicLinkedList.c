@@ -37,8 +37,9 @@ uem_result UCDynamicLinkedList_Create(OUT HLinkedList *phLinkedList)
     SUCLinkedList* pstLinkedList = NULL;
     uem_result result = ERR_UEM_UNKNOWN;
 
+#ifdef ARGUMENT_CHECK
     IFVARERRASSIGNGOTO(phLinkedList, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-
+#endif
     pstLinkedList = (SUCLinkedList *) UC_malloc(sizeof(SUCLinkedList));
     ERRMEMGOTO(pstLinkedList, result, _EXIT);
 
@@ -63,12 +64,10 @@ uem_result UCDynamicLinkedList_Add(HLinkedList hLinkedList, IN ELinkedListOffset
     uem_result result = ERR_UEM_UNKNOWN;
     SUCLinkedList* pstLinkedList = NULL;
     int nOffset = 0;
-
+#ifdef ARGUMENT_CHECK
     if (IS_VALID_HANDLE(hLinkedList, ID_UEM_DYNAMIC_LINKED_LIST) == FALSE) {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
     }
-
-    pstLinkedList = (SUCLinkedList*) hLinkedList;
 
     if (enOffset != LINKED_LIST_OFFSET_FIRST
             && enOffset != LINKED_LIST_OFFSET_LAST
@@ -76,6 +75,8 @@ uem_result UCDynamicLinkedList_Add(HLinkedList hLinkedList, IN ELinkedListOffset
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
+#endif
+    pstLinkedList = (SUCLinkedList*) hLinkedList;
 
     if (enOffset == LINKED_LIST_OFFSET_FIRST) {
         nOffset = 0;
@@ -86,11 +87,11 @@ uem_result UCDynamicLinkedList_Add(HLinkedList hLinkedList, IN ELinkedListOffset
     }
 
     nOffset = nOffset + nIndex;
-
+#ifdef ARGUMENT_CHECK
     if (nOffset < 0 || nOffset > pstLinkedList->nLinkSize) {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
-
+#endif
     pstNewNode = (SNode *) UC_malloc(sizeof(SNode));
     ERRMEMGOTO(pstNewNode, result, _EXIT);
 
@@ -151,11 +152,11 @@ uem_result UCDynamicLinkedList_Seek(HLinkedList hLinkedList, IN ELinkedListOffse
     uem_result result = ERR_UEM_UNKNOWN;
     int nOffset = 0;
     int nLoop = 0;
-
+#ifdef ARGUMENT_CHECK
     if (IS_VALID_HANDLE(hLinkedList, ID_UEM_DYNAMIC_LINKED_LIST) == FALSE) {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
     }
-
+#endif
     pstLinkedList = (SUCLinkedList *) hLinkedList;
 
     if (enOffset == LINKED_LIST_OFFSET_FIRST) {
@@ -167,7 +168,7 @@ uem_result UCDynamicLinkedList_Seek(HLinkedList hLinkedList, IN ELinkedListOffse
     }
 
     nOffset = nOffset + nIndex;
-
+#ifdef ARGUMENT_CHECK
     if (nOffset < 0 || nOffset > pstLinkedList->nLinkSize) {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
@@ -175,7 +176,7 @@ uem_result UCDynamicLinkedList_Seek(HLinkedList hLinkedList, IN ELinkedListOffse
     if (pstLinkedList->nLinkSize == 0) {
         ERRASSIGNGOTO(result, ERR_UEM_NO_DATA, _EXIT);
     }
-
+#endif
     if (nOffset >= pstLinkedList->nCurrent) {
         for (nLoop = 0; nLoop < nOffset - pstLinkedList->nCurrent; nLoop++) {
             pstLinkedList->pCurrent = pstLinkedList->pCurrent->pNext;
@@ -200,23 +201,23 @@ uem_result UCDynamicLinkedList_Get(HLinkedList hLinkedList,
 {
     SUCLinkedList* pstLinkedList = NULL;
     uem_result result = ERR_UEM_UNKNOWN;
-
+#ifdef ARGUMENT_CHECK
     if (IS_VALID_HANDLE(hLinkedList, ID_UEM_DYNAMIC_LINKED_LIST) == FALSE) {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
     }
 
     IFVARERRASSIGNGOTO(ppData, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-
+#endif
     pstLinkedList = (SUCLinkedList *) hLinkedList;
 
     result = UCDynamicLinkedList_Seek(pstLinkedList, enOffset, nIndex);
     ERRIFGOTO(result, _EXIT);
-
+#ifdef ARGUMENT_CHECK
     // nIndex is not located in the linked list
     if(pstLinkedList->pCurrent == NULL) {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
-
+#endif
     *ppData = (void *) (pstLinkedList->pCurrent->pData);
 
     result = ERR_UEM_NOERROR;
@@ -230,25 +231,25 @@ uem_result UCDynamicLinkedList_Set(HLinkedList hLinkedList,
 {
     SUCLinkedList* pstLinkedList = NULL;
     uem_result result = ERR_UEM_UNKNOWN;
-
+#ifdef ARGUMENT_CHECK
     if (IS_VALID_HANDLE(hLinkedList, ID_UEM_DYNAMIC_LINKED_LIST) == FALSE)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
     }
 
     IFVARERRASSIGNGOTO(pData, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-
+#endif
     pstLinkedList = (SUCLinkedList *) hLinkedList;
 
     result = UCDynamicLinkedList_Seek(pstLinkedList, enOffset, nIndex);
     ERRIFGOTO(result, _EXIT);
-
+#ifdef ARGUMENT_CHECK
     // nIndex is not located in the linked list
     if(pstLinkedList->pCurrent == NULL)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
-
+#endif
     pstLinkedList->pCurrent->pData = pData;
 
     result = ERR_UEM_NOERROR;
@@ -259,14 +260,14 @@ uem_result UCDynamicLinkedList_GetLength(HLinkedList hLinkedList, OUT int *pnLen
 {
     SUCLinkedList* pstLinkedList = NULL;
     uem_result result = ERR_UEM_UNKNOWN;
-
+#ifdef ARGUMENT_CHECK
     if (IS_VALID_HANDLE(hLinkedList, ID_UEM_DYNAMIC_LINKED_LIST) == FALSE)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
     }
 
     IFVARERRASSIGNGOTO(pnLength, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-
+#endif
     pstLinkedList = (SUCLinkedList *) hLinkedList;
 
     *pnLength = pstLinkedList->nLinkSize;
@@ -285,12 +286,12 @@ uem_result UCDynamicLinkedList_Remove(HLinkedList hLinkedList,
     SUCLinkedList* pstLinkedList = NULL;
     uem_result result = ERR_UEM_UNKNOWN;
     int nOffset = 0;
-
+#ifdef ARGUMENT_CHECK
     if (IS_VALID_HANDLE(hLinkedList, ID_UEM_DYNAMIC_LINKED_LIST) == FALSE)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
     }
-
+#endif
     pstLinkedList = (SUCLinkedList *) hLinkedList;
 
     if (enOffset == LINKED_LIST_OFFSET_FIRST)
@@ -307,7 +308,7 @@ uem_result UCDynamicLinkedList_Remove(HLinkedList hLinkedList,
     }
 
     nOffset = nOffset + nIndex;
-
+#ifdef ARGUMENT_CHECK
     // To remove the last node, enOffset = LINKED_LIST_OFFSET_LAST, nIndex = -1
     if (nOffset < 0 || nOffset >= pstLinkedList->nLinkSize)
     {
@@ -318,7 +319,7 @@ uem_result UCDynamicLinkedList_Remove(HLinkedList hLinkedList,
     {
         ERRASSIGNGOTO(result, ERR_UEM_NO_DATA, _EXIT);
     }
-
+#endif
     if (nOffset == 0)
     { /* remove first */
         pstCurNode = pstLinkedList->pFirst;
@@ -363,11 +364,13 @@ uem_result UCDynamicLinkedList_Traverse(HLinkedList hLinkedList, IN CbFnUCDynami
     SUCLinkedList* pstLinkedList = NULL;
     SNode *pstNode = NULL;
     int nOffset = 0;
-
+#ifdef ARGUMENT_CHECK
     if (IS_VALID_HANDLE(hLinkedList, ID_UEM_DYNAMIC_LINKED_LIST) == FALSE) {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
     }
 
+    IFVARERRASSIGNGOTO(fnCallback, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+#endif
     pstLinkedList = (SUCLinkedList*) hLinkedList;
 
     for(pstNode = pstLinkedList->pFirst; pstNode != NULL ; pstNode = pstNode->pNext)
@@ -402,14 +405,14 @@ uem_result UCDynamicLinkedList_Destroy(IN OUT HLinkedList *phLinkedList)
     SUCLinkedList* pstLinkedList = NULL;
     int nLoop = 0;
     int nLinkedListSize = 0;
-
+#ifdef ARGUMENT_CHECK
     IFVARERRASSIGNGOTO(phLinkedList, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
     if (IS_VALID_HANDLE(*phLinkedList, ID_UEM_DYNAMIC_LINKED_LIST) == FALSE)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
     }
-
+#endif
     pstLinkedList = (SUCLinkedList*) *phLinkedList;
 
     nLinkedListSize = pstLinkedList->nLinkSize;

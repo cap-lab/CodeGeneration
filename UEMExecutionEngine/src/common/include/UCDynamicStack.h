@@ -15,7 +15,7 @@ extern "C"
 {
 #endif
 
-typedef struct _SUCStack *HStack;
+typedef struct _SUCDynamicStack *HStack;
 
 typedef uem_result (*CbFnUCStack)(IN void *pData, IN void *pUserData);
 

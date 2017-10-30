@@ -46,9 +46,6 @@ typedef struct _STaskThread {
 	int nSeqId;
 	HThreadEvent hEvent;
 	UMappingTarget uTargetTask;
-	STask *pstTask;
-	STask *pstParentTask;
-	SScheduledTasks *pstScheduledTasks;
 	ECPUTaskState enTaskState;
 	EMappedTaskType enMappedTaskType;
 	UMappedCPUList uMappedCPUList;
@@ -878,7 +875,7 @@ _EXIT:
 }
 
 
-uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUThreadPool, STask *pstTask)
+uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUThreadPool, int nTaskId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
@@ -888,23 +885,26 @@ uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUThreadPool, STask *pstTa
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
 
-	IFVARERRASSIGNGOTO(pstTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+	if(nTaskId < 0) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+
 #endif
 	pstManager = hCPUThreadPool;
 
-	stCallbackData.nTaskId = pstTask->nTaskId;
+	stCallbackData.nTaskId = nTaskId;
 	stCallbackData.pstTargetThread = NULL;
 
-	dasdasd
+	//dasdasd
 
 
-	if(pstTask->pstSubGraph != NULL)
+	//if(pstTask->pstSubGraph != NULL)
 	{
 		// Execute composite tasks if composite task is not existed, run
 
 
 	}
-	else // Execute general task
+	//else // Execute general task
 	{
 
 	}
