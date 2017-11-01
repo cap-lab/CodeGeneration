@@ -108,7 +108,7 @@ typedef struct _STask STask;
 typedef struct _SModeMap {
 	int nModeId;
 	char *pszModeName;
-	STask *astRelatedChildTasks;
+	STask **pastRelatedChildTasks;
 	int nRelatedChildTaskNum;
 } SModeMap;
 

@@ -65,6 +65,7 @@ typedef enum _EUemResult {
 	ERR_UEM_INTERRUPT,
 	ERR_UEM_DATA_DUPLICATED,
 	ERR_UEM_ILLEGAL_CONTROL,
+	ERR_UEM_ILLEGAL_DATA,
 
 } uem_result;
 
