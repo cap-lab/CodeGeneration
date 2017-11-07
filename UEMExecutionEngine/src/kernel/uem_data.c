@@ -312,13 +312,46 @@ SChannel g_astChannels[] = {
 	},
 };
 
+STaskFunctions g_ast_MatA_functions[] = {
+	{
+		MatA_Init, // Task init function
+		MatA_Go, // Task go function
+		MatA_Wrapup, // Task wrapup function
+	},
+};
+
+STaskFunctions g_ast_MatB_functions[] = {
+	{
+		MatB_Init, // Task init function
+		MatB_Go, // Task go function
+		MatB_Wrapup, // Task wrapup function
+	},
+};
+
+STaskFunctions g_ast_VecMul_functions[] = {
+	{
+		VecMul_Init, // Task init function
+		VecMul_Go, // Task go function
+		VecMul_Wrapup, // Task wrapup function
+	},
+};
+
+STaskFunctions g_ast_Display_functions[] = {
+	{
+		Display_Init, // Task init function
+		Display_Go, // Task go function
+		Display_Wrapup, // Task wrapup function
+	},
+};
+
+
+
 STask g_astTasks_top[] = {
 	{ 	0, // Task ID
 		"MatA", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		MatA_Init, // Task init function
-		MatA_Go, // Task go function
-		MatA_Wrapup, // Task wrapup function
+		g_ast_MatA_functions, // Task function array
+		1, // Task function array number
 		RUN_CONDITION_TIME_DRIVEN, // Run condition
 		1, // Run rate
 		10, // Period
@@ -335,9 +368,8 @@ STask g_astTasks_top[] = {
 	{ 	1, // Task ID
 		"MatB", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		MatB_Init, // Task init function
-		MatB_Go, // Task go function
-		MatB_Wrapup, // Task wrapup function
+		g_ast_MatB_functions, // Task function array
+		1, // Task function array number
 		RUN_CONDITION_TIME_DRIVEN, // Run condition
 		1, // Run rate
 		10, // Period
@@ -354,9 +386,8 @@ STask g_astTasks_top[] = {
 	{ 	2, // Task ID
 		"VecMul", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		VecMul_Init, // Task init function
-		VecMul_Go, // Task go function
-		VecMul_Wrapup, // Task wrapup function
+		g_ast_VecMul_functions, // Task function array
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		10, // Period
@@ -373,9 +404,8 @@ STask g_astTasks_top[] = {
 	{ 	3, // Task ID
 		"Display", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		Display_Init, // Task init function
-		Display_Go, // Task go function
-		Display_Wrapup, // Task wrapup function
+		g_ast_Display_functions, // Task function array
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		10, // Period

@@ -8,9 +8,9 @@
 
 // ##TASK_CODE_TEMPLATE::START
 // ##FLAT_TASK_LOOP::START
-void /*[NESTED_TASK_NAME]*/_Init(int nTaskId);
-void /*[NESTED_TASK_NAME]*/_Go();
-void /*[NESTED_TASK_NAME]*/_Wrapup();
+void /*[NESTED_TASK_NAME]*/_Init/*[TASK_FUNCTION_ID]*/(int nTaskId);
+void /*[NESTED_TASK_NAME]*/_Go/*[TASK_FUNCTION_ID]*/();
+void /*[NESTED_TASK_NAME]*/_Wrapup/*[TASK_FUNCTION_ID]*/();
 // ##FLAT_TASK_LOOP::END
 // ##TASK_CODE_TEMPLATE::END
 
@@ -91,6 +91,22 @@ SAvailableChunk g_astAvailableInputChunk_channel_/*[CHANNEL_ID]*/[] = {
 
 
 
+// ##TASK_FUNCTION_LIST::START
+// ##FLAT_TASK_LOOP::START
+STaskFunctions g_ast_MatA_functions[] = {
+// ##TASK_FUNCTION_LOOP::START
+	{
+		/*[NESTED_TASK_NAME]*/_Init/*[TASK_FUNCTION_ID]*/, // Task init function
+		/*[NESTED_TASK_NAME]*/_Go/*[TASK_FUNCTION_ID]*/, // Task go function
+		/*[NESTED_TASK_NAME]*/_Wrapup/*[TASK_FUNCTION_ID]*/, // Task wrapup function
+	},
+// ##TASK_FUNCTION_LOOP::END
+};
+// ##FLAT_TASK_LOOP::END
+// ##TASK_FUNCTION_LIST::END
+
+
+
 // ##CHANNEL_LIST_TEMPLATE::START
 SChannel g_astChannels[] = {
 // ##CHANNEL_LOOP::START
@@ -155,6 +171,8 @@ STask g_astTasks_/*[TASKGRAPH_NAME]*/[] = {
 	{ 	/*[TASK_ID]*/, // Task ID
 		/*[NESTED_TASK_NAME]*/, // Task name
 		/*[TASK_TYPE]*/, // Task Type
+		g_ast_/*[NESTED_TASK_NAME]*/_functions, // Task function array
+		/*[NUM_OF_TASK_FUNCTION]*/, // Task function array number
 		/*[NESTED_TASK_NAME]*/_Init, // Task init function
 		/*[NESTED_TASK_NAME]*/_Go, // Task go function
 		/*[NESTED_TASK_NAME]*/_Wrapup, // Task wrapup function

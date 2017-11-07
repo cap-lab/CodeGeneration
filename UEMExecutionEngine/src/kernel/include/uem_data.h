@@ -152,13 +152,18 @@ typedef struct _STaskParameter {
 	UParamValue uParamValue;
 } STaskParameter;
 
+typedef struct _STaskFunctions {
+	FnUemTaskInit fnInit;
+	FnUemTaskGo fnGo;
+	FnUemTaskWrapup fnWrapup;
+} STaskFunctions;
+
 typedef struct _STask {
 	int nTaskId;
 	const char *pszTaskName;
 	ETaskType enType;
-	FnUemTaskInit fnInit;
-	FnUemTaskGo fnGo;
-	FnUemTaskWrapup fnWrapup;
+	STaskFunctions *astTaskFunctions;
+	int nTaskFunctionSetNum;
 	ERunCondition enRunCondition;
 	int nRunRate;
 	int nPeriod;

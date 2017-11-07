@@ -86,6 +86,7 @@ struct _SCompositeTaskUserData {
 typedef struct _STaskThreadData {
 	STaskThread *pstTaskThread;
 	int nCurSeqId;
+	int nTaskFunctionIndex;
 } STaskThreadData;
 
 
@@ -461,6 +462,7 @@ static void *taskThreadRoutine(void *pData)
 	STaskThreadData *pstThreadData = NULL;
 	STaskThread *pstTaskThread = NULL;
 	STask *pstCurrentTask = NULL;
+	int nIndex = 0;
 
 	pstThreadData = (STaskThreadData *) pData;
 
@@ -468,6 +470,7 @@ static void *taskThreadRoutine(void *pData)
 	// pstThreadData->nCurSeqId
 
 	pstCurrentTask = pstTaskThread->uTargetTask.pstTask;
+	nIndex = pstThreadData->nTaskFunctionIndex;
 
 	result = UCThreadEvent_WaitEvent(pstTaskThread->hEvent);
 	ERRIFGOTO(result, _EXIT);
@@ -476,7 +479,7 @@ static void *taskThreadRoutine(void *pData)
 	// So, end this thread
 	while(pstThreadData->nCurSeqId == pstTaskThread->nSeqId)
 	{
-		pstCurrentTask->fnGo();
+		pstCurrentTask->astTaskFunctions[nIndex].fnGo();
 	}
 
 	//pstCurrentTask->fnWrapup();
@@ -513,7 +516,7 @@ _EXIT:
 }
 
 
-static uem_result createThread(STaskThread *pstTaskThread, int nMappedCPU, FnNativeThread fnThreadRoutine)
+static uem_result createThread(STaskThread *pstTaskThread, int nMappedCPU, FnNativeThread fnThreadRoutine, int nTaskFunctionIndex)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	HThread hThread = NULL;
@@ -524,6 +527,7 @@ static uem_result createThread(STaskThread *pstTaskThread, int nMappedCPU, FnNat
 
 	pstThreadData->pstTaskThread = pstTaskThread;
 	pstThreadData->nCurSeqId = pstTaskThread->nSeqId;
+	pstThreadData->nTaskFunctionIndex = nTaskFunctionIndex;
 
 	result = UCThread_Create(fnThreadRoutine, pstThreadData, &hThread);
 	ERRIFGOTO(result, _EXIT);
@@ -563,7 +567,7 @@ static uem_result traverseAndCreateEachThread(IN int nOffset, IN void *pData, IN
 	pstTaskThread = (STaskThread *) pUserData;
 	nMappedCPU = *((int *) pData);
 
-	result = createThread(pstTaskThread, nMappedCPU, taskThreadRoutine);
+	result = createThread(pstTaskThread, nMappedCPU, taskThreadRoutine, nOffset);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -576,13 +580,17 @@ static uem_result createMultipleThreads(HLinkedList hMappedCPUList, STaskThread 
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nMappedCPUNumber = 0;
 	STask *pstTask = NULL;
+	int nLoop = 0;
 
 	result = UCDynamicLinkedList_GetLength(hMappedCPUList, &nMappedCPUNumber);
 	ERRIFGOTO(result, _EXIT);
 
 	// call TASK_INIT
 	pstTask = pstTaskThread->uTargetTask.pstTask;
-	pstTask->fnInit(pstTask->nTaskId);
+	for(nLoop = 0; nLoop < pstTask->nTaskFunctionSetNum ; nLoop++)
+	{
+		pstTask->astTaskFunctions[nLoop].fnInit(pstTask->nTaskId);
+	}
 
 	if(nMappedCPUNumber > 0)
 	{
@@ -591,7 +599,7 @@ static uem_result createMultipleThreads(HLinkedList hMappedCPUList, STaskThread 
 	}
 	else // not mapped to specific task
 	{
-		result = createThread(pstTaskThread, MAPPING_NOT_SPECIFIED, taskThreadRoutine);
+		result = createThread(pstTaskThread, MAPPING_NOT_SPECIFIED, taskThreadRoutine, 0);
 		ERRIFGOTO(result, _EXIT);
 	}
 
@@ -880,6 +888,7 @@ static uem_result callCompositeTaskInitFunctions(STask *pstParentTask, HStack hS
 	int nNextIndex = 0;
 	int nStackNum = 0;
 	int nNumOfTasks = 0;
+	int nLoop = 0;
 
 	nCurModeIndex = pstParentTask->pstMTMInfo->nCurModeIndex;
 	pstCurrentModeMap = &(pstParentTask->pstMTMInfo->astModeMap[nCurModeIndex]);
@@ -924,7 +933,10 @@ static uem_result callCompositeTaskInitFunctions(STask *pstParentTask, HStack hS
 		{
 			// call current index's task init function
 			pstCurInitTask = pstCurrentModeMap->pastRelatedChildTasks[nCurrentIndex];
-			pstCurInitTask->fnInit(pstCurInitTask->nTaskId);
+			for(nLoop = 0; nLoop < pstCurInitTask->nTaskFunctionSetNum ; nLoop++)
+			{
+				pstCurInitTask->astTaskFunctions[nLoop].fnInit(pstCurInitTask->nTaskId);
+			}
 
 			// proceed index, if all index is proceeded, pop the mode map from stack
 			nCurrentIndex++;
@@ -976,12 +988,12 @@ static uem_result createCompositeTaskThread(HLinkedList hThreadList, STaskThread
 		result = UCDynamicLinkedList_Get(pstTaskThread->uMappedCPUList.hMappedCPUList, LINKED_LIST_OFFSET_FIRST, 0, (void **) &pCPUId);
 		ERRIFGOTO(result, _EXIT);
 
-		result = createThread(pstTaskThread, *((int *) pCPUId), scheduledTaskThreadRoutine);
+		result = createThread(pstTaskThread, *((int *) pCPUId), scheduledTaskThreadRoutine, 0);
 		ERRIFGOTO(result, _EXIT);
 	}
 	else // nMappedCPUNumber == 0
 	{
-		result = createThread(pstTaskThread, MAPPING_NOT_SPECIFIED, scheduledTaskThreadRoutine);
+		result = createThread(pstTaskThread, MAPPING_NOT_SPECIFIED, scheduledTaskThreadRoutine, 0);
 		ERRIFGOTO(result, _EXIT);
 	}
 
@@ -1141,6 +1153,8 @@ uem_result UKCPUTaskManager_StopAllTasks(HCPUTaskManager hCPUThreadPool)
 #endif
 
 	pstManager = hCPUThreadPool;
+
+	// TODO: release all channel block
 
 	result = UCDynamicLinkedList_Traverse(pstManager->uDataAndTimeDrivenTaskList.hTaskList, traverseAndDestroyAllThreads, NULL);
 	ERRIFGOTO(result, _EXIT);
@@ -1374,6 +1388,10 @@ uem_result UKCPUTaskManager_Destroy(IN OUT HCPUTaskManager *phCPUThreadPool)
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
 	}
 #endif
+
+	result = UKCPUTaskManager_StopAllTasks(*phCPUThreadPool);
+	ERRIFGOTO(result, _EXIT);
+
 	result = UCDynamicLinkedList_Traverse(pstManager->uDataAndTimeDrivenTaskList.hTaskList, traverseAndDestroyTaskThread, NULL);
 	ERRIFGOTO(result, _EXIT);
 

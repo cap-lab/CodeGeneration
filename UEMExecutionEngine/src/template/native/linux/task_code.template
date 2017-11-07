@@ -13,9 +13,9 @@
 #define TASK_CODE_BEGIN
 #define TASK_CODE_END
 #define TASK_NAME "/*[NESTED_TASK_NAME]*/"
-#define TASK_INIT void /*[NESTED_TASK_NAME]*/_Init(int TASK_ID)
-#define TASK_GO void /*[NESTED_TASK_NAME]*/_Go()
-#define TASK_WRAPUP void /*[NESTED_TASK_NAME]*/_Wrapup()
+#define TASK_INIT void /*[NESTED_TASK_NAME]*/_Init/*[TASK_FUNCTION_ID]*/(int TASK_ID)
+#define TASK_GO void /*[NESTED_TASK_NAME]*/_Go/*[TASK_FUNCTION_ID]*/()
+#define TASK_WRAPUP void /*[NESTED_TASK_NAME]*/_Wrapup/*[TASK_FUNCTION_ID]*/()
 
 #define STATIC static
 #include "/*[TASK_CODE_FILE]*/"
