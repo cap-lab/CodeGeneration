@@ -6,7 +6,14 @@
  */
 
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <UCBasic.h>
+
 #include <uem_data.h>
+
 
 
 uem_result UKChannel_InitializeSharedMemory(SChannel *pstChannel)
@@ -18,14 +25,36 @@ uem_result UKChannel_InitializeSharedMemory(SChannel *pstChannel)
 
 	// information clear
 	// pBuffer => is NULL => alloc
+	if(pstChannel->pBuffer == NULL)
+	{
+		pstChannel->pBuffer = UC_malloc(pstChannel->nBufSize);
+		ERRMEMGOTO(pstChannel->pBuffer, result, _EXIT);
+	}
+
 	// pDataStart => clear (pBuffer)
 	// nDataLen => clear (0)
+	pstChannel->pDataStart = pstChannel->pBuffer;
+	pstChannel->pDataEnd = pstChannel->pBuffer;
+	pstChannel->nDataLen = 0;
+	pstChannel->nReferenceCount = 0;
+
 	// hMutex => initialize/create
+	result = UCThreadMutex_Create(&(pstChannel->hMutex));
+	ERRIFGOTO(result, _EXIT);
+
 	// hEvent => initialize/create
+	result = UCThreadEvent_Create(&(pstChannel->hEvent));
+	ERRIFGOTO(result, _EXIT);
+
 
 	// SPort
 	// nCurrentSampleRateIndex
+	pstChannel->stInputPort.nCurrentSampleRateIndex;
 	// iterative access on subgraph port
+	pstChannel->stOutputPort.nCurrentSampleRateIndex;
+	//pstChannel->stInputPort.pstSubGraphPort->
+	pstChannel->stInputPortChunk.astChunk;
+
 
 	// SChunkInfo
 	// nChunkNum - 1 (for general task) or total sample rate / most inner task port's sample rate (for loop task)

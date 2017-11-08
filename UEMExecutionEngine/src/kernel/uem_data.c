@@ -5,6 +5,10 @@
  *      Author: jej
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <uem_data.h>
 
 // ##TASK_CODE_DECLARATION_SECTION:START

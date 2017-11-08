@@ -869,7 +869,6 @@ static uem_result checkAndPopStack(HStack hStack, IN OUT SModeMap **ppstModeMap,
 	{
 		// do nothing
 	}
-
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
@@ -885,7 +884,6 @@ static uem_result callCompositeTaskInitFunctions(STask *pstParentTask, HStack hS
 	int nCurrentIndex = 0;
 	SModeMap *pstNextModeMap = NULL;
 	int nNextModeIndex = 0;
-	int nNextIndex = 0;
 	int nStackNum = 0;
 	int nNumOfTasks = 0;
 	int nLoop = 0;
@@ -902,26 +900,28 @@ static uem_result callCompositeTaskInitFunctions(STask *pstParentTask, HStack hS
 			{
 				nNextModeIndex = pstCurrentModeMap->pastRelatedChildTasks[nCurrentIndex]->pstMTMInfo->nCurModeIndex;
 				pstNextModeMap = &(pstCurrentModeMap->pastRelatedChildTasks[nCurrentIndex]->pstMTMInfo->astModeMap[nNextModeIndex]);
-				nNextIndex = 0;
 
 				// the current task has subgraph, skip current task index
 				nCurrentIndex++;
+				//result = checkAndPopStack(hStack, &pstCurrentModeMap, &nCurrentIndex);
+				//ERRIFGOTO(result, _EXIT);
 
-				result = checkAndPopStack(hStack, &pstCurrentModeMap, &nCurrentIndex);
-				ERRIFGOTO(result, _EXIT);
+				if(nCurrentIndex < pstCurrentModeMap->nRelatedChildTaskNum)
+				{
+					result = UCDynamicStack_Push(hStack, pstCurrentModeMap);
+					ERRIFGOTO(result, _EXIT);
+	#if SIZEOF_VOID_P == 8
+					result = UCDynamicStack_Push(hStack, (void *) (long long) nCurrentIndex);
+	#else
+					result = UCDynamicStack_Push(hStack, (void *) nCurrentIndex);
+	#endif
+					ERRIFGOTO(result, _EXIT);
+				}
 
 				// reset values
 				pstCurrentModeMap = pstNextModeMap;
-				nCurrentIndex = nNextIndex;
-
-				result = UCDynamicStack_Push(hStack, pstCurrentModeMap);
-				ERRIFGOTO(result, _EXIT);
-#if SIZEOF_VOID_P == 8
-				result = UCDynamicStack_Push(hStack, (void *) (long long) nCurrentIndex);
-#else
-				result = UCDynamicStack_Push(hStack, (void *) nCurrentIndex);
-#endif
-				ERRIFGOTO(result, _EXIT);
+				nCurrentIndex = 0;
+				nNumOfTasks = pstCurrentModeMap->nRelatedChildTaskNum;
 			}
 			else // Normal data flow graph
 			{
@@ -943,12 +943,13 @@ static uem_result callCompositeTaskInitFunctions(STask *pstParentTask, HStack hS
 
 			result = checkAndPopStack(hStack, &pstCurrentModeMap, &nCurrentIndex);
 			ERRIFGOTO(result, _EXIT);
+
+			nNumOfTasks = pstCurrentModeMap->nRelatedChildTaskNum;
 		}
 
 		result = UCDynamicStack_Length(hStack, &nStackNum);
 		ERRIFGOTO(result, _EXIT);
 	}
-
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
