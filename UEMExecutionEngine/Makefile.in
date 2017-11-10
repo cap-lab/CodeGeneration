@@ -81,7 +81,8 @@ am__objects_3 = proc-UFControl_deprecated.$(OBJEXT) \
 	proc-UFTask.$(OBJEXT) proc-UFTimer_deprecated.$(OBJEXT) \
 	proc-UFTimer.$(OBJEXT)
 am__objects_4 = proc-uem_data.$(OBJEXT) proc-UKChannel.$(OBJEXT)
-am__objects_5 = proc-UKCPUTaskManager.$(OBJEXT)
+am__objects_5 = proc-UKCPUTaskManager.$(OBJEXT) \
+	proc-UKSharedMemoryChannel.$(OBJEXT)
 am__objects_6 = proc-UCThread.$(OBJEXT) proc-UCCPUSchedule.$(OBJEXT) \
 	proc-UCDynamicLinkedList.$(OBJEXT) \
 	proc-UCDynamicStack.$(OBJEXT) proc-UCThreadEvent.$(OBJEXT) \
@@ -260,7 +261,9 @@ API_SOURCES = $(API_DIR)/UFControl_deprecated.c\
 KERNEL_SOURCES = $(KERNEL_DIR)/uem_data.c\
 			   $(KERNEL_DIR)/UKChannel.c
 
-KERNEL_DEVICE_SOURCES = $(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKCPUTaskManager.c
+KERNEL_DEVICE_SOURCES = $(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKCPUTaskManager.c\
+					  $(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c
+
 COMMON_SOURCES = $(COMMON_DIR)/$(PLATFORM_DIR)/UCThread.c\
 				$(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c\
 				$(COMMON_DIR)/$(PLATFORM_DIR)/UCDynamicLinkedList.c\
@@ -409,6 +412,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UFTimer_deprecated.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UKCPUTaskManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UKChannel.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UKSharedMemoryChannel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-VecMul.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-uem_data.Po@am__quote@
@@ -678,6 +682,20 @@ proc-UKCPUTaskManager.obj: $(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKCPUTaskManager.
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKCPUTaskManager.c' object='proc-UKCPUTaskManager.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UKCPUTaskManager.obj `if test -f '$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKCPUTaskManager.c'; then $(CYGPATH_W) '$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKCPUTaskManager.c'; else $(CYGPATH_W) '$(srcdir)/$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKCPUTaskManager.c'; fi`
+
+proc-UKSharedMemoryChannel.o: $(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UKSharedMemoryChannel.o -MD -MP -MF $(DEPDIR)/proc-UKSharedMemoryChannel.Tpo -c -o proc-UKSharedMemoryChannel.o `test -f '$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c' || echo '$(srcdir)/'`$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UKSharedMemoryChannel.Tpo $(DEPDIR)/proc-UKSharedMemoryChannel.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c' object='proc-UKSharedMemoryChannel.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UKSharedMemoryChannel.o `test -f '$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c' || echo '$(srcdir)/'`$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c
+
+proc-UKSharedMemoryChannel.obj: $(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UKSharedMemoryChannel.obj -MD -MP -MF $(DEPDIR)/proc-UKSharedMemoryChannel.Tpo -c -o proc-UKSharedMemoryChannel.obj `if test -f '$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c'; then $(CYGPATH_W) '$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c'; else $(CYGPATH_W) '$(srcdir)/$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UKSharedMemoryChannel.Tpo $(DEPDIR)/proc-UKSharedMemoryChannel.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c' object='proc-UKSharedMemoryChannel.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UKSharedMemoryChannel.obj `if test -f '$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c'; then $(CYGPATH_W) '$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c'; else $(CYGPATH_W) '$(srcdir)/$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c'; fi`
 
 proc-UCThread.o: $(COMMON_DIR)/$(PLATFORM_DIR)/UCThread.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UCThread.o -MD -MP -MF $(DEPDIR)/proc-UCThread.Tpo -c -o proc-UCThread.o `test -f '$(COMMON_DIR)/$(PLATFORM_DIR)/UCThread.c' || echo '$(srcdir)/'`$(COMMON_DIR)/$(PLATFORM_DIR)/UCThread.c

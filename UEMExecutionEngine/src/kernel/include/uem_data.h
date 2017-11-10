@@ -180,8 +180,8 @@ typedef struct _STask {
 
 typedef struct _SChunk {
 	void *pChunkStart; // fixed
-	char *pDataStart; // vary
-	char *pDataEnd; // vary
+	void *pDataStart; // vary
+	void *pDataEnd; // vary
 	int nChunkDataLen; // written data length
 	int nAvailableDataNum; // for broadcast loop
 } SChunk;

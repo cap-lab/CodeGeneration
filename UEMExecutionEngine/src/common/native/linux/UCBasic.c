@@ -10,6 +10,7 @@
 #endif
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <uem_common.h>
 
@@ -47,5 +48,15 @@ void *UC_realloc(void *pMem, int nSize)
 void UC_free(void *pMem)
 {
 	free(pMem);
+}
+
+
+void *UC_memcpy(void *pDest, const void *pSrc, int nSize)
+{
+	void *pMemory = NULL;
+
+	pMemory = memcpy(pDest, pSrc, nSize);
+
+	return pMemory;
 }
 

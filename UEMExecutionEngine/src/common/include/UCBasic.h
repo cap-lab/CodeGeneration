@@ -19,6 +19,7 @@ void *UC_malloc(int nSize);
 void *UC_calloc(int nNumOfElements, int nSize);
 void *UC_realloc(void *pMem, int nSize);
 void UC_free(void *pMem);
+void *UC_memcpy(void *pDest, const void *pSrc, int nSize);
 
 #define SAFEMEMFREE(mem) if((mem) != NULL){UC_free((mem));mem=NULL;}
 
