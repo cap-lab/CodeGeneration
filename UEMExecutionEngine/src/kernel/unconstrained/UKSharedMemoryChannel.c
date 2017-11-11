@@ -16,27 +16,121 @@
 
 #include <uem_data.h>
 
-uem_result UKSharedMemoryChannel_Initialize(SChannel *pstChannel)
+#include <UKTask.h>
+
+
+static uem_result setChunkNumAndLen(SPort *pstPort, SChunkInfo *pstChunkInfo)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	int nCurrentSampleRateIndex = 0;
+	SPort *pstCurrentPort = NULL;
+	int nOuterMostSampleRate = 0;
+	STask *pstCurTask = NULL;
+	int nLoop = 0;
 
-	// initialize buffer
-	// If not set, initialize those things
+	nCurrentSampleRateIndex = pstPort->nCurrentSampleRateIndex;
 
-	// information clear
-	// pBuffer => is NULL => alloc
-	if(pstChannel->pBuffer == NULL)
+	nOuterMostSampleRate = pstPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
+
+	pstCurrentPort = pstPort;
+	while(pstCurrentPort->pstSubGraphPort != NULL)
 	{
-		pstChannel->pBuffer = UC_malloc(pstChannel->nBufSize);
-		ERRMEMGOTO(pstChannel->pBuffer, result, _EXIT);
+		pstCurrentPort = pstCurrentPort->pstSubGraphPort;
 	}
 
+	if(pstCurrentPort != pstPort)
+	{
+		nCurrentSampleRateIndex = pstCurrentPort->nCurrentSampleRateIndex;
+
+		pstChunkInfo->nChunkNum = nOuterMostSampleRate / pstCurrentPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
+		pstChunkInfo->nChunkLen = pstCurrentPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstCurrentPort->nSampleSize;
+	}
+	else
+	{
+
+		result = UKTask_GetTaskFromTaskId(pstPort->nTaskId, &pstCurTask);
+		ERRIFGOTO(result, _EXIT);
+
+		if(pstCurTask->pstLoopInfo == NULL) // general task
+		{
+			pstChunkInfo->nChunkNum = 1;
+			pstChunkInfo->nChunkLen = nOuterMostSampleRate;
+
+		}
+		else if(pstCurTask->pstLoopInfo->enType == LOOP_TYPE_DATA &&
+			pstPort->astSampleRates[nCurrentSampleRateIndex].nMaxAvailableDataNum == 1)
+		{
+			pstChunkInfo->nChunkNum = nOuterMostSampleRate / pstCurTask->pstLoopInfo->nLoopCount;
+			pstChunkInfo->nChunkLen = (nOuterMostSampleRate * pstPort->nSampleSize) / pstChunkInfo->nChunkNum;
+		}
+		else // broadcasting or convergent
+		{
+			pstChunkInfo->nChunkNum = 1;
+			pstChunkInfo->nChunkLen = nOuterMostSampleRate * pstPort->nSampleSize;
+		}
+	}
+
+	// clear chunk information
+	for(nLoop = 0 ; nLoop < pstChunkInfo->nChunkNum ; nLoop++)
+	{
+		pstChunkInfo->astChunk[nLoop].pDataStart = NULL;
+		pstChunkInfo->astChunk[nLoop].pDataEnd = NULL;
+		pstChunkInfo->astChunk[nLoop].nChunkDataLen = 0;
+		pstChunkInfo->astChunk[nLoop].pChunkStart = NULL;
+		pstChunkInfo->astChunk[nLoop].nAvailableDataNum = 0;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+uem_result UKSharedMemoryChannel_Clear(SChannel *pstChannel)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop = 0;
+
+	// information clear
 	// pDataStart => clear (pBuffer)
 	// nDataLen => clear (0)
 	pstChannel->pDataStart = pstChannel->pBuffer;
 	pstChannel->pDataEnd = pstChannel->pBuffer;
 	pstChannel->nDataLen = 0;
 	pstChannel->nReferenceCount = 0;
+
+	// the chunk num and chunk length is dependent to sample rate of mode transition
+	result = setChunkNumAndLen(&(pstChannel->stInputPort), &(pstChannel->stInputPortChunk));
+	ERRIFGOTO(result, _EXIT);
+
+	result = setChunkNumAndLen(&(pstChannel->stOutputPort), &(pstChannel->stOutputPortChunk));
+	ERRIFGOTO(result, _EXIT);
+
+	pstChannel->nWrittenOutputChunkNum = CHUNK_NUM_NOT_INITIALIZED;
+
+	pstChannel->pstAvailableInputChunkHead = NULL;
+	pstChannel->pstAvailableInputChunkTail = NULL;
+
+	for(nLoop = 0 ; nLoop < pstChannel->nMaxChunkNum ; nLoop++)
+	{
+		pstChannel->astAvailableInputChunkList[nLoop].pstPrev = NULL;
+		pstChannel->astAvailableInputChunkList[nLoop].pstNext = NULL;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+uem_result UKSharedMemoryChannel_Initialize(SChannel *pstChannel)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	// initialize buffer
+	// If not set, initialize those things, // pBuffer => is NULL => alloc
+	if(pstChannel->pBuffer == NULL)
+	{
+		pstChannel->pBuffer = UC_malloc(pstChannel->nBufSize);
+		ERRMEMGOTO(pstChannel->pBuffer, result, _EXIT);
+	}
 
 	// hMutex => initialize/create
 	result = UCThreadMutex_Create(&(pstChannel->hMutex));
@@ -46,27 +140,8 @@ uem_result UKSharedMemoryChannel_Initialize(SChannel *pstChannel)
 	result = UCThreadEvent_Create(&(pstChannel->hEvent));
 	ERRIFGOTO(result, _EXIT);
 
-
-	// SPort
-	// nCurrentSampleRateIndex
-	//pstChannel->stInputPort.nCurrentSampleRateIndex;
-	// iterative access on subgraph port
-	//pstChannel->stOutputPort.nCurrentSampleRateIndex;
-	//pstChannel->stInputPort.pstSubGraphPort->
-	//pstChannel->stInputPortChunk.astChunk;
-
-	// SChunkInfo
-	// nChunkNum - 1 (for general task) or total sample rate / most inner task port's sample rate (for loop task)
-	// nChunkLen -  most inner task port's sample rate * sample size
-
-	// SChunk
-	// chunk start pointer clear
-	// data start pointer clear
-	// data end pointer clear
-	// written data length = 0
-	// available data number clear
-
-
+	result = UKSharedMemoryChannel_Clear(pstChannel);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -257,6 +332,60 @@ static uem_result copyFromRoundedChunk(unsigned char *pDest, SChannel *pstChanne
 	return result;
 }
 
+static uem_result GetMaximumAvailableNum(SPort *pstPort, int *pnMaxAvailableNum)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nCurrentSampleRateIndex = 0;
+	int nMaxAvailableDataNum = 0;
+	SPort *pstCurrentPort = NULL;
+
+	nCurrentSampleRateIndex = pstPort->nCurrentSampleRateIndex;
+
+	nMaxAvailableDataNum = pstPort->astSampleRates[nCurrentSampleRateIndex].nMaxAvailableDataNum;
+	pstCurrentPort = pstPort->pstSubGraphPort;
+	while(pstCurrentPort != NULL)
+	{
+		nCurrentSampleRateIndex = pstCurrentPort->nCurrentSampleRateIndex;
+		nMaxAvailableDataNum = nMaxAvailableDataNum * pstCurrentPort->astSampleRates[nCurrentSampleRateIndex].nMaxAvailableDataNum;
+
+		pstCurrentPort = pstCurrentPort->pstSubGraphPort;
+	}
+
+	*pnMaxAvailableNum = nMaxAvailableDataNum;
+
+	result = ERR_UEM_NOERROR;
+
+	return result;
+}
+
+
+static uem_result setInputChunks(SChannel *pstChannel)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop = 0;
+	int nMaxAvailableNum = 0;
+	int nExpectedConsumeSize = 0;
+	int nCurrentSampleRateIndex = 0;
+
+	nCurrentSampleRateIndex = pstChannel->stInputPort.nCurrentSampleRateIndex;
+	nExpectedConsumeSize = pstChannel->stInputPort.astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->stInputPort.nSampleSize;
+
+	for(nLoop = 0 ; nLoop < pstChannel->stInputPortChunk.nChunkNum ; nLoop++)
+	{
+		result = GetMaximumAvailableNum(&(pstChannel->stInputPort), &nMaxAvailableNum);
+		ERRIFGOTO(result, _EXIT);
+		pstChannel->stInputPortChunk.astChunk[nLoop].nAvailableDataNum = nMaxAvailableNum;
+		pstChannel->stInputPortChunk.astChunk[nLoop].nChunkDataLen = pstChannel->stInputPortChunk.nChunkLen;
+		pstChannel->stInputPortChunk.astChunk[nLoop].pDataStart = pstChannel->pDataStart + nExpectedConsumeSize * nLoop;
+		pstChannel->stInputPortChunk.astChunk[nLoop].pDataEnd = NULL;
+		pstChannel->stInputPortChunk.astChunk[nLoop].pChunkStart = NULL;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 
 static uem_result makeAvailableInputChunkList(SChannel *pstChannel)
 {
@@ -289,8 +418,11 @@ static uem_result makeAvailableInputChunkList(SChannel *pstChannel)
 		}
 	}
 
-	result = ERR_UEM_NOERROR;
+	result = setInputChunks(pstChannel);
+	ERRIFGOTO(result, _EXIT);
 
+	result = ERR_UEM_NOERROR;
+_EXIT:
 	return result;
 }
 
@@ -360,6 +492,8 @@ static uem_result readFromArrayQueue(SChannel *pstChannel, IN OUT unsigned char 
 
 	if(pstTargetChunk->nAvailableDataNum == 0)
 	{
+		pstChannel->stInputPortChunk.astChunk[nChunkIndex].nChunkDataLen = 0;
+
 		result = removeChunkFromAvailableChunkList(pstChannel, nChunkIndex);
 		ERRIFGOTO(result, _EXIT_LOCK);
 
@@ -544,43 +678,12 @@ _EXIT:
 }
 
 
-static uem_result GetMaximumAvailableNum(SChannel *pstChannel, int *pnMaxAvailableNum)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	int nCurrentSampleRateIndex = 0;
-	int nMaxAvailableDataNum = 0;
-	SPort *pstCurrentPort = NULL;
-
-	nCurrentSampleRateIndex = pstChannel->stOutputPort.nCurrentSampleRateIndex;
-
-	nMaxAvailableDataNum = pstChannel->stOutputPort.astSampleRates[nCurrentSampleRateIndex].nMaxAvailableDataNum;
-	pstCurrentPort = pstChannel->stOutputPort.pstSubGraphPort;
-	while(pstCurrentPort != NULL)
-	{
-		nCurrentSampleRateIndex = pstCurrentPort->nCurrentSampleRateIndex;
-		nMaxAvailableDataNum = nMaxAvailableDataNum * pstCurrentPort->astSampleRates[nCurrentSampleRateIndex].nMaxAvailableDataNum;
-
-		pstCurrentPort = pstCurrentPort->pstSubGraphPort;
-	}
-
-	*pnMaxAvailableNum = nMaxAvailableDataNum;
-
-	result = ERR_UEM_NOERROR;
-
-	return result;
-}
-
-
 static uem_result clearOutputChunkInfo(SChannel *pstChannel)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nLoop = 0;
-	int nMaxAvailableNum = 0;
 	void *pNextChunkDataEnd = NULL;
 	int nSegmentLen = 0;
-
-	result = GetMaximumAvailableNum(pstChannel, &nMaxAvailableNum);
-	ERRIFGOTO(result, _EXIT);
 
 	for(nLoop = 0 ; nLoop <= pstChannel->stOutputPortChunk.nChunkNum ; nLoop++)
 	{
@@ -597,14 +700,14 @@ static uem_result clearOutputChunkInfo(SChannel *pstChannel)
 			pstChannel->stOutputPortChunk.astChunk[nLoop].pDataEnd = pNextChunkDataEnd;
 		}
 
-		// Get maximum available number
-		pstChannel->stOutputPortChunk.astChunk[nLoop].nAvailableDataNum = nMaxAvailableNum;
+		// maximum available number is not needed for output chunk
+		pstChannel->stOutputPortChunk.astChunk[nLoop].nAvailableDataNum = 1;
 	}
 
 	pstChannel->nWrittenOutputChunkNum = 0;
 
 	result = ERR_UEM_NOERROR;
-_EXIT:
+//_EXIT:
 	return result;
 }
 
@@ -795,6 +898,55 @@ uem_result UKSharedMemoryChannel_GetAvailableChunk (SChannel *pstChannel, OUT in
 _EXIT:
 	return result;
 }
+
+uem_result UKSharedMemoryChannel_GetNumOfAvailableData (SChannel *pstChannel, IN int nChunkIndex, OUT int *pnDataNum)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	result = UCThreadMutex_Lock(pstChannel->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstChannel->enChannelType == CHANNEL_TYPE_GENERAL || pstChannel->enChannelType == CHANNEL_TYPE_OUTPUT_ARRAY)
+	{
+		*pnDataNum = pstChannel->nDataLen;
+	}
+	else // if( pstChannel->enChannelType == CHANNEL_TYPE_INPUT_ARRAY || pstChannel->enChannelType == CHANNEL_TYPE_FULL_ARRAY)
+	{
+		if(pstChannel->pstAvailableInputChunkHead != NULL)
+		{
+			*pnDataNum = pstChannel->stInputPortChunk.astChunk[nChunkIndex].nChunkDataLen;
+		}
+		else
+		{
+			*pnDataNum = 0;
+		}
+	}
+
+	result = ERR_UEM_NOERROR;
+
+	UCThreadMutex_Unlock(pstChannel->hMutex);
+_EXIT:
+	return result;
+}
+
+
+uem_result UKSharedMemoryChannel_Finalize(SChannel *pstChannel)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	// ignore error
+	UCThreadMutex_Destroy(&(pstChannel->hMutex));
+
+	// ignore
+	UCThreadEvent_Destroy(&(pstChannel->hEvent));
+
+	result = ERR_UEM_NOERROR;
+
+	return result;
+}
+
+
+
 
 
 

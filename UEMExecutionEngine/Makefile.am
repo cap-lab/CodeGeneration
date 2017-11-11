@@ -34,7 +34,8 @@ API_SOURCES=$(API_DIR)/UFControl_deprecated.c\
 			$(API_DIR)/UFTimer.c
 
 KERNEL_SOURCES=$(KERNEL_DIR)/uem_data.c\
-			   $(KERNEL_DIR)/UKChannel.c
+			   $(KERNEL_DIR)/UKChannel.c\
+			   $(KERNEL_DIR)/UKTask.c
 			   
 KERNEL_DEVICE_SOURCES=$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKCPUTaskManager.c\
 					  $(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c

@@ -80,7 +80,8 @@ am__objects_3 = proc-UFControl_deprecated.$(OBJEXT) \
 	proc-UFSystem.$(OBJEXT) proc-UFTask_deprecated.$(OBJEXT) \
 	proc-UFTask.$(OBJEXT) proc-UFTimer_deprecated.$(OBJEXT) \
 	proc-UFTimer.$(OBJEXT)
-am__objects_4 = proc-uem_data.$(OBJEXT) proc-UKChannel.$(OBJEXT)
+am__objects_4 = proc-uem_data.$(OBJEXT) proc-UKChannel.$(OBJEXT) \
+	proc-UKTask.$(OBJEXT)
 am__objects_5 = proc-UKCPUTaskManager.$(OBJEXT) \
 	proc-UKSharedMemoryChannel.$(OBJEXT)
 am__objects_6 = proc-UCThread.$(OBJEXT) proc-UCCPUSchedule.$(OBJEXT) \
@@ -259,7 +260,8 @@ API_SOURCES = $(API_DIR)/UFControl_deprecated.c\
 			$(API_DIR)/UFTimer.c
 
 KERNEL_SOURCES = $(KERNEL_DIR)/uem_data.c\
-			   $(KERNEL_DIR)/UKChannel.c
+			   $(KERNEL_DIR)/UKChannel.c\
+			   $(KERNEL_DIR)/UKTask.c
 
 KERNEL_DEVICE_SOURCES = $(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKCPUTaskManager.c\
 					  $(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c
@@ -413,6 +415,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UKCPUTaskManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UKChannel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UKSharedMemoryChannel.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UKTask.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-VecMul.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-uem_data.Po@am__quote@
@@ -668,6 +671,20 @@ proc-UKChannel.obj: $(KERNEL_DIR)/UKChannel.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(KERNEL_DIR)/UKChannel.c' object='proc-UKChannel.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UKChannel.obj `if test -f '$(KERNEL_DIR)/UKChannel.c'; then $(CYGPATH_W) '$(KERNEL_DIR)/UKChannel.c'; else $(CYGPATH_W) '$(srcdir)/$(KERNEL_DIR)/UKChannel.c'; fi`
+
+proc-UKTask.o: $(KERNEL_DIR)/UKTask.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UKTask.o -MD -MP -MF $(DEPDIR)/proc-UKTask.Tpo -c -o proc-UKTask.o `test -f '$(KERNEL_DIR)/UKTask.c' || echo '$(srcdir)/'`$(KERNEL_DIR)/UKTask.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UKTask.Tpo $(DEPDIR)/proc-UKTask.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(KERNEL_DIR)/UKTask.c' object='proc-UKTask.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UKTask.o `test -f '$(KERNEL_DIR)/UKTask.c' || echo '$(srcdir)/'`$(KERNEL_DIR)/UKTask.c
+
+proc-UKTask.obj: $(KERNEL_DIR)/UKTask.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UKTask.obj -MD -MP -MF $(DEPDIR)/proc-UKTask.Tpo -c -o proc-UKTask.obj `if test -f '$(KERNEL_DIR)/UKTask.c'; then $(CYGPATH_W) '$(KERNEL_DIR)/UKTask.c'; else $(CYGPATH_W) '$(srcdir)/$(KERNEL_DIR)/UKTask.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UKTask.Tpo $(DEPDIR)/proc-UKTask.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(KERNEL_DIR)/UKTask.c' object='proc-UKTask.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UKTask.obj `if test -f '$(KERNEL_DIR)/UKTask.c'; then $(CYGPATH_W) '$(KERNEL_DIR)/UKTask.c'; else $(CYGPATH_W) '$(srcdir)/$(KERNEL_DIR)/UKTask.c'; fi`
 
 proc-UKCPUTaskManager.o: $(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKCPUTaskManager.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UKCPUTaskManager.o -MD -MP -MF $(DEPDIR)/proc-UKCPUTaskManager.Tpo -c -o proc-UKCPUTaskManager.o `test -f '$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKCPUTaskManager.c' || echo '$(srcdir)/'`$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKCPUTaskManager.c
