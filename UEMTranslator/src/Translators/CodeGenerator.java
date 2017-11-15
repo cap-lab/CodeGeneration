@@ -1,5 +1,7 @@
 package Translators;
 
+import java.io.File;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -7,13 +9,21 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICAlgorithmType;
+import hopes.cic.xml.CICAlgorithmTypeLoader;
 import hopes.cic.xml.CICArchitectureType;
+import hopes.cic.xml.CICArchitectureTypeLoader;
 import hopes.cic.xml.CICConfigurationType;
+import hopes.cic.xml.CICConfigurationTypeLoader;
 import hopes.cic.xml.CICControlType;
+import hopes.cic.xml.CICControlTypeLoader;
 import hopes.cic.xml.CICMappingType;
+import hopes.cic.xml.CICMappingTypeLoader;
 import hopes.cic.xml.CICProfileType;
+import hopes.cic.xml.CICProfileTypeLoader;
 import hopes.cic.xml.CICScheduleType;
+import hopes.cic.xml.CICScheduleTypeLoader;
 
 
 public class CodeGenerator 
@@ -26,7 +36,7 @@ public class CodeGenerator
     private CICProfileType mProfile = null;
     private CICScheduleType mSchedule = null;
     private String mTranslatorPath;
-    private String mCICXMLPath;
+    private String mUEMXMLPath;
     private String mOutputPath;
     
     public void parseArguments(String[] args) 
@@ -49,21 +59,67 @@ public class CodeGenerator
     		}
     		    		
     		mTranslatorPath = leftArgs[0];
-    		mCICXMLPath = leftArgs[1];
+    		mUEMXMLPath = leftArgs[1];
     		mOutputPath = leftArgs[2];
     		
     		if(cmd.hasOption("help")) 
     		{
-        		formatter.printHelp("Translator.CodeGenerator <options> <Code generator binary path> <CIC XML file path> <Output file path> ", "UEM to Target C Code Translator", options, "");
+        		formatter.printHelp("Translator.CodeGenerator [options] <Code generator binary path> <CIC XML file path> <Output file path> ", "UEM to Target C Code Translator", options, "");
     		}
     		
-    		System.out.println("mTranslatorPath: " + mTranslatorPath + ", mCICXMLPath: " + mCICXMLPath + ", mOutputPath: " + mOutputPath);
+    		System.out.println("mTranslatorPath: " + mTranslatorPath + ", mCICXMLPath: " + mUEMXMLPath + ", mOutputPath: " + mOutputPath);
     	}
     	catch(ParseException e) {
     		System.out.println("ERROR: " + e.getMessage());
-    		formatter.printHelp("Translator.CodeGenerator <merong>", "UEM to Target C Code Translator", options, "");
+    		formatter.printHelp("Translator.CodeGenerator [options] <Code generator binary path> <CIC XML file path> <Output file path> ", "UEM to Target C Code Translator", options, "");
     	}
     
+    }
+    
+    public void parseXMLFile()
+    {
+        CICAlgorithmTypeLoader algorithmLoader = new CICAlgorithmTypeLoader();
+        CICArchitectureTypeLoader architectureLoader = new CICArchitectureTypeLoader();
+        CICMappingTypeLoader mappingLoader = new CICMappingTypeLoader();
+        CICConfigurationTypeLoader configurationLoader = new CICConfigurationTypeLoader();
+        CICControlTypeLoader controlLoader = new CICControlTypeLoader();
+        CICProfileTypeLoader profileLoader = new CICProfileTypeLoader();
+        CICScheduleTypeLoader scheduleLoader = new CICScheduleTypeLoader();
+        
+        try {
+        	// Mandatory XML Files
+        	mAlgorithm = algorithmLoader.loadResource(mUEMXMLPath + Constants.UEMXML_ALGORITHM_PREFIX);
+        	mArchitecture = architectureLoader.loadResource(mUEMXMLPath + Constants.UEMXML_ARCHITECTURE_PREFIX);
+        	
+        	// Optional XML files
+        	if(new File(mUEMXMLPath + Constants.UEMXML_MAPPING_PREFIX).isFile() == true)
+        	{
+        		mMapping = mappingLoader.loadResource(mUEMXMLPath + Constants.UEMXML_MAPPING_PREFIX);
+        	}
+        	
+        	if(new File(mUEMXMLPath + Constants.UEMXML_CONFIGURATION_PREFIX).isFile() == true)
+        	{
+        		mConfiguration = configurationLoader.loadResource(mUEMXMLPath + Constants.UEMXML_CONFIGURATION_PREFIX);
+        	}
+        	
+        	if(new File(mUEMXMLPath + Constants.UEMXML_CONTROL_PREFIX).isFile() == true)
+        	{
+        		mControl = controlLoader.loadResource(mUEMXMLPath + Constants.UEMXML_CONTROL_PREFIX);
+        	}
+        	
+        	if(new File(mUEMXMLPath + Constants.UEMXML_PROFILE_PREFIX).isFile() == true)
+        	{
+        		mProfile = profileLoader.loadResource(mUEMXMLPath + Constants.UEMXML_PROFILE_PREFIX);
+        	}
+        	
+        	if(new File(mUEMXMLPath + Constants.UEMXML_SCHEDULE_PREFIX).isFile() == true)
+        	{
+        		mSchedule = scheduleLoader.loadResource(mUEMXMLPath + Constants.UEMXML_SCHEDULE_PREFIX);
+        	}
+        }
+        catch(CICXMLException e) {
+        	e.printStackTrace();
+        }
     }
 
 	public static void main(String[] args) 
@@ -72,6 +128,7 @@ public class CodeGenerator
 		CodeGenerator codeGenerator = new CodeGenerator();
 		
 		codeGenerator.parseArguments(args);
+		codeGenerator.parseXMLFile();
 
 	}
 
