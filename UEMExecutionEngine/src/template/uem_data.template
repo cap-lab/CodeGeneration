@@ -181,7 +181,7 @@ STask g_astTasks_/*[TASKGRAPH_NAME]*/[] = {
 		/*[TASK_PERIOD]*/, // Period
 		/*[TASK_PERIOD_METRIC]*/, // Period metric
 		NULL, // Subgraph
-		&/*[PARENT_TASK_GRAPH]*/, // Parent task graph
+		&g_stGraph_/*[TASKGRAPH_NAME]*/, // Parent task graph
 		NULL, // MTM information
 		NULL, // Loop information
 		NULL, // Task parameter information
