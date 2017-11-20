@@ -1,12 +1,5 @@
 package org.snu.cse.cap.translator.structure.task;
 
-enum TaskType {
-	COMPUTATIONAL,
-	CONTROL,
-	LOOP,
-	COMPOSITE,
-}
-
 enum TimeMetric {
 	CYCLE,
 	COUNT, 
