@@ -1,4 +1,4 @@
-package org.snu.cse.cap.translator.structure;
+package org.snu.cse.cap.translator.structure.task;
 
 import java.util.ArrayList;
 import java.util.HashMap;

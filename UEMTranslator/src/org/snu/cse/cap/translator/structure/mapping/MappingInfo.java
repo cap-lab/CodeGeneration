@@ -1,4 +1,6 @@
-package org.snu.cse.cap.translator.structure;
+package org.snu.cse.cap.translator.structure.mapping;
+
+import org.snu.cse.cap.translator.structure.task.TaskType;
 
 public abstract class MappingInfo {
 	protected TaskType mappedTaskType;

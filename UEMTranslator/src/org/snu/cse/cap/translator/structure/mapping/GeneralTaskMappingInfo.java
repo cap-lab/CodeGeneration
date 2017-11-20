@@ -1,4 +1,4 @@
-package org.snu.cse.cap.translator.structure;
+package org.snu.cse.cap.translator.structure.mapping;
 
 public class GeneralTaskMappingInfo extends MappingInfo {
 	private String taskName;

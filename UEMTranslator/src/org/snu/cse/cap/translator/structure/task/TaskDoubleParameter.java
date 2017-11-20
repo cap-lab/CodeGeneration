@@ -1,6 +1,6 @@
-package org.snu.cse.cap.translator.structure;
+package org.snu.cse.cap.translator.structure.task;
 
-import org.snu.cse.cap.translator.structure.TaskParameter;
+import org.snu.cse.cap.translator.structure.task.TaskParameter;
 
 public class TaskDoubleParameter extends TaskParameter {
 	private double paramValue;

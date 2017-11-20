@@ -2,6 +2,8 @@ package org.snu.cse.cap.translator.structure;
 
 import java.util.ArrayList;
 
+import org.snu.cse.cap.translator.structure.task.Task;
+
 enum TaskGraphType {
 	PROCESS_NETWORK,
 	DATAFLOW,

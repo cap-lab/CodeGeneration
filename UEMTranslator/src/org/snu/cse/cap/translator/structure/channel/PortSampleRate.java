@@ -1,4 +1,4 @@
-package org.snu.cse.cap.translator.structure;
+package org.snu.cse.cap.translator.structure.channel;
 
 public class PortSampleRate {
 	private String modeName;

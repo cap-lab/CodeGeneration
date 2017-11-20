@@ -1,6 +1,8 @@
 package Translators;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -9,6 +11,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import freemarker.template.Template;
 import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICAlgorithmType;
 import hopes.cic.xml.CICAlgorithmTypeLoader;
@@ -38,6 +41,7 @@ public class CodeGenerator
     private String mTranslatorPath;
     private String mUEMXMLPath;
     private String mOutputPath;
+
     
     public void parseArguments(String[] args) 
     {
@@ -129,6 +133,8 @@ public class CodeGenerator
 		
 		codeGenerator.parseArguments(args);
 		codeGenerator.parseXMLFile();
+		
+		Template temp;
 
 	}
 
