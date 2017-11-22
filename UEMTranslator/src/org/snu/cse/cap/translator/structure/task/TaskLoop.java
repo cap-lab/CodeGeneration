@@ -1,8 +1,20 @@
 package org.snu.cse.cap.translator.structure.task;
 
 enum LoopType {
-	CONVERGENT,
-	DATA,
+	CONVERGENT("convergent"),
+	DATA("data"),
+	;
+	
+	private final String value;
+	
+	private LoopType(final String value) {
+		this.value = value;
+	}
+	
+	@Override
+	public String toString() {
+		return value;
+	}
 }
 
 public class TaskLoop {

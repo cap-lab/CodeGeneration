@@ -3,24 +3,60 @@ package org.snu.cse.cap.translator.structure.device;
 import java.util.ArrayList;
 
 enum ArchitectureType {
-	X86,
-	X86_64,
-	ARM,
-	ARM64,
-	GENERIC,
+	X86("x86"),
+	X86_64("x86_64"),
+	ARM("arm"),
+	ARM64("arm64"),
+	GENERIC("generic"),
+	;
+	
+	private final String value;
+	
+	private ArchitectureType(final String value) {
+		this.value = value;
+	}
+	
+	@Override
+	public String toString() {
+		return value;
+	}
 }
 
 enum SoftwarePlatformType {
-	ARDUINO,
-	WINDOWS,
-	LINUX,
-	UCOS3,
+	ARDUINO("arduino"),
+	WINDOWS("windows"),
+	LINUX("linux"),
+	UCOS3("ucos-3"),
+	;
+	
+	private final String value;
+	
+	private SoftwarePlatformType(final String value) {
+		this.value = value;
+	}
+	
+	@Override
+	public String toString() {
+		return value;
+	}
 }
 
 enum RuntimeType {
-	NATIVE,
-	SOPHY,
-	HSIM,
+	NATIVE("native"),
+	SOPHY("sophy"),
+	HSIM("hsim"),
+	;
+
+	private final String value;
+	
+	private RuntimeType(final String value) {
+		this.value = value;
+	}
+	
+	@Override
+	public String toString() {
+		return value;
+	}
 }
 
 public class Device {

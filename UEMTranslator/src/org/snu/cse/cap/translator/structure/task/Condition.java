@@ -1,12 +1,24 @@
 package org.snu.cse.cap.translator.structure.task;
 
 enum Operator {
-	OPERATOR_EQUAL,
-	OPERATOR_GREATER,
-	OPERATOR_LESS,
-	OPERATOR_GREATER_EQUAL,
-	OPERATOR_LESS_EQUAL,
-	OPERATOR_NOT_EQUAL,
+	OPERATOR_EQUAL("=="),
+	OPERATOR_GREATER(">"),
+	OPERATOR_LESS("<"),
+	OPERATOR_GREATER_EQUAL(">="),
+	OPERATOR_LESS_EQUAL("<="),
+	OPERATOR_NOT_EQUAL("!="),
+	;
+
+	private final String value;
+	
+	private Operator(final String value) {
+		this.value = value;
+	}
+	
+	@Override
+	public String toString() {
+		return value;
+	}
 }
 
 public class Condition {

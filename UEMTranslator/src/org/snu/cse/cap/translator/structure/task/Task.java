@@ -1,25 +1,52 @@
 package org.snu.cse.cap.translator.structure.task;
 
+import hopes.cic.xml.LoopStructureType;
+import hopes.cic.xml.TaskType;
+
 enum TimeMetric {
-	CYCLE,
-	COUNT, 
-	MICROSEC,
-	MILLISEC,
-	SEC,
-	MINUTE,
-	HOUR,
+	CYCLE("cycle"),
+	COUNT("count"), 
+	MICROSEC("us"),
+	MILLISEC("ms"),
+	SEC("s"),
+	MINUTE("m"),
+	HOUR("h"),
+	;
+	
+	private final String value;
+	
+	private TimeMetric(String value) {
+		this.value = value;
+	}
+	
+	@Override
+	public String toString() {
+		return value;
+	}
 }
 
 enum TaskRunCondition {
-	DATA_DRIVEN,
-	TIME_DRIVEN,
-	CONTROL_DRIVEN,
+	DATA_DRIVEN("data-driven"),
+	TIME_DRIVEN("time-driven"),
+	CONTROL_DRIVEN("control-driven"),
+	;
+	
+	private final String value;
+	
+	private TaskRunCondition(String value) {
+		this.value = value;
+	}
+	
+	@Override
+	public String toString() {
+		return value;
+	}
 }
 
 public class Task {
-	private int taskId;
-	private String taskName;
-	private TaskType taskType;
+	private int id;
+	private String name;
+	private TaskShapeType type;
 	private int taskFuncNum;
 	private int runRate;
 	private int period;
@@ -33,29 +60,78 @@ public class Task {
 	private boolean staticScheduled;
 	private int mappedTaskNum;
 	private TaskRunCondition runCondition;
+	private String taskCodeFile;
 	
-	public int getTaskId() {
-		return taskId;
+	public Task(int id, TaskType xmlTaskData)
+	{
+//		private int taskId;
+//		private String taskName;
+//		private TaskType taskType;
+//		private int taskFuncNum; => later
+//		private int runRate; => later
+//		private int period; => later
+//		private TimeMetric periodMetric; => later
+//		private String parentTaskGraphName;
+//		private int inGraphIndex; => later
+//		private String childTaskGraphName; => later
+//		private TaskModeTransition modeTransition; => later ????
+//		private TaskLoop loop; => later ????
+//		private TaskParameter taskParam; => later ?????
+//		private boolean staticScheduled; => later
+//		private int mappedTaskNum; => later
+//		private TaskRunCondition runCondition; 
+//		private String taskCodeFile;		
+		
+		setId(id);
+		setName(xmlTaskData.getName());
+		setType(xmlTaskData.getTaskType(), xmlTaskData.getLoopStructure());
+		setTaskCodeFile(xmlTaskData.getFile());
+		setParentTaskGraphName(xmlTaskData.getParentTask());
+		setRunCondition(xmlTaskData.getRunCondition().toString());
+		// setPeriod(xmlTaskData.get);
+		
+		//setType();
 	}
 	
-	public void setTaskId(int taskId) {
-		this.taskId = taskId;
+	public int getId() {
+		return id;
 	}
 	
-	public String getTaskName() {
-		return taskName;
+	public void setId(int taskId) {
+		this.id = taskId;
 	}
 	
-	public void setTaskName(String taskName) {
-		this.taskName = taskName;
+	public String getName() {
+		return name;
 	}
 	
-	public TaskType getTaskType() {
-		return taskType;
+	public void setName(String taskName) {
+		this.name = taskName;
 	}
 	
-	public void setTaskType(TaskType taskType) {
-		this.taskType = taskType;
+	public TaskShapeType getType() {
+		return type;
+	}
+	
+	public void setType(String taskType, LoopStructureType loopStructure) {
+		
+		if(taskType.equalsIgnoreCase("Computational"))
+		{
+			if(loopStructure != null)
+			{
+				this.type = TaskShapeType.LOOP;
+			}
+			else 
+			{
+				this.type = TaskShapeType.COMPUTATIONAL;
+			}
+		}
+		else if(taskType.equalsIgnoreCase("Control")) 
+		{
+			this.type = TaskShapeType.CONTROL;
+		}
+		
+		//this.type = taskType;
 	}
 	
 	public int getTaskFuncNum() {
@@ -95,7 +171,14 @@ public class Task {
 	}
 	
 	public void setParentTaskGraphName(String parentTaskGraphName) {
-		this.parentTaskGraphName = parentTaskGraphName;
+		if(parentTaskGraphName.equals(this.name))
+		{
+			this.parentTaskGraphName = null;
+		}
+		else
+		{
+			this.parentTaskGraphName = parentTaskGraphName;	
+		}
 	}
 	
 	public int getInGraphIndex() {
@@ -158,7 +241,15 @@ public class Task {
 		return runCondition;
 	}
 
-	public void setRunCondition(TaskRunCondition runCondition) {
-		this.runCondition = runCondition;
+	public void setRunCondition(String runCondition) {
+		this.runCondition = TaskRunCondition.valueOf(runCondition);
+	}
+
+	public String getTaskCodeFile() {
+		return taskCodeFile;
+	}
+
+	public void setTaskCodeFile(String cicFile) {
+		this.taskCodeFile = cicFile;
 	}
 }

@@ -1,8 +1,20 @@
 package org.snu.cse.cap.translator.structure.task;
 
 enum ParameterType {
-	DOUBLE,
-	INT,
+	DOUBLE("double"),
+	INT("int"),
+	;
+
+	private final String value;
+	
+	private ParameterType(final String value) {
+		this.value = value;
+	}
+	
+	@Override
+	public String toString() {
+		return value;
+	}
 }
 
 public abstract class TaskParameter {

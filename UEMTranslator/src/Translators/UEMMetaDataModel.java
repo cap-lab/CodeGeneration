@@ -2,6 +2,8 @@ package Translators;
 
 import java.io.File;
 
+import org.snu.cse.cap.translator.structure.Application;
+
 import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICAlgorithmType;
 import hopes.cic.xml.CICAlgorithmTypeLoader;
@@ -26,6 +28,8 @@ public class UEMMetaDataModel {
     private CICConfigurationType mConfiguration = null;
     private CICProfileType mProfile = null;
     private CICScheduleType mSchedule = null;
+    
+    private Application application = null;
     
     public UEMMetaDataModel(String mUEMXMLPath) throws CICXMLException
     {
@@ -74,7 +78,15 @@ public class UEMMetaDataModel {
         	}
         }
         catch(CICXMLException e) {
+        	System.out.println("XML Parse Error: " + e.getMessage());
         	e.printStackTrace();
         }
+    }
+    
+    private void makeApplicationDataModel()
+    {
+    	application = new Application();
+    	
+    	
     }
 }

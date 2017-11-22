@@ -1,17 +1,17 @@
 package org.snu.cse.cap.translator.structure.mapping;
 
-import org.snu.cse.cap.translator.structure.task.TaskType;
+import org.snu.cse.cap.translator.structure.task.TaskShapeType;
 
 public abstract class MappingInfo {
-	protected TaskType mappedTaskType;
+	protected TaskShapeType mappedTaskType;
 	protected int processorId;
 	protected int processorLocalId;
 	
-	public TaskType getMappedTaskType() {
+	public TaskShapeType getMappedTaskType() {
 		return mappedTaskType;
 	}
 	
-	public void setMappedTaskType(TaskType mappedTaskType) {
+	public void setMappedTaskType(TaskShapeType mappedTaskType) {
 		this.mappedTaskType = mappedTaskType;
 	}
 	
