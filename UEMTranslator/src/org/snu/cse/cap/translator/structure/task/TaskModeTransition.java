@@ -9,6 +9,12 @@ public class TaskModeTransition {
 	private HashMap<String, Integer> variableMap;
 	private ArrayList<Transition> transitionList;
 	
+	public TaskModeTransition() {
+		modeMap = new HashMap<String, TaskMode>();
+		variableMap = new HashMap<String, Integer>();
+		transitionList = new ArrayList<Transition>();
+	}
+	
 	public int getTaskId() {
 		return taskId;
 	}

@@ -1,13 +1,18 @@
 package org.snu.cse.cap.translator.structure.task;
 
 public class TaskIntegerParameter extends TaskParameter {
-	private int paramValue;
-
-	public int getParamValue() {
-		return paramValue;
+	private int value;
+	
+	public TaskIntegerParameter(String name, int value) {
+		super(name, ParameterType.INT);
+		this.value = value;
 	}
 
-	public void setParamValue(int paramValue) {
-		this.paramValue = paramValue;
+	public int getValue() {
+		return value;
+	}
+
+	public void setValue(int value) {
+		this.value = value;
 	}
 }

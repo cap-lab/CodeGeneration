@@ -1,7 +1,7 @@
 package org.snu.cse.cap.translator.structure.task;
 
 enum ParameterType {
-	DOUBLE("double"),
+	DOUBLE("float"),
 	INT("int"),
 	;
 
@@ -18,16 +18,21 @@ enum ParameterType {
 }
 
 public abstract class TaskParameter {
-	protected int paramId;
+	protected int id;
 	protected ParameterType type;
-	protected String paramName;
+	protected String name;
 	
-	public int getParamId() {
-		return paramId;
+	public TaskParameter(String name, ParameterType type) {
+		this.name = name;
+		this.type = type;
 	}
 	
-	public void setParamId(int paramId) {
-		this.paramId = paramId;
+	public int getId() {
+		return id;
+	}
+	
+	public void setId(int paramId) {
+		this.id = paramId;
 	}
 	
 	public ParameterType getType() {
@@ -38,11 +43,11 @@ public abstract class TaskParameter {
 		this.type = type;
 	}
 	
-	public String getParamName() {
-		return paramName;
+	public String getName() {
+		return name;
 	}
 	
-	public void setParamName(String paramName) {
-		this.paramName = paramName;
+	public void setName(String paramName) {
+		this.name = paramName;
 	}
 }

@@ -27,6 +27,18 @@ public class TaskGraph {
 	private TaskGraphType taskGraphType;
 	private Task parentTask;
 	
+	public TaskGraph() {
+		this.taskList = new ArrayList<Task>(); 
+	}
+	
+	public void putTask(Task task) {
+		this.taskList.add(task);
+	}
+	
+	public int getNumOfTasks() {
+		return this.taskList.size();
+	}
+	
 	public String getTaskGraphName() {
 		return taskGraphName;
 	}

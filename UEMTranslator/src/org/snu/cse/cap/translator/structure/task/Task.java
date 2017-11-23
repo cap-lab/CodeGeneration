@@ -1,6 +1,14 @@
 package org.snu.cse.cap.translator.structure.task;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.management.modelmbean.InvalidTargetObjectTypeException;
+
+import Translators.Constants;
 import hopes.cic.xml.LoopStructureType;
+import hopes.cic.xml.ModeTaskType;
+import hopes.cic.xml.TaskParameterType;
 import hopes.cic.xml.TaskType;
 
 enum TimeMetric {
@@ -56,41 +64,84 @@ public class Task {
 	private String childTaskGraphName;
 	private TaskModeTransition modeTransition;
 	private TaskLoop loop;
-	private TaskParameter taskParam;
+	private ArrayList<TaskParameter> taskParamList;
 	private boolean staticScheduled;
-	private int mappedTaskNum;
 	private TaskRunCondition runCondition;
 	private String taskCodeFile;
 	
 	public Task(int id, TaskType xmlTaskData)
 	{
+		taskParamList = new ArrayList<TaskParameter>();
 //		private int taskId;
 //		private String taskName;
 //		private TaskType taskType;
 //		private int taskFuncNum; => later
-//		private int runRate; => later
-//		private int period; => later
-//		private TimeMetric periodMetric; => later
+//		private int runRate;
+//		private int period;
+//		private TimeMetric periodMetric;
 //		private String parentTaskGraphName;
-//		private int inGraphIndex; => later
-//		private String childTaskGraphName; => later
+//		private int inGraphIndex;
+//		private String childTaskGraphName;
 //		private TaskModeTransition modeTransition; => later ????
 //		private TaskLoop loop; => later ????
 //		private TaskParameter taskParam; => later ?????
 //		private boolean staticScheduled; => later
-//		private int mappedTaskNum; => later
 //		private TaskRunCondition runCondition; 
-//		private String taskCodeFile;		
+//		private String taskCodeFile;
 		
 		setId(id);
 		setName(xmlTaskData.getName());
 		setType(xmlTaskData.getTaskType(), xmlTaskData.getLoopStructure());
-		setTaskCodeFile(xmlTaskData.getFile());
 		setParentTaskGraphName(xmlTaskData.getParentTask());
 		setRunCondition(xmlTaskData.getRunCondition().toString());
+		setTaskCodeFile(xmlTaskData.getFile());
+		setParameters(xmlTaskData.getParameter());
 		// setPeriod(xmlTaskData.get);
+	}
+	
+	private void setParameters(List<TaskParameterType> paramList) {
+		for(TaskParameterType param : paramList)
+		{
+			TaskParameter taskParam;
+			
+			try {
+				if(param.getType().equals(ParameterType.DOUBLE) == true)
+				{
+					taskParam = new TaskDoubleParameter(param.getName(), Double.parseDouble(param.getValue()));
+				}
+				else if(param.getType().equals(ParameterType.INT) == true)
+				{
+					taskParam = new TaskIntegerParameter(param.getName(), Integer.parseInt(param.getValue()));
+				}
+				else{
+					throw new InvalidTargetObjectTypeException();
+				}
+				
+				this.taskParamList.add(taskParam);
+			}
+			catch(InvalidTargetObjectTypeException e) {
+				e.printStackTrace();
+			}
+			
+		}
+	}
+	
+	public void setExtraInformationFromModeInfo(ModeTaskType modeTaskInfo) 
+	{
+		if(modeTaskInfo.getRunRate() != null)
+		{
+			this.runRate = modeTaskInfo.getRunRate().intValue();
+		}
+		else
+		{
+			this.runRate = 1;
+		}
 		
-		//setType();
+		if(modeTaskInfo.getPeriod() != null)
+		{
+			this.period = modeTaskInfo.getPeriod().getValue().intValue();
+			this.periodMetric = TimeMetric.valueOf(modeTaskInfo.getPeriod().getMetric().toString());
+		}
 	}
 	
 	public int getId() {
@@ -173,7 +224,7 @@ public class Task {
 	public void setParentTaskGraphName(String parentTaskGraphName) {
 		if(parentTaskGraphName.equals(this.name))
 		{
-			this.parentTaskGraphName = null;
+			this.parentTaskGraphName = Constants.TOP_TASKGRAPH_NAME;
 		}
 		else
 		{
@@ -213,28 +264,12 @@ public class Task {
 		this.loop = loop;
 	}
 	
-	public TaskParameter getTaskParam() {
-		return taskParam;
-	}
-	
-	public void setTaskParam(TaskParameter taskParam) {
-		this.taskParam = taskParam;
-	}
-	
 	public boolean isStaticScheduled() {
 		return staticScheduled;
 	}
 	
 	public void setStaticScheduled(boolean staticScheduled) {
 		this.staticScheduled = staticScheduled;
-	}
-	
-	public int getMappedTaskNum() {
-		return mappedTaskNum;
-	}
-	
-	public void setMappedTaskNum(int mappedTaskNum) {
-		this.mappedTaskNum = mappedTaskNum;
 	}
 
 	public TaskRunCondition getRunCondition() {
@@ -251,5 +286,16 @@ public class Task {
 
 	public void setTaskCodeFile(String cicFile) {
 		this.taskCodeFile = cicFile;
+		
+		if(this.taskCodeFile.endsWith(Constants.XML_PREFIX) == true)
+		{
+			// Task has subgraph
+			// Because the parent task is "this" task, childTaskGraphName is same to "this" task's name
+			this.childTaskGraphName = this.name;
+		}
+		else // No subgraph
+		{
+			this.childTaskGraphName = null;
+		}
 	}
 }
