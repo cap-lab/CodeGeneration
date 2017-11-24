@@ -3,23 +3,29 @@ package org.snu.cse.cap.translator.structure.task;
 import java.util.ArrayList;
 
 public class TaskMode {
-	private int modeId;
-	private String modeName;
+	private int id;
+	private String name;
 	private ArrayList<String> relatedChildTaskList;
 	
-	public int getModeId() {
-		return modeId;
+	public TaskMode(int modeId, String modeName) {
+		this.id = modeId;
+		this.name = modeName;
+		this.relatedChildTaskList = new ArrayList<String>();
 	}
 	
-	public void setModeId(int modeId) {
-		this.modeId = modeId;
+	public int getId() {
+		return id;
 	}
 	
-	public String getModeName() {
-		return modeName;
+	public void setId(int modeId) {
+		this.id = modeId;
 	}
 	
-	public void setModeName(String modeName) {
-		this.modeName = modeName;
+	public String getName() {
+		return name;
+	}
+	
+	public void setName(String modeName) {
+		this.name = modeName;
 	}
 }

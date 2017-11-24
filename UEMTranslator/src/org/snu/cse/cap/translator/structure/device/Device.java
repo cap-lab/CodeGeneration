@@ -60,11 +60,35 @@ enum RuntimeType {
 }
 
 public class Device {
+	private String name;
 	private ArrayList<Processor> processorList;
 	private ArrayList<Connection> connectionList;
 	private ArchitectureType architecture;
 	private SoftwarePlatformType platform;
 	private RuntimeType runtime;
+
+	
+	public Device(String name, String architecture, String platform, String runtime) 
+	{
+		this.name = name;
+		this.architecture = ArchitectureType.valueOf(architecture);
+		this.platform = SoftwarePlatformType.valueOf(platform);
+		this.runtime = RuntimeType.valueOf(runtime);
+		this.processorList = new ArrayList<Processor>();
+		this.connectionList = new ArrayList<Connection>();
+	}
+	
+	public void putProcessingElement(String name, ProcessorCategory type, int poolSize) 
+	{
+		Processor processor = new Processor(name, type, poolSize);
+			
+		this.processorList.add(processor);
+	}
+	
+	public void putConnection(Connection connection) 
+	{
+		this.connectionList.add(connection);
+	}
 
 	public ArchitectureType getArchitecture() {
 		return architecture;

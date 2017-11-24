@@ -6,6 +6,20 @@ public class Processor {
 	private String name;
 	private int poolSize;
 	
+	public Processor(String name, ProcessorCategory type, int poolSize) 
+	{
+		this.name = name;
+		if(type == ProcessorCategory.CPU)
+		{
+			isCPU = true;
+		}
+		else
+		{
+			isCPU = false;
+		}
+		this.poolSize = poolSize;
+	}
+	
 	public int getId() {
 		return id;
 	}

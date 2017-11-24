@@ -12,5 +12,8 @@ public class Constants {
 	
 	public static final String TOP_TASKGRAPH_NAME = "top";
 	public static final String XML_PREFIX = ".xml";
+	
+	public static final String XML_YES = "Yes";
+	public static final String XML_NO = "No";
 
 }

@@ -7,6 +7,11 @@ import javax.management.modelmbean.InvalidTargetObjectTypeException;
 
 import Translators.Constants;
 import hopes.cic.xml.LoopStructureType;
+import hopes.cic.xml.MTMConditionType;
+import hopes.cic.xml.MTMModeType;
+import hopes.cic.xml.MTMTransitionType;
+import hopes.cic.xml.MTMType;
+import hopes.cic.xml.MTMVariableType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.TaskParameterType;
 import hopes.cic.xml.TaskType;
@@ -63,7 +68,7 @@ public class Task {
 	private int inGraphIndex;
 	private String childTaskGraphName;
 	private TaskModeTransition modeTransition;
-	private TaskLoop loop;
+	private TaskLoop loopStruct;
 	private ArrayList<TaskParameter> taskParamList;
 	private boolean staticScheduled;
 	private TaskRunCondition runCondition;
@@ -71,7 +76,10 @@ public class Task {
 	
 	public Task(int id, TaskType xmlTaskData)
 	{
-		taskParamList = new ArrayList<TaskParameter>();
+		this.taskParamList = new ArrayList<TaskParameter>();
+		this.loopStruct = null;
+		this.modeTransition = null;
+		this.staticScheduled = false; // default is false
 //		private int taskId;
 //		private String taskName;
 //		private TaskType taskType;
@@ -82,9 +90,9 @@ public class Task {
 //		private String parentTaskGraphName;
 //		private int inGraphIndex;
 //		private String childTaskGraphName;
-//		private TaskModeTransition modeTransition; => later ????
-//		private TaskLoop loop; => later ????
-//		private TaskParameter taskParam; => later ?????
+//		private TaskModeTransition modeTransition;
+//		private TaskLoop loop;
+//		private TaskParameter taskParam;
 //		private boolean staticScheduled; => later
 //		private TaskRunCondition runCondition; 
 //		private String taskCodeFile;
@@ -94,12 +102,58 @@ public class Task {
 		setType(xmlTaskData.getTaskType(), xmlTaskData.getLoopStructure());
 		setParentTaskGraphName(xmlTaskData.getParentTask());
 		setRunCondition(xmlTaskData.getRunCondition().toString());
-		setTaskCodeFile(xmlTaskData.getFile());
+		setTaskCodeFile(xmlTaskData.getFile(), xmlTaskData.getHasSubGraph());
 		setParameters(xmlTaskData.getParameter());
+		setLoop(xmlTaskData.getLoopStructure());
+		setModeTransition(xmlTaskData.getMtm(), xmlTaskData.getHasMTM());
+		
 		// setPeriod(xmlTaskData.get);
 	}
 	
-	private void setParameters(List<TaskParameterType> paramList) {
+	private void setModeTransition(MTMType mtm, String hasMTM) 
+	{
+		int loop = 0;
+		if(mtm != null && hasMTM.equals(Constants.XML_YES))
+		{
+			this.modeTransition = new TaskModeTransition(this.id);
+			
+			for(MTMModeType mtmMode: mtm.getModeList().getMode())
+			{
+				this.modeTransition.putMode(loop, mtmMode.getName());
+				loop++;
+			}
+			
+			for(MTMTransitionType mtmTransition: mtm.getTransitionList().getTransition()) 
+			{
+				ArrayList<Condition> conditionList = new ArrayList<Condition>();
+				for(MTMConditionType mtmCondition : mtmTransition.getConditionList().getCondition())
+				{
+					Condition cond = new Condition(mtmCondition.getVariable(), mtmCondition.getValue(), 
+													mtmCondition.getComparator());
+					conditionList.add(cond);
+				}
+				
+				this.modeTransition.putTransition(mtmTransition.getSrcMode(), mtmTransition.getDstMode(), conditionList);
+			}
+			
+			for(MTMVariableType mtmVariable : mtm.getVariableList().getVariable())
+			{
+				this.modeTransition.putVariable(mtmVariable.getName(), mtmVariable.getType());
+			}
+		}
+	}
+	
+	private void setLoop(LoopStructureType loopStruct) 
+	{
+		if(loopStruct != null) 
+		{
+			this.loopStruct = new TaskLoop(loopStruct.getType().value(), loopStruct.getLoopCount().intValue(), 
+								loopStruct.getDesignatedTask());
+		}
+	}
+	
+	private void setParameters(List<TaskParameterType> paramList) 
+	{
 		for(TaskParameterType param : paramList)
 		{
 			TaskParameter taskParam;
@@ -142,6 +196,12 @@ public class Task {
 			this.period = modeTaskInfo.getPeriod().getValue().intValue();
 			this.periodMetric = TimeMetric.valueOf(modeTaskInfo.getPeriod().getMetric().toString());
 		}
+		else
+		{
+			this.period = 1;
+			this.periodMetric = TimeMetric.MILLISEC;
+		}
+			
 	}
 	
 	public int getId() {
@@ -256,12 +316,12 @@ public class Task {
 		this.modeTransition = modeTransition;
 	}
 	
-	public TaskLoop getLoop() {
-		return loop;
+	public TaskLoop getLoopStruct() {
+		return loopStruct;
 	}
 	
-	public void setLoop(TaskLoop loop) {
-		this.loop = loop;
+	public void setLoopStruct(TaskLoop loop) {
+		this.loopStruct = loop;
 	}
 	
 	public boolean isStaticScheduled() {
@@ -284,10 +344,10 @@ public class Task {
 		return taskCodeFile;
 	}
 
-	public void setTaskCodeFile(String cicFile) {
+	public void setTaskCodeFile(String cicFile, String hasSubgraph) {
 		this.taskCodeFile = cicFile;
 		
-		if(this.taskCodeFile.endsWith(Constants.XML_PREFIX) == true)
+		if(this.taskCodeFile.endsWith(Constants.XML_PREFIX) == true && hasSubgraph.equals(Constants.XML_YES))
 		{
 			// Task has subgraph
 			// Because the parent task is "this" task, childTaskGraphName is same to "this" task's name

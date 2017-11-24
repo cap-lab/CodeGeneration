@@ -22,6 +22,20 @@ public class TaskLoop {
 	private int loopCount;
 	private String designatedTaskName;
 	
+	public TaskLoop (String loopType, int loopCount) 
+	{
+		this.loopType = LoopType.valueOf(loopType);
+		this.loopCount = loopCount;
+		this.designatedTaskName = null;
+	}
+	
+	public TaskLoop (String loopType, int loopCount, String designatedTaskName) 
+	{
+		this.loopType = LoopType.valueOf(loopType);
+		this.loopCount = loopCount;
+		this.designatedTaskName = designatedTaskName;
+	}
+	
 	public LoopType getLoopType() {
 		return loopType;
 	}

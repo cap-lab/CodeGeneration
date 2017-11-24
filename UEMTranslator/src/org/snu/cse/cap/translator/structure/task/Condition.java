@@ -26,6 +26,14 @@ public class Condition {
 	private String rightOperand;
 	private Operator operator;
 	
+	public Condition(String leftOperand, String rightOperand, String operator)
+	{
+		this.leftOperand = leftOperand;
+		this.rightOperand = rightOperand;
+		this.operator = Operator.valueOf(operator);
+		
+	}
+	
 	public String getLeftOperand() {
 		return leftOperand;
 	}

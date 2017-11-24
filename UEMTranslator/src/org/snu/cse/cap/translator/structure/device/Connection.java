@@ -22,6 +22,13 @@ public abstract class Connection {
 	protected String name;
 	protected String role;
 	
+	public Connection(String name, String role, ConnectionType type) 
+	{
+		this.name = name;
+		this.role = role;
+		this.type = type;
+	}
+	
 	public ConnectionType getType() {
 		return type;
 	}
