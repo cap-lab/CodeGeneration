@@ -26,6 +26,10 @@ extern "C"
 #define MAPPING_NOT_SPECIFIED (-1)
 #define CHUNK_NUM_NOT_INITIALIZED (-1)
 
+typedef enum _EParameterType {
+	PARAMETER_TYPE_DOUBLE,
+	PARAMETER_TYPE_INT,
+} EParameterType;
 
 typedef enum _ETaskType {
 	TASK_TYPE_COMPUTATIONAL,
@@ -108,8 +112,8 @@ typedef struct _STask STask;
 typedef struct _SModeMap {
 	int nModeId;
 	char *pszModeName;
-	STask **pastRelatedChildTasks;
-	int nRelatedChildTaskNum;
+	STask **pastRelatedChildTasks; // this is used for self-timed or fully static schedule
+	int nRelatedChildTaskNum; // this is used for self-timed or fully static schedule
 } SModeMap;
 
 
@@ -148,6 +152,7 @@ typedef union _UParamValue {
 
 typedef struct _STaskParameter {
 	int nParamId;
+	EParameterType enType;
 	const char *pszParamName;
 	UParamValue uParamValue;
 } STaskParameter;
@@ -263,6 +268,7 @@ typedef struct _SChannel {
 	SAvailableChunk *pstAvailableInputChunkTail;
 
 } SChannel;
+
 
 
 typedef struct _STaskIdToTaskMap {
