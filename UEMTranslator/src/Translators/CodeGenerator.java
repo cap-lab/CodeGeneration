@@ -21,6 +21,17 @@ public class CodeGenerator
     private String mOutputPath;
     private UEMMetaDataModel mModel;
     
+    private void changeAllPathSeparator() 
+    {
+		// Change all separators to system-specific separator
+    	mTranslatorPath = mTranslatorPath.replace('\\', File.separatorChar);
+    	mTranslatorPath = mTranslatorPath.replace('/', File.separatorChar);
+    	mUEMXMLPath = mUEMXMLPath.replace('\\', File.separatorChar);
+    	mUEMXMLPath = mUEMXMLPath.replace('/', File.separatorChar);    		
+    	mOutputPath = mOutputPath.replace('\\', File.separatorChar);
+    	mOutputPath = mOutputPath.replace('/', File.separatorChar);
+    }
+    
     public void initMetaData(String[] args) 
     {
     	Options options = new Options();
@@ -44,6 +55,13 @@ public class CodeGenerator
     		mUEMXMLPath = leftArgs[1];
     		mOutputPath = leftArgs[2];
     		
+    		changeAllPathSeparator() ;
+    		
+    		if(mOutputPath.endsWith(File.separator))
+    		{
+    			mOutputPath = mOutputPath.substring(0, mOutputPath.length() - 1);
+    		}
+    		
     		if(cmd.hasOption("help")) 
     		{
         		formatter.printHelp("Translator.CodeGenerator [options] <Code generator binary path> <CIC XML file path> <Output file path> ", "UEM to Target C Code Translator", options, "");
@@ -51,7 +69,7 @@ public class CodeGenerator
     		
     		System.out.println("mTranslatorPath: " + mTranslatorPath + ", mCICXMLPath: " + mUEMXMLPath + ", mOutputPath: " + mOutputPath);
     		
-    		mModel = new UEMMetaDataModel(mUEMXMLPath);
+    		mModel = new UEMMetaDataModel(mUEMXMLPath, mOutputPath + File.separator + Constants.SCHEDULE_FOLDER_NAME + File.separator);
     	}
     	catch(ParseException e) {
     		System.out.println("ERROR: " + e.getMessage());

@@ -3,10 +3,12 @@ package org.snu.cse.cap.translator.structure.mapping;
 import org.snu.cse.cap.translator.structure.task.TaskShapeType;
 
 public abstract class MappingInfo {
+	protected String mappedDeviceName;
 	protected TaskShapeType mappedTaskType;
 	protected int processorId;
 	protected int processorLocalId;
 	
+
 	public TaskShapeType getMappedTaskType() {
 		return mappedTaskType;
 	}

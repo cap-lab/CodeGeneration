@@ -7,6 +7,7 @@ import org.snu.cse.cap.translator.structure.task.Task;
 enum TaskGraphType {
 	PROCESS_NETWORK("ProcessNetwork"),
 	DATAFLOW("DataFlow"),
+	HYBRID("Hybrid"),
 	;
 
 	private final String value;

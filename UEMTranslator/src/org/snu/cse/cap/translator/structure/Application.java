@@ -1,5 +1,8 @@
 package org.snu.cse.cap.translator.structure;
 
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale.Category;
@@ -21,30 +24,55 @@ import hopes.cic.xml.ArchitectureElementTypeType;
 import hopes.cic.xml.BluetoothConnectionType;
 import hopes.cic.xml.CICAlgorithmType;
 import hopes.cic.xml.CICArchitectureType;
+import hopes.cic.xml.CICConfigurationType;
 import hopes.cic.xml.CICMappingType;
 import hopes.cic.xml.CICProfileType;
-import hopes.cic.xml.CICScheduleType;
+import hopes.cic.xml.MappingDeviceType;
+import hopes.cic.xml.MappingProcessorIdType;
+import hopes.cic.xml.MappingTaskType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.ModeType;
 import hopes.cic.xml.TCPConnectionType;
 import hopes.cic.xml.TaskType;
 
+
+enum ExecutionPolicy {
+	FULLY_STATIC("Fully-Static-Execution-Policy"),
+	SELF_TIMED("Self-timed-Execution-Policy"),
+	STATIC_ASSIGNMENT("Static-Assignment-Execution-Policy"),
+	FULLY_DYNAMIC("Fully-Dynamic-Execution-Policy"),
+	;
+
+	private final String value;
+	
+	private ExecutionPolicy(final String value) {
+		this.value = value;
+	}
+	
+	@Override
+	public String toString() {
+		return value;
+	}
+}
+
 public class Application {
 	private ArrayList<Channel> channel;
-	private HashMap<String, Task> taskMap;
-	private HashMap<String, TaskGraph> taskGraphList;
-	private ArrayList<MappingInfo> mappingInfo;
-	private ArrayList<Device> deviceInfo;
-	private HashMap<String, HWElementType> elementTypeList;
+	private HashMap<String, Task> taskMap; // Task name : Task class
+	private HashMap<String, TaskGraph> taskGraphList; // Task graph name : TaskGraph class
+	private HashMap<String, MappingInfo> mappingInfo; // Task name : MappingInfo class
+	private HashMap<String, Device> deviceInfo; // device name: Device class
+	private HashMap<String, HWElementType> elementTypeList; // element type name : HWElementType class
+	private TaskGraphType applicationGraphProperty;
 	
 	public Application()
 	{
 		this.channel = new ArrayList<Channel>();	
 		this.taskMap = new HashMap<String, Task>();
 		this.taskGraphList = new HashMap<String, TaskGraph>();
-		this.mappingInfo = new ArrayList<MappingInfo>();
-		this.deviceInfo = new ArrayList<Device>();
+		this.mappingInfo = new HashMap<String, MappingInfo>();
+		this.deviceInfo = new HashMap<String, Device>();
 		this.elementTypeList = new HashMap<String, HWElementType>();
+		this.applicationGraphProperty = null;
 	}
 	
 	// taskMap, taskGraphList
@@ -53,6 +81,8 @@ public class Application {
 		int loop = 0;
 		Task task;
 		int inGraphIndex = 0;
+		
+		this.applicationGraphProperty = TaskGraphType.valueOf(algorithm_metadata.getProperty());
 		
 		for(TaskType task_metadata: algorithm_metadata.getTasks().getTask())
 		{
@@ -108,9 +138,7 @@ public class Application {
 	}
 
 	public void makeDeviceInformation(CICArchitectureType architecture_metadata)
-	{
-		int loop = 0;
-		
+	{	
 		makeHardwareElementInformation(architecture_metadata);
 		
 		for(ArchitectureDeviceType device_metadata: architecture_metadata.getDevices().getDevice())
@@ -118,13 +146,13 @@ public class Application {
 			Device device = new Device(device_metadata.getName(), device_metadata.getPlatform(), 
 									device_metadata.getArchitecture(),device_metadata.getRuntime());
 			
-			for(ArchitectureElementType element: device_metadata.getElements().getElement())
+			for(ArchitectureElementType elementType: device_metadata.getElements().getElement())
 			{
 				// only handles the elements which use defined types
-				if(elementTypeList.containsKey(element.getType()) == true)
+				if(this.elementTypeList.containsKey(elementType.getType()) == true)
 				{
-					ProcessorElementType elementInfo = (ProcessorElementType) elementTypeList.get(element.getType());
-					device.putProcessingElement(element.getName(), elementInfo.getSubcategory(), element.getPoolSize().intValue());
+					ProcessorElementType elementInfo = (ProcessorElementType) this.elementTypeList.get(elementType.getType());
+					device.putProcessingElement(elementType.getName(), elementInfo.getSubcategory(), elementType.getPoolSize().intValue());
 				}
 			}
 			
@@ -142,7 +170,7 @@ public class Application {
 				device.putConnection(connection);
 			}
 			
-			this.deviceInfo.add(device);
+			this.deviceInfo.put(device_metadata.getName(), device);
 		}
 	}
 	
@@ -151,8 +179,75 @@ public class Application {
 		
 	}
 	
-	public void makeMappingInformation(CICMappingType mapping_metadata, CICScheduleType schedule_metadata, CICProfileType profile_metadata)
+	// scheduleFolderPath : output + /convertedSDF3xml/
+	public void makeMappingInformation(CICMappingType mapping_metadata, CICProfileType profile_metadata, CICConfigurationType config_metadata, String scheduleFolderPath)
 	{
+		//config_metadata.getCodeGeneration().getRuntimeExecutionPolicy().equals(anObject)
+		ExecutionPolicy executionPolicy = ExecutionPolicy.valueOf(config_metadata.getCodeGeneration().getRuntimeExecutionPolicy());
+		ArrayList<File> fileArrayList = new ArrayList<File>();
 		
+		FileFilter filter = new FileFilter() {
+			@Override
+			public boolean accept(File pathname) {
+				if(pathname.getName().endsWith(Constants.UEMXML_SCHEDULE_PREFIX))
+				{
+					return true;
+				}
+				else
+				{
+					return false;							
+				}
+			}
+		};
+		
+		try {
+			switch(executionPolicy)
+			{
+			case FULLY_STATIC: // Need schedule with time information (needed file: mapping, profile, schedule)
+				File scheduleFolder = new File(scheduleFolderPath);
+				if(scheduleFolder.isDirectory() == false)
+				{
+					throw new FileNotFoundException();
+				}
+				File[] fileList = scheduleFolder.listFiles(filter);
+				for(File file : fileList) 
+				{
+					fileArrayList.add(file);
+				}
+				break;
+			case SELF_TIMED: // Need schedule (needed file: mapping, schedule)
+				
+				break;
+			case STATIC_ASSIGNMENT: // Need mapping only (needed file: mapping)
+				
+				break;
+			case FULLY_DYNAMIC: // Need mapped device information (needed file: mapping)
+				
+				break;
+			}
+		}
+		catch(FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		
+		for(MappingTaskType taskType: mapping_metadata.getTask())
+		{
+			taskType.getName();
+			for(MappingDeviceType deviceType: taskType.getDevice())
+			{
+				deviceType.getName();
+				for(MappingProcessorIdType mappedProcessor: deviceType.getProcessor())
+				{
+					mappedProcessor.getPool();
+					mappedProcessor.getLocalId();
+				}
+			}
+		}
+		
+
+		
+		//config_metadata.getCodeGeneration().getThreadOrFunctioncall();
+		//config_metadata.getCodeGeneration().getRuntimeExecutionPolicy();
 	}
 }

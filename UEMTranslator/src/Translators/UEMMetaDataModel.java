@@ -27,16 +27,18 @@ public class UEMMetaDataModel {
     private CICControlType mControl = null;
     private CICConfigurationType mConfiguration = null;
     private CICProfileType mProfile = null;
-    private CICScheduleType mSchedule = null;
+    private String schedulePath = null;
+    //private CICScheduleType mSchedule = null;
     
     private Application application = null;
     
-    public UEMMetaDataModel(String mUEMXMLPath) throws CICXMLException
+    public UEMMetaDataModel(String uemXMLPath, String scheduleFileFolderPath) throws CICXMLException
     {
-    	parseXMLFile(mUEMXMLPath);
+    	parseXMLFile(uemXMLPath);
+    	this.schedulePath = scheduleFileFolderPath;
     }
 	
-    private void parseXMLFile(String mUEMXMLPath) throws CICXMLException
+    private void parseXMLFile(String uemXMLPath) throws CICXMLException
     {
         CICAlgorithmTypeLoader algorithmLoader = new CICAlgorithmTypeLoader();
         CICArchitectureTypeLoader architectureLoader = new CICArchitectureTypeLoader();
@@ -44,37 +46,31 @@ public class UEMMetaDataModel {
         CICConfigurationTypeLoader configurationLoader = new CICConfigurationTypeLoader();
         CICControlTypeLoader controlLoader = new CICControlTypeLoader();
         CICProfileTypeLoader profileLoader = new CICProfileTypeLoader();
-        CICScheduleTypeLoader scheduleLoader = new CICScheduleTypeLoader();
         
         try {
         	// Mandatory XML Files
-        	mAlgorithm = algorithmLoader.loadResource(mUEMXMLPath + Constants.UEMXML_ALGORITHM_PREFIX);
-        	mArchitecture = architectureLoader.loadResource(mUEMXMLPath + Constants.UEMXML_ARCHITECTURE_PREFIX);
+        	mAlgorithm = algorithmLoader.loadResource(uemXMLPath + Constants.UEMXML_ALGORITHM_PREFIX);
+        	mArchitecture = architectureLoader.loadResource(uemXMLPath + Constants.UEMXML_ARCHITECTURE_PREFIX);
         	
         	// Optional XML files
-        	if(new File(mUEMXMLPath + Constants.UEMXML_MAPPING_PREFIX).isFile() == true)
+        	if(new File(uemXMLPath + Constants.UEMXML_MAPPING_PREFIX).isFile() == true)
         	{
-        		mMapping = mappingLoader.loadResource(mUEMXMLPath + Constants.UEMXML_MAPPING_PREFIX);
+        		mMapping = mappingLoader.loadResource(uemXMLPath + Constants.UEMXML_MAPPING_PREFIX);
         	}
         	
-        	if(new File(mUEMXMLPath + Constants.UEMXML_CONFIGURATION_PREFIX).isFile() == true)
+        	if(new File(uemXMLPath + Constants.UEMXML_CONFIGURATION_PREFIX).isFile() == true)
         	{
-        		mConfiguration = configurationLoader.loadResource(mUEMXMLPath + Constants.UEMXML_CONFIGURATION_PREFIX);
+        		mConfiguration = configurationLoader.loadResource(uemXMLPath + Constants.UEMXML_CONFIGURATION_PREFIX);
         	}
         	
-        	if(new File(mUEMXMLPath + Constants.UEMXML_CONTROL_PREFIX).isFile() == true)
+        	if(new File(uemXMLPath + Constants.UEMXML_CONTROL_PREFIX).isFile() == true)
         	{
-        		mControl = controlLoader.loadResource(mUEMXMLPath + Constants.UEMXML_CONTROL_PREFIX);
+        		mControl = controlLoader.loadResource(uemXMLPath + Constants.UEMXML_CONTROL_PREFIX);
         	}
         	
-        	if(new File(mUEMXMLPath + Constants.UEMXML_PROFILE_PREFIX).isFile() == true)
+        	if(new File(uemXMLPath + Constants.UEMXML_PROFILE_PREFIX).isFile() == true)
         	{
-        		mProfile = profileLoader.loadResource(mUEMXMLPath + Constants.UEMXML_PROFILE_PREFIX);
-        	}
-        	
-        	if(new File(mUEMXMLPath + Constants.UEMXML_SCHEDULE_PREFIX).isFile() == true)
-        	{
-        		mSchedule = scheduleLoader.loadResource(mUEMXMLPath + Constants.UEMXML_SCHEDULE_PREFIX);
+        		mProfile = profileLoader.loadResource(uemXMLPath + Constants.UEMXML_PROFILE_PREFIX);
         	}
         }
         catch(CICXMLException e) {
@@ -86,6 +82,11 @@ public class UEMMetaDataModel {
     private void makeApplicationDataModel()
     {
     	application = new Application();
+    	
+    	application.makeTaskInformation(mAlgorithm);
+    	application.makeDeviceInformation(mArchitecture);
+    	application.makeMappingInformation(mMapping, mProfile, mConfiguration, this.schedulePath);
+    	application.makeChannelInformation(mAlgorithm);
     	
     	
     }
