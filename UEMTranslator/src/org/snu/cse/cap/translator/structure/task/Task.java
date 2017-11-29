@@ -5,6 +5,8 @@ import java.util.List;
 
 import javax.management.modelmbean.InvalidTargetObjectTypeException;
 
+import org.snu.cse.cap.translator.structure.TaskGraphType;
+
 import Translators.Constants;
 import hopes.cic.xml.LoopStructureType;
 import hopes.cic.xml.MTMConditionType;
@@ -15,6 +17,7 @@ import hopes.cic.xml.MTMVariableType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.TaskParameterType;
 import hopes.cic.xml.TaskType;
+import hopes.cic.xml.TimeMetricType;
 
 enum TimeMetric {
 	CYCLE("cycle"),
@@ -35,6 +38,15 @@ enum TimeMetric {
 	@Override
 	public String toString() {
 		return value;
+	}
+	
+	public static TimeMetric fromValue(String value) {
+		 for (TimeMetric c : TimeMetric.values()) {
+			 if (value.equals(value)) {
+				 return c;
+			 }
+		 }
+		 throw new IllegalArgumentException(value.toString());
 	}
 }
 
@@ -194,7 +206,7 @@ public class Task {
 		if(modeTaskInfo.getPeriod() != null)
 		{
 			this.period = modeTaskInfo.getPeriod().getValue().intValue();
-			this.periodMetric = TimeMetric.valueOf(modeTaskInfo.getPeriod().getMetric().toString());
+			this.periodMetric = TimeMetric.fromValue(modeTaskInfo.getPeriod().getMetric().value());
 		}
 		else
 		{
@@ -310,10 +322,6 @@ public class Task {
 	
 	public TaskModeTransition getModeTransition() {
 		return modeTransition;
-	}
-	
-	public void setModeTransition(TaskModeTransition modeTransition) {
-		this.modeTransition = modeTransition;
 	}
 	
 	public TaskLoop getLoopStruct() {

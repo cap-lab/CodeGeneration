@@ -4,24 +4,6 @@ import java.util.ArrayList;
 
 import org.snu.cse.cap.translator.structure.task.Task;
 
-enum TaskGraphType {
-	PROCESS_NETWORK("ProcessNetwork"),
-	DATAFLOW("DataFlow"),
-	HYBRID("Hybrid"),
-	;
-
-	private final String value;
-	
-	private TaskGraphType(final String value) {
-		this.value = value;
-	}
-	
-	@Override
-	public String toString() {
-		return value;
-	}
-}
-
 public class TaskGraph {
 	private String taskGraphName;
 	private ArrayList<Task> taskList;

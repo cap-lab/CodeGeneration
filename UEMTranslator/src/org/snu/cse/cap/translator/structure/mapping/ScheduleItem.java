@@ -1,24 +1,10 @@
 package org.snu.cse.cap.translator.structure.mapping;
 
-public class ScheduleItem {
-	private String taskName;
-	private int goFuncId;
+public abstract class ScheduleItem {
 	private int repetition;
 	
-	public String getTaskName() {
-		return taskName;
-	}
-	
-	public void setTaskName(String taskName) {
-		this.taskName = taskName;
-	}
-	
-	public int getGoFuncId() {
-		return goFuncId;
-	}
-	
-	public void setGoFuncId(int goFuncId) {
-		this.goFuncId = goFuncId;
+	public ScheduleItem(int repetition) {
+		this.repetition = repetition;
 	}
 	
 	public int getRepetition() {

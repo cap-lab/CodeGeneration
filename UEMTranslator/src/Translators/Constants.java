@@ -17,5 +17,8 @@ public class Constants {
 	public static final String XML_NO = "No";
 	
 	public static final String SCHEDULE_FOLDER_NAME = "convertedSDF3xml";
+	
+	public static final String SCHEDULE_FILE_SPLITER = "_";
+	
 
 }

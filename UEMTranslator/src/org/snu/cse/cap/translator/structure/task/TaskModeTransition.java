@@ -44,4 +44,12 @@ public class TaskModeTransition {
 	public void setTaskId(int taskId) {
 		this.taskId = taskId;
 	}
+	
+	public int getModeIdFromName(String modeName)
+	{
+		TaskMode mode = this.modeMap.get(modeName);
+		
+		return mode.getId();
+	}
+	
 }

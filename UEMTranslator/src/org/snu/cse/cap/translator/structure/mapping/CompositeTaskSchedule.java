@@ -4,8 +4,21 @@ import java.util.ArrayList;
 
 public class CompositeTaskSchedule {
 	private int scheduleId;
-	private ArrayList<CompositeTaskSchedule> scheduleLists;
+	private ArrayList<ScheduleItem> scheduleLists;
 	private int throughputConstraint;
+	
+	public CompositeTaskSchedule(int scheduleId) {
+		this.scheduleId = scheduleId;
+		this.scheduleLists = new ArrayList<ScheduleItem>();
+		this.throughputConstraint = 0; // throughput is not defined
+	}
+	
+	public CompositeTaskSchedule(int scheduleId, int throughputConstraint) {
+		this.scheduleId = scheduleId;
+		this.scheduleLists = new ArrayList<ScheduleItem>();
+		this.throughputConstraint = throughputConstraint;
+	}
+
 	
 	public int getScheduleId() {
 		return scheduleId;

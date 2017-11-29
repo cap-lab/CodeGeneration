@@ -17,8 +17,6 @@ import hopes.cic.xml.CICMappingType;
 import hopes.cic.xml.CICMappingTypeLoader;
 import hopes.cic.xml.CICProfileType;
 import hopes.cic.xml.CICProfileTypeLoader;
-import hopes.cic.xml.CICScheduleType;
-import hopes.cic.xml.CICScheduleTypeLoader;
 
 public class UEMMetaDataModel {
     private CICAlgorithmType mAlgorithm = null;
@@ -36,6 +34,7 @@ public class UEMMetaDataModel {
     {
     	parseXMLFile(uemXMLPath);
     	this.schedulePath = scheduleFileFolderPath;
+    	makeApplicationDataModel();
     }
 	
     private void parseXMLFile(String uemXMLPath) throws CICXMLException
