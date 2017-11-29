@@ -5,6 +5,7 @@ import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.zip.DataFormatException;
 
 import org.snu.cse.cap.translator.structure.channel.Channel;
@@ -19,6 +20,8 @@ import org.snu.cse.cap.translator.structure.mapping.CompositeTaskSchedule;
 import org.snu.cse.cap.translator.structure.mapping.InvalidScheduleFileNameException;
 import org.snu.cse.cap.translator.structure.mapping.MappingInfo;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleFileFilter;
+import org.snu.cse.cap.translator.structure.mapping.ScheduleLoop;
+import org.snu.cse.cap.translator.structure.mapping.ScheduleTask;
 import org.snu.cse.cap.translator.structure.task.Task;
 
 import Translators.Constants;
@@ -39,7 +42,10 @@ import hopes.cic.xml.MappingProcessorIdType;
 import hopes.cic.xml.MappingTaskType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.ModeType;
+import hopes.cic.xml.ScheduleElementType;
+import hopes.cic.xml.ScheduleGroupType;
 import hopes.cic.xml.TCPConnectionType;
+import hopes.cic.xml.TaskGroupForScheduleType;
 import hopes.cic.xml.TaskType;
 
 enum ScheduleFileNameOffset {
@@ -218,6 +224,31 @@ public class Application {
 		
 	}
 	
+	// recursive function
+	public void scheduleLoopInsert(ScheduleLoop scheduleLoop, List<ScheduleElementType> scheduleElementList)
+	{
+		ScheduleLoop scheduleInloop;
+		ScheduleTask scheduleTask;
+		for(ScheduleElementType scheduleElement: scheduleElementList)
+		{
+			if(scheduleElement.getLoop() != null)
+			{
+				scheduleInloop = new ScheduleLoop(scheduleElement.getLoop().getRepetition().intValue());
+				scheduleLoopInsert(scheduleInloop, scheduleElement.getLoop().getScheduleElement());
+				scheduleLoop.putScheduleLoop(scheduleInloop);
+			}
+			else if(scheduleElement.getTask() != null) 
+			{
+				scheduleTask = new ScheduleTask(scheduleElement.getTask().getName(), scheduleElement.getTask().getRepetition().intValue());
+				scheduleLoop.putScheduleTask(scheduleTask);
+			}
+			else
+			{
+				// do nothing
+			}			
+		}
+	}
+	
 	private CompositeTaskSchedule makeCompositeTaskSchedule(String[] splitedFileName, File scheduleFile) 
 	{ 
 		CompositeTaskSchedule taskSchedule;
@@ -239,12 +270,37 @@ public class Application {
 		
 		try {
 			scheduleDOM = scheduleLoader.loadResource(scheduleFile.getAbsolutePath());
+			
+			for(TaskGroupForScheduleType taskGroup: scheduleDOM.getTaskGroups().getTaskGroup())
+			{
+				for(ScheduleGroupType scheduleGroup : taskGroup.getScheduleGroup())
+				{
+					for(ScheduleElementType scheduleElement: scheduleGroup.getScheduleElement())
+					{
+						if(scheduleElement.getLoop() != null)
+						{
+							ScheduleLoop scheduleLoop = new ScheduleLoop(scheduleElement.getLoop().getRepetition().intValue());
+							scheduleLoopInsert(scheduleLoop, scheduleElement.getLoop().getScheduleElement());
+							taskSchedule.putScheduleItem(scheduleLoop);
+						}
+						else if(scheduleElement.getTask() != null) 
+						{
+							ScheduleTask scheduleTask = new ScheduleTask(scheduleElement.getTask().getName(), 
+															scheduleElement.getTask().getRepetition().intValue());
+							taskSchedule.putScheduleItem(scheduleTask);
+						}
+						else
+						{
+							// do nothing
+						}
+					}
+				}
+			}
+			
 		} catch (CICXMLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		//scheduleDOM.getTaskGroups().getTaskGroup().get
 		
 		return taskSchedule;
 	}
