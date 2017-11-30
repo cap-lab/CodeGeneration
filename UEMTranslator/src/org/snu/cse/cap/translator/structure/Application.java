@@ -13,16 +13,21 @@ import org.snu.cse.cap.translator.structure.device.BluetoothConnection;
 import org.snu.cse.cap.translator.structure.device.Device;
 import org.snu.cse.cap.translator.structure.device.HWCategory;
 import org.snu.cse.cap.translator.structure.device.HWElementType;
+import org.snu.cse.cap.translator.structure.device.Processor;
 import org.snu.cse.cap.translator.structure.device.ProcessorElementType;
 import org.snu.cse.cap.translator.structure.device.TCPConnection;
+import org.snu.cse.cap.translator.structure.mapping.CompositeTaskMappedProcessor;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskMappingInfo;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskSchedule;
+import org.snu.cse.cap.translator.structure.mapping.GeneralTaskMappingInfo;
 import org.snu.cse.cap.translator.structure.mapping.InvalidScheduleFileNameException;
+import org.snu.cse.cap.translator.structure.mapping.MappedProcessor;
 import org.snu.cse.cap.translator.structure.mapping.MappingInfo;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleFileFilter;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleLoop;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleTask;
 import org.snu.cse.cap.translator.structure.task.Task;
+import org.snu.cse.cap.translator.structure.task.TaskShapeType;
 
 import Translators.Constants;
 import hopes.cic.exception.CICXMLException;
@@ -249,70 +254,154 @@ public class Application {
 		}
 	}
 	
-	private CompositeTaskSchedule makeCompositeTaskSchedule(String[] splitedFileName, File scheduleFile) 
-	{ 
-		CompositeTaskSchedule taskSchedule;
-		int scheduleId;
-		CICScheduleTypeLoader scheduleLoader = new CICScheduleTypeLoader();
-		CICScheduleType scheduleDOM;
-		
-		scheduleId = Integer.parseInt(splitedFileName[ScheduleFileNameOffset.SCHEDULE_ID.getValue()]);
-		
-		if(splitedFileName.length == ScheduleFileNameOffset.values().length)
+	private CompositeTaskSchedule fillCompositeTaskSchedule(CompositeTaskSchedule taskSchedule, ScheduleGroupType scheduleGroup) 
+	{ 	
+		for(ScheduleElementType scheduleElement: scheduleGroup.getScheduleElement())
 		{
-			int throughputConstraint = Integer.parseInt(splitedFileName[ScheduleFileNameOffset.THROUGHPUT_CONSTRAINT.getValue()]);
-			taskSchedule = new CompositeTaskSchedule(scheduleId, throughputConstraint);
-		}
-		else // throughput constraint is missing (splitedFileName.length == ScheduleFileNameOffset.values().length - 1)
-		{
-			taskSchedule = new CompositeTaskSchedule(scheduleId);
-		}
-		
-		try {
-			scheduleDOM = scheduleLoader.loadResource(scheduleFile.getAbsolutePath());
-			
-			for(TaskGroupForScheduleType taskGroup: scheduleDOM.getTaskGroups().getTaskGroup())
+			if(scheduleElement.getLoop() != null)
 			{
-				for(ScheduleGroupType scheduleGroup : taskGroup.getScheduleGroup())
-				{
-					for(ScheduleElementType scheduleElement: scheduleGroup.getScheduleElement())
-					{
-						if(scheduleElement.getLoop() != null)
-						{
-							ScheduleLoop scheduleLoop = new ScheduleLoop(scheduleElement.getLoop().getRepetition().intValue());
-							scheduleLoopInsert(scheduleLoop, scheduleElement.getLoop().getScheduleElement());
-							taskSchedule.putScheduleItem(scheduleLoop);
-						}
-						else if(scheduleElement.getTask() != null) 
-						{
-							ScheduleTask scheduleTask = new ScheduleTask(scheduleElement.getTask().getName(), 
-															scheduleElement.getTask().getRepetition().intValue());
-							taskSchedule.putScheduleItem(scheduleTask);
-						}
-						else
-						{
-							// do nothing
-						}
-					}
-				}
+				ScheduleLoop scheduleLoop = new ScheduleLoop(scheduleElement.getLoop().getRepetition().intValue());
+				scheduleLoopInsert(scheduleLoop, scheduleElement.getLoop().getScheduleElement());
+				taskSchedule.putScheduleItem(scheduleLoop);
 			}
-			
-		} catch (CICXMLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			else if(scheduleElement.getTask() != null) 
+			{
+				ScheduleTask scheduleTask = new ScheduleTask(scheduleElement.getTask().getName(), 
+						scheduleElement.getTask().getRepetition().intValue());
+				taskSchedule.putScheduleItem(scheduleTask);
+			}
+			else
+			{
+				// do nothing
+			}
 		}
 		
 		return taskSchedule;
 	}
 	
-	private void makeCompositeTaskMappingInfo(String scheduleFolderPath) throws FileNotFoundException, InvalidScheduleFileNameException {
+	private int getProcessorIdByName(String processorName) throws InvalidDataInMetadataFileException {
+		int processorId = Constants.INVALID_ID_VALUE;
+		
+		for(Device device: (Device[]) this.deviceInfo.entrySet().toArray())
+		{
+			for(Processor processor: device.getProcessorList())
+			{
+				if(processorName.equals(processor.getName()))
+				{
+					processorId = processor.getId();
+					break;
+				}
+			}
+			
+			if(processorId != Constants.INVALID_ID_VALUE)
+				break;
+		}
+		
+		if(processorId != Constants.INVALID_ID_VALUE)
+			throw new InvalidDataInMetadataFileException();
+		
+		return processorId; 
+	}
+	
+	private int getModeIdByName(String taskName, String modeName)
+	{
+		int modeId;
+		Task task;
+		
+		task = this.taskMap.get(taskName);
+		if(task.getModeTransition() == null)
+		{
+			modeId = 0;
+		}
+		else
+		{
+			modeId = task.getModeTransition().getModeIdFromName(modeName);
+		}
+		
+		return modeId;
+	}
+	
+	private int getThroughputConstraintFromScheduleFileName(String[] splitedFileName)
+	{
+		int throughputConstraint;
+		
+		if(splitedFileName.length == ScheduleFileNameOffset.values().length)
+		{
+			throughputConstraint = Integer.parseInt(splitedFileName[ScheduleFileNameOffset.THROUGHPUT_CONSTRAINT.getValue()]);
+		}
+		else // throughput constraint is missing (splitedFileName.length == ScheduleFileNameOffset.values().length - 1)
+		{
+			throughputConstraint = 0;
+		}
+		
+		return throughputConstraint;
+	}
+	
+	private CompositeTaskMappingInfo getCompositeMappingInfo(String taskName) throws InvalidDataInMetadataFileException
+	{
+		CompositeTaskMappingInfo compositeMappingInfo;
+		
+		if(this.mappingInfo.containsKey(taskName) == false)
+		{//modeId 
+			compositeMappingInfo = new CompositeTaskMappingInfo(taskName);
+			this.mappingInfo.put(taskName, compositeMappingInfo);
+		}
+		else
+		{
+			compositeMappingInfo = (CompositeTaskMappingInfo) this.mappingInfo.get(taskName);
+			if(compositeMappingInfo.getMappedTaskType() != TaskShapeType.COMPOSITE)
+			{
+				throw new InvalidDataInMetadataFileException();
+			}
+		}
+		
+		return compositeMappingInfo;
+	}
+	
+	private void makeMultipleCompositeTaskMapping(String[] splitedFileName, File scheduleFile) throws CICXMLException, InvalidDataInMetadataFileException 
+	{
+		int scheduleId;
+		CICScheduleTypeLoader scheduleLoader = new CICScheduleTypeLoader();
+		CICScheduleType scheduleDOM;
+		String taskName;
+		String modeName;
+		int modeId = Constants.INVALID_ID_VALUE;
+		CompositeTaskMappingInfo compositeMappingInfo;
+		int procId = Constants.INVALID_ID_VALUE;
+		
+		int throughputConstraint;
+		
+		scheduleDOM = scheduleLoader.loadResource(scheduleFile.getAbsolutePath());
+		
+		scheduleId = Integer.parseInt(splitedFileName[ScheduleFileNameOffset.SCHEDULE_ID.getValue()]);
+		taskName = splitedFileName[ScheduleFileNameOffset.TASK_NAME.getValue()];
+		modeName = splitedFileName[ScheduleFileNameOffset.MODE_NAME.getValue()];
+		modeId = getModeIdByName(taskName, modeName);
+		throughputConstraint = getThroughputConstraintFromScheduleFileName(splitedFileName);
+		
+		compositeMappingInfo = getCompositeMappingInfo(taskName);
+		
+		for(TaskGroupForScheduleType taskGroup: scheduleDOM.getTaskGroups().getTaskGroup())
+		{
+			for(ScheduleGroupType scheduleGroup : taskGroup.getScheduleGroup())
+			{
+				procId = getProcessorIdByName(scheduleGroup.getPoolName());
+				
+				CompositeTaskMappedProcessor mappedProcessor = new CompositeTaskMappedProcessor(procId, 
+																scheduleGroup.getLocalId().intValue(), modeId);
+				CompositeTaskSchedule taskSchedule = new CompositeTaskSchedule(scheduleId, throughputConstraint);
+				
+				fillCompositeTaskSchedule(taskSchedule, scheduleGroup) ;				
+				mappedProcessor.putCompositeTaskSchedule(taskSchedule);
+				compositeMappingInfo.putProcessor(mappedProcessor);
+			}
+		}
+	}
+	
+	private void makeCompositeTaskMappingInfo(String scheduleFolderPath) throws FileNotFoundException, InvalidScheduleFileNameException, InvalidDataInMetadataFileException {
 		ScheduleFileFilter scheduleXMLFilefilter = new ScheduleFileFilter(); 
 		String[] splitedFileName = null;
 		File scheduleFolder = new File(scheduleFolderPath);
-		String taskName;
-		String modeName;
-		int modeId;
-		CompositeTaskMappingInfo compositeMappingInfo;		
 		
 		if(scheduleFolder.exists() == false || scheduleFolder.isDirectory() == false)
 		{
@@ -329,32 +418,49 @@ public class Application {
 				throw new InvalidScheduleFileNameException();
 			}
 			
-			CompositeTaskSchedule taskSchedule = makeCompositeTaskSchedule(splitedFileName, file);
-			
-			taskName = splitedFileName[ScheduleFileNameOffset.TASK_NAME.getValue()];
-			modeName = splitedFileName[ScheduleFileNameOffset.MODE_NAME.getValue()];
-			Task task = this.taskMap.get(taskName);
-			if(task.getModeTransition() == null)
-			{
-				modeId = 0;
+			try {
+				makeMultipleCompositeTaskMapping(splitedFileName, file);
+			} catch (CICXMLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			else
-			{
-				modeId = task.getModeTransition().getModeIdFromName(modeName);
-			}
-			
-			if(this.mappingInfo.containsKey(taskName) == false)
-			{
-				compositeMappingInfo = new CompositeTaskMappingInfo(taskName, modeId);
-				this.mappingInfo.put(taskName, compositeMappingInfo);							
-			}
-			else
-			{
-				compositeMappingInfo = (CompositeTaskMappingInfo) this.mappingInfo.get(taskName);
-			}
-			
 		}
+	}
+	
+	private TaskShapeType getTaskType(String taskName)
+	{
+		return this.taskMap.get(taskName).getType();
+	}
+	
+	private void makeGeneralTaskMappingInfo(CICMappingType mapping_metadata) throws InvalidDataInMetadataFileException
+	{
+		//GeneralTaskMappingInfo;
+		// MappedProcessor;
 		
+		for(MappingTaskType task: mapping_metadata.getTask())
+		{
+			GeneralTaskMappingInfo mappingInfo = new GeneralTaskMappingInfo(task.getName(), getTaskType(task.getName()));
+			for(MappingDeviceType device: task.getDevice())
+			{
+				// TODO: multiple task mapping on different devices is not supported now
+				mappingInfo.setMappedDeviceName(device.getName()); 
+				
+				for(MappingProcessorIdType proc: device.getProcessor())
+				{
+					MappedProcessor processor = new MappedProcessor(getProcessorIdByName(proc.getPool()), proc.getLocalId().intValue());
+					mappingInfo.putProcessor(processor);
+				}
+			}
+			
+			if(this.mappingInfo.containsKey(task.getName()) == false)
+			{
+				this.mappingInfo.put(task.getName(), mappingInfo);				
+			}
+			else
+			{
+				throw new InvalidDataInMetadataFileException();
+			}
+		}
 	}
 	
 	// scheduleFolderPath : output + /convertedSDF3xml/
@@ -362,82 +468,38 @@ public class Application {
 	{
 		//config_metadata.getCodeGeneration().getRuntimeExecutionPolicy().equals(anObject)
 		ExecutionPolicy executionPolicy = ExecutionPolicy.fromValue(config_metadata.getCodeGeneration().getRuntimeExecutionPolicy());
-		ArrayList<File> fileArrayList = new ArrayList<File>();
 		
-		ScheduleFileFilter scheduleXMLFilefilter = new ScheduleFileFilter(); 
 		
 		try {
 			switch(executionPolicy)
 			{
+			// TODO: fully static is not supported now
 			case FULLY_STATIC: // Need schedule with time information (needed file: mapping, profile, schedule)
-				File scheduleFolder = new File(scheduleFolderPath);
-				if(scheduleFolder.exists() == false || scheduleFolder.isDirectory() == false)
-				{
-					throw new FileNotFoundException();
-				}
-				File[] fileList = scheduleFolder.listFiles(scheduleXMLFilefilter);
-				for(File file : fileList) 
-				{
-					fileArrayList.add(file);
-					String[] fileNameSplit = file.getName().split(Constants.SCHEDULE_FILE_SPLITER);
-					
-					if(fileNameSplit.length == ScheduleFileNameOffset.values().length || fileNameSplit.length == ScheduleFileNameOffset.values().length - 1)
-					{
-						int scheduleId = Integer.parseInt(fileNameSplit[ScheduleFileNameOffset.SCHEDULE_ID.getValue()]);
-						String taskName = fileNameSplit[ScheduleFileNameOffset.TASK_NAME.getValue()];
-						String modeName = fileNameSplit[ScheduleFileNameOffset.MODE_NAME.getValue()];
-						int modeId;
-						
-						Task task = this.taskMap.get(taskName);
-						if(task.getModeTransition() == null)
-						{
-							modeId = 0;
-						}
-						else
-						{
-							modeId = task.getModeTransition().getModeIdFromName(modeName);
-						}
-						
-						if(this.mappingInfo.containsKey(taskName) == false)
-						{
-							CompositeTaskMappingInfo compositeMappingInfo = new CompositeTaskMappingInfo(taskName, modeId);
-							
-							this.mappingInfo.put(taskName, compositeMappingInfo);							
-						}
-						
-
-						
-						// all offset values are contained in the file name 
-						if(fileNameSplit.length == ScheduleFileNameOffset.values().length)
-						{
-							int throughputConstraint = Integer.parseInt(fileNameSplit[ScheduleFileNameOffset.THROUGHPUT_CONSTRAINT.getValue()]);
-							CompositeTaskSchedule taskSchedule = new CompositeTaskSchedule(scheduleId, throughputConstraint);
-						}
-						else if(fileNameSplit.length == ScheduleFileNameOffset.values().length - 1) // throughput constraint is missing
-						{
-							CompositeTaskSchedule taskSchedule = new CompositeTaskSchedule(scheduleId);
-						}					
-					}
-					else
-					{
-						// error
-					}
-					
-				}
-				
-				
+				makeCompositeTaskMappingInfo(scheduleFolderPath);
+				makeGeneralTaskMappingInfo(mapping_metadata);
 				break;
 			case SELF_TIMED: // Need schedule (needed file: mapping, schedule)
+				makeCompositeTaskMappingInfo(scheduleFolderPath);
+				makeGeneralTaskMappingInfo(mapping_metadata);
 				break;
 			case STATIC_ASSIGNMENT: // Need mapping only (needed file: mapping)
-				
+				makeGeneralTaskMappingInfo(mapping_metadata);
 				break;
+			// TODO: fully dynamic is not supported now
 			case FULLY_DYNAMIC: // Need mapped device information (needed file: mapping)
-				
+				makeGeneralTaskMappingInfo(mapping_metadata);
 				break;
 			}
 		}
 		catch(FileNotFoundException e) {
+			e.printStackTrace();
+		} 
+		catch (InvalidScheduleFileNameException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		catch (InvalidDataInMetadataFileException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

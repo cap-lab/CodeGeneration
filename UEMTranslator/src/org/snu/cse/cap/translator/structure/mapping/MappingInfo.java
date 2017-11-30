@@ -1,12 +1,22 @@
 package org.snu.cse.cap.translator.structure.mapping;
 
+import java.util.ArrayList;
+
 import org.snu.cse.cap.translator.structure.task.TaskShapeType;
 
-public abstract class MappingInfo {
+public class MappingInfo {
 	protected String mappedDeviceName;
-	protected TaskShapeType mappedTaskType;
-	protected int processorId;
-	protected int processorLocalId;
+	protected TaskShapeType mappedTaskType; 
+	protected ArrayList<MappedProcessor> mappedProcessorList;
+	
+	public MappingInfo(TaskShapeType mappedTaskType) {
+		this.mappedTaskType = mappedTaskType;
+		this.mappedProcessorList = new ArrayList<MappedProcessor>();
+	}
+	
+	public void putProcessor(MappedProcessor proc) {
+		this.mappedProcessorList.add(proc);
+	}
 	
 
 	public TaskShapeType getMappedTaskType() {
@@ -16,20 +26,13 @@ public abstract class MappingInfo {
 	public void setMappedTaskType(TaskShapeType mappedTaskType) {
 		this.mappedTaskType = mappedTaskType;
 	}
-	
-	public int getProcessorId() {
-		return processorId;
+
+	public String getMappedDeviceName() {
+		return mappedDeviceName;
 	}
-	
-	public void setProcessorId(int processorId) {
-		this.processorId = processorId;
+
+	public void setMappedDeviceName(String mappedDeviceName) {
+		this.mappedDeviceName = mappedDeviceName;
 	}
-	
-	public int getProcessorLocalId() {
-		return processorLocalId;
-	}
-	
-	public void setProcessorLocalId(int processorLocalId) {
-		this.processorLocalId = processorLocalId;
-	}
+
 }

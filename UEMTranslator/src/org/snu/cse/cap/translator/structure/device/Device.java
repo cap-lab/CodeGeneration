@@ -113,4 +113,12 @@ public class Device {
 	public void setRuntime(RuntimeType runtime) {
 		this.runtime = runtime;
 	}
+
+	public ArrayList<Processor> getProcessorList() {
+		return processorList;
+	}
+
+	public void setProcessorList(ArrayList<Processor> processorList) {
+		this.processorList = processorList;
+	}
 }

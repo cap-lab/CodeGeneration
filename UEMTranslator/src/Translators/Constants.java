@@ -20,5 +20,7 @@ public class Constants {
 	
 	public static final String SCHEDULE_FILE_SPLITER = "_";
 	
+	public static final int INVALID_ID_VALUE = -1;
+	
 
 }

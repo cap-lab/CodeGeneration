@@ -17,5 +17,14 @@ public enum TaskShapeType {
 	public String toString() {
 		return value;
 	}
+	
+	public static TaskShapeType fromValue(String value) {
+		 for (TaskShapeType c : TaskShapeType.values()) {
+			 if (value.equals(value)) {
+				 return c;
+			 }
+		 }
+		 throw new IllegalArgumentException(value.toString());
+	}
 }
 
