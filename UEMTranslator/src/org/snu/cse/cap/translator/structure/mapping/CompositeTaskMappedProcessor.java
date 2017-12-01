@@ -12,6 +12,10 @@ public class CompositeTaskMappedProcessor extends MappedProcessor {
 		this.scheduleLists = new ArrayList<CompositeTaskSchedule>();
 	}
 	
+	public ArrayList<CompositeTaskSchedule> getCompositeTaskScheduleList() {
+		return scheduleLists;
+	}
+	
 	public void putCompositeTaskSchedule(CompositeTaskSchedule schedule) 
 	{
 		this.scheduleLists.add(schedule);

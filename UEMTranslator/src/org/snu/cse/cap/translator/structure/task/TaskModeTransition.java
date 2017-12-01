@@ -8,22 +8,26 @@ import java.util.List;
 public class TaskModeTransition {
 	private int taskId;
 	private HashMap<String, TaskMode> modeMap;
+	private HashMap<String, TaskMode> modeIdMap;
 	private HashMap<String, String> variableMap;
 	private ArrayList<Transition> transitionList;
 	
 	public TaskModeTransition(int taskId) {
 		this.taskId = taskId;
-		modeMap = new HashMap<String, TaskMode>();
-		variableMap = new HashMap<String, String>();
-		transitionList = new ArrayList<Transition>();
+		this.modeMap = new HashMap<String, TaskMode>();
+		this.modeIdMap = new HashMap<String, TaskMode>();
+		this.variableMap = new HashMap<String, String>();
+		this.transitionList = new ArrayList<Transition>();
 	}
 	
 	public void putMode(int modeId, String modeName) 
 	{
 		TaskMode mode = new TaskMode(modeId, modeName);
 		this.modeMap.put(modeName, mode);
+		this.modeIdMap.put("" + modeId, mode);
 	}
 	
+
 	public void putTransition(String srcMode, String dstMode, ArrayList<Condition> conditionList) 
 	{
 		Transition transition = new Transition(srcMode, dstMode, conditionList);
@@ -50,6 +54,25 @@ public class TaskModeTransition {
 		TaskMode mode = this.modeMap.get(modeName);
 		
 		return mode.getId();
+	}
+
+	public HashMap<String, TaskMode> getModeMap() {
+		return modeMap;
+	}
+	
+	public void putRelatedChildTask(int procId, int procLocalId, int modeId, String taskName)
+	{
+		TaskMode mode;
+		mode = this.modeIdMap.get("" + modeId);
+		mode.putChildTask(procId, procLocalId, taskName);
+	}
+	
+	public HashMap<String, TaskMode> getModeIdMap() {
+		return modeIdMap;
+	}
+
+	public void setModeMap(HashMap<String, TaskMode> modeMap) {
+		this.modeMap = modeMap;
 	}
 	
 }

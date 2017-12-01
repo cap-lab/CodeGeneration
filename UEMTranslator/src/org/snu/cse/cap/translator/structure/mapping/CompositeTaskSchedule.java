@@ -19,6 +19,10 @@ public class CompositeTaskSchedule {
 		this.throughputConstraint = throughputConstraint;
 	}
 	
+	public ArrayList<ScheduleItem> getScheduleList() {
+		return scheduleList;
+	}
+	
 	public void putScheduleItem(ScheduleItem item) {
 		this.scheduleList.add(item);
 	}

@@ -10,8 +10,10 @@ public class TaskGraph {
 	private TaskGraphType taskGraphType;
 	private Task parentTask;
 	
-	public TaskGraph() {
-		this.taskList = new ArrayList<Task>(); 
+	public TaskGraph(String graphName) {
+		this.taskList = new ArrayList<Task>();
+		this.taskGraphName = graphName;
+		this.parentTask = null;
 	}
 	
 	public void putTask(Task task) {

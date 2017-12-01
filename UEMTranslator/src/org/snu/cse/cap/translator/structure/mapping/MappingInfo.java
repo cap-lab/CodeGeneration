@@ -16,8 +16,7 @@ public class MappingInfo {
 	
 	public void putProcessor(MappedProcessor proc) {
 		this.mappedProcessorList.add(proc);
-	}
-	
+	}	
 
 	public TaskShapeType getMappedTaskType() {
 		return mappedTaskType;
@@ -35,4 +34,7 @@ public class MappingInfo {
 		this.mappedDeviceName = mappedDeviceName;
 	}
 
+	public ArrayList<MappedProcessor> getMappedProcessorList() {
+		return mappedProcessorList;
+	}
 }

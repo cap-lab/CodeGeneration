@@ -277,17 +277,10 @@ typedef struct _STaskIdToTaskMap {
 	STask *pstTask;
 } STaskIdToTaskMap;
 
-typedef struct _SScheduleItem {
-	int nTaskId;
-	FnUemTaskGo fnGo;
-	int nRepetition;
-} SScheduleItem;
-
 
 typedef struct _SScheduleList {
 	int nScheduleId;
-	SScheduleItem *astScheduleItemList;
-	int nScheduleItemNum;
+	FnUemTaskGo fnCompositeGo;
 	int nThroughputConstraint;
 } SScheduleList;
 

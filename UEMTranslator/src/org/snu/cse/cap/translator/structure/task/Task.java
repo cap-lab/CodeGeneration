@@ -105,7 +105,7 @@ public class Task {
 //		private TaskModeTransition modeTransition;
 //		private TaskLoop loop;
 //		private TaskParameter taskParam;
-//		private boolean staticScheduled; => later
+//		private boolean staticScheduled;
 //		private TaskRunCondition runCondition; 
 //		private String taskCodeFile;
 		
@@ -316,10 +316,6 @@ public class Task {
 		return childTaskGraphName;
 	}
 	
-	public void setChildTaskGraphName(String childTaskGraphName) {
-		this.childTaskGraphName = childTaskGraphName;
-	}
-	
 	public TaskModeTransition getModeTransition() {
 		return modeTransition;
 	}
@@ -360,10 +356,12 @@ public class Task {
 			// Task has subgraph
 			// Because the parent task is "this" task, childTaskGraphName is same to "this" task's name
 			this.childTaskGraphName = this.name;
+			this.taskFuncNum = 0;
 		}
 		else // No subgraph
 		{
 			this.childTaskGraphName = null;
+			this.taskFuncNum = 1;
 		}
 	}
 }
