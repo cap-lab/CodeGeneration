@@ -47,6 +47,7 @@ import hopes.cic.xml.CICMappingType;
 import hopes.cic.xml.CICProfileType;
 import hopes.cic.xml.CICScheduleType;
 import hopes.cic.xml.CICScheduleTypeLoader;
+import hopes.cic.xml.ChannelType;
 import hopes.cic.xml.MappingDeviceType;
 import hopes.cic.xml.MappingProcessorIdType;
 import hopes.cic.xml.MappingTaskType;
@@ -250,7 +251,13 @@ public class Application {
 	
 	public void makeChannelInformation(CICAlgorithmType algorithm_metadata)
 	{
+		algorithm_metadata.getChannels().getChannel();
+		int index = 0;
 		
+		for(ChannelType channelMetadata: algorithm_metadata.getChannels().getChannel())
+		{
+			Channel channel = new Channel(index, channelMetadata.getSize().intValue());
+		}
 	}
 	
 	// recursive function

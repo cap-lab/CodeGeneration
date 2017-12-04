@@ -18,7 +18,7 @@ public class Constants {
 	
 	public static final String SCHEDULE_FOLDER_NAME = "convertedSDF3xml";
 	
-	public static final String SCHEDULE_FILE_SPLITER = "_";
+	public static final String SCHEDULE_FILE_SPLITER = ",";
 	
 	public static final int INVALID_ID_VALUE = -1;
 	
