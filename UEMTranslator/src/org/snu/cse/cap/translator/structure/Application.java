@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.zip.DataFormatException;
 
 import org.snu.cse.cap.translator.structure.channel.Channel;
+import org.snu.cse.cap.translator.structure.channel.Port;
+import org.snu.cse.cap.translator.structure.channel.PortSampleRate;
 import org.snu.cse.cap.translator.structure.device.BluetoothConnection;
 import org.snu.cse.cap.translator.structure.device.Device;
 import org.snu.cse.cap.translator.structure.device.HWCategory;
@@ -57,6 +59,8 @@ import hopes.cic.xml.ScheduleElementType;
 import hopes.cic.xml.ScheduleGroupType;
 import hopes.cic.xml.TCPConnectionType;
 import hopes.cic.xml.TaskGroupForScheduleType;
+import hopes.cic.xml.TaskPortType;
+import hopes.cic.xml.TaskRateType;
 import hopes.cic.xml.TaskType;
 
 enum ScheduleFileNameOffset {
@@ -115,6 +119,7 @@ public class Application {
 	private HashMap<String, Device> deviceInfo; // device name: Device class
 	private HashMap<String, HWElementType> elementTypeList; // element type name : HWElementType class
 	private TaskGraphType applicationGraphProperty;
+	private HashMap<String, Port> portInfo;
 	
 	public Application()
 	{
@@ -125,6 +130,29 @@ public class Application {
 		this.deviceInfo = new HashMap<String, Device>();
 		this.elementTypeList = new HashMap<String, HWElementType>();
 		this.applicationGraphProperty = null;
+		this.portInfo = new HashMap<String, Port>();
+	}
+	
+	private void putPortInfoFromTask(TaskType task_metadata, int taskId) {
+		for(TaskPortType portType: task_metadata.getPort())
+		{
+			Port port = new Port(taskId, portType.getName(), portType.getSampleSize().intValue(), portType.getType().value());
+			
+			this.portInfo.put(taskId + Constants.NAME_SPLITER + portType.getName() + Constants.NAME_SPLITER + portType.getDirection().value(), port);
+			
+			if(portType.getRate() != null)
+			{
+				for(TaskRateType taskRate: portType.getRate())
+				{
+					PortSampleRate sampleRate = new PortSampleRate(taskRate.getMode(), taskRate.getRate().intValue());
+					port.putSampleRate(sampleRate);
+				}
+			}
+			else
+			{
+				// variable sample rate, do nothing
+			}
+		}
 	}
 	
 	private void fillBasicTaskMapAndGraphInfo(CICAlgorithmType algorithm_metadata)
@@ -154,6 +182,7 @@ public class Application {
 			task.setInGraphIndex(inGraphIndex);
 			
 			taskGraph.putTask(task);
+			putPortInfoFromTask(task_metadata, loop);
 
 			loop++;
 		}

@@ -5,6 +5,12 @@ public class PortSampleRate {
 	private int sampleRate;
 	private int maxAvailableNum;
 	
+	public PortSampleRate(String modeName, int sampleRate)
+	{
+		this.sampleRate = sampleRate;
+		this.modeName = modeName;
+	}
+	
 	public String getModeName() {
 		return modeName;
 	}

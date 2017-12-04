@@ -22,5 +22,7 @@ public class Constants {
 	
 	public static final int INVALID_ID_VALUE = -1;
 	
+	public static final String NAME_SPLITER = "/";
+	
 
 }

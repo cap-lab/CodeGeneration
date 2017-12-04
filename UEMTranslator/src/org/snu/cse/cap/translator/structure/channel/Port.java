@@ -9,8 +9,29 @@ enum PortSampleRateType {
 }
 
 enum PortType {
-	QUEUE,
-	BUFFER,
+	QUEUE("fifo"),
+	BUFFER("buffer"),
+	;
+	
+	private final String value;
+	
+	private PortType(final String value) {
+		this.value = value;
+	}
+	
+	@Override
+	public String toString() {
+		return value;
+	}
+	
+	public static PortType fromValue(String value) {
+		 for (PortType c : PortType.values()) {
+			 if (value.equals(value)) {
+				 return c;
+			 }
+		 }
+		 throw new IllegalArgumentException(value.toString());
+	}	
 }
 
 public class Port {
@@ -18,9 +39,30 @@ public class Port {
 	private String portName;
 	private PortSampleRateType portSampleRateType;
 	private ArrayList<PortSampleRate> portSampleRateList;
-	private int nSampleSize;
+	private int sampleSize;
 	private PortType portType;
 	private int subgraphPortIndex;
+	
+	public Port(int taskId, String portName, int sampleSize, String portType) {
+		this.taskId = taskId;
+		this.portName = portName;
+		this.sampleSize = sampleSize;
+		this.portType = PortType.fromValue(portType);
+		this.portSampleRateType = PortSampleRateType.VARIABLE;
+		this.portSampleRateList = new ArrayList<PortSampleRate>();
+	}
+	
+	public void putSampleRate(PortSampleRate portSampleRate) {
+		this.portSampleRateList.add(portSampleRate);
+		if( this.portSampleRateList.size() > 1)
+		{
+			this.portSampleRateType = PortSampleRateType.MULITPLE;
+		}
+		else // this.portSampleRateList.size() == 1
+		{
+			this.portSampleRateType = PortSampleRateType.FIXED;
+		}
+	}
 	
 	public int getTaskId() {
 		return taskId;
@@ -46,12 +88,12 @@ public class Port {
 		this.portSampleRateType = portSampleRateType;
 	}
 	
-	public int getnSampleSize() {
-		return nSampleSize;
+	public int getSampleSize() {
+		return sampleSize;
 	}
 	
-	public void setnSampleSize(int nSampleSize) {
-		this.nSampleSize = nSampleSize;
+	public void setSampleSize(int sampleSize) {
+		this.sampleSize = sampleSize;
 	}
 	
 	public PortType getPortType() {
