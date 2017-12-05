@@ -9,6 +9,7 @@ public class PortSampleRate {
 	{
 		this.sampleRate = sampleRate;
 		this.modeName = modeName;
+		this.maxAvailableNum = 1;
 	}
 	
 	public String getModeName() {

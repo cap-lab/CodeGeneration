@@ -41,7 +41,7 @@ public class Port {
 	private ArrayList<PortSampleRate> portSampleRateList;
 	private int sampleSize;
 	private PortType portType;
-	private int subgraphPortIndex;
+	private Port subgraphPort;
 	
 	public Port(int taskId, String portName, int sampleSize, String portType) {
 		this.taskId = taskId;
@@ -50,6 +50,7 @@ public class Port {
 		this.portType = PortType.fromValue(portType);
 		this.portSampleRateType = PortSampleRateType.VARIABLE;
 		this.portSampleRateList = new ArrayList<PortSampleRate>();
+		this.subgraphPort = null;
 	}
 	
 	public void putSampleRate(PortSampleRate portSampleRate) {
@@ -104,11 +105,15 @@ public class Port {
 		this.portType = portType;
 	}
 	
-	public int getSubgraphPortIndex() {
-		return subgraphPortIndex;
+	public Port getSubgraphPort() {
+		return subgraphPort;
 	}
-	
-	public void setSubgraphPortIndex(int subgraphPortIndex) {
-		this.subgraphPortIndex = subgraphPortIndex;
+
+	public void setSubgraphPort(Port subgraphPort) {
+		this.subgraphPort = subgraphPort;
+	}
+
+	public ArrayList<PortSampleRate> getPortSampleRateList() {
+		return portSampleRateList;
 	}
 }

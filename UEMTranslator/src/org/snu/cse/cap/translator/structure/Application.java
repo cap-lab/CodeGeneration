@@ -31,6 +31,7 @@ import org.snu.cse.cap.translator.structure.mapping.ScheduleItem;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleLoop;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleTask;
 import org.snu.cse.cap.translator.structure.task.Task;
+import org.snu.cse.cap.translator.structure.task.TaskLoopType;
 import org.snu.cse.cap.translator.structure.task.TaskMode;
 import org.snu.cse.cap.translator.structure.task.TaskMode.ChildTaskTraverseCallback;
 import org.snu.cse.cap.translator.structure.task.TaskModeTransition;
@@ -55,6 +56,7 @@ import hopes.cic.xml.MappingProcessorIdType;
 import hopes.cic.xml.MappingTaskType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.ModeType;
+import hopes.cic.xml.PortMapType;
 import hopes.cic.xml.ScheduleElementType;
 import hopes.cic.xml.ScheduleGroupType;
 import hopes.cic.xml.TCPConnectionType;
@@ -119,7 +121,7 @@ public class Application {
 	private HashMap<String, Device> deviceInfo; // device name: Device class
 	private HashMap<String, HWElementType> elementTypeList; // element type name : HWElementType class
 	private TaskGraphType applicationGraphProperty;
-	private HashMap<String, Port> portInfo;
+	private HashMap<String, Port> portInfo; // Key: taskName/portName/direction, ex) 4/inMB_Y/input
 	
 	public Application()
 	{
@@ -133,17 +135,17 @@ public class Application {
 		this.portInfo = new HashMap<String, Port>();
 	}
 	
-	private void putPortInfoFromTask(TaskType task_metadata, int taskId) {
+	private void putPortInfoFromTask(TaskType task_metadata, int taskId, String taskName) {
 		for(TaskPortType portType: task_metadata.getPort())
 		{
 			Port port = new Port(taskId, portType.getName(), portType.getSampleSize().intValue(), portType.getType().value());
 			
-			this.portInfo.put(taskId + Constants.NAME_SPLITER + portType.getName() + Constants.NAME_SPLITER + portType.getDirection().value(), port);
+			this.portInfo.put(taskName + Constants.NAME_SPLITER + portType.getName() + Constants.NAME_SPLITER + portType.getDirection().value(), port);
 			
 			if(portType.getRate() != null)
 			{
 				for(TaskRateType taskRate: portType.getRate())
-				{
+				{ 
 					PortSampleRate sampleRate = new PortSampleRate(taskRate.getMode(), taskRate.getRate().intValue());
 					port.putSampleRate(sampleRate);
 				}
@@ -157,14 +159,14 @@ public class Application {
 	
 	private void fillBasicTaskMapAndGraphInfo(CICAlgorithmType algorithm_metadata)
 	{
-		int loop = 0;
+		int taskId = 0;
 		Task task;
 		int inGraphIndex = 0;
 		
 		for(TaskType task_metadata: algorithm_metadata.getTasks().getTask())
 		{
 			TaskGraph taskGraph;
-			task = new Task(loop, task_metadata);
+			task = new Task(taskId, task_metadata);
 						
 			this.taskMap.put(task.getName(), task);
 			
@@ -182,9 +184,37 @@ public class Application {
 			task.setInGraphIndex(inGraphIndex);
 			
 			taskGraph.putTask(task);
-			putPortInfoFromTask(task_metadata, loop);
+			putPortInfoFromTask(task_metadata, taskId, task.getName());
 
-			loop++;
+			taskId++;
+		}
+		
+		setPortMapInformation(algorithm_metadata);
+	}
+	
+	// subgraphPort, maxAvailableNum
+	private void setPortMapInformation(CICAlgorithmType algorithm_metadata)
+	{
+		for(PortMapType portMapType: algorithm_metadata.getPortMaps().getPortMap())
+		{
+			Task task = this.taskMap.get(portMapType.getTask());
+			Port port = this.portInfo.get(portMapType.getTask() + Constants.NAME_SPLITER + portMapType.getPort() + 
+										Constants.NAME_SPLITER + portMapType.getDirection());
+			
+			Port childPort = this.portInfo.get(portMapType.getChildTask() + Constants.NAME_SPLITER + portMapType.getChildTaskPort() + 
+					Constants.NAME_SPLITER + portMapType.getDirection());
+			
+			port.setSubgraphPort(childPort);		
+			
+			for(PortSampleRate portRate: port.getPortSampleRateList())
+			{
+				// maximum available number will be more than 1
+				if(task.getLoopStruct().getLoopType() == TaskLoopType.CONVERGENT && 
+					Constants.LoopPortType.fromValue(portMapType.getType().value()) == Constants.LoopPortType.BROADCASTING)
+				{ 
+					portRate.setMaxAvailableNum(task.getLoopStruct().getLoopCount());
+				}
+			}
 		}
 	}
 	
@@ -286,6 +316,9 @@ public class Application {
 		for(ChannelType channelMetadata: algorithm_metadata.getChannels().getChannel())
 		{
 			Channel channel = new Channel(index, channelMetadata.getSize().intValue());
+			
+			channelMetadata.getSrc();
+			channelMetadata.getDst();
 		}
 	}
 	
@@ -753,5 +786,13 @@ public class Application {
 		}
 
 		//config_metadata.getCodeGeneration().getThreadOrFunctioncall();
+	}
+
+	public TaskGraphType getApplicationGraphProperty() {
+		return applicationGraphProperty;
+	}
+
+	public void setApplicationGraphProperty(TaskGraphType applicationGraphProperty) {
+		this.applicationGraphProperty = applicationGraphProperty;
 	}
 }
