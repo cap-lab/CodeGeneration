@@ -26,7 +26,7 @@ enum PortType {
 	
 	public static PortType fromValue(String value) {
 		 for (PortType c : PortType.values()) {
-			 if (value.equals(value)) {
+			 if (c.value.equals(value)) {
 				 return c;
 			 }
 		 }

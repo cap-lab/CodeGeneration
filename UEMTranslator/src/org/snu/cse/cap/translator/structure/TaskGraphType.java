@@ -14,7 +14,7 @@ public enum TaskGraphType {
 	
 	public static TaskGraphType fromValue(String value) {
 		 for (TaskGraphType c : TaskGraphType.values()) {
-			 if (value.equals(value)) {
+			 if (c.value.equals(value)) {
 				 return c;
 			 }
 		 }

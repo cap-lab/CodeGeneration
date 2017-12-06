@@ -42,7 +42,7 @@ public class Constants {
 		
 		public static PortDirection fromValue(String value) {
 			 for (PortDirection c : PortDirection.values()) {
-				 if (value.equals(value)) {
+				 if (c.value.equals(value)) {
 					 return c;
 				 }
 			 }

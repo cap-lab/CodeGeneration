@@ -39,7 +39,7 @@ enum TimeMetric {
 	
 	public static TimeMetric fromValue(String value) {
 		 for (TimeMetric c : TimeMetric.values()) {
-			 if (value.equals(value)) {
+			 if (c.value.equals(value)) {
 				 return c;
 			 }
 		 }

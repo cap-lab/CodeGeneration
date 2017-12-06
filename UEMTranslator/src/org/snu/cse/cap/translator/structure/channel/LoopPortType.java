@@ -18,7 +18,7 @@ public enum LoopPortType {
 	
 	public static LoopPortType fromValue(String value) {
 		 for (LoopPortType c : LoopPortType.values()) {
-			 if (value.equals(value)) {
+			 if (c.value.equals(value)) {
 				 return c;
 			 }
 		 }

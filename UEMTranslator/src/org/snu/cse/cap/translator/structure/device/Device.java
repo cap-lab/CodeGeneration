@@ -20,6 +20,15 @@ enum ArchitectureType {
 	public String toString() {
 		return value;
 	}
+	
+	public static ArchitectureType fromValue(String value) {
+		 for (ArchitectureType c : ArchitectureType.values()) {
+			 if (c.value.equals(value)) {
+				 return c;
+			 }
+		 }
+		 throw new IllegalArgumentException(value.toString());
+	}
 }
 
 enum SoftwarePlatformType {
@@ -39,6 +48,15 @@ enum SoftwarePlatformType {
 	public String toString() {
 		return value;
 	}
+	
+	public static SoftwarePlatformType fromValue(String value) {
+		 for (SoftwarePlatformType c : SoftwarePlatformType.values()) {
+			 if (c.value.equals(value)) {
+				 return c;
+			 }
+		 }
+		 throw new IllegalArgumentException(value.toString());
+	}
 }
 
 enum RuntimeType {
@@ -57,6 +75,15 @@ enum RuntimeType {
 	public String toString() {
 		return value;
 	}
+	
+	public static RuntimeType fromValue(String value) {
+		 for (RuntimeType c : RuntimeType.values()) {
+			 if (c.value.equals(value)) {
+				 return c;
+			 }
+		 }
+		 throw new IllegalArgumentException(value.toString());
+	}
 }
 
 public class Device {
@@ -71,9 +98,9 @@ public class Device {
 	public Device(String name, String architecture, String platform, String runtime) 
 	{
 		this.name = name;
-		this.architecture = ArchitectureType.valueOf(architecture);
-		this.platform = SoftwarePlatformType.valueOf(platform);
-		this.runtime = RuntimeType.valueOf(runtime);
+		this.architecture = ArchitectureType.fromValue(architecture);
+		this.platform = SoftwarePlatformType.fromValue(platform);
+		this.runtime = RuntimeType.fromValue(runtime);
 		this.processorList = new ArrayList<Processor>();
 		this.connectionList = new ArrayList<Connection>();
 	}

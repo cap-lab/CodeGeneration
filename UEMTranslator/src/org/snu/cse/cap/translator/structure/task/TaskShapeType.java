@@ -20,7 +20,7 @@ public enum TaskShapeType {
 	
 	public static TaskShapeType fromValue(String value) {
 		 for (TaskShapeType c : TaskShapeType.values()) {
-			 if (value.equals(value)) {
+			 if (c.value.equals(value)) {
 				 return c;
 			 }
 		 }

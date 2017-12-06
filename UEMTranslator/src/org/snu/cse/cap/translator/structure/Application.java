@@ -52,6 +52,7 @@ import hopes.cic.xml.CICScheduleType;
 import hopes.cic.xml.CICScheduleTypeLoader;
 import hopes.cic.xml.ChannelPortType;
 import hopes.cic.xml.ChannelType;
+import hopes.cic.xml.DeviceConnectionListType;
 import hopes.cic.xml.MappingDeviceType;
 import hopes.cic.xml.MappingProcessorIdType;
 import hopes.cic.xml.MappingTaskType;
@@ -106,7 +107,7 @@ enum ExecutionPolicy {
 	
 	public static ExecutionPolicy fromValue(String value) {
 		 for (ExecutionPolicy c : ExecutionPolicy.values()) {
-			 if (value.equals(value)) {
+			 if (c.value.equals(value)) {
 				 return c;
 			 }
 		 }
@@ -190,7 +191,10 @@ public class Application {
 			taskId++;
 		}
 		
-		setPortMapInformation(algorithm_metadata);
+		if(algorithm_metadata.getPortMaps() != null) 
+		{
+			setPortMapInformation(algorithm_metadata);	
+		}
 	}
 	
 	// subgraphPort, upperGraphPort, maxAvailableNum
@@ -271,6 +275,29 @@ public class Application {
 			}
 		}
 	}
+	
+	public void putConnectionsOnDevice(Device device, DeviceConnectionListType connectionList)
+	{
+		if(connectionList.getBluetoothConnection() != null)
+		{
+			for(BluetoothConnectionType connectionType: connectionList.getBluetoothConnection())
+			{
+				BluetoothConnection connection = new BluetoothConnection(connectionType.getName(), connectionType.getRole().toString(), 
+						connectionType.getFriendlyName(), connectionType.getMAC());
+				device.putConnection(connection);
+			}
+		}
+			
+		if(connectionList.getTCPConnection() != null) 
+		{
+			for(TCPConnectionType connectionType: connectionList.getTCPConnection())
+			{
+				TCPConnection connection = new TCPConnection(connectionType.getName(), connectionType.getRole().toString(), 
+						connectionType.getIp(), connectionType.getPort().intValue());
+				device.putConnection(connection);
+			}
+		}
+	}
 
 	public void makeDeviceInformation(CICArchitectureType architecture_metadata)
 	{	
@@ -280,8 +307,8 @@ public class Application {
 		{
 			for(ArchitectureDeviceType device_metadata: architecture_metadata.getDevices().getDevice())
 			{
-				Device device = new Device(device_metadata.getName(), device_metadata.getPlatform(), 
-						device_metadata.getArchitecture(),device_metadata.getRuntime());
+				Device device = new Device(device_metadata.getName(), device_metadata.getArchitecture(), 
+											device_metadata.getPlatform(), device_metadata.getRuntime());
 
 				for(ArchitectureElementType elementType: device_metadata.getElements().getElement())
 				{
@@ -292,19 +319,10 @@ public class Application {
 						device.putProcessingElement(elementType.getName(), elementInfo.getSubcategory(), elementType.getPoolSize().intValue());
 					}
 				}
-
-				for(BluetoothConnectionType connectionType: device_metadata.getConnections().getBluetoothConnection())
+				
+				if(device_metadata.getConnections() != null)
 				{
-					BluetoothConnection connection = new BluetoothConnection(connectionType.getName(), connectionType.getRole().toString(), 
-							connectionType.getFriendlyName(), connectionType.getMAC());
-					device.putConnection(connection);
-				}
-
-				for(TCPConnectionType connectionType: device_metadata.getConnections().getTCPConnection())
-				{
-					TCPConnection connection = new TCPConnection(connectionType.getName(), connectionType.getRole().toString(), 
-							connectionType.getIp(), connectionType.getPort().intValue());
-					device.putConnection(connection);
+					putConnectionsOnDevice(device, device_metadata.getConnections());
 				}
 
 				this.deviceInfo.put(device_metadata.getName(), device);
