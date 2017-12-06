@@ -36,21 +36,71 @@ enum PortType {
 
 public class Port {
 	private int taskId;
+	private String taskName;
 	private String portName;
 	private PortSampleRateType portSampleRateType;
 	private ArrayList<PortSampleRate> portSampleRateList;
 	private int sampleSize;
 	private PortType portType;
 	private Port subgraphPort;
+	private Port upperGraphPort;
+	private LoopPortType loopPortType;
 	
-	public Port(int taskId, String portName, int sampleSize, String portType) {
+	public Port(int taskId, String taskName, String portName, int sampleSize, String portType) {
 		this.taskId = taskId;
+		this.taskName = taskName;
 		this.portName = portName;
 		this.sampleSize = sampleSize;
 		this.portType = PortType.fromValue(portType);
 		this.portSampleRateType = PortSampleRateType.VARIABLE;
 		this.portSampleRateList = new ArrayList<PortSampleRate>();
 		this.subgraphPort = null;
+		this.upperGraphPort = null;
+		this.loopPortType = null;
+	}
+	
+	public Port getMostUpperPortInfo()
+	{
+		Port upperPort = this;
+		
+		while(upperPort.getUpperGraphPort() != null)
+		{
+			upperPort = upperPort.getUpperGraphPort();
+		}
+		
+		return upperPort;
+	}
+	
+	public boolean isDistributingPort() {
+		Port port;
+		boolean isDistributingPort = false;
+		
+		port = this;
+		while(port.getUpperGraphPort() != null)
+		{
+			if(port.getPortType() == PortType.QUEUE && port.getLoopPortType() == LoopPortType.DISTRIBUTING)
+			{
+				isDistributingPort = true;
+				break;
+			}
+			port = port.getUpperGraphPort();
+		}
+		
+		if(isDistributingPort == false)
+		{
+			port = this;
+			while(port.getSubgraphPort() != null)
+			{
+				if(port.getPortType() == PortType.QUEUE && port.getLoopPortType() == LoopPortType.DISTRIBUTING)
+				{
+					isDistributingPort = true;
+					break;
+				}
+				port = port.getSubgraphPort();
+			}
+		}
+		
+		return isDistributingPort;
 	}
 	
 	public void putSampleRate(PortSampleRate portSampleRate) {
@@ -115,5 +165,29 @@ public class Port {
 
 	public ArrayList<PortSampleRate> getPortSampleRateList() {
 		return portSampleRateList;
+	}
+
+	public Port getUpperGraphPort() {
+		return upperGraphPort;
+	}
+
+	public void setUpperGraphPort(Port uppergraphPort) {
+		this.upperGraphPort = uppergraphPort;
+	}
+
+	public String getTaskName() {
+		return taskName;
+	}
+
+	public void setTaskName(String taskName) {
+		this.taskName = taskName;
+	}
+
+	public LoopPortType getLoopPortType() {
+		return loopPortType;
+	}
+
+	public void setLoopPortType(LoopPortType loopPortType) {
+		this.loopPortType = loopPortType;
 	}
 }

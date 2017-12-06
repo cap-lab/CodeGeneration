@@ -1,15 +1,15 @@
 package org.snu.cse.cap.translator.structure;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.zip.DataFormatException;
 
 import org.snu.cse.cap.translator.structure.channel.Channel;
+import org.snu.cse.cap.translator.structure.channel.ChannelArrayType;
+import org.snu.cse.cap.translator.structure.channel.CommunicationType;
+import org.snu.cse.cap.translator.structure.channel.LoopPortType;
 import org.snu.cse.cap.translator.structure.channel.Port;
 import org.snu.cse.cap.translator.structure.channel.PortSampleRate;
 import org.snu.cse.cap.translator.structure.device.BluetoothConnection;
@@ -50,6 +50,7 @@ import hopes.cic.xml.CICMappingType;
 import hopes.cic.xml.CICProfileType;
 import hopes.cic.xml.CICScheduleType;
 import hopes.cic.xml.CICScheduleTypeLoader;
+import hopes.cic.xml.ChannelPortType;
 import hopes.cic.xml.ChannelType;
 import hopes.cic.xml.MappingDeviceType;
 import hopes.cic.xml.MappingProcessorIdType;
@@ -114,7 +115,7 @@ enum ExecutionPolicy {
 }
 
 public class Application {
-	private ArrayList<Channel> channel;
+	private ArrayList<Channel> channelList;
 	private HashMap<String, Task> taskMap; // Task name : Task class
 	private HashMap<String, TaskGraph> taskGraphList; // Task graph name : TaskGraph class
 	private HashMap<String, MappingInfo> mappingInfo; // Task name : MappingInfo class
@@ -125,7 +126,7 @@ public class Application {
 	
 	public Application()
 	{
-		this.channel = new ArrayList<Channel>();	
+		this.channelList = new ArrayList<Channel>();	
 		this.taskMap = new HashMap<String, Task>();
 		this.taskGraphList = new HashMap<String, TaskGraph>();
 		this.mappingInfo = new HashMap<String, MappingInfo>();
@@ -138,7 +139,7 @@ public class Application {
 	private void putPortInfoFromTask(TaskType task_metadata, int taskId, String taskName) {
 		for(TaskPortType portType: task_metadata.getPort())
 		{
-			Port port = new Port(taskId, portType.getName(), portType.getSampleSize().intValue(), portType.getType().value());
+			Port port = new Port(taskId, taskName, portType.getName(), portType.getSampleSize().intValue(), portType.getType().value());
 			
 			this.portInfo.put(taskName + Constants.NAME_SPLITER + portType.getName() + Constants.NAME_SPLITER + portType.getDirection().value(), port);
 			
@@ -192,7 +193,7 @@ public class Application {
 		setPortMapInformation(algorithm_metadata);
 	}
 	
-	// subgraphPort, maxAvailableNum
+	// subgraphPort, upperGraphPort, maxAvailableNum
 	private void setPortMapInformation(CICAlgorithmType algorithm_metadata)
 	{
 		for(PortMapType portMapType: algorithm_metadata.getPortMaps().getPortMap())
@@ -204,13 +205,16 @@ public class Application {
 			Port childPort = this.portInfo.get(portMapType.getChildTask() + Constants.NAME_SPLITER + portMapType.getChildTaskPort() + 
 					Constants.NAME_SPLITER + portMapType.getDirection());
 			
-			port.setSubgraphPort(childPort);		
+			port.setSubgraphPort(childPort);
+			childPort.setUpperGraphPort(port);
+			
+			port.setLoopPortType(LoopPortType.fromValue(portMapType.getType().value()));
 			
 			for(PortSampleRate portRate: port.getPortSampleRateList())
 			{
 				// maximum available number will be more than 1
-				if(task.getLoopStruct().getLoopType() == TaskLoopType.CONVERGENT && 
-					Constants.LoopPortType.fromValue(portMapType.getType().value()) == Constants.LoopPortType.BROADCASTING)
+				if(task.getLoopStruct().getLoopType() == TaskLoopType.CONVERGENT || 
+					LoopPortType.fromValue(portMapType.getType().value()) == LoopPortType.BROADCASTING)
 				{ 
 					portRate.setMaxAvailableNum(task.getLoopStruct().getLoopCount());
 				}
@@ -308,6 +312,81 @@ public class Application {
 		}
 	}
 	
+	private void setChannelCommunicationType(Channel channel, ChannelPortType channelSrcPort, ChannelPortType channelDstPort) 
+	{
+
+		MappingInfo srcTaskMappingInfo = this.mappingInfo.get(channelSrcPort.getTask());
+		MappingInfo dstTaskMappingInfo = this.mappingInfo.get(channelDstPort.getTask());
+		
+		// Two tasks are connected on different devices
+		if(srcTaskMappingInfo.getMappedDeviceName().equals(dstTaskMappingInfo.getMappedDeviceName()) == false)
+		{
+			throw new UnsupportedOperationException();
+		}
+		else // located at the same device
+		{
+			// TODO: this part should handle heterogeneous computing devices, so processor name check is also needed
+			// currently only the first mapped processor is used for checking the both tasks are located at the same processor pool.
+			if(srcTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId() == 
+					dstTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId())
+			{
+				channel.setCommunicationType(CommunicationType.SHARED_MEMORY);
+			}
+			else
+			{
+				throw new UnsupportedOperationException();
+			}
+		}
+	}
+		
+	private boolean isDataLoopTask(Task task) {
+		boolean isDataLoop = false;
+		
+		while(task.getParentTaskGraphName().equals(Constants.TOP_TASKGRAPH_NAME) == false)
+		{
+			if(task.getLoopStruct().getLoopType() == TaskLoopType.DATA)
+			{
+				isDataLoop = true;
+				break;
+			}
+			
+			task = this.taskMap.get(task.getParentTaskGraphName());
+		}
+		
+		return isDataLoop;
+	}
+
+	// ports and tasks are the most lower-level 
+	private void setChannelType(Channel channel, Port srcPort, Port dstPort, Task srcTask, Task dstTask) {
+		boolean isDstDataLoop = false;
+		boolean isSrcDataLoop = false;
+		boolean isDstDistributing = false;
+		boolean isSrcDistributing = false;
+		
+		isDstDataLoop = isDataLoopTask(dstTask);
+		isSrcDataLoop = isDataLoopTask(srcTask);
+		isSrcDistributing = srcPort.isDistributingPort();
+		isDstDistributing = dstPort.isDistributingPort();
+		
+		if(isSrcDataLoop == true  && isDstDataLoop == true && 
+			isSrcDistributing == true && isDstDistributing == true)
+		{
+			channel.setChannelType(ChannelArrayType.FULL_ARRAY);
+		}
+		else if(isDstDataLoop == true && isDstDistributing == true)
+		{
+			channel.setChannelType(ChannelArrayType.INPUT_ARRAY);
+		}
+		else if(isSrcDataLoop == true && isSrcDistributing == true)
+		{
+			channel.setChannelType(ChannelArrayType.OUTPUT_ARRAY);
+		}
+		else
+		{
+			channel.setChannelType(ChannelArrayType.GENERAL);
+		}
+	}
+	
 	public void makeChannelInformation(CICAlgorithmType algorithm_metadata)
 	{
 		algorithm_metadata.getChannels().getChannel();
@@ -317,8 +396,28 @@ public class Application {
 		{
 			Channel channel = new Channel(index, channelMetadata.getSize().intValue());
 			
-			channelMetadata.getSrc();
-			channelMetadata.getDst();
+			// index 0 is only used
+			// TODO: src element in XML schema file must be single occurrence.
+			ChannelPortType channelSrcPort = channelMetadata.getSrc().get(0);
+			ChannelPortType channelDstPort = channelMetadata.getDst().get(0);
+			
+			Port srcPort = this.portInfo.get(channelSrcPort.getTask() + Constants.NAME_SPLITER + channelSrcPort.getPort() + Constants.NAME_SPLITER + Constants.PortDirection.OUTPUT);
+			Port dstPort = this.portInfo.get(channelDstPort.getTask() + Constants.NAME_SPLITER + channelDstPort.getPort() + Constants.NAME_SPLITER + Constants.PortDirection.INPUT);
+			
+			Task srcTask = this.taskMap.get(srcPort.getTaskName());
+			Task dstTask = this.taskMap.get(dstPort.getTaskName());
+			
+			// channel type
+			setChannelType(channel, srcPort, dstPort, srcTask, dstTask);			
+			
+			// communication type (device information)
+			setChannelCommunicationType(channel, channelSrcPort, channelDstPort);
+			
+			// input/output port (port information)
+			channel.setOutputPort(srcPort.getMostUpperPortInfo());
+			channel.setInputPort(dstPort.getMostUpperPortInfo());
+			
+			this.channelList.add(channel);
 		}
 	}
 	
@@ -646,13 +745,12 @@ public class Application {
 	
 	private void setChildTaskProc(HashMap<String, TaskMode> modeMap)
 	{
-		ChildTaskTraverseCallback childTaskCallback;
+		ChildTaskTraverseCallback<HashMap<String, Integer>> childTaskCallback;
 		HashMap<String, Integer> relatedTaskMap = new HashMap<String, Integer>();
 		
-		childTaskCallback = new ChildTaskTraverseCallback() {
+		childTaskCallback = new ChildTaskTraverseCallback<HashMap<String, Integer>>() {
 			@Override
-			public void traverseCallback(String taskName, int procId, int procLocalId, Object userData) {
-				HashMap<String, Integer> taskSet = (HashMap<String, Integer>) userData;
+			public void traverseCallback(String taskName, int procId, int procLocalId, HashMap<String, Integer> taskSet) {
 				Integer intValue;
 				
 				if(taskSet.containsKey(taskName) == false)

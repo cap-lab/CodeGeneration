@@ -20,8 +20,8 @@ public class TaskMode {
 		this.relatedChildTaskProcMap = new HashMap<String, String>();
 	}
 	
-	public interface ChildTaskTraverseCallback {
-		 public void traverseCallback(String taskName, int procId, int procLocalId, Object userData);
+	public interface ChildTaskTraverseCallback<T> {
+		 public void traverseCallback(String taskName, int procId, int procLocalId, T userData);
 	}
 
 	

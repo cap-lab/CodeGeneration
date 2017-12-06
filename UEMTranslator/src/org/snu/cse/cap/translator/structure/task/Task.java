@@ -5,8 +5,6 @@ import java.util.List;
 
 import javax.management.modelmbean.InvalidTargetObjectTypeException;
 
-import org.snu.cse.cap.translator.structure.TaskGraphType;
-
 import Translators.Constants;
 import hopes.cic.xml.LoopStructureType;
 import hopes.cic.xml.MTMConditionType;
@@ -17,7 +15,6 @@ import hopes.cic.xml.MTMVariableType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.TaskParameterType;
 import hopes.cic.xml.TaskType;
-import hopes.cic.xml.TimeMetricType;
 
 enum TimeMetric {
 	CYCLE("cycle"),

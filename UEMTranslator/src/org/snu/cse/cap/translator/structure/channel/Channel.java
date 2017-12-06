@@ -1,22 +1,9 @@
 package org.snu.cse.cap.translator.structure.channel;
 
-enum CommunicationType {
-	SHARED_MEMORY,
-	TCP_CLIENT,
-	TCP_SERVER,
-}
-
-enum ChannelType {
-	GENERAL,
-	INPUT_ARRAY,
-	OUTPUT_ARRAY,
-	FULL_ARRAY,
-}
-
 public class Channel {
 	private int index;
 	private CommunicationType communicationType;
-	private ChannelType channelType;
+	private ChannelArrayType channelType;
 	private int size;
 	private Port inputPort;
 	private Port outputPort;
@@ -25,6 +12,7 @@ public class Channel {
 	public Channel(int index, int size) {
 		this.size = size;
 		this.index = index;
+		this.channelType = ChannelArrayType.GENERAL;
 	}
 	
 	public int getIndex() {
@@ -35,7 +23,7 @@ public class Channel {
 		return communicationType;
 	}
 	
-	public ChannelType getChannelType() {
+	public ChannelArrayType getChannelType() {
 		return channelType;
 	}
 	
@@ -55,7 +43,7 @@ public class Channel {
 		this.communicationType = communicationType;
 	}
 	
-	public void setChannelType(ChannelType channelType) {
+	public void setChannelType(ChannelArrayType channelType) {
 		this.channelType = channelType;
 	}
 	
@@ -65,5 +53,21 @@ public class Channel {
 	
 	public void setMaximumChunkNum(int maximumChunkNum) {
 		this.maximumChunkNum = maximumChunkNum;
+	}
+
+	public Port getInputPort() {
+		return inputPort;
+	}
+
+	public Port getOutputPort() {
+		return outputPort;
+	}
+
+	public void setInputPort(Port inputPort) {
+		this.inputPort = inputPort;
+	}
+
+	public void setOutputPort(Port outputPort) {
+		this.outputPort = outputPort;
 	}
 }

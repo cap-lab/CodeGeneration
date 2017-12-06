@@ -24,14 +24,14 @@ public class Constants {
 	
 	public static final String NAME_SPLITER = "/";
 	
-	public enum LoopPortType {
-		DISTRIBUTING("distributing"),
-		BROADCASTING("broadcasting"),
+	public enum PortDirection {
+		INPUT("input"),
+		OUTPUT("output"),
 		;
 		
 		private final String value;
 		
-		private LoopPortType(String value) {
+		private PortDirection(String value) {
 			this.value = value;
 		}
 		
@@ -40,8 +40,8 @@ public class Constants {
 			return value;
 		}
 		
-		public static LoopPortType fromValue(String value) {
-			 for (LoopPortType c : LoopPortType.values()) {
+		public static PortDirection fromValue(String value) {
+			 for (PortDirection c : PortDirection.values()) {
 				 if (value.equals(value)) {
 					 return c;
 				 }
