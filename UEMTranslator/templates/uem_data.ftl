@@ -180,16 +180,16 @@ STask g_astTasks_${task_graph.name}[] = {
 		TASK_TYPE_${task.type}, // Task Type
 		g_ast_${task.name}_functions, // Task function array
 		${task.taskFuncNum}, // Task function array number
-		/*[TASK_RUN_CONDITION]*/, // Run condition
+		RUN_CONDITION_${task.runCondition}, // Run condition
 		1, // Run rate
-		/*[TASK_PERIOD]*/, // Period
-		/*[TASK_PERIOD_METRIC]*/, // Period metric
+		${task.period}, // Period
+		TIME_METRIC_${task.periodMetric}, // Period metric
 		NULL, // Subgraph
-		&g_stGraph_/*[TASKGRAPH_NAME]*/, // Parent task graph
+		&g_stGraph_${task.parentTaskGraphName}, // Parent task graph
 		NULL, // MTM information
 		NULL, // Loop information
 		NULL, // Task parameter information
-		/*[TASK_SCHEDULED]*/, // Statically scheduled or not
+		${task.staticScheduled?c}, // Statically scheduled or not
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -200,23 +200,23 @@ STask g_astTasks_${task_graph.name}[] = {
 // ##TASK_LIST_TEMPLATE::END
 
 // ##TASK_GRAPH_TEMPLATE::START
-// ##TASKGRAPH_LOOP::START
-STaskGraph g_stGraph_/*[TASKGRAPH_NAME]*/ = {
+<#list task_graph as graph_name, task_graph>
+STaskGraph g_stGraph_${task_graph.name} = {
 		/*[TASK_GRAPH_TYPE]*/, // Task graph type
-		g_astTasks_/*[TASKGRAPH_NAME]*/, // current task graph's task list
+		g_astTasks_${task_graph.name}, // current task graph's task list
 		NULL, // parent task
 };
-// ##TASKGRAPH_LOOP::END
+</#list>
 // ##TASK_GRAPH_TEMPLATE::END
 
 // ##TASK_ID_TO_TASK_MAP_TEMPLATE::START
 STaskIdToTaskMap g_astTaskIdToTask[] = {
-// ##TASKGRAPH_LOOP::START
-	{ 	/*[TASK_ID]*/, // Task ID
-		/*[NESTED_TASK_NAME]*/, // Task name
-		&/*[TASK_POINTER_NAME]*/, // Task structure pointer
+<#list flat_task as task_name, task>
+	{ 	${task.id}, // Task ID
+		${task.name}, // Task name
+		&g_astTasks_${task.parentTaskGraphName}[${task.inGraphIndex}], // Task structure pointer
 	},
-// ##TASKGRAPH_LOOP::END
+</#list>
 };
 // ##TASK_ID_TO_TASK_MAP_TEMPLATE::END
 

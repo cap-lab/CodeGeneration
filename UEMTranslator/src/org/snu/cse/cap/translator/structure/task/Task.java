@@ -32,11 +32,6 @@ enum TimeMetric {
 		this.value = value;
 	}
 	
-	@Override
-	public String toString() {
-		return value;
-	}
-	
 	public static TimeMetric fromValue(String value) {
 		 for (TimeMetric c : TimeMetric.values()) {
 			 if (c.value.equals(value)) {
@@ -58,11 +53,7 @@ enum TaskRunCondition {
 	private TaskRunCondition(String value) {
 		this.value = value;
 	}
-	
-	@Override
-	public String toString() {
-		return value;
-	}
+
 }
 
 public class Task {
