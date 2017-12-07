@@ -86,7 +86,9 @@ public class UEMMetaDataModel {
     	application.makeDeviceInformation(mArchitecture);
     	application.makeMappingInformation(mMapping, mProfile, mConfiguration, this.schedulePath);
     	application.makeChannelInformation(mAlgorithm);
-    	
-    	
     }
+
+	public Application getApplication() {
+		return application;
+	}
 }

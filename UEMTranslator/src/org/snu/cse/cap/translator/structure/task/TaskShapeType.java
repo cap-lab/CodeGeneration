@@ -13,11 +13,6 @@ public enum TaskShapeType {
 		this.value = value;
 	}
 	
-	@Override
-	public String toString() {
-		return value;
-	}
-	
 	public static TaskShapeType fromValue(String value) {
 		 for (TaskShapeType c : TaskShapeType.values()) {
 			 if (c.value.equals(value)) {

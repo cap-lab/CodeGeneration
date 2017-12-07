@@ -118,7 +118,7 @@ enum ExecutionPolicy {
 public class Application {
 	private ArrayList<Channel> channelList;
 	private HashMap<String, Task> taskMap; // Task name : Task class
-	private HashMap<String, TaskGraph> taskGraphList; // Task graph name : TaskGraph class
+	private HashMap<String, TaskGraph> taskGraphMap; // Task graph name : TaskGraph class
 	private HashMap<String, MappingInfo> mappingInfo; // Task name : MappingInfo class
 	private HashMap<String, Device> deviceInfo; // device name: Device class
 	private HashMap<String, HWElementType> elementTypeList; // element type name : HWElementType class
@@ -129,7 +129,7 @@ public class Application {
 	{
 		this.channelList = new ArrayList<Channel>();	
 		this.taskMap = new HashMap<String, Task>();
-		this.taskGraphList = new HashMap<String, TaskGraph>();
+		this.taskGraphMap = new HashMap<String, TaskGraph>();
 		this.mappingInfo = new HashMap<String, MappingInfo>();
 		this.deviceInfo = new HashMap<String, Device>();
 		this.elementTypeList = new HashMap<String, HWElementType>();
@@ -172,14 +172,14 @@ public class Application {
 						
 			this.taskMap.put(task.getName(), task);
 			
-			if(this.taskGraphList.containsKey(task.getParentTaskGraphName()) == false)
+			if(this.taskGraphMap.containsKey(task.getParentTaskGraphName()) == false)
 			{
 				taskGraph = new TaskGraph(task.getParentTaskGraphName());				
-				this.taskGraphList.put(task.getParentTaskGraphName(), taskGraph);
+				this.taskGraphMap.put(task.getParentTaskGraphName(), taskGraph);
 			}
 			else // == true
 			{
-				taskGraph = this.taskGraphList.get(task.getParentTaskGraphName());
+				taskGraph = this.taskGraphMap.get(task.getParentTaskGraphName());
 			}
 			
 			inGraphIndex = taskGraph.getNumOfTasks();
@@ -235,15 +235,15 @@ public class Application {
 		
 		fillBasicTaskMapAndGraphInfo(algorithm_metadata);
 		
-		for(TaskGraph taskGraph: this.taskGraphList.values())
+		for(TaskGraph taskGraph: this.taskGraphMap.values())
 		{
-			if(taskGraph.getTaskGraphName().equals(Constants.TOP_TASKGRAPH_NAME))
+			if(taskGraph.getName().equals(Constants.TOP_TASKGRAPH_NAME))
 			{
 				// Top-level task graph, no parent task
 			}
 			else
 			{
-				task = this.taskMap.get(taskGraph.getTaskGraphName());
+				task = this.taskMap.get(taskGraph.getName());
 				taskGraph.setParentTask(task);
 			}
 		}
@@ -658,7 +658,7 @@ public class Application {
 				break;
 			}
 			
-			parentTaskGraph = this.taskGraphList.get(task.getParentTaskGraphName());
+			parentTaskGraph = this.taskGraphMap.get(task.getParentTaskGraphName());
 			task = parentTaskGraph.getParentTask();
 		}
 		
@@ -831,7 +831,7 @@ public class Application {
 			subTask.setStaticScheduled(true);
 			if(subTask.getChildTaskGraphName() != null) 
 			{
-				subTaskGraph = this.taskGraphList.get(subTask.getChildTaskGraphName());
+				subTaskGraph = this.taskGraphMap.get(subTask.getChildTaskGraphName());
 				recursiveSetSubgraphTaskToStaticScheduled(subTaskGraph);
 			}
 		}
@@ -849,7 +849,7 @@ public class Application {
 				CompositeTaskMappingInfo compositeMappingInfo = (CompositeTaskMappingInfo) mappingInfo;
 				task = this.taskMap.get(compositeMappingInfo.getParentTaskName());
 				task.setStaticScheduled(true);
-				taskGraph = this.taskGraphList.get(task.getChildTaskGraphName());
+				taskGraph = this.taskGraphMap.get(task.getChildTaskGraphName());
 				recursiveSetSubgraphTaskToStaticScheduled(taskGraph);
 			}
 		}
@@ -910,5 +910,33 @@ public class Application {
 
 	public void setApplicationGraphProperty(TaskGraphType applicationGraphProperty) {
 		this.applicationGraphProperty = applicationGraphProperty;
+	}
+
+	public ArrayList<Channel> getChannelList() {
+		return channelList;
+	}
+
+	public HashMap<String, Task> getTaskMap() {
+		return taskMap;
+	}
+
+	public HashMap<String, TaskGraph> getTaskGraphMap() {
+		return taskGraphMap;
+	}
+
+	public HashMap<String, MappingInfo> getMappingInfo() {
+		return mappingInfo;
+	}
+
+	public HashMap<String, Device> getDeviceInfo() {
+		return deviceInfo;
+	}
+
+	public HashMap<String, HWElementType> getElementTypeList() {
+		return elementTypeList;
+	}
+
+	public HashMap<String, Port> getPortInfo() {
+		return portInfo;
 	}
 }

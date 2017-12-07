@@ -5,14 +5,14 @@ import java.util.ArrayList;
 import org.snu.cse.cap.translator.structure.task.Task;
 
 public class TaskGraph {
-	private String taskGraphName;
+	private String name;
 	private ArrayList<Task> taskList;
 	private TaskGraphType taskGraphType;
 	private Task parentTask;
 	
 	public TaskGraph(String graphName) {
 		this.taskList = new ArrayList<Task>();
-		this.taskGraphName = graphName;
+		this.name = graphName;
 		this.parentTask = null;
 	}
 	
@@ -24,12 +24,12 @@ public class TaskGraph {
 		return this.taskList.size();
 	}
 	
-	public String getTaskGraphName() {
-		return taskGraphName;
+	public String getName() {
+		return name;
 	}
 	
-	public void setTaskGraphName(String taskGraphName) {
-		this.taskGraphName = taskGraphName;
+	public void setName(String taskGraphName) {
+		this.name = taskGraphName;
 	}
 	
 	public ArrayList<Task> getTaskList() {
