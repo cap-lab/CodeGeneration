@@ -238,31 +238,51 @@ SProcessor g_astProcessorInfo[] = {
 
 
 // ##SCHEDULED_COMPOSITE_TASKS_TEMPLATE::START
-
-// ##SCHEDULED_COMPOSITE_TASKS_TEMPLATE::END
-SScheduledTasks g_astScheduledTaskList[] = {
-// ##SCHEDULED_TASKS_LOOP::START
-	{	/*[PARENT_TASK_ID]*/, // Parent Task ID
-		/*[MODE_ID]*/, // Mode transition mode ID
-		/*[SCHEDULE_LIST]*/, // schedule list per throught constraint
-		/*[NUM_OF_SCHEDULES]*/, // The number of schedules in the schedule list
-		0, // Schedule Index (Default to set 0)
-		/*[SEQUENCE_IN_MODE]*/, // Mode Sequence ID 
+<#list mapping_info as task_name, mapped_schedule>
+	<#if mapped_schedule.mappedTaskType == "COMPOSITE">
+		<#list mapped_schedule.mappedProcessorList as compositeMappedProcessor>
+SScheduleList g_astScheduleList_${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}[] = {
+			<#list compositeMappedProcessor.compositeTaskScheduleList as task_schedule>
+	{
+		${task_schedule.scheduleId}, // Schedule ID
+		${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}_${task_schedule.scheduleId}_Go, // Composite GO function
+		${task_schedule.throughputConstraint}, // Throughput constraint
 	},
-// ##SCHEDULED_TASKS_LOOP::END
+			</#list>
 };
+		</#list>
+	</#if>
+</#list>
+// ##SCHEDULED_COMPOSITE_TASKS_TEMPLATE::END
 
-.pstTask = &g_astTasks_top[0]
+
+SScheduledTasks g_astScheduledTaskList[] = {
+<#list mapping_info as task_name, mapped_schedule>
+	<#if mapped_schedule.mappedTaskType == "COMPOSITE">
+		<#list mapped_schedule.mappedProcessorList as compositeMappedProcessor>
+	{	${mapped_schedule.parentTaskId}, // Parent Task ID
+		${compositeMappedProcessor.modeId}, // Mode transition mode ID
+		&g_astScheduleList_${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}, // schedule list per throught constraint
+		${compositeMappedProcessor.compositeTaskScheduleList?size}, // The number of schedules in the schedule list
+		0, // Schedule Index (Default to set 0)
+		${compositeMappedProcessor.sequenceIdInMode}, // Mode Sequence ID 
+	},
+		</#list>
+	</#if>
+</#list>
+};
 
 
 // ##MAPPING_SCHEDULING_INFO_TEMPLATE::START
 SMappingSchedulingInfo g_astMappingAndSchedulingInfo[] = {
 <#list mapping_info as task_name, mapped_task>
+	<#list mapped_task.mappedProcessorList as mappedProcessor>
 	{	TASK_TYPE_${mapped_task.mappedTaskType}, // Task type
-		{ /*[MAPPED_TASK_INFO]*/ }, // Task ID or composite task information
-		/*[MAPPED_PROCESSOR_ID]*/, // Processor ID
-		/*[MAPPED_PROCESSOR_ID_LOCAL_ID]*/, // Processor local ID
+		{ <#if mapped_task.mappedTaskType == "COMPOSITE">.pstScheduledTasks = NULL<#else>.pstTask = &g_astTasks_${mapped_task.parentTaskGraphName}[${mapped_task.inGraphIndex}]</#if> }, // Task ID or composite task information
+		${mappedProcessor.processorId}, // Processor ID
+		${mappedProcessor.processorLocalId}, // Processor local ID
 	},
+	</#list>
 </#list>
 };
 // ##MAPPING_SCHEDULING_INFO_TEMPLATE::END

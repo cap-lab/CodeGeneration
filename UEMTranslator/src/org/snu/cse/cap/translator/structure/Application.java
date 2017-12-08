@@ -553,13 +553,13 @@ public class Application {
 		return throughputConstraint;
 	}
 	
-	private CompositeTaskMappingInfo getCompositeMappingInfo(String taskName) throws InvalidDataInMetadataFileException
+	private CompositeTaskMappingInfo getCompositeMappingInfo(String taskName, int taskId) throws InvalidDataInMetadataFileException
 	{
 		CompositeTaskMappingInfo compositeMappingInfo;
 		
 		if(this.mappingInfo.containsKey(taskName) == false)
 		{//modeId 
-			compositeMappingInfo = new CompositeTaskMappingInfo(taskName);
+			compositeMappingInfo = new CompositeTaskMappingInfo(taskName, taskId);
 			this.mappingInfo.put(taskName, compositeMappingInfo);
 		}
 		else
@@ -584,6 +584,8 @@ public class Application {
 		int modeId = Constants.INVALID_ID_VALUE;
 		CompositeTaskMappingInfo compositeMappingInfo;
 		int procId = Constants.INVALID_ID_VALUE;
+		int sequenceId = 0;
+		Task task;
 		
 		int throughputConstraint;
 		
@@ -594,8 +596,9 @@ public class Application {
 		modeName = splitedFileName[ScheduleFileNameOffset.MODE_NAME.getValue()];
 		modeId = getModeIdByName(taskName, modeName);
 		throughputConstraint = getThroughputConstraintFromScheduleFileName(splitedFileName);
+		task = this.taskMap.get(taskName);
 		
-		compositeMappingInfo = getCompositeMappingInfo(taskName);
+		compositeMappingInfo = getCompositeMappingInfo(taskName, task.getId());
 		
 		for(TaskGroupForScheduleType taskGroup: scheduleDOM.getTaskGroups().getTaskGroup())
 		{
@@ -604,12 +607,13 @@ public class Application {
 				procId = getProcessorIdByName(scheduleGroup.getPoolName());
 				
 				CompositeTaskMappedProcessor mappedProcessor = new CompositeTaskMappedProcessor(procId, 
-																scheduleGroup.getLocalId().intValue(), modeId);
+																scheduleGroup.getLocalId().intValue(), modeId, sequenceId);
 				CompositeTaskSchedule taskSchedule = new CompositeTaskSchedule(scheduleId, throughputConstraint);
 				
 				fillCompositeTaskSchedule(taskSchedule, scheduleGroup) ;				
 				mappedProcessor.putCompositeTaskSchedule(taskSchedule);
 				compositeMappingInfo.putProcessor(mappedProcessor);
+				sequenceId++;
 			}
 		}
 	}
@@ -673,12 +677,14 @@ public class Application {
 	
 	private void makeGeneralTaskMappingInfo(CICMappingType mapping_metadata) throws InvalidDataInMetadataFileException
 	{		
-		for(MappingTaskType task: mapping_metadata.getTask())
+		for(MappingTaskType mappedTask: mapping_metadata.getTask())
 		{
-			if(checkTaskIsIncludedInMappedTask(task.getName()) == false)
+			if(checkTaskIsIncludedInMappedTask(mappedTask.getName()) == false)
 			{
-				GeneralTaskMappingInfo mappingInfo = new GeneralTaskMappingInfo(task.getName(), getTaskType(task.getName()));
-				for(MappingDeviceType device: task.getDevice())
+				Task task = this.taskMap.get(mappedTask.getName());
+				GeneralTaskMappingInfo mappingInfo = new GeneralTaskMappingInfo(mappedTask.getName(), getTaskType(mappedTask.getName()), 
+														task.getParentTaskGraphName(), task.getInGraphIndex());
+				for(MappingDeviceType device: mappedTask.getDevice())
 				{
 					// TODO: multiple task mapping on different devices is not supported now
 					mappingInfo.setMappedDeviceName(device.getName()); 
@@ -690,13 +696,13 @@ public class Application {
 					}
 				}
 				
-				if(this.mappingInfo.containsKey(task.getName()) == false)
+				if(this.mappingInfo.containsKey(mappedTask.getName()) == false)
 				{
-					this.mappingInfo.put(task.getName(), mappingInfo);				
+					this.mappingInfo.put(mappedTask.getName(), mappingInfo);				
 				}
 				else // if same task is already in the mappingInfo, ignore the later one
 				{
-					// ignore the mapping (because the duplicated key means it already registered as a 
+					// ignore the mapping (because the duplicated key means it already registered 
 				}
 			}
 		}
