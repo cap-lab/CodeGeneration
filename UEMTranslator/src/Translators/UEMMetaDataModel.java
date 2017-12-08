@@ -19,12 +19,12 @@ import hopes.cic.xml.CICProfileType;
 import hopes.cic.xml.CICProfileTypeLoader;
 
 public class UEMMetaDataModel {
-    private CICAlgorithmType mAlgorithm = null;
-    private CICArchitectureType mArchitecture = null;
-    private CICMappingType mMapping = null;
-    private CICControlType mControl = null;
-    private CICConfigurationType mConfiguration = null;
-    private CICProfileType mProfile = null;
+    private CICAlgorithmType algorithmMetadata = null;
+    private CICArchitectureType architectureMetadata = null;
+    private CICMappingType mappingMetadata = null;
+    private CICControlType controlMetadata = null;
+    private CICConfigurationType configurationMetadata = null;
+    private CICProfileType profileMetadata = null;
     private String schedulePath = null;
     //private CICScheduleType mSchedule = null;
     
@@ -48,28 +48,28 @@ public class UEMMetaDataModel {
         
         try {
         	// Mandatory XML Files
-        	mAlgorithm = algorithmLoader.loadResource(uemXMLPath + Constants.UEMXML_ALGORITHM_PREFIX);
-        	mArchitecture = architectureLoader.loadResource(uemXMLPath + Constants.UEMXML_ARCHITECTURE_PREFIX);
+        	algorithmMetadata = algorithmLoader.loadResource(uemXMLPath + Constants.UEMXML_ALGORITHM_PREFIX);
+        	architectureMetadata = architectureLoader.loadResource(uemXMLPath + Constants.UEMXML_ARCHITECTURE_PREFIX);
         	
         	// Optional XML files
         	if(new File(uemXMLPath + Constants.UEMXML_MAPPING_PREFIX).isFile() == true)
         	{
-        		mMapping = mappingLoader.loadResource(uemXMLPath + Constants.UEMXML_MAPPING_PREFIX);
+        		mappingMetadata = mappingLoader.loadResource(uemXMLPath + Constants.UEMXML_MAPPING_PREFIX);
         	}
         	
         	if(new File(uemXMLPath + Constants.UEMXML_CONFIGURATION_PREFIX).isFile() == true)
         	{
-        		mConfiguration = configurationLoader.loadResource(uemXMLPath + Constants.UEMXML_CONFIGURATION_PREFIX);
+        		configurationMetadata = configurationLoader.loadResource(uemXMLPath + Constants.UEMXML_CONFIGURATION_PREFIX);
         	}
         	
         	if(new File(uemXMLPath + Constants.UEMXML_CONTROL_PREFIX).isFile() == true)
         	{
-        		mControl = controlLoader.loadResource(uemXMLPath + Constants.UEMXML_CONTROL_PREFIX);
+        		controlMetadata = controlLoader.loadResource(uemXMLPath + Constants.UEMXML_CONTROL_PREFIX);
         	}
         	
         	if(new File(uemXMLPath + Constants.UEMXML_PROFILE_PREFIX).isFile() == true)
         	{
-        		mProfile = profileLoader.loadResource(uemXMLPath + Constants.UEMXML_PROFILE_PREFIX);
+        		profileMetadata = profileLoader.loadResource(uemXMLPath + Constants.UEMXML_PROFILE_PREFIX);
         	}
         }
         catch(CICXMLException e) {
@@ -82,10 +82,10 @@ public class UEMMetaDataModel {
     {
     	application = new Application();
     	
-    	application.makeTaskInformation(mAlgorithm);
-    	application.makeDeviceInformation(mArchitecture);
-    	application.makeMappingInformation(mMapping, mProfile, mConfiguration, this.schedulePath);
-    	application.makeChannelInformation(mAlgorithm);
+    	application.makeTaskInformation(algorithmMetadata);
+    	application.makeDeviceInformation(architectureMetadata);
+    	application.makeMappingInformation(mappingMetadata, profileMetadata, configurationMetadata, this.schedulePath);
+    	application.makeChannelInformation(algorithmMetadata);
     }
 
 	public Application getApplication() {

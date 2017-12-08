@@ -26,7 +26,27 @@ public class CodeGenerator
     private String mTranslatorPath;
     private String mUEMXMLPath;
     private String mOutputPath;
-    private UEMMetaDataModel mModel;
+    private UEMMetaDataModel uemDatamodel;
+    private Configuration templateConfig;
+    private String templateFolderPath;
+    
+    
+    public CodeGenerator() 
+    {
+    	this.templateFolderPath = "templates";
+		this.templateConfig = new Configuration(Configuration.VERSION_2_3_27);
+
+		try {
+			this.templateConfig.setDirectoryForTemplateLoading(new File(this.templateFolderPath));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		this.templateConfig.setDefaultEncoding("UTF-8");
+		this.templateConfig.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+		this.templateConfig.setLogTemplateExceptions(false);
+		this.templateConfig.setWrapUncheckedExceptions(true);
+    }
     
     private void changeAllPathSeparator() 
     {
@@ -42,11 +62,13 @@ public class CodeGenerator
     public void initMetaData(String[] args) 
     {
     	Options options = new Options();
+    	HelpFormatter formatter = new HelpFormatter();
     	String[] leftArgs;
     	CommandLine cmd;
     	
-    	options.addOption("help", false, "print this help");
-    	HelpFormatter formatter = new HelpFormatter();
+    	options.addOption(Constants.COMMANDLINE_OPTION_HELP, false, "print this help");
+    	options.addOption("t", Constants.COMMANDLINE_OPTION_TEMPLATE_DIR, true, "set template directory");
+    	
     	CommandLineParser parser = new DefaultParser();
     	try {
     		cmd = parser.parse(options, args);
@@ -69,39 +91,31 @@ public class CodeGenerator
     			mOutputPath = mOutputPath.substring(0, mOutputPath.length() - 1);
     		}
     		
-    		if(cmd.hasOption("help")) 
+    		if(cmd.hasOption(Constants.COMMANDLINE_OPTION_HELP)) 
     		{
         		formatter.printHelp("Translator.CodeGenerator [options] <Code generator binary path> <CIC XML file path> <Output file path> ", "UEM to Target C Code Translator", options, "");
     		}
     		
+    		if(cmd.hasOption(Constants.COMMANDLINE_OPTION_TEMPLATE_DIR))
+    		{
+    			this.templateFolderPath = cmd.getOptionValue(Constants.COMMANDLINE_OPTION_TEMPLATE_DIR); 
+    		}
+    		
     		System.out.println("mTranslatorPath: " + mTranslatorPath + ", mCICXMLPath: " + mUEMXMLPath + ", mOutputPath: " + mOutputPath);
     		
-    		mModel = new UEMMetaDataModel(mUEMXMLPath, mOutputPath + File.separator + Constants.SCHEDULE_FOLDER_NAME + File.separator);
-    		
-    		Configuration cfg = new Configuration(Configuration.VERSION_2_3_27);
+    		uemDatamodel = new UEMMetaDataModel(mUEMXMLPath, mOutputPath + File.separator + Constants.SCHEDULE_FOLDER_NAME + File.separator);
+ 
+    		Template temp = this.templateConfig.getTemplate("uem_data.ftl");
 
-    		cfg.setDirectoryForTemplateLoading(new File("templates"));
-
-    		cfg.setDefaultEncoding("UTF-8");
-
-    		cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-
-    		cfg.setLogTemplateExceptions(false);
-
-    		cfg.setWrapUncheckedExceptions(true);
-
-    		Template temp = cfg.getTemplate("uem_data.ftl");
-
-    		// Create the root hash. We use a Map here, but it could be a JavaBean too.
+    		// Create the root hash
     		Map<String, Object> root = new HashMap<>();
 
-    		// Put string "user" into the root
-    		root.put("flat_task", mModel.getApplication().getTaskMap());
-    		root.put("task_graph", mModel.getApplication().getTaskGraphMap());
-    		root.put("channel_list", mModel.getApplication().getChannelList());
-    		root.put("device_info", mModel.getApplication().getDeviceInfo());
-    		root.put("mapping_info", mModel.getApplication().getMappingInfo());
-
+    		// Put UEM data model
+    		root.put(Constants.TEMPLATE_TAG_TASK_MAP, uemDatamodel.getApplication().getTaskMap());
+    		root.put(Constants.TEMPLATE_TAG_TASK_GRAPH, uemDatamodel.getApplication().getTaskGraphMap());
+    		root.put(Constants.TEMPLATE_TAG_CHANNEL_LIST, uemDatamodel.getApplication().getChannelList());
+    		root.put(Constants.TEMPLATE_TAG_DEVICE_INFO, uemDatamodel.getApplication().getDeviceInfo());
+    		root.put(Constants.TEMPLATE_TAG_MAPPING_INFO, uemDatamodel.getApplication().getMappingInfo());
 
     		Writer out = new OutputStreamWriter(System.out);
     		temp.process(root, out);
