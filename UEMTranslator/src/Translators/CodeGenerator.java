@@ -98,6 +98,9 @@ public class CodeGenerator
     		// Put string "user" into the root
     		root.put("flat_task", mModel.getApplication().getTaskMap());
     		root.put("task_graph", mModel.getApplication().getTaskGraphMap());
+    		root.put("channel_list", mModel.getApplication().getChannelList());
+    		root.put("device_info", mModel.getApplication().getDeviceInfo());
+    		root.put("mapping_info", mModel.getApplication().getMappingInfo());
 
 
     		Writer out = new OutputStreamWriter(System.out);

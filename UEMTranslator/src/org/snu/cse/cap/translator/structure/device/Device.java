@@ -105,9 +105,9 @@ public class Device {
 		this.connectionList = new ArrayList<Connection>();
 	}
 	
-	public void putProcessingElement(String name, ProcessorCategory type, int poolSize) 
+	public void putProcessingElement(int id, String name, ProcessorCategory type, int poolSize) 
 	{
-		Processor processor = new Processor(name, type, poolSize);
+		Processor processor = new Processor(id, name, type, poolSize);
 			
 		this.processorList.add(processor);
 	}

@@ -1,6 +1,9 @@
 package org.snu.cse.cap.translator.structure.channel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.snu.cse.cap.translator.structure.task.Task;
 
 enum PortSampleRateType {
 	FIXED,
@@ -71,12 +74,42 @@ public class Port {
 		return upperPort;
 	}
 	
+	public int getMaximumParallelNumber(HashMap<String, Task> taskMap) {
+		int maxParallel = 1;
+		Port port;
+		Task task;
+		
+		port = this;
+		while(port != null)
+		{
+			if(port.getPortType() == PortType.QUEUE && port.getLoopPortType() == LoopPortType.DISTRIBUTING)
+			{
+				task = taskMap.get(port.getTaskName());
+				maxParallel *= task.getLoopStruct().getLoopCount();
+			}
+			port = port.getUpperGraphPort();
+		}
+		
+		port = this.getSubgraphPort();
+		while(port != null)
+		{
+			if(port.getPortType() == PortType.QUEUE && port.getLoopPortType() == LoopPortType.DISTRIBUTING)
+			{
+				task = taskMap.get(port.getTaskName());
+				maxParallel *= task.getLoopStruct().getLoopCount();
+			}
+			port = port.getSubgraphPort();
+		}
+		
+		return maxParallel;
+	}
+	
 	public boolean isDistributingPort() {
 		Port port;
 		boolean isDistributingPort = false;
 		
 		port = this;
-		while(port.getUpperGraphPort() != null)
+		while(port != null)
 		{
 			if(port.getPortType() == PortType.QUEUE && port.getLoopPortType() == LoopPortType.DISTRIBUTING)
 			{
@@ -88,8 +121,8 @@ public class Port {
 		
 		if(isDistributingPort == false)
 		{
-			port = this;
-			while(port.getSubgraphPort() != null)
+			port = this.getSubgraphPort();
+			while(port != null)
 			{
 				if(port.getPortType() == PortType.QUEUE && port.getLoopPortType() == LoopPortType.DISTRIBUTING)
 				{

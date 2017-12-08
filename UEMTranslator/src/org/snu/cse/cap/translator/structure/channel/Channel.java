@@ -1,5 +1,9 @@
 package org.snu.cse.cap.translator.structure.channel;
 
+import java.util.HashMap;
+
+import org.snu.cse.cap.translator.structure.task.Task;
+
 public class Channel {
 	private int index;
 	private CommunicationType communicationType;
@@ -13,6 +17,7 @@ public class Channel {
 		this.size = size;
 		this.index = index;
 		this.channelType = ChannelArrayType.GENERAL;
+		this.maximumChunkNum = 1;
 	}
 	
 	public int getIndex() {
@@ -51,8 +56,8 @@ public class Channel {
 		this.size = channelSize;
 	}
 	
-	public void setMaximumChunkNum(int maximumChunkNum) {
-		this.maximumChunkNum = maximumChunkNum;
+	public void setMaximumChunkNum(HashMap<String, Task> taskMap) {		
+		this.maximumChunkNum = this.inputPort.getMaximumParallelNumber(taskMap);
 	}
 
 	public Port getInputPort() {
@@ -61,10 +66,12 @@ public class Channel {
 
 	public Port getOutputPort() {
 		return outputPort;
-	}
+	} 
 
 	public void setInputPort(Port inputPort) {
 		this.inputPort = inputPort;
+		
+		// also set maximum chunk number here
 	}
 
 	public void setOutputPort(Port outputPort) {

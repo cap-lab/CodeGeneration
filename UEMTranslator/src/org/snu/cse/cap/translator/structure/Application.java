@@ -121,7 +121,7 @@ public class Application {
 	private HashMap<String, TaskGraph> taskGraphMap; // Task graph name : TaskGraph class
 	private HashMap<String, MappingInfo> mappingInfo; // Task name : MappingInfo class
 	private HashMap<String, Device> deviceInfo; // device name: Device class
-	private HashMap<String, HWElementType> elementTypeList; // element type name : HWElementType class
+	private HashMap<String, HWElementType> elementTypeHash; // element type name : HWElementType class
 	private TaskGraphType applicationGraphProperty;
 	private HashMap<String, Port> portInfo; // Key: taskName/portName/direction, ex) 4/inMB_Y/input
 	
@@ -132,7 +132,7 @@ public class Application {
 		this.taskGraphMap = new HashMap<String, TaskGraph>();
 		this.mappingInfo = new HashMap<String, MappingInfo>();
 		this.deviceInfo = new HashMap<String, Device>();
-		this.elementTypeList = new HashMap<String, HWElementType>();
+		this.elementTypeHash = new HashMap<String, HWElementType>();
 		this.applicationGraphProperty = null;
 		this.portInfo = new HashMap<String, Port>();
 	}
@@ -263,11 +263,11 @@ public class Application {
 	{
 		for(ArchitectureElementTypeType elementType : architecture_metadata.getElementTypes().getElementType())
 		{
-			if(HWCategory.PROCESSOR.equals(elementType.getCategory().toString()) == true)
+			if(HWCategory.PROCESSOR.getValue().equals(elementType.getCategory().value()) == true)
 			{
 				ProcessorElementType elementInfo = new ProcessorElementType(elementType.getName(), elementType.getModel(), 
 																			elementType.getSubcategory());
-				this.elementTypeList.put(elementType.getName(), elementInfo);
+				this.elementTypeHash.put(elementType.getName(), elementInfo);
 			}
 			else
 			{
@@ -302,6 +302,7 @@ public class Application {
 	public void makeDeviceInformation(CICArchitectureType architecture_metadata)
 	{	
 		makeHardwareElementInformation(architecture_metadata);
+		int id = 0;
 		
 		if(architecture_metadata.getDevices() != null)
 		{
@@ -313,10 +314,11 @@ public class Application {
 				for(ArchitectureElementType elementType: device_metadata.getElements().getElement())
 				{
 					// only handles the elements which use defined types
-					if(this.elementTypeList.containsKey(elementType.getType()) == true)
+					if(this.elementTypeHash.containsKey(elementType.getType()) == true)
 					{
-						ProcessorElementType elementInfo = (ProcessorElementType) this.elementTypeList.get(elementType.getType());
-						device.putProcessingElement(elementType.getName(), elementInfo.getSubcategory(), elementType.getPoolSize().intValue());
+						ProcessorElementType elementInfo = (ProcessorElementType) this.elementTypeHash.get(elementType.getType());
+						device.putProcessingElement(id, elementType.getName(), elementInfo.getSubcategory(), elementType.getPoolSize().intValue());
+						id++;
 					}
 				}
 				
@@ -435,7 +437,11 @@ public class Application {
 			channel.setOutputPort(srcPort.getMostUpperPortInfo());
 			channel.setInputPort(dstPort.getMostUpperPortInfo());
 			
+			// maximum chunk number
+			channel.setMaximumChunkNum(this.taskMap);
+			
 			this.channelList.add(channel);
+			index++;
 		}
 	}
 	
@@ -507,8 +513,8 @@ public class Application {
 				break;
 		}
 		
-		if(processorId != Constants.INVALID_ID_VALUE)
-			throw new InvalidDataInMetadataFileException();
+		if(processorId == Constants.INVALID_ID_VALUE)
+			throw new InvalidDataInMetadataFileException("There is no processor name called " + processorName);
 		
 		return processorId; 
 	}
@@ -932,8 +938,8 @@ public class Application {
 		return deviceInfo;
 	}
 
-	public HashMap<String, HWElementType> getElementTypeList() {
-		return elementTypeList;
+	public HashMap<String, HWElementType> getElementTypeHash() {
+		return elementTypeHash;
 	}
 
 	public HashMap<String, Port> getPortInfo() {

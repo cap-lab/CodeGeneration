@@ -20,78 +20,79 @@ void ${task.name}_Wrapup${task_func_id}();
 // ##TASK_CODE_TEMPLATE::END
 
 // ##CHANNEL_SIZE_DEFINITION_TEMPLATE::START
-// ##CHANNEL_LOOP::START
-#define CHANNEL_/*[CHANNEL_ID]*/_SIZE (/*[CHANNEL_SIZE]*/)
-// ##CHANNEL_LOOP::END
+<#list channel_list as channel>
+#define CHANNEL_${channel.index}_SIZE (${channel.size})
+</#list>
 // ##CHANNEL_SIZE_DEFINITION_TEMPLATE::END
 
 // ##CHANNEL_BUFFER_DEFINITION_TEMPLATE::START
-// ##CHANNEL_LOOP::START
-char s_pChannel_/*[CHANNEL_ID]*/_buffer[CHANNEL_/*[CHANNEL_ID]*/_SIZE];
-// ##CHANNEL_LOOP::END
+<#list channel_list as channel>
+char s_pChannel_${channel.index}_buffer[CHANNEL_${channel.index}_SIZE];
+</#list>
 // ##CHANNEL_BUFFER_DEFINITION_TEMPLATE::END
 
 // ##CHUNK_DEFINITION_TEMPLATE::START
-// ##CHANNEL_LOOP::START
-SChunk g_astChunk_channel_/*[CHANNEL_ID]*/_out[] = {
-// ##CHUNK_LOOP::START
+<#list channel_list as channel>
+SChunk g_astChunk_channel_${channel.index}_out[] = {
+<#list 0..(channel.maximumChunkNum-1) as chunk_id>
 	{
-		s_pChannel_/*[CHANNEL_ID]*/_buffer/*[CHUNK_LOOP_ADDRESS]*/, // Chunk start pointer
-		s_pChannel_/*[CHANNEL_ID]*/_buffer/*[CHUNK_LOOP_ADDRESS]*/, // Data start pointer
-		s_pChannel_/*[CHANNEL_ID]*/_buffer/*[CHUNK_LOOP_ADDRESS]*/, // Data end pointer
+		s_pChannel_${channel.index}_buffer, // Chunk start pointer
+		s_pChannel_${channel.index}_buffer, // Data start pointer
+		s_pChannel_${channel.index}_buffer, // Data end pointer
 		0, // Written data length
 		0, // Available data number;
 	},
-// ##CHUNK_LOOP::END
+</#list>
 };
 
-SChunk g_astChunk_channel_/*[CHANNEL_ID]*/_in[] = {
-// ##CHUNK_LOOP::START
+SChunk g_astChunk_channel_${channel.index}_in[] = {
+<#list 0..(channel.maximumChunkNum-1) as chunk_id>
 	{
-		s_pChannel_/*[CHANNEL_ID]*/_buffer/*[CHUNK_LOOP_ADDRESS]*/, // Chunk start pointer
-		s_pChannel_/*[CHANNEL_ID]*/_buffer/*[CHUNK_LOOP_ADDRESS]*/, // Data start pointer
-		s_pChannel_/*[CHANNEL_ID]*/_buffer/*[CHUNK_LOOP_ADDRESS]*/, // Data end pointer
+		s_pChannel_${channel.index}_buffer, // Chunk start pointer
+		s_pChannel_${channel.index}_buffer, // Data start pointer
+		s_pChannel_${channel.index}_buffer, // Data end pointer
 		0, // Written data length
 		0, // Available data number;
 	},
-// ##CHUNK_LOOP::END
+</#list>
 };
 
-// ##CHANNEL_LOOP::END
+</#list>
 // ##CHUNK_DEFINITION_TEMPLATE::END
-
+portSampleRateList
 
 // ##PORT_SAMPLE_RATE_TEMPLATE::START
-// ##CHANNEL_LOOP::START
-SPortSampleRate g_astPortSampleRate_/*[INPUT_PORT_NESTED_TASK_NAME]*/_/*[INPUT_PORT_NAME]*/[] = {
-// ##INPUT_PORT_MODE_LOOP::START
-	{ 	/*[MODE_NAME]*/, // Mode name
-		/*[MODE_SAMPLE_RATE]*/, // Sample rate
-		/*[BROADCAST_LOOP_COUNT]*/, // Available number of data
+<#list channel_list as channel>
+SPortSampleRate g_astPortSampleRate_${channel.inputPort.taskName}_${channel.inputPort.portName}[] = {
+	<#list channel.inputPort.portSampleRateList as sample_rate>
+	{ 	"${sample_rate.modeName}", // Mode name
+		${sample_rate.sampleRate}, // Sample rate
+		${sample_rate.maxAvailableNum}, // Available number of data
 	},
-// ##INPUT_PORT_MODE_LOOP::END	
+	</#list>	
 };
 
-SPortSampleRate g_astPortSampleRate_/*[OUTPUT_PORT_NESTED_TASK_NAME]*/_/*[OUTPUT_PORT_NAME]*/[] = {
-// ##INPUT_PORT_MODE_LOOP::START
-	{ 	/*[MODE_NAME]*/, // Mode name
-		/*[MODE_SAMPLE_RATE]*/, // Sample rate
-		/*[BROADCAST_LOOP_COUNT]*/, // Available number of data
+SPortSampleRate g_astPortSampleRate_${channel.outputPort.taskName}_${channel.outputPort.portName}[] = {
+	<#list channel.outputPort.portSampleRateList as sample_rate>
+	{ 	"${sample_rate.modeName}", // Mode name
+		${sample_rate.sampleRate}, // Sample rate
+		${sample_rate.maxAvailableNum}, // Available number of data
 	},
-// ##INPUT_PORT_MODE_LOOP::END	
+	</#list>	
 };
-// ##CHANNEL_LOOP::END
+
+</#list>
 // ##PORT_SAMPLE_RATE_TEMPLATE::END
 
 
 // ##AVAILABLE_CHUNK_LIST_TEMPLATE::START
-// ##CHANNEL_LOOP::START
-SAvailableChunk g_astAvailableInputChunk_channel_/*[CHANNEL_ID]*/[] = {
-// ##CHUNK_LOOP::START
-	{ /*[CHUNK_LOOP_INDEX]*/, 0, NULL, NULL, },
-// ##CHUNK_LOOP::END
+<#list channel_list as channel>
+SAvailableChunk g_astAvailableInputChunk_channel_${channel.index}[] = {
+<#list 0..(channel.maximumChunkNum-1) as chunk_id>
+	{ ${chunk_id}, 0, NULL, NULL, },
+</#list>
 };
-// ##CHANNEL_LOOP::END
+</#list>
 // ##AVAILABLE_CHUNK_LIST_TEMPLATE::END
 
 
@@ -113,61 +114,60 @@ STaskFunctions g_ast_${task.name}_functions[] = {
 // ##TASK_FUNCTION_LIST::END
 
 
-
 // ##CHANNEL_LIST_TEMPLATE::START
 SChannel g_astChannels[] = {
-// ##CHANNEL_LOOP::START
+<#list channel_list as channel>
 	{
-		/*[CHANNEL_ID]*/, // Channel ID
-		/*[CHANNEL_COMMUNICATION_TYPE]*/, // Channel communication type
-		/*[CHANNEL_TYPE]*/, // Channel type
-		s_pChannel_/*[CHANNEL_ID]*/_buffer, // Channel buffer pointer
-		CHANNEL_/*[CHANNEL_ID]*/_SIZE, // Channel size
-		s_pChannel_/*[CHANNEL_ID]*/_buffer, // Channel data start
-		s_pChannel_/*[CHANNEL_ID]*/_buffer, // Channel data end
+		${channel.index}, // Channel ID
+		COMMUNICATION_TYPE_${channel.communicationType}, // Channel communication type
+		CHANNEL_TYPE_${channel.channelType}, // Channel type
+		s_pChannel_${channel.index}_buffer, // Channel buffer pointer
+		CHANNEL_${channel.index}_SIZE, // Channel size
+		s_pChannel_${channel.index}_buffer, // Channel data start
+		s_pChannel_${channel.index}_buffer, // Channel data end
 		0, // Channel data length
 		0, // reference count
 		NULL, // Mutex
 		NULL, // Event
 		{
-			/*[INPUT_PORT_TASK_ID]*/, // Task ID
-			/*[INPUT_PORT_NAME]*/, // Port name
-			/*[INPUT_PORT_SAMPLE_RATE_TYPE]*/, // Port sample rate type
-			g_astPortSampleRate_/*[INPUT_PORT_NESTED_TASK_NAME]*/_/*[INPUT_PORT_NAME]*/, // Array of sample rate list
-			/*[INPUT_PORT_MODE_NUM]*/, // Array element number of sample rate list
+			${channel.inputPort.taskId}, // Task ID
+			"${channel.inputPort.portName}", // Port name
+			PORT_SAMPLE_RATE_${channel.inputPort.portSampleRateType}, // Port sample rate type
+			g_astPortSampleRate_${channel.inputPort.taskName}_${channel.inputPort.portName}, // Array of sample rate list
+			${channel.inputPort.portSampleRateList?size}, // Array element number of sample rate list
 			0, //Selected sample rate index
-			/*[INPUT_PORT_SAMPLE_SIZE]*/, // Sample size
-			/*[INPUT_PORT_TYPE]*/, // Port type
+			${channel.inputPort.sampleSize}, // Sample size
+			PORT_TYPE_${channel.inputPort.portType}, // Port type
 			NULL, // Pointer to Subgraph port
 		}, // Input port information
 		{
-			/*[OUTPUT_PORT_TYPE]*/, // Task ID
-			/*[OUTPUT_PORT_NAME]*/, // Port name
-			/*[OUTPUT_PORT_SAMPLE_RATE_TYPE]*/, // Port sample rate type
-			g_astPortSampleRate_/*[OUTPUT_PORT_NESTED_TASK_NAME]*/_/*[OUTPUT_PORT_NAME]*/, // Array of sample rate list
-			/*[OUTPUT_PORT_MODE_NUM]*/, // Array element number of sample rate list
+			${channel.outputPort.taskId}, // Task ID
+			"${channel.outputPort.portName}", // Port name
+			PORT_SAMPLE_RATE_${channel.outputPort.portSampleRateType}, // Port sample rate type
+			g_astPortSampleRate_${channel.outputPort.taskName}_${channel.outputPort.portName}, // Array of sample rate list
+			${channel.outputPort.portSampleRateList?size}, // Array element number of sample rate list
 			0, //Selected sample rate index
-			/*[OUTPUT_PORT_SAMPLE_SIZE]*/, // Sample size
-			/*[OUTPUT_PORT_TYPE]*/, // Port type
+			${channel.outputPort.sampleSize}, // Sample size
+			PORT_TYPE_${channel.outputPort.portType}, // Port type
 			NULL, // Pointer to Subgraph port
 		}, // Output port information
 		{
-			g_astChunk_channel_/*[CHANNEL_ID]*/_in, // Array of chunk
+			g_astChunk_channel_${channel.index}_in, // Array of chunk
 			1, // Chunk number
 			1, // Chunk size
 		}, // Input chunk information
 		{
-			g_astChunk_channel_/*[CHANNEL_ID]*/out, // Array of chunk
+			g_astChunk_channel_${channel.index}_out, // Array of chunk
 			1, // Chunk number
 			1, // Chunk size
 		}, // Output chunk information
 		CHUNK_NUM_NOT_INITIALIZED, // Written output chunk number
-		g_astAvailableInputChunk_channel_/*[CHANNEL_ID]*/, // Available chunk list
-		/*[MAXIMUM_CHUNK_NUM]*/,
+		g_astAvailableInputChunk_channel_${channel.index}, // Available chunk list
+		${channel.maximumChunkNum},
 		NULL, // Chunk list head
 		NULL, // Chunk list tail
 	},
-// ##CHANNEL_LOOP::END
+</#list>
 };
 // ##CHANNEL_LIST_TEMPLATE::END
 
@@ -176,7 +176,7 @@ SChannel g_astChannels[] = {
 STask g_astTasks_${task_graph.name}[] = {
 <#list task_graph.taskList as task>
 	{ 	${task.id}, // Task ID
-		${task.name}, // Task name
+		"${task.name}", // Task name
 		TASK_TYPE_${task.type}, // Task Type
 		g_ast_${task.name}_functions, // Task function array
 		${task.taskFuncNum}, // Task function array number
@@ -189,7 +189,7 @@ STask g_astTasks_${task_graph.name}[] = {
 		NULL, // MTM information
 		NULL, // Loop information
 		NULL, // Task parameter information
-		${task.staticScheduled?c}, // Statically scheduled or not
+		<#if task.staticScheduled == true>TRUE<#else>FALSE</#if>, // Statically scheduled or not
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -213,7 +213,7 @@ STaskGraph g_stGraph_${task_graph.name} = {
 STaskIdToTaskMap g_astTaskIdToTask[] = {
 <#list flat_task as task_name, task>
 	{ 	${task.id}, // Task ID
-		${task.name}, // Task name
+		"${task.name}", // Task name
 		&g_astTasks_${task.parentTaskGraphName}[${task.inGraphIndex}], // Task structure pointer
 	},
 </#list>
@@ -223,13 +223,16 @@ STaskIdToTaskMap g_astTaskIdToTask[] = {
 
 // ##PROCESSOR_INFO_TEMPLATE::START
 SProcessor g_astProcessorInfo[] = {
-// ##PROCESSOR_LOOP::START
-	{ 	/*[PROCESSOR_ID]*/, // Processor ID
-		/*[PROCESSOR_IS_CPU]*/, // Processor is CPU?			
-		/*[PROCESSOR_NAME]*/, // Processor name
-		/*[PROCESSOR_POOL_SIZE]*/, // Processor pool size
+
+<#list device_info as device_name, device>
+	<#list device.processorList as processor>
+	{ 	${processor.id}, // Processor ID
+		<#if processor.isCPU == true>TRUE<#else>FALSE</#if>, // Processor is CPU?			
+		"${processor.name}", // Processor name
+		${processor.poolSize}, // Processor pool size
 	},
-// ##PROCESSOR_LOOP::END
+	</#list>
+</#list>
 };
 // ##PROCESSOR_INFO_TEMPLATE::END
 
@@ -249,18 +252,27 @@ SScheduledTasks g_astScheduledTaskList[] = {
 // ##SCHEDULED_TASKS_LOOP::END
 };
 
+.pstTask = &g_astTasks_top[0]
+
+
 // ##MAPPING_SCHEDULING_INFO_TEMPLATE::START
 SMappingSchedulingInfo g_astMappingAndSchedulingInfo[] = {
-// ##TASK_MAPPING_LOOP::START
-	{	/*[MAPPED_TASK_TYPE]*/, // Task type
+<#list mapping_info as task_name, mapped_task>
+	{	TASK_TYPE_${mapped_task.mappedTaskType}, // Task type
 		{ /*[MAPPED_TASK_INFO]*/ }, // Task ID or composite task information
 		/*[MAPPED_PROCESSOR_ID]*/, // Processor ID
 		/*[MAPPED_PROCESSOR_ID_LOCAL_ID]*/, // Processor local ID
 	},
-// ##TASK_MAPPING_LOOP::END
+</#list>
 };
 // ##MAPPING_SCHEDULING_INFO_TEMPLATE::END
 
+
+int g_nChannelNum = ARRAYLEN(g_astChannels);
+int g_nNumOfTasks_top = ARRAYLEN(g_astTasks_top);
+int g_nTaskIdToTaskNum = ARRAYLEN(g_astTaskIdToTask);
+int g_nProcessorInfoNum = ARRAYLEN(g_astProcessorInfo);
+int g_nMappingAndSchedulingInfoNum = ARRAYLEN(g_astMappingAndSchedulingInfo);
 
 
 

@@ -6,8 +6,9 @@ public class Processor {
 	private String name;
 	private int poolSize;
 	
-	public Processor(String name, ProcessorCategory type, int poolSize) 
+	public Processor(int id, String name, ProcessorCategory type, int poolSize) 
 	{
+		this.id = id;
 		this.name = name;
 		if(type == ProcessorCategory.CPU)
 		{
@@ -24,7 +25,7 @@ public class Processor {
 		return id;
 	}
 	
-	public boolean isCPU() {
+	public boolean getIsCPU() {
 		return isCPU;
 	}
 	

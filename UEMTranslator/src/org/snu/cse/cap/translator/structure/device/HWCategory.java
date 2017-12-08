@@ -17,4 +17,8 @@ public enum HWCategory {
 	public String toString() {
 		return value;
 	}
+
+	public String getValue() {
+		return value;
+	}
 }
