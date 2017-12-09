@@ -237,6 +237,33 @@ SProcessor g_astProcessorInfo[] = {
 // ##PROCESSOR_INFO_TEMPLATE::END
 
 
+<#macro printScheduledCode scheduleItem tab>
+	<#if scheduleItem.itemType == "LOOP">
+		<#list scheduleItem.scheduleItemList as loop_schedule_item>
+			<@printScheduledCode loop_schedule_item />
+		</#list>
+	<#else>
+	${scheduleItem.taskName}_Go0();
+	</#if>
+</#macro>
+
+// ##SCHEDULED_COMPOSITE_TASK_FUNCTION_IMPLEMENTATION::START
+<#list mapping_info as task_name, mapped_schedule>
+	<#if mapped_schedule.mappedTaskType == "COMPOSITE">
+		<#list mapped_schedule.mappedProcessorList as compositeMappedProcessor>
+			<#list compositeMappedProcessor.compositeTaskScheduleList as task_schedule>
+void ${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}_${task_schedule.scheduleId}_Go() 
+{
+<#list task_schedule.scheduleList as scheduleItem>
+	<@printScheduledCode scheduleItem 1 />
+</#list>
+}
+			</#list>
+		</#list>
+	</#if>
+</#list>
+// ##SCHEDULED_COMPOSITE_TASK_FUNCTION_IMPLEMENTATION::END
+
 // ##SCHEDULED_COMPOSITE_TASKS_TEMPLATE::START
 <#list mapping_info as task_name, mapped_schedule>
 	<#if mapped_schedule.mappedTaskType == "COMPOSITE">

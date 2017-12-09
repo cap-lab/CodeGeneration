@@ -519,13 +519,25 @@ public class Application {
 		return processorId; 
 	}
 	
-	private int getModeIdByName(String taskName, String modeName)
+	private int getModeIdByName(String taskName, String modeName) throws InvalidDataInMetadataFileException
 	{
 		int modeId;
 		Task task;
 		
 		task = this.taskMap.get(taskName);
-		if(task.getModeTransition() == null)
+		if(task == null) // check it is root task graph
+		{
+			// if the task name consists of "SDF_" + total task number, it means top-level graph is target task graph
+			if(taskName.equals("SDF_" + this.taskMap.size()))
+			{
+				modeId = 0;
+			}
+			else
+			{
+				throw new InvalidDataInMetadataFileException("there is no task name called" + taskName);
+			}
+		}
+		else if(task.getModeTransition() == null)
 		{
 			modeId = 0;
 		}
@@ -598,7 +610,14 @@ public class Application {
 		throughputConstraint = getThroughputConstraintFromScheduleFileName(splitedFileName);
 		task = this.taskMap.get(taskName);
 		
-		compositeMappingInfo = getCompositeMappingInfo(taskName, task.getId());
+		if(taskName.equals("SDF_" + this.taskMap.size()))
+		{
+			compositeMappingInfo = getCompositeMappingInfo(taskName, -1);
+		}
+		else
+		{
+			compositeMappingInfo = getCompositeMappingInfo(taskName, task.getId());	
+		}
 		
 		for(TaskGroupForScheduleType taskGroup: scheduleDOM.getTaskGroups().getTaskGroup())
 		{
@@ -791,7 +810,7 @@ public class Application {
 				{
 					intValue = taskSet.get(taskName);
 					intValue++;
-				}				
+				}
 			}
 		};
 		
@@ -822,16 +841,17 @@ public class Application {
 			case COMPOSITE:
 				CompositeTaskMappingInfo compositeMappingInfo = (CompositeTaskMappingInfo) mappingInfo;
 				task = this.taskMap.get(compositeMappingInfo.getParentTaskName());
-				setChildTaskProc(task.getModeTransition().getModeMap());
+				if(task != null)
+				{
+					setChildTaskProc(task.getModeTransition().getModeMap());
+				}
 				break;
 			default:
 				GeneralTaskMappingInfo generalMappingInfo = (GeneralTaskMappingInfo) mappingInfo;
 				task = this.taskMap.get(generalMappingInfo.getTaskName());
 				task.setTaskFuncNum(mappingInfo.getMappedProcessorList().size());
 				break;
-			}
-			;
-			
+			}			
 		}
 	}
 	
@@ -860,9 +880,12 @@ public class Application {
 			{
 				CompositeTaskMappingInfo compositeMappingInfo = (CompositeTaskMappingInfo) mappingInfo;
 				task = this.taskMap.get(compositeMappingInfo.getParentTaskName());
-				task.setStaticScheduled(true);
-				taskGraph = this.taskGraphMap.get(task.getChildTaskGraphName());
-				recursiveSetSubgraphTaskToStaticScheduled(taskGraph);
+				if(task != null)
+				{
+					task.setStaticScheduled(true);
+					taskGraph = this.taskGraphMap.get(task.getChildTaskGraphName());
+					recursiveSetSubgraphTaskToStaticScheduled(taskGraph);
+				}
 			}
 		}
 	}

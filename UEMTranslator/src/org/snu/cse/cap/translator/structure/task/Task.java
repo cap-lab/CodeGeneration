@@ -32,6 +32,11 @@ enum TimeMetric {
 		this.value = value;
 	}
 	
+	@Override
+	public String toString() {
+		return value;
+	}
+	
 	public static TimeMetric fromValue(String value) {
 		 for (TimeMetric c : TimeMetric.values()) {
 			 if (c.value.equals(value)) {
@@ -53,7 +58,20 @@ enum TaskRunCondition {
 	private TaskRunCondition(String value) {
 		this.value = value;
 	}
-
+	
+	@Override
+	public String toString() {
+		return value;
+	}
+	
+	public static TaskRunCondition fromValue(String value) {
+		 for (TaskRunCondition c : TaskRunCondition.values()) {
+			 if (c.value.equals(value)) {
+				 return c;
+			 }
+		 }
+		 throw new IllegalArgumentException(value.toString());
+	}
 }
 
 public class Task {
@@ -101,7 +119,7 @@ public class Task {
 		setName(xmlTaskData.getName());
 		setType(xmlTaskData.getTaskType(), xmlTaskData.getLoopStructure());
 		setParentTaskGraphName(xmlTaskData.getParentTask());
-		setRunCondition(xmlTaskData.getRunCondition().toString());
+		setRunCondition(xmlTaskData.getRunCondition().value());
 		setTaskCodeFile(xmlTaskData.getFile(), xmlTaskData.getHasSubGraph());
 		setParameters(xmlTaskData.getParameter());
 		setLoop(xmlTaskData.getLoopStructure());
@@ -324,12 +342,12 @@ public class Task {
 		this.staticScheduled = staticScheduled;
 	}
 
-	public TaskRunCondition getRunCondition() {
-		return runCondition;
+	public String getRunCondition() {
+		return runCondition.name();
 	}
 
 	public void setRunCondition(String runCondition) {
-		this.runCondition = TaskRunCondition.valueOf(runCondition);
+		this.runCondition = TaskRunCondition.fromValue(runCondition);
 	}
 
 	public String getTaskCodeFile() {

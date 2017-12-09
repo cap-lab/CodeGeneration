@@ -31,7 +31,7 @@ public class TaskMode {
 		this.relatedChildTaskProcMap.put(procId + TASK_PROC_MAP_SEPARATOR  + procLocalId + TASK_PROC_MAP_SEPARATOR + taskName, taskName);
 	}
 	
-	public void traverseRelatedChildTask(ChildTaskTraverseCallback childTaskCallback, Object userData)
+	public <T> void traverseRelatedChildTask(ChildTaskTraverseCallback<T> childTaskCallback, T userData)
 	{
 		for(String combinedKey : this.relatedChildTaskProcMap.keySet())
 		{

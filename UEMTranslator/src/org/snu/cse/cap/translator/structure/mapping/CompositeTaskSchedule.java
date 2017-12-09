@@ -6,6 +6,7 @@ public class CompositeTaskSchedule {
 	private int scheduleId;
 	private ArrayList<ScheduleItem> scheduleList;
 	private int throughputConstraint;
+	private int maxLoopVariableNum;
 	
 	public CompositeTaskSchedule(int scheduleId) {
 		this.scheduleId = scheduleId;
