@@ -237,7 +237,7 @@ SProcessor g_astProcessorInfo[] = {
 // ##PROCESSOR_INFO_TEMPLATE::END
 
 
-<#macro printScheduledCode scheduleItem tab>
+<#macro printScheduledCode scheduleItem>
 	<#if scheduleItem.itemType == "LOOP">
 		<#list scheduleItem.scheduleItemList as loop_schedule_item>
 			<@printScheduledCode loop_schedule_item />
@@ -255,7 +255,7 @@ SProcessor g_astProcessorInfo[] = {
 void ${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}_${task_schedule.scheduleId}_Go() 
 {
 <#list task_schedule.scheduleList as scheduleItem>
-	<@printScheduledCode scheduleItem 1 />
+	<@printScheduledCode scheduleItem />
 </#list>
 }
 			</#list>

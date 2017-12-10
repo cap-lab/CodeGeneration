@@ -332,30 +332,65 @@ public class Application {
 		}
 	}
 	
+	private MappingInfo findMappingInfoByTaskName(String taskName) throws InvalidDataInMetadataFileException
+	{
+		Task task;
+		MappingInfo mappingInfo;
+		
+		mappingInfo = this.mappingInfo.get(taskName);
+		
+		if(mappingInfo == null)
+		{
+			task = this.taskMap.get(taskName);
+			mappingInfo = this.mappingInfo.get(task.getParentTaskGraphName());
+			
+			while(mappingInfo == null && task != null)
+			{
+				task = this.taskMap.get(task.getParentTaskGraphName());
+				mappingInfo = this.mappingInfo.get(task.getParentTaskGraphName());
+			}
+		}
+		
+		if(mappingInfo == null)
+		{
+			throw new InvalidDataInMetadataFileException();
+		}
+		
+		return mappingInfo;
+	}
+	
 	private void setChannelCommunicationType(Channel channel, ChannelPortType channelSrcPort, ChannelPortType channelDstPort) 
 	{
 
-		MappingInfo srcTaskMappingInfo = this.mappingInfo.get(channelSrcPort.getTask());
-		MappingInfo dstTaskMappingInfo = this.mappingInfo.get(channelDstPort.getTask());
+		MappingInfo srcTaskMappingInfo;
+		MappingInfo dstTaskMappingInfo;	
 		
-		// Two tasks are connected on different devices
-		if(srcTaskMappingInfo.getMappedDeviceName().equals(dstTaskMappingInfo.getMappedDeviceName()) == false)
-		{
-			throw new UnsupportedOperationException();
-		}
-		else // located at the same device
-		{
-			// TODO: this part should handle heterogeneous computing devices, so processor name check is also needed
-			// currently only the first mapped processor is used for checking the both tasks are located at the same processor pool.
-			if(srcTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId() == 
-					dstTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId())
-			{
-				channel.setCommunicationType(CommunicationType.SHARED_MEMORY);
-			}
-			else
+		try {
+			srcTaskMappingInfo = findMappingInfoByTaskName(channelSrcPort.getTask());
+			dstTaskMappingInfo = findMappingInfoByTaskName(channelDstPort.getTask());
+			
+			// Two tasks are connected on different devices
+			if(srcTaskMappingInfo.getMappedDeviceName().equals(dstTaskMappingInfo.getMappedDeviceName()) == false)
 			{
 				throw new UnsupportedOperationException();
 			}
+			else // located at the same device
+			{
+				// TODO: this part should handle heterogeneous computing devices, so processor name check is also needed
+				// currently only the first mapped processor is used for checking the both tasks are located at the same processor pool.
+				if(srcTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId() == 
+						dstTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId())
+				{
+					channel.setCommunicationType(CommunicationType.SHARED_MEMORY);
+				}
+				else
+				{
+					throw new UnsupportedOperationException();
+				}
+			}
+		} catch (InvalidDataInMetadataFileException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 		
@@ -528,7 +563,7 @@ public class Application {
 		if(task == null) // check it is root task graph
 		{
 			// if the task name consists of "SDF_" + total task number, it means top-level graph is target task graph
-			if(taskName.equals("SDF_" + this.taskMap.size()))
+			if(taskName.equals(Constants.TOP_TASKGRAPH_NAME))
 			{
 				modeId = 0;
 			}
@@ -598,19 +633,23 @@ public class Application {
 		int procId = Constants.INVALID_ID_VALUE;
 		int sequenceId = 0;
 		Task task;
-		
 		int throughputConstraint;
+		String processorName = "";
 		
 		scheduleDOM = scheduleLoader.loadResource(scheduleFile.getAbsolutePath());
 		
 		scheduleId = Integer.parseInt(splitedFileName[ScheduleFileNameOffset.SCHEDULE_ID.getValue()]);
 		taskName = splitedFileName[ScheduleFileNameOffset.TASK_NAME.getValue()];
+		if(taskName.equals("SDF_" + this.taskMap.size())) // it means top-level graph
+		{
+			taskName = Constants.TOP_TASKGRAPH_NAME;
+		}
 		modeName = splitedFileName[ScheduleFileNameOffset.MODE_NAME.getValue()];
 		modeId = getModeIdByName(taskName, modeName);
 		throughputConstraint = getThroughputConstraintFromScheduleFileName(splitedFileName);
 		task = this.taskMap.get(taskName);
 		
-		if(taskName.equals("SDF_" + this.taskMap.size()))
+		if(taskName.equals(Constants.TOP_TASKGRAPH_NAME))
 		{
 			compositeMappingInfo = getCompositeMappingInfo(taskName, -1);
 		}
@@ -624,6 +663,9 @@ public class Application {
 			for(ScheduleGroupType scheduleGroup : taskGroup.getScheduleGroup())
 			{
 				procId = getProcessorIdByName(scheduleGroup.getPoolName());
+				// TODO: currently the last-picked processor name is used for searching the device name
+				// get processor name from schedule information
+				processorName = scheduleGroup.getPoolName();
 				
 				CompositeTaskMappedProcessor mappedProcessor = new CompositeTaskMappedProcessor(procId, 
 																scheduleGroup.getLocalId().intValue(), modeId, sequenceId);
@@ -633,6 +675,18 @@ public class Application {
 				mappedProcessor.putCompositeTaskSchedule(taskSchedule);
 				compositeMappingInfo.putProcessor(mappedProcessor);
 				sequenceId++;
+			}
+		}
+		
+		for(Device device: this.deviceInfo.values())
+		{
+			for(Processor proc: device.getProcessorList())
+			{
+				if(processorName.equals(proc.getName()))
+				{
+					compositeMappingInfo.setMappedDeviceName(device.getName());
+					break;
+				}
 			}
 		}
 	}
@@ -679,7 +733,7 @@ public class Application {
 		
 		task = this.taskMap.get(taskName);
 		
-		while(task.getParentTaskGraphName() != Constants.TOP_TASKGRAPH_NAME)
+		do
 		{
 			if(this.mappingInfo.containsKey(task.getParentTaskGraphName()) == true)
 			{
@@ -689,7 +743,7 @@ public class Application {
 			
 			parentTaskGraph = this.taskGraphMap.get(task.getParentTaskGraphName());
 			task = parentTaskGraph.getParentTask();
-		}
+		} while(task.getParentTaskGraphName() != Constants.TOP_TASKGRAPH_NAME);
 		
 		return isInsideCompositeTask;
 	}
