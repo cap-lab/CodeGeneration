@@ -2,6 +2,7 @@ package org.snu.cse.cap.translator.structure.mapping;
 
 public class ScheduleTask extends ScheduleItem {
 	private String taskName;
+	private int taskFuncId;
 	
 	public ScheduleTask(String taskName, int repetition) {
 		super(ScheduleItemType.TASK, repetition);
@@ -16,4 +17,11 @@ public class ScheduleTask extends ScheduleItem {
 		this.taskName = taskName;
 	}
 
+	public int getTaskFuncId() {
+		return taskFuncId;
+	}
+
+	public void setTaskFuncId(int taskFuncId) {
+		this.taskFuncId = taskFuncId;
+	}
 }

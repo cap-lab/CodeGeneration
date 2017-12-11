@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import org.snu.cse.cap.translator.structure.channel.Channel;
@@ -28,6 +29,7 @@ import org.snu.cse.cap.translator.structure.mapping.MappedProcessor;
 import org.snu.cse.cap.translator.structure.mapping.MappingInfo;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleFileFilter;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleItem;
+import org.snu.cse.cap.translator.structure.mapping.ScheduleItemType;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleLoop;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleTask;
 import org.snu.cse.cap.translator.structure.task.Task;
@@ -834,7 +836,6 @@ public class Application {
 	
 	private void setRelatedChildTasksOfMTMTask()
 	{
-		MappingInfo mappingInfo;
 		CompositeTaskMappingInfo compositeMappingInfo;
 		CompositeTaskMappedProcessor compositeMappedProc;
 		for(Task task: this.taskMap.values())
@@ -943,15 +944,88 @@ public class Application {
 		}
 	}
 	
-	private void setScheduleIndex()
+	private class TaskFuncIdChecker 
+	{
+		private int curTaskFuncId;
+		private boolean isUsed;
+		
+		public TaskFuncIdChecker()
+		{
+			this.curTaskFuncId = 0;
+			this.isUsed = false;
+		}
+
+		public int getCurTaskFuncId() {
+			return curTaskFuncId;
+		}
+
+		public void increaseCurTaskFuncId() {
+			this.curTaskFuncId++;
+		}
+
+		public boolean isUsed() {
+			return isUsed;
+		}
+
+		public void setUsed(boolean isUsed) {
+			this.isUsed = isUsed;
+		}
+	}
+	
+	private void recursiveScheduleLoopTraverse(ArrayList<ScheduleItem> scheduleItemList, HashMap<String, TaskFuncIdChecker> taskFuncIdMap, int modeId)
+	{
+		for(ScheduleItem scheduleItem : scheduleItemList)
+		{
+			if(scheduleItem.getItemType() == ScheduleItemType.LOOP)
+			{
+				ScheduleLoop scheduleInnerLoop = (ScheduleLoop) scheduleItem;
+				recursiveScheduleLoopTraverse(scheduleInnerLoop.getScheduleItemList(), taskFuncIdMap, modeId);
+			}
+			else
+			{
+				ScheduleTask scheduleTask = (ScheduleTask) scheduleItem;
+				String taskFuncIdKey = modeId + scheduleTask.getTaskName();
+				
+				if(taskFuncIdMap.containsKey(taskFuncIdKey))
+				{
+					scheduleTask.setTaskFuncId(taskFuncIdMap.get(taskFuncIdKey).getCurTaskFuncId());
+					taskFuncIdMap.get(taskFuncIdKey).setUsed(true);
+				}
+				else
+				{
+					taskFuncIdMap.put(taskFuncIdKey, new TaskFuncIdChecker());
+				}
+			}
+		}
+	}
+	
+	private void setScheduleListIndexAndTaskFuncId()
 	{
 		int index = 0;
+		
 		for(CompositeTaskMappingInfo mappingInfo : this.staticScheduleMappingInfo.values())
 		{
+			HashMap<String, TaskFuncIdChecker> taskFuncIdMap = new HashMap<String, TaskFuncIdChecker>();
+ 
 			for(MappedProcessor mappedProcessor: mappingInfo.getMappedProcessorList())
 			{
 				CompositeTaskMappedProcessor compositeMappedProcessor = (CompositeTaskMappedProcessor) mappedProcessor;
 				compositeMappedProcessor.setInArrayIndex(index);
+				
+				for(CompositeTaskSchedule taskScheule: compositeMappedProcessor.getCompositeTaskScheduleList())
+				{
+					recursiveScheduleLoopTraverse(taskScheule.getScheduleList(), taskFuncIdMap, compositeMappedProcessor.getModeId());
+					
+					for(TaskFuncIdChecker funcIdChecker: taskFuncIdMap.values())
+					{
+						if(funcIdChecker.isUsed() == true)
+						{
+							funcIdChecker.increaseCurTaskFuncId();
+						}
+						funcIdChecker.setUsed(false);
+					}
+				}
+				
 				index++;
 			}
 		}
@@ -968,20 +1042,13 @@ public class Application {
 			{
 			// TODO: fully static is not supported now
 			case FULLY_STATIC: // Need schedule with time information (needed file: mapping, profile, schedule)
-				makeCompositeTaskMappingInfo(scheduleFolderPath);
-				makeGeneralTaskMappingInfo(mapping_metadata);
-				setTaskExtraInformationFromMappingInfo();
-				setRelatedChildTasksOfMTMTask();
-				setNumOfProcsOfTasks();
-				setScheduleIndex();
-				break;
 			case SELF_TIMED: // Need schedule (needed file: mapping, schedule)
 				makeCompositeTaskMappingInfo(scheduleFolderPath);
 				makeGeneralTaskMappingInfo(mapping_metadata);
 				setTaskExtraInformationFromMappingInfo();
 				setRelatedChildTasksOfMTMTask();
 				setNumOfProcsOfTasks();
-				setScheduleIndex();
+				setScheduleListIndexAndTaskFuncId();
 				break;
 			case STATIC_ASSIGNMENT: // Need mapping only (needed file: mapping)
 				makeGeneralTaskMappingInfo(mapping_metadata);

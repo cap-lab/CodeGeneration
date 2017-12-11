@@ -243,47 +243,45 @@ SProcessor g_astProcessorInfo[] = {
 			<@printScheduledCode loop_schedule_item />
 		</#list>
 	<#else>
-	${scheduleItem.taskName}_Go0();
+	${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}();
 	</#if>
 </#macro>
 
 // ##SCHEDULED_COMPOSITE_TASK_FUNCTION_IMPLEMENTATION::START
-<#list mapping_info as task_name, mapped_schedule>
-	<#if mapped_schedule.mappedTaskType == "COMPOSITE">
-		<#list mapped_schedule.mappedProcessorList as compositeMappedProcessor>
-			<#list compositeMappedProcessor.compositeTaskScheduleList as task_schedule>
+<#list schedule_info as task_name, mapped_schedule>
+	<#list mapped_schedule.mappedProcessorList as compositeMappedProcessor>
+		<#list compositeMappedProcessor.compositeTaskScheduleList as task_schedule>
 void ${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}_${task_schedule.scheduleId}_Go() 
 {
 <#list task_schedule.scheduleList as scheduleItem>
 	<@printScheduledCode scheduleItem />
 </#list>
 }
-			</#list>
 		</#list>
-	</#if>
+	</#list>
 </#list>
 // ##SCHEDULED_COMPOSITE_TASK_FUNCTION_IMPLEMENTATION::END
 
 // ##SCHEDULED_COMPOSITE_TASKS_TEMPLATE::START
 <#list schedule_info as task_name, scheduled_task>
-		<#list scheduled_task.mappedProcessorList as compositeMappedProcessor>
+	<#list scheduled_task.mappedProcessorList as compositeMappedProcessor>
 SScheduleList g_astScheduleList_${scheduled_task.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}[] = {
-			<#list compositeMappedProcessor.compositeTaskScheduleList as task_schedule>
+		<#list compositeMappedProcessor.compositeTaskScheduleList as task_schedule>
 	{
 		${task_schedule.scheduleId}, // Schedule ID
 		${scheduled_task.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}_${task_schedule.scheduleId}_Go, // Composite GO function
 		${task_schedule.throughputConstraint}, // Throughput constraint
 	},
-			</#list>
-};
 		</#list>
+};
+	</#list>
 </#list>
 // ##SCHEDULED_COMPOSITE_TASKS_TEMPLATE::END
 
 
 SScheduledTasks g_astScheduledTaskList[] = {
 <#list schedule_info as task_name, mapped_schedule>
-		<#list mapped_schedule.mappedProcessorList as compositeMappedProcessor>
+	<#list mapped_schedule.mappedProcessorList as compositeMappedProcessor>
 	{	${mapped_schedule.parentTaskId}, // Parent Task ID
 		${compositeMappedProcessor.modeId}, // Mode transition mode ID
 		&g_astScheduleList_${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}, // schedule list per throught constraint
@@ -291,7 +289,7 @@ SScheduledTasks g_astScheduledTaskList[] = {
 		0, // Schedule Index (Default to set 0)
 		${compositeMappedProcessor.sequenceIdInMode}, // Mode Sequence ID 
 	},
-		</#list>
+	</#list>
 </#list>
 };
 
