@@ -8,10 +8,19 @@ public class CompositeTaskSchedule {
 	private int throughputConstraint;
 	private int maxLoopVariableNum;
 	
+	public int getMaxLoopVariableNum() {
+		return maxLoopVariableNum;
+	}
+
+	public void setMaxLoopVariableNum(int maxLoopVariableNum) {
+		this.maxLoopVariableNum = maxLoopVariableNum;
+	}
+
 	public CompositeTaskSchedule(int scheduleId) {
 		this.scheduleId = scheduleId;
 		this.scheduleList = new ArrayList<ScheduleItem>();
 		this.throughputConstraint = 0; // throughput is not defined
+		this.maxLoopVariableNum = 0;
 	}
 	
 	public CompositeTaskSchedule(int scheduleId, int throughputConstraint) {

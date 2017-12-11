@@ -237,13 +237,17 @@ SProcessor g_astProcessorInfo[] = {
 // ##PROCESSOR_INFO_TEMPLATE::END
 
 
-<#macro printScheduledCode scheduleItem>
+<#macro printScheduledCode scheduleItem space>
 	<#if scheduleItem.itemType == "LOOP">
+${space}for(${scheduleItem.variableName} = 0 ; ${scheduleItem.variableName} < ${scheduleItem.repetition} ; ${scheduleItem.variableName}++)
+${space}{
 		<#list scheduleItem.scheduleItemList as loop_schedule_item>
-			<@printScheduledCode loop_schedule_item />
+			<#assign newspace="${space}	" />
+			<@printScheduledCode loop_schedule_item newspace />
 		</#list>
+${space}}
 	<#else>
-	${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}();
+${space}${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}();
 	</#if>
 </#macro>
 
@@ -253,8 +257,12 @@ SProcessor g_astProcessorInfo[] = {
 		<#list compositeMappedProcessor.compositeTaskScheduleList as task_schedule>
 void ${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}_${task_schedule.scheduleId}_Go() 
 {
+<#list 0..(task_schedule.maxLoopVariableNum-1) as variable_id>
+	int depth${variable_id};
+</#list>
+
 <#list task_schedule.scheduleList as scheduleItem>
-	<@printScheduledCode scheduleItem />
+	<@printScheduledCode scheduleItem "	" />
 </#list>
 }
 		</#list>
