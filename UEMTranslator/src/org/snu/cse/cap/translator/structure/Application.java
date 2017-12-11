@@ -794,14 +794,15 @@ public class Application {
 		}
 	}
 	
-	private void recursivePutTask(ScheduleLoop loop, TaskModeTransition targetTaskModeTransition, 
+	private void recursivePutTask(ArrayList<ScheduleItem> scheduleItemList, TaskModeTransition targetTaskModeTransition, 
 									CompositeTaskMappedProcessor compositeMappedProc) {		
-		for(ScheduleItem item: loop.getScheduleItemList())
+		for(ScheduleItem item: scheduleItemList)
 		{
 			switch(item.getItemType())
 			{
 			case LOOP:
-				recursivePutTask((ScheduleLoop) item, targetTaskModeTransition, compositeMappedProc);
+				ScheduleLoop scheduleLoop = (ScheduleLoop) item; 
+				recursivePutTask(scheduleLoop.getScheduleItemList(), targetTaskModeTransition, compositeMappedProc);
 				break;
 			case TASK:
 				ScheduleTask task = (ScheduleTask) item;
@@ -816,21 +817,8 @@ public class Application {
 												CompositeTaskMappedProcessor compositeMappedProc)
 	{
 		for(CompositeTaskSchedule schedule: compositeMappedProc.getCompositeTaskScheduleList())
-		{
-			for(ScheduleItem item: schedule.getScheduleList())
-			{
-				switch(item.getItemType())
-				{
-				case LOOP:
-					recursivePutTask((ScheduleLoop) item, targetTaskModeTransition, compositeMappedProc);
-					break;
-				case TASK:
-					ScheduleTask task = (ScheduleTask) item;
-					targetTaskModeTransition.putRelatedChildTask(compositeMappedProc.getProcessorId(), compositeMappedProc.getProcessorLocalId(), 
-																	compositeMappedProc.getModeId(), task.getTaskName());
-					break;
-				}
-			}
+		{		
+			recursivePutTask(schedule.getScheduleList(), targetTaskModeTransition, compositeMappedProc);
 		}
 	}
 	
