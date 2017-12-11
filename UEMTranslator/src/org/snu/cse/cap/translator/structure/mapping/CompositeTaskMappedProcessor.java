@@ -6,6 +6,7 @@ public class CompositeTaskMappedProcessor extends MappedProcessor {
 	private ArrayList<CompositeTaskSchedule> compositeTaskScheduleList;
 	private int modeId;
 	private int sequenceIdInMode;
+	private int inArrayIndex = 0;
 	
 	public CompositeTaskMappedProcessor(int processorId, int processorLocalId, int modeId, int sequenceId) {
 		super(processorId, processorLocalId);
@@ -33,5 +34,13 @@ public class CompositeTaskMappedProcessor extends MappedProcessor {
 
 	public int getSequenceIdInMode() {
 		return sequenceIdInMode;
+	}
+
+	public int getInArrayIndex() {
+		return inArrayIndex;
+	}
+
+	public void setInArrayIndex(int inArrayIndex) {
+		this.inArrayIndex = inArrayIndex;
 	}
 }

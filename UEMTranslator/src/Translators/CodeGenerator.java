@@ -114,7 +114,8 @@ public class CodeGenerator
     		root.put(Constants.TEMPLATE_TAG_TASK_GRAPH, uemDatamodel.getApplication().getTaskGraphMap());
     		root.put(Constants.TEMPLATE_TAG_CHANNEL_LIST, uemDatamodel.getApplication().getChannelList());
     		root.put(Constants.TEMPLATE_TAG_DEVICE_INFO, uemDatamodel.getApplication().getDeviceInfo());
-    		root.put(Constants.TEMPLATE_TAG_MAPPING_INFO, uemDatamodel.getApplication().getMappingInfo());
+    		root.put(Constants.TEMPLATE_TAG_MAPPING_INFO, uemDatamodel.getApplication().getGeneralMappingInfo());
+    		root.put(Constants.TEMPLATE_TAG_STATIC_SCHEDULE_INFO, uemDatamodel.getApplication().getStaticScheduleMappingInfo());
 
     		Writer out = new OutputStreamWriter(System.out);
     		temp.process(root, out);

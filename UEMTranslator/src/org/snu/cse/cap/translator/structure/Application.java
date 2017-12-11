@@ -119,7 +119,8 @@ public class Application {
 	private ArrayList<Channel> channelList;
 	private HashMap<String, Task> taskMap; // Task name : Task class
 	private HashMap<String, TaskGraph> taskGraphMap; // Task graph name : TaskGraph class
-	private HashMap<String, MappingInfo> mappingInfo; // Task name : MappingInfo class
+	private HashMap<String, GeneralTaskMappingInfo> generalMappingInfo; // Task name : MappingInfo class
+	private HashMap<String, CompositeTaskMappingInfo> staticScheduleMappingInfo;
 	private HashMap<String, Device> deviceInfo; // device name: Device class
 	private HashMap<String, HWElementType> elementTypeHash; // element type name : HWElementType class
 	private TaskGraphType applicationGraphProperty;
@@ -130,11 +131,12 @@ public class Application {
 		this.channelList = new ArrayList<Channel>();	
 		this.taskMap = new HashMap<String, Task>();
 		this.taskGraphMap = new HashMap<String, TaskGraph>();
-		this.mappingInfo = new HashMap<String, MappingInfo>();
+		this.generalMappingInfo = new HashMap<String, GeneralTaskMappingInfo>();
 		this.deviceInfo = new HashMap<String, Device>();
 		this.elementTypeHash = new HashMap<String, HWElementType>();
 		this.applicationGraphProperty = null;
 		this.portInfo = new HashMap<String, Port>();
+		this.staticScheduleMappingInfo = new HashMap<String, CompositeTaskMappingInfo>();
 	}
 	
 	private void putPortInfoFromTask(TaskType task_metadata, int taskId, String taskName) {
@@ -337,17 +339,17 @@ public class Application {
 		Task task;
 		MappingInfo mappingInfo;
 		
-		mappingInfo = this.mappingInfo.get(taskName);
+		mappingInfo = this.generalMappingInfo.get(taskName);
 		
 		if(mappingInfo == null)
 		{
 			task = this.taskMap.get(taskName);
-			mappingInfo = this.mappingInfo.get(task.getParentTaskGraphName());
+			mappingInfo = this.staticScheduleMappingInfo.get(task.getParentTaskGraphName());
 			
 			while(mappingInfo == null && task != null)
 			{
 				task = this.taskMap.get(task.getParentTaskGraphName());
-				mappingInfo = this.mappingInfo.get(task.getParentTaskGraphName());
+				mappingInfo = this.staticScheduleMappingInfo.get(task.getParentTaskGraphName());
 			}
 		}
 		
@@ -604,14 +606,14 @@ public class Application {
 	{
 		CompositeTaskMappingInfo compositeMappingInfo;
 		
-		if(this.mappingInfo.containsKey(taskName) == false)
+		if(this.staticScheduleMappingInfo.containsKey(taskName) == false)
 		{//modeId 
 			compositeMappingInfo = new CompositeTaskMappingInfo(taskName, taskId);
-			this.mappingInfo.put(taskName, compositeMappingInfo);
+			this.staticScheduleMappingInfo.put(taskName, compositeMappingInfo);
 		}
 		else
 		{
-			compositeMappingInfo = (CompositeTaskMappingInfo) this.mappingInfo.get(taskName);
+			compositeMappingInfo = (CompositeTaskMappingInfo) this.staticScheduleMappingInfo.get(taskName);
 			if(compositeMappingInfo.getMappedTaskType() != TaskShapeType.COMPOSITE)
 			{
 				throw new InvalidDataInMetadataFileException();
@@ -619,6 +621,27 @@ public class Application {
 		}
 		
 		return compositeMappingInfo;
+	}
+	
+	public String findDeviceNameFromProcessorName(String processorName) {
+		String deviceName = "";
+		
+		for(Device device: this.deviceInfo.values())
+		{
+			for(Processor proc: device.getProcessorList())
+			{
+				if(processorName.equals(proc.getName()))
+				{
+					deviceName = device.getName();
+					break;
+				}
+			}
+			
+			if(deviceName.length() > 0)
+				break;
+		}
+		
+		return deviceName;
 	}
 	
 	private void makeMultipleCompositeTaskMapping(String[] splitedFileName, File scheduleFile) throws CICXMLException, InvalidDataInMetadataFileException 
@@ -650,13 +673,9 @@ public class Application {
 		task = this.taskMap.get(taskName);
 		
 		if(taskName.equals(Constants.TOP_TASKGRAPH_NAME))
-		{
 			compositeMappingInfo = getCompositeMappingInfo(taskName, -1);
-		}
 		else
-		{
 			compositeMappingInfo = getCompositeMappingInfo(taskName, task.getId());	
-		}
 		
 		for(TaskGroupForScheduleType taskGroup: scheduleDOM.getTaskGroups().getTaskGroup())
 		{
@@ -678,18 +697,10 @@ public class Application {
 			}
 		}
 		
-		for(Device device: this.deviceInfo.values())
-		{
-			for(Processor proc: device.getProcessorList())
-			{
-				if(processorName.equals(proc.getName()))
-				{
-					compositeMappingInfo.setMappedDeviceName(device.getName());
-					break;
-				}
-			}
-		}
+		compositeMappingInfo.setMappedDeviceName(findDeviceNameFromProcessorName(processorName));
 	}
+	
+
 	
 	private void makeCompositeTaskMappingInfo(String scheduleFolderPath) throws FileNotFoundException, InvalidScheduleFileNameException, InvalidDataInMetadataFileException {
 		ScheduleFileFilter scheduleXMLFilefilter = new ScheduleFileFilter(); 
@@ -725,7 +736,7 @@ public class Application {
 		return this.taskMap.get(taskName).getType();
 	}
 	
-	private boolean checkTaskIsIncludedInMappedTask(String taskName)
+	private boolean checkTaskIsIncludedInCompositeTask(String taskName)
 	{
 		boolean isInsideCompositeTask = false;
 		Task task;
@@ -735,7 +746,7 @@ public class Application {
 		
 		do
 		{
-			if(this.mappingInfo.containsKey(task.getParentTaskGraphName()) == true)
+			if(this.staticScheduleMappingInfo.containsKey(task.getParentTaskGraphName()) == true)
 			{
 				isInsideCompositeTask = true;
 				break;
@@ -743,7 +754,7 @@ public class Application {
 			
 			parentTaskGraph = this.taskGraphMap.get(task.getParentTaskGraphName());
 			task = parentTaskGraph.getParentTask();
-		} while(task.getParentTaskGraphName() != Constants.TOP_TASKGRAPH_NAME);
+		} while(task != null);
 		
 		return isInsideCompositeTask;
 	}
@@ -752,7 +763,7 @@ public class Application {
 	{		
 		for(MappingTaskType mappedTask: mapping_metadata.getTask())
 		{
-			if(checkTaskIsIncludedInMappedTask(mappedTask.getName()) == false)
+			if(checkTaskIsIncludedInCompositeTask(mappedTask.getName()) == false)
 			{
 				Task task = this.taskMap.get(mappedTask.getName());
 				GeneralTaskMappingInfo mappingInfo = new GeneralTaskMappingInfo(mappedTask.getName(), getTaskType(mappedTask.getName()), 
@@ -769,9 +780,9 @@ public class Application {
 					}
 				}
 				
-				if(this.mappingInfo.containsKey(mappedTask.getName()) == false)
+				if(this.generalMappingInfo.containsKey(mappedTask.getName()) == false)
 				{
-					this.mappingInfo.put(mappedTask.getName(), mappingInfo);				
+					this.generalMappingInfo.put(mappedTask.getName(), mappingInfo);				
 				}
 				else // if same task is already in the mappingInfo, ignore the later one
 				{
@@ -830,17 +841,12 @@ public class Application {
 		{
 			if(task.getModeTransition() != null && task.getChildTaskGraphName() != null && task.isStaticScheduled() == true)
 			{
-				mappingInfo = this.mappingInfo.get(task.getName());
-				if(mappingInfo.getMappedTaskType() == TaskShapeType.COMPOSITE)
+				compositeMappingInfo = this.staticScheduleMappingInfo.get(task.getName());
+				for(MappedProcessor mappedProcessor: compositeMappingInfo.getMappedProcessorList())
 				{
-					compositeMappingInfo = (CompositeTaskMappingInfo) mappingInfo;
-					
-					for(MappedProcessor mappedProcessor: compositeMappingInfo.getMappedProcessorList())
-					{
-						compositeMappedProc = (CompositeTaskMappedProcessor) mappedProcessor;
-						compositeMappedProc.getModeId();
-						putRelatedChildTaskInCompositeTask(task.getModeTransition(), compositeMappedProc);
-					}
+					compositeMappedProc = (CompositeTaskMappedProcessor) mappedProcessor;
+					compositeMappedProc.getModeId();
+					putRelatedChildTaskInCompositeTask(task.getModeTransition(), compositeMappedProc);
 				}
 			}
 		}
@@ -887,27 +893,23 @@ public class Application {
 	// set taskFuncNum which is same to the number processors mapped to each task
 	private void setNumOfProcsOfTasks()
 	{
-		for(MappingInfo mappingInfo: this.mappingInfo.values())
+		Task task;
+		for(CompositeTaskMappingInfo compositeMappingInfo: this.staticScheduleMappingInfo.values())
 		{
-			Task task;
-			switch(mappingInfo.getMappedTaskType())
+			task = this.taskMap.get(compositeMappingInfo.getParentTaskName());
+			if(task != null)
 			{
-			case COMPOSITE:
-				CompositeTaskMappingInfo compositeMappingInfo = (CompositeTaskMappingInfo) mappingInfo;
-				task = this.taskMap.get(compositeMappingInfo.getParentTaskName());
-				if(task != null)
-				{
-					setChildTaskProc(task.getModeTransition().getModeMap());
-				}
-				break;
-			default:
-				GeneralTaskMappingInfo generalMappingInfo = (GeneralTaskMappingInfo) mappingInfo;
-				task = this.taskMap.get(generalMappingInfo.getTaskName());
-				task.setTaskFuncNum(mappingInfo.getMappedProcessorList().size());
-				break;
-			}			
+				setChildTaskProc(task.getModeTransition().getModeMap());
+			}
+		}
+		
+		for(GeneralTaskMappingInfo generalMappingInfo: this.generalMappingInfo.values())
+		{
+			task = this.taskMap.get(generalMappingInfo.getTaskName());
+			task.setTaskFuncNum(generalMappingInfo.getMappedProcessorList().size());			
 		}
 	}
+	
 	
 	private void recursiveSetSubgraphTaskToStaticScheduled(TaskGraph taskGraph)
 	{		
@@ -928,18 +930,29 @@ public class Application {
 	{
 		Task task;
 		TaskGraph taskGraph;
-		for(MappingInfo mappingInfo : this.mappingInfo.values())
+		for(MappingInfo mappingInfo : this.staticScheduleMappingInfo.values())
 		{
-			if(mappingInfo.getMappedTaskType() == TaskShapeType.COMPOSITE)
+			CompositeTaskMappingInfo compositeMappingInfo = (CompositeTaskMappingInfo) mappingInfo;
+			task = this.taskMap.get(compositeMappingInfo.getParentTaskName());
+			if(task != null)
 			{
-				CompositeTaskMappingInfo compositeMappingInfo = (CompositeTaskMappingInfo) mappingInfo;
-				task = this.taskMap.get(compositeMappingInfo.getParentTaskName());
-				if(task != null)
-				{
-					task.setStaticScheduled(true);
-					taskGraph = this.taskGraphMap.get(task.getChildTaskGraphName());
-					recursiveSetSubgraphTaskToStaticScheduled(taskGraph);
-				}
+				task.setStaticScheduled(true);
+				taskGraph = this.taskGraphMap.get(task.getChildTaskGraphName());
+				recursiveSetSubgraphTaskToStaticScheduled(taskGraph);
+			}
+		}
+	}
+	
+	private void setScheduleIndex()
+	{
+		int index = 0;
+		for(CompositeTaskMappingInfo mappingInfo : this.staticScheduleMappingInfo.values())
+		{
+			for(MappedProcessor mappedProcessor: mappingInfo.getMappedProcessorList())
+			{
+				CompositeTaskMappedProcessor compositeMappedProcessor = (CompositeTaskMappedProcessor) mappedProcessor;
+				compositeMappedProcessor.setInArrayIndex(index);
+				index++;
 			}
 		}
 	}
@@ -960,6 +973,7 @@ public class Application {
 				setTaskExtraInformationFromMappingInfo();
 				setRelatedChildTasksOfMTMTask();
 				setNumOfProcsOfTasks();
+				setScheduleIndex();
 				break;
 			case SELF_TIMED: // Need schedule (needed file: mapping, schedule)
 				makeCompositeTaskMappingInfo(scheduleFolderPath);
@@ -967,6 +981,7 @@ public class Application {
 				setTaskExtraInformationFromMappingInfo();
 				setRelatedChildTasksOfMTMTask();
 				setNumOfProcsOfTasks();
+				setScheduleIndex();
 				break;
 			case STATIC_ASSIGNMENT: // Need mapping only (needed file: mapping)
 				makeGeneralTaskMappingInfo(mapping_metadata);
@@ -989,8 +1004,6 @@ public class Application {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		//config_metadata.getCodeGeneration().getThreadOrFunctioncall();
 	}
 
 	public TaskGraphType getApplicationGraphProperty() {
@@ -1013,8 +1026,8 @@ public class Application {
 		return taskGraphMap;
 	}
 
-	public HashMap<String, MappingInfo> getMappingInfo() {
-		return mappingInfo;
+	public HashMap<String, GeneralTaskMappingInfo> getGeneralMappingInfo() {
+		return generalMappingInfo;
 	}
 
 	public HashMap<String, Device> getDeviceInfo() {
@@ -1027,5 +1040,9 @@ public class Application {
 
 	public HashMap<String, Port> getPortInfo() {
 		return portInfo;
+	}
+
+	public HashMap<String, CompositeTaskMappingInfo> getStaticScheduleMappingInfo() {
+		return staticScheduleMappingInfo;
 	}
 }
