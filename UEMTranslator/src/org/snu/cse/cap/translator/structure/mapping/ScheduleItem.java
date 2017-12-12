@@ -1,12 +1,22 @@
 package org.snu.cse.cap.translator.structure.mapping;
 
 public abstract class ScheduleItem {
+	private static final String variablePrefix = "depth";
 	private int repetition;
-	ScheduleItemType itemType;
+	private ScheduleItemType itemType;
+	private String variableName;
+	private int loopDepth;
 	
-	public ScheduleItem(ScheduleItemType itemType, int repetition) {
+	public ScheduleItem(ScheduleItemType itemType, int repetition, int depth) {
 		this.itemType = itemType;
 		this.repetition = repetition;
+		this.variableName = variablePrefix + depth;
+		this.loopDepth = depth;
+		
+	}
+	
+	public String getVariableName() {
+		return variableName;
 	}
 	
 	public int getRepetition() {
@@ -19,5 +29,9 @@ public abstract class ScheduleItem {
 
 	public ScheduleItemType getItemType() {
 		return itemType;
+	}
+	
+	public int getLoopDepth() {
+		return loopDepth;
 	}
 }

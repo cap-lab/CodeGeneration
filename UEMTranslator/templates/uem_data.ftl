@@ -1,10 +1,4 @@
-/*
- * uem_data.c
- *
- *  Created on: 2017. 9. 7.
- *      Author: jej
- */
-
+/* uem_data.c made by UEM Translator */
 
 // ##TASK_CODE_TEMPLATE::START
 <#list flat_task as task_name, task>
@@ -239,15 +233,35 @@ SProcessor g_astProcessorInfo[] = {
 
 <#macro printScheduledCode scheduleItem space>
 	<#if scheduleItem.itemType == "LOOP">
+		<#if (scheduleItem.repetition > 1) >
 ${space}for(${scheduleItem.variableName} = 0 ; ${scheduleItem.variableName} < ${scheduleItem.repetition} ; ${scheduleItem.variableName}++)
 ${space}{
+		</#if>
 		<#list scheduleItem.scheduleItemList as loop_schedule_item>
-			<#assign newspace="${space}	" />
+			<#if (scheduleItem.repetition <= 1) >
+				<#assign newspace="${space}" />
+			<#else>
+				<#assign newspace="${space}	" />
+			</#if>
 			<@printScheduledCode loop_schedule_item newspace />
 		</#list>
+		<#if (scheduleItem.repetition > 1) >		
 ${space}}
+
+		</#if>
 	<#else>
-${space}${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}();
+		<#if (scheduleItem.repetition > 1) >
+${space}for(${scheduleItem.variableName} = 0 ; ${scheduleItem.variableName} < ${scheduleItem.repetition} ; ${scheduleItem.variableName}++)
+${space}{
+			<#assign innerspace="${space}	" />
+		<#else>
+			<#assign innerspace="${space}" />
+		</#if>
+${innerspace}${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}();
+		<#if (scheduleItem.repetition > 1) >		
+${space}}
+
+		</#if>
 	</#if>
 </#macro>
 
@@ -257,10 +271,12 @@ ${space}${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}();
 		<#list compositeMappedProcessor.compositeTaskScheduleList as task_schedule>
 void ${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}_${task_schedule.scheduleId}_Go() 
 {
-<#list 0..(task_schedule.maxLoopVariableNum-1) as variable_id>
+<#if (task_schedule.maxLoopVariableNum > 0) >
+	<#list 0..(task_schedule.maxLoopVariableNum-1) as variable_id>
 	int depth${variable_id};
-</#list>
+	</#list>
 
+</#if>
 <#list task_schedule.scheduleList as scheduleItem>
 	<@printScheduledCode scheduleItem "	" />
 </#list>

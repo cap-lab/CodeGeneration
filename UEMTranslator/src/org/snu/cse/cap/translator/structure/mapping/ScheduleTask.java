@@ -4,8 +4,8 @@ public class ScheduleTask extends ScheduleItem {
 	private String taskName;
 	private int taskFuncId;
 	
-	public ScheduleTask(String taskName, int repetition) {
-		super(ScheduleItemType.TASK, repetition);
+	public ScheduleTask(String taskName, int repetition, int depth) {
+		super(ScheduleItemType.TASK, repetition, depth);
 		this.taskName = taskName;
 	}
 

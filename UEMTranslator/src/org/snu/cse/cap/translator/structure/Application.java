@@ -486,10 +486,11 @@ public class Application {
 	}
 	
 	// recursive function
-	public int recursiveScheduleLoopInsert(ScheduleLoop scheduleLoop, List<ScheduleElementType> scheduleElementList, int depth, int maxDepth)
+	private int recursiveScheduleLoopInsert(ArrayList<ScheduleItem> scheduleItemList, List<ScheduleElementType> scheduleElementList, int depth, int maxDepth)
 	{
 		ScheduleLoop scheduleInloop;
 		ScheduleTask scheduleTask;
+		int nextDepth = 0;
 		
 		if(maxDepth < depth)
 			maxDepth = depth;
@@ -499,13 +500,17 @@ public class Application {
 			if(scheduleElement.getLoop() != null)
 			{
 				scheduleInloop = new ScheduleLoop(scheduleElement.getLoop().getRepetition().intValue(), depth);
-				maxDepth = recursiveScheduleLoopInsert(scheduleInloop, scheduleElement.getLoop().getScheduleElement(), depth+1, maxDepth);
-				scheduleLoop.putScheduleLoop(scheduleInloop);
+				if(scheduleInloop.getRepetition() > 1)
+					nextDepth = depth + 1;
+				else
+					nextDepth = depth;
+				maxDepth = recursiveScheduleLoopInsert(scheduleInloop.getScheduleItemList(), scheduleElement.getLoop().getScheduleElement(), nextDepth, maxDepth);
+				scheduleItemList.add(scheduleInloop);
 			}
 			else if(scheduleElement.getTask() != null) 
 			{
-				scheduleTask = new ScheduleTask(scheduleElement.getTask().getName(), scheduleElement.getTask().getRepetition().intValue());
-				scheduleLoop.putScheduleTask(scheduleTask);
+				scheduleTask = new ScheduleTask(scheduleElement.getTask().getName(), scheduleElement.getTask().getRepetition().intValue(), depth);
+				scheduleItemList.add(scheduleTask);
 			}
 			else
 			{
@@ -518,29 +523,9 @@ public class Application {
 	
 	private CompositeTaskSchedule fillCompositeTaskSchedule(CompositeTaskSchedule taskSchedule, ScheduleGroupType scheduleGroup) 
 	{ 	
-		int depth = 0;
 		int maxDepth = 0;
 		
-		for(ScheduleElementType scheduleElement: scheduleGroup.getScheduleElement())
-		{
-			if(scheduleElement.getLoop() != null)
-			{
-				ScheduleLoop scheduleLoop = new ScheduleLoop(scheduleElement.getLoop().getRepetition().intValue(), depth);
-				maxDepth = recursiveScheduleLoopInsert(scheduleLoop, scheduleElement.getLoop().getScheduleElement(), depth+1, maxDepth);
-				taskSchedule.putScheduleItem(scheduleLoop);
-			}
-			else if(scheduleElement.getTask() != null) 
-			{
-				ScheduleTask scheduleTask = new ScheduleTask(scheduleElement.getTask().getName(), 
-						scheduleElement.getTask().getRepetition().intValue());
-				taskSchedule.putScheduleItem(scheduleTask);
-			}
-			else
-			{
-				// do nothing
-			}
-		}
-		
+		maxDepth = recursiveScheduleLoopInsert(taskSchedule.getScheduleList(), scheduleGroup.getScheduleElement(), 0, maxDepth);
 		taskSchedule.setMaxLoopVariableNum(maxDepth);
 		
 		return taskSchedule;
@@ -687,7 +672,7 @@ public class Application {
 		task = this.taskMap.get(taskName);
 		
 		if(taskName.equals(Constants.TOP_TASKGRAPH_NAME))
-			compositeMappingInfo = getCompositeMappingInfo(taskName, -1);
+			compositeMappingInfo = getCompositeMappingInfo(taskName, Constants.INVALID_ID_VALUE);
 		else
 			compositeMappingInfo = getCompositeMappingInfo(taskName, task.getId());	
 		
