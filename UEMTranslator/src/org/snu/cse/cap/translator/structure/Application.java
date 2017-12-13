@@ -122,8 +122,8 @@ public class Application {
 	private ArrayList<Channel> channelList;
 	private HashMap<String, Task> taskMap; // Task name : Task class
 	private HashMap<String, TaskGraph> taskGraphMap; // Task graph name : TaskGraph class
-	private HashMap<String, GeneralTaskMappingInfo> generalMappingInfo; // Task name : MappingInfo class
-	private HashMap<String, CompositeTaskMappingInfo> staticScheduleMappingInfo;
+	private HashMap<String, GeneralTaskMappingInfo> generalMappingInfo; // Task name : GeneralTaskMappingInfo class
+	private HashMap<String, CompositeTaskMappingInfo> staticScheduleMappingInfo; // Parent task Name : CompositeTaskMappingInfo class 
 	private HashMap<String, Device> deviceInfo; // device name: Device class
 	private HashMap<String, HWElementType> elementTypeHash; // element type name : HWElementType class
 	private TaskGraphType applicationGraphProperty;
@@ -140,6 +140,34 @@ public class Application {
 		this.applicationGraphProperty = null;
 		this.portInfo = new HashMap<String, Port>();
 		this.staticScheduleMappingInfo = new HashMap<String, CompositeTaskMappingInfo>();
+	}
+	
+	private class TaskFuncIdChecker 
+	{
+		private int curTaskFuncId;
+		private boolean isUsed;
+		
+		public TaskFuncIdChecker()
+		{
+			this.curTaskFuncId = 0;
+			this.isUsed = false;
+		}
+
+		public int getCurTaskFuncId() {
+			return curTaskFuncId;
+		}
+
+		public void increaseCurTaskFuncId() {
+			this.curTaskFuncId++;
+		}
+
+		public boolean isUsed() {
+			return isUsed;
+		}
+
+		public void setUsed(boolean isUsed) {
+			this.isUsed = isUsed;
+		}
 	}
 	
 	private void putPortInfoFromTask(TaskType task_metadata, int taskId, String taskName) {
@@ -281,7 +309,7 @@ public class Application {
 		}
 	}
 	
-	public void putConnectionsOnDevice(Device device, DeviceConnectionListType connectionList)
+	private void putConnectionsOnDevice(Device device, DeviceConnectionListType connectionList)
 	{
 		if(connectionList.getBluetoothConnection() != null)
 		{
@@ -622,7 +650,7 @@ public class Application {
 		return compositeMappingInfo;
 	}
 	
-	public String findDeviceNameFromProcessorName(String processorName) {
+	private String findDeviceNameFromProcessorName(String processorName) {
 		String deviceName = "";
 		
 		for(Device device: this.deviceInfo.values())
@@ -929,33 +957,7 @@ public class Application {
 		}
 	}
 	
-	private class TaskFuncIdChecker 
-	{
-		private int curTaskFuncId;
-		private boolean isUsed;
-		
-		public TaskFuncIdChecker()
-		{
-			this.curTaskFuncId = 0;
-			this.isUsed = false;
-		}
 
-		public int getCurTaskFuncId() {
-			return curTaskFuncId;
-		}
-
-		public void increaseCurTaskFuncId() {
-			this.curTaskFuncId++;
-		}
-
-		public boolean isUsed() {
-			return isUsed;
-		}
-
-		public void setUsed(boolean isUsed) {
-			this.isUsed = isUsed;
-		}
-	}
 	
 	private void recursiveScheduleLoopTraverse(ArrayList<ScheduleItem> scheduleItemList, HashMap<String, TaskFuncIdChecker> taskFuncIdMap, int modeId)
 	{

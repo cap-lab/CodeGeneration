@@ -142,9 +142,6 @@ public class CodeGenerator
 		// TODO Auto-generated method stub
 		CodeGenerator codeGenerator = new CodeGenerator(); 
 		codeGenerator.initMetaData(args);
-		
-		Template temp;
-
 	}
 
 }
