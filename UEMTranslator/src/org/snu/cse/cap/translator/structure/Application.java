@@ -21,6 +21,7 @@ import org.snu.cse.cap.translator.structure.device.HWElementType;
 import org.snu.cse.cap.translator.structure.device.Processor;
 import org.snu.cse.cap.translator.structure.device.ProcessorElementType;
 import org.snu.cse.cap.translator.structure.device.TCPConnection;
+import org.snu.cse.cap.translator.structure.device.connection.DeviceConnection;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskMappedProcessor;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskMappingInfo;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskSchedule;
@@ -42,6 +43,8 @@ import org.snu.cse.cap.translator.structure.task.TaskShapeType;
 
 import Translators.Constants;
 import hopes.cic.exception.CICXMLException;
+import hopes.cic.xml.ArchitectureConnectType;
+import hopes.cic.xml.ArchitectureConnectionSlaveType;
 import hopes.cic.xml.ArchitectureDeviceType;
 import hopes.cic.xml.ArchitectureElementType;
 import hopes.cic.xml.ArchitectureElementTypeType;
@@ -128,6 +131,7 @@ public class Application {
 	private HashMap<String, HWElementType> elementTypeHash; // element type name : HWElementType class
 	private TaskGraphType applicationGraphProperty;
 	private HashMap<String, Port> portInfo; // Key: taskName/portName/direction, ex) 4/inMB_Y/input
+	private HashMap<String, DeviceConnection> deviceConnectionList;
 	
 	public Application()
 	{
@@ -140,6 +144,7 @@ public class Application {
 		this.applicationGraphProperty = null;
 		this.portInfo = new HashMap<String, Port>();
 		this.staticScheduleMappingInfo = new HashMap<String, CompositeTaskMappingInfo>();
+		this.deviceConnectionList = new HashMap<String, DeviceConnection>();
 	}
 	
 	private class TaskFuncIdChecker 
@@ -331,6 +336,35 @@ public class Application {
 			}
 		}
 	}
+	
+	private void makeDeviceConnectionInformation(CICArchitectureType architecture_metadata)
+	{
+		if(architecture_metadata.getConnections() != null)
+		{
+			for(ArchitectureConnectType connectType: architecture_metadata.getConnections().getConnection())
+			{
+				DeviceConnection deviceConnection;
+				if(this.deviceConnectionList.containsKey(connectType.getMaster()))
+				{
+					deviceConnection = this.deviceConnectionList.get(connectType.getMaster());
+				}
+				else
+				{
+					deviceConnection = new DeviceConnection(connectType.getMaster());
+					this.deviceConnectionList.put(connectType.getMaster(), deviceConnection);
+				}
+				
+				//connectType.getConnection(); // connection name
+				for(ArchitectureConnectionSlaveType slaveType: connectType.getSlave())
+				{
+					//slaveType.getConnection();
+					//slaveType.getDevice();
+				}
+				
+				
+			}
+		}
+	}
 
 	public void makeDeviceInformation(CICArchitectureType architecture_metadata)
 	{	
@@ -361,7 +395,7 @@ public class Application {
 				}
 
 				this.deviceInfo.put(device_metadata.getName(), device);
-			}
+			}	
 		}
 	}
 	
