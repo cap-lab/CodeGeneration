@@ -15,6 +15,7 @@ import org.snu.cse.cap.translator.structure.channel.LoopPortType;
 import org.snu.cse.cap.translator.structure.channel.Port;
 import org.snu.cse.cap.translator.structure.channel.PortSampleRate;
 import org.snu.cse.cap.translator.structure.device.BluetoothConnection;
+import org.snu.cse.cap.translator.structure.device.Connection;
 import org.snu.cse.cap.translator.structure.device.Device;
 import org.snu.cse.cap.translator.structure.device.HWCategory;
 import org.snu.cse.cap.translator.structure.device.HWElementType;
@@ -22,6 +23,7 @@ import org.snu.cse.cap.translator.structure.device.Processor;
 import org.snu.cse.cap.translator.structure.device.ProcessorElementType;
 import org.snu.cse.cap.translator.structure.device.TCPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.DeviceConnection;
+import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskMappedProcessor;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskMappingInfo;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskSchedule;
@@ -135,7 +137,7 @@ public class Application {
 	
 	public Application()
 	{
-		this.channelList = new ArrayList<Channel>();	
+		this.channelList = new ArrayList<Channel>();
 		this.taskMap = new HashMap<String, Task>();
 		this.taskGraphMap = new HashMap<String, TaskGraph>();
 		this.generalMappingInfo = new HashMap<String, GeneralTaskMappingInfo>();
@@ -337,6 +339,17 @@ public class Application {
 		}
 	}
 	
+	private Connection findConnection(String deviceName, String connectionName) throws InvalidDeviceConnectionException
+	{
+		Device device;
+		Connection connection;
+		
+		device = this.deviceInfo.get(deviceName);
+		connection = device.getConnection(connectionName);
+		
+		return connection;
+	}
+	
 	private void makeDeviceConnectionInformation(CICArchitectureType architecture_metadata)
 	{
 		if(architecture_metadata.getConnections() != null)
@@ -344,6 +357,7 @@ public class Application {
 			for(ArchitectureConnectType connectType: architecture_metadata.getConnections().getConnection())
 			{
 				DeviceConnection deviceConnection;
+				Connection master;
 				if(this.deviceConnectionList.containsKey(connectType.getMaster()))
 				{
 					deviceConnection = this.deviceConnectionList.get(connectType.getMaster());
@@ -354,14 +368,21 @@ public class Application {
 					this.deviceConnectionList.put(connectType.getMaster(), deviceConnection);
 				}
 				
-				//connectType.getConnection(); // connection name
-				for(ArchitectureConnectionSlaveType slaveType: connectType.getSlave())
-				{
-					//slaveType.getConnection();
-					//slaveType.getDevice();
+				try {
+					master = findConnection(connectType.getMaster(), connectType.getConnection());
+
+					for(ArchitectureConnectionSlaveType slaveType: connectType.getSlave())
+					{
+						Connection slave;
+	
+						slave = findConnection(slaveType.getDevice(), slaveType.getConnection());
+						deviceConnection.putMasterToSlaveConnection(master, slave);
+						deviceConnection.putSlaveToMasterConnection(slave, master);
+					}
+				} catch (InvalidDeviceConnectionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
-				
-				
 			}
 		}
 	}
@@ -395,7 +416,9 @@ public class Application {
 				}
 
 				this.deviceInfo.put(device_metadata.getName(), device);
-			}	
+			}
+			
+			makeDeviceConnectionInformation(architecture_metadata);
 		}
 	}
 	

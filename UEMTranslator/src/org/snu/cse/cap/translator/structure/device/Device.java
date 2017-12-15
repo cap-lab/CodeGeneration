@@ -1,6 +1,9 @@
 package org.snu.cse.cap.translator.structure.device;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
 
 enum ArchitectureType {
 	X86("x86"),
@@ -89,7 +92,7 @@ enum RuntimeType {
 public class Device {
 	private String name;
 	private ArrayList<Processor> processorList;
-	private ArrayList<Connection> connectionList;
+	private HashMap<String, Connection> connectionList;
 	private ArchitectureType architecture;
 	private SoftwarePlatformType platform;
 	private RuntimeType runtime;
@@ -102,7 +105,7 @@ public class Device {
 		this.platform = SoftwarePlatformType.fromValue(platform);
 		this.runtime = RuntimeType.fromValue(runtime);
 		this.processorList = new ArrayList<Processor>();
-		this.connectionList = new ArrayList<Connection>();
+		this.connectionList = new HashMap<String, Connection>();
 	}
 	
 	public String getName() {
@@ -118,7 +121,23 @@ public class Device {
 	
 	public void putConnection(Connection connection) 
 	{
-		this.connectionList.add(connection);
+		this.connectionList.put(connection.getName(), connection);
+	}
+	
+	public Connection getConnection(String connectionName) throws InvalidDeviceConnectionException 
+	{
+		Connection connection;
+		
+		if(this.connectionList.containsKey(connectionName))
+		{
+			connection = this.connectionList.get(connectionName);	
+		}
+		else
+		{
+			throw new InvalidDeviceConnectionException();
+		}
+		
+		return connection;
 	}
 
 	public ArchitectureType getArchitecture() {

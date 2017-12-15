@@ -12,5 +12,10 @@ public class MasterToSlaveConnection {
 		this.master = master;
 		this.slaveList = new ArrayList<Connection>(); 
 	}
+	
+	public void putSlave(Connection slave)
+	{
+		this.slaveList.add(slave);
+	}
 
 }
