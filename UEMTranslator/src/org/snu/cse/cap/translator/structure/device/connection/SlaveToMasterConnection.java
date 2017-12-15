@@ -11,4 +11,12 @@ public class SlaveToMasterConnection {
 		this.slave = slave;
 		this.master = master;
 	}
+
+	public Connection getSlave() {
+		return slave;
+	}
+
+	public Connection getMaster() {
+		return master;
+	}
 }

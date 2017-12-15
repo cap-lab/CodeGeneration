@@ -32,6 +32,7 @@ import org.snu.cse.cap.translator.structure.mapping.InvalidScheduleFileNameExcep
 import org.snu.cse.cap.translator.structure.mapping.MappedProcessor;
 import org.snu.cse.cap.translator.structure.mapping.MappingInfo;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleFileFilter;
+import org.snu.cse.cap.translator.structure.mapping.ScheduleFileNameOffset;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleItem;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleItemType;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleLoop;
@@ -75,26 +76,6 @@ import hopes.cic.xml.TaskPortType;
 import hopes.cic.xml.TaskRateType;
 import hopes.cic.xml.TaskType;
 
-enum ScheduleFileNameOffset {
-	TASK_NAME(0),
-	MODE_NAME(1),
-	SCHEDULE_ID(2),
-	THROUGHPUT_CONSTRAINT(3),
-	SCHEUDLE_XML(4),
-	;
-	
-	private final int value;
-	
-    private ScheduleFileNameOffset(int value) {
-        this.value = value;
-    }
-    
-    public int getValue() {
-    	return this.value;
-    }
-}
-
-
 enum ExecutionPolicy {
 	FULLY_STATIC("Fully-Static-Execution-Policy"),
 	SELF_TIMED("Self-timed-Execution-Policy"),
@@ -124,16 +105,17 @@ enum ExecutionPolicy {
 }
 
 public class Application {
+	// Overall metadata information
 	private ArrayList<Channel> channelList;
 	private HashMap<String, Task> taskMap; // Task name : Task class
 	private HashMap<String, TaskGraph> taskGraphMap; // Task graph name : TaskGraph class
 	private HashMap<String, GeneralTaskMappingInfo> generalMappingInfo; // Task name : GeneralTaskMappingInfo class
-	private HashMap<String, CompositeTaskMappingInfo> staticScheduleMappingInfo; // Parent task Name : CompositeTaskMappingInfo class 
+	private HashMap<String, CompositeTaskMappingInfo> staticScheduleMappingInfo; // Parent task Name : CompositeTaskMappingInfo class
+	private HashMap<String, Port> portInfo; // Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
 	private HashMap<String, Device> deviceInfo; // device name: Device class
-	private HashMap<String, HWElementType> elementTypeHash; // element type name : HWElementType class
-	private TaskGraphType applicationGraphProperty;
-	private HashMap<String, Port> portInfo; // Key: taskName/portName/direction, ex) 4/inMB_Y/input
 	private HashMap<String, DeviceConnection> deviceConnectionList;
+	private HashMap<String, HWElementType> elementTypeHash; // element type name : HWElementType class
+	private TaskGraphType applicationGraphProperty;	
 	
 	public Application()
 	{
@@ -141,11 +123,11 @@ public class Application {
 		this.taskMap = new HashMap<String, Task>();
 		this.taskGraphMap = new HashMap<String, TaskGraph>();
 		this.generalMappingInfo = new HashMap<String, GeneralTaskMappingInfo>();
+		this.staticScheduleMappingInfo = new HashMap<String, CompositeTaskMappingInfo>();
+		this.portInfo = new HashMap<String, Port>();
 		this.deviceInfo = new HashMap<String, Device>();
 		this.elementTypeHash = new HashMap<String, HWElementType>();
 		this.applicationGraphProperty = null;
-		this.portInfo = new HashMap<String, Port>();
-		this.staticScheduleMappingInfo = new HashMap<String, CompositeTaskMappingInfo>();
 		this.deviceConnectionList = new HashMap<String, DeviceConnection>();
 	}
 	

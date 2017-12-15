@@ -82,8 +82,9 @@ public class UEMMetaDataModel {
     {
     	application = new Application();
     	
-    	application.makeTaskInformation(algorithmMetadata);
     	application.makeDeviceInformation(architectureMetadata);
+    	
+    	application.makeTaskInformation(algorithmMetadata);
     	application.makeMappingInformation(mappingMetadata, profileMetadata, configurationMetadata, this.schedulePath);
     	application.makeChannelInformation(algorithmMetadata);
     }

@@ -18,4 +18,12 @@ public class MasterToSlaveConnection {
 		this.slaveList.add(slave);
 	}
 
+	public Connection getMaster() {
+		return master;
+	}
+
+	public ArrayList<Connection> getSlaveList() {
+		return slaveList;
+	}
+
 }
