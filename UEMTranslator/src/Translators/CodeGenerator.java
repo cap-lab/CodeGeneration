@@ -13,6 +13,8 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
+import org.snu.cse.cap.translator.structure.device.Device;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -106,19 +108,24 @@ public class CodeGenerator
  
     		Template temp = this.templateConfig.getTemplate("uem_data.ftl");
 
-    		// Create the root hash
-    		Map<String, Object> root = new HashMap<>();
-
-    		// Put UEM data model
-    		root.put(Constants.TEMPLATE_TAG_TASK_MAP, uemDatamodel.getApplication().getTaskMap());
-    		root.put(Constants.TEMPLATE_TAG_TASK_GRAPH, uemDatamodel.getApplication().getTaskGraphMap());
-    		root.put(Constants.TEMPLATE_TAG_CHANNEL_LIST, uemDatamodel.getApplication().getChannelList());
-    		root.put(Constants.TEMPLATE_TAG_DEVICE_INFO, uemDatamodel.getApplication().getDeviceInfo());
-    		root.put(Constants.TEMPLATE_TAG_MAPPING_INFO, uemDatamodel.getApplication().getGeneralMappingInfo());
-    		root.put(Constants.TEMPLATE_TAG_STATIC_SCHEDULE_INFO, uemDatamodel.getApplication().getStaticScheduleMappingInfo());
-
-    		Writer out = new OutputStreamWriter(System.out);
-    		temp.process(root, out);
+    		
+    		
+    		for(Device device : uemDatamodel.getApplication().getDeviceInfo().values())
+    		{
+    			// Create the root hash
+        		Map<String, Object> root = new HashMap<>();
+        		
+        		// Put UEM data model
+        		root.put(Constants.TEMPLATE_TAG_TASK_MAP, device.getTaskMap());
+        		root.put(Constants.TEMPLATE_TAG_TASK_GRAPH, device.getTaskGraphMap());
+        		root.put(Constants.TEMPLATE_TAG_CHANNEL_LIST, device.getChannelList());
+        		root.put(Constants.TEMPLATE_TAG_DEVICE_INFO, uemDatamodel.getApplication().getDeviceInfo());
+        		root.put(Constants.TEMPLATE_TAG_MAPPING_INFO, device.getGeneralMappingInfo());
+        		root.put(Constants.TEMPLATE_TAG_STATIC_SCHEDULE_INFO, device.getStaticScheduleMappingInfo());
+        		
+        		Writer out = new OutputStreamWriter(System.out);
+        		temp.process(root, out);
+    		}
     	}
     	catch(ParseException e) {
     		System.out.println("ERROR: " + e.getMessage());
@@ -132,6 +139,9 @@ public class CodeGenerator
     		System.out.println("Error during parsing template");
 			e.printStackTrace();
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidDataInMetadataFileException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

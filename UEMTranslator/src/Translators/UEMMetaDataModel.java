@@ -3,6 +3,7 @@ package Translators;
 import java.io.File;
 
 import org.snu.cse.cap.translator.structure.Application;
+import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 
 import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICAlgorithmType;
@@ -30,7 +31,7 @@ public class UEMMetaDataModel {
     
     private Application application = null;
     
-    public UEMMetaDataModel(String uemXMLPath, String scheduleFileFolderPath) throws CICXMLException
+    public UEMMetaDataModel(String uemXMLPath, String scheduleFileFolderPath) throws CICXMLException, InvalidDataInMetadataFileException
     {
     	parseXMLFile(uemXMLPath);
     	this.schedulePath = scheduleFileFolderPath;
@@ -78,14 +79,14 @@ public class UEMMetaDataModel {
         }
     }
     
-    private void makeApplicationDataModel()
+    private void makeApplicationDataModel() throws InvalidDataInMetadataFileException
     {
     	application = new Application();
     	
     	application.makeDeviceInformation(architectureMetadata);
     	
     	application.makeTaskInformation(algorithmMetadata);
-    	application.makeMappingInformation(mappingMetadata, profileMetadata, configurationMetadata, this.schedulePath);
+    	application.makeMappingAndTaskInformationPerDevices(mappingMetadata, profileMetadata, configurationMetadata, this.schedulePath);
     	application.makeChannelInformation(algorithmMetadata);
     }
 

@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 import org.snu.cse.cap.translator.structure.TaskGraph;
+import org.snu.cse.cap.translator.structure.ExecutionPolicy;
 import org.snu.cse.cap.translator.structure.channel.Channel;
 import org.snu.cse.cap.translator.structure.channel.Port;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
@@ -17,13 +18,18 @@ import org.snu.cse.cap.translator.structure.mapping.CompositeTaskSchedule;
 import org.snu.cse.cap.translator.structure.mapping.GeneralTaskMappingInfo;
 import org.snu.cse.cap.translator.structure.mapping.InvalidScheduleFileNameException;
 import org.snu.cse.cap.translator.structure.mapping.MappedProcessor;
+import org.snu.cse.cap.translator.structure.mapping.MappingInfo;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleFileFilter;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleFileNameOffset;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleItem;
+import org.snu.cse.cap.translator.structure.mapping.ScheduleItemType;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleLoop;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleTask;
 import org.snu.cse.cap.translator.structure.task.Task;
+import org.snu.cse.cap.translator.structure.task.TaskMode;
+import org.snu.cse.cap.translator.structure.task.TaskModeTransition;
 import org.snu.cse.cap.translator.structure.task.TaskShapeType;
+import org.snu.cse.cap.translator.structure.task.TaskMode.ChildTaskTraverseCallback;
 
 import Translators.Constants;
 import hopes.cic.exception.CICXMLException;
@@ -155,15 +161,45 @@ public class Device {
 		this.portInfo = new HashMap<String, Port>();
 	}
 	
+	private class TaskFuncIdChecker 
+	{
+		private int curTaskFuncId;
+		private boolean isUsed;
+		
+		public TaskFuncIdChecker()
+		{
+			this.curTaskFuncId = 0;
+			this.isUsed = false;
+		}
+
+		public int getCurTaskFuncId() {
+			return curTaskFuncId;
+		}
+
+		public void increaseCurTaskFuncId() {
+			this.curTaskFuncId++;
+		}
+
+		public boolean isUsed() {
+			return isUsed;
+		}
+
+		public void setUsed(boolean isUsed) {
+			this.isUsed = isUsed;
+		}
+	}
+	
 	public String getName() {
 		return name;
 	}
 	
 	// recursive function
-	private int recursiveScheduleLoopInsert(ArrayList<ScheduleItem> scheduleItemList, List<ScheduleElementType> scheduleElementList, int depth, int maxDepth)
+	private int recursiveScheduleLoopInsert(ArrayList<ScheduleItem> scheduleItemList, List<ScheduleElementType> scheduleElementList, 
+										int depth, int maxDepth, HashMap<String, Task> globalTaskMap)
 	{
 		ScheduleLoop scheduleInloop;
 		ScheduleTask scheduleTask;
+		Task task;
 		int nextDepth = 0;
 		
 		if(maxDepth < depth)
@@ -178,13 +214,15 @@ public class Device {
 					nextDepth = depth + 1;
 				else
 					nextDepth = depth;
-				maxDepth = recursiveScheduleLoopInsert(scheduleInloop.getScheduleItemList(), scheduleElement.getLoop().getScheduleElement(), nextDepth, maxDepth);
+				maxDepth = recursiveScheduleLoopInsert(scheduleInloop.getScheduleItemList(), scheduleElement.getLoop().getScheduleElement(), 
+														nextDepth, maxDepth, globalTaskMap);
 				scheduleItemList.add(scheduleInloop);
 			}
 			else if(scheduleElement.getTask() != null) 
 			{
 				scheduleTask = new ScheduleTask(scheduleElement.getTask().getName(), scheduleElement.getTask().getRepetition().intValue(), depth);
 				scheduleItemList.add(scheduleTask);
+				putTaskHierarchicallyToTaskMap(scheduleTask.getTaskName(), globalTaskMap);
 			}
 			else
 			{
@@ -195,22 +233,23 @@ public class Device {
 		return maxDepth;
 	}
 	
-	private CompositeTaskSchedule fillCompositeTaskSchedule(CompositeTaskSchedule taskSchedule, ScheduleGroupType scheduleGroup) 
+	private CompositeTaskSchedule fillCompositeTaskSchedule(CompositeTaskSchedule taskSchedule, ScheduleGroupType scheduleGroup, 
+															HashMap<String, Task> globalTaskMap) 
 	{ 	
 		int maxDepth = 0;
 		
-		maxDepth = recursiveScheduleLoopInsert(taskSchedule.getScheduleList(), scheduleGroup.getScheduleElement(), 0, maxDepth);
+		maxDepth = recursiveScheduleLoopInsert(taskSchedule.getScheduleList(), scheduleGroup.getScheduleElement(), 0, maxDepth, globalTaskMap);
 		taskSchedule.setMaxLoopVariableNum(maxDepth);
 		
 		return taskSchedule;
 	}
 	
-	private int getProcessorIdByName(String processorName) throws InvalidDataInMetadataFileException {
+	private int getProcessorIdByName(String processorName) throws InvalidDataInMetadataFileException,NoProcessorFoundException {
 		int processorId = Constants.INVALID_ID_VALUE;
 
 		for(Processor processor: this.getProcessorList())
 		{
-			if(processorName.equals(this.name))
+			if(processorName.equals(processor.getName()))
 			{
 				processorId = processor.getId();
 				break;
@@ -218,7 +257,7 @@ public class Device {
 		}
 		
 		if(processorId == Constants.INVALID_ID_VALUE)
-			throw new InvalidDataInMetadataFileException("There is no processor name called " + processorName);
+			throw new NoProcessorFoundException("There is no processor name called " + processorName);
 		
 		return processorId; 
 	}
@@ -305,17 +344,36 @@ public class Device {
 		return processorNameFound;
 	}
 	
-	private void putTaskHierarchicallyToTaskMap(Task task, HashMap<String, Task> globalTaskMap)
+	private void putTaskHierarchicallyToTaskMap(String taskName, HashMap<String, Task> globalTaskMap)
 	{
 		Task currentTask;
-		currentTask = task;
-		while(this.taskMap.containsKey(currentTask.getName()) == false && 
-			currentTask.getParentTaskGraphName().equals(Constants.TOP_TASKGRAPH_NAME) == false)
+		TaskGraph taskGraph;
+		int inGraphIndex = 0;
+		currentTask = globalTaskMap.get(taskName);
+		while(this.taskMap.containsKey(currentTask.getName()) == false)
 		{
 			this.taskMap.put(currentTask.getName(), currentTask);
+			
+			if(this.taskGraphMap.containsKey(currentTask.getParentTaskGraphName()))
+			{
+				taskGraph = this.taskGraphMap.get(currentTask.getParentTaskGraphName());
+			}
+			else
+			{
+				taskGraph = new TaskGraph(currentTask.getParentTaskGraphName());
+				this.taskGraphMap.put(currentTask.getParentTaskGraphName(), taskGraph);
+			}
+
+			inGraphIndex = taskGraph.getNumOfTasks();
+			currentTask.setInGraphIndex(inGraphIndex);
+			
+			taskGraph.putTask(currentTask);
+			
+			if(currentTask.getParentTaskGraphName().equals(Constants.TOP_TASKGRAPH_NAME) == true)
+				break;
+			
 			currentTask = globalTaskMap.get(currentTask.getParentTaskGraphName());
 		}
-		
 	}
 	
 	private void makeMultipleCompositeTaskMapping(String[] splitedFileName, File scheduleFile, HashMap<String, Task> globalTaskMap)
@@ -351,7 +409,12 @@ public class Device {
 		{
 			for(ScheduleGroupType scheduleGroup : taskGroup.getScheduleGroup())
 			{
-				procId = getProcessorIdByName(scheduleGroup.getPoolName());
+				try {
+					procId = getProcessorIdByName(scheduleGroup.getPoolName());
+				} catch (NoProcessorFoundException e) {
+					// skip processor
+					continue;
+				}
 				// TODO: currently the last-picked processor name is used for searching the device name
 				// get processor name from schedule information
 				processorName = scheduleGroup.getPoolName();
@@ -363,22 +426,24 @@ public class Device {
 					CompositeTaskSchedule taskSchedule = new CompositeTaskSchedule(scheduleId, throughputConstraint);
 					
 					if(taskName.equals(Constants.TOP_TASKGRAPH_NAME))
+					{
 						compositeMappingInfo = getCompositeMappingInfo(taskName, Constants.INVALID_ID_VALUE);
+					}
 					else
 						compositeMappingInfo = getCompositeMappingInfo(taskName, task.getId());
 					
-					fillCompositeTaskSchedule(taskSchedule, scheduleGroup) ;				
+					fillCompositeTaskSchedule(taskSchedule, scheduleGroup, globalTaskMap) ;				
 					mappedProcessor.putCompositeTaskSchedule(taskSchedule);
 					compositeMappingInfo.putProcessor(mappedProcessor);
 					compositeMappingInfo.setMappedDeviceName(this.name);
+					
 					sequenceId++;
-					putTaskHierarchicallyToTaskMap(task, globalTaskMap);
 				}
 			}
 		}
 	}
 	
-	private void makeCompositeTaskMappingInfo(HashMap<String, Task> globalTaskMap, String scheduleFolderPath) throws FileNotFoundException, InvalidScheduleFileNameException, InvalidDataInMetadataFileException {
+	private void setCompositeTaskMappingInfo(HashMap<String, Task> globalTaskMap, String scheduleFolderPath) throws FileNotFoundException, InvalidScheduleFileNameException, InvalidDataInMetadataFileException {
 		ScheduleFileFilter scheduleXMLFilefilter = new ScheduleFileFilter(); 
 		String[] splitedFileName = null;
 		File scheduleFolder = new File(scheduleFolderPath);
@@ -412,13 +477,12 @@ public class Device {
 		return this.taskMap.get(taskName).getType();
 	}
 	
-	private boolean checkTaskIsIncludedInCompositeTask(String taskName)
+	private boolean checkTaskIsIncludedInCompositeTask(String taskName, HashMap<String, Task> globalTaskMap)
 	{
 		boolean isInsideCompositeTask = false;
 		Task task;
-		TaskGraph parentTaskGraph;
 		
-		task = this.taskMap.get(taskName);
+		task = globalTaskMap.get(taskName);
 		
 		do
 		{
@@ -428,81 +492,292 @@ public class Device {
 				break;
 			}
 			
-			parentTaskGraph = this.taskGraphMap.get(task.getParentTaskGraphName());
-			task = parentTaskGraph.getParentTask();
+			// set parent task to next task
+			task = globalTaskMap.get(task.getParentTaskGraphName());
 		} while(task != null);
 		
 		return isInsideCompositeTask;
 	}
 	
-	// TODO
-	private void makeGeneralTaskMappingInfo(CICMappingType mapping_metadata) throws InvalidDataInMetadataFileException
+
+	private void setGeneralTaskMappingInfo(CICMappingType mapping_metadata, HashMap<String, Task> globalTaskMap) throws InvalidDataInMetadataFileException, NoProcessorFoundException
 	{		
 		for(MappingTaskType mappedTask: mapping_metadata.getTask())
 		{
-			if(checkTaskIsIncludedInCompositeTask(mappedTask.getName()) == false)
+			for(MappingDeviceType device: mappedTask.getDevice())
 			{
-				Task task = this.taskMap.get(mappedTask.getName());
-				GeneralTaskMappingInfo mappingInfo = new GeneralTaskMappingInfo(mappedTask.getName(), getTaskType(mappedTask.getName()), 
-														task.getParentTaskGraphName(), task.getInGraphIndex());
-				for(MappingDeviceType device: mappedTask.getDevice())
+				if(device.getName().equals(this.name) && 
+					checkTaskIsIncludedInCompositeTask(mappedTask.getName(), globalTaskMap) == false)
 				{
-					// TODO: multiple task mapping on different devices is not supported now
-					mappingInfo.setMappedDeviceName(device.getName()); 
+					Task task = globalTaskMap.get(mappedTask.getName());
+					
+					putTaskHierarchicallyToTaskMap(task.getName(), globalTaskMap);
+					
+					GeneralTaskMappingInfo mappingInfo = new GeneralTaskMappingInfo(mappedTask.getName(), getTaskType(mappedTask.getName()), 
+							task.getParentTaskGraphName(), task.getInGraphIndex());
+					
+					mappingInfo.setMappedDeviceName(device.getName());
 					
 					for(MappingProcessorIdType proc: device.getProcessor())
 					{
 						MappedProcessor processor = new MappedProcessor(getProcessorIdByName(proc.getPool()), proc.getLocalId().intValue());
 						mappingInfo.putProcessor(processor);
 					}
-				}
-				
-				if(this.generalMappingInfo.containsKey(mappedTask.getName()) == false)
-				{
-					this.generalMappingInfo.put(mappedTask.getName(), mappingInfo);				
-				}
-				else // if same task is already in the mappingInfo, ignore the later one
-				{
-					// ignore the mapping (because the duplicated key means it already registered 
+					
+					if(this.generalMappingInfo.containsKey(mappedTask.getName()) == false)
+					{
+						this.generalMappingInfo.put(mappedTask.getName(), mappingInfo);				
+					}
+					else // if same task is already in the mappingInfo, ignore the later one
+					{
+						// ignore the mapping (because the duplicated key means it already registered 
+					}
+					break;
 				}
 			}
 		}
 	}
 	
-	public void putInDeviceTaskInformation(HashMap<String, Task> globalTaskMap, 
-									String scheduleFolderPath, CICMappingType mapping_metadata)
+	private void recursiveSetSubgraphTaskToStaticScheduled(TaskGraph taskGraph)
+	{		
+		TaskGraph subTaskGraph;
+		for(Task subTask: taskGraph.getTaskList())
+		{
+			subTask.setStaticScheduled(true);
+			if(subTask.getChildTaskGraphName() != null) 
+			{
+				subTaskGraph = this.taskGraphMap.get(subTask.getChildTaskGraphName());
+				recursiveSetSubgraphTaskToStaticScheduled(subTaskGraph);
+			}
+		}
+	}
+	
+	private void setTaskExtraInformationFromMappingInfo()
 	{
-		try {
-			makeCompositeTaskMappingInfo(globalTaskMap, scheduleFolderPath);
-		} catch (FileNotFoundException | InvalidScheduleFileNameException | InvalidDataInMetadataFileException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		Task task;
+		TaskGraph taskGraph;
+		for(MappingInfo mappingInfo : this.staticScheduleMappingInfo.values())
+		{
+			CompositeTaskMappingInfo compositeMappingInfo = (CompositeTaskMappingInfo) mappingInfo;
+			task = this.taskMap.get(compositeMappingInfo.getParentTaskName());
+			if(task != null)
+			{
+				task.setStaticScheduled(true);
+				taskGraph = this.taskGraphMap.get(task.getChildTaskGraphName());
+				recursiveSetSubgraphTaskToStaticScheduled(taskGraph);
+			}
+		}
+	}
+	
+	private void recursivePutTask(ArrayList<ScheduleItem> scheduleItemList, TaskModeTransition targetTaskModeTransition, 
+			CompositeTaskMappedProcessor compositeMappedProc) 
+	{		
+		for(ScheduleItem item: scheduleItemList)
+		{
+			switch(item.getItemType())
+			{
+			case LOOP:
+				ScheduleLoop scheduleLoop = (ScheduleLoop) item; 
+				recursivePutTask(scheduleLoop.getScheduleItemList(), targetTaskModeTransition, compositeMappedProc);
+				break;
+			case TASK:
+				ScheduleTask task = (ScheduleTask) item;
+				targetTaskModeTransition.putRelatedChildTask(compositeMappedProc.getProcessorId(), compositeMappedProc.getProcessorLocalId(), 
+						compositeMappedProc.getModeId(), task.getTaskName());
+				break;
+			}
+		}
+	}
+
+	private void putRelatedChildTaskInCompositeTask(TaskModeTransition targetTaskModeTransition, 
+			CompositeTaskMappedProcessor compositeMappedProc)
+	{
+		for(CompositeTaskSchedule schedule: compositeMappedProc.getCompositeTaskScheduleList())
+		{		
+			recursivePutTask(schedule.getScheduleList(), targetTaskModeTransition, compositeMappedProc);
+		}
+	}
+	
+	private void setRelatedChildTasksOfMTMTask()
+	{
+		CompositeTaskMappingInfo compositeMappingInfo;
+		CompositeTaskMappedProcessor compositeMappedProc;
+		for(Task task: this.taskMap.values())
+		{
+			if(task.getModeTransition() != null && task.getChildTaskGraphName() != null && task.isStaticScheduled() == true)
+			{
+				compositeMappingInfo = this.staticScheduleMappingInfo.get(task.getName());
+				for(MappedProcessor mappedProcessor: compositeMappingInfo.getMappedProcessorList())
+				{
+					compositeMappedProc = (CompositeTaskMappedProcessor) mappedProcessor;
+					compositeMappedProc.getModeId();
+					putRelatedChildTaskInCompositeTask(task.getModeTransition(), compositeMappedProc);
+				}
+			}
+		}
+	}
+	
+	private void setChildTaskProc(HashMap<String, TaskMode> modeMap)
+	{
+		ChildTaskTraverseCallback<HashMap<String, Integer>> childTaskCallback;
+		HashMap<String, Integer> relatedTaskMap = new HashMap<String, Integer>();
+		
+		childTaskCallback = new ChildTaskTraverseCallback<HashMap<String, Integer>>() {
+			@Override
+			public void traverseCallback(String taskName, int procId, int procLocalId, HashMap<String, Integer> taskSet) {
+				Integer intValue;
+				
+				if(taskSet.containsKey(taskName) == false)
+				{
+					taskSet.put(taskName, new Integer(1));					
+				}
+				else // key exists
+				{
+					intValue = taskSet.get(taskName);
+					intValue++;
+				}
+			}
+		};
+		
+		for(TaskMode mode: modeMap.values())
+		{
+			mode.traverseRelatedChildTask(childTaskCallback, relatedTaskMap);
+			
+			for(String taskName: relatedTaskMap.keySet())
+			{
+				Task task = this.taskMap.get(taskName);
+				int newMappedProcNum = relatedTaskMap.get(taskName).intValue();
+				if(task.getTaskFuncNum() < newMappedProcNum)
+				{
+					task.setTaskFuncNum(newMappedProcNum);
+				}
+			}
+		}
+	}
+	
+	// set taskFuncNum which is same to the number processors mapped to each task
+	private void setNumOfProcsOfTasks()
+	{
+		Task task;
+		for(CompositeTaskMappingInfo compositeMappingInfo: this.staticScheduleMappingInfo.values())
+		{
+			task = this.taskMap.get(compositeMappingInfo.getParentTaskName());
+			if(task != null)
+			{
+				setChildTaskProc(task.getModeTransition().getModeMap());
+			}
 		}
 		
-//		for(GeneralTaskMappingInfo mappingInfo: globalMappingInfo.values())
-//		{
-//			// mapped to current device
-//			if(mappingInfo.getMappedDeviceName().equals(this.name))
-//			{
-//				TaskGraph taskGraph;
-//				
-//				//while()
-//				Task task =	globalTaskMap.get(mappingInfo.getTaskName());
-//				this.taskMap.put(task.getName(), task);
-//				
-//				if(this.taskGraphMap.containsKey(task.getParentTaskGraphName()))
-//				{
-//					taskGraph = this.taskGraphMap.get(task.getParentTaskGraphName());
-//				}
-//				else
-//				{
-//					taskGraph = new TaskGraph(task.getParentTaskGraphName());
-//					this.taskGraphMap.put(task.getParentTaskGraphName(), taskGraph);
-//				}
-//				
-//				taskGraph.putTask(task);
-//			}
-//		}
+		for(GeneralTaskMappingInfo generalMappingInfo: this.generalMappingInfo.values())
+		{
+			task = this.taskMap.get(generalMappingInfo.getTaskName());
+			task.setTaskFuncNum(generalMappingInfo.getMappedProcessorList().size());			
+		}
+	}
+	
+	private void recursiveScheduleLoopTraverse(ArrayList<ScheduleItem> scheduleItemList, HashMap<String, TaskFuncIdChecker> taskFuncIdMap, int modeId)
+	{
+		for(ScheduleItem scheduleItem : scheduleItemList)
+		{
+			if(scheduleItem.getItemType() == ScheduleItemType.LOOP)
+			{
+				ScheduleLoop scheduleInnerLoop = (ScheduleLoop) scheduleItem;
+				recursiveScheduleLoopTraverse(scheduleInnerLoop.getScheduleItemList(), taskFuncIdMap, modeId);
+			}
+			else
+			{
+				ScheduleTask scheduleTask = (ScheduleTask) scheduleItem;
+				String taskFuncIdKey = modeId + scheduleTask.getTaskName();
+				
+				if(taskFuncIdMap.containsKey(taskFuncIdKey))
+				{
+					scheduleTask.setTaskFuncId(taskFuncIdMap.get(taskFuncIdKey).getCurTaskFuncId());
+					taskFuncIdMap.get(taskFuncIdKey).setUsed(true);
+				}
+				else
+				{
+					taskFuncIdMap.put(taskFuncIdKey, new TaskFuncIdChecker());
+				}
+			}
+		}
+	}
+	
+	private void setScheduleListIndexAndTaskFuncId()
+	{
+		int index = 0;
+		
+		for(CompositeTaskMappingInfo mappingInfo : this.staticScheduleMappingInfo.values())
+		{
+			HashMap<String, TaskFuncIdChecker> taskFuncIdMap = new HashMap<String, TaskFuncIdChecker>();
+ 
+			for(MappedProcessor mappedProcessor: mappingInfo.getMappedProcessorList())
+			{
+				CompositeTaskMappedProcessor compositeMappedProcessor = (CompositeTaskMappedProcessor) mappedProcessor;
+				compositeMappedProcessor.setInArrayIndex(index);
+				
+				for(CompositeTaskSchedule taskScheule: compositeMappedProcessor.getCompositeTaskScheduleList())
+				{
+					recursiveScheduleLoopTraverse(taskScheule.getScheduleList(), taskFuncIdMap, compositeMappedProcessor.getModeId());
+					
+					for(TaskFuncIdChecker funcIdChecker: taskFuncIdMap.values())
+					{
+						if(funcIdChecker.isUsed() == true)
+						{
+							funcIdChecker.increaseCurTaskFuncId();
+						}
+						funcIdChecker.setUsed(false);
+					}
+				}
+				
+				index++;
+			}
+		}
+	}
+	
+	private void setParentTaskOfTaskGraph()
+	{
+		Task task;
+		
+		for(TaskGraph taskGraph: this.taskGraphMap.values())
+		{
+			if(taskGraph.getName().equals(Constants.TOP_TASKGRAPH_NAME))
+			{
+				// Top-level task graph, no parent task
+			}
+			else
+			{
+				task = this.taskMap.get(taskGraph.getName());
+				taskGraph.setParentTask(task);
+			}
+		}
+	}
+	
+	public void putInDeviceTaskInformation(HashMap<String, Task> globalTaskMap, 
+									String scheduleFolderPath, CICMappingType mapping_metadata, ExecutionPolicy executionPolicy)
+	throws FileNotFoundException, InvalidScheduleFileNameException, InvalidDataInMetadataFileException, NoProcessorFoundException
+	{
+		switch(executionPolicy)
+		{
+		// TODO: fully static is not supported now
+		case FULLY_STATIC: // Need schedule with time information (needed file: mapping, profile, schedule)
+		case SELF_TIMED: // Need schedule (needed file: mapping, schedule)
+			setCompositeTaskMappingInfo(globalTaskMap, scheduleFolderPath);
+			setGeneralTaskMappingInfo( mapping_metadata, globalTaskMap);
+			setParentTaskOfTaskGraph();
+			setTaskExtraInformationFromMappingInfo();
+			setRelatedChildTasksOfMTMTask();
+			setNumOfProcsOfTasks();
+			setScheduleListIndexAndTaskFuncId();
+			break;
+		case STATIC_ASSIGNMENT: // Need mapping only (needed file: mapping)
+			setGeneralTaskMappingInfo( mapping_metadata, globalTaskMap);
+			setNumOfProcsOfTasks();
+			break;
+		// TODO: fully dynamic is not supported now
+		case FULLY_DYNAMIC: // Need mapped device information (needed file: mapping)
+			setGeneralTaskMappingInfo( mapping_metadata, globalTaskMap);
+			break;
+		}
 	}
 
 	public void putProcessingElement(int id, String name, ProcessorCategory type, int poolSize) 
@@ -563,5 +838,29 @@ public class Device {
 
 	public void setProcessorList(ArrayList<Processor> processorList) {
 		this.processorList = processorList;
+	}
+
+	public HashMap<String, Task> getTaskMap() {
+		return taskMap;
+	}
+
+	public HashMap<String, GeneralTaskMappingInfo> getGeneralMappingInfo() {
+		return generalMappingInfo;
+	}
+
+	public HashMap<String, CompositeTaskMappingInfo> getStaticScheduleMappingInfo() {
+		return staticScheduleMappingInfo;
+	}
+
+	public ArrayList<Channel> getChannelList() {
+		return channelList;
+	}
+
+	public HashMap<String, Port> getPortInfo() {
+		return portInfo;
+	}
+
+	public HashMap<String, TaskGraph> getTaskGraphMap() {
+		return taskGraphMap;
 	}
 }

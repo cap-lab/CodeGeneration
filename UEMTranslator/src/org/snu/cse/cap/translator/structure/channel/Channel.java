@@ -9,8 +9,8 @@ public class Channel {
 	private CommunicationType communicationType;
 	private ChannelArrayType channelType;
 	private int size;
-	private Port inputPort;
-	private Port outputPort;
+	private Port inputPort; // the most outer port is set here
+	private Port outputPort; // the most outer port is set here
 	private int maximumChunkNum;
 	
 	public Channel(int index, int size) {

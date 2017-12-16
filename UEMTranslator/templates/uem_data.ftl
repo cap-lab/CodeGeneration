@@ -53,7 +53,7 @@ SChunk g_astChunk_channel_${channel.index}_in[] = {
 
 </#list>
 // ##CHUNK_DEFINITION_TEMPLATE::END
-portSampleRateList
+//portSampleRateList
 
 // ##PORT_SAMPLE_RATE_TEMPLATE::START
 <#list channel_list as channel>
