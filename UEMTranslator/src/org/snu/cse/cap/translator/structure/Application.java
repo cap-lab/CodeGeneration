@@ -23,6 +23,9 @@ import org.snu.cse.cap.translator.structure.device.ProcessorElementType;
 import org.snu.cse.cap.translator.structure.device.TCPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.DeviceConnection;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
+import org.snu.cse.cap.translator.structure.library.Argument;
+import org.snu.cse.cap.translator.structure.library.Function;
+import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskMappingInfo;
 import org.snu.cse.cap.translator.structure.mapping.GeneralTaskMappingInfo;
 import org.snu.cse.cap.translator.structure.mapping.InvalidScheduleFileNameException;
@@ -44,6 +47,9 @@ import hopes.cic.xml.CICProfileType;
 import hopes.cic.xml.ChannelPortType;
 import hopes.cic.xml.ChannelType;
 import hopes.cic.xml.DeviceConnectionListType;
+import hopes.cic.xml.LibraryFunctionArgumentType;
+import hopes.cic.xml.LibraryFunctionType;
+import hopes.cic.xml.LibraryType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.ModeType;
 import hopes.cic.xml.PortMapType;
@@ -61,6 +67,7 @@ public class Application {
 	private HashMap<String, DeviceConnection> deviceConnectionList;
 	private HashMap<String, HWElementType> elementTypeHash; // element type name : HWElementType class
 	private TaskGraphType applicationGraphProperty;	
+	private HashMap<String, Library> libraryMap;
 	
 	public Application()
 	{
@@ -71,6 +78,7 @@ public class Application {
 		this.elementTypeHash = new HashMap<String, HWElementType>();
 		this.applicationGraphProperty = null;
 		this.deviceConnectionList = new HashMap<String, DeviceConnection>();
+		this.libraryMap = new HashMap<String, Library>();
 	}
 	
 	private void putPortInfoFromTask(TaskType task_metadata, int taskId, String taskName) {
@@ -498,6 +506,32 @@ public class Application {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}	
+		}
+	}
+	
+	public void makeLibraryInformation(CICAlgorithmType algorithm_metadata) 
+	{
+		if(algorithm_metadata.getLibraries() != null && algorithm_metadata.getLibraries().getLibrary() != null)
+		{
+			for(LibraryType libraryType: algorithm_metadata.getLibraries().getLibrary())
+			{
+				Library library = new Library(libraryType.getName(), libraryType.getType(), libraryType.getFile(), libraryType.getHeader());
+				
+				for(LibraryFunctionType functionType : libraryType.getFunction())
+				{
+					Function function = new Function(functionType.getName(), functionType.getReturnType());
+
+					for(LibraryFunctionArgumentType argType: functionType.getArgument())
+					{
+						Argument argument = new Argument(argType.getName(), argType.getType());
+						function.getArgumentList().add(argument);
+					}
+					
+					library.getFunctionList().add(function);
+				}
+				
+				this.libraryMap.put(libraryType.getName(), library);
+			}
 		}
 	}
 
