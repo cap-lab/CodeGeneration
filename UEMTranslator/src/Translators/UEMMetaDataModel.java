@@ -2,6 +2,7 @@ package Translators;
 
 import java.io.File;
 
+import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.structure.Application;
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 

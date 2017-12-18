@@ -1,11 +1,14 @@
 package Translators;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -13,6 +16,10 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.snu.cse.cap.translator.CodeOrganizer;
+import org.snu.cse.cap.translator.Constants;
+import org.snu.cse.cap.translator.TranslatorProperties;
+import org.snu.cse.cap.translator.UnsupportedHardwareInformation;
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 import org.snu.cse.cap.translator.structure.device.Device;
 
@@ -107,8 +114,6 @@ public class CodeGenerator
     		uemDatamodel = new UEMMetaDataModel(mUEMXMLPath, mOutputPath + File.separator + Constants.SCHEDULE_FOLDER_NAME + File.separator);
  
     		Template temp = this.templateConfig.getTemplate("uem_data.ftl");
-
-    		
     		
     		for(Device device : uemDatamodel.getApplication().getDeviceInfo().values())
     		{
@@ -126,7 +131,29 @@ public class CodeGenerator
         		Writer out = new OutputStreamWriter(System.out);
         		temp.process(root, out);
     		}
-    	}
+    		
+    		Properties prop = new Properties();
+    		
+    		prop.load(new FileInputStream("config" + File.separator + "translator.properties"));
+    		
+    		temp = this.templateConfig.getTemplate("Makefile.ftl");
+    		
+    		for(Device device : uemDatamodel.getApplication().getDeviceInfo().values())
+    		{
+    			CodeOrganizer codeOrganizer = new CodeOrganizer(device.getArchitecture().toString(), 
+    							device.getPlatform().toString(), device.getRuntime().toString());
+    			
+    			codeOrganizer.extractDataFromProperties(prop);
+    			// Create the root hash
+        		Map<String, Object> root = new HashMap<>();
+        		
+        		root.put(Constants.TEMPLATE_TAG_BUILD_INFO, codeOrganizer);
+        		
+        		Writer out = new OutputStreamWriter(System.out);
+        		temp.process(root, out);
+    		}
+
+    	} 
     	catch(ParseException e) {
     		System.out.println("ERROR: " + e.getMessage());
     		formatter.printHelp("Translator.CodeGenerator [options] <Code generator binary path> <CIC XML file path> <Output file path> ", "UEM to Target C Code Translator", options, "");
@@ -142,6 +169,9 @@ public class CodeGenerator
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InvalidDataInMetadataFileException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnsupportedHardwareInformation e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

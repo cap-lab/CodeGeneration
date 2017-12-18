@@ -5,7 +5,8 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-
+import org.snu.cse.cap.translator.Constants;
+import org.snu.cse.cap.translator.Constants.PortDirection;
 import org.snu.cse.cap.translator.structure.channel.Channel;
 import org.snu.cse.cap.translator.structure.channel.ChannelArrayType;
 import org.snu.cse.cap.translator.structure.channel.CommunicationType;
@@ -29,8 +30,6 @@ import org.snu.cse.cap.translator.structure.mapping.MappingInfo;
 import org.snu.cse.cap.translator.structure.task.Task;
 import org.snu.cse.cap.translator.structure.task.TaskLoopType;
 
-import Translators.Constants;
-import Translators.Constants.PortDirection;
 import hopes.cic.xml.ArchitectureConnectType;
 import hopes.cic.xml.ArchitectureConnectionSlaveType;
 import hopes.cic.xml.ArchitectureDeviceType;

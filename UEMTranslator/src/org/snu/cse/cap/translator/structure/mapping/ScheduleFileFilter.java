@@ -3,7 +3,7 @@ package org.snu.cse.cap.translator.structure.mapping;
 import java.io.File;
 import java.io.FileFilter;
 
-import Translators.Constants;
+import org.snu.cse.cap.translator.Constants;
 
 public class ScheduleFileFilter implements FileFilter {
 	@Override

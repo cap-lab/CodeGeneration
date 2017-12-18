@@ -1,4 +1,4 @@
-package Translators;
+package org.snu.cse.cap.translator;
 
 public class Constants {
 	
@@ -24,12 +24,16 @@ public class Constants {
 	
 	public static final String NAME_SPLITER = "/";
 	
+	// tags for uem_data.ftl
 	public static final String TEMPLATE_TAG_TASK_MAP = "flat_task";
 	public static final String TEMPLATE_TAG_TASK_GRAPH = "task_graph";
 	public static final String TEMPLATE_TAG_CHANNEL_LIST = "channel_list";
 	public static final String TEMPLATE_TAG_DEVICE_INFO = "device_info";
 	public static final String TEMPLATE_TAG_MAPPING_INFO = "mapping_info";
 	public static final String TEMPLATE_TAG_STATIC_SCHEDULE_INFO = "schedule_info";
+	
+	// tags for Makefile.ftl
+	public static final String TEMPLATE_TAG_BUILD_INFO = "build_info";
 	
 	public static final String COMMANDLINE_OPTION_HELP = "help";
 	public static final String COMMANDLINE_OPTION_TEMPLATE_DIR = "template-dir";
