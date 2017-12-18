@@ -2,26 +2,23 @@
 
 package hae.peace.container.cic.mapping.xml;
 
+import java.io.ByteArrayInputStream;
+import java.io.StringWriter;
+import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
+
 import hae.kernel.util.ObjectList;
-import hae.peace.container.PeaceTargetPanel;
-import hae.peace.container.cic.analysis.CICProfilePanel;
-import hae.peace.container.cic.mapping.CICDSEPanel;
-import hae.peace.container.cic.mapping.CICManualDSEPanel;
 import hae.peace.container.cic.mapping.MemoryRegion;
 import hae.peace.container.cic.mapping.Processor;
 import hopes.cic.exception.CICXMLException;
+import hopes.cic.xml.ArchitectureDeviceType;
 import hopes.cic.xml.ArchitectureElementCategoryType;
 import hopes.cic.xml.ArchitectureElementSlavePortType;
 import hopes.cic.xml.ArchitectureElementType;
 import hopes.cic.xml.ArchitectureElementTypeType;
 import hopes.cic.xml.CICArchitectureType;
 import hopes.cic.xml.CICArchitectureTypeLoader;
-
-import java.io.ByteArrayInputStream;
-import java.io.StringWriter;
-import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.Map;
 
 public class CICArchitectureXMLHandler {
 	private CICArchitectureTypeLoader loader;
@@ -84,37 +81,47 @@ public class CICArchitectureXMLHandler {
 	}
 	
 	private void makeProcessorList() {
-		for (ArchitectureElementType element : architecture.getElements().getElement()) {
-			ArchitectureElementTypeType elementType = getElementType(ArchitectureElementCategoryType.PROCESSOR, element.getType());
-			if (elementType == null) // processor가 아니거나 invalid한 경우임
-				continue;
-			
-			int poolSize = element.getPoolSize() != null ? element.getPoolSize().intValue() : 1;
-			String os = elementType.getOS();
-			if(os==null) os = "NONE";
-			
-			// deleted for release (2015/12) - 더이상 processor 에서는 allow Data ParallelMapping이 쓰이지 않음
-//			boolean bParallel = element.isAllowDataParallelMapping();
-			for (int i = 0; i < poolSize; i++) {
-				// deleted for release (2015/12) - 더이상 processor 에서는 allow Data ParallelMapping이 쓰이지 않음				
-				Processor proc = new Processor(i, element.getName(), /*bParallel, */os, element.getType());
-				procList.add(proc);
-			}			
+		for (ArchitectureDeviceType device : architecture.getDevices().getDevice()) {
+			for (ArchitectureElementType element : device.getElements().getElement()) {
+				ArchitectureElementTypeType elementType = getElementType(ArchitectureElementCategoryType.PROCESSOR,
+						element.getType());
+				if (elementType == null) // processor가 아니거나 invalid한 경우임
+					continue;
+
+				int poolSize = element.getPoolSize() != null ? element.getPoolSize().intValue() : 1;
+				String os = elementType.getOS();
+				if (os == null)
+					os = "NONE";
+
+				// deleted for release (2015/12) - 더이상 processor 에서는 allow Data
+				// ParallelMapping이 쓰이지 않음
+				// boolean bParallel = element.isAllowDataParallelMapping();
+				for (int i = 0; i < poolSize; i++) {
+					// deleted for release (2015/12) - 더이상 processor 에서는 allow
+					// Data ParallelMapping이 쓰이지 않음
+					Processor proc = new Processor(i, element.getName(), /* bParallel, */os, element.getType(), device.getName());
+					procList.add(proc);
+				}
+			}
 		}
 	}
 	
 	Map<String, MemoryRegion> memoryRegionMap = new HashMap<String, MemoryRegion>();
+
 	private void makeMemoryRegionMap() {
-		for (ArchitectureElementType element : architecture.getElements().getElement()) {
-			ArchitectureElementTypeType elementType = getElementType(ArchitectureElementCategoryType.MEMORY, element.getType());
-			if (elementType == null) // memory가 아니거나 invalid한 경우임
-				continue;
-			
-			ArchitectureElementSlavePortType slavePort = elementType.getSlavePort().get(0);
-			BigInteger memorySize = getMemorySize(slavePort);			
-			MemoryRegion memoryRegion = new MemoryRegion("0x" + memorySize.toString(16));
-			memoryRegionMap.put(element.getName(), memoryRegion);
-		}		
+		for (ArchitectureDeviceType device : architecture.getDevices().getDevice()) {
+			for (ArchitectureElementType element : device.getElements().getElement()) {
+				ArchitectureElementTypeType elementType = getElementType(ArchitectureElementCategoryType.MEMORY,
+						element.getType());
+				if (elementType == null) // memory가 아니거나 invalid한 경우임
+					continue;
+
+				ArchitectureElementSlavePortType slavePort = elementType.getSlavePort().get(0);
+				BigInteger memorySize = getMemorySize(slavePort);
+				MemoryRegion memoryRegion = new MemoryRegion("0x" + memorySize.toString(16));
+				memoryRegionMap.put(element.getName(), memoryRegion);
+			}
+		}
 	}
 	
 	private BigInteger getMemorySize(ArchitectureElementSlavePortType slavePort) {
@@ -166,14 +173,17 @@ public class CICArchitectureXMLHandler {
 //			}
 //		}
 //	}
-	
+
 	private void update() {
-		for (ArchitectureElementType element : architecture.getElements().getElement()) {
-			ArchitectureElementTypeType elementType = getElementType(ArchitectureElementCategoryType.PROCESSOR, element.getType());
-			if (elementType == null) // processor가 아니거나 invalid한 경우임
-				continue;
-		
-			Processor processor = getProcessor(element.getName(), BigInteger.ZERO);
+		for (ArchitectureDeviceType device : architecture.getDevices().getDevice()) {
+			for (ArchitectureElementType element : device.getElements().getElement()) {
+				ArchitectureElementTypeType elementType = getElementType(ArchitectureElementCategoryType.PROCESSOR,
+						element.getType());
+				if (elementType == null) // processor가 아니거나 invalid한 경우임
+					continue;
+
+				Processor processor = getProcessor(element.getName(), BigInteger.ZERO);
+			}
 		}
 	}
 	

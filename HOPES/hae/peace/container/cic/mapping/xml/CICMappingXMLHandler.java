@@ -9,6 +9,7 @@ import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICMappingType;
 import hopes.cic.xml.CICMappingTypeLoader;
 import hopes.cic.xml.DataParallelType;
+import hopes.cic.xml.MappingDeviceType;
 import hopes.cic.xml.MappingLibraryType;
 import hopes.cic.xml.MappingProcessorIdType;
 import hopes.cic.xml.MappingTaskType;
@@ -62,7 +63,7 @@ public class CICMappingXMLHandler {
 				taskType.getDataParallel();
 				MappingTask task = new MappingTask(taskName, parallelType);
 
-				for (MappingProcessorIdType processorType : taskType.getProcessor()) {
+				for (MappingProcessorIdType processorType : taskType.getDevice().get(0).getProcessor()) {
 					String poolName = processorType.getPool();
 					BigInteger localId = processorType.getLocalId();
 
@@ -103,7 +104,7 @@ public class CICMappingXMLHandler {
 	
 	private void clearMap() {
 		for (MappingTaskType task : mapping.getTask()) {
-			task.getProcessor().clear();
+			task.getDevice().get(0).getProcessor().clear();
 		}
 	}
 
@@ -112,7 +113,17 @@ public class CICMappingXMLHandler {
 			if (!taskName.equals(task.getName()))
 				continue;
 			else
-				return task.getProcessor();
+				return task.getDevice().get(0).getProcessor();
+		}
+		return null;
+	}
+	
+	private List<MappingDeviceType> getDeviceType(String taskName){
+		for (MappingTaskType task : mapping.getTask()) {
+			if (!taskName.equals(task.getName()))
+				continue;
+			else
+				return task.getDevice();
 		}
 		return null;
 	}
@@ -123,6 +134,8 @@ public class CICMappingXMLHandler {
 			if( obj instanceof MappingTask ) {
 				MappingTask task = (MappingTask)obj;
 				
+				List<MappingDeviceType> device = getDeviceType(task.getName());
+				
 				List<MappingProcessorIdType> processors = getProcessIdList(task.getName());
 				for (Object obj2 : task.getAssignedProcList()) {
 					Processor processor = (Processor)obj2;
@@ -130,6 +143,8 @@ public class CICMappingXMLHandler {
 					processorType.setPool(processor.getName());
 					processorType.setLocalId(BigInteger.valueOf(processor.getIndex()));
 					processors.add(processorType);
+
+					device.get(0).setName(processor.getParentDevice());
 				}
 			}
 		}
