@@ -5,7 +5,8 @@ import java.util.List;
 
 import javax.management.modelmbean.InvalidTargetObjectTypeException;
 
-import Translators.Constants;
+import org.snu.cse.cap.translator.Constants;
+
 import hopes.cic.xml.LoopStructureType;
 import hopes.cic.xml.MTMConditionType;
 import hopes.cic.xml.MTMModeType;

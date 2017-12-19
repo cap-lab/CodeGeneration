@@ -2,6 +2,7 @@ package Translators;
 
 import java.io.File;
 
+import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.structure.Application;
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 
@@ -88,6 +89,7 @@ public class UEMMetaDataModel {
     	application.makeTaskInformation(algorithmMetadata);
     	application.makeMappingAndTaskInformationPerDevices(mappingMetadata, profileMetadata, configurationMetadata, this.schedulePath);
     	application.makeChannelInformation(algorithmMetadata);
+    	application.makeLibraryInformation(algorithmMetadata);
     }
 
 	public Application getApplication() {

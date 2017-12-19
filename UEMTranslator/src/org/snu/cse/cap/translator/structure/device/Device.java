@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 import org.snu.cse.cap.translator.structure.TaskGraph;
+import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.structure.ExecutionPolicy;
 import org.snu.cse.cap.translator.structure.channel.Channel;
 import org.snu.cse.cap.translator.structure.channel.Port;
@@ -31,7 +32,6 @@ import org.snu.cse.cap.translator.structure.task.TaskModeTransition;
 import org.snu.cse.cap.translator.structure.task.TaskShapeType;
 import org.snu.cse.cap.translator.structure.task.TaskMode.ChildTaskTraverseCallback;
 
-import Translators.Constants;
 import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICMappingType;
 import hopes.cic.xml.CICScheduleType;
@@ -42,90 +42,6 @@ import hopes.cic.xml.MappingTaskType;
 import hopes.cic.xml.ScheduleElementType;
 import hopes.cic.xml.ScheduleGroupType;
 import hopes.cic.xml.TaskGroupForScheduleType;
-
-enum ArchitectureType {
-	X86("x86"),
-	X86_64("x86_64"),
-	ARM("arm"),
-	ARM64("arm64"),
-	GENERIC("generic"),
-	;
-	
-	private final String value;
-	
-	private ArchitectureType(final String value) {
-		this.value = value;
-	}
-	
-	@Override
-	public String toString() {
-		return value;
-	}
-	
-	public static ArchitectureType fromValue(String value) {
-		 for (ArchitectureType c : ArchitectureType.values()) {
-			 if (c.value.equals(value)) {
-				 return c;
-			 }
-		 }
-		 throw new IllegalArgumentException(value.toString());
-	}
-}
-
-enum SoftwarePlatformType {
-	ARDUINO("arduino"),
-	WINDOWS("windows"),
-	LINUX("linux"),
-	UCOS3("ucos-3"),
-	;
-	
-	private final String value;
-	
-	private SoftwarePlatformType(final String value) {
-		this.value = value;
-	}
-	
-	@Override
-	public String toString() {
-		return value;
-	}
-	
-	public static SoftwarePlatformType fromValue(String value) {
-		 for (SoftwarePlatformType c : SoftwarePlatformType.values()) {
-			 if (c.value.equals(value)) {
-				 return c;
-			 }
-		 }
-		 throw new IllegalArgumentException(value.toString());
-	}
-}
-
-enum RuntimeType {
-	NATIVE("native"),
-	SOPHY("sophy"),
-	HSIM("hsim"),
-	;
-
-	private final String value;
-	
-	private RuntimeType(final String value) {
-		this.value = value;
-	}
-	
-	@Override
-	public String toString() {
-		return value;
-	}
-	
-	public static RuntimeType fromValue(String value) {
-		 for (RuntimeType c : RuntimeType.values()) {
-			 if (c.value.equals(value)) {
-				 return c;
-			 }
-		 }
-		 throw new IllegalArgumentException(value.toString());
-	}
-}
 
 public class Device {
 	private String name;
@@ -199,7 +115,6 @@ public class Device {
 	{
 		ScheduleLoop scheduleInloop;
 		ScheduleTask scheduleTask;
-		Task task;
 		int nextDepth = 0;
 		
 		if(maxDepth < depth)
