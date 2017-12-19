@@ -144,6 +144,8 @@ public class CodeGenerator
     							device.getPlatform().toString(), device.getRuntime().toString());
     			
     			codeOrganizer.extractDataFromProperties(prop);
+    			codeOrganizer.fillSourceCodeListFromTaskMap(device.getTaskMap());
+    			
     			// Create the root hash
         		Map<String, Object> root = new HashMap<>();
         		

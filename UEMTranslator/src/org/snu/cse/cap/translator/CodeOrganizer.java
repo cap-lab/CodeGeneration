@@ -1,7 +1,10 @@
 package org.snu.cse.cap.translator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Properties;
+
+import org.snu.cse.cap.translator.structure.task.Task;
 
 public class CodeOrganizer {
 	private String architecture;
@@ -9,6 +12,7 @@ public class CodeOrganizer {
 	private String runtime;
 	private String deviceRestriction;
 	private String platformDir;
+	private ArrayList<String> taskSourceCodeList;
 	private ArrayList<String> commonSourceList;
 	private ArrayList<String> apiSourceList;
 	private ArrayList<String> mainSourceList;
@@ -28,6 +32,7 @@ public class CodeOrganizer {
 		this.mainSourceList = new ArrayList<String>();
 		this.kernelSourceList = new ArrayList<String>();
 		this.kernelDeviceSourceList = new ArrayList<String>();
+		this.taskSourceCodeList = new ArrayList<String>();
 	}
 	
 	private boolean isArchitectureAvailable(String[] architectureList) {
@@ -149,6 +154,17 @@ public class CodeOrganizer {
 		
 		this.platformDir = this.runtime + MAKEFILE_PATH_SEPARATOR + this.platform;
 	}
+	
+	public void fillSourceCodeListFromTaskMap(HashMap<String, Task> taskMap)
+	{
+		for(Task task : taskMap.values())
+		{
+			if(task.getChildTaskGraphName() == null)
+			{
+				this.taskSourceCodeList.add(task.getTaskCodeFile());
+			}
+		}
+	}
 
 	public String getPlatformDir() {
 		return platformDir;
@@ -196,6 +212,10 @@ public class CodeOrganizer {
 
 	public String getLdadd() {
 		return ldadd;
+	}
+
+	public ArrayList<String> getTaskSourceCodeList() {
+		return taskSourceCodeList;
 	}
 }
 

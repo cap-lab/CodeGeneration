@@ -19,10 +19,8 @@ MAIN_SOURCES=\<#list build_info.mainSourceList as source_file>
 	$(MAIN_DIR)/$(PLATFORM_DIR)/${source_file}<#if (source_file?index < build_info.mainSourceList?size - 1)>\</#if>
 </#list>
 
-APPLICATION_SOURCES=$(APPLICATION_DIR)/Display.c\
-					$(APPLICATION_DIR)/VecMul.c\
-					$(APPLICATION_DIR)/MatA.c\
-					$(APPLICATION_DIR)/MatB.c
+APPLICATION_SOURCES=\<#list build_info.taskSourceCodeList as source_file>
+	$(APPLICATION_DIR)/${source_file}<#if (source_file?index < build_info.taskSourceCodeList?size - 1)>\</#if></#list>
 
 API_SOURCES=\<#list build_info.apiSourceList as source_file>
 	$(API_DIR)/${source_file}<#if (source_file?index < build_info.apiSourceList?size - 1)>\</#if></#list>
