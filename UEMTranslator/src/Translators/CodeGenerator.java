@@ -113,7 +113,7 @@ public class CodeGenerator
     		
     		uemDatamodel = new UEMMetaDataModel(mUEMXMLPath, mOutputPath + File.separator + Constants.SCHEDULE_FOLDER_NAME + File.separator);
  
-    		Template temp = this.templateConfig.getTemplate("uem_data.ftl");
+    		Template temp = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_UEM_DATA);
     		
     		for(Device device : uemDatamodel.getApplication().getDeviceInfo().values())
     		{
@@ -134,9 +134,9 @@ public class CodeGenerator
     		
     		Properties prop = new Properties();
     		
-    		prop.load(new FileInputStream("config" + File.separator + "translator.properties"));
+    		prop.load(new FileInputStream("config" + File.separator + Constants.DEFAULT_PROPERTIES_FILE_NAME));
     		
-    		temp = this.templateConfig.getTemplate("Makefile.ftl");
+    		temp = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_MAKEFILE);
     		
     		for(Device device : uemDatamodel.getApplication().getDeviceInfo().values())
     		{
@@ -156,7 +156,7 @@ public class CodeGenerator
         		temp.process(root, out);
     		}
     		
-    		temp = this.templateConfig.getTemplate("task_code.ftl");
+    		temp = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_TASK_CODE);
     		
     		for(Device device : uemDatamodel.getApplication().getDeviceInfo().values())
     		{
@@ -175,7 +175,7 @@ public class CodeGenerator
     			}
     		}
     		
-    		temp = this.templateConfig.getTemplate("library_code.ftl");
+    		temp = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_LIBRARY_CODE);
     		
     		for(Device device : uemDatamodel.getApplication().getDeviceInfo().values())
     		{
@@ -191,7 +191,7 @@ public class CodeGenerator
     			}
     		}
     		
-    		temp = this.templateConfig.getTemplate("library_header.ftl");
+    		temp = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_LIBRARY_HEADER);
     		
     		for(Device device : uemDatamodel.getApplication().getDeviceInfo().values())
     		{

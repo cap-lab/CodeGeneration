@@ -24,6 +24,15 @@ public class Constants {
 	
 	public static final String NAME_SPLITER = "/";
 	
+	public static final String DEFAULT_PROPERTIES_FILE_NAME = "translator.properties";
+	
+	// template files
+	public static final String TEMPLATE_FILE_UEM_DATA = "uem_data.ftl";
+	public static final String TEMPLATE_FILE_MAKEFILE = "Makefile.ftl";
+	public static final String TEMPLATE_FILE_TASK_CODE = "task_code.ftl";
+	public static final String TEMPLATE_FILE_LIBRARY_CODE = "library_code.ftl";
+	public static final String TEMPLATE_FILE_LIBRARY_HEADER = "library_header.ftl";
+	
 	// tags for uem_data.ftl
 	public static final String TEMPLATE_TAG_TASK_MAP = "flat_task";
 	public static final String TEMPLATE_TAG_TASK_GRAPH = "task_graph";
@@ -38,7 +47,7 @@ public class Constants {
 	// tags for task_code.ftl
 	public static final String TEMPLATE_TAG_TASK_INFO = "task_info";
 	
-	// tags for library_code.ftl
+	// tags for library_code.ftl/library_header.ftl
 	public static final String TEMPLATE_TAG_LIB_INFO = "lib_info";
 	
 	public static final String COMMANDLINE_OPTION_HELP = "help";
