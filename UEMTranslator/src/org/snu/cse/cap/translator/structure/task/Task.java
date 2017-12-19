@@ -95,6 +95,7 @@ public class Task {
 	private TaskRunCondition runCondition;
 	private String taskCodeFile;
 	private HashSet<String> libraryMasterPortSet;
+	private HashSet<String> linkedLibraryHeaderList;
 	
 	public Task(int id, TaskType xmlTaskData)
 	{
@@ -103,6 +104,7 @@ public class Task {
 		this.loopStruct = null;
 		this.modeTransition = null;
 		this.staticScheduled = false; // default is false
+		this.linkedLibraryHeaderList = new HashSet<String>();
 	
 		setId(id);
 		setName(xmlTaskData.getName());
@@ -365,5 +367,9 @@ public class Task {
 			this.childTaskGraphName = null;
 			this.taskFuncNum = 1;
 		}
+	}
+
+	public HashSet<String> getLinkedLibraryHeaderList() {
+		return linkedLibraryHeaderList;
 	}
 }

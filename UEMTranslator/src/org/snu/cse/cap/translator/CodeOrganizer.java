@@ -162,7 +162,10 @@ public class CodeOrganizer {
 		{
 			if(task.getChildTaskGraphName() == null)
 			{
-				this.taskSourceCodeList.add(task.getTaskCodeFile());
+				for(int i = 0 ; i < task.getTaskFuncNum() ; i++)
+				{
+					this.taskSourceCodeList.add(task.getName() + i);
+				}
 			}
 		}
 	}
@@ -171,7 +174,7 @@ public class CodeOrganizer {
 	{
 		for(Library library : libraryMap.values())
 		{
-			this.taskSourceCodeList.add(library.getFile());
+			this.taskSourceCodeList.add(library.getName());
 		}
 	}
 

@@ -2,6 +2,11 @@
 #include <UFPort.h> 
 #include <UFPort_deprecated.h>
 
+<#if task_info.linkedLibraryNameList??>
+	<#list task_info.linkedLibraryNameList as libraryHeader>
+#include "${libraryHeader}"
+	</#list>
+</#if>
 
 #define SYS_REQ(x, ...) SYS_REQ_##x(__VA_ARGS__)
  
@@ -12,13 +17,15 @@
 
 #define TASK_CODE_BEGIN
 #define TASK_CODE_END
-#define TASK_NAME "/*[NESTED_TASK_NAME]*/"
-#define TASK_INIT void /*[NESTED_TASK_NAME]*/_Init/*[TASK_FUNCTION_ID]*/(int TASK_ID)
-#define TASK_GO void /*[NESTED_TASK_NAME]*/_Go/*[TASK_FUNCTION_ID]*/()
-#define TASK_WRAPUP void /*[NESTED_TASK_NAME]*/_Wrapup/*[TASK_FUNCTION_ID]*/()
+#define TASK_NAME "${task_info.name}"
+<#list 0..(task_info.taskFuncNum-1) as task_func_id>
+#define TASK_INIT void ${task_info.name}_Init${task_func_id}(int TASK_ID)
+#define TASK_GO void ${task_info.name}_Go${task_func_id}()
+#define TASK_WRAPUP void ${task_info.name}_Wrapup${task_func_id}()
+</#list>
 
 #define STATIC static
-#include "/*[TASK_CODE_FILE]*/"
+#include "${task_info.taskCodeFile}"
 
 
 

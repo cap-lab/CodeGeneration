@@ -35,6 +35,9 @@ public class Constants {
 	// tags for Makefile.ftl
 	public static final String TEMPLATE_TAG_BUILD_INFO = "build_info";
 	
+	// tags for task_code.ftl
+	public static final String TEMPLATE_TAG_TASK_INFO = "task_info";
+	
 	public static final String COMMANDLINE_OPTION_HELP = "help";
 	public static final String COMMANDLINE_OPTION_TEMPLATE_DIR = "template-dir";
 	

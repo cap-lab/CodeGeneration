@@ -737,6 +737,27 @@ public class Device {
 				this.libraryMap.put(library.getName(), library);
 			}
 		}
+		
+		linkibraryToTasks();
+	}
+	
+	private void linkibraryToTasks()
+	{
+		for(Library library: this.libraryMap.values())
+		{
+			for(LibraryConnection connection: library.getLibraryConnectionList())
+			{
+				if(connection.isMasterLibrary() == false)
+				{
+					Task task = this.taskMap.get(connection.getMasterName());
+					if(task.getLinkedLibraryHeaderList().contains(library.getHeader()) == false)
+					{
+						task.getLinkedLibraryHeaderList().add(library.getHeader());					
+					}
+				}
+			}
+			
+		}
 	}
 
 	public void putProcessingElement(int id, String name, ProcessorCategory type, int poolSize) 

@@ -21,6 +21,7 @@ import org.snu.cse.cap.translator.UnsupportedHardwareInformation;
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 import org.snu.cse.cap.translator.structure.device.Device;
 import org.snu.cse.cap.translator.structure.library.Library;
+import org.snu.cse.cap.translator.structure.task.Task;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -154,6 +155,26 @@ public class CodeGenerator
         		Writer out = new OutputStreamWriter(System.out);
         		temp.process(root, out);
     		}
+    		
+    		temp = this.templateConfig.getTemplate("task_code.ftl");
+    		
+    		for(Device device : uemDatamodel.getApplication().getDeviceInfo().values())
+    		{
+    			for(Task task: device.getTaskMap().values())
+    			{
+    				if(task.getChildTaskGraphName() == null)
+    				{
+	        			// Create the root hash
+	            		Map<String, Object> root = new HashMap<>();
+	            		
+	            		root.put(Constants.TEMPLATE_TAG_TASK_INFO, task);
+	            		
+	            		Writer out = new OutputStreamWriter(System.out);
+	            		temp.process(root, out);
+    				}
+    			}
+    		}
+    		
 
     	} 
     	catch(ParseException e) {
