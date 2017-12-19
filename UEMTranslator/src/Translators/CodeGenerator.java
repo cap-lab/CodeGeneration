@@ -175,7 +175,37 @@ public class CodeGenerator
     			}
     		}
     		
-
+    		temp = this.templateConfig.getTemplate("library_code.ftl");
+    		
+    		for(Device device : uemDatamodel.getApplication().getDeviceInfo().values())
+    		{
+    			for(Library library : device.getLibraryMap().values())
+    			{
+    				// Create the root hash
+    				Map<String, Object> root = new HashMap<>();
+            		
+            		root.put(Constants.TEMPLATE_TAG_LIB_INFO, library);
+            		
+            		Writer out = new OutputStreamWriter(System.out);
+            		temp.process(root, out);
+    			}
+    		}
+    		
+    		temp = this.templateConfig.getTemplate("library_header.ftl");
+    		
+    		for(Device device : uemDatamodel.getApplication().getDeviceInfo().values())
+    		{
+    			for(Library library : device.getLibraryMap().values())
+    			{
+    				// Create the root hash
+    				Map<String, Object> root = new HashMap<>();
+            		
+            		root.put(Constants.TEMPLATE_TAG_LIB_INFO, library);
+            		
+            		Writer out = new OutputStreamWriter(System.out);
+            		temp.process(root, out);
+    			}
+    		}
     	} 
     	catch(ParseException e) {
     		System.out.println("ERROR: " + e.getMessage());

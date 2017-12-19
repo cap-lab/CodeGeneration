@@ -9,6 +9,7 @@ public class Library {
 	private String header;
 	private ArrayList<Function> functionList;
 	private ArrayList<LibraryConnection> libraryConnectionList; 
+	private String headerGuard;
 	
 	// // Master can be a task or a library
 	public Library(String name, String type, String file, String header)
@@ -19,6 +20,7 @@ public class Library {
 		this.header = header;
 		this.functionList = new ArrayList<Function>();
 		this.libraryConnectionList = new ArrayList<LibraryConnection>();
+		this.headerGuard = header.toUpperCase().replace(".", "_");
 	}
 
 	public String getName() {
@@ -43,5 +45,9 @@ public class Library {
 
 	public ArrayList<LibraryConnection> getLibraryConnectionList() {
 		return libraryConnectionList;
+	}
+
+	public String getHeaderGuard() {
+		return headerGuard;
 	}
 }
