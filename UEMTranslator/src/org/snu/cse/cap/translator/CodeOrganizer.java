@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
+import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.task.Task;
 
 public class CodeOrganizer {
@@ -163,6 +164,14 @@ public class CodeOrganizer {
 			{
 				this.taskSourceCodeList.add(task.getTaskCodeFile());
 			}
+		}
+	}
+	
+	public void fillSourceCodeListFromLibraryMap(HashMap<String, Library> libraryMap)
+	{
+		for(Library library : libraryMap.values())
+		{
+			this.taskSourceCodeList.add(library.getFile());
 		}
 	}
 

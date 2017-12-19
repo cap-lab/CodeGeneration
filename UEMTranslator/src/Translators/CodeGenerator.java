@@ -3,7 +3,6 @@ package Translators;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.HashMap;
@@ -18,10 +17,10 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.snu.cse.cap.translator.CodeOrganizer;
 import org.snu.cse.cap.translator.Constants;
-import org.snu.cse.cap.translator.TranslatorProperties;
 import org.snu.cse.cap.translator.UnsupportedHardwareInformation;
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 import org.snu.cse.cap.translator.structure.device.Device;
+import org.snu.cse.cap.translator.structure.library.Library;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -145,6 +144,7 @@ public class CodeGenerator
     			
     			codeOrganizer.extractDataFromProperties(prop);
     			codeOrganizer.fillSourceCodeListFromTaskMap(device.getTaskMap());
+    			codeOrganizer.fillSourceCodeListFromLibraryMap(device.getLibraryMap());
     			
     			// Create the root hash
         		Map<String, Object> root = new HashMap<>();

@@ -8,7 +8,9 @@ public class Library {
 	private String file;
 	private String header;
 	private ArrayList<Function> functionList;
+	private ArrayList<LibraryConnection> libraryConnectionList; 
 	
+	// // Master can be a task or a library
 	public Library(String name, String type, String file, String header)
 	{
 		this.name = name;
@@ -16,6 +18,7 @@ public class Library {
 		this.file = file;
 		this.header = header;
 		this.functionList = new ArrayList<Function>();
+		this.libraryConnectionList = new ArrayList<LibraryConnection>();
 	}
 
 	public String getName() {
@@ -36,5 +39,9 @@ public class Library {
 
 	public ArrayList<Function> getFunctionList() {
 		return functionList;
+	}
+
+	public ArrayList<LibraryConnection> getLibraryConnectionList() {
+		return libraryConnectionList;
 	}
 }

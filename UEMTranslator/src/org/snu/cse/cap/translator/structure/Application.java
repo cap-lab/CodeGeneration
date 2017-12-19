@@ -26,8 +26,7 @@ import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConne
 import org.snu.cse.cap.translator.structure.library.Argument;
 import org.snu.cse.cap.translator.structure.library.Function;
 import org.snu.cse.cap.translator.structure.library.Library;
-import org.snu.cse.cap.translator.structure.mapping.CompositeTaskMappingInfo;
-import org.snu.cse.cap.translator.structure.mapping.GeneralTaskMappingInfo;
+import org.snu.cse.cap.translator.structure.library.LibraryConnection;
 import org.snu.cse.cap.translator.structure.mapping.InvalidScheduleFileNameException;
 import org.snu.cse.cap.translator.structure.mapping.MappingInfo;
 import org.snu.cse.cap.translator.structure.task.Task;
@@ -49,11 +48,13 @@ import hopes.cic.xml.ChannelType;
 import hopes.cic.xml.DeviceConnectionListType;
 import hopes.cic.xml.LibraryFunctionArgumentType;
 import hopes.cic.xml.LibraryFunctionType;
+import hopes.cic.xml.LibraryLibraryConnectionType;
 import hopes.cic.xml.LibraryType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.ModeType;
 import hopes.cic.xml.PortMapType;
 import hopes.cic.xml.TCPConnectionType;
+import hopes.cic.xml.TaskLibraryConnectionType;
 import hopes.cic.xml.TaskPortType;
 import hopes.cic.xml.TaskRateType;
 import hopes.cic.xml.TaskType;
@@ -67,7 +68,7 @@ public class Application {
 	private HashMap<String, DeviceConnection> deviceConnectionList;
 	private HashMap<String, HWElementType> elementTypeHash; // element type name : HWElementType class
 	private TaskGraphType applicationGraphProperty;	
-	private HashMap<String, Library> libraryMap;
+	private HashMap<String, Library> libraryMap; // library name : Library class
 	
 	public Application()
 	{
@@ -509,6 +510,34 @@ public class Application {
 		}
 	}
 	
+	private void setLibraryConnectionInformation(CICAlgorithmType algorithm_metadata)
+	{
+		if(algorithm_metadata.getLibraryConnections() != null)
+		{
+			if(algorithm_metadata.getLibraryConnections().getTaskLibraryConnection() != null)
+			{
+				for(TaskLibraryConnectionType connectionType : algorithm_metadata.getLibraryConnections().getTaskLibraryConnection())
+				{
+					Library library = this.libraryMap.get(connectionType.getSlaveLibrary());
+					LibraryConnection libraryConnection = new LibraryConnection(connectionType.getMasterTask(), 
+														connectionType.getMasterPort(), false);
+					library.getLibraryConnectionList().add(libraryConnection);
+				}
+			}
+			
+			if(algorithm_metadata.getLibraryConnections().getLibraryLibraryConnection() != null)
+			{
+				for(LibraryLibraryConnectionType connectionType : algorithm_metadata.getLibraryConnections().getLibraryLibraryConnection())
+				{
+					Library library = this.libraryMap.get(connectionType.getSlaveLibrary());
+					LibraryConnection libraryConnection = new LibraryConnection(connectionType.getMasterLibrary(), 
+														connectionType.getMasterPort(), true);
+					library.getLibraryConnectionList().add(libraryConnection);
+				}
+			}
+		}
+	}
+	
 	public void makeLibraryInformation(CICAlgorithmType algorithm_metadata) 
 	{
 		if(algorithm_metadata.getLibraries() != null && algorithm_metadata.getLibraries().getLibrary() != null)
@@ -516,7 +545,7 @@ public class Application {
 			for(LibraryType libraryType: algorithm_metadata.getLibraries().getLibrary())
 			{
 				Library library = new Library(libraryType.getName(), libraryType.getType(), libraryType.getFile(), libraryType.getHeader());
-				
+								
 				for(LibraryFunctionType functionType : libraryType.getFunction())
 				{
 					Function function = new Function(functionType.getName(), functionType.getReturnType());
@@ -532,7 +561,19 @@ public class Application {
 				
 				this.libraryMap.put(libraryType.getName(), library);
 			}
+			
+			setLibraryConnectionInformation(algorithm_metadata);
+			setLibraryInfoPerDevices();
 		}
+	}
+	
+	private void setLibraryInfoPerDevices() {
+		for(Device device : this.deviceInfo.values())
+		{
+			device.putInDeviceLibraryInformation(this.libraryMap);
+		}
+		
+		//this.libraryMap;
 	}
 
 	public TaskGraphType getApplicationGraphProperty() {

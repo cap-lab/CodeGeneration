@@ -13,6 +13,8 @@ import org.snu.cse.cap.translator.structure.ExecutionPolicy;
 import org.snu.cse.cap.translator.structure.channel.Channel;
 import org.snu.cse.cap.translator.structure.channel.Port;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
+import org.snu.cse.cap.translator.structure.library.Library;
+import org.snu.cse.cap.translator.structure.library.LibraryConnection;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskMappedProcessor;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskMappingInfo;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskSchedule;
@@ -58,6 +60,7 @@ public class Device {
 	private HashMap<String, GeneralTaskMappingInfo> generalMappingInfo; // Task name : GeneralTaskMappingInfo class
 	private HashMap<String, CompositeTaskMappingInfo> staticScheduleMappingInfo; // Parent task Name : CompositeTaskMappingInfo class
 	private HashMap<String, Port> portInfo; // Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
+	private HashMap<String, Library> libraryMap;
 	
 	public Device(String name, String architecture, String platform, String runtime) 
 	{
@@ -75,6 +78,7 @@ public class Device {
 		this.generalMappingInfo = new HashMap<String, GeneralTaskMappingInfo>();
 		this.staticScheduleMappingInfo = new HashMap<String, CompositeTaskMappingInfo>();
 		this.portInfo = new HashMap<String, Port>();
+		this.libraryMap = new HashMap<String, Library>();
 	}
 	
 	private class TaskFuncIdChecker 
@@ -694,6 +698,46 @@ public class Device {
 			break;
 		}
 	}
+	
+
+	
+	private boolean recursiveIsLibraryUsedInDevice(ArrayList<LibraryConnection> libraryConnection, HashMap<String, Library> globalLibraryMap)
+	{
+		boolean isUsed = false;
+		
+		for(LibraryConnection connection: libraryConnection)
+		{
+			if(connection.isMasterLibrary() == true)
+			{
+				Library library = globalLibraryMap.get(connection.getMasterName());
+				isUsed = recursiveIsLibraryUsedInDevice(library.getLibraryConnectionList(), globalLibraryMap);			}
+			else
+			{
+				if(this.taskMap.containsKey(connection.getMasterName()) == true)
+				{
+					isUsed = true;
+				}
+			}
+			
+			if(isUsed == true)
+			{
+				break;
+			}
+		}
+		
+		return isUsed;
+	}
+	
+	public void putInDeviceLibraryInformation(HashMap<String, Library> globalLibraryMap)
+	{
+		for(Library library: globalLibraryMap.values())
+		{
+			if(recursiveIsLibraryUsedInDevice(library.getLibraryConnectionList(), globalLibraryMap) == true)
+			{
+				this.libraryMap.put(library.getName(), library);
+			}
+		}
+	}
 
 	public void putProcessingElement(int id, String name, ProcessorCategory type, int poolSize) 
 	{
@@ -777,5 +821,9 @@ public class Device {
 
 	public HashMap<String, TaskGraph> getTaskGraphMap() {
 		return taskGraphMap;
+	}
+
+	public HashMap<String, Library> getLibraryMap() {
+		return libraryMap;
 	}
 }

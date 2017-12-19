@@ -1,12 +1,14 @@
 package org.snu.cse.cap.translator.structure.task;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.management.modelmbean.InvalidTargetObjectTypeException;
 
 import org.snu.cse.cap.translator.Constants;
 
+import hopes.cic.xml.LibraryMasterPortType;
 import hopes.cic.xml.LoopStructureType;
 import hopes.cic.xml.MTMConditionType;
 import hopes.cic.xml.MTMModeType;
@@ -92,30 +94,16 @@ public class Task {
 	private boolean staticScheduled;
 	private TaskRunCondition runCondition;
 	private String taskCodeFile;
+	private HashSet<String> libraryMasterPortSet;
 	
 	public Task(int id, TaskType xmlTaskData)
 	{
 		this.taskParamList = new ArrayList<TaskParameter>();
+		this.libraryMasterPortSet = new HashSet<String>();
 		this.loopStruct = null;
 		this.modeTransition = null;
 		this.staticScheduled = false; // default is false
-//		private int taskId;
-//		private String taskName;
-//		private TaskType taskType;
-//		private int taskFuncNum; => later
-//		private int runRate;
-//		private int period;
-//		private TimeMetric periodMetric;
-//		private String parentTaskGraphName;
-//		private int inGraphIndex;
-//		private String childTaskGraphName;
-//		private TaskModeTransition modeTransition;
-//		private TaskLoop loop;
-//		private TaskParameter taskParam;
-//		private boolean staticScheduled;
-//		private TaskRunCondition runCondition; 
-//		private String taskCodeFile;
-		
+	
 		setId(id);
 		setName(xmlTaskData.getName());
 		setType(xmlTaskData.getTaskType(), xmlTaskData.getLoopStructure());
@@ -125,8 +113,15 @@ public class Task {
 		setParameters(xmlTaskData.getParameter());
 		setLoop(xmlTaskData.getLoopStructure());
 		setModeTransition(xmlTaskData.getMtm(), xmlTaskData.getHasMTM());
-		
-		// setPeriod(xmlTaskData.get);
+		setLibraryMasterPorts(xmlTaskData.getLibraryMasterPort());
+	}
+	
+	private void setLibraryMasterPorts(List<LibraryMasterPortType> libraryMasterPortList)
+	{
+		for(LibraryMasterPortType libraryMasterPort : libraryMasterPortList)
+		{
+			this.libraryMasterPortSet.add(libraryMasterPort.getName());
+		}
 	}
 	
 	private void setModeTransition(MTMType mtm, String hasMTM) 

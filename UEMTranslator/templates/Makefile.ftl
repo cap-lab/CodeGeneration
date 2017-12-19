@@ -16,8 +16,7 @@ SYSTEM_LDADD=${build_info.ldadd}
 bin_PROGRAMS=proc
 
 MAIN_SOURCES=\<#list build_info.mainSourceList as source_file>
-	$(MAIN_DIR)/$(PLATFORM_DIR)/${source_file}<#if (source_file?index < build_info.mainSourceList?size - 1)>\</#if>
-</#list>
+	$(MAIN_DIR)/$(PLATFORM_DIR)/${source_file}<#if (source_file?index < build_info.mainSourceList?size - 1)>\</#if></#list>
 
 APPLICATION_SOURCES=\<#list build_info.taskSourceCodeList as source_file>
 	$(APPLICATION_DIR)/${source_file}<#if (source_file?index < build_info.taskSourceCodeList?size - 1)>\</#if></#list>
