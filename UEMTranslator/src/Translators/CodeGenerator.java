@@ -127,6 +127,8 @@ public class CodeGenerator
         		root.put(Constants.TEMPLATE_TAG_DEVICE_INFO, uemDatamodel.getApplication().getDeviceInfo());
         		root.put(Constants.TEMPLATE_TAG_MAPPING_INFO, device.getGeneralMappingInfo());
         		root.put(Constants.TEMPLATE_TAG_STATIC_SCHEDULE_INFO, device.getStaticScheduleMappingInfo());
+        		root.put(Constants.TEMPLATE_TAG_PORT_INFO, device.getPortList());
+        		root.put(Constants.TEMPLATE_TAG_PORT_KEY_TO_INDEX, device.getPortKeyToIndex());
         		
         		Writer out = new OutputStreamWriter(System.out);
         		temp.process(root, out);

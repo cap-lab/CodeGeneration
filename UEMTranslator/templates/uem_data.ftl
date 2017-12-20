@@ -79,6 +79,27 @@ SPortSampleRate g_astPortSampleRate_${channel.outputPort.taskName}_${channel.out
 </#list>
 // ##PORT_SAMPLE_RATE_TEMPLATE::END
 
+
+// ##PORT_ARRAY_TEMPLATE::START
+SPort g_astPortInfo[] = {
+<#list port_info as port>
+	{
+		${port.taskId}, // Task ID
+		"${port.portName}", // Port name
+		PORT_SAMPLE_RATE_${port.portSampleRateType}, // Port sample rate type
+		g_astPortSampleRate_${port.taskName}_${port.portName}, // Array of sample rate list
+		${port.portSampleRateList?size}, // Array element number of sample rate list
+		0, //Selected sample rate index
+		${port.sampleSize}, // Sample size
+		PORT_TYPE_${port.portType}, // Port type
+		<#if port.subgraphPort??>&g_astPortInfo[${port_key_to_index[port.subgraphPort.portKey]}]<#else>NULL</#if>, // Pointer to Subgraph port
+	}, // Port information		
+		
+</#list>
+};
+// ##PORT_ARRAY_TEMPLATE::END
+
+
 // ##LOOP_STRUCTURE_TEMPLATE::START
 <#list flat_task as task_name, task>
 	<#if task.loopStruct??>
@@ -163,7 +184,7 @@ STaskParameter g_astTaskParameter_${task.name}[] = {
 		${task_param.name},
 		{ <#if task_param.type == "INT">.nParam = 0,<#else>.dbParam = 0</#if> },
 	},
-	</#list>>
+	</#list>
 };
 
 </#list>
@@ -211,7 +232,7 @@ SChannel g_astChannels[] = {
 			0, //Selected sample rate index
 			${channel.inputPort.sampleSize}, // Sample size
 			PORT_TYPE_${channel.inputPort.portType}, // Port type
-			NULL, // Pointer to Subgraph port
+			<#if channel.inputPort.subgraphPort??>&g_astPortInfo[${port_key_to_index[channel.inputPort.subgraphPort.portKey]}]<#else>NULL</#if>, // Pointer to Subgraph port
 		}, // Input port information
 		{
 			${channel.outputPort.taskId}, // Task ID
@@ -222,7 +243,7 @@ SChannel g_astChannels[] = {
 			0, //Selected sample rate index
 			${channel.outputPort.sampleSize}, // Sample size
 			PORT_TYPE_${channel.outputPort.portType}, // Port type
-			NULL, // Pointer to Subgraph port
+			<#if channel.outputPort.subgraphPort??>&g_astPortInfo[${port_key_to_index[channel.outputPort.subgraphPort.portKey]}]<#else>NULL</#if>, // Pointer to Subgraph port
 		}, // Output port information
 		{
 			g_astChunk_channel_${channel.index}_in, // Array of chunk

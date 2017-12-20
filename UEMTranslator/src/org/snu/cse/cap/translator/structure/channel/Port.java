@@ -3,6 +3,8 @@ package org.snu.cse.cap.translator.structure.channel;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.snu.cse.cap.translator.Constants;
+import org.snu.cse.cap.translator.Constants.PortDirection;
 import org.snu.cse.cap.translator.structure.task.Task;
 
 enum PortSampleRateType {
@@ -20,11 +22,6 @@ enum PortType {
 	
 	private PortType(final String value) {
 		this.value = value;
-	}
-	
-	@Override
-	public String toString() {
-		return value;
 	}
 	
 	public static PortType fromValue(String value) {
@@ -48,8 +45,11 @@ public class Port {
 	private Port subgraphPort;
 	private Port upperGraphPort;
 	private LoopPortType loopPortType;
+	private PortDirection direction;
+	private String portKey;
 	
-	public Port(int taskId, String taskName, String portName, int sampleSize, String portType) {
+	
+	public Port(int taskId, String taskName, String portName, int sampleSize, String portType, PortDirection direction) {
 		this.taskId = taskId;
 		this.taskName = taskName;
 		this.portName = portName;
@@ -60,6 +60,8 @@ public class Port {
 		this.subgraphPort = null;
 		this.upperGraphPort = null;
 		this.loopPortType = null;
+		this.direction = direction;
+		this.portKey = taskName + Constants.NAME_SPLITER + portName + Constants.NAME_SPLITER + direction;
 	}
 	
 	public Port getMostUpperPortInfo()
@@ -222,5 +224,13 @@ public class Port {
 
 	public void setLoopPortType(LoopPortType loopPortType) {
 		this.loopPortType = loopPortType;
+	}
+
+	public PortDirection getDirection() {
+		return direction;
+	}
+
+	public String getPortKey() {
+		return portKey;
 	}
 }
