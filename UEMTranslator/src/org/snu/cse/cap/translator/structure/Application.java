@@ -104,6 +104,20 @@ public class Application {
 		}
 	}
 	
+	private void setLoopDesignatedTaskIdFromTaskName()
+	{
+		for(Task task : this.taskMap.values())
+		{
+			Task designatedTask;
+			if(task.getLoopStruct()!= null && task.getLoopStruct().getLoopType() == TaskLoopType.CONVERGENT)
+			{
+				designatedTask = this.taskMap.get(task.getLoopStruct().getDesignatedTaskName()); 
+				task.getLoopStruct().setDesignatedTaskId(designatedTask.getId());
+			}
+			
+		}
+	}
+	
 	private void fillBasicTaskMapAndGraphInfo(CICAlgorithmType algorithm_metadata)
 	{
 		int taskId = 0;
@@ -118,6 +132,9 @@ public class Application {
 			putPortInfoFromTask(task_metadata, taskId, task.getName());
 			taskId++;
 		}
+		
+		// this function must be called after setting all the task ID information
+		setLoopDesignatedTaskIdFromTaskName();
 		
 		if(algorithm_metadata.getPortMaps() != null) 
 		{

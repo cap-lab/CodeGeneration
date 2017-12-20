@@ -1,15 +1,19 @@
 package org.snu.cse.cap.translator.structure.task;
 
+import org.snu.cse.cap.translator.Constants;
+
 public class TaskLoop {
 	private TaskLoopType loopType;
 	private int loopCount;
 	private String designatedTaskName;
+	private int designatedTaskId;
 	
 	public TaskLoop (String loopType, int loopCount) 
 	{
 		this.loopType = TaskLoopType.valueOf(loopType);
 		this.loopCount = loopCount;
 		this.designatedTaskName = null;
+		this.designatedTaskId = Constants.INVALID_ID_VALUE;
 	}
 	
 	public TaskLoop (String loopType, int loopCount, String designatedTaskName) 
@@ -41,6 +45,14 @@ public class TaskLoop {
 	
 	public void setDesignatedTaskName(String designatedTaskName) {
 		this.designatedTaskName = designatedTaskName;
+	}
+
+	public int getDesignatedTaskId() {
+		return designatedTaskId;
+	}
+
+	public void setDesignatedTaskId(int designatedTaskId) {
+		this.designatedTaskId = designatedTaskId;
 	}
 	
 

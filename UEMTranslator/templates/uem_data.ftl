@@ -55,6 +55,7 @@ SChunk g_astChunk_channel_${channel.index}_in[] = {
 // ##CHUNK_DEFINITION_TEMPLATE::END
 //portSampleRateList
 
+
 // ##PORT_SAMPLE_RATE_TEMPLATE::START
 <#list channel_list as channel>
 SPortSampleRate g_astPortSampleRate_${channel.inputPort.taskName}_${channel.inputPort.portName}[] = {
@@ -78,6 +79,69 @@ SPortSampleRate g_astPortSampleRate_${channel.outputPort.taskName}_${channel.out
 </#list>
 // ##PORT_SAMPLE_RATE_TEMPLATE::END
 
+// ##LOOP_STRUCTURE_TEMPLATE::START
+<#list flat_task as task_name, task>
+	<#if task.loopStruct??>
+SLoopInfo g_stLoopStruct_${task.name} = {
+	LOOP_TYPE_${task.loopType},
+	${task.loopCount},
+	"${task.designatedTaskId}",
+};
+
+	</#if>
+</#list>
+// ##LOOP_STRUCTURE_TEMPLATE::END
+
+// ##VARIABLE_INT_MAP_TEMPLATE::START
+
+
+// ##VARIABLE_INT_MAP_TEMPLATE::END
+
+
+// ##MODE_TRANSITION_TEMPLATE::START
+<#list flat_task as task_name, task>
+	<#if task.modeTransition??>
+		<#list task.modeTransition.modeMap as task_name, task_mode>
+STask *g_pastRelatedChildTasks_${task.name}_${task_mode.name}[] = {
+			<#list task_mode.relatedChildTaskSet as child_task>
+	&g_astTasks_${child_task.parentTaskGraphName}[${child_task.inGraphIndex}],
+			</#list>
+};
+		</#list>
+		
+SModeMap g_astModeMap_${task.name}[] = {
+		<#list task.modeTransition.modeMap as mode_name, task_mode>
+	{
+		${task_mode.id},
+		"${task_mode.name}",
+		&g_pastRelatedChildTasks_${task.name}_${task_mode.name},
+		${task_mode.relatedChildTaskSet?size},
+	},
+		</#list>
+};
+
+SVariableIntMap g_astVariableIntMap_${task.name}[] = {
+		<#list task.modeTransition.variableMap as var_name, var_type>
+	{
+		${var_name?index},
+		"${var_name}",
+		0, 
+	},
+		</#list>
+}
+		
+
+SModeTransitionMachine g_stModeTransition_${task.name} = {
+	${task.id},
+	&g_astModeMap_${task.name},
+	&g_astVariableIntMap_${task.name},
+	NULL;
+	0,
+};
+	</#if>
+</#list>
+// ##MODE_TRANSITION_TEMPLATE::END
+
 
 // ##AVAILABLE_CHUNK_LIST_TEMPLATE::START
 <#list channel_list as channel>
@@ -89,6 +153,21 @@ SAvailableChunk g_astAvailableInputChunk_channel_${channel.index}[] = {
 </#list>
 // ##AVAILABLE_CHUNK_LIST_TEMPLATE::END
 
+// ##TASK_PARAMETER_TEMPLATE::START
+<#list flat_task as task_name, task>
+STaskParameter g_astTaskParameter_${task.name}[] = {
+	<#list task.taskParamList as task_param>
+	{
+		${task_param.id},
+		PARAMETER_TYPE_${task_param.type},
+		${task_param.name},
+		{ <#if task_param.type == "INT">.nParam = 0,<#else>.dbParam = 0</#if> },
+	},
+	</#list>>
+};
+
+</#list>
+// ##TASK_PARAMETER_TEMPLATE::END
 
 // ##TASK_FUNCTION_LIST::START
 <#list flat_task as task_name, task>
@@ -168,7 +247,7 @@ SChannel g_astChannels[] = {
 // ##TASK_LIST_TEMPLATE::START
 <#list task_graph as graph_name, task_graph>
 STask g_astTasks_${task_graph.name}[] = {
-<#list task_graph.taskList as task>
+	<#list task_graph.taskList as task>
 	{ 	${task.id}, // Task ID
 		"${task.name}", // Task name
 		TASK_TYPE_${task.type}, // Task Type
@@ -180,14 +259,14 @@ STask g_astTasks_${task_graph.name}[] = {
 		TIME_METRIC_${task.periodMetric}, // Period metric
 		NULL, // Subgraph
 		&g_stGraph_${task.parentTaskGraphName}, // Parent task graph
-		NULL, // MTM information
-		NULL, // Loop information
-		NULL, // Task parameter information
+		<#if task.modeTransition??>&g_stModeTransition_${task.name}<#else>NULL</#if>, // MTM information
+		<#if task.loopStruct??>&g_stLoopStruct_${task.name}<#else>NULL</#if>, // Loop information
+		<#if task.taskParamList??>&g_astTaskParameter_${task.name}<#else>NULL</#if>, // Task parameter information
 		<#if task.staticScheduled == true>TRUE<#else>FALSE</#if>, // Statically scheduled or not
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
-</#list>
+	</#list>
 };
 </#list>
 

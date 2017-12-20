@@ -6,7 +6,7 @@ import java.util.HashSet;
 public class TaskMode {
 	private int id;
 	private String name;
-	private HashSet<String> relatedChildTaskSet;
+	private HashSet<Task> relatedChildTaskSet;
 	private HashMap<String, String> relatedChildTaskProcMap;
 	private static final String TASK_PROC_MAP_SEPARATOR = "/";
 	private static final int TASK_PROC_MAP_PROC_ID_INDEX = 0;
@@ -16,7 +16,7 @@ public class TaskMode {
 	public TaskMode(int modeId, String modeName) {
 		this.id = modeId;
 		this.name = modeName;
-		this.relatedChildTaskSet = new HashSet<String>();
+		this.relatedChildTaskSet = new HashSet<Task>();
 		this.relatedChildTaskProcMap = new HashMap<String, String>();
 	}
 	
@@ -25,10 +25,10 @@ public class TaskMode {
 	}
 
 	
-	public void putChildTask(int procId, int procLocalId, String taskName)
+	public void putChildTask(int procId, int procLocalId, Task task)
 	{
-		this.relatedChildTaskSet.add(taskName);
-		this.relatedChildTaskProcMap.put(procId + TASK_PROC_MAP_SEPARATOR  + procLocalId + TASK_PROC_MAP_SEPARATOR + taskName, taskName);
+		this.relatedChildTaskSet.add(task);
+		this.relatedChildTaskProcMap.put(procId + TASK_PROC_MAP_SEPARATOR  + procLocalId + TASK_PROC_MAP_SEPARATOR + task.getName(), task.getName());
 	}
 	
 	public <T> void traverseRelatedChildTask(ChildTaskTraverseCallback<T> childTaskCallback, T userData)
@@ -56,5 +56,9 @@ public class TaskMode {
 	
 	public void setName(String modeName) {
 		this.name = modeName;
+	}
+
+	public HashSet<Task> getRelatedChildTaskSet() {
+		return relatedChildTaskSet;
 	}
 }

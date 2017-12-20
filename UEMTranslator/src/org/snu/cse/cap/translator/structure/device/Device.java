@@ -501,8 +501,10 @@ public class Device {
 				break;
 			case TASK:
 				ScheduleTask task = (ScheduleTask) item;
+				Task  taskObject = this.taskMap.get(task.getTaskName());
 				targetTaskModeTransition.putRelatedChildTask(compositeMappedProc.getProcessorId(), compositeMappedProc.getProcessorLocalId(), 
-						compositeMappedProc.getModeId(), task.getTaskName());
+						compositeMappedProc.getModeId(), taskObject);
+				
 				break;
 			}
 		}
