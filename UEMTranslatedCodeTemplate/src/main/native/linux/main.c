@@ -18,6 +18,7 @@
 
 
 #include <UKChannel.h>
+#include <UKCPUTaskManager.h>
 
 
 #include <UCThreadMutex.h>
