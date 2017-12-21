@@ -1,11 +1,25 @@
 package org.snu.cse.cap.translator;
 
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
+import static java.nio.file.StandardCopyOption.*;
 
 import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.task.Task;
+
+import freemarker.template.Template;
 
 public class CodeOrganizer {
 	private String architecture;
@@ -21,6 +35,12 @@ public class CodeOrganizer {
 	private ArrayList<String> kernelDeviceSourceList;
 	private String cflags;
 	private String ldadd;
+	
+	private static final String MAIN_DIR = "src" + File.separator + "main";
+	private static final String API_DIR = "src" + File.separator + "api";
+	private static final String KERNEL_DIR = "src" + File.separator + "kernel";
+	private static final String COMMON_DIR = "src" + File.separator + "common";
+	private static final String APPLICATION_DIR = "src" + File.separator + "application";
 	
 	public static final String MAKEFILE_PATH_SEPARATOR = "/";
 	
@@ -175,6 +195,61 @@ public class CodeOrganizer {
 		for(Library library : libraryMap.values())
 		{
 			this.taskSourceCodeList.add(library.getName());
+		}
+	}
+	
+	public void copyApplicationCodes(String srcDir, String outputDir) throws IOException
+	{
+		File source = new File(srcDir);
+		File output = new File(outputDir + File.separator + APPLICATION_DIR);
+		FileFilter filter = new FileFilter() {
+			
+			@Override
+			public boolean accept(File paramFile) {
+				// only copy file with extension .cic/.cicl/.h
+				if(paramFile.isFile() == true && 
+					(paramFile.getName().endsWith(".cic") || paramFile.getName().endsWith(".cicl") || paramFile.getName().endsWith(".h")))
+					return true;
+				else
+					return false;
+			}
+		};
+		
+		copyAllFiles(output, source, filter);
+	}
+	
+	public void copyFilesFromTranslatedCodeTemplate(String srcDir, String outputDir) throws IOException
+	{
+		File source = new File(srcDir);
+		File output = new File(outputDir);
+		FileFilter filter = new FileFilter() {
+			
+			@Override
+			public boolean accept(File paramFile) {
+				// skip object/executable/temporary/log files
+				if(paramFile.getName().endsWith(".o") || paramFile.getName().endsWith(".log") || paramFile.getName().endsWith("~") || 
+					paramFile.getName().startsWith(".")  || paramFile.getName().endsWith(".exe") || paramFile.getName().endsWith(".bak"))
+					return false;
+				else
+					return true;
+			}
+		};
+		
+		copyAllFiles(output, source, filter);
+	}
+		
+	private void copyAllFiles(File targetLocation, File sourceLocation, FileFilter fileFilter) throws IOException {
+		if (sourceLocation.isDirectory()) {
+			if (!targetLocation.exists()) 
+				targetLocation.mkdir();
+
+			File[] children = sourceLocation.listFiles(fileFilter);
+			for (int i=0; i<children.length; i++)
+				copyAllFiles(new File(targetLocation, children[i].getName()), children[i], fileFilter);
+		} 
+		else {
+			// this function is supported from jdk 1.7
+			Files.copy(sourceLocation.toPath(), targetLocation.toPath(), REPLACE_EXISTING);
 		}
 	}
 

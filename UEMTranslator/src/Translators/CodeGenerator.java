@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -161,75 +162,99 @@ public class CodeGenerator
 		}
     }
     
+    private void generateMakefile(CodeOrganizer codeOrganizer) throws TemplateNotFoundException, MalformedTemplateNameException, 
+    																freemarker.core.ParseException, IOException, TemplateException
+    {
+    	Template makefileTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_MAKEFILE);
+		// Create the root hash
+		Map<String, Object> makefileRootHash = new HashMap<>();
+		
+		makefileRootHash.put(Constants.TEMPLATE_TAG_BUILD_INFO, codeOrganizer);
+		
+		Writer out = new OutputStreamWriter(System.out);
+		makefileTemplate.process(makefileRootHash, out);
+    }
+    
+    private void generateUemDataCode(Device device) throws TemplateNotFoundException, MalformedTemplateNameException, 
+    													freemarker.core.ParseException, IOException, TemplateException
+    {
+    	Template uemDataTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_UEM_DATA);
+		// Create the root hash
+		Map<String, Object> uemDataRootHash = new HashMap<>();
+		
+		// Put UEM data model
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_TASK_MAP, device.getTaskMap());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_TASK_GRAPH, device.getTaskGraphMap());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_CHANNEL_LIST, device.getChannelList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_DEVICE_INFO, this.uemDatamodel.getApplication().getDeviceInfo());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_MAPPING_INFO, device.getGeneralMappingInfo());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_STATIC_SCHEDULE_INFO, device.getStaticScheduleMappingInfo());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_PORT_INFO, device.getPortList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_PORT_KEY_TO_INDEX, device.getPortKeyToIndex());
+		
+		Writer out = new OutputStreamWriter(System.out);
+		uemDataTemplate.process(uemDataRootHash, out);
+    }
+    
+    private void generateTaskCode(Device device) throws TemplateNotFoundException, MalformedTemplateNameException, 
+    												freemarker.core.ParseException, IOException, TemplateException
+    {
+    	Template taskCodeTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_TASK_CODE);
+    	
+		for(Task task: device.getTaskMap().values())
+		{
+			if(task.getChildTaskGraphName() == null)
+			{
+				// Create the root hash
+	    		Map<String, Object> taskCodeRootHash = new HashMap<>();
+	    		
+	    		taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_INFO, task);
+	    		
+	    		Writer out = new OutputStreamWriter(System.out);
+	    		taskCodeTemplate.process(taskCodeRootHash, out);
+			}
+		}
+    }
+    
+    private void generateLibraryCodes(Device device) throws TemplateNotFoundException, MalformedTemplateNameException, 
+    													freemarker.core.ParseException, IOException, TemplateException
+    {
+		Template libraryCodeTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_LIBRARY_CODE);
+		Template libraryHeaderTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_LIBRARY_HEADER);
+		
+		for(Library library : device.getLibraryMap().values())
+		{
+			// Create the root hash
+			Map<String, Object> libraryRootHash = new HashMap<>();
+			
+			libraryRootHash.put(Constants.TEMPLATE_TAG_LIB_INFO, library);
+			
+			Writer out = new OutputStreamWriter(System.out);
+			libraryCodeTemplate.process(libraryRootHash, out);
+			
+			out = new OutputStreamWriter(System.out);
+			libraryHeaderTemplate.process(libraryRootHash, out);
+		}
+    }
+    
     public void generateCode()
     {
    		try {
-			Template uemDataTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_UEM_DATA);
-			Template makefileTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_MAKEFILE);			
-			Template taskCodeTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_TASK_CODE);
-			Template libraryCodeTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_LIBRARY_CODE);
-			Template libraryHeaderTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_LIBRARY_HEADER);
-			
 			for(Device device : uemDatamodel.getApplication().getDeviceInfo().values())
 			{
-				// Create the root hash
-				Map<String, Object> uemDataRootHash = new HashMap<>();
-				
-				// Put UEM data model
-				uemDataRootHash.put(Constants.TEMPLATE_TAG_TASK_MAP, device.getTaskMap());
-				uemDataRootHash.put(Constants.TEMPLATE_TAG_TASK_GRAPH, device.getTaskGraphMap());
-				uemDataRootHash.put(Constants.TEMPLATE_TAG_CHANNEL_LIST, device.getChannelList());
-				uemDataRootHash.put(Constants.TEMPLATE_TAG_DEVICE_INFO, uemDatamodel.getApplication().getDeviceInfo());
-				uemDataRootHash.put(Constants.TEMPLATE_TAG_MAPPING_INFO, device.getGeneralMappingInfo());
-				uemDataRootHash.put(Constants.TEMPLATE_TAG_STATIC_SCHEDULE_INFO, device.getStaticScheduleMappingInfo());
-				uemDataRootHash.put(Constants.TEMPLATE_TAG_PORT_INFO, device.getPortList());
-				uemDataRootHash.put(Constants.TEMPLATE_TAG_PORT_KEY_TO_INDEX, device.getPortKeyToIndex());
-				
-				Writer out = new OutputStreamWriter(System.out);
-				uemDataTemplate.process(uemDataRootHash, out);
-				
 				CodeOrganizer codeOrganizer = new CodeOrganizer(device.getArchitecture().toString(), 
 						device.getPlatform().toString(), device.getRuntime().toString());
-		
+				
 				codeOrganizer.extractDataFromProperties(this.translatorProperties);
 				codeOrganizer.fillSourceCodeListFromTaskMap(device.getTaskMap());
 				codeOrganizer.fillSourceCodeListFromLibraryMap(device.getLibraryMap());
+				codeOrganizer.copyFilesFromTranslatedCodeTemplate(this.translatedCodeTemplateDir, this.mOutputPath + File.separator + device.getName());
+				codeOrganizer.copyApplicationCodes(this.mOutputPath, this.mOutputPath + File.separator + device.getName());
 				
-				// Create the root hash
-				Map<String, Object> makefileRootHash = new HashMap<>();
-				
-				makefileRootHash.put(Constants.TEMPLATE_TAG_BUILD_INFO, codeOrganizer);
-				
-				out = new OutputStreamWriter(System.out);
-				makefileTemplate.process(makefileRootHash, out);
-				
-				for(Task task: device.getTaskMap().values())
-				{
-					if(task.getChildTaskGraphName() == null)
-					{
-						// Create the root hash
-			    		Map<String, Object> taskCodeRootHash = new HashMap<>();
-			    		
-			    		taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_INFO, task);
-			    		
-			    		out = new OutputStreamWriter(System.out);
-			    		taskCodeTemplate.process(taskCodeRootHash, out);
-					}
-				}
-				
-				for(Library library : device.getLibraryMap().values())
-				{
-					// Create the root hash
-					Map<String, Object> libraryRootHash = new HashMap<>();
-					
-					libraryRootHash.put(Constants.TEMPLATE_TAG_LIB_INFO, library);
-					
-					out = new OutputStreamWriter(System.out);
-					libraryCodeTemplate.process(libraryRootHash, out);
-					
-					out = new OutputStreamWriter(System.out);
-					libraryHeaderTemplate.process(libraryRootHash, out);
-				}
+				generateMakefile(codeOrganizer);
+				generateUemDataCode(device);
+				generateTaskCode(device);
+				generateLibraryCodes(device);
 			}			
 		} catch (TemplateNotFoundException e) {
 			// TODO Auto-generated catch block
