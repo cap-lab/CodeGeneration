@@ -2,6 +2,7 @@ package org.snu.cse.cap.translator;
 
 public class TranslatorProperties {
 	public static final String PROPERTIES_TEMPLATE_CODE_PATH = "template_code_path";
+	public static final String PROPERTIES_TRANSLATED_CODE_TEMPLATE_PATH = "translated_code_template_path";
 	public static final String PROPERTIES_ARCHITECTURE_LIST = "architecture_list";
 	public static final String PROPERTIES_PLATFORM_LIST = "platform_list";
 	public static final String PROPERTIES_PLATFORM_RESTRICTION = "platform_restriction";

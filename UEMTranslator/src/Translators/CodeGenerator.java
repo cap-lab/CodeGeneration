@@ -43,7 +43,7 @@ public class CodeGenerator
     private Properties translatorProperties;
     
     
-    public CodeGenerator() 
+    public CodeGenerator(String[] args) 
     {
     	this.templateFolderPath = "templates";
 		this.templateConfig = new Configuration(Configuration.VERSION_2_3_27);
@@ -59,6 +59,8 @@ public class CodeGenerator
 		this.templateConfig.setLogTemplateExceptions(false);
 		this.templateConfig.setWrapUncheckedExceptions(true);
 		this.translatorProperties = new Properties();
+		
+		initMetaData(args);
     }
     
     private void changeAllPathSeparator() 
@@ -72,7 +74,7 @@ public class CodeGenerator
     	mOutputPath = mOutputPath.replace('/', File.separatorChar);
     }
     
-    public void initMetaData(String[] args) 
+    private void initMetaData(String[] args) 
     {
     	Options options = new Options();
     	HelpFormatter formatter = new HelpFormatter();
@@ -236,8 +238,7 @@ public class CodeGenerator
 	public static void main(String[] args) 
 	{
 		// TODO Auto-generated method stub
-		CodeGenerator codeGenerator = new CodeGenerator(); 
-		codeGenerator.initMetaData(args);
+		CodeGenerator codeGenerator = new CodeGenerator(args); 
 		codeGenerator.generateCode();
 	}
 

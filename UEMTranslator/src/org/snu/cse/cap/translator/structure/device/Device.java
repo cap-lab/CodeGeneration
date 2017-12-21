@@ -59,10 +59,9 @@ public class Device {
 	private HashMap<String, TaskGraph> taskGraphMap; // Task graph name : TaskGraph class
 	private HashMap<String, GeneralTaskMappingInfo> generalMappingInfo; // Task name : GeneralTaskMappingInfo class
 	private HashMap<String, CompositeTaskMappingInfo> staticScheduleMappingInfo; // Parent task Name : CompositeTaskMappingInfo class
-	private HashMap<String, Port> portInfo; // Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
 	private ArrayList<Port> portList;
 	private HashMap<String, Library> libraryMap;
-	private HashMap<String, Integer> portKeyToIndex;
+	private HashMap<String, Integer> portKeyToIndex;  //Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
 	
 	public Device(String name, String architecture, String platform, String runtime) 
 	{
@@ -79,7 +78,6 @@ public class Device {
 		this.taskGraphMap = new HashMap<String, TaskGraph>();
 		this.generalMappingInfo = new HashMap<String, GeneralTaskMappingInfo>();
 		this.staticScheduleMappingInfo = new HashMap<String, CompositeTaskMappingInfo>();
-		this.portInfo = new HashMap<String, Port>();
 		this.libraryMap = new HashMap<String, Library>();
 		this.portList = new ArrayList<Port>();
 		this.portKeyToIndex = new HashMap<String, Integer>();
@@ -840,10 +838,6 @@ public class Device {
 
 	public ArrayList<Channel> getChannelList() {
 		return channelList;
-	}
-
-	public HashMap<String, Port> getPortInfo() {
-		return portInfo;
 	}
 
 	public HashMap<String, TaskGraph> getTaskGraphMap() {

@@ -438,9 +438,8 @@ public class Application {
 		while(currentPort != null)
 		{
 			key = currentPort.getPortKey();
-			if(device.getPortInfo().containsKey(key) == false)
+			if(device.getPortKeyToIndex().containsKey(key) == false)
 			{
-				device.getPortInfo().put(key, currentPort);
 				device.getPortKeyToIndex().put(key, new Integer(device.getPortList().size()));
 				device.getPortList().add(currentPort);
 				
