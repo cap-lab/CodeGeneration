@@ -372,4 +372,8 @@ public class Task {
 	public HashSet<String> getLinkedLibraryHeaderList() {
 		return linkedLibraryHeaderList;
 	}
+
+	public ArrayList<TaskParameter> getTaskParamList() {
+		return taskParamList;
+	}
 }

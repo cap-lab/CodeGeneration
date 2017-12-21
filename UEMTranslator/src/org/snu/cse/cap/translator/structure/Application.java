@@ -85,9 +85,10 @@ public class Application {
 	private void putPortInfoFromTask(TaskType task_metadata, int taskId, String taskName) {
 		for(TaskPortType portType: task_metadata.getPort())
 		{
-			Port port = new Port(taskId, taskName, portType.getName(), portType.getSampleSize().intValue(), portType.getType().value());
+			PortDirection direction = PortDirection.fromValue(portType.getDirection().value());
+			Port port = new Port(taskId, taskName, portType.getName(), portType.getSampleSize().intValue(), portType.getType().value(), direction);
 			
-			this.portInfo.put(taskName + Constants.NAME_SPLITER + portType.getName() + Constants.NAME_SPLITER + portType.getDirection().value(), port);
+			this.portInfo.put(port.getPortKey(), port);
 			
 			if(portType.getRate() != null)
 			{
@@ -101,6 +102,20 @@ public class Application {
 			{
 				// variable sample rate, do nothing
 			}
+		}
+	}
+	
+	private void setLoopDesignatedTaskIdFromTaskName()
+	{
+		for(Task task : this.taskMap.values())
+		{
+			Task designatedTask;
+			if(task.getLoopStruct()!= null && task.getLoopStruct().getLoopType() == TaskLoopType.CONVERGENT)
+			{
+				designatedTask = this.taskMap.get(task.getLoopStruct().getDesignatedTaskName()); 
+				task.getLoopStruct().setDesignatedTaskId(designatedTask.getId());
+			}
+			
 		}
 	}
 	
@@ -118,6 +133,9 @@ public class Application {
 			putPortInfoFromTask(task_metadata, taskId, task.getName());
 			taskId++;
 		}
+		
+		// this function must be called after setting all the task ID information
+		setLoopDesignatedTaskIdFromTaskName();
 		
 		if(algorithm_metadata.getPortMaps() != null) 
 		{
@@ -419,8 +437,14 @@ public class Application {
 		currentPort = port;
 		while(currentPort != null)
 		{
-			key = currentPort.getTaskName() + Constants.NAME_SPLITER + currentPort.getPortName() + Constants.NAME_SPLITER + direction;
-			device.getPortInfo().put(key, currentPort);
+			key = currentPort.getPortKey();
+			if(device.getPortInfo().containsKey(key) == false)
+			{
+				device.getPortInfo().put(key, currentPort);
+				device.getPortKeyToIndex().put(key, new Integer(device.getPortList().size()));
+				device.getPortList().add(currentPort);
+				
+			}
 			currentPort = currentPort.getSubgraphPort();
 		}
 	}
