@@ -1,5 +1,7 @@
 package org.snu.cse.cap.translator;
 
+import java.io.File;
+
 public class Constants {
 	
 	public static final String UEMXML_ALGORITHM_PREFIX = "_algorithm.xml";
@@ -25,6 +27,9 @@ public class Constants {
 	public static final String NAME_SPLITER = "/";
 	
 	public static final String DEFAULT_PROPERTIES_FILE_NAME = "translator.properties";
+	public static final String DEFAULT_PROPERTIES_FILE_PATH = "config" + File.separator + DEFAULT_PROPERTIES_FILE_NAME;
+	public static final String DEFAULT_TEMPLATE_DIR = "templates";
+	public static final String DEFAULT_TRANSLATED_CODE_TEMPLATE_DIR = ".." + File.separator + "UEMTranslatedCodeTemplate";
 	
 	// template files
 	public static final String TEMPLATE_FILE_UEM_DATA = "uem_data.ftl";
@@ -54,31 +59,4 @@ public class Constants {
 	
 	public static final String COMMANDLINE_OPTION_HELP = "help";
 	public static final String COMMANDLINE_OPTION_TEMPLATE_DIR = "template-dir";
-	
-	
-	public enum PortDirection {
-		INPUT("input"),
-		OUTPUT("output"),
-		;
-		
-		private final String value;
-		
-		private PortDirection(String value) {
-			this.value = value;
-		}
-		
-		@Override
-		public String toString() {
-			return value;
-		}
-		
-		public static PortDirection fromValue(String value) {
-			 for (PortDirection c : PortDirection.values()) {
-				 if (c.value.equals(value)) {
-					 return c;
-				 }
-			 }
-			 throw new IllegalArgumentException(value.toString());
-		}
-	}
 }

@@ -1,8 +1,7 @@
-package Translators;
+package org.snu.cse.cap.translator;
 
 import java.io.File;
 
-import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.structure.Application;
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 

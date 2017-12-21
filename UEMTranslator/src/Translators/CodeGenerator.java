@@ -18,6 +18,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.snu.cse.cap.translator.CodeOrganizer;
 import org.snu.cse.cap.translator.Constants;
+import org.snu.cse.cap.translator.TranslatorProperties;
+import org.snu.cse.cap.translator.UEMMetaDataModel;
 import org.snu.cse.cap.translator.UnsupportedHardwareInformation;
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 import org.snu.cse.cap.translator.structure.device.Device;
@@ -39,26 +41,50 @@ public class CodeGenerator
     private String mOutputPath;
     private UEMMetaDataModel uemDatamodel;
     private Configuration templateConfig;
-    private String templateFolderPath;
+    private String templateDir;
+    private String translatedCodeTemplateDir;
     private Properties translatorProperties;
     
+    private String getCanonicalPath(String path) throws IOException 
+    {
+    	String canonicalPath;
+    	File file = new File(path);
+    	
+    	canonicalPath = file.getCanonicalPath();
+    	
+    	return canonicalPath;
+    }
     
     public CodeGenerator(String[] args) 
-    {
-    	this.templateFolderPath = "templates";
+    {   	
 		this.templateConfig = new Configuration(Configuration.VERSION_2_3_27);
-
-		try {
-			this.templateConfig.setDirectoryForTemplateLoading(new File(this.templateFolderPath));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		
 		this.templateConfig.setDefaultEncoding("UTF-8");
 		this.templateConfig.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
 		this.templateConfig.setLogTemplateExceptions(false);
 		this.templateConfig.setWrapUncheckedExceptions(true);
+		
 		this.translatorProperties = new Properties();
+
+		try {
+			this.translatorProperties.load(new FileInputStream(Constants.DEFAULT_PROPERTIES_FILE_PATH));
+			
+			this.templateDir = this.translatorProperties.getProperty(TranslatorProperties.PROPERTIES_TEMPLATE_CODE_PATH, 
+																	Constants.DEFAULT_TEMPLATE_DIR);
+			this.templateDir = getCanonicalPath(this.templateDir);
+			
+			this.translatedCodeTemplateDir = this.translatorProperties.getProperty(TranslatorProperties.PROPERTIES_TRANSLATED_CODE_TEMPLATE_PATH,
+												Constants.DEFAULT_TRANSLATED_CODE_TEMPLATE_DIR);
+			this.translatedCodeTemplateDir = getCanonicalPath(this.translatedCodeTemplateDir);
+			
+			this.templateConfig.setDirectoryForTemplateLoading(new File(this.templateDir));
+			
+			//this.tran
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.exit(-1);
+		}
 		
 		initMetaData(args);
     }
@@ -113,14 +139,14 @@ public class CodeGenerator
     		
     		if(cmd.hasOption(Constants.COMMANDLINE_OPTION_TEMPLATE_DIR))
     		{
-    			this.templateFolderPath = cmd.getOptionValue(Constants.COMMANDLINE_OPTION_TEMPLATE_DIR); 
+    			this.templateDir = cmd.getOptionValue(Constants.COMMANDLINE_OPTION_TEMPLATE_DIR); 
     		}
     		
     		System.out.println("mTranslatorPath: " + mTranslatorPath + ", mCICXMLPath: " + mUEMXMLPath + ", mOutputPath: " + mOutputPath);
     		
     		this.uemDatamodel = new UEMMetaDataModel(mUEMXMLPath, mOutputPath + File.separator + Constants.SCHEDULE_FOLDER_NAME + File.separator);
     					
-			this.translatorProperties.load(new FileInputStream("config" + File.separator + Constants.DEFAULT_PROPERTIES_FILE_NAME));
+			
     	} 
     	catch(ParseException e) {
     		System.out.println("ERROR: " + e.getMessage());
@@ -130,12 +156,6 @@ public class CodeGenerator
     		e.printStackTrace();
     		System.out.println("Cannot load XML metadata information");
     	} catch (InvalidDataInMetadataFileException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

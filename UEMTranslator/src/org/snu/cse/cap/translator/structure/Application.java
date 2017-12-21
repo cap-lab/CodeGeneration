@@ -6,12 +6,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.snu.cse.cap.translator.Constants;
-import org.snu.cse.cap.translator.Constants.PortDirection;
 import org.snu.cse.cap.translator.structure.channel.Channel;
 import org.snu.cse.cap.translator.structure.channel.ChannelArrayType;
 import org.snu.cse.cap.translator.structure.channel.CommunicationType;
 import org.snu.cse.cap.translator.structure.channel.LoopPortType;
 import org.snu.cse.cap.translator.structure.channel.Port;
+import org.snu.cse.cap.translator.structure.channel.PortDirection;
 import org.snu.cse.cap.translator.structure.channel.PortSampleRate;
 import org.snu.cse.cap.translator.structure.device.BluetoothConnection;
 import org.snu.cse.cap.translator.structure.device.Connection;
@@ -481,8 +481,8 @@ public class Application {
 			MappingInfo srcTaskMappingInfo;
 			MappingInfo dstTaskMappingInfo;	
 			
-			Port srcPort = this.portInfo.get(channelSrcPort.getTask() + Constants.NAME_SPLITER + channelSrcPort.getPort() + Constants.NAME_SPLITER + Constants.PortDirection.OUTPUT);
-			Port dstPort = this.portInfo.get(channelDstPort.getTask() + Constants.NAME_SPLITER + channelDstPort.getPort() + Constants.NAME_SPLITER + Constants.PortDirection.INPUT);
+			Port srcPort = this.portInfo.get(channelSrcPort.getTask() + Constants.NAME_SPLITER + channelSrcPort.getPort() + Constants.NAME_SPLITER + PortDirection.OUTPUT);
+			Port dstPort = this.portInfo.get(channelDstPort.getTask() + Constants.NAME_SPLITER + channelDstPort.getPort() + Constants.NAME_SPLITER + PortDirection.INPUT);
 			
 			// channel type
 			setChannelType(channel, srcPort, dstPort);

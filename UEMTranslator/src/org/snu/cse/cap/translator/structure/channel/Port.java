@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.snu.cse.cap.translator.Constants;
-import org.snu.cse.cap.translator.Constants.PortDirection;
 import org.snu.cse.cap.translator.structure.task.Task;
 
 enum PortSampleRateType {
