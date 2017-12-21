@@ -36,11 +36,11 @@ public class CodeOrganizer {
 	private String cflags;
 	private String ldadd;
 	
-	private static final String MAIN_DIR = "src" + File.separator + "main";
-	private static final String API_DIR = "src" + File.separator + "api";
-	private static final String KERNEL_DIR = "src" + File.separator + "kernel";
-	private static final String COMMON_DIR = "src" + File.separator + "common";
-	private static final String APPLICATION_DIR = "src" + File.separator + "application";
+	public static final String MAIN_DIR = "src" + File.separator + "main";
+	public static final String API_DIR = "src" + File.separator + "api";
+	public static final String KERNEL_DIR = "src" + File.separator + "kernel";
+	public static final String COMMON_DIR = "src" + File.separator + "common";
+	public static final String APPLICATION_DIR = "src" + File.separator + "application";
 	
 	public static final String MAKEFILE_PATH_SEPARATOR = "/";
 	
@@ -208,7 +208,9 @@ public class CodeOrganizer {
 			public boolean accept(File paramFile) {
 				// only copy file with extension .cic/.cicl/.h
 				if(paramFile.isFile() == true && 
-					(paramFile.getName().endsWith(".cic") || paramFile.getName().endsWith(".cicl") || paramFile.getName().endsWith(".h")))
+					(paramFile.getName().endsWith(Constants.CIC_FILE_EXTENSION) || 
+					paramFile.getName().endsWith(Constants.CICL_FILE_EXTENSION) || 
+					paramFile.getName().endsWith(Constants.HEADER_FILE_EXTENSION)))
 					return true;
 				else
 					return false;

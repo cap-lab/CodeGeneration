@@ -18,11 +18,9 @@
 #define TASK_CODE_BEGIN
 #define TASK_CODE_END
 #define TASK_NAME "${task_info.name}"
-<#list 0..(task_info.taskFuncNum-1) as task_func_id>
 #define TASK_INIT void ${task_info.name}_Init${task_func_id}(int TASK_ID)
 #define TASK_GO void ${task_info.name}_Go${task_func_id}()
 #define TASK_WRAPUP void ${task_info.name}_Wrapup${task_func_id}()
-</#list>
 
 #define STATIC static
 #include "${task_info.taskCodeFile}"

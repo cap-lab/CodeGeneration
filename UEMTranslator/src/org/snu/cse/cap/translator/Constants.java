@@ -30,6 +30,8 @@ public class Constants {
 	public static final String DEFAULT_PROPERTIES_FILE_PATH = "config" + File.separator + DEFAULT_PROPERTIES_FILE_NAME;
 	public static final String DEFAULT_TEMPLATE_DIR = "templates";
 	public static final String DEFAULT_TRANSLATED_CODE_TEMPLATE_DIR = ".." + File.separator + "UEMTranslatedCodeTemplate";
+	public static final String DEFAULT_UEM_DATA_C = "uem_data.c";
+	public static final String DEFAULT_MAKEFILE_AM = "Makefile.am";
 	
 	// template files
 	public static final String TEMPLATE_FILE_UEM_DATA = "uem_data.ftl";
@@ -53,10 +55,17 @@ public class Constants {
 	
 	// tags for task_code.ftl
 	public static final String TEMPLATE_TAG_TASK_INFO = "task_info";
+	public static final String TEMPLATE_TAG_TASK_FUNC_ID = "task_func_id";
 	
 	// tags for library_code.ftl/library_header.ftl
 	public static final String TEMPLATE_TAG_LIB_INFO = "lib_info";
 	
 	public static final String COMMANDLINE_OPTION_HELP = "help";
 	public static final String COMMANDLINE_OPTION_TEMPLATE_DIR = "template-dir";
+	
+	public static final String C_FILE_EXTENSION = ".c";
+	public static final String CPP_FILE_EXTENSION = ".cpp";
+	public static final String HEADER_FILE_EXTENSION = ".h";
+	public static final String CIC_FILE_EXTENSION = ".cic";
+	public static final String CICL_FILE_EXTENSION = ".cicl";
 }

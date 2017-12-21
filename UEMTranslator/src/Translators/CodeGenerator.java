@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.util.HashMap;
@@ -146,8 +147,6 @@ public class CodeGenerator
     		System.out.println("mTranslatorPath: " + mTranslatorPath + ", mCICXMLPath: " + mUEMXMLPath + ", mOutputPath: " + mOutputPath);
     		
     		this.uemDatamodel = new UEMMetaDataModel(mUEMXMLPath, mOutputPath + File.separator + Constants.SCHEDULE_FOLDER_NAME + File.separator);
-    					
-			
     	} 
     	catch(ParseException e) {
     		System.out.println("ERROR: " + e.getMessage());
@@ -162,25 +161,27 @@ public class CodeGenerator
 		}
     }
     
-    private void generateMakefile(CodeOrganizer codeOrganizer) throws TemplateNotFoundException, MalformedTemplateNameException, 
+    private void generateMakefile(CodeOrganizer codeOrganizer, String topDirPath) throws TemplateNotFoundException, MalformedTemplateNameException, 
     																freemarker.core.ParseException, IOException, TemplateException
     {
     	Template makefileTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_MAKEFILE);
 		// Create the root hash
 		Map<String, Object> makefileRootHash = new HashMap<>();
+		String outputFilePath = topDirPath + File.separator + Constants.DEFAULT_MAKEFILE_AM;
 		
 		makefileRootHash.put(Constants.TEMPLATE_TAG_BUILD_INFO, codeOrganizer);
-		
-		Writer out = new OutputStreamWriter(System.out);
+
+		Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
 		makefileTemplate.process(makefileRootHash, out);
     }
     
-    private void generateUemDataCode(Device device) throws TemplateNotFoundException, MalformedTemplateNameException, 
+    private void generateUemDataCode(Device device, String topDirPath) throws TemplateNotFoundException, MalformedTemplateNameException, 
     													freemarker.core.ParseException, IOException, TemplateException
     {
     	Template uemDataTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_UEM_DATA);
 		// Create the root hash
 		Map<String, Object> uemDataRootHash = new HashMap<>();
+		String outputFilePath = topDirPath + File.separator + CodeOrganizer.KERNEL_DIR + File.separator + Constants.DEFAULT_UEM_DATA_C;
 		
 		// Put UEM data model
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TASK_MAP, device.getTaskMap());
@@ -192,11 +193,11 @@ public class CodeGenerator
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_PORT_INFO, device.getPortList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_PORT_KEY_TO_INDEX, device.getPortKeyToIndex());
 		
-		Writer out = new OutputStreamWriter(System.out);
+		Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
 		uemDataTemplate.process(uemDataRootHash, out);
     }
     
-    private void generateTaskCode(Device device) throws TemplateNotFoundException, MalformedTemplateNameException, 
+    private void generateTaskCode(Device device, String topDirPath) throws TemplateNotFoundException, MalformedTemplateNameException, 
     												freemarker.core.ParseException, IOException, TemplateException
     {
     	Template taskCodeTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_TASK_CODE);
@@ -210,13 +211,26 @@ public class CodeGenerator
 	    		
 	    		taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_INFO, task);
 	    		
-	    		Writer out = new OutputStreamWriter(System.out);
-	    		taskCodeTemplate.process(taskCodeRootHash, out);
+	    		for(int loop = 0 ; loop < task.getTaskFuncNum() ; loop++)
+	    		{
+	    			String outputFilePath = topDirPath + File.separator + CodeOrganizer.APPLICATION_DIR + File.separator + 
+	    									task.getName() + loop + Constants.C_FILE_EXTENSION;
+	    			
+	    			if(taskCodeRootHash.containsKey(Constants.TEMPLATE_TAG_TASK_FUNC_ID) == true)
+	    			{
+	    				taskCodeRootHash.remove(Constants.TEMPLATE_TAG_TASK_FUNC_ID);
+	    			}
+		    		
+		    		taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_FUNC_ID, new Integer(loop));
+		    		
+		    		Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
+		    		taskCodeTemplate.process(taskCodeRootHash, out);
+	    		}
 			}
 		}
     }
     
-    private void generateLibraryCodes(Device device) throws TemplateNotFoundException, MalformedTemplateNameException, 
+    private void generateLibraryCodes(Device device, String topDirPath) throws TemplateNotFoundException, MalformedTemplateNameException, 
     													freemarker.core.ParseException, IOException, TemplateException
     {
 		Template libraryCodeTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_LIBRARY_CODE);
@@ -224,16 +238,20 @@ public class CodeGenerator
 		
 		for(Library library : device.getLibraryMap().values())
 		{
+			String outputSourcePath = topDirPath + File.separator + CodeOrganizer.APPLICATION_DIR + File.separator + 
+										library.getName() + Constants.C_FILE_EXTENSION;
+			String outputHeaderPath = topDirPath + File.separator + CodeOrganizer.APPLICATION_DIR + File.separator + 
+										library.getName() + Constants.HEADER_FILE_EXTENSION;
 			// Create the root hash
 			Map<String, Object> libraryRootHash = new HashMap<>();
 			
 			libraryRootHash.put(Constants.TEMPLATE_TAG_LIB_INFO, library);
+						
+			Writer outSource = new OutputStreamWriter(new PrintStream(new File(outputSourcePath)));
+			libraryCodeTemplate.process(libraryRootHash, outSource);
 			
-			Writer out = new OutputStreamWriter(System.out);
-			libraryCodeTemplate.process(libraryRootHash, out);
-			
-			out = new OutputStreamWriter(System.out);
-			libraryHeaderTemplate.process(libraryRootHash, out);
+			Writer outHeader = new OutputStreamWriter(new PrintStream(new File(outputHeaderPath)));
+			libraryHeaderTemplate.process(libraryRootHash, outHeader);
 		}
     }
     
@@ -244,17 +262,18 @@ public class CodeGenerator
 			{
 				CodeOrganizer codeOrganizer = new CodeOrganizer(device.getArchitecture().toString(), 
 						device.getPlatform().toString(), device.getRuntime().toString());
+				String topSrcDir = this.mOutputPath + File.separator + device.getName();
 				
 				codeOrganizer.extractDataFromProperties(this.translatorProperties);
 				codeOrganizer.fillSourceCodeListFromTaskMap(device.getTaskMap());
 				codeOrganizer.fillSourceCodeListFromLibraryMap(device.getLibraryMap());
-				codeOrganizer.copyFilesFromTranslatedCodeTemplate(this.translatedCodeTemplateDir, this.mOutputPath + File.separator + device.getName());
-				codeOrganizer.copyApplicationCodes(this.mOutputPath, this.mOutputPath + File.separator + device.getName());
+				codeOrganizer.copyFilesFromTranslatedCodeTemplate(this.translatedCodeTemplateDir, topSrcDir);
+				codeOrganizer.copyApplicationCodes(this.mOutputPath, topSrcDir);
 				
-				generateMakefile(codeOrganizer);
-				generateUemDataCode(device);
-				generateTaskCode(device);
-				generateLibraryCodes(device);
+				generateMakefile(codeOrganizer, topSrcDir);
+				generateUemDataCode(device, topSrcDir);
+				generateTaskCode(device, topSrcDir);
+				generateLibraryCodes(device, topSrcDir);
 			}			
 		} catch (TemplateNotFoundException e) {
 			// TODO Auto-generated catch block
