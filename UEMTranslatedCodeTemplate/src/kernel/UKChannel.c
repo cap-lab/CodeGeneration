@@ -15,29 +15,79 @@
 #include <uem_data.h>
 #include <UKSharedMemoryChannel.h>
 
+typedef uem_result (*FnChannelInitialize)(SChannel *pstChannel);
+typedef uem_result (*FnChannelReadFromQueue)(SChannel *pstChannel, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead);
+typedef uem_result (*FnChannelReadFromBuffer)(SChannel *pstChannel, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead);
+typedef uem_result (*FnChannelWriteToBuffer)(SChannel *pstChannel, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten);
+typedef uem_result (*FnChannelWriteToQueue)(SChannel *pstChannel, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten);
+typedef uem_result (*FnChannelGetAvailableChunk)(SChannel *pstChannel, OUT int *pnChunkIndex);
+typedef uem_result (*FnChannelGetNumOfAvailableData)(SChannel *pstChannel, IN int nChunkIndex, OUT int *pnDataNum);
+typedef uem_result (*FnChannelClear)(SChannel *pstChannel);
+typedef uem_result (*FnChannelFinalize)(SChannel *pstChannel);
+
+typedef struct _SChannelAPI {
+	FnChannelInitialize fnInitialize;
+	FnChannelReadFromQueue fnReadFromQueue;
+	FnChannelReadFromBuffer fnReadFromBuffer;
+	FnChannelWriteToQueue fnWriteToQueue;
+	FnChannelWriteToBuffer fnWriteToBuffer;
+	FnChannelGetAvailableChunk fnGetAvailableChunk;
+	FnChannelGetNumOfAvailableData fnGetNumOfAvailableData;
+	FnChannelClear fnClear;
+	FnChannelFinalize fnFinalize;
+} SChannelAPI;
+
+
+SChannelAPI g_stSharedMemoryChannel = {
+	UKSharedMemoryChannel_Initialize, // fnInitialize
+	UKSharedMemoryChannel_ReadFromQueue, // fnReadFromQueue
+	UKSharedMemoryChannel_ReadFromBuffer, // fnReadFromBuffer
+	UKSharedMemoryChannel_WriteToQueue, // fnWriteToQueue
+	UKSharedMemoryChannel_WriteToBuffer, // fnWriteToBuffer
+	UKSharedMemoryChannel_GetAvailableChunk, // fnGetAvailableChunk
+	UKSharedMemoryChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
+	UKSharedMemoryChannel_Clear, // fnClear
+	UKSharedMemoryChannel_Finalize, // fnFinalize
+};
+
+
+static uem_result getAPIStructureFromCommunicationType(IN ECommunicationType enType, OUT SChannelAPI **ppstChannelAPI)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	switch(enType)
+	{
+	case COMMUNICATION_TYPE_SHARED_MEMORY:
+		*ppstChannelAPI = &g_stSharedMemoryChannel;
+		break;
+	case COMMUNICATION_TYPE_TCP_SERVER:
+		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED_YET, _EXIT)
+		break;
+	case COMMUNICATION_TYPE_TCP_CLIENT:
+		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED_YET, _EXIT)
+		break;
+	default:
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT)
+		break;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
 
 uem_result UKChannel_Initialize()
 {
 	uem_result result = ERR_UEM_NOERROR;
 	int nLoop = 0;
+	SChannelAPI *pstChannelAPI = NULL;
 
 	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
 	{
-		switch(g_astChannels[nLoop].enType)
-		{
-		case COMMUNICATION_TYPE_SHARED_MEMORY:
-			UKSharedMemoryChannel_Initialize(&(g_astChannels[nLoop]));
-			// Shared memory initialization
-			break;
-		case COMMUNICATION_TYPE_TCP_SERVER:
-			// Server-side TCP channel initialization
-			break;
-		case COMMUNICATION_TYPE_TCP_CLIENT:
-			// Client-side TCP channel initialization
-			break;
-		default:
-			break;
-		}
+		result = getAPIStructureFromCommunicationType(g_astChannels[nLoop].enType, &pstChannelAPI);
+		ERRIFGOTO(result, _EXIT);
+
+		result = pstChannelAPI->fnInitialize(&(g_astChannels[nLoop]));
+		ERRIFGOTO(result, _EXIT);
 
 		if( g_astChannels[nLoop].stInputPortChunk.nChunkNum > 1 )
 		{
@@ -49,7 +99,7 @@ uem_result UKChannel_Initialize()
 			// channel is written by multiple tasks
 		}
 	}
-
+_EXIT:
 	return result;
 }
 
@@ -74,25 +124,16 @@ uem_result UKChannel_WriteToBuffer(int nChannelId, IN unsigned char *pBuffer, IN
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nIndex = 0;
+	SChannelAPI *pstChannelAPI = NULL;
 
 	nIndex = getChannelIndexById(nChannelId);
 	IFVARERRASSIGNGOTO(nIndex, INVALID_CHANNEL_ID, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	switch(g_astChannels[nIndex].enType)
-	{
-	case COMMUNICATION_TYPE_SHARED_MEMORY:
-		result = UKSharedMemoryChannel_WriteToBuffer(g_astChannels[nIndex], pBuffer, nDataToWrite, nChunkIndex, pnDataWritten);
-		ERRIFGOTO(result, _EXIT);
-		break;
-	case COMMUNICATION_TYPE_TCP_SERVER:
-		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED_YET, _EXIT);
-		break;
-	case COMMUNICATION_TYPE_TCP_CLIENT:
-		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED_YET, _EXIT);
-		break;
-	default:
-		break;
-	}
+	result = getAPIStructureFromCommunicationType(g_astChannels[nIndex].enType, &pstChannelAPI);
+	ERRIFGOTO(result, _EXIT);
+
+	result = pstChannelAPI->fnWriteToBuffer(&g_astChannels[nIndex], pBuffer, nDataToWrite, nChunkIndex, pnDataWritten);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -104,25 +145,16 @@ uem_result UKChannel_WriteToQueue(int nChannelId, IN unsigned char *pBuffer, IN 
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nIndex = 0;
+	SChannelAPI *pstChannelAPI = NULL;
 
 	nIndex = getChannelIndexById(nChannelId);
 	IFVARERRASSIGNGOTO(nIndex, INVALID_CHANNEL_ID, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	switch(g_astChannels[nIndex].enType)
-	{
-	case COMMUNICATION_TYPE_SHARED_MEMORY:
-		result = UKSharedMemoryChannel_WriteToQueue(g_astChannels[nIndex], pBuffer, nDataToWrite, nChunkIndex, pnDataWritten);
-		ERRIFGOTO(result, _EXIT);
-		break;
-	case COMMUNICATION_TYPE_TCP_SERVER:
-		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED_YET, _EXIT);
-		break;
-	case COMMUNICATION_TYPE_TCP_CLIENT:
-		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED_YET, _EXIT);
-		break;
-	default:
-		break;
-	}
+	result = getAPIStructureFromCommunicationType(g_astChannels[nIndex].enType, &pstChannelAPI);
+	ERRIFGOTO(result, _EXIT);
+
+	result = pstChannelAPI->fnWriteToQueue(&g_astChannels[nIndex], pBuffer, nDataToWrite, nChunkIndex, pnDataWritten);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -134,25 +166,16 @@ uem_result UKChannel_ReadFromQueue(int nChannelId, IN OUT unsigned char *pBuffer
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nIndex = 0;
+	SChannelAPI *pstChannelAPI = NULL;
 
 	nIndex = getChannelIndexById(nChannelId);
 	IFVARERRASSIGNGOTO(nIndex, INVALID_CHANNEL_ID, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	switch(g_astChannels[nIndex].enType)
-	{
-	case COMMUNICATION_TYPE_SHARED_MEMORY:
-		result = UKSharedMemoryChannel_ReadFromQueue(&g_astChannels[nIndex], pBuffer, nDataToRead, nChunkIndex, pnDataRead);
-		ERRIFGOTO(result, _EXIT);
-		break;
-	case COMMUNICATION_TYPE_TCP_SERVER:
-		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED_YET, _EXIT);
-		break;
-	case COMMUNICATION_TYPE_TCP_CLIENT:
-		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED_YET, _EXIT);
-		break;
-	default:
-		break;
-	}
+	result = getAPIStructureFromCommunicationType(g_astChannels[nIndex].enType, &pstChannelAPI);
+	ERRIFGOTO(result, _EXIT);
+
+	result = pstChannelAPI->fnReadFromQueue(&g_astChannels[nIndex], pBuffer, nDataToRead, nChunkIndex, pnDataRead);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -163,25 +186,79 @@ uem_result UKChannel_ReadFromBuffer(int nChannelId, IN OUT unsigned char *pBuffe
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nIndex = 0;
+	SChannelAPI *pstChannelAPI = NULL;
 
 	nIndex = getChannelIndexById(nChannelId);
 	IFVARERRASSIGNGOTO(nIndex, INVALID_CHANNEL_ID, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	switch(g_astChannels[nIndex].enType)
-	{
-	case COMMUNICATION_TYPE_SHARED_MEMORY:
-		result = UKSharedMemoryChannel_ReadFromBuffer(&g_astChannels[nIndex], pBuffer, nDataToRead, nChunkIndex, pnDataRead);
-		ERRIFGOTO(result, _EXIT);
-		break;
-	case COMMUNICATION_TYPE_TCP_SERVER:
-		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED_YET, _EXIT);
-		break;
-	case COMMUNICATION_TYPE_TCP_CLIENT:
-		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED_YET, _EXIT);
-		break;
-	default:
-		break;
-	}
+	result = getAPIStructureFromCommunicationType(g_astChannels[nIndex].enType, &pstChannelAPI);
+	ERRIFGOTO(result, _EXIT);
+
+	result = pstChannelAPI->fnReadFromBuffer(&g_astChannels[nIndex], pBuffer, nDataToRead, nChunkIndex, pnDataRead);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+uem_result UKChannel_GetNumOfAvailableData (IN int nChannelId, IN int nChunkIndex, OUT int *pnDataNum)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nIndex = 0;
+	SChannelAPI *pstChannelAPI = NULL;
+
+	nIndex = getChannelIndexById(nChannelId);
+	IFVARERRASSIGNGOTO(nIndex, INVALID_CHANNEL_ID, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	result = getAPIStructureFromCommunicationType(g_astChannels[nIndex].enType, &pstChannelAPI);
+	ERRIFGOTO(result, _EXIT);
+
+	result = pstChannelAPI->fnGetNumOfAvailableData(&g_astChannels[nIndex], nChunkIndex, pnDataNum);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+uem_result UKChannel_Clear(IN int nChannelId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nIndex = 0;
+	SChannelAPI *pstChannelAPI = NULL;
+
+	nIndex = getChannelIndexById(nChannelId);
+	IFVARERRASSIGNGOTO(nIndex, INVALID_CHANNEL_ID, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	result = getAPIStructureFromCommunicationType(g_astChannels[nIndex].enType, &pstChannelAPI);
+	ERRIFGOTO(result, _EXIT);
+
+	result = pstChannelAPI->fnClear(&g_astChannels[nIndex]);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+
+uem_result UKChannel_GetAvailableIndex (IN int nChannelId, OUT int *pnChunkIndex)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nIndex = 0;
+	SChannelAPI *pstChannelAPI = NULL;
+
+	nIndex = getChannelIndexById(nChannelId);
+	IFVARERRASSIGNGOTO(nIndex, INVALID_CHANNEL_ID, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	result = getAPIStructureFromCommunicationType(g_astChannels[nIndex].enType, &pstChannelAPI);
+	ERRIFGOTO(result, _EXIT);
+
+	result = pstChannelAPI->fnGetAvailableChunk(&g_astChannels[nIndex], pnChunkIndex);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -193,10 +270,16 @@ uem_result UKChannel_Finalize()
 {
 	uem_result result = ERR_UEM_NOERROR;
 	int nLoop = 0;
+	SChannelAPI *pstChannelAPI = NULL;
 
 	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
 	{
-		UKSharedMemoryChannel_Finalize(&(g_astChannels[nLoop]));
+		result = getAPIStructureFromCommunicationType(g_astChannels[nLoop].enType, &pstChannelAPI);
+
+		if(result == ERR_UEM_NOERROR)
+		{
+			pstChannelAPI->fnFinalize(&(g_astChannels[nLoop]));
+		}
 	}
 
 	return result;
