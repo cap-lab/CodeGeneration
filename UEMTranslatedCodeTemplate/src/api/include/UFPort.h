@@ -16,7 +16,7 @@ extern "C"
 {
 #endif
 
-uem_result UFPort_Initialize(IN int nTaskId, IN const char *szPortName, OUT int *pnChannelId);
+uem_result UFPort_Initialize(IN int nTaskId, IN char *szPortName, OUT int *pnChannelId);
 uem_result UFPort_ReadFromQueue (IN int nChannelId, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead);
 uem_result UFPort_ReadFromBuffer (IN int nChannelId, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead);
 uem_result UFPort_WriteToQueue (IN int nChannelId, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten);

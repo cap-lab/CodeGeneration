@@ -12,7 +12,7 @@
 #include <UFPort.h>
 
 
-int PORT_INITIALIZE(int nTaskId, const char *pszPortName)
+int PORT_INITIALIZE(int nTaskId, char *pszPortName)
 {
 	int nChannelId = INVALID_CHANNEL_ID;
 	uem_result result = ERR_UEM_UNKNOWN;

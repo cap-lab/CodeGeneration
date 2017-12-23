@@ -60,3 +60,14 @@ void *UC_memcpy(void *pDest, const void *pSrc, int nSize)
 	return pMemory;
 }
 
+
+int UC_memcmp(void *pCompare1, void *pCompare2, int nSize)
+{
+	int result;
+
+	result = memcmp(pCompare1, pCompare2, nSize);
+
+	return result;
+}
+
+

@@ -47,6 +47,7 @@ COMMON_SOURCES=$(COMMON_DIR)/$(PLATFORM_DIR)/UCThread.c\
 				$(COMMON_DIR)/$(PLATFORM_DIR)/UCThreadEvent.c\
 				$(COMMON_DIR)/$(PLATFORM_DIR)/UCThreadMutex.c\
 				$(COMMON_DIR)/$(PLATFORM_DIR)/UCTime.c\
+				$(COMMON_DIR)/$(PLATFORM_DIR)/UCString.c\
 				$(COMMON_DIR)/$(PLATFORM_DIR)/UCBasic.c
 
 

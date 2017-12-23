@@ -11,6 +11,7 @@
 #endif
 
 #include <UCBasic.h>
+#include <UCString.h>
 
 #include <uem_data.h>
 #include <UKSharedMemoryChannel.h>
@@ -119,6 +120,51 @@ static int getChannelIndexById(int nChannelId)
 
 	return nIndex;
 }
+
+static uem_bool isPortTaskIdAndPortNameEqual(SPort *pstPort, uem_string strPortName, int nTaskId)
+{
+	uem_string_struct stStructPortName;
+	uem_result result = ERR_UEM_UNKNOWN;
+	uem_bool bIsMatch = FALSE;
+
+	if(pstPort->nTaskId == nTaskId)
+	{
+		result = UCString_New(&stStructPortName, pstPort->pszPortName, UEMSTRING_MAX);
+		ERRIFGOTO(result, _EXIT);
+
+		if(UCString_IsEqual(strPortName, &stStructPortName) == TRUE)
+		{
+			bIsMatch = TRUE;
+		}
+	}
+_EXIT:
+	return bIsMatch;
+}
+
+int UKChannel_GetChannelIdByTaskAndPortName(int nTaskId, char *szPortName)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop = 0;
+	int nIndex = INVALID_CHANNEL_ID;
+	uem_string_struct stArgPortName;
+
+	result = UCString_New(&stArgPortName, szPortName, UEMSTRING_MAX);
+	ERRIFGOTO(result, _EXIT);
+
+	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
+	{
+		if(isPortTaskIdAndPortNameEqual(&(g_astChannels[nLoop].stInputPort), &stArgPortName, nTaskId) == TRUE ||
+			isPortTaskIdAndPortNameEqual(&(g_astChannels[nLoop].stOutputPort), &stArgPortName, nTaskId) == TRUE)
+		{
+			nIndex = nLoop;
+			break;
+		}
+	}
+_EXIT:
+	return nIndex;
+}
+
+
 
 uem_result UKChannel_WriteToBuffer(int nChannelId, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten)
 {
