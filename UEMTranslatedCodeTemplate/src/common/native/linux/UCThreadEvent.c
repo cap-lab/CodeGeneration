@@ -59,6 +59,7 @@ uem_result UCThreadEvent_SetEvent(HThreadEvent hEvent)
 	uem_result result = ERR_UEM_UNKNOWN;
 	SThreadEvent *pstEvent = NULL;
 	uem_bool bMutexFailed = FALSE;
+	int nErrorNum = 0;
 #ifdef ARGUMENT_CHECK
 	if (IS_VALID_HANDLE(hEvent, ID_UEM_THREAD_EVENT) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
@@ -72,7 +73,11 @@ uem_result UCThreadEvent_SetEvent(HThreadEvent hEvent)
 
 	pstEvent->bIsSet = TRUE; // event is set
 	// send a signal
-	pthread_cond_signal(&(pstEvent->hCond));
+	nErrorNum = pthread_cond_signal(&(pstEvent->hCond));
+	if(nErrorNum != 0)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+	}
 
 	if (bMutexFailed == FALSE && pthread_mutex_unlock(&(pstEvent->hMutex)) != 0) {
 		// ignore error

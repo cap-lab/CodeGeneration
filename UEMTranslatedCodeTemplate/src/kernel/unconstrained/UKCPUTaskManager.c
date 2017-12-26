@@ -349,9 +349,10 @@ uem_result UKCPUTaskManager_RegisterTask(HCPUTaskManager hCPUThreadPool, STask *
 		hTargetList = pstManager->uDataAndTimeDrivenTaskList.hTaskList;
 	}
 
+	// Find TaskThread is already created
 	result = UCDynamicLinkedList_Traverse(hTargetList, traverseTaskList, &stUserData);
 	ERRIFGOTO(result, _EXIT);
-	if(result == ERR_UEM_NOERROR)
+	if(result == ERR_UEM_NOERROR) // if there is no task thread structure in the list, create the new one
 	{
 		uTargetTask.pstTask = pstTask;
 
@@ -372,7 +373,7 @@ uem_result UKCPUTaskManager_RegisterTask(HCPUTaskManager hCPUThreadPool, STask *
 	}
 	else // ERR_UEM_FOUND_DATA
 	{
-		// do nothing, Already done
+		// do nothing, already done
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -480,6 +481,11 @@ static void *taskThreadRoutine(void *pData)
 	while(pstThreadData->nCurSeqId == pstTaskThread->nSeqId)
 	{
 		pstCurrentTask->astTaskFunctions[nIndex].fnGo();
+
+		//pstCurrentTask->nPeriod;
+		//pstCurrentTask->enPeriodMetric;
+		//pstCurrentTask->enRunCondition;
+		//pstTaskThread->enTaskState;
 	}
 
 	//pstCurrentTask->fnWrapup();
@@ -508,7 +514,7 @@ static void *scheduledTaskThreadRoutine(void *pData)
 	// So, end this thread
 	while(pstThreadData->nCurSeqId == pstTaskThread->nSeqId)
 	{
-
+		//pstTaskThread->uTargetTask.pstScheduledTasks->
 	}
 _EXIT:
 	SAFEMEMFREE(pstThreadData);
@@ -1056,11 +1062,11 @@ static uem_result traverseAndCreateComputationalTasks(IN int nOffset, IN void *p
 		}
 		else
 		{
-			// pstTaskThread->enMappedTaskType == MAPPED_TYPE_GENERAL_TASK && pstTaskThread->uTargetTask.pstTask->enType == TASK_TYPE_CONTROL
-			// already created
-
 			// pstTaskThread->enMappedTaskType == MAPPED_TYPE_GENERAL_TASK && pstTaskThread->uTargetTask.pstTask->enType == TASK_TYPE_LOOP
 			// TODO: decide the behavior
+
+			// pstTaskThread->enMappedTaskType == MAPPED_TYPE_GENERAL_TASK && pstTaskThread->uTargetTask.pstTask->enType == TASK_TYPE_CONTROL
+			// already created
 
 			// do nothing for RUN_CONDITION_CONTROL_DRIVEN tasks
 		}
@@ -1070,6 +1076,31 @@ static uem_result traverseAndCreateComputationalTasks(IN int nOffset, IN void *p
 _EXIT:
 	return result;
 }
+
+
+static uem_result traverseAndActivateTaskThreads(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STaskThread *pstTaskThread = (STaskThread *) pData;
+	int nLength = 0;
+	int nLoop = 0;
+
+	result = UCDynamicLinkedList_GetLength(pstTaskThread->uMappedCPUList.hMappedCPUList, &nLength);
+	ERRIFGOTO(result, _EXIT);
+
+	for(nLoop = 0 ; nLoop < nLength ; nLoop++)
+	{
+		result = UCThreadEvent_SetEvent(pstTaskThread->hEvent);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 
 uem_result UKCPUTaskManager_RunRegisteredTasks(HCPUTaskManager hCPUThreadPool)
 {
@@ -1090,6 +1121,7 @@ uem_result UKCPUTaskManager_RunRegisteredTasks(HCPUTaskManager hCPUThreadPool)
 	ERRIFGOTO(result, _EXIT);
 
 	// TODO: send event signal to execute
+	result = UCDynamicLinkedList_Traverse(pstManager->uDataAndTimeDrivenTaskList.hTaskList, traverseAndActivateTaskThreads, NULL);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
