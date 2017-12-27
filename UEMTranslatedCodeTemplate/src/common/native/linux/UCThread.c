@@ -313,6 +313,15 @@ _EXIT:
 }
 #endif
 
+void UCThread_Yield()
+{
+#ifndef WIN32
+	pthread_yield();
+#else
+	SwitchToThread();
+#endif
+}
+
 
 uem_result UCThread_SetMappedCPU(HThread hThread, int nCoreId)
 {

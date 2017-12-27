@@ -16,6 +16,7 @@
 #include <UCThreadEvent.h>
 #include <UCThread.h>
 #include <UCDynamicStack.h>
+#include <UCTime.h>
 
 #include <uem_data.h>
 
@@ -46,6 +47,8 @@ typedef struct _STaskThread {
 	HLinkedList hThreadList;
 	int nSeqId;
 	HThreadEvent hEvent;
+	HThreadMutex hMutex;
+	int nWaitingThreadNum;
 	UMappingTarget uTargetTask;
 	ECPUTaskState enTaskState;
 	EMappedTaskType enMappedTaskType;
@@ -236,6 +239,11 @@ static uem_result destroyTaskThreadStruct(IN OUT STaskThread **ppstTaskThread)
 		UCThreadEvent_Destroy(&(pstTaskThread->hEvent));
 	}
 
+	if(pstTaskThread->hMutex != NULL)
+	{
+		UCThreadMutex_Destroy(&(pstTaskThread->hMutex));
+	}
+
 	SAFEMEMFREE(pstTaskThread);
 
 	*ppstTaskThread = NULL;
@@ -258,6 +266,7 @@ static uem_result createTaskThreadStruct(uem_bool bIsCompositeTask, UMappingTarg
 	pstTaskThread->hThreadList = NULL;
 	pstTaskThread->uMappedCPUList.hMappedCPUList = NULL;
 	pstTaskThread->nSeqId = 0;
+	pstTaskThread->hMutex = NULL;
 	if(bIsCompositeTask == TRUE)
 	{
 		pstTaskThread->uTargetTask.pstScheduledTasks = uTargetTask.pstScheduledTasks;
@@ -270,6 +279,9 @@ static uem_result createTaskThreadStruct(uem_bool bIsCompositeTask, UMappingTarg
 	}
 
 	result = UCThreadEvent_Create(&(pstTaskThread->hEvent));
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadMutex_Create(&(pstTaskThread->hMutex));
 	ERRIFGOTO(result, _EXIT);
 
 	result = UCDynamicLinkedList_Create(&(pstTaskThread->uMappedCPUList.hMappedCPUList));
@@ -456,6 +468,55 @@ _EXIT:
 	return result;
 }
 
+#define SEC_UNIT (1000)
+#define MINUTE_UNIT (60)
+#define HOUR_UNIT (60)
+
+static uem_result getNextTimeByPeriodAndMetric(long long llPrevTime, int nPeriod, ETimeMetric enPeriodMetric,
+											OUT long long *pllNextTime, OUT int *pnNextMaxRunCount)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	switch(enPeriodMetric)
+	{
+	case TIME_METRIC_COUNT: // currently, same to 1 ms
+		*pllNextTime = llPrevTime + 1 * nPeriod;
+		*pnNextMaxRunCount = 1;
+		break;
+	case TIME_METRIC_CYCLE: // currently, same to 1 ms
+		*pllNextTime = llPrevTime + 1 * nPeriod;
+		*pnNextMaxRunCount = 1;
+		break;
+	case TIME_METRIC_MICROSEC:
+		*pllNextTime = llPrevTime + 1 * nPeriod;
+		*pnNextMaxRunCount = SEC_UNIT;
+		break;
+	case TIME_METRIC_MILLISEC:
+		*pllNextTime = llPrevTime + 1 * nPeriod;
+		*pnNextMaxRunCount = 1;
+		break;
+	case TIME_METRIC_SEC:
+		*pllNextTime = llPrevTime + SEC_UNIT * nPeriod;
+		*pnNextMaxRunCount = 1;
+		break;
+	case TIME_METRIC_MINUTE:
+		*pllNextTime = llPrevTime + SEC_UNIT * MINUTE_UNIT * nPeriod;
+		*pnNextMaxRunCount = 1;
+		break;
+	case TIME_METRIC_HOUR:
+		*pllNextTime = llPrevTime + SEC_UNIT * MINUTE_UNIT * HOUR_UNIT * nPeriod;
+		*pnNextMaxRunCount = 1;
+		break;
+	default:
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		break;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 
 static void *taskThreadRoutine(void *pData)
 {
@@ -464,6 +525,10 @@ static void *taskThreadRoutine(void *pData)
 	STaskThread *pstTaskThread = NULL;
 	STask *pstCurrentTask = NULL;
 	int nIndex = 0;
+	long long llNextTime = 0;
+	long long llCurTime = 0;
+	int nMaxRunCount = 0;
+	int nRunCount = 0;
 
 	pstThreadData = (STaskThreadData *) pData;
 
@@ -476,21 +541,81 @@ static void *taskThreadRoutine(void *pData)
 	result = UCThreadEvent_WaitEvent(pstTaskThread->hEvent);
 	ERRIFGOTO(result, _EXIT);
 
+	result = UCThreadMutex_Lock(pstTaskThread->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	pstTaskThread->nWaitingThreadNum--;
+
+	result = UCThreadMutex_Unlock(pstTaskThread->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCTime_GetCurTickInMilliSeconds(&llNextTime);
+	ERRIFGOTO(result, _EXIT);
+
 	// if nSeqId is changed, it means this thread is detached from the CPU task manager.
 	// So, end this thread
-	while(pstThreadData->nCurSeqId == pstTaskThread->nSeqId)
+	while(pstThreadData->nCurSeqId == pstTaskThread->nSeqId &&
+			pstTaskThread->enTaskState != TASK_STATE_STOP)
 	{
-		pstCurrentTask->astTaskFunctions[nIndex].fnGo();
-
-		//pstCurrentTask->nPeriod;
-		//pstCurrentTask->enPeriodMetric;
-		//pstCurrentTask->enRunCondition;
-		//pstTaskThread->enTaskState;
+		switch(pstTaskThread->enTaskState)
+		{
+		case TASK_STATE_RUNNING:
+			switch(pstCurrentTask->enRunCondition)
+			{
+			case RUN_CONDITION_TIME_DRIVEN:
+				result = UCTime_GetCurTickInMilliSeconds(&llCurTime);
+				ERRIFGOTO(result, _EXIT);
+				if(llCurTime <= llNextTime) // time is not passed
+				{
+					if(nRunCount < nMaxRunCount) // run count is available
+					{
+						nRunCount++;
+						pstCurrentTask->astTaskFunctions[nIndex].fnGo();
+					}
+					else // all run count is used and time is not passed yet
+					{
+						// time passing
+					}
+				}
+				else // time is passed, reset
+				{
+					result = getNextTimeByPeriodAndMetric(llNextTime, pstCurrentTask->nPeriod, pstCurrentTask->enPeriodMetric,
+													&llNextTime, &nMaxRunCount);
+					ERRIFGOTO(result, _EXIT);
+					nRunCount = 0;
+				}
+				break;
+			case RUN_CONDITION_DATA_DRIVEN:
+				pstCurrentTask->astTaskFunctions[nIndex].fnGo();
+				break;
+			case RUN_CONDITION_CONTROL_DRIVEN: // run once for control-driven leaf task
+				pstCurrentTask->astTaskFunctions[nIndex].fnGo();
+				UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
+				break;
+			default:
+				ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+				break;
+			}
+			break;
+		case TASK_STATE_STOPPING: // TODO: do more better solutions
+			pstTaskThread->enTaskState = TASK_STATE_STOP;
+			break;
+		case TASK_STATE_SUSPEND:
+			result = UCThreadEvent_WaitEvent(pstTaskThread->hEvent);
+			ERRIFGOTO(result, _EXIT);
+			break;
+		default:
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+			break;
+		}
 	}
 
-	//pstCurrentTask->fnWrapup();
-
 _EXIT:
+	if(pstCurrentTask != NULL)
+	{
+		pstCurrentTask->astTaskFunctions[nIndex].fnWrapup();
+	}
+
 	SAFEMEMFREE(pstThreadData);
 	return NULL;
 }
@@ -508,6 +633,14 @@ static void *scheduledTaskThreadRoutine(void *pData)
 	// pstThreadData->nCurSeqId
 
 	result = UCThreadEvent_WaitEvent(pstTaskThread->hEvent);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadMutex_Lock(pstTaskThread->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	pstTaskThread->nWaitingThreadNum--;
+
+	result = UCThreadMutex_Unlock(pstTaskThread->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
 	// if nSeqId is changed, it means this thread is detached from the CPU task manager.
@@ -576,6 +709,8 @@ static uem_result traverseAndCreateEachThread(IN int nOffset, IN void *pData, IN
 	result = createThread(pstTaskThread, nMappedCPU, taskThreadRoutine, nOffset);
 	ERRIFGOTO(result, _EXIT);
 
+	pstTaskThread->nWaitingThreadNum++;
+
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
@@ -607,6 +742,8 @@ static uem_result createMultipleThreads(HLinkedList hMappedCPUList, STaskThread 
 	{
 		result = createThread(pstTaskThread, MAPPING_NOT_SPECIFIED, taskThreadRoutine, 0);
 		ERRIFGOTO(result, _EXIT);
+
+		pstTaskThread->nWaitingThreadNum++;
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -997,11 +1134,15 @@ static uem_result createCompositeTaskThread(HLinkedList hThreadList, STaskThread
 
 		result = createThread(pstTaskThread, *((int *) pCPUId), scheduledTaskThreadRoutine, 0);
 		ERRIFGOTO(result, _EXIT);
+
+		pstTaskThread->nWaitingThreadNum++;
 	}
 	else // nMappedCPUNumber == 0
 	{
 		result = createThread(pstTaskThread, MAPPING_NOT_SPECIFIED, scheduledTaskThreadRoutine, 0);
 		ERRIFGOTO(result, _EXIT);
+
+		pstTaskThread->nWaitingThreadNum++;
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -1082,19 +1223,14 @@ static uem_result traverseAndActivateTaskThreads(IN int nOffset, IN void *pData,
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STaskThread *pstTaskThread = (STaskThread *) pData;
-	int nLength = 0;
-	int nLoop = 0;
 
-	result = UCDynamicLinkedList_GetLength(pstTaskThread->uMappedCPUList.hMappedCPUList, &nLength);
-	ERRIFGOTO(result, _EXIT);
-
-	for(nLoop = 0 ; nLoop < nLength ; nLoop++)
+	while(pstTaskThread->nWaitingThreadNum > 0)
 	{
 		result = UCThreadEvent_SetEvent(pstTaskThread->hEvent);
 		ERRIFGOTO(result, _EXIT);
+
+		UCThread_Yield();
 	}
-
-
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -1120,8 +1256,9 @@ uem_result UKCPUTaskManager_RunRegisteredTasks(HCPUTaskManager hCPUThreadPool)
 	result = UCDynamicLinkedList_Traverse(pstManager->uDataAndTimeDrivenTaskList.hTaskList, traverseAndCreateComputationalTasks, NULL);
 	ERRIFGOTO(result, _EXIT);
 
-	// TODO: send event signal to execute
+	// Send event signal to execute
 	result = UCDynamicLinkedList_Traverse(pstManager->uDataAndTimeDrivenTaskList.hTaskList, traverseAndActivateTaskThreads, NULL);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

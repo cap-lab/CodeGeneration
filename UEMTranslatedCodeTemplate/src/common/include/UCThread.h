@@ -23,7 +23,7 @@ typedef void * (*FnNativeThread)(void *pData);
 
 uem_result UCThread_Create(FnNativeThread fnThreadRoutine, void *pUserData, HThread *phThread);
 uem_result UCThread_Destroy(HThread *phThread, uem_bool bDetach, int nTimeoutInMS);
-
+void UCThread_Yield();
 uem_result UCThread_SetMappedCPU(HThread hThread, int nCoreId);
 //uem_result UCThread_GetCPUAffinityMask(HThread hThread, unsigned long long *pnThreadAffinity);
 
