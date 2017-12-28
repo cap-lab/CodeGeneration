@@ -26,6 +26,8 @@ uem_result UCString_New(uem_string strToSet, char *pBuffer, int nBufLen)
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
 	}
 #endif
+	pstStr = strToSet;
+
     pstStr->nBufferLen = nBufLen;
     pstStr->nStringLen = 0;
     pstStr->pszStr = pBuffer;

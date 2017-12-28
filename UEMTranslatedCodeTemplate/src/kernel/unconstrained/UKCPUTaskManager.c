@@ -149,8 +149,16 @@ static uem_result traverseCPUList(IN int nOffset, IN void *pData, IN void *pUser
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	int nData = *((int *) pData);
-	int nUserData = *((int *) pUserData);
+	int nData = 0;
+	int nUserData = 0;
+
+#if SIZEOF_VOID_P == 8
+	nData = (int) ((long long) pData);
+	nUserData = (int) ((long long) pUserData);
+#else
+	nData = (int) pData;
+	nUserData = (int) pUserData;
+#endif
 
 	if(nData == nUserData)
 	{
@@ -579,7 +587,11 @@ static uem_result checkAndPopStack(HStack hStack, IN OUT SModeMap **ppstModeMap,
 		result = UCDynamicStack_Pop(hStack, &pIndex);
 		ERRIFGOTO(result, _EXIT);
 
-		nIndex = *((int *) pIndex);
+#if SIZEOF_VOID_P == 8
+		nIndex = (int) ((long long) pIndex);
+#else
+		nIndex = (int) pIndex;
+#endif
 
 		result = UCDynamicStack_Pop(hStack, (void **) &pstModeMap);
 		ERRIFGOTO(result, _EXIT);
@@ -933,8 +945,11 @@ static uem_result traverseAndCreateEachThread(IN int nOffset, IN void *pData, IN
 	int nMappedCPU = 0;
 
 	pstTaskThread = (STaskThread *) pUserData;
-	nMappedCPU = *((int *) pData);
-
+#if SIZEOF_VOID_P == 8
+	nMappedCPU = (int) ((long long) pData);
+#else
+	nMappedCPU = (int) pData;
+#endif
 	result = createThread(pstTaskThread, nMappedCPU, taskThreadRoutine, nOffset);
 	ERRIFGOTO(result, _EXIT);
 
@@ -1217,6 +1232,7 @@ static uem_result createCompositeTaskThread(HLinkedList hThreadList, STaskThread
 	STask *pstParentTask = NULL;
 	//SScheduledTasks *pstTasks = NULL;
 	HStack hStack = NULL;
+	int nMappedCPU = 0;
 
 	result = UCDynamicLinkedList_GetLength(pstTaskThread->uMappedCPUList.hMappedCPUList, &nMappedCPUNumber);
 	ERRIFGOTO(result, _EXIT);
@@ -1241,7 +1257,12 @@ static uem_result createCompositeTaskThread(HLinkedList hThreadList, STaskThread
 		result = UCDynamicLinkedList_Get(pstTaskThread->uMappedCPUList.hMappedCPUList, LINKED_LIST_OFFSET_FIRST, 0, (void **) &pCPUId);
 		ERRIFGOTO(result, _EXIT);
 
-		result = createThread(pstTaskThread, *((int *) pCPUId), scheduledTaskThreadRoutine, 0);
+#if SIZEOF_VOID_P == 8
+		nMappedCPU = (int) ((long long) pCPUId);
+#else
+		nMappedCPU = (int) pData;
+#endif
+		result = createThread(pstTaskThread, nMappedCPU, scheduledTaskThreadRoutine, 0);
 		ERRIFGOTO(result, _EXIT);
 
 		pstTaskThread->nWaitingThreadNum++;

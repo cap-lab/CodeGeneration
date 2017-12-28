@@ -23,14 +23,33 @@
 
 #include <UCThreadMutex.h>
 
-uem_result createTasks()
+uem_result createTasks(HCPUTaskManager hManager)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	HThreadMutex hMutex = NULL;
+	int nLoop = 0;
 
-	hMutex = NULL;
+	for(nLoop = 0 ; nLoop < g_nMappingAndSchedulingInfoNum ; nLoop++)
+	{
+		// TODO: processorId must be checked to distinguish CPU or GPU
+		if(g_astMappingAndSchedulingInfo[nLoop].enType == TASK_TYPE_COMPOSITE)
+		{
+			result = UKCPUTaskManager_RegisterCompositeTask(hManager, g_astMappingAndSchedulingInfo[nLoop].uMappedTask.pstScheduledTasks,
+														g_astMappingAndSchedulingInfo[nLoop].nLocalId);
+			ERRIFGOTO(result, _EXIT);
+		}
+		else // TASK_TYPE_CONTROL, TASK_TYPE_LOOP, TASK_TYPE_COMPUTATIONAL
+		{
+			result = UKCPUTaskManager_RegisterTask(hManager, g_astMappingAndSchedulingInfo[nLoop].uMappedTask.pstTask, g_astMappingAndSchedulingInfo[nLoop].nLocalId);
+			ERRIFGOTO(result, _EXIT);
+		}
+	}
 
 
+
+	//UKCPUTaskManager_RegisterCompositeTask(hManager, , )
+
+
+_EXIT:
 	return result;
 }
 
@@ -56,6 +75,17 @@ uem_result destroyTasks()
 uem_result executeTasks()
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	HCPUTaskManager hManager = NULL;
+
+	result = UKCPUTaskManager_Create(&hManager);
+	ERRIFGOTO(result, _EXIT);
+
+	result = createTasks(hManager);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKCPUTaskManager_RunRegisteredTasks(hManager);
+	ERRIFGOTO(result, _EXIT);
+
 	// MTM initialize
 
 	// control thread count++
@@ -73,6 +103,10 @@ uem_result executeTasks()
 
 	// thread cancel
 
+	result = UKCPUTaskManager_Destroy(&hManager);
+	ERRIFGOTO(result, _EXIT);
+
+_EXIT:
 	return result;
 }
 
