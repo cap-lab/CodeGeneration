@@ -21,6 +21,7 @@
 #include <uem_data.h>
 
 #include <UKCPUTaskManager.h>
+#include <UKChannel.h>
 
 
 #define MIN_SLEEP_DURATION (10)
@@ -277,6 +278,7 @@ static uem_result createTaskThreadStruct(uem_bool bIsCompositeTask, UMappingTarg
 	pstTaskThread->hThreadList = NULL;
 	pstTaskThread->uMappedCPUList.hMappedCPUList = NULL;
 	pstTaskThread->nSeqId = 0;
+	pstTaskThread->nWaitingThreadNum = 0;
 	pstTaskThread->hMutex = NULL;
 	if(bIsCompositeTask == TRUE)
 	{
@@ -771,7 +773,7 @@ static uem_result handleTaskMainRoutine(STaskThread *pstTaskThread, FnUemTaskGo 
 
 	// if nSeqId is changed, it means this thread is detached or stopped from the CPU task manager.
 	// So, end this thread
-	while(nCurSeqId == pstTaskThread->nSeqId)
+	while(nCurSeqId == pstTaskThread->nSeqId && pstTaskThread->enTaskState != TASK_STATE_STOP)
 	{
 		switch(pstTaskThread->enTaskState)
 		{
@@ -1444,6 +1446,26 @@ static uem_result traverseAndDestroyAllThreads(IN int nOffset, IN void *pData, I
 			ERRIFGOTO(result, _EXIT);
 		}
 
+
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result traverseAndSetTaskToStop(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STaskThread *pstTaskThread = (STaskThread *) pData;
+	int nTaskInstanceNumber = 0;
+
+	result = UCDynamicLinkedList_GetLength(pstTaskThread->hThreadList, &nTaskInstanceNumber);
+	ERRIFGOTO(result, _EXIT);
+
+	if(nTaskInstanceNumber > 0)
+	{
 		pstTaskThread->enTaskState = TASK_STATE_STOP;
 	}
 
@@ -1466,7 +1488,14 @@ uem_result UKCPUTaskManager_StopAllTasks(HCPUTaskManager hCPUThreadPool)
 
 	pstManager = hCPUThreadPool;
 
-	// TODO: release all channel block
+	result = UCDynamicLinkedList_Traverse(pstManager->uDataAndTimeDrivenTaskList.hTaskList, traverseAndSetTaskToStop, NULL);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCDynamicLinkedList_Traverse(pstManager->uControlDrivenTaskList.hTaskList, traverseAndSetTaskToStop, NULL);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKChannel_SetExit();
+	ERRIFGOTO(result, _EXIT);
 
 	result = UCDynamicLinkedList_Traverse(pstManager->uDataAndTimeDrivenTaskList.hTaskList, traverseAndDestroyAllThreads, NULL);
 	ERRIFGOTO(result, _EXIT);
@@ -1697,7 +1726,7 @@ uem_result UKCPUTaskManager_Destroy(IN OUT HCPUTaskManager *phCPUThreadPool)
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(phCPUThreadPool, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	if (IS_VALID_HANDLE(phCPUThreadPool, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
+	if (IS_VALID_HANDLE(*phCPUThreadPool, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
 

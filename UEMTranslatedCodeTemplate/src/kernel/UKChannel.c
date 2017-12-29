@@ -24,6 +24,7 @@ typedef uem_result (*FnChannelWriteToQueue)(SChannel *pstChannel, IN unsigned ch
 typedef uem_result (*FnChannelGetAvailableChunk)(SChannel *pstChannel, OUT int *pnChunkIndex);
 typedef uem_result (*FnChannelGetNumOfAvailableData)(SChannel *pstChannel, IN int nChunkIndex, OUT int *pnDataNum);
 typedef uem_result (*FnChannelClear)(SChannel *pstChannel);
+typedef uem_result (*FnChannelSetExit)(SChannel *pstChannel);
 typedef uem_result (*FnChannelFinalize)(SChannel *pstChannel);
 
 typedef struct _SChannelAPI {
@@ -35,6 +36,7 @@ typedef struct _SChannelAPI {
 	FnChannelGetAvailableChunk fnGetAvailableChunk;
 	FnChannelGetNumOfAvailableData fnGetNumOfAvailableData;
 	FnChannelClear fnClear;
+	FnChannelSetExit fnSetExit;
 	FnChannelFinalize fnFinalize;
 } SChannelAPI;
 
@@ -48,6 +50,7 @@ SChannelAPI g_stSharedMemoryChannel = {
 	UKSharedMemoryChannel_GetAvailableChunk, // fnGetAvailableChunk
 	UKSharedMemoryChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
 	UKSharedMemoryChannel_Clear, // fnClear
+	UKSharedMemoryChannel_SetExit,
 	UKSharedMemoryChannel_Finalize, // fnFinalize
 };
 
@@ -181,7 +184,7 @@ uem_result UKChannel_WriteToBuffer(int nChannelId, IN unsigned char *pBuffer, IN
 	result = pstChannelAPI->fnWriteToBuffer(&g_astChannels[nIndex], pBuffer, nDataToWrite, nChunkIndex, pnDataWritten);
 	ERRIFGOTO(result, _EXIT);
 
-	result = ERR_UEM_NOERROR;
+	// to preserve, ERR_UEM_SUSPEND, do not set UEM_NOERROR here
 _EXIT:
 	return result;
 }
@@ -202,7 +205,7 @@ uem_result UKChannel_WriteToQueue(int nChannelId, IN unsigned char *pBuffer, IN 
 	result = pstChannelAPI->fnWriteToQueue(&g_astChannels[nIndex], pBuffer, nDataToWrite, nChunkIndex, pnDataWritten);
 	ERRIFGOTO(result, _EXIT);
 
-	result = ERR_UEM_NOERROR;
+	// to preserve, ERR_UEM_SUSPEND, do not set UEM_NOERROR here
 _EXIT:
 	return result;
 }
@@ -223,7 +226,7 @@ uem_result UKChannel_ReadFromQueue(int nChannelId, IN OUT unsigned char *pBuffer
 	result = pstChannelAPI->fnReadFromQueue(&g_astChannels[nIndex], pBuffer, nDataToRead, nChunkIndex, pnDataRead);
 	ERRIFGOTO(result, _EXIT);
 
-	result = ERR_UEM_NOERROR;
+	// to preserve, ERR_UEM_SUSPEND, do not set UEM_NOERROR here
 _EXIT:
 	return result;
 }
@@ -243,7 +246,7 @@ uem_result UKChannel_ReadFromBuffer(int nChannelId, IN OUT unsigned char *pBuffe
 	result = pstChannelAPI->fnReadFromBuffer(&g_astChannels[nIndex], pBuffer, nDataToRead, nChunkIndex, pnDataRead);
 	ERRIFGOTO(result, _EXIT);
 
-	result = ERR_UEM_NOERROR;
+	// to preserve, ERR_UEM_SUSPEND, do not set UEM_NOERROR here
 _EXIT:
 	return result;
 }
@@ -264,7 +267,7 @@ uem_result UKChannel_GetNumOfAvailableData (IN int nChannelId, IN int nChunkInde
 	result = pstChannelAPI->fnGetNumOfAvailableData(&g_astChannels[nIndex], nChunkIndex, pnDataNum);
 	ERRIFGOTO(result, _EXIT);
 
-	result = ERR_UEM_NOERROR;
+	// to preserve, ERR_UEM_SUSPEND, do not set UEM_NOERROR here
 _EXIT:
 	return result;
 }
@@ -305,6 +308,26 @@ uem_result UKChannel_GetAvailableIndex (IN int nChannelId, OUT int *pnChunkIndex
 
 	result = pstChannelAPI->fnGetAvailableChunk(&g_astChannels[nIndex], pnChunkIndex);
 	ERRIFGOTO(result, _EXIT);
+
+	// to preserve, ERR_UEM_SUSPEND, do not set UEM_NOERROR here
+_EXIT:
+	return result;
+}
+
+uem_result UKChannel_SetExit()
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop = 0;
+	SChannelAPI *pstChannelAPI = NULL;
+
+	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
+	{
+		result = getAPIStructureFromCommunicationType(g_astChannels[nLoop].enType, &pstChannelAPI);
+		if(result == ERR_UEM_NOERROR)
+		{
+			pstChannelAPI->fnSetExit(&(g_astChannels[nLoop]));
+		}
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

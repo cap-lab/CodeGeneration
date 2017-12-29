@@ -251,9 +251,12 @@ typedef struct _SChannel {
 	void *pDataStart;
 	void *pDataEnd;
 	int nDataLen;
-	int nReferenceCount;
+	int nReadReferenceCount;
+	int nWriteReferenceCount;
+	uem_bool bExit;
 	HThreadMutex hMutex; // Channel global mutex
-	HThreadEvent hEvent; // Channel global conditional variable
+	HThreadEvent hReadEvent; // Channel read available notice conditional variable
+	HThreadEvent hWriteEvent; // Channel write available notice conditional variable
 
 	SPort stInputPort;
 	SPort stOutputPort;

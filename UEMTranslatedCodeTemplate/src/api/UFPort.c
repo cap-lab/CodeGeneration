@@ -46,7 +46,7 @@ uem_result UFPort_ReadFromQueue (IN int nChannelId, IN OUT unsigned char *pBuffe
 	result = UKChannel_ReadFromQueue(nChannelId, pBuffer, nDataToRead, nChunkIndex, pnDataRead);
 	ERRIFGOTO(result, _EXIT);
 
-	result = ERR_UEM_NOERROR;
+	// to preserve, ERR_UEM_SUSPEND, do not set UEM_NOERROR here
 _EXIT:
 	return result;
 }

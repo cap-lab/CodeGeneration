@@ -51,6 +51,7 @@ typedef enum _EUemResult {
 	ERR_UEM_ALREADY_DONE,
 	ERR_UEM_NO_CHANGE,
 	ERR_UEM_TRUNCATED,
+	ERR_UEM_SUSPEND,
 
 	ERR_UEM_ERROR            = UEM_RESULT_CATEGORY_ERROR,
 
@@ -65,10 +66,12 @@ typedef enum _EUemResult {
 	ERR_UEM_STATIC_HANDLE,
 	ERR_UEM_TIME_EXPIRED,
 	ERR_UEM_INTERRUPT,
+
 	ERR_UEM_DATA_DUPLICATED,
 	ERR_UEM_ILLEGAL_CONTROL,
 	ERR_UEM_ILLEGAL_DATA,
 	ERR_UEM_NOT_SUPPORTED_YET,
+
 
 } uem_result;
 
@@ -96,12 +99,27 @@ typedef enum _EUemModuleId {
 #define ARRAYLEN(array)	 		(sizeof(array)/sizeof(array[0]))
 
 #define IS_VALID_HANDLE(handle, id) (handle != NULL && (*((int *)(handle))) == id)
+#define _DEBUG
 
+#ifdef _DEBUG
+
+#include <unistd.h>
+#include <stdio.h>
+#include <errno.h>
+
+#define ERRIFGOTO(res, label) if(((res) & ERR_UEM_ERROR)!=ERR_UEM_NOERROR) {fprintf(stderr, "error! %08x (%s:%d)\n", res, __FILE__,__LINE__);goto label;}
+#define ERRASSIGNGOTO(res, err, label) {res=err; fprintf(stderr, "error! %08x (%s:%d)\n", res, __FILE__,__LINE__); goto label;}
+#define IFVARERRASSIGNGOTO(var, val, res, err, label) if((var)==(val)) {res=err;fprintf(stderr, "error! %08x (%s:%d)\n", res, __FILE__,__LINE__);goto label;}
+#else
 #define ERRIFGOTO(res, label) if(((res) & ERR_UEM_ERROR)!=ERR_UEM_NOERROR) {goto label;}
 #define ERRASSIGNGOTO(res, err, label) {res=err; goto label;}
-#define UEMASSIGNGOTO(res, err, label) {res=err; goto label;}
 #define IFVARERRASSIGNGOTO(var, val, res, err, label) if((var)==(val)) {res=err;goto label;}
+
+#endif
+
+#define UEMASSIGNGOTO(res, err, label) {res=err; goto label;}
 #define ERRMEMGOTO(var, res, label) if((var)==NULL) {res=ERR_UEM_OUT_OF_MEMORY;goto label;}
+
 
 #ifdef __cplusplus
 }

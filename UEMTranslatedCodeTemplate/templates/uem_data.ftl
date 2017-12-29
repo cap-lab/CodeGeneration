@@ -220,9 +220,12 @@ SChannel g_astChannels[] = {
 		s_pChannel_${channel.index}_buffer, // Channel data start
 		s_pChannel_${channel.index}_buffer, // Channel data end
 		0, // Channel data length
-		0, // reference count
+		0, // Read reference count
+		0, // Write reference count
+		FALSE, // Exit setting
 		NULL, // Mutex
-		NULL, // Event
+		NULL, // Read available notice event
+		NULL, // Write available notice event
 		{
 			${channel.inputPort.taskId}, // Task ID
 			"${channel.inputPort.portName}", // Port name

@@ -30,8 +30,8 @@ void Display_Wrapup();
 // ##TASK_CODE_DECLARATION_SECTION::END
 
 // ##UEM_DATA_GENERATION_SECTION::START
-#define CHANNEL_0_SIZE (3)
-#define CHANNEL_1_SIZE (3)
+#define CHANNEL_0_SIZE (12)
+#define CHANNEL_1_SIZE (12)
 #define CHANNEL_2_SIZE (36)
 
 char s_pChannel_0_buffer[CHANNEL_0_SIZE];
@@ -173,9 +173,12 @@ SChannel g_astChannels[] = {
 		s_pChannel_0_buffer, // Channel data start
 		s_pChannel_0_buffer, // Channel data end
 		0, // Channel data length
-		0, // reference count
+		0, // Read reference count
+		0, // Write reference count
+		FALSE, // Exit setting
 		NULL, // Mutex
-		NULL, // Event
+		NULL, // Read available notice event
+		NULL, // Write available notice event
 		{
 			2, // Task ID
 			"in1", // Port name
@@ -223,9 +226,12 @@ SChannel g_astChannels[] = {
 		s_pChannel_1_buffer, // Channel data start
 		s_pChannel_1_buffer, // Channel data end
 		0, // Channel data length
-		0, // reference count
+		0, // Read reference count
+		0, // Write reference count
+		FALSE, // Exit setting
 		NULL, // Mutex
-		NULL, // Event
+		NULL, // Read available notice event
+		NULL, // Write available notice event
 		{
 			2, // Task ID
 			"in2", // Port name
@@ -273,9 +279,12 @@ SChannel g_astChannels[] = {
 		s_pChannel_2_buffer, // Channel data start
 		s_pChannel_2_buffer, // Channel data end
 		0, // Channel data length
-		0, // reference count
+		0, // Read reference count
+		0, // Write reference count
+		FALSE, // Exit setting
 		NULL, // Mutex
-		NULL, // Event
+		NULL, // Read available notice event
+		NULL, // Write available notice event
 		{
 			3, // Task ID
 			"in", // Port name
