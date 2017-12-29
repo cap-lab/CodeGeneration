@@ -1,5 +1,8 @@
 /* uem_data.c made by UEM Translator */
 
+
+SExecutionTime g_stExecutionTime = { ${execution_time.value}, TIME_METRIC_${execution_time.metric} } ;
+
 // ##TASK_CODE_TEMPLATE::START
 <#list flat_task as task_name, task>
 	<#if !task.childTaskGraphName??>

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.snu.cse.cap.translator.Constants;
+import org.snu.cse.cap.translator.ExecutionTime;
 import org.snu.cse.cap.translator.structure.channel.Channel;
 import org.snu.cse.cap.translator.structure.channel.ChannelArrayType;
 import org.snu.cse.cap.translator.structure.channel.CommunicationType;
@@ -31,6 +32,7 @@ import org.snu.cse.cap.translator.structure.mapping.InvalidScheduleFileNameExcep
 import org.snu.cse.cap.translator.structure.mapping.MappingInfo;
 import org.snu.cse.cap.translator.structure.task.Task;
 import org.snu.cse.cap.translator.structure.task.TaskLoopType;
+import org.snu.cse.cap.translator.structure.task.TimeMetric;
 
 import hopes.cic.xml.ArchitectureConnectType;
 import hopes.cic.xml.ArchitectureConnectionSlaveType;
@@ -69,6 +71,9 @@ public class Application {
 	private HashMap<String, HWElementType> elementTypeHash; // element type name : HWElementType class
 	private TaskGraphType applicationGraphProperty;	
 	private HashMap<String, Library> libraryMap; // library name : Library class
+	private ExecutionTime executionTime;
+	
+
 	
 	public Application()
 	{
@@ -80,6 +85,7 @@ public class Application {
 		this.applicationGraphProperty = null;
 		this.deviceConnectionList = new HashMap<String, DeviceConnection>();
 		this.libraryMap = new HashMap<String, Library>();
+		this.executionTime = null;
 	}
 	
 	private void putPortInfoFromTask(TaskType task_metadata, int taskId, String taskName) {
@@ -590,6 +596,12 @@ public class Application {
 		}
 	}
 	
+	public void makeConfigurationInformation(CICConfigurationType configuration_metadata)
+	{
+		this.executionTime = new ExecutionTime(configuration_metadata.getSimulation().getExecutionTime().getValue().intValue(), 
+												configuration_metadata.getSimulation().getExecutionTime().getMetric().value());
+	}
+	
 	private void setLibraryInfoPerDevices() {
 		for(Device device : this.deviceInfo.values())
 		{
@@ -625,5 +637,9 @@ public class Application {
 
 	public HashMap<String, Port> getPortInfo() {
 		return portInfo;
+	}
+
+	public ExecutionTime getExecutionTime() {
+		return executionTime;
 	}
 }

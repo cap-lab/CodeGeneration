@@ -11,6 +11,9 @@
 
 #include <uem_data.h>
 
+
+SExecutionTime g_stExecutionTime = { 500, TIME_METRIC_MILLISEC } ;
+
 // ##TASK_CODE_DECLARATION_SECTION:START
 void MatA_Init(int nTaskId);
 void MatA_Go();

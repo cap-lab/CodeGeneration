@@ -273,7 +273,6 @@ typedef struct _SChannel {
 } SChannel;
 
 
-
 typedef struct _STaskIdToTaskMap {
 	int nTaskId;
 	char *pszTaskName;
@@ -316,6 +315,13 @@ typedef struct _SMappingSchedulingInfo {
 	int nProcessorId;
 	int nLocalId;
 } SMappingSchedulingInfo;
+
+typedef struct _SExecutionTime {
+	int nValue;
+	ETimeMetric enTimeMetric;
+} SExecutionTime;
+
+extern SExecutionTime g_stExecutionTime;
 
 extern SChannel g_astChannels[];
 extern int g_nChannelNum;

@@ -16,6 +16,7 @@
 
 #include <uem_data.h>
 
+#include <UCTime.h>
 
 #include <UKChannel.h>
 #include <UKCPUTaskManager.h>
@@ -72,10 +73,57 @@ uem_result destroyTasks()
 	return result;
 }
 
+#define SEC_UNIT (1000)
+#define MINUTE_UNIT (60)
+#define HOUR_UNIT (60)
+
+long long getEndTime(long long llStartTime)
+{
+	long long llEndTime;
+	int nValue;
+
+	nValue = g_stExecutionTime.nValue;
+
+	switch(g_stExecutionTime.enTimeMetric)
+	{
+	case TIME_METRIC_COUNT: // currently, same to 1 ms
+		llEndTime = llStartTime + 1 * nValue;
+		break;
+	case TIME_METRIC_CYCLE: // currently, same to 1 ms
+		llEndTime = llStartTime + 1 * nValue;
+		break;
+	case TIME_METRIC_MICROSEC:
+		llEndTime = llStartTime + 1 * nValue;
+		break;
+	case TIME_METRIC_MILLISEC:
+		llEndTime = llStartTime + 1 * nValue;
+		break;
+	case TIME_METRIC_SEC:
+		llEndTime = llStartTime + SEC_UNIT * nValue;
+		break;
+	case TIME_METRIC_MINUTE:
+		llEndTime = llStartTime + SEC_UNIT * MINUTE_UNIT * nValue;
+		break;
+	case TIME_METRIC_HOUR:
+		llEndTime = llStartTime + SEC_UNIT * MINUTE_UNIT * HOUR_UNIT * nValue;
+		break;
+	default:
+		llEndTime = llStartTime + 1;
+		break;
+	}
+
+	return llEndTime;
+}
+
+#define DEFAULT_LONG_SLEEP_PERIOD (100)
+#define DEFAULT_SHORT_SLEEP_PERIOD (10)
+
 uem_result executeTasks()
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	HCPUTaskManager hManager = NULL;
+	long long llCurTime;
+	long long llEndTime;
 
 	result = UKCPUTaskManager_Create(&hManager);
 	ERRIFGOTO(result, _EXIT);
@@ -85,6 +133,30 @@ uem_result executeTasks()
 
 	result = UKCPUTaskManager_RunRegisteredTasks(hManager);
 	ERRIFGOTO(result, _EXIT);
+
+	result = UCTime_GetCurTickInMilliSeconds(&llCurTime);
+	ERRIFGOTO(result, _EXIT);
+
+	llEndTime = getEndTime(llCurTime);
+
+	while(llEndTime >= llCurTime)
+	{
+		if(llCurTime + DEFAULT_LONG_SLEEP_PERIOD <= llEndTime)
+		{
+			UCTime_Sleep(DEFAULT_LONG_SLEEP_PERIOD);
+		}
+		else if(llCurTime + DEFAULT_SHORT_SLEEP_PERIOD <= llEndTime)
+		{
+			UCTime_Sleep(DEFAULT_SHORT_SLEEP_PERIOD);
+		}
+		else
+		{
+			// otherwise, busy wait
+		}
+
+		result = UCTime_GetCurTickInMilliSeconds(&llCurTime);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	// MTM initialize
 

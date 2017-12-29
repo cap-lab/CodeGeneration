@@ -329,8 +329,6 @@ uem_result UKChannel_SetExit()
 		}
 	}
 
-	result = ERR_UEM_NOERROR;
-_EXIT:
 	return result;
 }
 

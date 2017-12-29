@@ -81,14 +81,15 @@ public class UEMMetaDataModel {
     
     private void makeApplicationDataModel() throws InvalidDataInMetadataFileException
     {
-    	application = new Application();
+    	this.application = new Application();
     	
-    	application.makeDeviceInformation(architectureMetadata);
+    	this.application.makeDeviceInformation(architectureMetadata);
     	
-    	application.makeTaskInformation(algorithmMetadata);
-    	application.makeMappingAndTaskInformationPerDevices(mappingMetadata, profileMetadata, configurationMetadata, this.schedulePath);
-    	application.makeChannelInformation(algorithmMetadata);
-    	application.makeLibraryInformation(algorithmMetadata);
+    	this.application.makeTaskInformation(algorithmMetadata);
+    	this.application.makeMappingAndTaskInformationPerDevices(mappingMetadata, profileMetadata, configurationMetadata, this.schedulePath);
+    	this.application.makeChannelInformation(algorithmMetadata);
+    	this.application.makeLibraryInformation(algorithmMetadata);
+    	this.application.makeConfigurationInformation(configurationMetadata);
     }
 
 	public Application getApplication() {

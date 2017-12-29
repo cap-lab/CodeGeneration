@@ -19,37 +19,6 @@ import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.TaskParameterType;
 import hopes.cic.xml.TaskType;
 
-enum TimeMetric {
-	CYCLE("cycle"),
-	COUNT("count"), 
-	MICROSEC("us"),
-	MILLISEC("ms"),
-	SEC("s"),
-	MINUTE("m"),
-	HOUR("h"),
-	;
-	
-	private final String value;
-	
-	private TimeMetric(String value) {
-		this.value = value;
-	}
-	
-	@Override
-	public String toString() {
-		return value;
-	}
-	
-	public static TimeMetric fromValue(String value) {
-		 for (TimeMetric c : TimeMetric.values()) {
-			 if (c.value.equals(value)) {
-				 return c;
-			 }
-		 }
-		 throw new IllegalArgumentException(value.toString());
-	}
-}
-
 enum TaskRunCondition {
 	DATA_DRIVEN("data-driven"),
 	TIME_DRIVEN("time-driven"),
