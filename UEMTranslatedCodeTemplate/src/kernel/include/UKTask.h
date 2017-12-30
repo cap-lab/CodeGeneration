@@ -17,6 +17,7 @@ extern "C"
 
 typedef uem_result (*FnTaskTraverse)(STask *pstTask, void *pUserData);
 
+uem_result UKTask_GetTaskFromTaskName(char *szTaskName, STask **ppstTask);
 uem_result UKTask_GetTaskFromTaskId(int nTaskId, STask **ppstTask);
 uem_result UKTask_TraverseAllTasks(FnTaskTraverse fnCallback, void *pUserData);
 

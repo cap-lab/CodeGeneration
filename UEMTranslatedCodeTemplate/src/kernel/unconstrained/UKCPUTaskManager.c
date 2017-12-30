@@ -98,12 +98,12 @@ typedef struct _STaskThreadData {
 } STaskThreadData;
 
 
-uem_result UKCPUTaskManager_Create(OUT HCPUTaskManager *phCPUThreadPool)
+uem_result UKCPUTaskManager_Create(OUT HCPUTaskManager *phCPUTaskManager)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
 #ifdef ARGUMENT_CHECK
-	IFVARERRASSIGNGOTO(phCPUThreadPool, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+	IFVARERRASSIGNGOTO(phCPUTaskManager, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
 	pstManager = UC_malloc(sizeof(SCPUTaskManager));
 	ERRMEMGOTO(pstManager, result, _EXIT);
@@ -123,7 +123,7 @@ uem_result UKCPUTaskManager_Create(OUT HCPUTaskManager *phCPUThreadPool)
 	result = UCDynamicLinkedList_Create(&(pstManager->uControlDrivenTaskList.hTaskList));
 	ERRIFGOTO(result, _EXIT);
 
-	*phCPUThreadPool = pstManager;
+	*phCPUTaskManager = pstManager;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -340,7 +340,7 @@ static uem_bool checkIsControlDrivenTask(STask *pstTask)
 	return bIsControlDriven;
 }
 
-uem_result UKCPUTaskManager_RegisterTask(HCPUTaskManager hCPUThreadPool, STask *pstTask, int nCPUId)
+uem_result UKCPUTaskManager_RegisterTask(HCPUTaskManager hCPUTaskManager, STask *pstTask, int nCPUId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
@@ -351,7 +351,7 @@ uem_result UKCPUTaskManager_RegisterTask(HCPUTaskManager hCPUThreadPool, STask *
 	HLinkedList hTargetList = NULL;
 
 #ifdef ARGUMENT_CHECK
-	if (IS_VALID_HANDLE(hCPUThreadPool, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
+	if (IS_VALID_HANDLE(hCPUTaskManager, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
 
@@ -361,7 +361,7 @@ uem_result UKCPUTaskManager_RegisterTask(HCPUTaskManager hCPUThreadPool, STask *
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
 	}
 #endif
-	pstManager = hCPUThreadPool;
+	pstManager = hCPUTaskManager;
 
 	stUserData.nCPUId = nCPUId;
 	stUserData.pstTask = pstTask;
@@ -413,7 +413,7 @@ _EXIT:
 }
 
 
-uem_result UKCPUTaskManager_RegisterCompositeTask(HCPUTaskManager hCPUThreadPool, SScheduledTasks *pstScheduledTasks, int nCPUId)
+uem_result UKCPUTaskManager_RegisterCompositeTask(HCPUTaskManager hCPUTaskManager, SScheduledTasks *pstScheduledTasks, int nCPUId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
@@ -424,7 +424,7 @@ uem_result UKCPUTaskManager_RegisterCompositeTask(HCPUTaskManager hCPUThreadPool
 	HLinkedList hTargetList = NULL;
 
 #ifdef ARGUMENT_CHECK
-	if (IS_VALID_HANDLE(hCPUThreadPool, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
+	if (IS_VALID_HANDLE(hCPUTaskManager, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
 
@@ -434,7 +434,7 @@ uem_result UKCPUTaskManager_RegisterCompositeTask(HCPUTaskManager hCPUThreadPool
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
 	}
 #endif
-	pstManager = hCPUThreadPool;
+	pstManager = hCPUTaskManager;
 
 	stUserData.nCPUId = nCPUId;
 	stUserData.pstScheduledTasks = pstScheduledTasks;
@@ -1209,7 +1209,7 @@ _EXIT:
 }
 
 
-uem_result UKCPUTaskManager_SuspendTask(HCPUTaskManager hCPUThreadPool, int nTaskId)
+uem_result UKCPUTaskManager_SuspendTask(HCPUTaskManager hCPUTaskManager, int nTaskId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
@@ -1219,7 +1219,7 @@ uem_result UKCPUTaskManager_SuspendTask(HCPUTaskManager hCPUThreadPool, int nTas
 	STask *pstTargetParentTask = NULL;
 	STaskThread *pstTargetThread = NULL;
 #ifdef ARGUMENT_CHECK
-	if (IS_VALID_HANDLE(hCPUThreadPool, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
+	if (IS_VALID_HANDLE(hCPUTaskManager, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
 
@@ -1227,7 +1227,7 @@ uem_result UKCPUTaskManager_SuspendTask(HCPUTaskManager hCPUThreadPool, int nTas
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
 	}
 #endif
-	pstManager = hCPUThreadPool;
+	pstManager = hCPUTaskManager;
 
 	result = UCThreadMutex_Lock(pstManager->hMutex);
 	ERRIFGOTO(result, _EXIT);
@@ -1433,17 +1433,17 @@ _EXIT:
 }
 
 
-uem_result UKCPUTaskManager_RunRegisteredTasks(HCPUTaskManager hCPUThreadPool)
+uem_result UKCPUTaskManager_RunRegisteredTasks(HCPUTaskManager hCPUTaskManager)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
 
 #ifdef ARGUMENT_CHECK
-	if (IS_VALID_HANDLE(hCPUThreadPool, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
+	if (IS_VALID_HANDLE(hCPUTaskManager, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
 #endif
-	pstManager = hCPUThreadPool;
+	pstManager = hCPUTaskManager;
 
 	result = UCDynamicLinkedList_Traverse(pstManager->uDataAndTimeDrivenTaskList.hTaskList, traverseAndCreateControlTasks, NULL);
 	ERRIFGOTO(result, _EXIT);
@@ -1530,18 +1530,18 @@ _EXIT:
 }
 
 
-uem_result UKCPUTaskManager_StopAllTasks(HCPUTaskManager hCPUThreadPool)
+uem_result UKCPUTaskManager_StopAllTasks(HCPUTaskManager hCPUTaskManager)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
 
 #ifdef ARGUMENT_CHECK
-	if (IS_VALID_HANDLE(hCPUThreadPool, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
+	if (IS_VALID_HANDLE(hCPUTaskManager, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
 #endif
 
-	pstManager = hCPUThreadPool;
+	pstManager = hCPUTaskManager;
 
 	result = UCDynamicLinkedList_Traverse(pstManager->uDataAndTimeDrivenTaskList.hTaskList, traverseAndSetTaskToStop, NULL);
 	ERRIFGOTO(result, _EXIT);
@@ -1565,7 +1565,7 @@ _EXIT:
 }
 
 
-uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUThreadPool, int nTaskId)
+uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUTaskManager, int nTaskId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
@@ -1573,7 +1573,7 @@ uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUThreadPool, int nTaskId
 	int nLoop = 0;
 	int nTaskInstanceNumber = 0;
 #ifdef ARGUMENT_CHECK
-	if (IS_VALID_HANDLE(hCPUThreadPool, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
+	if (IS_VALID_HANDLE(hCPUTaskManager, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
 
@@ -1581,7 +1581,7 @@ uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUThreadPool, int nTaskId
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
 	}
 #endif
-	pstManager = hCPUThreadPool;
+	pstManager = hCPUTaskManager;
 
 	stCallbackData.nTaskId = nTaskId;
 	stCallbackData.pstTargetThread = NULL;
@@ -1633,7 +1633,7 @@ _EXIT:
 }
 
 
-uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUThreadPool, int nTaskId)
+uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUTaskManager, int nTaskId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
@@ -1643,7 +1643,7 @@ uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUThreadPool, int nTaskId)
 	struct _SCompositeTaskUserData stCompositeTaskUserData;
 	int nCurModeIndex = 0;
 #ifdef ARGUMENT_CHECK
-	if (IS_VALID_HANDLE(hCPUThreadPool, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
+	if (IS_VALID_HANDLE(hCPUTaskManager, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
 
@@ -1652,7 +1652,7 @@ uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUThreadPool, int nTaskId)
 	}
 
 #endif
-	pstManager = hCPUThreadPool;
+	pstManager = hCPUTaskManager;
 
 	result = UCThreadMutex_Lock(pstManager->hMutex);
 	ERRIFGOTO(result, _EXIT);
@@ -1681,7 +1681,8 @@ uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUThreadPool, int nTaskId)
 		result = createMultipleThreads(pstTargetThread->uMappedCPUList.hMappedCPUList, pstTargetThread);
 		ERRIFGOTO(result, _EXIT_LOCK);
 
-		// TODO: send event signal to execute
+		result = activateTaskThread(pstTargetThread);
+		ERRIFGOTO(result, _EXIT_LOCK);
 
 		pstTargetThread->enTaskState = TASK_STATE_RUNNING;
 	}
@@ -1695,7 +1696,7 @@ _EXIT:
 }
 
 
-uem_result UKCPUTaskManager_ResumeTask(HCPUTaskManager hCPUThreadPool, int nTaskId)
+uem_result UKCPUTaskManager_ResumeTask(HCPUTaskManager hCPUTaskManager, int nTaskId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
@@ -1706,7 +1707,7 @@ uem_result UKCPUTaskManager_ResumeTask(HCPUTaskManager hCPUThreadPool, int nTask
 	int nCurModeIndex = 0;
 	int nLength = 0;
 #ifdef ARGUMENT_CHECK
-	if (IS_VALID_HANDLE(hCPUThreadPool, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
+	if (IS_VALID_HANDLE(hCPUTaskManager, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
 
@@ -1715,7 +1716,7 @@ uem_result UKCPUTaskManager_ResumeTask(HCPUTaskManager hCPUThreadPool, int nTask
 	}
 #endif
 
-	pstManager = hCPUThreadPool;
+	pstManager = hCPUTaskManager;
 
 	result = UCThreadMutex_Lock(pstManager->hMutex);
 	ERRIFGOTO(result, _EXIT);
@@ -1774,26 +1775,26 @@ static uem_result traverseAndDestroyTaskThread(IN int nOffset, IN void *pData, I
 }
 
 
-uem_result UKCPUTaskManager_Destroy(IN OUT HCPUTaskManager *phCPUThreadPool)
+uem_result UKCPUTaskManager_Destroy(IN OUT HCPUTaskManager *phCPUTaskManager)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
 #ifdef ARGUMENT_CHECK
-	IFVARERRASSIGNGOTO(phCPUThreadPool, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+	IFVARERRASSIGNGOTO(phCPUTaskManager, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	if (IS_VALID_HANDLE(*phCPUThreadPool, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
+	if (IS_VALID_HANDLE(*phCPUTaskManager, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
 
 #endif
-	pstManager = *phCPUThreadPool;
+	pstManager = *phCPUTaskManager;
 #ifdef ARGUMENT_CHECK
 	if(pstManager->bListStatic == TRUE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
 	}
 #endif
 
-	result = UKCPUTaskManager_StopAllTasks(*phCPUThreadPool);
+	result = UKCPUTaskManager_StopAllTasks(*phCPUTaskManager);
 	ERRIFGOTO(result, _EXIT);
 
 	result = UCDynamicLinkedList_Traverse(pstManager->uDataAndTimeDrivenTaskList.hTaskList, traverseAndDestroyTaskThread, NULL);

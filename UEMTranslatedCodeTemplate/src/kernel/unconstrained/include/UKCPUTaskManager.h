@@ -23,16 +23,19 @@ extern "C"
 
 typedef struct _SCPUTaskManager *HCPUTaskManager;
 
-uem_result UKCPUTaskManager_Create(OUT HCPUTaskManager *phCPUThreadPool);
-uem_result UKCPUTaskManager_RegisterTask(HCPUTaskManager hCPUThreadPool, STask *pstTask, int nCPUId);
-uem_result UKCPUTaskManager_RegisterCompositeTask(HCPUTaskManager hCPUThreadPool, SScheduledTasks *pstScheduledTasks, int nCPUId);
-uem_result UKCPUTaskManager_RunRegisteredTasks(HCPUTaskManager hCPUThreadPool);
-uem_result UKCPUTaskManager_StopAllTasks(HCPUTaskManager hCPUThreadPool);
-uem_result UKCPUTaskManager_SuspendTask(HCPUTaskManager hCPUThreadPool, int nTaskId);
-uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUThreadPool, int nTaskId);
-uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUThreadPool, int nTaskId);
-uem_result UKCPUTaskManager_ResumeTask(HCPUTaskManager hCPUThreadPool, int nTaskId);
-uem_result UKCPUTaskManager_Destroy(IN OUT HCPUTaskManager *phCPUThreadPool);
+// global variable which is used for accessing CPUTaskManager from APIs
+extern HCPUTaskManager g_hCPUTaskManager;
+
+uem_result UKCPUTaskManager_Create(OUT HCPUTaskManager *phCPUTaskManager);
+uem_result UKCPUTaskManager_RegisterTask(HCPUTaskManager hCPUTaskManager, STask *pstTask, int nCPUId);
+uem_result UKCPUTaskManager_RegisterCompositeTask(HCPUTaskManager hCPUTaskManager, SScheduledTasks *pstScheduledTasks, int nCPUId);
+uem_result UKCPUTaskManager_RunRegisteredTasks(HCPUTaskManager hCPUTaskManager);
+uem_result UKCPUTaskManager_StopAllTasks(HCPUTaskManager hCPUTaskManager);
+uem_result UKCPUTaskManager_SuspendTask(HCPUTaskManager hCPUTaskManager, int nTaskId);
+uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUTaskManager, int nTaskId);
+uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUTaskManager, int nTaskId);
+uem_result UKCPUTaskManager_ResumeTask(HCPUTaskManager hCPUTaskManager, int nTaskId);
+uem_result UKCPUTaskManager_Destroy(IN OUT HCPUTaskManager *phCPUTaskManager);
 
 #ifdef __cplusplus
 }

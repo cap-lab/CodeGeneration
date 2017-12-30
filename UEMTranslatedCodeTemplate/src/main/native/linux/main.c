@@ -24,6 +24,9 @@
 
 #include <UCThreadMutex.h>
 
+// not static which is used globally
+HCPUTaskManager g_hCPUTaskManager = NULL;
+
 uem_result createTasks(HCPUTaskManager hManager)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -127,6 +130,9 @@ uem_result executeTasks()
 
 	result = UKCPUTaskManager_Create(&hManager);
 	ERRIFGOTO(result, _EXIT);
+
+	// set global variable to be used outside of this thread
+	g_hCPUTaskManager = hManager;
 
 	result = createTasks(hManager);
 	ERRIFGOTO(result, _EXIT);
