@@ -1,5 +1,10 @@
 /* uem_data.c made by UEM Translator */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <uem_data.h>
 
 SExecutionTime g_stExecutionTime = { ${execution_time.value}, TIME_METRIC_${execution_time.metric} } ;
 
@@ -179,17 +184,18 @@ SAvailableChunk g_astAvailableInputChunk_channel_${channel.index}[] = {
 
 // ##TASK_PARAMETER_TEMPLATE::START
 <#list flat_task as task_name, task>
+	<#if (task.taskParamList?size > 0)>
 STaskParameter g_astTaskParameter_${task.name}[] = {
-	<#list task.taskParamList as task_param>
+		<#list task.taskParamList as task_param>
 	{
 		${task_param.id},
 		PARAMETER_TYPE_${task_param.type},
 		${task_param.name},
 		{ <#if task_param.type == "INT">.nParam = 0,<#else>.dbParam = 0</#if> },
 	},
-	</#list>
+		</#list>
 };
-
+	</#if>
 </#list>
 // ##TASK_PARAMETER_TEMPLATE::END
 
@@ -288,7 +294,7 @@ STask g_astTasks_${task_graph.name}[] = {
 		&g_stGraph_${task.parentTaskGraphName}, // Parent task graph
 		<#if task.modeTransition??>&g_stModeTransition_${task.name}<#else>NULL</#if>, // MTM information
 		<#if task.loopStruct??>&g_stLoopStruct_${task.name}<#else>NULL</#if>, // Loop information
-		<#if task.taskParamList??>&g_astTaskParameter_${task.name}<#else>NULL</#if>, // Task parameter information
+		<#if (task.taskParamList?size > 0)>&g_astTaskParameter_${task.name}<#else>NULL</#if>, // Task parameter information
 		<#if task.staticScheduled == true>TRUE<#else>FALSE</#if>, // Statically scheduled or not
 		NULL, // Mutex
 		NULL, // Conditional variable
@@ -302,7 +308,7 @@ STask g_astTasks_${task_graph.name}[] = {
 // ##TASK_GRAPH_TEMPLATE::START
 <#list task_graph as graph_name, task_graph>
 STaskGraph g_stGraph_${task_graph.name} = {
-		/*[TASK_GRAPH_TYPE]*/, // Task graph type
+		GRAPH_TYPE_PROCESS_NETWORK, // TODO: Task graph type (not used now)
 		g_astTasks_${task_graph.name}, // current task graph's task list
 		NULL, // parent task
 };
@@ -409,12 +415,13 @@ SScheduleList g_astScheduleList_${scheduled_task.parentTaskName}_${compositeMapp
 // ##SCHEDULED_COMPOSITE_TASKS_TEMPLATE::END
 
 
+
 SScheduledTasks g_astScheduledTaskList[] = {
 <#list schedule_info as task_name, mapped_schedule>
 	<#list mapped_schedule.mappedProcessorList as compositeMappedProcessor>
-	{	${mapped_schedule.parentTaskId}, // Parent Task ID
+	{	<#if mapped_schedule.parentTaskId == -1>NULL<#else>&g_astTasks_${flat_task[task_name].parentTaskGraphName}[${flat_task[task_name].inGraphIndex}]</#if>, // Parent Task ID
 		${compositeMappedProcessor.modeId}, // Mode transition mode ID
-		&g_astScheduleList_${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}, // schedule list per throught constraint
+		g_astScheduleList_${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}, // schedule list per throught constraint
 		${compositeMappedProcessor.compositeTaskScheduleList?size}, // The number of schedules in the schedule list
 		0, // Schedule Index (Default to set 0)
 		${compositeMappedProcessor.sequenceIdInMode}, // Mode Sequence ID 

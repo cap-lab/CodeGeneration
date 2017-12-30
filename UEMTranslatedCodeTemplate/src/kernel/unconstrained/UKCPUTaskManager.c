@@ -22,6 +22,7 @@
 
 #include <UKCPUTaskManager.h>
 #include <UKChannel.h>
+#include <UKTask.h>
 
 
 #define MIN_SLEEP_DURATION (10)
@@ -321,7 +322,8 @@ static uem_bool checkIsControlDrivenTask(STask *pstTask)
 
 	pstCurrentTask = pstTask;
 
-	do
+	// if pstTask == NULL, it means the task is top task graph
+	while(pstCurrentTask != NULL)
 	{
 		if (pstCurrentTask->enRunCondition == RUN_CONDITION_CONTROL_DRIVEN)
 		{
@@ -333,7 +335,7 @@ static uem_bool checkIsControlDrivenTask(STask *pstTask)
 			pstCurrentTask = pstCurrentTask->pstParentGraph->pstParentTask;
 		}
 
-	} while(pstCurrentTask != NULL);
+	}
 
 	return bIsControlDriven;
 }
@@ -610,6 +612,36 @@ _EXIT:
 	return result;
 }
 
+static uem_result traverseTaskAndCallInitFunctions(STask *pstTask, void *pUserData)
+{
+	int nLoop = 0;
+
+	if(pstTask->enRunCondition == RUN_CONDITION_TIME_DRIVEN ||pstTask->enRunCondition == RUN_CONDITION_DATA_DRIVEN)
+	{
+		for(nLoop = 0 ; nLoop < pstTask->nTaskFunctionSetNum ; nLoop++)
+		{
+			pstTask->astTaskFunctions[nLoop].fnInit(pstTask->nTaskId);
+		}
+	}
+
+	return ERR_UEM_NOERROR;
+}
+
+static uem_result traverseTaskAndCallWrapupFunctions(STask *pstTask, void *pUserData)
+{
+	int nLoop = 0;
+
+	if(pstTask->enRunCondition == RUN_CONDITION_TIME_DRIVEN ||pstTask->enRunCondition == RUN_CONDITION_DATA_DRIVEN)
+	{
+		for(nLoop = 0 ; nLoop < pstTask->nTaskFunctionSetNum ; nLoop++)
+		{
+			pstTask->astTaskFunctions[nLoop].fnWrapup(pstTask->nTaskId);
+		}
+	}
+
+	return ERR_UEM_NOERROR;
+}
+
 
 
 static uem_result callCompositeTaskInitOrWrapupFunctions(STask *pstParentTask, uem_bool bCallInit, HStack hStack)
@@ -854,14 +886,26 @@ static uem_result callCompositeTaskWrapupFunctions(STaskThread *pstTaskThread)
 	// Stack with SModeMap *, current index astRelatedChildTasks
 
 	pstParentTask = pstTaskThread->uTargetTask.pstScheduledTasks->pstParentTask;
-	IFVARERRASSIGNGOTO(pstParentTask->pstMTMInfo, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	result = callCompositeTaskInitOrWrapupFunctions(pstParentTask, FALSE, hStack);
-	ERRIFGOTO(result, _EXIT);
+	if(pstParentTask != NULL)
+	{
+		IFVARERRASSIGNGOTO(pstParentTask->pstMTMInfo, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+		result = callCompositeTaskInitOrWrapupFunctions(pstParentTask, FALSE, hStack);
+		ERRIFGOTO(result, _EXIT);
+	}
+	else
+	{
+		result = UKTask_TraverseAllTasks(traverseTaskAndCallWrapupFunctions, NULL);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
-	UCDynamicStack_Destroy(&hStack, NULL, NULL);
+	if(hStack != NULL)
+	{
+		UCDynamicStack_Destroy(&hStack, NULL, NULL);
+	}
 	return result;
 }
 
@@ -888,11 +932,6 @@ static void *scheduledTaskThreadRoutine(void *pData)
 	ERRIFGOTO(result, _EXIT);
 
 _EXIT:
-	if(pstTaskThread != NULL)
-	{
-		// ignore error
-		callCompositeTaskWrapupFunctions(pstTaskThread);
-	}
 	SAFEMEMFREE(pstThreadData);
 	return NULL;
 }
@@ -1247,10 +1286,18 @@ static uem_result createCompositeTaskThread(HLinkedList hThreadList, STaskThread
 		// Stack with SModeMap *, current index astRelatedChildTasks
 
 		pstParentTask = pstTaskThread->uTargetTask.pstScheduledTasks->pstParentTask;
-		IFVARERRASSIGNGOTO(pstParentTask->pstMTMInfo, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+		if(pstParentTask != NULL)
+		{
+			IFVARERRASSIGNGOTO(pstParentTask->pstMTMInfo, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-		result = callCompositeTaskInitOrWrapupFunctions(pstParentTask, TRUE, hStack);
-		ERRIFGOTO(result, _EXIT);
+			result = callCompositeTaskInitOrWrapupFunctions(pstParentTask, TRUE, hStack);
+			ERRIFGOTO(result, _EXIT);
+		}
+		else // elements of composite tasks are located at the top graph, so initialize all time-driven/data-driven tasks
+		{
+			result = UKTask_TraverseAllTasks(traverseTaskAndCallInitFunctions, NULL);
+			ERRIFGOTO(result, _EXIT);
+		}
 	}
 
 	if(nMappedCPUNumber > 0)
@@ -1279,6 +1326,10 @@ static uem_result createCompositeTaskThread(HLinkedList hThreadList, STaskThread
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
+	if(hStack != NULL)
+	{
+		UCDynamicStack_Destroy(&hStack, NULL, NULL);
+	}
 	return result;
 }
 
@@ -1440,13 +1491,17 @@ static uem_result traverseAndDestroyAllThreads(IN int nOffset, IN void *pData, I
 		result = UCDynamicLinkedList_Traverse(pstTaskThread->hThreadList, traverseAndDestroyThread, NULL);
 		ERRIFGOTO(result, _EXIT);
 
+		if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK)
+		{
+			result = callCompositeTaskWrapupFunctions(pstTaskThread);
+			ERRIFGOTO(result, _EXIT);
+		}
+
 		for(nLoop = 0 ; nLoop < nTaskInstanceNumber ; nLoop++)
 		{
 			result = UCDynamicLinkedList_Remove(pstTaskThread->hThreadList, LINKED_LIST_OFFSET_FIRST, 0);
 			ERRIFGOTO(result, _EXIT);
 		}
-
-
 	}
 
 	result = ERR_UEM_NOERROR;

@@ -54,9 +54,12 @@ TASK_GO
     int vecB[3];
     int val=0;
     int i;
+    int ret;
 
-    MQ_RECEIVE(port_in1, (unsigned char*) vecA, sizeof(int)*3);
+    ret = MQ_RECEIVE(port_in1, (unsigned char*) vecA, sizeof(int)*3);
+    if(ret == 0) return;
     MQ_RECEIVE(port_in2, (unsigned char*) vecB, sizeof(int)*3);
+    if(ret == 0) return;
 
     for (i=0 ; i<3 ; i++){
         val += vecA[i]*vecB[i];

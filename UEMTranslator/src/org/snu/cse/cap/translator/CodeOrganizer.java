@@ -165,13 +165,19 @@ public class CodeOrganizer {
 		this.cflags = translatorProperties.getProperty(propertyKey);
 		propertyKey = TranslatorProperties.PROPERTIES_CFLAGS + TranslatorProperties.PROPERTY_DELIMITER + this.platform + 
 					TranslatorProperties.PROPERTY_DELIMITER + this.architecture;
-		this.cflags = this.cflags + " " + translatorProperties.getProperty(propertyKey);
+		if(translatorProperties.getProperty(propertyKey) != null)
+		{
+			this.cflags = this.cflags + " " + translatorProperties.getProperty(propertyKey);
+		}
 		
 		propertyKey = TranslatorProperties.PROPERTIES_LDADD + TranslatorProperties.PROPERTY_DELIMITER + this.platform;
 		this.ldadd = translatorProperties.getProperty(propertyKey);
 		propertyKey = TranslatorProperties.PROPERTIES_LDADD + TranslatorProperties.PROPERTY_DELIMITER + this.platform + 
 					TranslatorProperties.PROPERTY_DELIMITER + this.architecture;
-		this.ldadd = this.ldadd + " " + translatorProperties.getProperty(propertyKey);
+		if(translatorProperties.getProperty(propertyKey) != null)
+		{
+			this.ldadd = this.ldadd + " " + translatorProperties.getProperty(propertyKey);
+		}
 		
 		this.platformDir = this.runtime + MAKEFILE_PATH_SEPARATOR + this.platform;
 	}

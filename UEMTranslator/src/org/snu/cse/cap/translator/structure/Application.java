@@ -460,15 +460,21 @@ public class Application {
 		Device dstDevice = this.deviceInfo.get(dstTaskMappingInfo.getMappedDeviceName());
 		
 		// hierarchical put port information
-		// key: taskName/portName/direction
+
+		// src and dst is same device
 		putPortIntoDeviceHierarchically(srcDevice, channel.getInputPort(), PortDirection.INPUT);
 		putPortIntoDeviceHierarchically(srcDevice, channel.getOutputPort(), PortDirection.OUTPUT);
 		
-		putPortIntoDeviceHierarchically(dstDevice, channel.getInputPort(), PortDirection.INPUT);
-		putPortIntoDeviceHierarchically(dstDevice, channel.getOutputPort(), PortDirection.OUTPUT);
-		
 		srcDevice.getChannelList().add(channel);
-		dstDevice.getChannelList().add(channel);
+		
+		// if src and dst is different put same information to dst device
+		if(!srcTaskMappingInfo.getMappedDeviceName().equals(dstTaskMappingInfo.getMappedDeviceName()))
+		{
+			putPortIntoDeviceHierarchically(dstDevice, channel.getInputPort(), PortDirection.INPUT);
+			putPortIntoDeviceHierarchically(dstDevice, channel.getOutputPort(), PortDirection.OUTPUT);
+			
+			dstDevice.getChannelList().add(channel);
+		}
 	}
 	
 	public void makeChannelInformation(CICAlgorithmType algorithm_metadata) throws InvalidDataInMetadataFileException

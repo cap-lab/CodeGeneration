@@ -15,23 +15,23 @@ SYSTEM_LDADD=${build_info.ldadd}
 
 bin_PROGRAMS=proc
 
-MAIN_SOURCES=\<#list build_info.mainSourceList as source_file>
-	$(MAIN_DIR)/$(PLATFORM_DIR)/${source_file}<#if (source_file?index < build_info.mainSourceList?size - 1)>\</#if></#list>
+MAIN_SOURCES=<#list build_info.mainSourceList as source_file><#if (source_file?index > 0)>
+	</#if>$(MAIN_DIR)/$(PLATFORM_DIR)/${source_file}<#if (source_file?index < build_info.mainSourceList?size - 1)>\</#if></#list>
 
-APPLICATION_SOURCES=\<#list build_info.taskSourceCodeList as source_file>
-	$(APPLICATION_DIR)/${source_file}.c<#if (source_file?index < build_info.taskSourceCodeList?size - 1)>\</#if></#list>
+APPLICATION_SOURCES=<#list build_info.taskSourceCodeList as source_file><#if (source_file?index > 0)>
+	</#if>$(APPLICATION_DIR)/${source_file}.c<#if (source_file?index < build_info.taskSourceCodeList?size - 1)>\</#if></#list>
 
-API_SOURCES=\<#list build_info.apiSourceList as source_file>
-	$(API_DIR)/${source_file}<#if (source_file?index < build_info.apiSourceList?size - 1)>\</#if></#list>
+API_SOURCES=<#list build_info.apiSourceList as source_file><#if (source_file?index > 0)>
+	</#if>$(API_DIR)/${source_file}<#if (source_file?index < build_info.apiSourceList?size - 1)>\</#if></#list>
 
-KERNEL_SOURCES=\<#list build_info.kernelSourceList as source_file>
-	$(KERNEL_DIR)/${source_file}<#if (source_file?index < build_info.kernelSourceList?size - 1)>\</#if></#list>
+KERNEL_SOURCES=<#list build_info.kernelSourceList as source_file><#if (source_file?index > 0)>
+	</#if>$(KERNEL_DIR)/${source_file}<#if (source_file?index < build_info.kernelSourceList?size - 1)>\</#if></#list>
 			   
-KERNEL_DEVICE_SOURCES=\<#list build_info.kernelDeviceSourceList as source_file>
-	$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/${source_file}<#if (source_file?index < build_info.kernelDeviceSourceList?size - 1)>\</#if></#list>
+KERNEL_DEVICE_SOURCES=<#list build_info.kernelDeviceSourceList as source_file><#if (source_file?index > 0)>
+	</#if>$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/${source_file}<#if (source_file?index < build_info.kernelDeviceSourceList?size - 1)>\</#if></#list>
 
-COMMON_SOURCES=\<#list build_info.commonSourceList as source_file>
-	$(COMMON_DIR)/$(PLATFORM_DIR)/${source_file}<#if (source_file?index < build_info.commonSourceList?size - 1)>\</#if></#list>
+COMMON_SOURCES=<#list build_info.commonSourceList as source_file><#if (source_file?index > 0)>
+	</#if>$(COMMON_DIR)/$(PLATFORM_DIR)/${source_file}<#if (source_file?index < build_info.commonSourceList?size - 1)>\</#if></#list>
 
 proc_SOURCES=$(MAIN_SOURCES) $(APPLICATION_SOURCES) $(API_SOURCES) $(KERNEL_SOURCES) $(KERNEL_DEVICE_SOURCES) $(COMMON_SOURCES)
 			 

@@ -13,6 +13,8 @@
 
 #include <uem_data.h>
 
+#include <UKTask.h>
+
 
 uem_result UKTask_GetTaskFromTaskId(int nTaskId, STask **ppstTask)
 {
@@ -47,5 +49,19 @@ _EXIT:
 }
 
 
+uem_result UKTask_TraverseAllTasks(FnTaskTraverse fnCallback, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop = 0;
 
+	for(nLoop = 0 ; nLoop <  g_nTaskIdToTaskNum ; nLoop++)
+	{
+		result = fnCallback(g_astTaskIdToTask[nLoop].pstTask, pUserData);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
 

@@ -8,48 +8,47 @@ COMMON_DIR=src/common
 PLATFORM_DIR=native/linux
 DEVICE_RESTRICTION=unconstrained
 
-SYSTEM_CFLAGS=$(PTHREAD_CFLAGS)
+SYSTEM_CFLAGS=${PTHREAD_CFLAGS}
 
-SYSTEM_LDADD=$(PTHREAD_LIBS)
+SYSTEM_LDADD=${PTHREAD_LDADD}
 
 
 bin_PROGRAMS=proc
 
 MAIN_SOURCES=$(MAIN_DIR)/$(PLATFORM_DIR)/main.c
 
-APPLICATION_SOURCES=$(APPLICATION_DIR)/Display.c\
-					$(APPLICATION_DIR)/VecMul.c\
-					$(APPLICATION_DIR)/MatA.c\
-					$(APPLICATION_DIR)/MatB.c
+APPLICATION_SOURCES=$(APPLICATION_DIR)/MatA0.c\
+	$(APPLICATION_DIR)/MatB0.c\
+	$(APPLICATION_DIR)/VecMul0.c\
+	$(APPLICATION_DIR)/Display0.c
 
 API_SOURCES=$(API_DIR)/UFControl_deprecated.c\
-			$(API_DIR)/UFControl.c\
-			$(API_DIR)/UFPort_deprecated.c\
-			$(API_DIR)/UFPort.c\
-			$(API_DIR)/UFSystem_deprecated.c\
-			$(API_DIR)/UFSystem.c\
-			$(API_DIR)/UFTask_deprecated.c\
-			$(API_DIR)/UFTask.c\
-			$(API_DIR)/UFTimer_deprecated.c\
-			$(API_DIR)/UFTimer.c
+	$(API_DIR)/UFControl.c\
+	$(API_DIR)/UFPort_deprecated.c\
+	$(API_DIR)/UFPort.c\
+	$(API_DIR)/UFSystem_deprecated.c\
+	$(API_DIR)/UFSystem.c\
+	$(API_DIR)/UFTask_deprecated.c\
+	$(API_DIR)/UFTask.c\
+	$(API_DIR)/UFTimer_deprecated.c\
+	$(API_DIR)/UFTimer.c
 
 KERNEL_SOURCES=$(KERNEL_DIR)/uem_data.c\
-			   $(KERNEL_DIR)/UKChannel.c\
-			   $(KERNEL_DIR)/UKTask.c
+	$(KERNEL_DIR)/UKChannel.c\
+	$(KERNEL_DIR)/UKTask.c
 			   
 KERNEL_DEVICE_SOURCES=$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKCPUTaskManager.c\
-					  $(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c
+	$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c
 
 COMMON_SOURCES=$(COMMON_DIR)/$(PLATFORM_DIR)/UCThread.c\
-				$(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c\
-				$(COMMON_DIR)/$(PLATFORM_DIR)/UCDynamicLinkedList.c\
-				$(COMMON_DIR)/$(PLATFORM_DIR)/UCDynamicStack.c\
-				$(COMMON_DIR)/$(PLATFORM_DIR)/UCThreadEvent.c\
-				$(COMMON_DIR)/$(PLATFORM_DIR)/UCThreadMutex.c\
-				$(COMMON_DIR)/$(PLATFORM_DIR)/UCTime.c\
-				$(COMMON_DIR)/$(PLATFORM_DIR)/UCString.c\
-				$(COMMON_DIR)/$(PLATFORM_DIR)/UCBasic.c
-
+	$(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c\
+	$(COMMON_DIR)/$(PLATFORM_DIR)/UCDynamicLinkedList.c\
+	$(COMMON_DIR)/$(PLATFORM_DIR)/UCDynamicStack.c\
+	$(COMMON_DIR)/$(PLATFORM_DIR)/UCThreadEvent.c\
+	$(COMMON_DIR)/$(PLATFORM_DIR)/UCThreadMutex.c\
+	$(COMMON_DIR)/$(PLATFORM_DIR)/UCTime.c\
+	$(COMMON_DIR)/$(PLATFORM_DIR)/UCString.c\
+	$(COMMON_DIR)/$(PLATFORM_DIR)/UCBasic.c
 
 proc_SOURCES=$(MAIN_SOURCES) $(APPLICATION_SOURCES) $(API_SOURCES) $(KERNEL_SOURCES) $(KERNEL_DEVICE_SOURCES) $(COMMON_SOURCES)
 			 

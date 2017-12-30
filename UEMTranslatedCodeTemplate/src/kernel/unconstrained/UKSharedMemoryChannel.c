@@ -970,6 +970,9 @@ uem_result UKSharedMemoryChannel_SetExit(SChannel *pstChannel)
 	result = UCThreadEvent_SetEvent(pstChannel->hReadEvent);
 	ERRIFGOTO(result, _EXIT);
 
+	result = UCThreadEvent_SetEvent(pstChannel->hWriteEvent);
+	ERRIFGOTO(result, _EXIT);
+
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
