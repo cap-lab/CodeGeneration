@@ -578,68 +578,38 @@ SProcessor g_astProcessorInfo[] = {
 
 
 // ##SCHEDULED_COMPOSITE_TASK_FUNCTION_IMPLEMENTATION::START
-void top_0_0_0_1_Go() 
-{
-	MatA_Go0();
-	MatB_Go0();
-	VecMul_Go0();
-	MatA_Go0();
-	MatB_Go0();
-	VecMul_Go0();
-	MatA_Go0();
-	MatB_Go0();
-	VecMul_Go0();
-	MatA_Go0();
-	MatB_Go0();
-	VecMul_Go0();
-	MatA_Go0();
-	MatB_Go0();
-	VecMul_Go0();
-	MatA_Go0();
-	MatB_Go0();
-	VecMul_Go0();
-	MatA_Go0();
-	MatB_Go0();
-	VecMul_Go0();
-	MatA_Go0();
-	MatB_Go0();
-	VecMul_Go0();
-	MatA_Go0();
-	MatB_Go0();
-	VecMul_Go0();
-	Display_Go0();
-}
 // ##SCHEDULED_COMPOSITE_TASK_FUNCTION_IMPLEMENTATION::END
 
 // ##SCHEDULED_COMPOSITE_TASKS_TEMPLATE::START
-SScheduleList g_astScheduleList_top_0_0_0[] = {
-	{
-		1, // Schedule ID
-		top_0_0_0_1_Go, // Composite GO function
-		0, // Throughput constraint
-	},
-};
 // ##SCHEDULED_COMPOSITE_TASKS_TEMPLATE::END
 
 
 
 SScheduledTasks g_astScheduledTaskList[] = {
-	{	NULL, // Parent Task ID
-		0, // Mode transition mode ID
-		g_astScheduleList_top_0_0_0, // schedule list per throught constraint
-		1, // The number of schedules in the schedule list
-		0, // Schedule Index (Default to set 0)
-		0, // Mode Sequence ID 
-	},
 };
 
 
 // ##MAPPING_SCHEDULING_INFO_TEMPLATE::START
 SMappingSchedulingInfo g_astMappingAndSchedulingInfo[] = {
-	{	TASK_TYPE_COMPOSITE, // Task type
-		{ .pstScheduledTasks = &g_astScheduledTaskList[0] }, // Task ID or composite task information
+	{	TASK_TYPE_COMPUTATIONAL, // Task type
+		{ .pstTask = &g_astTasks_top[0] }, // Task ID or composite task information
 		0, // Processor ID
 		0, // Processor local ID
+	},
+	{	TASK_TYPE_COMPUTATIONAL, // Task type
+		{ .pstTask = &g_astTasks_top[1] }, // Task ID or composite task information
+		0, // Processor ID
+		1, // Processor local ID
+	},
+	{	TASK_TYPE_COMPUTATIONAL, // Task type
+		{ .pstTask = &g_astTasks_top[2] }, // Task ID or composite task information
+		0, // Processor ID
+		2, // Processor local ID
+	},
+	{	TASK_TYPE_COMPUTATIONAL, // Task type
+		{ .pstTask = &g_astTasks_top[3] }, // Task ID or composite task information
+		0, // Processor ID
+		3, // Processor local ID
 	},
 };
 // ##MAPPING_SCHEDULING_INFO_TEMPLATE::END

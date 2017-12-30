@@ -54,6 +54,8 @@ public class CodeOrganizer {
 		this.kernelSourceList = new ArrayList<String>();
 		this.kernelDeviceSourceList = new ArrayList<String>();
 		this.taskSourceCodeList = new ArrayList<String>();
+		this.cflags = "";
+		this.ldadd = "";
 	}
 	
 	private boolean isArchitectureAvailable(String[] architectureList) {
@@ -162,7 +164,10 @@ public class CodeOrganizer {
 		makeAllSourceFileList(translatorProperties);
 		
 		propertyKey = TranslatorProperties.PROPERTIES_CFLAGS + TranslatorProperties.PROPERTY_DELIMITER + this.platform;
-		this.cflags = translatorProperties.getProperty(propertyKey);
+		if(translatorProperties.getProperty(propertyKey) != null)
+		{
+			this.cflags = translatorProperties.getProperty(propertyKey);
+		}
 		propertyKey = TranslatorProperties.PROPERTIES_CFLAGS + TranslatorProperties.PROPERTY_DELIMITER + this.platform + 
 					TranslatorProperties.PROPERTY_DELIMITER + this.architecture;
 		if(translatorProperties.getProperty(propertyKey) != null)
@@ -171,7 +176,10 @@ public class CodeOrganizer {
 		}
 		
 		propertyKey = TranslatorProperties.PROPERTIES_LDADD + TranslatorProperties.PROPERTY_DELIMITER + this.platform;
-		this.ldadd = translatorProperties.getProperty(propertyKey);
+		if(translatorProperties.getProperty(propertyKey) != null)
+		{
+			this.ldadd = translatorProperties.getProperty(propertyKey);
+		}
 		propertyKey = TranslatorProperties.PROPERTIES_LDADD + TranslatorProperties.PROPERTY_DELIMITER + this.platform + 
 					TranslatorProperties.PROPERTY_DELIMITER + this.architecture;
 		if(translatorProperties.getProperty(propertyKey) != null)

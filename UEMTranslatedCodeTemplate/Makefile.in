@@ -84,7 +84,7 @@ am__objects_4 = proc-uem_data.$(OBJEXT) proc-UKChannel.$(OBJEXT) \
 	proc-UKTask.$(OBJEXT)
 am__objects_5 = proc-UKCPUTaskManager.$(OBJEXT) \
 	proc-UKSharedMemoryChannel.$(OBJEXT)
-am__objects_6 = proc-UCThread.$(OBJEXT) proc-UCCPUSchedule.$(OBJEXT) \
+am__objects_6 = proc-UCThread.$(OBJEXT) \
 	proc-UCDynamicLinkedList.$(OBJEXT) \
 	proc-UCDynamicStack.$(OBJEXT) proc-UCThreadEvent.$(OBJEXT) \
 	proc-UCThreadMutex.$(OBJEXT) proc-UCTime.$(OBJEXT) \
@@ -266,7 +266,6 @@ KERNEL_DEVICE_SOURCES = $(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKCPUTaskManager.c\
 	$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKSharedMemoryChannel.c
 
 COMMON_SOURCES = $(COMMON_DIR)/$(PLATFORM_DIR)/UCThread.c\
-	$(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c\
 	$(COMMON_DIR)/$(PLATFORM_DIR)/UCDynamicLinkedList.c\
 	$(COMMON_DIR)/$(PLATFORM_DIR)/UCDynamicStack.c\
 	$(COMMON_DIR)/$(PLATFORM_DIR)/UCThreadEvent.c\
@@ -395,7 +394,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-MatA0.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-MatB0.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UCBasic.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UCCPUSchedule.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UCDynamicLinkedList.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UCDynamicStack.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proc-UCString.Po@am__quote@
@@ -728,20 +726,6 @@ proc-UCThread.obj: $(COMMON_DIR)/$(PLATFORM_DIR)/UCThread.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(COMMON_DIR)/$(PLATFORM_DIR)/UCThread.c' object='proc-UCThread.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UCThread.obj `if test -f '$(COMMON_DIR)/$(PLATFORM_DIR)/UCThread.c'; then $(CYGPATH_W) '$(COMMON_DIR)/$(PLATFORM_DIR)/UCThread.c'; else $(CYGPATH_W) '$(srcdir)/$(COMMON_DIR)/$(PLATFORM_DIR)/UCThread.c'; fi`
-
-proc-UCCPUSchedule.o: $(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UCCPUSchedule.o -MD -MP -MF $(DEPDIR)/proc-UCCPUSchedule.Tpo -c -o proc-UCCPUSchedule.o `test -f '$(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c' || echo '$(srcdir)/'`$(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UCCPUSchedule.Tpo $(DEPDIR)/proc-UCCPUSchedule.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c' object='proc-UCCPUSchedule.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UCCPUSchedule.o `test -f '$(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c' || echo '$(srcdir)/'`$(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c
-
-proc-UCCPUSchedule.obj: $(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UCCPUSchedule.obj -MD -MP -MF $(DEPDIR)/proc-UCCPUSchedule.Tpo -c -o proc-UCCPUSchedule.obj `if test -f '$(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c'; then $(CYGPATH_W) '$(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c'; else $(CYGPATH_W) '$(srcdir)/$(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/proc-UCCPUSchedule.Tpo $(DEPDIR)/proc-UCCPUSchedule.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c' object='proc-UCCPUSchedule.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -c -o proc-UCCPUSchedule.obj `if test -f '$(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c'; then $(CYGPATH_W) '$(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c'; else $(CYGPATH_W) '$(srcdir)/$(COMMON_DIR)/$(PLATFORM_DIR)/UCCPUSchedule.c'; fi`
 
 proc-UCDynamicLinkedList.o: $(COMMON_DIR)/$(PLATFORM_DIR)/UCDynamicLinkedList.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(proc_CFLAGS) $(CFLAGS) -MT proc-UCDynamicLinkedList.o -MD -MP -MF $(DEPDIR)/proc-UCDynamicLinkedList.Tpo -c -o proc-UCDynamicLinkedList.o `test -f '$(COMMON_DIR)/$(PLATFORM_DIR)/UCDynamicLinkedList.c' || echo '$(srcdir)/'`$(COMMON_DIR)/$(PLATFORM_DIR)/UCDynamicLinkedList.c

@@ -479,11 +479,11 @@ static uem_result readFromArrayQueue(SChannel *pstChannel, IN OUT unsigned char 
 
 		result = UCThreadMutex_Lock(pstChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
-	}
 
-	if(pstChannel->bExit == TRUE)
-	{
-		UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
+		if(pstChannel->bExit == TRUE)
+		{
+			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
+		}
 	}
 
 	pstTargetChunk = &(pstChannel->stInputPortChunk.astChunk[nChunkIndex]);
@@ -561,11 +561,11 @@ static uem_result readFromGeneralQueue(SChannel *pstChannel, IN OUT unsigned cha
 
 		result = UCThreadMutex_Lock(pstChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
-	}
 
-	if(pstChannel->bExit == TRUE)
-	{
-		UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
+		if(pstChannel->bExit == TRUE)
+		{
+			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
+		}
 	}
 
 	result = copyAndMovePointerFromRoundedQueue(pBuffer, pstChannel, nDataToRead);
@@ -660,11 +660,11 @@ static uem_result writeToGeneralQueue(SChannel *pstChannel, IN unsigned char *pB
 
 		result = UCThreadMutex_Lock(pstChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
-	}
 
-	if(pstChannel->bExit == TRUE)
-	{
-		UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
+		if(pstChannel->bExit == TRUE)
+		{
+			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
+		}
 	}
 
 	result = copyAndMovePointerToRoundedQueue(pstChannel, pBuffer, nDataToWrite, nChunkIndex);
@@ -768,11 +768,11 @@ static uem_result writeToArrayQueue(SChannel *pstChannel, IN unsigned char *pBuf
 
 		result = UCThreadMutex_Lock(pstChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
-	}
 
-	if(pstChannel->bExit == TRUE)
-	{
-		UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
+		if(pstChannel->bExit == TRUE)
+		{
+			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
+		}
 	}
 
 	// Chunk needs to be initialized
@@ -895,11 +895,11 @@ uem_result UKSharedMemoryChannel_GetAvailableChunk (SChannel *pstChannel, OUT in
 
 		result = UCThreadMutex_Lock(pstChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
-	}
 
-	if(pstChannel->bExit == TRUE)
-	{
-		UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
+		if(pstChannel->bExit == TRUE)
+		{
+			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
+		}
 	}
 
 	nAvailableIndex = pstChannel->pstAvailableInputChunkHead->nChunkIndex;
