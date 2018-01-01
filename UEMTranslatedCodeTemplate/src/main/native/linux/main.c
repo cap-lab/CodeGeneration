@@ -31,27 +31,28 @@ uem_result createTasks(HCPUTaskManager hManager)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nLoop = 0;
+	uem_bool bIsCPU = FALSE;
 
 	for(nLoop = 0 ; nLoop < g_nMappingAndSchedulingInfoNum ; nLoop++)
 	{
-		// TODO: processorId must be checked to distinguish CPU or GPU
-		if(g_astMappingAndSchedulingInfo[nLoop].enType == TASK_TYPE_COMPOSITE)
+		result = UKProcessor_IsCPUByProcessorId(g_astMappingAndSchedulingInfo[nLoop].nProcessorId, &bIsCPU);
+		ERRIFGOTO(result, _EXIT);
+
+		if(bIsCPU == TRUE)
 		{
-			result = UKCPUTaskManager_RegisterCompositeTask(hManager, g_astMappingAndSchedulingInfo[nLoop].uMappedTask.pstScheduledTasks,
-														g_astMappingAndSchedulingInfo[nLoop].nLocalId);
-			ERRIFGOTO(result, _EXIT);
-		}
-		else // TASK_TYPE_CONTROL, TASK_TYPE_LOOP, TASK_TYPE_COMPUTATIONAL
-		{
-			result = UKCPUTaskManager_RegisterTask(hManager, g_astMappingAndSchedulingInfo[nLoop].uMappedTask.pstTask, g_astMappingAndSchedulingInfo[nLoop].nLocalId);
-			ERRIFGOTO(result, _EXIT);
+			if(g_astMappingAndSchedulingInfo[nLoop].enType == TASK_TYPE_COMPOSITE)
+			{
+				result = UKCPUTaskManager_RegisterCompositeTask(hManager, g_astMappingAndSchedulingInfo[nLoop].uMappedTask.pstScheduledTasks,
+															g_astMappingAndSchedulingInfo[nLoop].nLocalId);
+				ERRIFGOTO(result, _EXIT);
+			}
+			else // TASK_TYPE_CONTROL, TASK_TYPE_LOOP, TASK_TYPE_COMPUTATIONAL
+			{
+				result = UKCPUTaskManager_RegisterTask(hManager, g_astMappingAndSchedulingInfo[nLoop].uMappedTask.pstTask, g_astMappingAndSchedulingInfo[nLoop].nLocalId);
+				ERRIFGOTO(result, _EXIT);
+			}
 		}
 	}
-
-
-
-	//UKCPUTaskManager_RegisterCompositeTask(hManager, , )
-
 
 _EXIT:
 	return result;

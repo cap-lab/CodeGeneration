@@ -29,6 +29,7 @@ STATIC int port_in;
 STATIC int curRow=0;
 STATIC int curCol=0;
 STATIC int mat[3][3];
+//STATIC int mat[3][3] = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
 
 /////////////////////////////////////
 // init code
@@ -53,18 +54,17 @@ TASK_GO
 {
 
     int val, i, j;
-    MQ_RECEIVE(port_in, (unsigned char*) mat, sizeof(int)*9);
-   
-    for (i=0 ; i<3 ; i++){
-         for (j=0 ; j<3 ; j++){
-                printf("%d ", mat[i][j]);
-                
-            }
-           printf("\n");
-    }
-    
-    
 
+    MQ_RECEIVE(port_in, (unsigned char*) mat, sizeof(int)*9);
+
+
+	for (i=0 ; i<3 ; i++){
+		 for (j=0 ; j<3 ; j++){
+				printf("%d ", mat[i][j]);
+
+			}
+		   printf("\n");
+	}
 
 }
 

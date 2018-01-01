@@ -20,36 +20,62 @@
 
 typedef void *HTaskHandle;
 
-typedef uem_result (*FnTaskManagerCreate)(STask *pstTask);
 typedef uem_result (*FnTaskManagerRunTask)(STask *pstTask);
 typedef uem_result (*FnTaskManagerStopTask)(STask *pstTask);
 typedef uem_result (*FnTaskManagerSuspendTask)(STask *pstTask);
 typedef uem_result (*FnTaskManagerResumeTask)(STask *pstTask);
 typedef uem_result (*FnTaskManagerCallTask)(STask *pstTask);
-typedef uem_result (*FnTaskManagerDestroy)(SChannel *pstChannel);
 
 
-typedef struct _STaskHandler {
+typedef struct _STaskAPI {
 	HTaskHandle hTaskManagerHandle;
-	FnTaskManagerCreate fnCreate;
 	FnTaskManagerRunTask fnRunTask;
 	FnTaskManagerStopTask fnStopTask;
 	FnTaskManagerSuspendTask fnSuspendTask;
 	FnTaskManagerResumeTask fnResumeTask;
-	FnTaskManagerCallTask fnCallTask;
-	FnTaskManagerCallTask fnDestroy;
-} STaskHandler;
+} STaskAPI;
+
+
+//STaskAPI g_stCPUTaskAPI = {
+//	g_hCPUTaskManager, // hTaskManagerHandle
+//	UKCPUTaskManager_RunTask, // fnRunTask
+//	UKCPUTaskManager_StopTask, // fnStopTask
+//	UKCPUTaskManager_SuspendTask, // fnSuspendTask
+//	UKCPUTaskManager_ResumeTask, // fnResumeTask
+//};
+
 
 uem_result UKTask_RunTask (IN char *pszTaskName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
+//	int nLen = 0;
+//	int nLoop = 0;
+//	STaskGraph *pstTaskGraph = NULL;
 
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UKCPUTaskManager_RunTask(g_hCPUTaskManager, pstTask->nTaskId);
-	ERRIFGOTO(result, _EXIT);
+	if(pstTask->bStaticScheduled == TRUE || pstTask->pstSubGraph == NULL)
+	{
+		result = UKCPUTaskManager_RunTask(g_hCPUTaskManager, pstTask->nTaskId);
+		ERRIFGOTO(result, _EXIT);
+	}
+	else // TODO: multiple tasks must be executed
+	{
+
+//		pstTaskGraph = pstTask->pstSubGraph;
+//
+//		pstTaskGraph->astTasks;
+//		nLen = ARRAYLEN(pstTaskGraph->astTasks);
+//
+//		for(nLoop = 0 ; nLoop < nLen ; nLoop++)
+//		{
+//			pstTaskGraph->astTasks[nLoop];
+//		}
+	}
+
+
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -65,6 +91,24 @@ uem_result UKTask_StopTask (IN char *pszTaskName, IN uem_bool bDelayedStop)
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
+	if(pstTask->bStaticScheduled == TRUE || pstTask->pstSubGraph == NULL)
+	{
+		result = UKCPUTaskManager_StopTask(g_hCPUTaskManager, pstTask->nTaskId);
+		ERRIFGOTO(result, _EXIT);
+	}
+	else // TODO: multiple tasks must be executed
+	{
+
+//		pstTaskGraph = pstTask->pstSubGraph;
+//
+//		pstTaskGraph->astTasks;
+//		nLen = ARRAYLEN(pstTaskGraph->astTasks);
+//
+//		for(nLoop = 0 ; nLoop < nLen ; nLoop++)
+//		{
+//			pstTaskGraph->astTasks[nLoop];
+//		}
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -79,6 +123,25 @@ uem_result UKTask_SuspendTask (IN char *pszTaskName)
 
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
+
+	if(pstTask->bStaticScheduled == TRUE || pstTask->pstSubGraph == NULL)
+	{
+		result = UKCPUTaskManager_SuspendTask(g_hCPUTaskManager, pstTask->nTaskId);
+		ERRIFGOTO(result, _EXIT);
+	}
+	else // TODO: multiple tasks must be executed
+	{
+
+//		pstTaskGraph = pstTask->pstSubGraph;
+//
+//		pstTaskGraph->astTasks;
+//		nLen = ARRAYLEN(pstTaskGraph->astTasks);
+//
+//		for(nLoop = 0 ; nLoop < nLen ; nLoop++)
+//		{
+//			pstTaskGraph->astTasks[nLoop];
+//		}
+	}
 
 
 	result = ERR_UEM_NOERROR;
@@ -95,6 +158,25 @@ uem_result UKTask_ResumeTask (IN char *pszTaskName)
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
+	if(pstTask->bStaticScheduled == TRUE || pstTask->pstSubGraph == NULL)
+	{
+		result = UKCPUTaskManager_ResumeTask(g_hCPUTaskManager, pstTask->nTaskId);
+		ERRIFGOTO(result, _EXIT);
+	}
+	else // TODO: multiple tasks must be executed
+	{
+
+//		pstTaskGraph = pstTask->pstSubGraph;
+//
+//		pstTaskGraph->astTasks;
+//		nLen = ARRAYLEN(pstTaskGraph->astTasks);
+//
+//		for(nLoop = 0 ; nLoop < nLen ; nLoop++)
+//		{
+//			pstTaskGraph->astTasks[nLoop];
+//		}
+	}
+
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
@@ -108,6 +190,11 @@ uem_result UKTask_CallTask (IN char *pszTaskName)
 
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
+
+	// CallTask calls the first init/go/wrapup functions
+	pstTask->astTaskFunctions[0].fnInit(pstTask->nTaskId);
+	pstTask->astTaskFunctions[0].fnGo();
+	pstTask->astTaskFunctions[0].fnWrapup();
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
