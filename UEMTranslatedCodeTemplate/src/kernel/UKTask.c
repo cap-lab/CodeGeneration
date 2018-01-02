@@ -56,26 +56,8 @@ uem_result UKTask_RunTask (IN char *pszTaskName)
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstTask->bStaticScheduled == TRUE || pstTask->pstSubGraph == NULL)
-	{
-		result = UKCPUTaskManager_RunTask(g_hCPUTaskManager, pstTask->nTaskId);
-		ERRIFGOTO(result, _EXIT);
-	}
-	else // TODO: multiple tasks must be executed
-	{
-
-//		pstTaskGraph = pstTask->pstSubGraph;
-//
-//		pstTaskGraph->astTasks;
-//		nLen = ARRAYLEN(pstTaskGraph->astTasks);
-//
-//		for(nLoop = 0 ; nLoop < nLen ; nLoop++)
-//		{
-//			pstTaskGraph->astTasks[nLoop];
-//		}
-	}
-
-
+	result = UKCPUTaskManager_RunTask(g_hCPUTaskManager, pstTask->nTaskId);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
