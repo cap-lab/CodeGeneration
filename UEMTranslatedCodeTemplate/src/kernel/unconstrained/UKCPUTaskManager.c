@@ -1817,8 +1817,18 @@ uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUTaskManager, int nTaskId
 	}
 	else if(result == ERR_UEM_NO_DATA) // Task thread is not found, check it has child tasks
 	{
-		result = runChildTaskThreads(nTaskId, pstManager->uControlDrivenTaskList.hTaskList);
-		ERRIFGOTO(result, _EXIT_LOCK);
+		result = UKTask_GetTaskFromTaskId(nTaskId, &pstTargetParentTask);
+		ERRIFGOTO(result, _EXIT);
+
+		if(pstTargetParentTask->pstSubGraph != NULL)
+		{
+			result = runChildTaskThreads(nTaskId, pstManager->uControlDrivenTaskList.hTaskList);
+			ERRIFGOTO(result, _EXIT_LOCK);
+		}
+		else
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_NO_DATA, _EXIT);
+		}
 	}
 	else // single general task is found
 	{

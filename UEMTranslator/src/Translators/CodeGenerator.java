@@ -215,7 +215,7 @@ public class CodeGenerator
 	    		for(int loop = 0 ; loop < task.getTaskFuncNum() ; loop++)
 	    		{
 	    			String outputFilePath = topDirPath + File.separator + CodeOrganizer.APPLICATION_DIR + File.separator + 
-	    									task.getName() + loop + Constants.C_FILE_EXTENSION;
+	    									task.getName() +  Constants.TASK_NAME_FUNC_ID_SEPARATOR + loop + Constants.C_FILE_EXTENSION;
 	    			
 	    			if(taskCodeRootHash.containsKey(Constants.TEMPLATE_TAG_TASK_FUNC_ID) == true)
 	    			{

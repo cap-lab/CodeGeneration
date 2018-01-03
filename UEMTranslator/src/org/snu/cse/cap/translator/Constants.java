@@ -35,8 +35,8 @@ public class Constants {
 	
 	// template files
 	public static final String TEMPLATE_FILE_UEM_DATA = "uem_data.ftl";
-	public static final String TEMPLATE_FILE_MAKEFILE = "Makefile.ftl";
 	public static final String TEMPLATE_FILE_TASK_CODE = "task_code.ftl";
+	public static final String TEMPLATE_FILE_MAKEFILE = "Makefile.ftl";
 	public static final String TEMPLATE_FILE_LIBRARY_CODE = "library_code.ftl";
 	public static final String TEMPLATE_FILE_LIBRARY_HEADER = "library_header.ftl";
 	
@@ -69,4 +69,6 @@ public class Constants {
 	public static final String HEADER_FILE_EXTENSION = ".h";
 	public static final String CIC_FILE_EXTENSION = ".cic";
 	public static final String CICL_FILE_EXTENSION = ".cicl";
+	
+	public static final String TASK_NAME_FUNC_ID_SEPARATOR = "_";
 }

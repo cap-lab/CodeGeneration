@@ -198,7 +198,7 @@ public class CodeOrganizer {
 			{
 				for(int i = 0 ; i < task.getTaskFuncNum() ; i++)
 				{
-					this.taskSourceCodeList.add(task.getName() + i);
+					this.taskSourceCodeList.add(task.getName() + Constants.TASK_NAME_FUNC_ID_SEPARATOR + i);
 				}
 			}
 		}
