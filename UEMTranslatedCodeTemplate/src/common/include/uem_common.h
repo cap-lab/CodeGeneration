@@ -99,6 +99,12 @@ typedef enum _EUemModuleId {
 #define ARRAYLEN(array)	 		(sizeof(array)/sizeof(array[0]))
 
 #define IS_VALID_HANDLE(handle, id) (handle != NULL && (*((int *)(handle))) == id)
+
+
+#define EXIT_FLAG_READ 	(0x1)
+#define EXIT_FLAG_WRITE (0x2)
+
+
 #define _DEBUG
 
 #ifdef _DEBUG

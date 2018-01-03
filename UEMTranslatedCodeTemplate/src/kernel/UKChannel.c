@@ -24,7 +24,7 @@ typedef uem_result (*FnChannelWriteToQueue)(SChannel *pstChannel, IN unsigned ch
 typedef uem_result (*FnChannelGetAvailableChunk)(SChannel *pstChannel, OUT int *pnChunkIndex);
 typedef uem_result (*FnChannelGetNumOfAvailableData)(SChannel *pstChannel, IN int nChunkIndex, OUT int *pnDataNum);
 typedef uem_result (*FnChannelClear)(SChannel *pstChannel);
-typedef uem_result (*FnChannelSetExit)(SChannel *pstChannel);
+typedef uem_result (*FnChannelSetExit)(SChannel *pstChannel, int nExitFlag);
 typedef uem_result (*FnChannelFinalize)(SChannel *pstChannel);
 
 typedef struct _SChannelAPI {
@@ -325,7 +325,55 @@ uem_result UKChannel_SetExit()
 		result = getAPIStructureFromCommunicationType(g_astChannels[nLoop].enType, &pstChannelAPI);
 		if(result == ERR_UEM_NOERROR)
 		{
-			pstChannelAPI->fnSetExit(&(g_astChannels[nLoop]));
+			pstChannelAPI->fnSetExit(&(g_astChannels[nLoop]), EXIT_FLAG_READ | EXIT_FLAG_WRITE);
+		}
+	}
+
+	return result;
+}
+
+static uem_bool matchTaskIdInPort(SPort *pstPort, int nTaskId)
+{
+	uem_bool bIsMatched = FALSE;
+
+	while(pstPort != NULL)
+	{
+		if(pstPort->nTaskId == nTaskId)
+		{
+			bIsMatched = TRUE;
+			break;
+		}
+
+		pstPort = pstPort->pstSubGraphPort;
+	}
+
+	return bIsMatched;
+}
+
+
+uem_result UKChannel_SetExitByTaskId(int nTaskId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop = 0;
+	SChannelAPI *pstChannelAPI = NULL;
+
+	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
+	{
+		result = getAPIStructureFromCommunicationType(g_astChannels[nLoop].enType, &pstChannelAPI);
+		if(result == ERR_UEM_NOERROR)
+		{
+			if(matchTaskIdInPort(&(g_astChannels[nLoop].stInputPort), nTaskId) == TRUE)
+			{
+				pstChannelAPI->fnSetExit(&(g_astChannels[nLoop]), EXIT_FLAG_READ);
+			}
+			else if(matchTaskIdInPort(&(g_astChannels[nLoop].stOutputPort), nTaskId) == TRUE)
+			{
+				pstChannelAPI->fnSetExit(&(g_astChannels[nLoop]), EXIT_FLAG_WRITE);
+			}
+			else
+			{
+				// no match
+			}
 		}
 	}
 

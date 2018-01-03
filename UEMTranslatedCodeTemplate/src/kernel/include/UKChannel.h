@@ -25,6 +25,7 @@ uem_result UKChannel_GetNumOfAvailableData (IN int nChannelId, IN int nChunkInde
 uem_result UKChannel_GetAvailableIndex (IN int nChannelId, OUT int *pnChunkIndex);
 uem_result UKChannel_Clear(IN int nChannelId);
 uem_result UKChannel_SetExit();
+uem_result UKChannel_SetExitByTaskId(int nTaskId);
 uem_result UKChannel_Finalize();
 
 

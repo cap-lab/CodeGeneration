@@ -73,23 +73,14 @@ uem_result UKTask_StopTask (IN char *pszTaskName, IN uem_bool bDelayedStop)
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstTask->bStaticScheduled == TRUE || pstTask->pstSubGraph == NULL)
+	if(bDelayedStop == FALSE)
 	{
 		result = UKCPUTaskManager_StopTask(g_hCPUTaskManager, pstTask->nTaskId);
 		ERRIFGOTO(result, _EXIT);
 	}
-	else // TODO: multiple tasks must be executed
+	else // bDelayedStop == TRUE
 	{
-
-//		pstTaskGraph = pstTask->pstSubGraph;
-//
-//		pstTaskGraph->astTasks;
-//		nLen = ARRAYLEN(pstTaskGraph->astTasks);
-//
-//		for(nLoop = 0 ; nLoop < nLen ; nLoop++)
-//		{
-//			pstTaskGraph->astTasks[nLoop];
-//		}
+		// TODO: END_TASK implementation
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -106,25 +97,8 @@ uem_result UKTask_SuspendTask (IN char *pszTaskName)
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstTask->bStaticScheduled == TRUE || pstTask->pstSubGraph == NULL)
-	{
-		result = UKCPUTaskManager_SuspendTask(g_hCPUTaskManager, pstTask->nTaskId);
-		ERRIFGOTO(result, _EXIT);
-	}
-	else // TODO: multiple tasks must be executed
-	{
-
-//		pstTaskGraph = pstTask->pstSubGraph;
-//
-//		pstTaskGraph->astTasks;
-//		nLen = ARRAYLEN(pstTaskGraph->astTasks);
-//
-//		for(nLoop = 0 ; nLoop < nLen ; nLoop++)
-//		{
-//			pstTaskGraph->astTasks[nLoop];
-//		}
-	}
-
+	result = UKCPUTaskManager_SuspendTask(g_hCPUTaskManager, pstTask->nTaskId);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -140,24 +114,8 @@ uem_result UKTask_ResumeTask (IN char *pszTaskName)
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstTask->bStaticScheduled == TRUE || pstTask->pstSubGraph == NULL)
-	{
-		result = UKCPUTaskManager_ResumeTask(g_hCPUTaskManager, pstTask->nTaskId);
-		ERRIFGOTO(result, _EXIT);
-	}
-	else // TODO: multiple tasks must be executed
-	{
-
-//		pstTaskGraph = pstTask->pstSubGraph;
-//
-//		pstTaskGraph->astTasks;
-//		nLen = ARRAYLEN(pstTaskGraph->astTasks);
-//
-//		for(nLoop = 0 ; nLoop < nLen ; nLoop++)
-//		{
-//			pstTaskGraph->astTasks[nLoop];
-//		}
-	}
+	result = UKCPUTaskManager_ResumeTask(g_hCPUTaskManager, pstTask->nTaskId);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

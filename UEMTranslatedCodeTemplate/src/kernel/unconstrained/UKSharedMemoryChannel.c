@@ -468,9 +468,13 @@ static uem_result readFromArrayQueue(SChannel *pstChannel, IN OUT unsigned char 
 
 	pstChannel->nReadReferenceCount++;
 
-	// TODO: Error check out exit logic needed
-	while(pstChannel->stInputPortChunk.astChunk[nChunkIndex].nAvailableDataNum == 0 && pstChannel->bExit == FALSE)
+	while(pstChannel->stInputPortChunk.astChunk[nChunkIndex].nAvailableDataNum == 0)
 	{
+		if(pstChannel->bReadExit == TRUE)
+		{
+			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
+		}
+
 		result = UCThreadMutex_Unlock(pstChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
 
@@ -479,11 +483,6 @@ static uem_result readFromArrayQueue(SChannel *pstChannel, IN OUT unsigned char 
 
 		result = UCThreadMutex_Lock(pstChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
-
-		if(pstChannel->bExit == TRUE)
-		{
-			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
-		}
 	}
 
 	pstTargetChunk = &(pstChannel->stInputPortChunk.astChunk[nChunkIndex]);
@@ -551,8 +550,13 @@ static uem_result readFromGeneralQueue(SChannel *pstChannel, IN OUT unsigned cha
 	pstChannel->nReadReferenceCount++;
 
 	// TODO: Error check out exit logic needed
-	while(pstChannel->nDataLen < nDataToRead && pstChannel->bExit == FALSE)
+	while(pstChannel->nDataLen < nDataToRead)
 	{
+		if(pstChannel->bReadExit == TRUE)
+		{
+			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
+		}
+
 		result = UCThreadMutex_Unlock(pstChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
 
@@ -561,11 +565,6 @@ static uem_result readFromGeneralQueue(SChannel *pstChannel, IN OUT unsigned cha
 
 		result = UCThreadMutex_Lock(pstChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
-
-		if(pstChannel->bExit == TRUE)
-		{
-			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
-		}
 	}
 
 	result = copyAndMovePointerFromRoundedQueue(pBuffer, pstChannel, nDataToRead);
@@ -650,8 +649,13 @@ static uem_result writeToGeneralQueue(SChannel *pstChannel, IN unsigned char *pB
 	pstChannel->nWriteReferenceCount++;
 
 	// TODO: Error check out exit logic needed
-	while(pstChannel->nDataLen + nDataToWrite > pstChannel->nBufSize && pstChannel->bExit == FALSE)
+	while(pstChannel->nDataLen + nDataToWrite > pstChannel->nBufSize)
 	{
+		if(pstChannel->bWriteExit == TRUE)
+		{
+			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
+		}
+
 		result = UCThreadMutex_Unlock(pstChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
 
@@ -660,11 +664,6 @@ static uem_result writeToGeneralQueue(SChannel *pstChannel, IN unsigned char *pB
 
 		result = UCThreadMutex_Lock(pstChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
-
-		if(pstChannel->bExit == TRUE)
-		{
-			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
-		}
 	}
 
 	result = copyAndMovePointerToRoundedQueue(pstChannel, pBuffer, nDataToWrite, nChunkIndex);
@@ -756,10 +755,15 @@ static uem_result writeToArrayQueue(SChannel *pstChannel, IN unsigned char *pBuf
 	nExpectedProduceSize = pstChannel->stOutputPort.astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->stOutputPort.nSampleSize;
 
 	// TODO: Error check out exit logic needed
-	while((pstChannel->nDataLen + nExpectedProduceSize > pstChannel->nBufSize || // nBuffer is full or
+	while(pstChannel->nDataLen + nExpectedProduceSize > pstChannel->nBufSize || // nBuffer is full or
 		(pstChannel->nWrittenOutputChunkNum > 0 && pstChannel->nWrittenOutputChunkNum < pstChannel->stOutputPortChunk.nChunkNum &&
-		pstChannel->stOutputPortChunk.astChunk[nChunkIndex].nChunkDataLen > 0)) && pstChannel->bExit == FALSE) // current chunk index is already filled with data
+		pstChannel->stOutputPortChunk.astChunk[nChunkIndex].nChunkDataLen > 0)) // current chunk index is already filled with data
 	{
+		if(pstChannel->bWriteExit == TRUE)
+		{
+			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
+		}
+
 		result = UCThreadMutex_Unlock(pstChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
 
@@ -768,11 +772,6 @@ static uem_result writeToArrayQueue(SChannel *pstChannel, IN unsigned char *pBuf
 
 		result = UCThreadMutex_Lock(pstChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
-
-		if(pstChannel->bExit == TRUE)
-		{
-			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
-		}
 	}
 
 	// Chunk needs to be initialized
@@ -885,8 +884,13 @@ uem_result UKSharedMemoryChannel_GetAvailableChunk (SChannel *pstChannel, OUT in
 
 	pstChannel->nReadReferenceCount++;
 
-	while(pstChannel->pstAvailableInputChunkHead == NULL && pstChannel->bExit == FALSE)
+	while(pstChannel->pstAvailableInputChunkHead == NULL)
 	{
+		if(pstChannel->bReadExit == TRUE)
+		{
+			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
+		}
+
 		result = UCThreadMutex_Unlock(pstChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
 
@@ -895,11 +899,6 @@ uem_result UKSharedMemoryChannel_GetAvailableChunk (SChannel *pstChannel, OUT in
 
 		result = UCThreadMutex_Lock(pstChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
-
-		if(pstChannel->bExit == TRUE)
-		{
-			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
-		}
 	}
 
 	nAvailableIndex = pstChannel->pstAvailableInputChunkHead->nChunkIndex;
@@ -961,17 +960,25 @@ _EXIT:
 	return result;
 }
 
-uem_result UKSharedMemoryChannel_SetExit(SChannel *pstChannel)
+uem_result UKSharedMemoryChannel_SetExit(SChannel *pstChannel, int nExitFlag)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	pstChannel->bExit = TRUE;
+	if((nExitFlag & EXIT_FLAG_READ) != 0)
+	{
+		pstChannel->bReadExit = TRUE;
 
-	result = UCThreadEvent_SetEvent(pstChannel->hReadEvent);
-	ERRIFGOTO(result, _EXIT);
+		result = UCThreadEvent_SetEvent(pstChannel->hReadEvent);
+		ERRIFGOTO(result, _EXIT);
+	}
 
-	result = UCThreadEvent_SetEvent(pstChannel->hWriteEvent);
-	ERRIFGOTO(result, _EXIT);
+	if((nExitFlag & EXIT_FLAG_WRITE) != 0)
+	{
+		pstChannel->bWriteExit = TRUE;
+
+		result = UCThreadEvent_SetEvent(pstChannel->hWriteEvent);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

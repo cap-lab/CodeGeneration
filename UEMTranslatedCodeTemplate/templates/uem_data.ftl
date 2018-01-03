@@ -231,7 +231,8 @@ SChannel g_astChannels[] = {
 		0, // Channel data length
 		0, // Read reference count
 		0, // Write reference count
-		FALSE, // Exit setting
+		FALSE, // Read exit setting
+		FALSE, // Write exit setting
 		NULL, // Mutex
 		NULL, // Read available notice event
 		NULL, // Write available notice event

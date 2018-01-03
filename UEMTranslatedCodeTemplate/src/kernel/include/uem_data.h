@@ -253,7 +253,8 @@ typedef struct _SChannel {
 	int nDataLen;
 	int nReadReferenceCount;
 	int nWriteReferenceCount;
-	uem_bool bExit;
+	uem_bool bReadExit;
+	uem_bool bWriteExit;
 	HThreadMutex hMutex; // Channel global mutex
 	HThreadEvent hReadEvent; // Channel read available notice conditional variable
 	HThreadEvent hWriteEvent; // Channel write available notice conditional variable
