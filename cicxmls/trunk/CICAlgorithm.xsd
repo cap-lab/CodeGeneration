@@ -107,9 +107,11 @@
       <xs:element name="extraCIC" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
       <xs:element name="extraFile" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
 	  <xs:element name="mtm" type="MTMType" minOccurs="0" maxOccurs="1" />
-      <xs:element name="loopStructure" type="LoopStructureType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="loopStructure" type="LoopStructureType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="hardwareDependency" type="HardwareDependencyType" minOccurs="0" maxOccurs="1" />
     </xs:sequence>
-    <xs:attribute name="name" type="NameType" use="required" />
+	<xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="id" type="xs:nonNegativeInteger" use="required" />	
     <xs:attribute name="hasInternalStates" type="YesNoType" use="optional" />
     <xs:attribute name="description" type="xs:string" use="optional" />
     <xs:attribute name="runCondition" type="RunConditionType" use="required" />
@@ -305,6 +307,18 @@
     <xs:attribute name="type" type="LoopStructureTypeType" use="required" />
     <xs:attribute name="loopCount" type="xs:nonNegativeInteger" use="required" />
 	<xs:attribute name="designatedTask" type="xs:string" use="optional" />
+  </xs:complexType>
+
+  <xs:complexType name="HardwareDependencyType">
+   <xs:sequence>
+    <xs:element name="hardawre" type="HardwarePlatformType" minOccurs="1" maxOccurs="unbounded" />
+   </xs:sequence>		  
+  </xs:complexType>
+
+  <xs:complexType name="HardwarePlatformType">
+    <xs:attribute name="architecture" type="xs:string" use="required" />
+    <xs:attribute name="platform" type="xs:string" use="required" />
+	<xs:attribute name="runtime" type="xs:string" use="required" />
   </xs:complexType>
 
   <!-- Type definitions for mode specification -->
