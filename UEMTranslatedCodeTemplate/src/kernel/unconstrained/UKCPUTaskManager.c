@@ -882,7 +882,24 @@ static uem_result handleTaskMainRoutine(STaskThread *pstTaskThread, FnUemTaskGo 
 				break;
 			}
 			break;
-		case TASK_STATE_STOPPING: // task stop detection is done by nSeqId change, skip these state information
+		case TASK_STATE_STOPPING:
+			if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK)
+			{
+				UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
+			}
+			else
+			{
+				// Just finish time-driven task first, other tasks are still executing the tasks to finish remaining jobs
+				if(enRunCondition == RUN_CONDITION_TIME_DRIVEN)
+				{
+					UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
+				}
+				else
+				{
+					fnGo();
+				}
+			}
+			break;
 		case TASK_STATE_STOP:
 			// do nothing
 			break;
@@ -1342,6 +1359,12 @@ static uem_result traverseChildTaskThreads(IN int nOffset, IN void *pData, IN vo
 		break;
 	case MAPPED_TYPE_GENERAL_TASK:
 		pstChildTaskCandidate = pstTaskThread->uTargetTask.pstTask;
+
+		// If a child task is a control-driven task, skip the task (control-driven tasks are only controlled by the tasks on the same task-graph)
+		if(pstChildTaskCandidate->enRunCondition == RUN_CONDITION_CONTROL_DRIVEN)
+		{
+			UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
+		}
 		break;
 	default: // error
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
@@ -1584,6 +1607,7 @@ static uem_result traverseAndCreateComputationalTasks(IN int nOffset, IN void *p
 	uem_result result = ERR_UEM_UNKNOWN;
 	STaskThread *pstTaskThread = (STaskThread *) pData;
 	int nCreatedThreadNum = 0;
+	ERunCondition enRunCondition;
 
 	result = UCDynamicLinkedList_GetLength(pstTaskThread->hThreadList, &nCreatedThreadNum);
 	ERRIFGOTO(result, _EXIT);
@@ -1591,7 +1615,9 @@ static uem_result traverseAndCreateComputationalTasks(IN int nOffset, IN void *p
 	if(nCreatedThreadNum == 0)
 	{
 		if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_GENERAL_TASK &&
-		pstTaskThread->uTargetTask.pstTask->enType == TASK_TYPE_COMPUTATIONAL)
+		(pstTaskThread->uTargetTask.pstTask->enType == TASK_TYPE_COMPUTATIONAL ||
+			pstTaskThread->uTargetTask.pstTask->enType == TASK_TYPE_LOOP) &&
+		pstTaskThread->uTargetTask.pstTask->enRunCondition != RUN_CONDITION_CONTROL_DRIVEN)
 		{
 			result = createMultipleThreads(pstTaskThread->uMappedCPUList.hMappedCPUList, pstTaskThread);
 			ERRIFGOTO(result, _EXIT);
@@ -1600,18 +1626,30 @@ static uem_result traverseAndCreateComputationalTasks(IN int nOffset, IN void *p
 		}
 		else if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK)
 		{
-			result = createCompositeTaskThread(pstTaskThread);
-			ERRIFGOTO(result, _EXIT);
+			if(pstTaskThread->uTargetTask.pstScheduledTasks->pstParentTask != NULL)
+			{
+				enRunCondition = pstTaskThread->uTargetTask.pstScheduledTasks->pstParentTask->enRunCondition;
+			}
+			else
+			{
+				enRunCondition = RUN_CONDITION_DATA_DRIVEN;
+			}
 
-			pstTaskThread->enTaskState = TASK_STATE_RUNNING;
+			if(enRunCondition != RUN_CONDITION_CONTROL_DRIVEN)
+			{
+				result = createCompositeTaskThread(pstTaskThread);
+				ERRIFGOTO(result, _EXIT);
+
+				pstTaskThread->enTaskState = TASK_STATE_RUNNING;
+			}
 		}
 		else
 		{
-			// pstTaskThread->enMappedTaskType == MAPPED_TYPE_GENERAL_TASK && pstTaskThread->uTargetTask.pstTask->enType == TASK_TYPE_LOOP
-			// TODO: decide the behavior
+			// MAPPED_TYPE_GENERAL_TASK && TASK_TYPE_COMPOSITE => impossible case
 
-			// pstTaskThread->enMappedTaskType == MAPPED_TYPE_GENERAL_TASK && pstTaskThread->uTargetTask.pstTask->enType == TASK_TYPE_CONTROL
-			// already created
+			// MAPPED_TYPE_COMPOSITE_TASK && RUN_CONDITION_CONTROL_DRIVEN => no need to be executed at first
+
+			// MAPPED_TYPE_GENERAL_TASK && TASK_TYPE_CONTROL => already created
 
 			// do nothing for RUN_CONDITION_CONTROL_DRIVEN tasks
 		}
@@ -1801,18 +1839,26 @@ static uem_result stopSingleTaskThread(STaskThread *pstTaskThread, void *pUserDa
 	if(pstTaskThread->enTaskState == TASK_STATE_RUNNING ||
 			pstTaskThread->enTaskState == TASK_STATE_SUSPEND)
 	{
-		pstTaskThread->nSeqId++;
-		pstTaskThread->enTaskState = TASK_STATE_STOPPING;
-
 		result = setTaskToStop(pstTaskThread);
 		ERRIFGOTO(result, _EXIT);
 
-		// release channel block related to the task to be stopped
-		result = UKChannel_SetExitByTaskId(nTaskId);
-		ERRIFGOTO(result, _EXIT);
+		// release task if task is suspended
+		if(pstTaskThread->enTaskState == TASK_STATE_SUSPEND)
+		{
+			result = activateTaskThread(pstTaskThread);
+			ERRIFGOTO(result, _EXIT);
+		}
+		else // pstTaskThread->enTaskState == TASK_STATE_RUNNING
+		{
+			// release channel block related to the task to be stopped
+			result = UKChannel_SetExitByTaskId(nTaskId);
+			ERRIFGOTO(result, _EXIT);
+		}
 
 		result = destroyTaskThreads(pstTaskThread);
 		ERRIFGOTO(result, _EXIT);
+
+		pstTaskThread->nSeqId++;
 	}
 	else
 	{
@@ -2077,6 +2123,35 @@ uem_result UKCPUTaskManager_ResumeTask(HCPUTaskManager hCPUTaskManager, int nTas
 	ERRIFGOTO(result, _EXIT);
 
 	result = updateTaskState(pstManager->uControlDrivenTaskList.hTaskList, nTaskId, TASK_STATE_RUNNING);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstManager->hMutex);
+_EXIT:
+	return result;
+}
+
+uem_result UKCPUTaskManager_StoppingTask(HCPUTaskManager hCPUTaskManager, int nTaskId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCPUTaskManager *pstManager = NULL;
+#ifdef ARGUMENT_CHECK
+	if (IS_VALID_HANDLE(hCPUTaskManager, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+
+	if(nTaskId < 0) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+#endif
+
+	pstManager = hCPUTaskManager;
+
+	result = UCThreadMutex_Lock(pstManager->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = updateTaskState(pstManager->uControlDrivenTaskList.hTaskList, nTaskId, TASK_STATE_STOPPING);
 	ERRIFGOTO(result, _EXIT_LOCK);
 
 	result = ERR_UEM_NOERROR;

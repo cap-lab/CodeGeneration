@@ -80,7 +80,8 @@ uem_result UKTask_StopTask (IN char *pszTaskName, IN uem_bool bDelayedStop)
 	}
 	else // bDelayedStop == TRUE
 	{
-		// TODO: END_TASK implementation
+		result = UKCPUTaskManager_StoppingTask(g_hCPUTaskManager, pstTask->nTaskId);
+		ERRIFGOTO(result, _EXIT);
 	}
 
 	result = ERR_UEM_NOERROR;

@@ -20,7 +20,7 @@
 
 #include <UKChannel.h>
 #include <UKCPUTaskManager.h>
-
+#include <UKProcessor.h>
 
 #include <UCThreadMutex.h>
 
