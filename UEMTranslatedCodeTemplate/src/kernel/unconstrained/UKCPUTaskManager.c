@@ -834,8 +834,25 @@ static uem_result handleTaskMainRoutine(STaskThread *pstTaskThread, FnUemTaskGo 
 	long long llNextTime = 0;
 	int nMaxRunCount = 0;
 	int nRunCount = 0;
+	ERunCondition enRunCondition;
 
-	pstCurrentTask = pstTaskThread->uTargetTask.pstTask;
+	if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK)
+	{
+		pstCurrentTask = pstTaskThread->uTargetTask.pstScheduledTasks->pstParentTask;
+		if(pstCurrentTask == NULL)
+		{
+			enRunCondition = RUN_CONDITION_DATA_DRIVEN;
+		}
+		else
+		{
+			enRunCondition = pstCurrentTask->enRunCondition;
+		}
+	}
+	else // MAPPED_TYPE_GENERAL_TASK
+	{
+		pstCurrentTask = pstTaskThread->uTargetTask.pstTask;
+		enRunCondition = pstCurrentTask->enRunCondition;
+	}
 
 	result = waitRunSignal(pstTaskThread, &llNextTime, &nMaxRunCount);
 	ERRIFGOTO(result, _EXIT);
@@ -847,7 +864,7 @@ static uem_result handleTaskMainRoutine(STaskThread *pstTaskThread, FnUemTaskGo 
 		switch(pstTaskThread->enTaskState)
 		{
 		case TASK_STATE_RUNNING:
-			switch(pstCurrentTask->enRunCondition)
+			switch(enRunCondition)
 			{
 			case RUN_CONDITION_TIME_DRIVEN:
 				result = handleTimeDrivenTask(pstTaskThread, fnGo, &llNextTime, &nRunCount, &nMaxRunCount);
