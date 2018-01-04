@@ -1171,6 +1171,11 @@ static uem_result checkTaskThreadState(ECPUTaskState enOldState, ECPUTaskState e
 		}
 		break;
 	case TASK_STATE_STOPPING:
+		if(enNewState != TASK_STATE_STOP)
+		{
+			UEMASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+		}
+		break;
 	default:
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 		break;
@@ -1299,9 +1304,58 @@ _EXIT:
 	return result;
 }
 
-static uem_result runSingleTaskThread(STaskThread * pstTaskThread, void *pUserData)
+
+static uem_result stopSingleTaskThread(STaskThread *pstTaskThread, void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	int nTaskId = *((int *) pUserData);
+
+	if(pstTaskThread->enTaskState == TASK_STATE_RUNNING ||
+		pstTaskThread->enTaskState == TASK_STATE_STOPPING ||
+		pstTaskThread->enTaskState == TASK_STATE_SUSPEND)
+	{
+		result = setTaskToStop(pstTaskThread);
+		ERRIFGOTO(result, _EXIT);
+
+		// release task if task is suspended
+		if(pstTaskThread->enTaskState == TASK_STATE_SUSPEND)
+		{
+			result = activateTaskThread(pstTaskThread);
+			ERRIFGOTO(result, _EXIT);
+		}
+		else // pstTaskThread->enTaskState == TASK_STATE_RUNNING, TASK_STATE_STOPPING
+		{
+			// release channel block related to the task to be stopped
+			result = UKChannel_SetExitByTaskId(nTaskId);
+			ERRIFGOTO(result, _EXIT);
+		}
+
+		result = destroyTaskThreads(pstTaskThread);
+		ERRIFGOTO(result, _EXIT);
+
+		pstTaskThread->nSeqId++;
+	}
+	else
+	{
+		UEMASSIGNGOTO(result, ERR_UEM_ALREADY_DONE, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result runSingleTaskThread(STaskThread *pstTaskThread, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	// if task state is stopping state Stop the task and run the task
+	if(pstTaskThread->enTaskState == TASK_STATE_STOPPING)
+	{
+		result = stopSingleTaskThread(pstTaskThread, pUserData);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	result = checkTaskThreadState(pstTaskThread->enTaskState, TASK_STATE_RUNNING);
 	ERRIFGOTO(result, _EXIT);
@@ -1831,44 +1885,7 @@ _EXIT:
 	return result;
 }
 
-static uem_result stopSingleTaskThread(STaskThread *pstTaskThread, void *pUserData)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	int nTaskId = *((int *) pUserData);
 
-	if(pstTaskThread->enTaskState == TASK_STATE_RUNNING ||
-			pstTaskThread->enTaskState == TASK_STATE_SUSPEND)
-	{
-		result = setTaskToStop(pstTaskThread);
-		ERRIFGOTO(result, _EXIT);
-
-		// release task if task is suspended
-		if(pstTaskThread->enTaskState == TASK_STATE_SUSPEND)
-		{
-			result = activateTaskThread(pstTaskThread);
-			ERRIFGOTO(result, _EXIT);
-		}
-		else // pstTaskThread->enTaskState == TASK_STATE_RUNNING
-		{
-			// release channel block related to the task to be stopped
-			result = UKChannel_SetExitByTaskId(nTaskId);
-			ERRIFGOTO(result, _EXIT);
-		}
-
-		result = destroyTaskThreads(pstTaskThread);
-		ERRIFGOTO(result, _EXIT);
-
-		pstTaskThread->nSeqId++;
-	}
-	else
-	{
-		UEMASSIGNGOTO(result, ERR_UEM_ALREADY_DONE, _EXIT);
-	}
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
 
 static uem_result stopCompositeTaskThreads(STask *pstParentTask, HLinkedList hTaskList)
 {
@@ -2004,6 +2021,7 @@ static uem_result runCompositeTaskThreads(STask *pstParentTask, HLinkedList hTas
 	}
 	stCompositeTaskUserData.enTargetState = TASK_STATE_RUNNING;
 	stCompositeTaskUserData.fnCallback = runSingleTaskThread;
+	stCompositeTaskUserData.pUserData = &stCompositeTaskUserData.nTaskId;
 
 	// Change all composite task state
 	result = UCDynamicLinkedList_Traverse(hTaskList,
@@ -2023,7 +2041,7 @@ static uem_result runChildTaskThreads(int nParentTaskId, HLinkedList hTaskList)
 	stChildTaskAccessUserData.nParentTaskId = nParentTaskId;
 	stChildTaskAccessUserData.nMatchedTaskNum = 0;
 	stChildTaskAccessUserData.fnCallback = runSingleTaskThread;
-	stChildTaskAccessUserData.pUserData = NULL;
+	stChildTaskAccessUserData.pUserData = &nParentTaskId;
 	result = UCDynamicLinkedList_Traverse(hTaskList, traverseChildTaskThreads, &stChildTaskAccessUserData);
 	ERRIFGOTO(result, _EXIT);
 
@@ -2090,7 +2108,7 @@ uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUTaskManager, int nTaskId
 	}
 	else // single general task is found
 	{
-		result = runSingleTaskThread(pstTargetThread, NULL);
+		result = runSingleTaskThread(pstTargetThread, &nTaskId);
 		ERRIFGOTO(result, _EXIT_LOCK);
 	}
 
