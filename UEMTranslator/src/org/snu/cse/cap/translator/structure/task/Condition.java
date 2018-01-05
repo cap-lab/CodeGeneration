@@ -1,5 +1,7 @@
 package org.snu.cse.cap.translator.structure.task;
 
+import org.snu.cse.cap.translator.structure.device.ArchitectureType;
+
 enum Operator {
 	OPERATOR_EQUAL("=="),
 	OPERATOR_GREATER(">"),
@@ -19,6 +21,15 @@ enum Operator {
 	public String toString() {
 		return value;
 	}
+	
+	public static Operator fromValue(String value) {
+		 for (Operator c : Operator.values()) {
+			 if (c.value.equals(value)) {
+				 return c;
+			 }
+		 }
+		 throw new IllegalArgumentException(value.toString());
+	}
 }
 
 public class Condition {
@@ -30,7 +41,7 @@ public class Condition {
 	{
 		this.leftOperand = leftOperand;
 		this.rightOperand = rightOperand;
-		this.operator = Operator.valueOf(operator);
+		this.operator = Operator.fromValue(operator);
 		
 	}
 	

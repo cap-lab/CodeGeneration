@@ -3,8 +3,8 @@ package org.snu.cse.cap.translator.structure.mapping;
 import java.util.ArrayList;
 
 public class CompositeTaskSchedule {
-	private int scheduleId;
 	private ArrayList<ScheduleItem> scheduleList;
+	private int numOfUsableCPU;
 	private int throughputConstraint;
 	private int maxLoopVariableNum;
 	
@@ -15,16 +15,8 @@ public class CompositeTaskSchedule {
 	public void setMaxLoopVariableNum(int maxLoopVariableNum) {
 		this.maxLoopVariableNum = maxLoopVariableNum;
 	}
-
-	public CompositeTaskSchedule(int scheduleId) {
-		this.scheduleId = scheduleId;
-		this.scheduleList = new ArrayList<ScheduleItem>();
-		this.throughputConstraint = 0; // throughput is not defined
-		this.maxLoopVariableNum = 0;
-	}
 	
-	public CompositeTaskSchedule(int scheduleId, int throughputConstraint) {
-		this.scheduleId = scheduleId;
+	public CompositeTaskSchedule(int numOfUsableCPU, int throughputConstraint) {
 		this.scheduleList = new ArrayList<ScheduleItem>();
 		this.throughputConstraint = throughputConstraint;
 	}
@@ -37,19 +29,15 @@ public class CompositeTaskSchedule {
 		this.scheduleList.add(item);
 	}
 	
-	public int getScheduleId() {
-		return scheduleId;
-	}
-	
-	public void setScheduleId(int scheduleId) {
-		this.scheduleId = scheduleId;
-	}
-	
 	public int getThroughputConstraint() {
 		return throughputConstraint;
 	}
 	
 	public void setThroughputConstraint(int throughputConstraint) {
 		this.throughputConstraint = throughputConstraint;
+	}
+
+	public int getNumOfUsableCPU() {
+		return numOfUsableCPU;
 	}
 }

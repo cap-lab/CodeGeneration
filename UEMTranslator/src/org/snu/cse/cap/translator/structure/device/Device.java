@@ -300,7 +300,7 @@ public class Device {
 	private void makeMultipleCompositeTaskMapping(String[] splitedFileName, File scheduleFile, HashMap<String, Task> globalTaskMap)
 										throws CICXMLException, InvalidDataInMetadataFileException 
 	{
-		int scheduleId;
+		int numOfUsableCPU;
 		CICScheduleTypeLoader scheduleLoader = new CICScheduleTypeLoader();
 		CICScheduleType scheduleDOM;
 		String taskName;
@@ -312,10 +312,11 @@ public class Device {
 		Task task;
 		int throughputConstraint;
 		String processorName = "";
+		CompositeTaskMappedProcessor mappedProcessor;
 		
 		scheduleDOM = scheduleLoader.loadResource(scheduleFile.getAbsolutePath());
 		
-		scheduleId = Integer.parseInt(splitedFileName[ScheduleFileNameOffset.SCHEDULE_ID.getValue()]);
+		numOfUsableCPU = Integer.parseInt(splitedFileName[ScheduleFileNameOffset.NUM_OF_USABLE_CPU.getValue()]);
 		taskName = splitedFileName[ScheduleFileNameOffset.TASK_NAME.getValue()];
 		if(taskName.equals("SDF_" + globalTaskMap.size())) // it means top-level graph
 		{
@@ -342,10 +343,6 @@ public class Device {
 
 				if(isProcessorNameLocatedInDevice(processorName) == true)
 				{
-					CompositeTaskMappedProcessor mappedProcessor = new CompositeTaskMappedProcessor(procId, 
-							scheduleGroup.getLocalId().intValue(), modeId, sequenceId);
-					CompositeTaskSchedule taskSchedule = new CompositeTaskSchedule(scheduleId, throughputConstraint);
-					
 					if(taskName.equals(Constants.TOP_TASKGRAPH_NAME))
 					{
 						compositeMappingInfo = getCompositeMappingInfo(taskName, Constants.INVALID_ID_VALUE);
@@ -353,9 +350,20 @@ public class Device {
 					else
 						compositeMappingInfo = getCompositeMappingInfo(taskName, task.getId());
 					
-					fillCompositeTaskSchedule(taskSchedule, scheduleGroup, globalTaskMap) ;				
+					CompositeTaskSchedule taskSchedule = new CompositeTaskSchedule(numOfUsableCPU, throughputConstraint);
+					
+					fillCompositeTaskSchedule(taskSchedule, scheduleGroup, globalTaskMap) ;
+					
+					mappedProcessor = compositeMappingInfo.getMappedProcessorInfo(modeId, procId, scheduleGroup.getLocalId().intValue());
+					
+					if(mappedProcessor == null)
+					{
+						mappedProcessor = new CompositeTaskMappedProcessor(procId, 
+								scheduleGroup.getLocalId().intValue(), modeId, sequenceId);						
+						compositeMappingInfo.putProcessor(mappedProcessor);
+					}
+					
 					mappedProcessor.putCompositeTaskSchedule(taskSchedule);
-					compositeMappingInfo.putProcessor(mappedProcessor);
 					compositeMappingInfo.setMappedDeviceName(this.name);
 					
 					sequenceId++;
@@ -558,6 +566,7 @@ public class Device {
 				{
 					intValue = taskSet.get(taskName);
 					intValue++;
+					taskSet.put(taskName, intValue);
 				}
 			}
 		};

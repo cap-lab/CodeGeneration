@@ -387,7 +387,7 @@ public class Application {
 		
 		while(task.getParentTaskGraphName().equals(Constants.TOP_TASKGRAPH_NAME) == false)
 		{
-			if(task.getLoopStruct().getLoopType() == TaskLoopType.DATA)
+			if(task.getLoopStruct() != null && task.getLoopStruct().getLoopType() == TaskLoopType.DATA)
 			{
 				isDataLoop = true;
 				break;

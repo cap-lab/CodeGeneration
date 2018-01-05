@@ -885,21 +885,14 @@ static uem_result handleTaskMainRoutine(STaskThread *pstTaskThread, FnUemTaskGo 
 			}
 			break;
 		case TASK_STATE_STOPPING:
-			if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK)
+			// Just finish time-driven task first, other tasks are still executing the tasks to finish remaining jobs
+			if(bIsTaskGraphSourceTask == TRUE || pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK)
 			{
 				UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
 			}
-			else
+			else // still execute the tasks for the remaining tasks
 			{
-				// Just finish time-driven task first, other tasks are still executing the tasks to finish remaining jobs
-				if(bIsTaskGraphSourceTask == TRUE)
-				{
-					UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
-				}
-				else
-				{
-					fnGo();
-				}
+				fnGo();
 			}
 			break;
 		case TASK_STATE_STOP:

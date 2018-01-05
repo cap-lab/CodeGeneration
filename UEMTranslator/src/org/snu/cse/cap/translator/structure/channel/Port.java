@@ -9,7 +9,7 @@ import org.snu.cse.cap.translator.structure.task.Task;
 enum PortSampleRateType {
 	FIXED,
 	VARIABLE,
-	MULITPLE,
+	MULTIPLE,
 }
 
 enum PortType {
@@ -141,7 +141,7 @@ public class Port {
 		this.portSampleRateList.add(portSampleRate);
 		if( this.portSampleRateList.size() > 1)
 		{
-			this.portSampleRateType = PortSampleRateType.MULITPLE;
+			this.portSampleRateType = PortSampleRateType.MULTIPLE;
 		}
 		else // this.portSampleRateList.size() == 1
 		{

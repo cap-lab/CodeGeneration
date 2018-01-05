@@ -11,7 +11,32 @@ public class CompositeTaskMappingInfo extends MappingInfo {
 		this.parentTaskName = taskName;
 		this.parentTaskId = taskId;
 	}
-
+	
+	public CompositeTaskMappedProcessor getMappedProcessorInfo(int modeId, int procId, int localId)
+	{
+		CompositeTaskMappedProcessor compositeMappedProcessor = null;
+		boolean found = false;
+		
+		for(MappedProcessor mappedProcessor: this.getMappedProcessorList())
+		{
+			compositeMappedProcessor = (CompositeTaskMappedProcessor) mappedProcessor;
+			
+			if(compositeMappedProcessor.getModeId() == modeId && 
+				compositeMappedProcessor.getProcessorId() == procId && 
+				compositeMappedProcessor.getProcessorLocalId() == localId)
+			{
+				found = true;
+				break;
+			}
+		}
+		
+		if(found == false)
+		{
+			compositeMappedProcessor = null;
+		}
+		
+		return compositeMappedProcessor;
+	}
 	
 	public String getParentTaskName() {
 		return parentTaskName;

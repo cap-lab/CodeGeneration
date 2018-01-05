@@ -282,7 +282,6 @@ typedef struct _STaskIdToTaskMap {
 
 
 typedef struct _SScheduleList {
-	int nScheduleId;
 	FnUemTaskGo fnCompositeGo;
 	int nThroughputConstraint;
 } SScheduleList;

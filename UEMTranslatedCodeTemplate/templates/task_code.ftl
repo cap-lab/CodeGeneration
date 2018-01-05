@@ -2,6 +2,9 @@
 #include <UFPort.h> 
 #include <UFPort_deprecated.h>
 
+#include <UFTask.h>
+#include <UFTask_deprecated.h>
+
 <#if task_info.linkedLibraryNameList??>
 	<#list task_info.linkedLibraryNameList as libraryHeader>
 #include "${libraryHeader}"

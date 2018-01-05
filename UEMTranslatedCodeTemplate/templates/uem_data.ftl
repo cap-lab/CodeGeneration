@@ -23,7 +23,7 @@ void ${task.name}_Wrapup${task_func_id}();
 
 // ##CHANNEL_SIZE_DEFINITION_TEMPLATE::START
 <#list channel_list as channel>
-#define CHANNEL_${channel.index}_SIZE (${channel.size})
+#define CHANNEL_${channel.index}_SIZE (${channel.size?c})
 </#list>
 // ##CHANNEL_SIZE_DEFINITION_TEMPLATE::END
 
@@ -121,10 +121,18 @@ SLoopInfo g_stLoopStruct_${task.name} = {
 </#list>
 // ##LOOP_STRUCTURE_TEMPLATE::END
 
-// ##VARIABLE_INT_MAP_TEMPLATE::START
+// ##TASK_LIST_DECLARATION_TEMPLATE::START
+<#list task_graph as graph_name, task_graph>
+STask g_astTasks_${task_graph.name}[];
+</#list>
+// ##TASK_LIST_DECLARATION_TEMPLATE::END
 
 
-// ##VARIABLE_INT_MAP_TEMPLATE::END
+// ##TASK_GRAPH_DECLARATION_TEMPLATE::START
+<#list task_graph as graph_name, task_graph>
+STaskGraph g_stGraph_${task_graph.name};
+</#list>
+// ##TASK_GRAPH_DECLARATION_TEMPLATE::END
 
 
 // ##MODE_TRANSITION_TEMPLATE::START
@@ -143,7 +151,7 @@ SModeMap g_astModeMap_${task.name}[] = {
 	{
 		${task_mode.id},
 		"${task_mode.name}",
-		&g_pastRelatedChildTasks_${task.name}_${task_mode.name},
+		g_pastRelatedChildTasks_${task.name}_${task_mode.name},
 		${task_mode.relatedChildTaskSet?size},
 	},
 		</#list>
@@ -157,16 +165,16 @@ SVariableIntMap g_astVariableIntMap_${task.name}[] = {
 		0, 
 	},
 		</#list>
-}
-		
+};
 
 SModeTransitionMachine g_stModeTransition_${task.name} = {
 	${task.id},
-	&g_astModeMap_${task.name},
-	&g_astVariableIntMap_${task.name},
-	NULL;
+	g_astModeMap_${task.name},
+	g_astVariableIntMap_${task.name},
+	NULL,
 	0,
 };
+
 	</#if>
 </#list>
 // ##MODE_TRANSITION_TEMPLATE::END
@@ -278,6 +286,7 @@ SChannel g_astChannels[] = {
 };
 // ##CHANNEL_LIST_TEMPLATE::END
 
+
 // ##TASK_LIST_TEMPLATE::START
 <#list task_graph as graph_name, task_graph>
 STask g_astTasks_${task_graph.name}[] = {
@@ -289,7 +298,7 @@ STask g_astTasks_${task_graph.name}[] = {
 		${task.taskFuncNum}, // Task function array number
 		RUN_CONDITION_${task.runCondition}, // Run condition
 		1, // Run rate
-		${task.period}, // Period
+		${task.period?c}, // Period
 		TIME_METRIC_${task.periodMetric}, // Period metric
 		NULL, // Subgraph
 		&g_stGraph_${task.parentTaskGraphName}, // Parent task graph
@@ -302,6 +311,7 @@ STask g_astTasks_${task_graph.name}[] = {
 	},
 	</#list>
 };
+
 </#list>
 
 // ##TASK_LIST_TEMPLATE::END
@@ -313,6 +323,7 @@ STaskGraph g_stGraph_${task_graph.name} = {
 		g_astTasks_${task_graph.name}, // current task graph's task list
 		NULL, // parent task
 };
+
 </#list>
 // ##TASK_GRAPH_TEMPLATE::END
 
@@ -382,7 +393,7 @@ ${space}}
 <#list schedule_info as task_name, mapped_schedule>
 	<#list mapped_schedule.mappedProcessorList as compositeMappedProcessor>
 		<#list compositeMappedProcessor.compositeTaskScheduleList as task_schedule>
-void ${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}_${task_schedule.scheduleId}_Go() 
+void ${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}_${task_schedule.throughputConstraint?c}_Go() 
 {
 <#if (task_schedule.maxLoopVariableNum > 0) >
 	<#list 0..(task_schedule.maxLoopVariableNum-1) as variable_id>
@@ -405,9 +416,8 @@ void ${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${comp
 SScheduleList g_astScheduleList_${scheduled_task.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}[] = {
 		<#list compositeMappedProcessor.compositeTaskScheduleList as task_schedule>
 	{
-		${task_schedule.scheduleId}, // Schedule ID
-		${scheduled_task.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}_${task_schedule.scheduleId}_Go, // Composite GO function
-		${task_schedule.throughputConstraint}, // Throughput constraint
+		${scheduled_task.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}_${task_schedule.throughputConstraint?c}_Go, // Composite GO function
+		${task_schedule.throughputConstraint?c}, // Throughput constraint
 	},
 		</#list>
 };

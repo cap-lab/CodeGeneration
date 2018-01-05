@@ -3,7 +3,7 @@ package org.snu.cse.cap.translator.structure.mapping;
 public enum ScheduleFileNameOffset {
 	TASK_NAME(0),
 	MODE_NAME(1),
-	SCHEDULE_ID(2),
+	NUM_OF_USABLE_CPU(2),
 	THROUGHPUT_CONSTRAINT(3),
 	SCHEUDLE_XML(4),
 	;
