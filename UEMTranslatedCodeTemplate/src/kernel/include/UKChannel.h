@@ -24,6 +24,7 @@ uem_result UKChannel_ReadFromBuffer(int nChannelId, IN OUT unsigned char *pBuffe
 uem_result UKChannel_GetNumOfAvailableData (IN int nChannelId, IN int nChunkIndex, OUT int *pnDataNum);
 uem_result UKChannel_GetAvailableIndex (IN int nChannelId, OUT int *pnChunkIndex);
 uem_result UKChannel_Clear(IN int nChannelId);
+uem_bool UKChannel_IsTaskSourceTask(int nTaskId);
 uem_result UKChannel_SetExit();
 uem_result UKChannel_SetExitByTaskId(int nTaskId);
 uem_result UKChannel_Finalize();

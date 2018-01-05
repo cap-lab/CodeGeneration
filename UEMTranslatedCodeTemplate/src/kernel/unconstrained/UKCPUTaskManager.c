@@ -835,6 +835,7 @@ static uem_result handleTaskMainRoutine(STaskThread *pstTaskThread, FnUemTaskGo 
 	int nMaxRunCount = 0;
 	int nRunCount = 0;
 	ERunCondition enRunCondition;
+	uem_bool bIsTaskGraphSourceTask = FALSE;
 
 	if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK)
 	{
@@ -852,6 +853,7 @@ static uem_result handleTaskMainRoutine(STaskThread *pstTaskThread, FnUemTaskGo 
 	{
 		pstCurrentTask = pstTaskThread->uTargetTask.pstTask;
 		enRunCondition = pstCurrentTask->enRunCondition;
+		bIsTaskGraphSourceTask = UKChannel_IsTaskSourceTask(pstCurrentTask->nTaskId);
 	}
 
 	result = waitRunSignal(pstTaskThread, &llNextTime, &nMaxRunCount);
@@ -890,7 +892,7 @@ static uem_result handleTaskMainRoutine(STaskThread *pstTaskThread, FnUemTaskGo 
 			else
 			{
 				// Just finish time-driven task first, other tasks are still executing the tasks to finish remaining jobs
-				if(enRunCondition == RUN_CONDITION_TIME_DRIVEN)
+				if(bIsTaskGraphSourceTask == TRUE)
 				{
 					UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
 				}
@@ -1301,6 +1303,74 @@ _EXIT:
 	{
 		UCDynamicStack_Destroy(&hStack, NULL, NULL);
 	}
+	return result;
+}
+
+
+static uem_result setTaskToStop(STaskThread *pstTaskThread)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nTaskInstanceNumber = 0;
+
+	result = UCDynamicLinkedList_GetLength(pstTaskThread->hThreadList, &nTaskInstanceNumber);
+	ERRIFGOTO(result, _EXIT);
+
+	if(nTaskInstanceNumber > 0)
+	{
+		pstTaskThread->enTaskState = TASK_STATE_STOP;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result traverseAndDestroyThread(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	HThread hThread = NULL;
+
+	hThread = (HThread) pData;
+
+	result = UCThread_Destroy(&(hThread), FALSE, THREAD_DESTROY_TIMEOUT);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result destroyTaskThreads(STaskThread *pstTaskThread)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nTaskInstanceNumber = 0;
+	int nLoop = 0;
+
+	result = UCDynamicLinkedList_GetLength(pstTaskThread->hThreadList, &nTaskInstanceNumber);
+	ERRIFGOTO(result, _EXIT);
+
+	if(nTaskInstanceNumber > 0)
+	{
+		result = UCDynamicLinkedList_Traverse(pstTaskThread->hThreadList, traverseAndDestroyThread, NULL);
+		ERRIFGOTO(result, _EXIT);
+
+		if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK)
+		{
+			result = callCompositeTaskWrapupFunctions(pstTaskThread);
+			ERRIFGOTO(result, _EXIT);
+		}
+
+		for(nLoop = 0 ; nLoop < nTaskInstanceNumber ; nLoop++)
+		{
+			result = UCDynamicLinkedList_Remove(pstTaskThread->hThreadList, LINKED_LIST_OFFSET_FIRST, 0);
+			ERRIFGOTO(result, _EXIT);
+		}
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
 	return result;
 }
 
@@ -1757,54 +1827,6 @@ _EXIT:
 }
 
 
-static uem_result traverseAndDestroyThread(IN int nOffset, IN void *pData, IN void *pUserData)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	HThread hThread = NULL;
-
-	hThread = (HThread) pData;
-
-	result = UCThread_Destroy(&(hThread), FALSE, THREAD_DESTROY_TIMEOUT);
-	ERRIFGOTO(result, _EXIT);
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-static uem_result destroyTaskThreads(STaskThread *pstTaskThread)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	int nTaskInstanceNumber = 0;
-	int nLoop = 0;
-
-	result = UCDynamicLinkedList_GetLength(pstTaskThread->hThreadList, &nTaskInstanceNumber);
-	ERRIFGOTO(result, _EXIT);
-
-	if(nTaskInstanceNumber > 0)
-	{
-		result = UCDynamicLinkedList_Traverse(pstTaskThread->hThreadList, traverseAndDestroyThread, NULL);
-		ERRIFGOTO(result, _EXIT);
-
-		if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK)
-		{
-			result = callCompositeTaskWrapupFunctions(pstTaskThread);
-			ERRIFGOTO(result, _EXIT);
-		}
-
-		for(nLoop = 0 ; nLoop < nTaskInstanceNumber ; nLoop++)
-		{
-			result = UCDynamicLinkedList_Remove(pstTaskThread->hThreadList, LINKED_LIST_OFFSET_FIRST, 0);
-			ERRIFGOTO(result, _EXIT);
-		}
-	}
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-
 static uem_result traverseAndDestroyAllThreads(IN int nOffset, IN void *pData, IN void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -1812,24 +1834,6 @@ static uem_result traverseAndDestroyAllThreads(IN int nOffset, IN void *pData, I
 
 	result = destroyTaskThreads(pstTaskThread);
 	ERRIFGOTO(result, _EXIT);
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-static uem_result setTaskToStop(STaskThread *pstTaskThread)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	int nTaskInstanceNumber = 0;
-
-	result = UCDynamicLinkedList_GetLength(pstTaskThread->hThreadList, &nTaskInstanceNumber);
-	ERRIFGOTO(result, _EXIT);
-
-	if(nTaskInstanceNumber > 0)
-	{
-		pstTaskThread->enTaskState = TASK_STATE_STOP;
-	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

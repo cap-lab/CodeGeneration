@@ -272,6 +272,7 @@ _EXIT:
 	return result;
 }
 
+
 uem_result UKChannel_Clear(IN int nChannelId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -348,6 +349,59 @@ static uem_bool matchTaskIdInPort(SPort *pstPort, int nTaskId)
 	}
 
 	return bIsMatched;
+}
+
+static uem_bool isChannelLocatedInSameTaskGraph(SChannel *pstChannel)
+{
+	SPort *pstInputPort = NULL;
+	SPort *pstOutputPort = NULL;
+	uem_bool bShareSameTaskGraph = FALSE;
+
+	pstInputPort = &(pstChannel->stInputPort);
+	pstOutputPort = &(pstChannel->stOutputPort);
+
+	while (pstInputPort != NULL && pstOutputPort != NULL)
+	{
+		if(pstInputPort->nTaskId != pstOutputPort->nTaskId) // input and output task is different
+		{
+			// last node?
+			if(pstInputPort->pstSubGraphPort == NULL && pstOutputPort->pstSubGraphPort == NULL)
+			{
+				bShareSameTaskGraph = TRUE;
+			}
+			break;
+		}
+
+		pstInputPort = pstInputPort->pstSubGraphPort;
+		pstOutputPort = pstOutputPort->pstSubGraphPort;
+	}
+
+	return bShareSameTaskGraph;
+}
+
+
+// all matched input must have data more than sample rate
+uem_bool UKChannel_IsTaskSourceTask(int nTaskId)
+{
+	int nLoop = 0;
+	uem_bool bIsLocatedInSameTaskGraph = FALSE;
+	uem_bool bIsSourceTask = TRUE;
+
+	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
+	{
+		if(matchTaskIdInPort(&(g_astChannels[nLoop].stInputPort), nTaskId) == TRUE)
+		{
+			bIsLocatedInSameTaskGraph = isChannelLocatedInSameTaskGraph(&(g_astChannels[nLoop]));
+
+			if(bIsLocatedInSameTaskGraph == TRUE)
+			{
+				bIsSourceTask = FALSE;
+				break;
+			}
+		}
+	}
+
+	return bIsSourceTask;
 }
 
 
