@@ -6682,11 +6682,11 @@ STask g_astTasks_top[] = {
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_H264Dec_PHONE_functions, // Task function array
 		0, // Task function array number
-		RUN_CONDITION_TIME_DRIVEN, // Run condition
+		RUN_CONDITION_CONTROL_DRIVEN, // Run condition
 		1, // Run rate
 		111375, // Period
 		TIME_METRIC_MICROSEC, // Period metric
-		NULL, // Subgraph
+		&g_stGraph_H264Dec_PHONE, // Subgraph
 		&g_stGraph_top, // Parent task graph
 		&g_stModeTransition_H264Dec_PHONE, // MTM information
 		NULL, // Loop information
@@ -6700,11 +6700,11 @@ STask g_astTasks_top[] = {
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_H264Dec_VIDEO_functions, // Task function array
 		0, // Task function array number
-		RUN_CONDITION_TIME_DRIVEN, // Run condition
+		RUN_CONDITION_CONTROL_DRIVEN, // Run condition
 		1, // Run rate
 		111375, // Period
 		TIME_METRIC_MICROSEC, // Period metric
-		NULL, // Subgraph
+		&g_stGraph_H264Dec_VIDEO, // Subgraph
 		&g_stGraph_top, // Parent task graph
 		&g_stModeTransition_H264Dec_VIDEO, // MTM information
 		NULL, // Loop information
@@ -6718,11 +6718,11 @@ STask g_astTasks_top[] = {
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_MP3Dec_functions, // Task function array
 		0, // Task function array number
-		RUN_CONDITION_TIME_DRIVEN, // Run condition
+		RUN_CONDITION_CONTROL_DRIVEN, // Run condition
 		1, // Run rate
 		4455, // Period
 		TIME_METRIC_MICROSEC, // Period metric
-		NULL, // Subgraph
+		&g_stGraph_MP3Dec, // Subgraph
 		&g_stGraph_top, // Parent task graph
 		&g_stModeTransition_MP3Dec, // MTM information
 		NULL, // Loop information
@@ -6736,11 +6736,11 @@ STask g_astTasks_top[] = {
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_x264Enc_functions, // Task function array
 		0, // Task function array number
-		RUN_CONDITION_TIME_DRIVEN, // Run condition
+		RUN_CONDITION_CONTROL_DRIVEN, // Run condition
 		1, // Run rate
 		100, // Period
 		TIME_METRIC_MICROSEC, // Period metric
-		NULL, // Subgraph
+		&g_stGraph_x264Enc, // Subgraph
 		&g_stGraph_top, // Parent task graph
 		&g_stModeTransition_x264Enc, // MTM information
 		NULL, // Loop information
@@ -6754,7 +6754,7 @@ STask g_astTasks_top[] = {
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_G723Dec_functions, // Task function array
 		1, // Task function array number
-		RUN_CONDITION_TIME_DRIVEN, // Run condition
+		RUN_CONDITION_CONTROL_DRIVEN, // Run condition
 		1, // Run rate
 		4455000, // Period
 		TIME_METRIC_MICROSEC, // Period metric
@@ -6772,7 +6772,7 @@ STask g_astTasks_top[] = {
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_G723Enc_functions, // Task function array
 		1, // Task function array number
-		RUN_CONDITION_TIME_DRIVEN, // Run condition
+		RUN_CONDITION_CONTROL_DRIVEN, // Run condition
 		1, // Run rate
 		4455000, // Period
 		TIME_METRIC_MICROSEC, // Period metric

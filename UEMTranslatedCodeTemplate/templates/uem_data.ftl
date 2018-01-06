@@ -300,7 +300,7 @@ STask g_astTasks_${task_graph.name}[] = {
 		1, // Run rate
 		${task.period?c}, // Period
 		TIME_METRIC_${task.periodMetric}, // Period metric
-		NULL, // Subgraph
+		<#if task.childTaskGraphName??>&g_stGraph_${task.childTaskGraphName}<#else>NULL</#if>, // Subgraph
 		&g_stGraph_${task.parentTaskGraphName}, // Parent task graph
 		<#if task.modeTransition??>&g_stModeTransition_${task.name}<#else>NULL</#if>, // MTM information
 		<#if task.loopStruct??>&g_stLoopStruct_${task.name}<#else>NULL</#if>, // Loop information
@@ -432,7 +432,7 @@ SScheduledTasks g_astScheduledTaskList[] = {
 	<#list mapped_schedule.mappedProcessorList as compositeMappedProcessor>
 	{	<#if mapped_schedule.parentTaskId == -1>NULL<#else>&g_astTasks_${flat_task[task_name].parentTaskGraphName}[${flat_task[task_name].inGraphIndex}]</#if>, // Parent Task ID
 		${compositeMappedProcessor.modeId}, // Mode transition mode ID
-		g_astScheduleList_${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}, // schedule list per throught constraint
+		g_astScheduleList_${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}, // schedule list per throughput constraint
 		${compositeMappedProcessor.compositeTaskScheduleList?size}, // The number of schedules in the schedule list
 		0, // Schedule Index (Default to set 0)
 		${compositeMappedProcessor.sequenceIdInMode}, // Mode Sequence ID 
