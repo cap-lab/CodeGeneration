@@ -14,8 +14,8 @@ uem_result UFControl_RunTask (IN char *pszTaskName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	ERRIFGOTO(result, _EXIT);
 	result = UKTask_RunTask(pszTaskName);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

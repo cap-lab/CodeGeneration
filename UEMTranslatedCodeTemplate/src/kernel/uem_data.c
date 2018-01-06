@@ -6,7 +6,7 @@
 
 #include <uem_data.h>
 
-SExecutionTime g_stExecutionTime = { 10, TIME_METRIC_MICROSEC } ;
+SExecutionTime g_stExecutionTime = { 100000, TIME_METRIC_MILLISEC } ;
 
 // ##TASK_CODE_TEMPLATE::START
 void x264Enc_Init_3_Init0(int nTaskId);
@@ -281,8 +281,8 @@ void MP3Dec_Hybrid_Wrapup1();
 #define CHANNEL_44_SIZE (999999)
 #define CHANNEL_45_SIZE (999999)
 #define CHANNEL_46_SIZE (999999)
-#define CHANNEL_47_SIZE (1)
-#define CHANNEL_48_SIZE (1)
+#define CHANNEL_47_SIZE (4)
+#define CHANNEL_48_SIZE (4)
 // ##CHANNEL_SIZE_DEFINITION_TEMPLATE::END
 
 // ##CHANNEL_BUFFER_DEFINITION_TEMPLATE::START
@@ -6790,7 +6790,7 @@ STask g_astTasks_top[] = {
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_UserInput_functions, // Task function array
 		1, // Task function array number
-		RUN_CONDITION_TIME_DRIVEN, // Run condition
+		RUN_CONDITION_CONTROL_DRIVEN, // Run condition
 		1, // Run rate
 		4455000, // Period
 		TIME_METRIC_MICROSEC, // Period metric
@@ -6808,7 +6808,7 @@ STask g_astTasks_top[] = {
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_Interrupt_functions, // Task function array
 		1, // Task function array number
-		RUN_CONDITION_DATA_DRIVEN, // Run condition
+		RUN_CONDITION_CONTROL_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
 		TIME_METRIC_MICROSEC, // Period metric

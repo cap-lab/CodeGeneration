@@ -539,9 +539,21 @@ static uem_result getNextTimeByPeriodAndMetric(long long llPrevTime, int nPeriod
 		*pllNextTime = llPrevTime + 1 * nPeriod;
 		*pnNextMaxRunCount = 1;
 		break;
-	case TIME_METRIC_MICROSEC:
-		*pllNextTime = llPrevTime + 1 * nPeriod;
-		*pnNextMaxRunCount = SEC_UNIT;
+	case TIME_METRIC_MICROSEC: // TODO: micro-second time tick is even not correct
+		if(nPeriod > 0 && nPeriod < SEC_UNIT)
+		{
+			*pnNextMaxRunCount = SEC_UNIT/nPeriod;
+		}
+		else
+		{
+			*pnNextMaxRunCount = 1;
+		}
+
+		if(nPeriod/1000 <= 0)
+		{
+			nPeriod = 1;
+		}
+		*pllNextTime = llPrevTime + 1 * nPeriod/1000;
 		break;
 	case TIME_METRIC_MILLISEC:
 		*pllNextTime = llPrevTime + 1 * nPeriod;
@@ -700,7 +712,7 @@ static uem_result callCompositeTaskInitOrWrapupFunctions(STask *pstParentTask, u
 
 	while(nCurrentIndex < nNumOfTasks || nStackNum > 0)
 	{
-		if(pstParentTask->pstSubGraph != NULL)
+		if(pstCurrentModeMap->pastRelatedChildTasks[nCurrentIndex]->pstSubGraph != NULL)
 		{
 			if(pstCurrentModeMap->pastRelatedChildTasks[nCurrentIndex]->pstMTMInfo != NULL) // MTM Graph
 			{
@@ -1434,6 +1446,15 @@ static uem_result runSingleTaskThread(STaskThread *pstTaskThread, void *pUserDat
 		ERRIFGOTO(result, _EXIT);
 	}
 
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+static uem_result activateSingleTaskThread(STaskThread *pstTaskThread, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
 	pstTaskThread->enTaskState = TASK_STATE_RUNNING;
 
 	result = activateTaskThread(pstTaskThread);
@@ -1443,6 +1464,7 @@ static uem_result runSingleTaskThread(STaskThread *pstTaskThread, void *pUserDat
 _EXIT:
 	return result;
 }
+
 
 static uem_result traverseChildTaskThreads(IN int nOffset, IN void *pData, IN void *pUserData)
 {
@@ -2025,6 +2047,13 @@ static uem_result runCompositeTaskThreads(STask *pstParentTask, HLinkedList hTas
 			traverseCompositeTaskThreads, &stCompositeTaskUserData);
 	ERRIFGOTO(result, _EXIT);
 
+	// traverse and activate thread
+	stCompositeTaskUserData.fnCallback = activateSingleTaskThread;
+
+	result = UCDynamicLinkedList_Traverse(hTaskList,
+			traverseCompositeTaskThreads, &stCompositeTaskUserData);
+	ERRIFGOTO(result, _EXIT);
+
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
@@ -2046,6 +2075,13 @@ static uem_result runChildTaskThreads(int nParentTaskId, HLinkedList hTaskList)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_NO_DATA, _EXIT);
 	}
+
+	// traverse and activate thread
+	stChildTaskAccessUserData.fnCallback = activateSingleTaskThread;
+
+	result = UCDynamicLinkedList_Traverse(hTaskList,
+			traverseChildTaskThreads, &stChildTaskAccessUserData);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -2106,6 +2142,9 @@ uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUTaskManager, int nTaskId
 	else // single general task is found
 	{
 		result = runSingleTaskThread(pstTargetThread, &nTaskId);
+		ERRIFGOTO(result, _EXIT_LOCK);
+
+		result = activateSingleTaskThread(pstTargetThread, NULL);
 		ERRIFGOTO(result, _EXIT_LOCK);
 	}
 
