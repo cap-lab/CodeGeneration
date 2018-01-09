@@ -18,6 +18,7 @@
 
 #include <UCTime.h>
 
+#include <UKTask.h>
 #include <UKChannel.h>
 #include <UKCPUTaskManager.h>
 #include <UKProcessor.h>
@@ -129,6 +130,9 @@ uem_result executeTasks()
 	long long llCurTime;
 	long long llEndTime;
 
+	result = UKTask_Initialize();
+	ERRIFGOTO(result, _EXIT);
+
 	result = UKCPUTaskManager_Create(&hManager);
 	ERRIFGOTO(result, _EXIT);
 
@@ -182,10 +186,14 @@ uem_result executeTasks()
 
 	// thread cancel
 
-	result = UKCPUTaskManager_Destroy(&hManager);
-	ERRIFGOTO(result, _EXIT);
+
 
 _EXIT:
+	if(hManager != NULL)
+	{
+		result = UKCPUTaskManager_Destroy(&hManager);
+	}
+	UKTask_Finalize();
 	return result;
 }
 

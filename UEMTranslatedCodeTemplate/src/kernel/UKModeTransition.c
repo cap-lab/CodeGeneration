@@ -22,6 +22,9 @@ uem_result UKModeTransition_GetCurrentModeName (IN char *pszTaskName, OUT char *
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
+	result = UCThreadMutex_Lock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
 	IFVARERRASSIGNGOTO(pstTask->pstMTMInfo, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 
 	nCurModeIndex = pstTask->pstMTMInfo->nCurModeIndex;
@@ -29,6 +32,9 @@ uem_result UKModeTransition_GetCurrentModeName (IN char *pszTaskName, OUT char *
 	*ppszModeName = pstTask->pstMTMInfo->astModeMap[nCurModeIndex].pszModeName;
 
 	result = ERR_UEM_NOERROR;
+
+	result = UCThreadMutex_Unlock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
 _EXIT:
 	return result;
 }

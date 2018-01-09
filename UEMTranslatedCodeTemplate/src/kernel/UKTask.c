@@ -45,6 +45,49 @@ typedef struct _STaskAPI {
 //};
 
 
+uem_result UKTask_Initialize()
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop = 0;
+
+	for(nLoop = 0 ; nLoop < g_nTaskIdToTaskNum ; nLoop++)
+	{
+		result = UCThreadMutex_Create(&(g_astTaskIdToTask[nLoop].pstTask->hMutex));
+		ERRIFGOTO(result, _EXIT);
+
+		result = UCThreadEvent_Create(&(g_astTaskIdToTask[nLoop].pstTask->hEvent));
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	if(result != ERR_UEM_NOERROR)
+	{
+		UKTask_Finalize();
+	}
+	return result;
+}
+
+
+void UKTask_Finalize()
+{
+	int nLoop = 0;
+
+	for(nLoop = 0 ; nLoop < g_nTaskIdToTaskNum ; nLoop++)
+	{
+		if(g_astTaskIdToTask[nLoop].pstTask->hMutex != NULL)
+		{
+			UCThreadMutex_Destroy(&(g_astTaskIdToTask[nLoop].pstTask->hMutex));
+		}
+
+		if(g_astTaskIdToTask[nLoop].pstTask->hEvent != NULL)
+		{
+			UCThreadEvent_Destroy(&(g_astTaskIdToTask[nLoop].pstTask->hEvent));
+		}
+	}
+}
+
+
 uem_result UKTask_RunTask (IN char *pszTaskName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;

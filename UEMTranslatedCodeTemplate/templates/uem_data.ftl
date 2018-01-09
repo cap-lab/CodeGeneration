@@ -432,12 +432,18 @@ ${space}}
 		<#list compositeMappedProcessor.compositeTaskScheduleList as task_schedule>
 void ${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}_${task_schedule.throughputConstraint?c}_Go(int nTaskId) 
 {
-<#if (task_schedule.maxLoopVariableNum > 0) >
-	<#list 0..(task_schedule.maxLoopVariableNum-1) as variable_id>
+			<#if (task_schedule.maxLoopVariableNum > 0) >
+				<#list 0..(task_schedule.maxLoopVariableNum-1) as variable_id>
 	int depth${variable_id};
-	</#list>
+				</#list>
 
-</#if>
+			</#if>
+
+			<#if (compositeMappedProcessor.srcTaskMap?size == 0 && flat_task[mapped_schedule.parentTaskName].modeTransition?? &&
+				flat_task[mapped_schedule.parentTaskName].modeTransition.modeMap?size > 1) >
+	//UKModeTransition_UpdateCurrentMode();
+			</#if>>
+
 <#list task_schedule.scheduleList as scheduleItem>
 	<@printScheduledCode scheduleItem "	" compositeMappedProcessor mapped_schedule.parentTaskName />
 </#list>

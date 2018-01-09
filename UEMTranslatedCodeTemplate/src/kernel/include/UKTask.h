@@ -19,6 +19,9 @@ extern "C"
 
 typedef uem_result (*FnTaskTraverse)(STask *pstTask, void *pUserData);
 
+uem_result UKTask_Initialize();
+void UKTask_Finalize();
+
 uem_result UKTask_RunTask (IN char *pszTaskName);
 uem_result UKTask_StopTask (IN char *pszTaskName, IN uem_bool bDelayedStop);
 uem_result UKTask_SuspendTask (IN char *pszTaskName);
