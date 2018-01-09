@@ -684,6 +684,118 @@ public class Device {
 		}
 	}
 	
+	private boolean matchTaskIdInPort(Port inputPort, String taskName)
+	{
+		boolean matched = false;
+		Port port;
+		
+		port = inputPort;
+		
+		while(port != null)
+		{
+			if(port.getTaskName().equals(taskName))
+			{
+				matched = true;
+				break;
+			}
+			
+			port = port.getSubgraphPort();
+		}
+		
+		return matched;
+	}
+	
+	private boolean isChannelLocatedInSameTaskGraph(Channel channel)
+	{
+		boolean sameGraph = false;
+		Port inputPort = channel.getInputPort();
+		Port outputPort = channel.getOutputPort();
+		
+		while(inputPort != null && outputPort != null)
+		{
+			if(inputPort.getTaskId() != outputPort.getTaskId())
+			{
+				if(inputPort.getSubgraphPort() == null && outputPort.getSubgraphPort() == null)
+				{
+					sameGraph = true;
+				}
+				break;
+			}
+			
+			inputPort = inputPort.getSubgraphPort();
+			outputPort = outputPort.getSubgraphPort();
+		}
+		
+		return sameGraph;
+	}
+	
+	private boolean checkIsSourceTask(Task task)
+	{
+		boolean isSourceTask = true;
+		
+		for(Channel channel: this.channelList)
+		{
+			if(matchTaskIdInPort(channel.getInputPort(), task.getName()) == true)
+			{
+				if(isChannelLocatedInSameTaskGraph(channel) == true)
+				{
+					isSourceTask = false;
+					break;
+				}
+			}
+		}
+		
+		return isSourceTask;
+	}
+	
+	private void recursiveFindAndInsertSourceTask(ArrayList<ScheduleItem> scheduleItemList, HashMap<String, Task> srcTaskMap)
+	{
+		for(ScheduleItem scheduleItem : scheduleItemList)
+		{
+			if(scheduleItem.getItemType() == ScheduleItemType.LOOP)
+			{
+				ScheduleLoop scheduleInnerLoop = (ScheduleLoop) scheduleItem;
+				recursiveFindAndInsertSourceTask(scheduleInnerLoop.getScheduleItemList(), srcTaskMap);
+			}
+			else
+			{
+				ScheduleTask scheduleTask = (ScheduleTask) scheduleItem;
+				
+				Task task = this.taskMap.get(scheduleTask.getTaskName());
+				
+				if(checkIsSourceTask(task) == true && srcTaskMap.containsKey(scheduleTask.getTaskName()) == false)
+				{
+					srcTaskMap.put(scheduleTask.getTaskName(), task);
+				}
+			}
+		}
+	}
+	
+	public void setSrcTaskOfMTM()
+	{
+		CompositeTaskMappingInfo compositeMappingInfo;
+		CompositeTaskMappedProcessor compositeMappedProc;
+		for(Task task: this.taskMap.values())
+		{
+			if(task.getModeTransition() != null && task.getModeTransition().getModeMap().size() > 1 && 
+				task.getChildTaskGraphName() != null && task.isStaticScheduled() == true)
+			{
+				compositeMappingInfo = this.staticScheduleMappingInfo.get(task.getName());
+				for(MappedProcessor mappedProcessor: compositeMappingInfo.getMappedProcessorList())
+				{
+					compositeMappedProc = (CompositeTaskMappedProcessor) mappedProcessor;
+					
+					for(CompositeTaskSchedule taskScheule: compositeMappedProc.getCompositeTaskScheduleList())
+					{
+						recursiveFindAndInsertSourceTask(taskScheule.getScheduleList(), compositeMappedProc.getSrcTaskMap());
+					}
+				}
+			}
+		}
+
+		
+	}
+	
 	public void putInDeviceTaskInformation(HashMap<String, Task> globalTaskMap, 
 									String scheduleFolderPath, CICMappingType mapping_metadata, ExecutionPolicy executionPolicy)
 	throws FileNotFoundException, InvalidScheduleFileNameException, InvalidDataInMetadataFileException, NoProcessorFoundException

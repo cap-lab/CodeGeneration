@@ -13,7 +13,7 @@
 
 #include <UKTask.h>
 
-uem_result UKTask_GetCurrentModeName (IN char *pszTaskName, OUT char **ppszModeName)
+uem_result UKModeTransition_GetCurrentModeName (IN char *pszTaskName, OUT char **ppszModeName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
@@ -33,8 +33,54 @@ _EXIT:
 	return result;
 }
 
+int UKModeTransition_GetModeIndexByModeId(SModeTransitionMachine *pstModeTransition, int nModeId)
+{
+	int nLoop = 0;
+	int nModeIndex = INVALID_MODE_ID;
+	int nModeLen = ARRAYLEN(pstModeTransition->astModeMap);
 
-uem_result UKTask_SetModeIntegerParameter (IN char *pszTaskName, IN char *pszParamName, IN int nParamVal)
+	for(nLoop = 0 ; nLoop < nModeLen ; nLoop++)
+	{
+		if(pstModeTransition->astModeMap[nLoop].nModeId == nModeId)
+		{
+			nModeIndex = nLoop;
+			break;
+		}
+	}
+
+	return nModeIndex;
+}
+
+
+int UKModeTransition_GetVariableIndexByName(SModeTransitionMachine *pstModeTransition, char *pszVariableName)
+{
+	int nLoop = 0;
+	int nVariableIndex = INVALID_MODE_ID;
+	int nVariableLen = ARRAYLEN(pstModeTransition->astVarIntMap);
+	uem_string_struct strVariableName;
+	uem_string_struct strTargetVariableName;
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	result = UCString_New(&strVariableName, pszVariableName, UEMSTRING_MAX);
+	ERRIFGOTO(result, _EXIT);
+
+	for(nLoop = 0 ; nLoop < nVariableLen ; nLoop++)
+	{
+		result = UCString_New(&strTargetVariableName, pstModeTransition->astVarIntMap[nLoop].pszVariableName, UEMSTRING_MAX);
+		ERRIFGOTO(result, _EXIT);
+
+		if(UCString_IsEqual(&strTargetVariableName, &strVariableName) == TRUE)
+		{
+			nVariableIndex = nLoop;
+			break;
+		}
+	}
+_EXIT:
+	return nVariableIndex;
+}
+
+
+uem_result UKModeTransition_SetModeIntegerParameter (IN char *pszTaskName, IN char *pszParamName, IN int nParamVal)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
@@ -71,7 +117,7 @@ _EXIT:
 }
 
 
-uem_result UKTask_UpdateMode (IN char *pszTaskName)
+uem_result UKModeTransition_UpdateMode (IN char *pszTaskName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
@@ -81,7 +127,7 @@ uem_result UKTask_UpdateMode (IN char *pszTaskName)
 
 	IFVARERRASSIGNGOTO(pstTask->pstMTMInfo, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 
-	pstTask->pstMTMInfo->fnTransition();
+	pstTask->pstMTMInfo->fnTransition(pstTask->pstMTMInfo);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

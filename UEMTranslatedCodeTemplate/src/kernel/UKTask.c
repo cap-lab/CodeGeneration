@@ -134,7 +134,7 @@ uem_result UKTask_CallTask (IN char *pszTaskName)
 
 	// CallTask calls the first init/go/wrapup functions
 	pstTask->astTaskFunctions[0].fnInit(pstTask->nTaskId);
-	pstTask->astTaskFunctions[0].fnGo();
+	pstTask->astTaskFunctions[0].fnGo(pstTask->nTaskId);
 	pstTask->astTaskFunctions[0].fnWrapup();
 
 	result = ERR_UEM_NOERROR;

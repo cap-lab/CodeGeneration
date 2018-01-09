@@ -516,6 +516,12 @@ public class Application {
 			this.channelList.add(channel);
 			index++;
 		}
+		
+		// set source task of composite task which can be checked after setting channel information
+		for(Device device: this.deviceInfo.values())
+		{
+			device.setSrcTaskOfMTM();	
+		}
 	}
 
 	// scheduleFolderPath : output + /convertedSDF3xml/

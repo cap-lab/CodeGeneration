@@ -78,5 +78,9 @@ public class TaskModeTransition {
 	public HashMap<String, String> getVariableMap() {
 		return variableMap;
 	}
+
+	public ArrayList<Transition> getTransitionList() {
+		return transitionList;
+	}
 	
 }

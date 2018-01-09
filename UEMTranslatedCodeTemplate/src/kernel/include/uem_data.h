@@ -19,6 +19,7 @@ extern "C"
 #endif
 
 #define INVALID_TASK_ID (-1)
+#define INVALID_MODE_ID (-1)
 #define INVALID_CHANNEL_ID (-1)
 #define INVALID_CHUNK_INDEX (-1)
 #define INVALID_TIMER_SLOT_ID (-1)
@@ -101,11 +102,13 @@ typedef enum _ETaskGraphType {
 } ETaskGraphType;
 
 typedef void (*FnUemTaskInit)(int nTaskId);
-typedef void (*FnUemTaskGo)();
+typedef void (*FnUemTaskGo)(int nTaskId);
 typedef void (*FnUemTaskWrapup)();
 
 
-typedef uem_bool (*FnTaskModeTranstion)();
+typedef struct _SModeTransitionMachine SModeTransitionMachine;
+
+typedef uem_bool (*FnTaskModeTranstion)(SModeTransitionMachine *pstModeTransition);
 
 typedef struct _STask STask;
 

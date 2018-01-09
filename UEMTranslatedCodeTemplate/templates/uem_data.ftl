@@ -13,7 +13,7 @@ SExecutionTime g_stExecutionTime = { ${execution_time.value}, TIME_METRIC_${exec
 	<#if !task.childTaskGraphName??>
 		<#list 0..(task.taskFuncNum-1) as task_func_id>
 void ${task.name}_Init${task_func_id}(int nTaskId);
-void ${task.name}_Go${task_func_id}();
+void ${task.name}_Go${task_func_id}(int nTaskId);
 void ${task.name}_Wrapup${task_func_id}();
 		</#list>
 	</#if>
@@ -167,14 +167,44 @@ SVariableIntMap g_astVariableIntMap_${task.name}[] = {
 		</#list>
 };
 
+		<#if (task.modeTransition.modeMap?size > 1)>
+static uem_bool transitMode_${task.name}(SModeTransitionMachine *pstModeTransition) 
+{
+	uem_bool bModeChanged = FALSE;
+			<#list task.modeTransition.variableMap as var_name, var_type>
+	${var_type} ${var_name};
+			</#list>
+	int nCurrentModeId = pstModeTransition->astModeMap[pstModeTransition->nCurModeIndex].nModeId;
+	int nNextModeId = nCurrentModeId;
+	int nVarIndex = 0;
+	
+			<#list task.modeTransition.variableMap as var_name, var_type>
+	nVarIndex = UKModeTransition_GetVariableIndexByName(pstModeTransition, "${var_name}");
+	${var_name} = pstModeTransition->astVarIntMap[nVarIndex].nValue;
+			</#list>
+		
+			<#list task.modeTransition.transitionList as transition>
+	if(nCurrentModeId == ${task.modeTransition.modeMap[transition.srcMode].id}
+	  <#list transition.conditionList as condition>&& ${condition.leftOperand} ${condition.operator} ${condition.rightOperand}</#list> )
+	{
+		nNextModeId = ${task.modeTransition.modeMap[transition.dstMode].id};
+		bModeChanged = TRUE;
+	}
+			</#list>
+		
+	pstModeTransition->nCurModeIndex = UKModeTransition_GetModeIndexByModeId(pstModeTransition, nNextModeId);
+	
+	return bModeChanged;
+}
+		</#if>
+
 SModeTransitionMachine g_stModeTransition_${task.name} = {
 	${task.id},
 	g_astModeMap_${task.name},
 	g_astVariableIntMap_${task.name},
-	NULL,
+	<#if (task.modeTransition.modeMap?size > 1)>transitMode_${task.name}<#else>NULL</#if>,
 	0,
 };
-
 	</#if>
 </#list>
 // ##MODE_TRANSITION_TEMPLATE::END
@@ -355,7 +385,7 @@ SProcessor g_astProcessorInfo[] = {
 // ##PROCESSOR_INFO_TEMPLATE::END
 
 
-<#macro printScheduledCode scheduleItem space>
+<#macro printScheduledCode scheduleItem space compositeMappedProcessor parentTaskName>
 	<#if scheduleItem.itemType == "LOOP">
 		<#if (scheduleItem.repetition > 1) >
 ${space}for(${scheduleItem.variableName} = 0 ; ${scheduleItem.variableName} < ${scheduleItem.repetition} ; ${scheduleItem.variableName}++)
@@ -367,7 +397,7 @@ ${space}{
 			<#else>
 				<#assign newspace="${space}	" />
 			</#if>
-			<@printScheduledCode loop_schedule_item newspace />
+			<@printScheduledCode loop_schedule_item newspace compositeMappedProcessor parentTaskName />
 		</#list>
 		<#if (scheduleItem.repetition > 1) >		
 ${space}}
@@ -381,7 +411,14 @@ ${space}{
 		<#else>
 			<#assign innerspace="${space}" />
 		</#if>
-${innerspace}${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}();
+${innerspace}${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}(${flat_task[scheduleItem.taskName].id});
+			<#if compositeMappedProcessor.srcTaskMap[scheduleItem.taskName]??>
+${innerspace}{
+${innerspace}	uem_bool bTransition = FALSE;			
+${innerspace}	bTransition = transitMode_${parentTaskName}(g_astTasks_${flat_task[parentTaskName].parentTaskGraphName}[${flat_task[parentTaskName].inGraphIndex}].pstMTMInfo);
+${innerspace}	if(bTransition == TRUE) return; // exit when the transition is changed.
+${innerspace}}
+			</#if>
 		<#if (scheduleItem.repetition > 1) >		
 ${space}}
 
@@ -393,7 +430,7 @@ ${space}}
 <#list schedule_info as task_name, mapped_schedule>
 	<#list mapped_schedule.mappedProcessorList as compositeMappedProcessor>
 		<#list compositeMappedProcessor.compositeTaskScheduleList as task_schedule>
-void ${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}_${task_schedule.throughputConstraint?c}_Go() 
+void ${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}_${task_schedule.throughputConstraint?c}_Go(int nTaskId) 
 {
 <#if (task_schedule.maxLoopVariableNum > 0) >
 	<#list 0..(task_schedule.maxLoopVariableNum-1) as variable_id>
@@ -402,9 +439,10 @@ void ${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${comp
 
 </#if>
 <#list task_schedule.scheduleList as scheduleItem>
-	<@printScheduledCode scheduleItem "	" />
+	<@printScheduledCode scheduleItem "	" compositeMappedProcessor mapped_schedule.parentTaskName />
 </#list>
 }
+
 		</#list>
 	</#list>
 </#list>

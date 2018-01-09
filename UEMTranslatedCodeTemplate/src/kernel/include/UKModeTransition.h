@@ -18,6 +18,13 @@ extern "C"
 uem_result UKModeTransition_Initialize();
 uem_result UKModeTransition_Finalize();
 
+uem_result UKModeTransition_GetCurrentModeName (IN char *pszTaskName, OUT char **ppszModeName);
+uem_result UKModeTransition_SetModeIntegerParameter (IN char *pszTaskName, IN char *pszParamName, IN int nParamVal);
+uem_result UKModeTransition_UpdateMode (IN char *pszTaskName);
+
+int UKModeTransition_GetModeIndexByModeId(SModeTransitionMachine *pstModeTransition, int nModeId);
+int UKModeTransition_GetVariableIndexByName(SModeTransitionMachine *pstModeTransition, char *pszVariableName);
+
 
 #ifdef __cplusplus
 }

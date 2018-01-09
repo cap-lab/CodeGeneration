@@ -6,6 +6,9 @@
 
 #include <uem_data.h>
 
+#include <UKTask.h>
+#include <UKModeTransition.h>
+
 SExecutionTime g_stExecutionTime = { 100000, TIME_METRIC_MILLISEC } ;
 
 // ##TASK_CODE_TEMPLATE::START
@@ -3429,11 +3432,44 @@ SVariableIntMap g_astVariableIntMap_H264Dec_PHONE[] = {
 	},
 };
 
+// get variable index
+// get mode index
+
+static uem_bool transitMode_H264Dec_PHONE(SModeTransitionMachine *pstModeTransition)
+{
+	uem_bool bModeChanged = FALSE;
+	int FrameVar;
+	int nCurrentModeId = pstModeTransition->astModeMap[pstModeTransition->nCurModeIndex].nModeId;
+	int nNextModeId = nCurrentModeId;
+	int nVarIndex = 0;
+
+	nVarIndex = UKModeTransition_GetVariableIndexByName(pstModeTransition, "FrameVar");
+	FrameVar = pstModeTransition->astVarIntMap[nVarIndex].nValue;
+
+	if(nCurrentModeId == 0 &&
+		(FrameVar == 1))
+	{
+		nNextModeId = 1;
+		bModeChanged = TRUE;
+	}
+	else if(nCurrentModeId == 1 &&
+			(FrameVar == 2))
+	{
+		nNextModeId = 0;
+		bModeChanged = TRUE;
+	}
+
+	pstModeTransition->nCurModeIndex = UKModeTransition_GetModeIndexByModeId(pstModeTransition, nNextModeId);
+
+	return bModeChanged;
+}
+
+
 SModeTransitionMachine g_stModeTransition_H264Dec_PHONE = {
 	29,
 	g_astModeMap_H264Dec_PHONE,
 	g_astVariableIntMap_H264Dec_PHONE,
-	NULL,
+	transitMode_H264Dec_PHONE,
 	0,
 };
 

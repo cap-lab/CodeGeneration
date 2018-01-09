@@ -781,17 +781,15 @@ _EXIT:
 	return result;
 }
 
-static uem_result handleTimeDrivenTask(STaskThread *pstTaskThread, FnUemTaskGo fnGo, IN OUT long long *pllNextTime,
+static uem_result handleTimeDrivenTask(STaskThread *pstTaskThread, STask *pstCurrentTask, FnUemTaskGo fnGo, IN OUT long long *pllNextTime,
 										IN OUT int *pnRunCount, IN OUT int *pnNextMaxRunCount)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	long long llCurTime = 0;
-	STask *pstCurrentTask = NULL;
 	long long llNextTime = 0;
 	int nMaxRunCount = 0;
 	int nRunCount = 0;
 
-	pstCurrentTask = pstTaskThread->uTargetTask.pstTask;
 	llNextTime = *pllNextTime;
 	nRunCount = *pnRunCount;
 	nMaxRunCount = *pnNextMaxRunCount;
@@ -803,7 +801,7 @@ static uem_result handleTimeDrivenTask(STaskThread *pstTaskThread, FnUemTaskGo f
 		if(nRunCount < nMaxRunCount) // run count is available
 		{
 			nRunCount++;
-			fnGo();
+			fnGo(pstCurrentTask->nTaskId);
 		}
 		else // all run count is used and time is not passed yet
 		{
@@ -881,14 +879,14 @@ static uem_result handleTaskMainRoutine(STaskThread *pstTaskThread, FnUemTaskGo 
 			switch(enRunCondition)
 			{
 			case RUN_CONDITION_TIME_DRIVEN:
-				result = handleTimeDrivenTask(pstTaskThread, fnGo, &llNextTime, &nRunCount, &nMaxRunCount);
+				result = handleTimeDrivenTask(pstTaskThread, pstCurrentTask, fnGo, &llNextTime, &nRunCount, &nMaxRunCount);
 				ERRIFGOTO(result, _EXIT);
 				break;
 			case RUN_CONDITION_DATA_DRIVEN:
-				fnGo();
+				fnGo(pstCurrentTask->nTaskId);
 				break;
 			case RUN_CONDITION_CONTROL_DRIVEN: // run once for control-driven leaf task
-				fnGo();
+				fnGo(pstCurrentTask->nTaskId);
 				UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
 				break;
 			default:
@@ -904,7 +902,7 @@ static uem_result handleTaskMainRoutine(STaskThread *pstTaskThread, FnUemTaskGo 
 			}
 			else // still execute the tasks for the remaining tasks
 			{
-				fnGo();
+				fnGo(pstCurrentTask->nTaskId);
 			}
 			break;
 		case TASK_STATE_STOP:

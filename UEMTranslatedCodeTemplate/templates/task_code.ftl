@@ -22,7 +22,7 @@
 #define TASK_CODE_END
 #define TASK_NAME "${task_info.name}"
 #define TASK_INIT void ${task_info.name}_Init${task_func_id}(int TASK_ID)
-#define TASK_GO void ${task_info.name}_Go${task_func_id}()
+#define TASK_GO void ${task_info.name}_Go${task_func_id}(int nTaskId)
 #define TASK_WRAPUP void ${task_info.name}_Wrapup${task_func_id}()
 
 #define STATIC static

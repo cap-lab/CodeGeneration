@@ -30,4 +30,8 @@ public class Transition {
 	public void setDstMode(String dstMode) {
 		this.dstMode = dstMode;
 	}
+
+	public ArrayList<Condition> getConditionList() {
+		return conditionList;
+	}
 }
