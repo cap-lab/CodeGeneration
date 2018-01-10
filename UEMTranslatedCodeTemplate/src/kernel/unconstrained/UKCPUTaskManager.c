@@ -582,7 +582,7 @@ _EXIT:
 }
 
 
-static uem_result waitRunSignal(STaskThread *pstTaskThread, OUT long long *pllNextTime, OUT int *pnNextMaxRunCount)
+static uem_result waitRunSignal(STaskThread *pstTaskThread, uem_bool bStartWait, OUT long long *pllNextTime, OUT int *pnNextMaxRunCount)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstCurrentTask = NULL;
@@ -593,7 +593,7 @@ static uem_result waitRunSignal(STaskThread *pstTaskThread, OUT long long *pllNe
 	result = UCThreadEvent_WaitEvent(pstTaskThread->hEvent);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstTaskThread->enTaskState == TASK_STATE_RUNNING)
+	if(pstTaskThread->enTaskState == TASK_STATE_RUNNING || bStartWait == TRUE)
 	{
 		result = UCThreadMutex_Lock(pstTaskThread->hMutex);
 		ERRIFGOTO(result, _EXIT);
@@ -1624,7 +1624,7 @@ static uem_result handleTaskMainRoutine(STaskThread *pstTaskThread, FnUemTaskGo 
 		bIsTaskGraphSourceTask = UKChannel_IsTaskSourceTask(pstCurrentTask->nTaskId);
 	}
 
-	result = waitRunSignal(pstTaskThread, &llNextTime, &nMaxRunCount);
+	result = waitRunSignal(pstTaskThread, TRUE, &llNextTime, &nMaxRunCount);
 	ERRIFGOTO(result, _EXIT);
 
 	// if nSeqId is changed, it means this thread is detached or stopped from the CPU task manager.
@@ -1669,7 +1669,7 @@ static uem_result handleTaskMainRoutine(STaskThread *pstTaskThread, FnUemTaskGo 
 			// do nothing
 			break;
 		case TASK_STATE_SUSPEND:
-			result = waitRunSignal(pstTaskThread, &llNextTime, &nMaxRunCount);
+			result = waitRunSignal(pstTaskThread, FALSE, &llNextTime, &nMaxRunCount);
 			ERRIFGOTO(result, _EXIT);
 			break;
 		default:
@@ -1730,9 +1730,22 @@ static void *scheduledTaskThreadRoutine(void *pData)
 	pstScheduledTasks = pstTaskThread->uTargetTask.pstScheduledTasks;
 	nScheduleIndex = pstScheduledTasks->nScheduledIndex;
 
-	result = handleTaskMainRoutine(pstTaskThread, pstScheduledTasks->astScheduleList[nScheduleIndex].fnCompositeGo,
-									pstThreadData->nCurSeqId);
-	ERRIFGOTO(result, _EXIT);
+	if(nScheduleIndex != INVALID_SCHEDULE_ID)
+	{
+		result = handleTaskMainRoutine(pstTaskThread, pstScheduledTasks->astScheduleList[nScheduleIndex].fnCompositeGo,
+										pstThreadData->nCurSeqId);
+		ERRIFGOTO(result, _EXIT);
+	}
+	else
+	{
+		result = UCThreadMutex_Lock(pstTaskThread->hMutex);
+		ERRIFGOTO(result, _EXIT);
+
+		pstTaskThread->nWaitingThreadNum--;
+
+		result = UCThreadMutex_Unlock(pstTaskThread->hMutex);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 _EXIT:
 	SAFEMEMFREE(pstThreadData);
@@ -1882,6 +1895,31 @@ static uem_result runSingleTaskThread(STaskThread *pstTaskThread, void *pUserDat
 
 	if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK)
 	{
+		int nLoop = 0;
+		STask *pstParentTask = NULL;
+		pstParentTask = pstTaskThread->uTargetTask.pstScheduledTasks->pstParentTask;
+
+		if(pstParentTask->nThroughputConstraint == 0) // initial setting
+		{
+			pstParentTask->nThroughputConstraint = pstTaskThread->uTargetTask.pstScheduledTasks->astScheduleList[0].nThroughputConstraint;
+		}
+
+		for(nLoop = 0; nLoop < pstTaskThread->uTargetTask.pstScheduledTasks->nScheduleNum ; nLoop++)
+		{
+			if(pstTaskThread->uTargetTask.pstScheduledTasks->astScheduleList[nLoop].nThroughputConstraint ==
+				pstParentTask->nThroughputConstraint)
+			{
+				pstTaskThread->uTargetTask.pstScheduledTasks->nScheduledIndex = nLoop;
+				break;
+			}
+		}
+
+		// skip if there is no matching throughput constraint
+		if(nLoop == pstTaskThread->uTargetTask.pstScheduledTasks->nScheduleNum)
+		{
+			pstTaskThread->uTargetTask.pstScheduledTasks->nScheduledIndex = INVALID_SCHEDULE_ID;
+		}
+
 		result = createCompositeTaskThread(pstTaskThread);
 		ERRIFGOTO(result, _EXIT);
 	}
@@ -1976,7 +2014,29 @@ static uem_result traverseAndCreateComputationalTasks(IN int nOffset, IN void *p
 		}
 		else if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK)
 		{
+			int nLoop = 0;
 			pstParentTask = pstTaskThread->uTargetTask.pstScheduledTasks->pstParentTask;
+
+			if(pstParentTask->nThroughputConstraint == 0) // initial setting
+			{
+				pstParentTask->nThroughputConstraint = pstTaskThread->uTargetTask.pstScheduledTasks->astScheduleList[0].nThroughputConstraint;
+			}
+
+			for(nLoop = 0; nLoop < pstTaskThread->uTargetTask.pstScheduledTasks->nScheduleNum ; nLoop++)
+			{
+				if(pstTaskThread->uTargetTask.pstScheduledTasks->astScheduleList[nLoop].nThroughputConstraint ==
+					pstParentTask->nThroughputConstraint)
+				{
+					pstTaskThread->uTargetTask.pstScheduledTasks->nScheduledIndex = nLoop;
+					break;
+				}
+			}
+
+			// skip if there is no matching throughput constraint
+			if(nLoop == pstTaskThread->uTargetTask.pstScheduledTasks->nScheduleNum)
+			{
+				pstTaskThread->uTargetTask.pstScheduledTasks->nScheduledIndex = INVALID_SCHEDULE_ID;
+			}
 
 			if(pstParentTask != NULL)
 			{

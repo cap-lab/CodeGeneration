@@ -19,6 +19,7 @@ extern "C"
 #endif
 
 #define INVALID_TASK_ID (-1)
+#define INVALID_SCHEDULE_ID (-1)
 #define INVALID_MODE_ID (-1)
 #define INVALID_CHANNEL_ID (-1)
 #define INVALID_CHUNK_INDEX (-1)
@@ -183,6 +184,7 @@ typedef struct _STask {
 	SLoopInfo *pstLoopInfo;
 	STaskParameter *astTaskParam;
 	uem_bool bStaticScheduled; // TRUE if a task is mapped or scheduled
+	int nThroughputConstraint;
 	HThreadMutex hMutex;
 	HThreadEvent hEvent;
 } STask;
