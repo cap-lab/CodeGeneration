@@ -133,6 +133,7 @@ typedef struct _SModeTransitionMachine {
 	SVariableIntMap *astVarIntMap;
 	FnTaskModeTranstion fnTransition;
 	int nCurModeIndex;
+	int nNextModeIndex;
 } SModeTransitionMachine;
 
 typedef struct _SLoopInfo {

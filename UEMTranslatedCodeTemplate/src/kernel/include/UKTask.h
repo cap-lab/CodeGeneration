@@ -17,6 +17,14 @@ extern "C"
 {
 #endif
 
+
+typedef enum _EInternalTaskState {
+	INTERNAL_STATE_RUN,
+	INTERNAL_STATE_STOP,
+	INTERNAL_STATE_WAIT,
+	INTERNAL_STATE_END,
+} EInternalTaskState;
+
 typedef uem_result (*FnTaskTraverse)(STask *pstTask, void *pUserData);
 
 uem_result UKTask_Initialize();
@@ -27,6 +35,7 @@ uem_result UKTask_StopTask (IN char *pszTaskName, IN uem_bool bDelayedStop);
 uem_result UKTask_SuspendTask (IN char *pszTaskName);
 uem_result UKTask_ResumeTask (IN char *pszTaskName);
 uem_result UKTask_CallTask (IN char *pszTaskName);
+uem_result UKTask_GetTaskState(char *pszTaskName, EInternalTaskState *penTaskState);
 
 uem_result UKTask_GetTaskFromTaskName(char *szTaskName, STask **ppstTask);
 uem_result UKTask_GetTaskFromTaskId(int nTaskId, STask **ppstTask);

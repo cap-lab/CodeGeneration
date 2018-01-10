@@ -22,19 +22,25 @@ uem_result UKModeTransition_GetCurrentModeName (IN char *pszTaskName, OUT char *
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
+	if(pstTask->pstMTMInfo == NULL)
+	{
+		IFVARERRASSIGNGOTO(pstTask->pstParentGraph->pstParentTask, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		IFVARERRASSIGNGOTO(pstTask->pstParentGraph->pstParentTask->pstMTMInfo, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+
+		pstTask = pstTask->pstParentGraph->pstParentTask;
+	}
+
 	result = UCThreadMutex_Lock(pstTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	IFVARERRASSIGNGOTO(pstTask->pstMTMInfo, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
-
 	nCurModeIndex = pstTask->pstMTMInfo->nCurModeIndex;
+
+	result = UCThreadMutex_Unlock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
 
 	*ppszModeName = pstTask->pstMTMInfo->astModeMap[nCurModeIndex].pszModeName;
 
 	result = ERR_UEM_NOERROR;
-
-	result = UCThreadMutex_Unlock(pstTask->hMutex);
-	ERRIFGOTO(result, _EXIT);
 _EXIT:
 	return result;
 }
@@ -98,7 +104,13 @@ uem_result UKModeTransition_SetModeIntegerParameter (IN char *pszTaskName, IN ch
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
-	IFVARERRASSIGNGOTO(pstTask->pstMTMInfo, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+	if(pstTask->pstMTMInfo == NULL)
+	{
+		IFVARERRASSIGNGOTO(pstTask->pstParentGraph->pstParentTask, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		IFVARERRASSIGNGOTO(pstTask->pstParentGraph->pstParentTask->pstMTMInfo, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+
+		pstTask = pstTask->pstParentGraph->pstParentTask;
+	}
 
 	nLen = ARRAYLEN(pstTask->pstMTMInfo->astVarIntMap);
 
@@ -112,7 +124,13 @@ uem_result UKModeTransition_SetModeIntegerParameter (IN char *pszTaskName, IN ch
 
 		if(UCString_IsEqual(&strTargetParamName, &strParamName) == TRUE)
 		{
+			result = UCThreadMutex_Lock(pstTask->hMutex);
+			ERRIFGOTO(result, _EXIT);
+
 			pstTask->pstMTMInfo->astVarIntMap[nLoop].nValue = nParamVal;
+
+			result = UCThreadMutex_Unlock(pstTask->hMutex);
+			ERRIFGOTO(result, _EXIT);
 			break;
 		}
 	}
@@ -131,9 +149,21 @@ uem_result UKModeTransition_UpdateMode (IN char *pszTaskName)
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
-	IFVARERRASSIGNGOTO(pstTask->pstMTMInfo, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+	if(pstTask->pstMTMInfo == NULL)
+	{
+		IFVARERRASSIGNGOTO(pstTask->pstParentGraph->pstParentTask, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		IFVARERRASSIGNGOTO(pstTask->pstParentGraph->pstParentTask->pstMTMInfo, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+
+		pstTask = pstTask->pstParentGraph->pstParentTask;
+	}
+
+	result = UCThreadMutex_Lock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
 
 	pstTask->pstMTMInfo->fnTransition(pstTask->pstMTMInfo);
+
+	result = UCThreadMutex_Unlock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
