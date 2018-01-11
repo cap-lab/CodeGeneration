@@ -8,7 +8,7 @@
 #include <UKTask.h>
 #include <UKModeTransition.h>
 
-SExecutionTime g_stExecutionTime = { 10000, TIME_METRIC_SEC } ;
+SExecutionTime g_stExecutionTime = { 100, TIME_METRIC_SEC } ;
 
 // ##TASK_CODE_TEMPLATE::START
 void x264Enc_Init_3_Init0(int nTaskId);
@@ -18,9 +18,6 @@ void x264Enc_Init_3_Wrapup0();
 void H264Dec_VIDEO_Decode_Init0(int nTaskId);
 void H264Dec_VIDEO_Decode_Go0(int nTaskId);
 void H264Dec_VIDEO_Decode_Wrapup0();
-void H264Dec_VIDEO_Decode_Init1(int nTaskId);
-void H264Dec_VIDEO_Decode_Go1(int nTaskId);
-void H264Dec_VIDEO_Decode_Wrapup1();
 
 void G723Enc_Init0(int nTaskId);
 void G723Enc_Go0(int nTaskId);
@@ -33,17 +30,11 @@ void x264Enc_Deblock_2_Wrapup0();
 void H264Dec_PHONE_Decode_Init0(int nTaskId);
 void H264Dec_PHONE_Decode_Go0(int nTaskId);
 void H264Dec_PHONE_Decode_Wrapup0();
-void H264Dec_PHONE_Decode_Init1(int nTaskId);
-void H264Dec_PHONE_Decode_Go1(int nTaskId);
-void H264Dec_PHONE_Decode_Wrapup1();
 
 
 void MP3Dec_VLDStream_Init0(int nTaskId);
 void MP3Dec_VLDStream_Go0(int nTaskId);
 void MP3Dec_VLDStream_Wrapup0();
-void MP3Dec_VLDStream_Init1(int nTaskId);
-void MP3Dec_VLDStream_Go1(int nTaskId);
-void MP3Dec_VLDStream_Wrapup1();
 
 void x264Enc_Encoder_1_Init0(int nTaskId);
 void x264Enc_Encoder_1_Go0(int nTaskId);
@@ -65,37 +56,22 @@ void H264Dec_VIDEO_IntraPredV_Wrapup0();
 void H264Dec_VIDEO_WriteFileH_Init0(int nTaskId);
 void H264Dec_VIDEO_WriteFileH_Go0(int nTaskId);
 void H264Dec_VIDEO_WriteFileH_Wrapup0();
-void H264Dec_VIDEO_WriteFileH_Init1(int nTaskId);
-void H264Dec_VIDEO_WriteFileH_Go1(int nTaskId);
-void H264Dec_VIDEO_WriteFileH_Wrapup1();
 
 void MP3Dec_Antialias_Init0(int nTaskId);
 void MP3Dec_Antialias_Go0(int nTaskId);
 void MP3Dec_Antialias_Wrapup0();
-void MP3Dec_Antialias_Init1(int nTaskId);
-void MP3Dec_Antialias_Go1(int nTaskId);
-void MP3Dec_Antialias_Wrapup1();
 
 void MP3Dec_Subband_Init0(int nTaskId);
 void MP3Dec_Subband_Go0(int nTaskId);
 void MP3Dec_Subband_Wrapup0();
-void MP3Dec_Subband_Init1(int nTaskId);
-void MP3Dec_Subband_Go1(int nTaskId);
-void MP3Dec_Subband_Wrapup1();
 
 void H264Dec_PHONE_InterPredY_Init0(int nTaskId);
 void H264Dec_PHONE_InterPredY_Go0(int nTaskId);
 void H264Dec_PHONE_InterPredY_Wrapup0();
-void H264Dec_PHONE_InterPredY_Init1(int nTaskId);
-void H264Dec_PHONE_InterPredY_Go1(int nTaskId);
-void H264Dec_PHONE_InterPredY_Wrapup1();
 
 void H264Dec_VIDEO_Deblock_Init0(int nTaskId);
 void H264Dec_VIDEO_Deblock_Go0(int nTaskId);
 void H264Dec_VIDEO_Deblock_Wrapup0();
-void H264Dec_VIDEO_Deblock_Init1(int nTaskId);
-void H264Dec_VIDEO_Deblock_Go1(int nTaskId);
-void H264Dec_VIDEO_Deblock_Wrapup1();
 
 void x264Enc_ME_0_Init0(int nTaskId);
 void x264Enc_ME_0_Go0(int nTaskId);
@@ -108,9 +84,6 @@ void H264Dec_VIDEO_IntraPredU_Wrapup0();
 void H264Dec_VIDEO_InterPredU_Init0(int nTaskId);
 void H264Dec_VIDEO_InterPredU_Go0(int nTaskId);
 void H264Dec_VIDEO_InterPredU_Wrapup0();
-void H264Dec_VIDEO_InterPredU_Init1(int nTaskId);
-void H264Dec_VIDEO_InterPredU_Go1(int nTaskId);
-void H264Dec_VIDEO_InterPredU_Wrapup1();
 
 void UserInput_Init0(int nTaskId);
 void UserInput_Go0(int nTaskId);
@@ -120,37 +93,22 @@ void UserInput_Wrapup0();
 void H264Dec_PHONE_Deblock_Init0(int nTaskId);
 void H264Dec_PHONE_Deblock_Go0(int nTaskId);
 void H264Dec_PHONE_Deblock_Wrapup0();
-void H264Dec_PHONE_Deblock_Init1(int nTaskId);
-void H264Dec_PHONE_Deblock_Go1(int nTaskId);
-void H264Dec_PHONE_Deblock_Wrapup1();
 
 void H264Dec_VIDEO_InterPredV_Init0(int nTaskId);
 void H264Dec_VIDEO_InterPredV_Go0(int nTaskId);
 void H264Dec_VIDEO_InterPredV_Wrapup0();
-void H264Dec_VIDEO_InterPredV_Init1(int nTaskId);
-void H264Dec_VIDEO_InterPredV_Go1(int nTaskId);
-void H264Dec_VIDEO_InterPredV_Wrapup1();
 
 void H264Dec_PHONE_ReadFileH_Init0(int nTaskId);
 void H264Dec_PHONE_ReadFileH_Go0(int nTaskId);
 void H264Dec_PHONE_ReadFileH_Wrapup0();
-void H264Dec_PHONE_ReadFileH_Init1(int nTaskId);
-void H264Dec_PHONE_ReadFileH_Go1(int nTaskId);
-void H264Dec_PHONE_ReadFileH_Wrapup1();
 
 void H264Dec_VIDEO_InterPredY_Init0(int nTaskId);
 void H264Dec_VIDEO_InterPredY_Go0(int nTaskId);
 void H264Dec_VIDEO_InterPredY_Wrapup0();
-void H264Dec_VIDEO_InterPredY_Init1(int nTaskId);
-void H264Dec_VIDEO_InterPredY_Go1(int nTaskId);
-void H264Dec_VIDEO_InterPredY_Wrapup1();
 
 void MP3Dec_WriteFileM_Init0(int nTaskId);
 void MP3Dec_WriteFileM_Go0(int nTaskId);
 void MP3Dec_WriteFileM_Wrapup0();
-void MP3Dec_WriteFileM_Init1(int nTaskId);
-void MP3Dec_WriteFileM_Go1(int nTaskId);
-void MP3Dec_WriteFileM_Wrapup1();
 
 
 void H264Dec_PHONE_IntraPredV_Init0(int nTaskId);
@@ -168,9 +126,6 @@ void H264Dec_PHONE_IntraPredU_Wrapup0();
 void H264Dec_VIDEO_ReadFileH_Init0(int nTaskId);
 void H264Dec_VIDEO_ReadFileH_Go0(int nTaskId);
 void H264Dec_VIDEO_ReadFileH_Wrapup0();
-void H264Dec_VIDEO_ReadFileH_Init1(int nTaskId);
-void H264Dec_VIDEO_ReadFileH_Go1(int nTaskId);
-void H264Dec_VIDEO_ReadFileH_Wrapup1();
 
 void H264Dec_PHONE_IntraPredY_Init0(int nTaskId);
 void H264Dec_PHONE_IntraPredY_Go0(int nTaskId);
@@ -179,44 +134,26 @@ void H264Dec_PHONE_IntraPredY_Wrapup0();
 void MP3Dec_Stereo_Init0(int nTaskId);
 void MP3Dec_Stereo_Go0(int nTaskId);
 void MP3Dec_Stereo_Wrapup0();
-void MP3Dec_Stereo_Init1(int nTaskId);
-void MP3Dec_Stereo_Go1(int nTaskId);
-void MP3Dec_Stereo_Wrapup1();
 
 void MP3Dec_DeQ_Init0(int nTaskId);
 void MP3Dec_DeQ_Go0(int nTaskId);
 void MP3Dec_DeQ_Wrapup0();
-void MP3Dec_DeQ_Init1(int nTaskId);
-void MP3Dec_DeQ_Go1(int nTaskId);
-void MP3Dec_DeQ_Wrapup1();
 
 void H264Dec_PHONE_WriteFileH_Init0(int nTaskId);
 void H264Dec_PHONE_WriteFileH_Go0(int nTaskId);
 void H264Dec_PHONE_WriteFileH_Wrapup0();
-void H264Dec_PHONE_WriteFileH_Init1(int nTaskId);
-void H264Dec_PHONE_WriteFileH_Go1(int nTaskId);
-void H264Dec_PHONE_WriteFileH_Wrapup1();
 
 void H264Dec_PHONE_InterPredU_Init0(int nTaskId);
 void H264Dec_PHONE_InterPredU_Go0(int nTaskId);
 void H264Dec_PHONE_InterPredU_Wrapup0();
-void H264Dec_PHONE_InterPredU_Init1(int nTaskId);
-void H264Dec_PHONE_InterPredU_Go1(int nTaskId);
-void H264Dec_PHONE_InterPredU_Wrapup1();
 
 void H264Dec_PHONE_InterPredV_Init0(int nTaskId);
 void H264Dec_PHONE_InterPredV_Go0(int nTaskId);
 void H264Dec_PHONE_InterPredV_Wrapup0();
-void H264Dec_PHONE_InterPredV_Init1(int nTaskId);
-void H264Dec_PHONE_InterPredV_Go1(int nTaskId);
-void H264Dec_PHONE_InterPredV_Wrapup1();
 
 void MP3Dec_Reorder_Init0(int nTaskId);
 void MP3Dec_Reorder_Go0(int nTaskId);
 void MP3Dec_Reorder_Wrapup0();
-void MP3Dec_Reorder_Init1(int nTaskId);
-void MP3Dec_Reorder_Go1(int nTaskId);
-void MP3Dec_Reorder_Wrapup1();
 
 void x264Enc_VLC_4_Init0(int nTaskId);
 void x264Enc_VLC_4_Go0(int nTaskId);
@@ -229,9 +166,6 @@ void G723Dec_Wrapup0();
 void MP3Dec_Hybrid_Init0(int nTaskId);
 void MP3Dec_Hybrid_Go0(int nTaskId);
 void MP3Dec_Hybrid_Wrapup0();
-void MP3Dec_Hybrid_Init1(int nTaskId);
-void MP3Dec_Hybrid_Go1(int nTaskId);
-void MP3Dec_Hybrid_Wrapup1();
 
 // ##TASK_CODE_TEMPLATE::END
 
@@ -255,17 +189,17 @@ void MP3Dec_Hybrid_Wrapup1();
 #define CHANNEL_16_SIZE (999999)
 #define CHANNEL_17_SIZE (9999999)
 #define CHANNEL_18_SIZE (9999999)
-#define CHANNEL_19_SIZE (10)
+#define CHANNEL_19_SIZE (13440680)
 #define CHANNEL_20_SIZE (9999999)
-#define CHANNEL_21_SIZE (11324)
-#define CHANNEL_22_SIZE (22416)
-#define CHANNEL_23_SIZE (13440)
-#define CHANNEL_24_SIZE (26880)
-#define CHANNEL_25_SIZE (10564)
-#define CHANNEL_26_SIZE (13440)
-#define CHANNEL_27_SIZE (26880)
-#define CHANNEL_28_SIZE (26880)
-#define CHANNEL_29_SIZE (26880)
+#define CHANNEL_21_SIZE (11324000)
+#define CHANNEL_22_SIZE (44832)
+#define CHANNEL_23_SIZE (26880)
+#define CHANNEL_24_SIZE (53760)
+#define CHANNEL_25_SIZE (21128)
+#define CHANNEL_26_SIZE (26880)
+#define CHANNEL_27_SIZE (53760)
+#define CHANNEL_28_SIZE (53760)
+#define CHANNEL_29_SIZE (4)
 #define CHANNEL_30_SIZE (999999)
 #define CHANNEL_31_SIZE (110000000)
 #define CHANNEL_32_SIZE (25000000)
@@ -283,8 +217,8 @@ void MP3Dec_Hybrid_Wrapup1();
 #define CHANNEL_44_SIZE (999999)
 #define CHANNEL_45_SIZE (999999)
 #define CHANNEL_46_SIZE (999999)
-#define CHANNEL_47_SIZE (4)
-#define CHANNEL_48_SIZE (4)
+#define CHANNEL_47_SIZE (16)
+#define CHANNEL_48_SIZE (16)
 // ##CHANNEL_SIZE_DEFINITION_TEMPLATE::END
 
 // ##CHANNEL_BUFFER_DEFINITION_TEMPLATE::START
@@ -3298,7 +3232,9 @@ SVariableIntMap g_astVariableIntMap_x264Enc[] = {
 SModeTransitionMachine g_stModeTransition_x264Enc = {
 	11,
 	g_astModeMap_x264Enc, // mode list
+	1, // number of modes
 	g_astVariableIntMap_x264Enc, // Integer variable list
+	0, // number of integer variables
 	NULL, // mode transition function
 	0, // Current mode index
 	0, // Next mode index
@@ -3330,7 +3266,9 @@ SVariableIntMap g_astVariableIntMap_MP3Dec[] = {
 SModeTransitionMachine g_stModeTransition_MP3Dec = {
 	17,
 	g_astModeMap_MP3Dec, // mode list
+	1, // number of modes
 	g_astVariableIntMap_MP3Dec, // Integer variable list
+	0, // number of integer variables
 	NULL, // mode transition function
 	0, // Current mode index
 	0, // Next mode index
@@ -3412,7 +3350,9 @@ static uem_bool transitMode_H264Dec_VIDEO(SModeTransitionMachine *pstModeTransit
 SModeTransitionMachine g_stModeTransition_H264Dec_VIDEO = {
 	0,
 	g_astModeMap_H264Dec_VIDEO, // mode list
+	2, // number of modes
 	g_astVariableIntMap_H264Dec_VIDEO, // Integer variable list
+	1, // number of integer variables
 	transitMode_H264Dec_VIDEO, // mode transition function
 	0, // Current mode index
 	0, // Next mode index
@@ -3494,7 +3434,9 @@ static uem_bool transitMode_H264Dec_PHONE(SModeTransitionMachine *pstModeTransit
 SModeTransitionMachine g_stModeTransition_H264Dec_PHONE = {
 	29,
 	g_astModeMap_H264Dec_PHONE, // mode list
+	2, // number of modes
 	g_astVariableIntMap_H264Dec_PHONE, // Integer variable list
+	1, // number of integer variables
 	transitMode_H264Dec_PHONE, // mode transition function
 	0, // Current mode index
 	0, // Next mode index
@@ -3670,11 +3612,6 @@ STaskFunctions g_ast_H264Dec_VIDEO_Decode_functions[] = {
 		H264Dec_VIDEO_Decode_Go0, // Task go function
 		H264Dec_VIDEO_Decode_Wrapup0, // Task wrapup function
 	},
-	{
-		H264Dec_VIDEO_Decode_Init1, // Task init function
-		H264Dec_VIDEO_Decode_Go1, // Task go function
-		H264Dec_VIDEO_Decode_Wrapup1, // Task wrapup function
-	},
 };
 
 STaskFunctions g_ast_G723Enc_functions[] = {
@@ -3699,11 +3636,6 @@ STaskFunctions g_ast_H264Dec_PHONE_Decode_functions[] = {
 		H264Dec_PHONE_Decode_Go0, // Task go function
 		H264Dec_PHONE_Decode_Wrapup0, // Task wrapup function
 	},
-	{
-		H264Dec_PHONE_Decode_Init1, // Task init function
-		H264Dec_PHONE_Decode_Go1, // Task go function
-		H264Dec_PHONE_Decode_Wrapup1, // Task wrapup function
-	},
 };
 
 STaskFunctions g_ast_x264Enc_functions[] = {
@@ -3714,11 +3646,6 @@ STaskFunctions g_ast_MP3Dec_VLDStream_functions[] = {
 		MP3Dec_VLDStream_Init0, // Task init function
 		MP3Dec_VLDStream_Go0, // Task go function
 		MP3Dec_VLDStream_Wrapup0, // Task wrapup function
-	},
-	{
-		MP3Dec_VLDStream_Init1, // Task init function
-		MP3Dec_VLDStream_Go1, // Task go function
-		MP3Dec_VLDStream_Wrapup1, // Task wrapup function
 	},
 };
 
@@ -3763,11 +3690,6 @@ STaskFunctions g_ast_H264Dec_VIDEO_WriteFileH_functions[] = {
 		H264Dec_VIDEO_WriteFileH_Go0, // Task go function
 		H264Dec_VIDEO_WriteFileH_Wrapup0, // Task wrapup function
 	},
-	{
-		H264Dec_VIDEO_WriteFileH_Init1, // Task init function
-		H264Dec_VIDEO_WriteFileH_Go1, // Task go function
-		H264Dec_VIDEO_WriteFileH_Wrapup1, // Task wrapup function
-	},
 };
 
 STaskFunctions g_ast_MP3Dec_Antialias_functions[] = {
@@ -3775,11 +3697,6 @@ STaskFunctions g_ast_MP3Dec_Antialias_functions[] = {
 		MP3Dec_Antialias_Init0, // Task init function
 		MP3Dec_Antialias_Go0, // Task go function
 		MP3Dec_Antialias_Wrapup0, // Task wrapup function
-	},
-	{
-		MP3Dec_Antialias_Init1, // Task init function
-		MP3Dec_Antialias_Go1, // Task go function
-		MP3Dec_Antialias_Wrapup1, // Task wrapup function
 	},
 };
 
@@ -3789,11 +3706,6 @@ STaskFunctions g_ast_MP3Dec_Subband_functions[] = {
 		MP3Dec_Subband_Go0, // Task go function
 		MP3Dec_Subband_Wrapup0, // Task wrapup function
 	},
-	{
-		MP3Dec_Subband_Init1, // Task init function
-		MP3Dec_Subband_Go1, // Task go function
-		MP3Dec_Subband_Wrapup1, // Task wrapup function
-	},
 };
 
 STaskFunctions g_ast_H264Dec_PHONE_InterPredY_functions[] = {
@@ -3802,11 +3714,6 @@ STaskFunctions g_ast_H264Dec_PHONE_InterPredY_functions[] = {
 		H264Dec_PHONE_InterPredY_Go0, // Task go function
 		H264Dec_PHONE_InterPredY_Wrapup0, // Task wrapup function
 	},
-	{
-		H264Dec_PHONE_InterPredY_Init1, // Task init function
-		H264Dec_PHONE_InterPredY_Go1, // Task go function
-		H264Dec_PHONE_InterPredY_Wrapup1, // Task wrapup function
-	},
 };
 
 STaskFunctions g_ast_H264Dec_VIDEO_Deblock_functions[] = {
@@ -3814,11 +3721,6 @@ STaskFunctions g_ast_H264Dec_VIDEO_Deblock_functions[] = {
 		H264Dec_VIDEO_Deblock_Init0, // Task init function
 		H264Dec_VIDEO_Deblock_Go0, // Task go function
 		H264Dec_VIDEO_Deblock_Wrapup0, // Task wrapup function
-	},
-	{
-		H264Dec_VIDEO_Deblock_Init1, // Task init function
-		H264Dec_VIDEO_Deblock_Go1, // Task go function
-		H264Dec_VIDEO_Deblock_Wrapup1, // Task wrapup function
 	},
 };
 
@@ -3844,11 +3746,6 @@ STaskFunctions g_ast_H264Dec_VIDEO_InterPredU_functions[] = {
 		H264Dec_VIDEO_InterPredU_Go0, // Task go function
 		H264Dec_VIDEO_InterPredU_Wrapup0, // Task wrapup function
 	},
-	{
-		H264Dec_VIDEO_InterPredU_Init1, // Task init function
-		H264Dec_VIDEO_InterPredU_Go1, // Task go function
-		H264Dec_VIDEO_InterPredU_Wrapup1, // Task wrapup function
-	},
 };
 
 STaskFunctions g_ast_UserInput_functions[] = {
@@ -3868,11 +3765,6 @@ STaskFunctions g_ast_H264Dec_PHONE_Deblock_functions[] = {
 		H264Dec_PHONE_Deblock_Go0, // Task go function
 		H264Dec_PHONE_Deblock_Wrapup0, // Task wrapup function
 	},
-	{
-		H264Dec_PHONE_Deblock_Init1, // Task init function
-		H264Dec_PHONE_Deblock_Go1, // Task go function
-		H264Dec_PHONE_Deblock_Wrapup1, // Task wrapup function
-	},
 };
 
 STaskFunctions g_ast_H264Dec_VIDEO_InterPredV_functions[] = {
@@ -3880,11 +3772,6 @@ STaskFunctions g_ast_H264Dec_VIDEO_InterPredV_functions[] = {
 		H264Dec_VIDEO_InterPredV_Init0, // Task init function
 		H264Dec_VIDEO_InterPredV_Go0, // Task go function
 		H264Dec_VIDEO_InterPredV_Wrapup0, // Task wrapup function
-	},
-	{
-		H264Dec_VIDEO_InterPredV_Init1, // Task init function
-		H264Dec_VIDEO_InterPredV_Go1, // Task go function
-		H264Dec_VIDEO_InterPredV_Wrapup1, // Task wrapup function
 	},
 };
 
@@ -3894,11 +3781,6 @@ STaskFunctions g_ast_H264Dec_PHONE_ReadFileH_functions[] = {
 		H264Dec_PHONE_ReadFileH_Go0, // Task go function
 		H264Dec_PHONE_ReadFileH_Wrapup0, // Task wrapup function
 	},
-	{
-		H264Dec_PHONE_ReadFileH_Init1, // Task init function
-		H264Dec_PHONE_ReadFileH_Go1, // Task go function
-		H264Dec_PHONE_ReadFileH_Wrapup1, // Task wrapup function
-	},
 };
 
 STaskFunctions g_ast_H264Dec_VIDEO_InterPredY_functions[] = {
@@ -3907,11 +3789,6 @@ STaskFunctions g_ast_H264Dec_VIDEO_InterPredY_functions[] = {
 		H264Dec_VIDEO_InterPredY_Go0, // Task go function
 		H264Dec_VIDEO_InterPredY_Wrapup0, // Task wrapup function
 	},
-	{
-		H264Dec_VIDEO_InterPredY_Init1, // Task init function
-		H264Dec_VIDEO_InterPredY_Go1, // Task go function
-		H264Dec_VIDEO_InterPredY_Wrapup1, // Task wrapup function
-	},
 };
 
 STaskFunctions g_ast_MP3Dec_WriteFileM_functions[] = {
@@ -3919,11 +3796,6 @@ STaskFunctions g_ast_MP3Dec_WriteFileM_functions[] = {
 		MP3Dec_WriteFileM_Init0, // Task init function
 		MP3Dec_WriteFileM_Go0, // Task go function
 		MP3Dec_WriteFileM_Wrapup0, // Task wrapup function
-	},
-	{
-		MP3Dec_WriteFileM_Init1, // Task init function
-		MP3Dec_WriteFileM_Go1, // Task go function
-		MP3Dec_WriteFileM_Wrapup1, // Task wrapup function
 	},
 };
 
@@ -3960,11 +3832,6 @@ STaskFunctions g_ast_H264Dec_VIDEO_ReadFileH_functions[] = {
 		H264Dec_VIDEO_ReadFileH_Go0, // Task go function
 		H264Dec_VIDEO_ReadFileH_Wrapup0, // Task wrapup function
 	},
-	{
-		H264Dec_VIDEO_ReadFileH_Init1, // Task init function
-		H264Dec_VIDEO_ReadFileH_Go1, // Task go function
-		H264Dec_VIDEO_ReadFileH_Wrapup1, // Task wrapup function
-	},
 };
 
 STaskFunctions g_ast_H264Dec_PHONE_IntraPredY_functions[] = {
@@ -3981,11 +3848,6 @@ STaskFunctions g_ast_MP3Dec_Stereo_functions[] = {
 		MP3Dec_Stereo_Go0, // Task go function
 		MP3Dec_Stereo_Wrapup0, // Task wrapup function
 	},
-	{
-		MP3Dec_Stereo_Init1, // Task init function
-		MP3Dec_Stereo_Go1, // Task go function
-		MP3Dec_Stereo_Wrapup1, // Task wrapup function
-	},
 };
 
 STaskFunctions g_ast_MP3Dec_DeQ_functions[] = {
@@ -3993,11 +3855,6 @@ STaskFunctions g_ast_MP3Dec_DeQ_functions[] = {
 		MP3Dec_DeQ_Init0, // Task init function
 		MP3Dec_DeQ_Go0, // Task go function
 		MP3Dec_DeQ_Wrapup0, // Task wrapup function
-	},
-	{
-		MP3Dec_DeQ_Init1, // Task init function
-		MP3Dec_DeQ_Go1, // Task go function
-		MP3Dec_DeQ_Wrapup1, // Task wrapup function
 	},
 };
 
@@ -4007,11 +3864,6 @@ STaskFunctions g_ast_H264Dec_PHONE_WriteFileH_functions[] = {
 		H264Dec_PHONE_WriteFileH_Go0, // Task go function
 		H264Dec_PHONE_WriteFileH_Wrapup0, // Task wrapup function
 	},
-	{
-		H264Dec_PHONE_WriteFileH_Init1, // Task init function
-		H264Dec_PHONE_WriteFileH_Go1, // Task go function
-		H264Dec_PHONE_WriteFileH_Wrapup1, // Task wrapup function
-	},
 };
 
 STaskFunctions g_ast_H264Dec_PHONE_InterPredU_functions[] = {
@@ -4019,11 +3871,6 @@ STaskFunctions g_ast_H264Dec_PHONE_InterPredU_functions[] = {
 		H264Dec_PHONE_InterPredU_Init0, // Task init function
 		H264Dec_PHONE_InterPredU_Go0, // Task go function
 		H264Dec_PHONE_InterPredU_Wrapup0, // Task wrapup function
-	},
-	{
-		H264Dec_PHONE_InterPredU_Init1, // Task init function
-		H264Dec_PHONE_InterPredU_Go1, // Task go function
-		H264Dec_PHONE_InterPredU_Wrapup1, // Task wrapup function
 	},
 };
 
@@ -4033,11 +3880,6 @@ STaskFunctions g_ast_H264Dec_PHONE_InterPredV_functions[] = {
 		H264Dec_PHONE_InterPredV_Go0, // Task go function
 		H264Dec_PHONE_InterPredV_Wrapup0, // Task wrapup function
 	},
-	{
-		H264Dec_PHONE_InterPredV_Init1, // Task init function
-		H264Dec_PHONE_InterPredV_Go1, // Task go function
-		H264Dec_PHONE_InterPredV_Wrapup1, // Task wrapup function
-	},
 };
 
 STaskFunctions g_ast_MP3Dec_Reorder_functions[] = {
@@ -4045,11 +3887,6 @@ STaskFunctions g_ast_MP3Dec_Reorder_functions[] = {
 		MP3Dec_Reorder_Init0, // Task init function
 		MP3Dec_Reorder_Go0, // Task go function
 		MP3Dec_Reorder_Wrapup0, // Task wrapup function
-	},
-	{
-		MP3Dec_Reorder_Init1, // Task init function
-		MP3Dec_Reorder_Go1, // Task go function
-		MP3Dec_Reorder_Wrapup1, // Task wrapup function
 	},
 };
 
@@ -4074,11 +3911,6 @@ STaskFunctions g_ast_MP3Dec_Hybrid_functions[] = {
 		MP3Dec_Hybrid_Init0, // Task init function
 		MP3Dec_Hybrid_Go0, // Task go function
 		MP3Dec_Hybrid_Wrapup0, // Task wrapup function
-	},
-	{
-		MP3Dec_Hybrid_Init1, // Task init function
-		MP3Dec_Hybrid_Go1, // Task go function
-		MP3Dec_Hybrid_Wrapup1, // Task wrapup function
 	},
 };
 
@@ -6754,6 +6586,7 @@ STask g_astTasks_top[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -6772,6 +6605,7 @@ STask g_astTasks_top[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -6790,6 +6624,7 @@ STask g_astTasks_top[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -6808,6 +6643,7 @@ STask g_astTasks_top[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -6826,6 +6662,7 @@ STask g_astTasks_top[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		FALSE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -6844,6 +6681,7 @@ STask g_astTasks_top[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		FALSE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -6862,6 +6700,7 @@ STask g_astTasks_top[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		FALSE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -6880,6 +6719,7 @@ STask g_astTasks_top[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		FALSE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -6898,6 +6738,7 @@ STask g_astTasks_top[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		FALSE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -6908,7 +6749,7 @@ STask g_astTasks_MP3Dec[] = {
 		"MP3Dec_Antialias", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_MP3Dec_Antialias_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -6919,6 +6760,7 @@ STask g_astTasks_MP3Dec[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -6926,7 +6768,7 @@ STask g_astTasks_MP3Dec[] = {
 		"MP3Dec_Subband", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_MP3Dec_Subband_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -6937,6 +6779,7 @@ STask g_astTasks_MP3Dec[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -6944,7 +6787,7 @@ STask g_astTasks_MP3Dec[] = {
 		"MP3Dec_WriteFileM", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_MP3Dec_WriteFileM_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -6955,6 +6798,7 @@ STask g_astTasks_MP3Dec[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -6962,7 +6806,7 @@ STask g_astTasks_MP3Dec[] = {
 		"MP3Dec_Stereo", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_MP3Dec_Stereo_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -6973,6 +6817,7 @@ STask g_astTasks_MP3Dec[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -6980,7 +6825,7 @@ STask g_astTasks_MP3Dec[] = {
 		"MP3Dec_Hybrid", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_MP3Dec_Hybrid_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -6991,6 +6836,7 @@ STask g_astTasks_MP3Dec[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -6998,7 +6844,7 @@ STask g_astTasks_MP3Dec[] = {
 		"MP3Dec_VLDStream", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_MP3Dec_VLDStream_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_TIME_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -7009,6 +6855,7 @@ STask g_astTasks_MP3Dec[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7016,7 +6863,7 @@ STask g_astTasks_MP3Dec[] = {
 		"MP3Dec_DeQ", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_MP3Dec_DeQ_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -7027,6 +6874,7 @@ STask g_astTasks_MP3Dec[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7034,7 +6882,7 @@ STask g_astTasks_MP3Dec[] = {
 		"MP3Dec_Reorder", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_MP3Dec_Reorder_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -7045,6 +6893,7 @@ STask g_astTasks_MP3Dec[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7066,6 +6915,7 @@ STask g_astTasks_H264Dec_VIDEO[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7084,6 +6934,7 @@ STask g_astTasks_H264Dec_VIDEO[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7102,6 +6953,7 @@ STask g_astTasks_H264Dec_VIDEO[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7109,7 +6961,7 @@ STask g_astTasks_H264Dec_VIDEO[] = {
 		"H264Dec_VIDEO_Deblock", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_H264Dec_VIDEO_Deblock_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -7120,6 +6972,7 @@ STask g_astTasks_H264Dec_VIDEO[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7127,7 +6980,7 @@ STask g_astTasks_H264Dec_VIDEO[] = {
 		"H264Dec_VIDEO_WriteFileH", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_H264Dec_VIDEO_WriteFileH_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -7138,6 +6991,7 @@ STask g_astTasks_H264Dec_VIDEO[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7145,7 +6999,7 @@ STask g_astTasks_H264Dec_VIDEO[] = {
 		"H264Dec_VIDEO_ReadFileH", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_H264Dec_VIDEO_ReadFileH_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_TIME_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -7156,6 +7010,7 @@ STask g_astTasks_H264Dec_VIDEO[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7163,7 +7018,7 @@ STask g_astTasks_H264Dec_VIDEO[] = {
 		"H264Dec_VIDEO_Decode", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_H264Dec_VIDEO_Decode_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -7174,6 +7029,7 @@ STask g_astTasks_H264Dec_VIDEO[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7181,7 +7037,7 @@ STask g_astTasks_H264Dec_VIDEO[] = {
 		"H264Dec_VIDEO_InterPredY", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_H264Dec_VIDEO_InterPredY_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -7192,6 +7048,7 @@ STask g_astTasks_H264Dec_VIDEO[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7199,7 +7056,7 @@ STask g_astTasks_H264Dec_VIDEO[] = {
 		"H264Dec_VIDEO_InterPredU", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_H264Dec_VIDEO_InterPredU_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -7210,6 +7067,7 @@ STask g_astTasks_H264Dec_VIDEO[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7217,7 +7075,7 @@ STask g_astTasks_H264Dec_VIDEO[] = {
 		"H264Dec_VIDEO_InterPredV", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_H264Dec_VIDEO_InterPredV_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -7228,6 +7086,7 @@ STask g_astTasks_H264Dec_VIDEO[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7249,6 +7108,7 @@ STask g_astTasks_x264Enc[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7267,6 +7127,7 @@ STask g_astTasks_x264Enc[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7285,6 +7146,7 @@ STask g_astTasks_x264Enc[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7303,6 +7165,7 @@ STask g_astTasks_x264Enc[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7321,6 +7184,7 @@ STask g_astTasks_x264Enc[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7342,6 +7206,7 @@ STask g_astTasks_H264Dec_PHONE[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7360,6 +7225,7 @@ STask g_astTasks_H264Dec_PHONE[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7378,6 +7244,7 @@ STask g_astTasks_H264Dec_PHONE[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7385,7 +7252,7 @@ STask g_astTasks_H264Dec_PHONE[] = {
 		"H264Dec_PHONE_Deblock", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_H264Dec_PHONE_Deblock_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -7396,6 +7263,7 @@ STask g_astTasks_H264Dec_PHONE[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7403,7 +7271,7 @@ STask g_astTasks_H264Dec_PHONE[] = {
 		"H264Dec_PHONE_WriteFileH", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_H264Dec_PHONE_WriteFileH_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -7414,6 +7282,7 @@ STask g_astTasks_H264Dec_PHONE[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7421,7 +7290,7 @@ STask g_astTasks_H264Dec_PHONE[] = {
 		"H264Dec_PHONE_ReadFileH", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_H264Dec_PHONE_ReadFileH_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_TIME_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -7432,6 +7301,7 @@ STask g_astTasks_H264Dec_PHONE[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7439,7 +7309,7 @@ STask g_astTasks_H264Dec_PHONE[] = {
 		"H264Dec_PHONE_Decode", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_H264Dec_PHONE_Decode_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -7450,6 +7320,7 @@ STask g_astTasks_H264Dec_PHONE[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7457,7 +7328,7 @@ STask g_astTasks_H264Dec_PHONE[] = {
 		"H264Dec_PHONE_InterPredY", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_H264Dec_PHONE_InterPredY_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -7468,6 +7339,7 @@ STask g_astTasks_H264Dec_PHONE[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7475,7 +7347,7 @@ STask g_astTasks_H264Dec_PHONE[] = {
 		"H264Dec_PHONE_InterPredU", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_H264Dec_PHONE_InterPredU_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -7486,6 +7358,7 @@ STask g_astTasks_H264Dec_PHONE[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7493,7 +7366,7 @@ STask g_astTasks_H264Dec_PHONE[] = {
 		"H264Dec_PHONE_InterPredV", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_H264Dec_PHONE_InterPredV_functions, // Task function array
-		2, // Task function array number
+		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
@@ -7504,6 +7377,7 @@ STask g_astTasks_H264Dec_PHONE[] = {
 		NULL, // Loop information
 		NULL, // Task parameter information
 		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -7516,30 +7390,35 @@ STask g_astTasks_H264Dec_PHONE[] = {
 STaskGraph g_stGraph_top = {
 		GRAPH_TYPE_PROCESS_NETWORK, // TODO: Task graph type (not used now)
 		g_astTasks_top, // current task graph's task list
+		9, // number of tasks
 		NULL, // parent task
 };
 
 STaskGraph g_stGraph_MP3Dec = {
 		GRAPH_TYPE_PROCESS_NETWORK, // TODO: Task graph type (not used now)
 		g_astTasks_MP3Dec, // current task graph's task list
+		8, // number of tasks
 		&g_astTasks_top[2], // parent task
 };
 
 STaskGraph g_stGraph_H264Dec_VIDEO = {
 		GRAPH_TYPE_PROCESS_NETWORK, // TODO: Task graph type (not used now)
 		g_astTasks_H264Dec_VIDEO, // current task graph's task list
+		10, // number of tasks
 		&g_astTasks_top[1], // parent task
 };
 
 STaskGraph g_stGraph_x264Enc = {
 		GRAPH_TYPE_PROCESS_NETWORK, // TODO: Task graph type (not used now)
 		g_astTasks_x264Enc, // current task graph's task list
+		5, // number of tasks
 		&g_astTasks_top[3], // parent task
 };
 
 STaskGraph g_stGraph_H264Dec_PHONE = {
 		GRAPH_TYPE_PROCESS_NETWORK, // TODO: Task graph type (not used now)
 		g_astTasks_H264Dec_PHONE, // current task graph's task list
+		10, // number of tasks
 		&g_astTasks_top[0], // parent task
 };
 
@@ -7741,192 +7620,226 @@ SProcessor g_astProcessorInfo[] = {
 void MP3Dec_0_0_0_200000_Go(int nTaskId) 
 {
 	MP3Dec_Antialias_Go0(22);
+
 	MP3Dec_Antialias_Go0(22);
+
 	MP3Dec_Subband_Go0(24);
+
 	MP3Dec_WriteFileM_Go0(25);
+
 }
 
 void MP3Dec_0_0_0_300000_Go(int nTaskId) 
 {
 	MP3Dec_VLDStream_Go0(18);
+	{
+		EInternalTaskState enState = INTERNAL_STATE_STOP;
+		UKTask_GetTaskState("MP3Dec", &enState);
+		if(enState == INTERNAL_STATE_STOP || enState == INTERNAL_STATE_END) return; 
+	}
+
 	MP3Dec_DeQ_Go0(19);
+
 	MP3Dec_DeQ_Go0(19);
+
 }
 
 void MP3Dec_0_0_2_200000_Go(int nTaskId) 
 {
 	MP3Dec_Stereo_Go0(20);
+
 	MP3Dec_Hybrid_Go0(23);
+
 	MP3Dec_Hybrid_Go0(23);
+
 }
 
 void MP3Dec_0_0_3_200000_Go(int nTaskId) 
 {
 	MP3Dec_VLDStream_Go0(18);
-	MP3Dec_DeQ_Go1(19);
-	MP3Dec_DeQ_Go1(19);
+	{
+		EInternalTaskState enState = INTERNAL_STATE_STOP;
+		UKTask_GetTaskState("MP3Dec", &enState);
+		if(enState == INTERNAL_STATE_STOP || enState == INTERNAL_STATE_END) return; 
+	}
+
+	MP3Dec_DeQ_Go0(19);
+
+	MP3Dec_DeQ_Go0(19);
+
 	MP3Dec_Reorder_Go0(21);
+
 	MP3Dec_Reorder_Go0(21);
+
 }
 
 void MP3Dec_0_0_3_300000_Go(int nTaskId) 
 {
-	MP3Dec_Hybrid_Go1(23);
-	MP3Dec_Hybrid_Go1(23);
+	MP3Dec_Hybrid_Go0(23);
+
+	MP3Dec_Hybrid_Go0(23);
+
 	MP3Dec_Subband_Go0(24);
+
 	MP3Dec_WriteFileM_Go0(25);
+
 }
 
 void MP3Dec_0_0_1_300000_Go(int nTaskId) 
 {
-	MP3Dec_Reorder_Go1(21);
-	MP3Dec_Reorder_Go1(21);
+	MP3Dec_Reorder_Go0(21);
+
+	MP3Dec_Reorder_Go0(21);
+
 	MP3Dec_Stereo_Go0(20);
-	MP3Dec_Antialias_Go1(22);
-	MP3Dec_Antialias_Go1(22);
+
+	MP3Dec_Antialias_Go0(22);
+
+	MP3Dec_Antialias_Go0(22);
+
 }
 
 void H264Dec_VIDEO_0_0_1_3000_Go(int nTaskId) 
 {
 	H264Dec_VIDEO_IntraPredY_Go0(8);
+
 	H264Dec_VIDEO_IntraPredU_Go0(9);
+
 	H264Dec_VIDEO_IntraPredV_Go0(10);
+
 	H264Dec_VIDEO_Deblock_Go0(6);
+
 	H264Dec_VIDEO_WriteFileH_Go0(7);
+
 }
 
 void H264Dec_VIDEO_0_0_3_3000_Go(int nTaskId) 
 {
 	H264Dec_VIDEO_ReadFileH_Go0(1);
 	{
-		uem_bool bTransition = FALSE;
-		uem_result result;
-		STask *pstTask = NULL;
-		result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
-		if(result == ERR_UEM_NOERROR)
-		{
-			result = UCThreadMutex_Lock(pstTask->hMutex);
-			if(result == ERR_UEM_NOERROR){
-				bTransition = transitMode_H264Dec_VIDEO(g_astTasks_top[1].pstMTMInfo);
-				UCThreadMutex_Unlock(pstTask->hMutex);
-			}
-			
-			if(bTransition == TRUE) return; // exit when the transition is changed.
-		}
+		EInternalTaskState enState = INTERNAL_STATE_STOP;
+		UKTask_GetTaskState("H264Dec_VIDEO", &enState);
+		if(enState == INTERNAL_STATE_STOP || enState == INTERNAL_STATE_END) return; 
 	}
+
 	H264Dec_VIDEO_Decode_Go0(2);
+
 	H264Dec_VIDEO_InterPredY_Go0(3);
+
 	H264Dec_VIDEO_InterPredU_Go0(4);
+
 	H264Dec_VIDEO_InterPredV_Go0(5);
+
 }
 
 void H264Dec_VIDEO_1_0_1_3000_Go(int nTaskId) 
 {
 	H264Dec_VIDEO_InterPredU_Go0(4);
+
 	H264Dec_VIDEO_InterPredV_Go0(5);
+
 	H264Dec_VIDEO_Deblock_Go0(6);
+
 	H264Dec_VIDEO_WriteFileH_Go0(7);
+
 }
 
 void H264Dec_VIDEO_1_0_3_3000_Go(int nTaskId) 
 {
 	H264Dec_VIDEO_ReadFileH_Go0(1);
 	{
-		uem_bool bTransition = FALSE;
-		uem_result result;
-		STask *pstTask = NULL;
-		result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
-		if(result == ERR_UEM_NOERROR)
-		{
-			result = UCThreadMutex_Lock(pstTask->hMutex);
-			if(result == ERR_UEM_NOERROR){
-				bTransition = transitMode_H264Dec_VIDEO(g_astTasks_top[1].pstMTMInfo);
-				UCThreadMutex_Unlock(pstTask->hMutex);
-			}
-			
-			if(bTransition == TRUE) return; // exit when the transition is changed.
-		}
+		EInternalTaskState enState = INTERNAL_STATE_STOP;
+		UKTask_GetTaskState("H264Dec_VIDEO", &enState);
+		if(enState == INTERNAL_STATE_STOP || enState == INTERNAL_STATE_END) return; 
 	}
+
 	H264Dec_VIDEO_Decode_Go0(2);
+
 	H264Dec_VIDEO_InterPredY_Go0(3);
+
 }
 
 void x264Enc_0_0_1_110000_Go(int nTaskId) 
 {
 	x264Enc_Init_3_Go0(15);
+	{
+		EInternalTaskState enState = INTERNAL_STATE_STOP;
+		UKTask_GetTaskState("x264Enc", &enState);
+		if(enState == INTERNAL_STATE_STOP || enState == INTERNAL_STATE_END) return; 
+	}
+
 	x264Enc_ME_0_Go0(12);
+
 	x264Enc_Encoder_1_Go0(13);
+
 	x264Enc_VLC_4_Go0(16);
+
 }
 
 void x264Enc_0_0_3_110000_Go(int nTaskId) 
 {
 	x264Enc_Deblock_2_Go0(14);
+
 }
 
 void H264Dec_PHONE_0_0_2_2500_Go(int nTaskId) 
 {
 	H264Dec_PHONE_IntraPredY_Go0(37);
+
 	H264Dec_PHONE_IntraPredU_Go0(38);
+
 	H264Dec_PHONE_IntraPredV_Go0(39);
+
 	H264Dec_PHONE_Deblock_Go0(35);
+
 	H264Dec_PHONE_WriteFileH_Go0(36);
+
 }
 
 void H264Dec_PHONE_0_0_3_2500_Go(int nTaskId) 
 {
 	H264Dec_PHONE_ReadFileH_Go0(30);
 	{
-		uem_bool bTransition = FALSE;
-		uem_result result;
-		STask *pstTask = NULL;
-		result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
-		if(result == ERR_UEM_NOERROR)
-		{
-			result = UCThreadMutex_Lock(pstTask->hMutex);
-			if(result == ERR_UEM_NOERROR){
-				bTransition = transitMode_H264Dec_PHONE(g_astTasks_top[0].pstMTMInfo);
-				UCThreadMutex_Unlock(pstTask->hMutex);
-			}
-			
-			if(bTransition == TRUE) return; // exit when the transition is changed.
-		}
+		EInternalTaskState enState = INTERNAL_STATE_STOP;
+		UKTask_GetTaskState("H264Dec_PHONE", &enState);
+		if(enState == INTERNAL_STATE_STOP || enState == INTERNAL_STATE_END) return; 
 	}
+
 	H264Dec_PHONE_Decode_Go0(31);
+
 	H264Dec_PHONE_InterPredY_Go0(32);
+
 	H264Dec_PHONE_InterPredU_Go0(33);
+
 	H264Dec_PHONE_InterPredV_Go0(34);
+
 }
 
 void H264Dec_PHONE_1_0_1_2500_Go(int nTaskId) 
 {
 	H264Dec_PHONE_ReadFileH_Go0(30);
 	{
-		uem_bool bTransition = FALSE;
-		uem_result result;
-		STask *pstTask = NULL;
-		result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
-		if(result == ERR_UEM_NOERROR)
-		{
-			result = UCThreadMutex_Lock(pstTask->hMutex);
-			if(result == ERR_UEM_NOERROR){
-				bTransition = transitMode_H264Dec_PHONE(g_astTasks_top[0].pstMTMInfo);
-				UCThreadMutex_Unlock(pstTask->hMutex);
-			}
-			
-			if(bTransition == TRUE) return; // exit when the transition is changed.
-		}
+		EInternalTaskState enState = INTERNAL_STATE_STOP;
+		UKTask_GetTaskState("H264Dec_PHONE", &enState);
+		if(enState == INTERNAL_STATE_STOP || enState == INTERNAL_STATE_END) return; 
 	}
+
 	H264Dec_PHONE_Decode_Go0(31);
+
 	H264Dec_PHONE_InterPredY_Go0(32);
+
 	H264Dec_PHONE_InterPredU_Go0(33);
+
 	H264Dec_PHONE_InterPredV_Go0(34);
+
 }
 
 void H264Dec_PHONE_1_0_2_2500_Go(int nTaskId) 
 {
 	H264Dec_PHONE_Deblock_Go0(35);
+
 	H264Dec_PHONE_WriteFileH_Go0(36);
+
 }
 
 // ##SCHEDULED_COMPOSITE_TASK_FUNCTION_IMPLEMENTATION::END

@@ -203,7 +203,9 @@ static uem_bool transitMode_${task.name}(SModeTransitionMachine *pstModeTransiti
 SModeTransitionMachine g_stModeTransition_${task.name} = {
 	${task.id},
 	g_astModeMap_${task.name}, // mode list
+	${task.modeTransition.modeMap?size}, // number of modes
 	g_astVariableIntMap_${task.name}, // Integer variable list
+	${task.modeTransition.variableMap?size}, // number of integer variables
 	<#if (task.modeTransition.modeMap?size > 1)>transitMode_${task.name}<#else>NULL</#if>, // mode transition function
 	0, // Current mode index
 	0, // Next mode index
@@ -351,11 +353,12 @@ STask g_astTasks_${task_graph.name}[] = {
 // ##TASK_LIST_TEMPLATE::END
 
 // ##TASK_GRAPH_TEMPLATE::START
-<#list task_graph as graph_name, task_graph>
-STaskGraph g_stGraph_${task_graph.name} = {
+<#list task_graph as graph_name, task_graph_element>
+STaskGraph g_stGraph_${task_graph_element.name} = {
 		GRAPH_TYPE_PROCESS_NETWORK, // TODO: Task graph type (not used now)
-		g_astTasks_${task_graph.name}, // current task graph's task list
-		<#if task_graph.parentTask??>&g_astTasks_${task_graph.parentTask.parentTaskGraphName}[${task_graph.parentTask.inGraphIndex}]<#else>NULL</#if>, // parent task
+		g_astTasks_${task_graph_element.name}, // current task graph's task list
+		${task_graph_element.taskList?size}, // number of tasks
+		<#if task_graph_element.parentTask??>&g_astTasks_${task_graph_element.parentTask.parentTaskGraphName}[${task_graph_element.parentTask.inGraphIndex}]<#else>NULL</#if>, // parent task
 };
 
 </#list>
@@ -417,6 +420,7 @@ ${space}{
 		</#if>
 ${innerspace}${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}(${flat_task[scheduleItem.taskName].id});
 			<#if compositeMappedProcessor.srcTaskMap[scheduleItem.taskName]??>
+				<#if (flat_task[scheduleItem.taskName].modeTransition.modeMap?size > 1)??>
 ${innerspace}{
 ${innerspace}	uem_bool bTransition = FALSE;
 ${innerspace}	uem_result result;
@@ -433,7 +437,14 @@ ${innerspace}
 ${innerspace}		if(bTransition == TRUE) return; // exit when the transition is changed.
 ${innerspace}	}
 ${innerspace}}
+				</#if>
+${innerspace}{
+${innerspace}	EInternalTaskState enState = INTERNAL_STATE_STOP;
+${innerspace}	UKTask_GetTaskState("${parentTaskName}", &enState);
+${innerspace}	if(enState == INTERNAL_STATE_STOP || enState == INTERNAL_STATE_END) return; 
+${innerspace}}
 			</#if>
+
 		<#if (scheduleItem.repetition > 1) >		
 ${space}}
 

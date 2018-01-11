@@ -5,6 +5,9 @@
 #include <UFTask.h>
 #include <UFTask_deprecated.h>
 
+#include <UFControl.h>
+#include <UFControl_deprecated.h>
+
 <#if task_info.linkedLibraryNameList??>
 	<#list task_info.linkedLibraryNameList as libraryHeader>
 #include "${libraryHeader}"

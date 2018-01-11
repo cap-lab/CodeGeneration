@@ -37,6 +37,7 @@ typedef struct _SChannelAPI {
 	FnChannelGetNumOfAvailableData fnGetNumOfAvailableData;
 	FnChannelClear fnClear;
 	FnChannelSetExit fnSetExit;
+	FnChannelSetExit fnClearExit;
 	FnChannelFinalize fnFinalize;
 } SChannelAPI;
 
@@ -51,6 +52,7 @@ SChannelAPI g_stSharedMemoryChannel = {
 	UKSharedMemoryChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
 	UKSharedMemoryChannel_Clear, // fnClear
 	UKSharedMemoryChannel_SetExit,
+	UKSharedMemoryChannel_ClearExit,
 	UKSharedMemoryChannel_Finalize, // fnFinalize
 };
 
@@ -433,6 +435,37 @@ uem_result UKChannel_SetExitByTaskId(int nTaskId)
 
 	return result;
 }
+
+
+uem_result UKChannel_ClearExitByTaskId(int nTaskId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop = 0;
+	SChannelAPI *pstChannelAPI = NULL;
+
+	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
+	{
+		result = getAPIStructureFromCommunicationType(g_astChannels[nLoop].enType, &pstChannelAPI);
+		if(result == ERR_UEM_NOERROR)
+		{
+			if(matchTaskIdInPort(&(g_astChannels[nLoop].stInputPort), nTaskId) == TRUE)
+			{
+				pstChannelAPI->fnClearExit(&(g_astChannels[nLoop]), EXIT_FLAG_READ);
+			}
+			else if(matchTaskIdInPort(&(g_astChannels[nLoop].stOutputPort), nTaskId) == TRUE)
+			{
+				pstChannelAPI->fnClearExit(&(g_astChannels[nLoop]), EXIT_FLAG_WRITE);
+			}
+			else
+			{
+				// no match
+			}
+		}
+	}
+
+	return result;
+}
+
 
 
 uem_result UKChannel_Finalize()

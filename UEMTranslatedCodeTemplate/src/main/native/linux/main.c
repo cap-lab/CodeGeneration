@@ -129,6 +129,7 @@ uem_result executeTasks()
 	HCPUTaskManager hManager = NULL;
 	long long llCurTime;
 	long long llEndTime;
+	int nSleepAdd = 0;
 
 	result = UKTask_Initialize();
 	ERRIFGOTO(result, _EXIT);
@@ -150,11 +151,13 @@ uem_result executeTasks()
 
 	llEndTime = getEndTime(llCurTime);
 
+
 	while(llEndTime >= llCurTime)
 	{
 		if(llCurTime + DEFAULT_LONG_SLEEP_PERIOD <= llEndTime)
 		{
 			UCTime_Sleep(DEFAULT_LONG_SLEEP_PERIOD);
+			nSleepAdd += DEFAULT_LONG_SLEEP_PERIOD;
 		}
 		else if(llCurTime + DEFAULT_SHORT_SLEEP_PERIOD <= llEndTime)
 		{
@@ -164,6 +167,12 @@ uem_result executeTasks()
 		{
 			// otherwise, busy wait
 		}
+
+		if(nSleepAdd % 10000 == 0)
+		{
+			printf("Merong world: %d\n", g_astChannels[0].nChannelIndex);
+		}
+
 
 		result = UCTime_GetCurTickInMilliSeconds(&llCurTime);
 		ERRIFGOTO(result, _EXIT);
@@ -199,6 +208,10 @@ _EXIT:
 
 int main(int argc, char *argv[])
 {
+	setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(stderr, NULL, _IONBF, 0);
+
+
 	printf("Hello world: %d\n", g_astChannels[0].nChannelIndex);
 
 	// Channel initialization
@@ -209,6 +222,8 @@ int main(int argc, char *argv[])
 
 	// Channel finalization
 	UKChannel_Finalize();
+
+	printf("Merong world: %d\n", g_astChannels[0].nChannelIndex);
 
 	return 0;
 }

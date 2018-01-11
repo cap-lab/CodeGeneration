@@ -54,6 +54,7 @@ typedef struct _STaskThread {
 	HThreadEvent hEvent;
 	HThreadMutex hMutex;
 	int nWaitingThreadNum;
+	int nFinishedThreadNum;
 	UMappingTarget uTargetTask;
 	ECPUTaskState enTaskState;
 	EMappedTaskType enMappedTaskType;
@@ -290,6 +291,7 @@ static uem_result createTaskThreadStruct(uem_bool bIsCompositeTask, HCPUTaskMana
 	pstTaskThread->uMappedCPUList.hMappedCPUList = NULL;
 	pstTaskThread->nSeqId = 0;
 	pstTaskThread->nWaitingThreadNum = 0;
+	pstTaskThread->nFinishedThreadNum = 0;
 	pstTaskThread->hMutex = NULL;
 	pstTaskThread->hManager = hCPUTaskManager;
 	if(bIsCompositeTask == TRUE)
@@ -875,19 +877,19 @@ static uem_result checkTaskThreadState(ECPUTaskState enOldState, ECPUTaskState e
 	case TASK_STATE_SUSPEND:
 		if(enNewState == TASK_STATE_STOPPING)
 		{
-			UEMASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 		}
 		break;
 	case TASK_STATE_STOP:
-		if(enNewState != TASK_STATE_RUNNING)
+		if(enNewState != TASK_STATE_RUNNING && enNewState != TASK_STATE_STOPPING)
 		{
-			UEMASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 		}
 		break;
 	case TASK_STATE_STOPPING:
 		if(enNewState != TASK_STATE_STOP)
 		{
-			UEMASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 		}
 		break;
 	default:
@@ -913,7 +915,10 @@ static uem_result checkAndChangeTaskState(STaskThread * pstTaskThread, void *pUs
 		// TODO: do something?
 	}
 
-	pstTaskThread->enTaskState = enTaskState;
+	if(pstTaskThread->enTaskState != TASK_STATE_STOP)
+	{
+		pstTaskThread->enTaskState = enTaskState;
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -936,9 +941,11 @@ static uem_bool isModeTransitionTask(STaskThread *pstTaskThread)
 		pstCurrentTask = pstTaskThread->uTargetTask.pstTask;
 	}
 
-	if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK && pstCurrentTask->pstMTMInfo != NULL)
+	if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK && pstCurrentTask != NULL && pstCurrentTask->pstMTMInfo != NULL)
 	{
-		nLen = ARRAYLEN(pstCurrentTask->pstMTMInfo->astModeMap);
+		bIsModeTransition = TRUE;
+
+		nLen = pstCurrentTask->pstMTMInfo->nNumOfModes;
 
 		if(nLen > 1)
 		{
@@ -995,7 +1002,11 @@ static uem_result activateSingleTaskThread(STaskThread *pstTaskThread, void *pUs
 	STask *pstParentTask = NULL;
 	int nCurModeIndex = 0;
 
-	if(isModeTransitionTask(pstTaskThread) == TRUE)
+	if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK && pstTaskThread->uTargetTask.pstScheduledTasks->nScheduledIndex  == INVALID_SCHEDULE_ID)
+	{
+		pstTaskThread->enTaskState = TASK_STATE_STOP;
+	}
+	else if(isModeTransitionTask(pstTaskThread) == TRUE)
 	{
 		if(pUserData == NULL)
 		{
@@ -1038,6 +1049,8 @@ static uem_result changeCompositeTaskState(STask *pstParentTask, ECPUTaskState e
 	struct _SCompositeTaskUserData stCompositeTaskUserData;
 	int nCurModeIndex = 0;
 	int nTargetModeId = 0;
+	int nLen = 0;
+	int nLoop = 0;
 
 	if(pstParentTask->pstMTMInfo != NULL)
 	{
@@ -1064,6 +1077,17 @@ static uem_result changeCompositeTaskState(STask *pstParentTask, ECPUTaskState e
 
 		result = UCDynamicLinkedList_Traverse(hTaskList, traverseCompositeTaskThreads, &stCompositeTaskUserData);
 		ERRIFGOTO(result, _EXIT);
+	}
+	else if(enTargetState == TASK_STATE_STOPPING)
+	{
+		// release channel block related to the task to be stopped
+		nLen = pstParentTask->pstSubGraph->nNumOfTasks;
+
+		for(nLoop = 0 ; nLoop < nLen ; nLoop++)
+		{
+			result = UKChannel_SetExitByTaskId(pstParentTask->pstSubGraph->astTasks[nLoop].nTaskId);
+			ERRIFGOTO(result, _EXIT);
+		}
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -1107,17 +1131,14 @@ _EXIT:
 }
 
 
-static uem_result callCompositeTaskWrapupFunctions(STaskThread *pstTaskThread)
+static uem_result callCompositeTaskWrapupFunctions(STask *pstParentTask)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	HStack hStack = NULL;
-	STask *pstParentTask = NULL;
 
 	result = UCDynamicStack_Create(&hStack);
 	ERRIFGOTO(result, _EXIT);
 	// Stack with SModeMap *, current index astRelatedChildTasks
-
-	pstParentTask = pstTaskThread->uTargetTask.pstScheduledTasks->pstParentTask;
 
 	if(pstParentTask != NULL)
 	{
@@ -1156,12 +1177,6 @@ static uem_result destroyTaskThreads(STaskThread *pstTaskThread)
 		result = UCDynamicLinkedList_Traverse(pstTaskThread->hThreadList, traverseAndDestroyThread, NULL);
 		ERRIFGOTO(result, _EXIT);
 
-		if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK)
-		{
-			result = callCompositeTaskWrapupFunctions(pstTaskThread);
-			ERRIFGOTO(result, _EXIT);
-		}
-
 		for(nLoop = 0 ; nLoop < nTaskInstanceNumber ; nLoop++)
 		{
 			result = UCDynamicLinkedList_Remove(pstTaskThread->hThreadList, LINKED_LIST_OFFSET_FIRST, 0);
@@ -1173,6 +1188,8 @@ static uem_result destroyTaskThreads(STaskThread *pstTaskThread)
 _EXIT:
 	return result;
 }
+
+
 
 
 
@@ -1204,6 +1221,12 @@ static uem_result stopSingleTaskThread(STaskThread *pstTaskThread, void *pUserDa
 		result = destroyTaskThreads(pstTaskThread);
 		ERRIFGOTO(result, _EXIT);
 
+		// all tasks are terminated, so clear the exit flag of adjacent channels
+		result = UKChannel_ClearExitByTaskId(nTaskId);
+		ERRIFGOTO(result, _EXIT);
+
+		pstTaskThread->nFinishedThreadNum = 0;
+
 		pstTaskThread->nSeqId++;
 	}
 	else
@@ -1215,6 +1238,51 @@ static uem_result stopSingleTaskThread(STaskThread *pstTaskThread, void *pUserDa
 _EXIT:
 	return result;
 }
+
+
+static uem_result stopTaskThread(STaskThread *pstTaskThread, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	if(pstTaskThread->enTaskState == TASK_STATE_RUNNING ||
+		pstTaskThread->enTaskState == TASK_STATE_STOPPING ||
+		pstTaskThread->enTaskState == TASK_STATE_SUSPEND)
+	{
+		result = setTaskToStop(pstTaskThread);
+		ERRIFGOTO(result, _EXIT);
+
+		// release task if task is suspended
+		if(pstTaskThread->enTaskState == TASK_STATE_SUSPEND)
+		{
+			result = activateTaskThread(pstTaskThread);
+			ERRIFGOTO(result, _EXIT);
+		}
+
+		pstTaskThread->nFinishedThreadNum = 0;
+		pstTaskThread->nSeqId++;
+	}
+	else
+	{
+		UEMASSIGNGOTO(result, ERR_UEM_ALREADY_DONE, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+static uem_result joinTaskThread(STaskThread *pstTaskThread, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	result = destroyTaskThreads(pstTaskThread);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 
 
 static uem_result createThread(STaskThread *pstTaskThread, int nMappedCPU, FnNativeThread fnThreadRoutine, int nTaskFunctionIndex)
@@ -1645,7 +1713,10 @@ static uem_result handleTaskMainRoutine(STaskThread *pstTaskThread, FnUemTaskGo 
 				break;
 			case RUN_CONDITION_CONTROL_DRIVEN: // run once for control-driven leaf task
 				fnGo(pstCurrentTask->nTaskId);
-				UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
+				if(isModeTransitionTask(pstTaskThread) == FALSE)
+				{
+					UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
+				}
 				break;
 			default:
 				ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
@@ -1678,6 +1749,8 @@ static uem_result handleTaskMainRoutine(STaskThread *pstTaskThread, FnUemTaskGo 
 		}
 	}
 
+
+
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
@@ -1706,6 +1779,13 @@ _EXIT:
 	if(pstThreadData->nCurSeqId == pstTaskThread->nSeqId && pstCurrentTask != NULL)
 	{
 		pstCurrentTask->astTaskFunctions[nIndex].fnWrapup();
+	}
+
+	if(pstTaskThread != NULL)
+	{
+		UCThreadMutex_Lock(pstTaskThread->hMutex);
+		pstTaskThread->nFinishedThreadNum++;
+		UCThreadMutex_Unlock(pstTaskThread->hMutex);
 	}
 
 	SAFEMEMFREE(pstThreadData);
@@ -1748,6 +1828,12 @@ static void *scheduledTaskThreadRoutine(void *pData)
 	}
 
 _EXIT:
+	if(pstTaskThread != NULL)
+	{
+		UCThreadMutex_Lock(pstTaskThread->hMutex);
+		pstTaskThread->nFinishedThreadNum++;
+		UCThreadMutex_Unlock(pstTaskThread->hMutex);
+	}
 	SAFEMEMFREE(pstThreadData);
 	return NULL;
 }
@@ -2203,13 +2289,39 @@ static uem_result stopCompositeTaskThreads(STask *pstParentTask, HLinkedList hTa
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _SCompositeTaskUserData stCompositeTaskUserData;
+	int nLen = 0;
+	int nLoop = 0;
 
-	stCompositeTaskUserData.fnCallback = stopSingleTaskThread;
-	stCompositeTaskUserData.pUserData = &(pstParentTask->nTaskId);
+	stCompositeTaskUserData.fnCallback = stopTaskThread;
+	stCompositeTaskUserData.pUserData = NULL;
 
 	// Change all composite task state
 	result = UCDynamicLinkedList_Traverse(hTaskList,
 			traverseCompositeTaskThreads, &stCompositeTaskUserData);
+	ERRIFGOTO(result, _EXIT);
+
+	// release channel block related to the task to be stopped
+	nLen = pstParentTask->pstSubGraph->nNumOfTasks;
+
+	for(nLoop = 0 ; nLoop < nLen ; nLoop++)
+	{
+		result = UKChannel_SetExitByTaskId(pstParentTask->pstSubGraph->astTasks[nLoop].nTaskId);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	stCompositeTaskUserData.fnCallback = joinTaskThread;
+	stCompositeTaskUserData.pUserData = NULL;
+
+	// Change all composite task state
+	result = UCDynamicLinkedList_Traverse(hTaskList,
+			traverseCompositeTaskThreads, &stCompositeTaskUserData);
+	ERRIFGOTO(result, _EXIT);
+
+	result = callCompositeTaskWrapupFunctions(pstParentTask);
+	ERRIFGOTO(result, _EXIT);
+
+	// all tasks are terminated, so clear the exit flag of adjacent channels
+	result = UKChannel_ClearExitByTaskId(pstParentTask->nTaskId);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -2226,7 +2338,7 @@ static uem_result stopChildTaskThreads(int nParentTaskId, HLinkedList hTaskList)
 	stChildTaskAccessUserData.nParentTaskId = nParentTaskId;
 	stChildTaskAccessUserData.nMatchedTaskNum = 0;
 	stChildTaskAccessUserData.fnCallback = stopSingleTaskThread;
-	stChildTaskAccessUserData.pUserData = NULL;
+	stChildTaskAccessUserData.pUserData = &nParentTaskId;
 	result = UCDynamicLinkedList_Traverse(hTaskList, traverseChildTaskThreads, &stChildTaskAccessUserData);
 	ERRIFGOTO(result, _EXIT);
 
@@ -2303,12 +2415,26 @@ _EXIT:
 }
 
 
+static uem_result checkCompositeTaskIsNotStopped(STaskThread *pstTaskThread, void *pUserData)
+{
+	uem_bool *pbNotStopped = (uem_bool *) pUserData;
+
+	if(pstTaskThread->enTaskState != TASK_STATE_STOP)
+	{
+		*pbNotStopped = TRUE;
+	}
+
+	return ERR_UEM_NOERROR;
+}
+
+
 static uem_result runCompositeTaskThreads(STask *pstParentTask, HLinkedList hTaskList)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _SCompositeTaskUserData stCompositeTaskUserData;
 	int nCurModeIndex = 0;
 	int nTargetModeId = 0;
+	uem_bool bNotStopped = FALSE;
 
 	stCompositeTaskUserData.nTaskId = pstParentTask->nTaskId;
 	if(pstParentTask->pstMTMInfo != NULL)
@@ -2320,6 +2446,20 @@ static uem_result runCompositeTaskThreads(STask *pstParentTask, HLinkedList hTas
 	{
 		nTargetModeId = 0;
 	}
+
+	stCompositeTaskUserData.fnCallback = checkCompositeTaskIsNotStopped;
+	stCompositeTaskUserData.pUserData = &bNotStopped;
+
+	result = UCDynamicLinkedList_Traverse(hTaskList,
+			traverseCompositeTaskThreads, &stCompositeTaskUserData);
+	ERRIFGOTO(result, _EXIT);
+
+	if(bNotStopped == TRUE)
+	{
+		result = stopCompositeTaskThreads(pstParentTask, hTaskList);
+		ERRIFGOTO(result, _EXIT);
+	}
+
 	stCompositeTaskUserData.fnCallback = runSingleTaskThread;
 	stCompositeTaskUserData.pUserData = &stCompositeTaskUserData.nTaskId;
 
@@ -2520,6 +2660,7 @@ static uem_result traverseCompositeTaskStateInfo(IN int nOffset, IN void *pData,
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _STraverseCompositeTaskState *pstUserData = (struct _STraverseCompositeTaskState *) pUserData;
+	int nLen = 0;
 
 	STaskThread *pstTaskThread = (STaskThread *) pData;
 
@@ -2531,6 +2672,18 @@ static uem_result traverseCompositeTaskStateInfo(IN int nOffset, IN void *pData,
 	if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_COMPOSITE_TASK &&
 		pstTaskThread->uTargetTask.pstScheduledTasks->pstParentTask->nTaskId == pstUserData->pstParentTask->nTaskId)
 	{
+		result = UCDynamicLinkedList_GetLength(pstTaskThread->uMappedCPUList.hMappedCPUList, &nLen);
+		ERRIFGOTO(result, _EXIT);
+
+		if(pstTaskThread->nFinishedThreadNum == nLen)
+		{
+			result = stopTaskThread(pstTaskThread, NULL);
+			ERRIFGOTO(result, _EXIT);
+
+			result = joinTaskThread(pstTaskThread, NULL);
+			ERRIFGOTO(result, _EXIT);
+		}
+
 		if(pstTaskThread->enTaskState == TASK_STATE_RUNNING)
 		{
 			pstUserData->enConfirmedTaskState = INTERNAL_STATE_RUN;
@@ -2560,6 +2713,7 @@ uem_result UKCPUTaskManager_GetTaskState(HCPUTaskManager hCPUTaskManager, int nT
 	STaskThread *pstTaskThread = NULL;
 	struct _STraverseCompositeTaskState stUserData;
 	HLinkedList hLinkedList = NULL;
+	int nLen = 0;
 #ifdef ARGUMENT_CHECK
 	if (IS_VALID_HANDLE(hCPUTaskManager, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
@@ -2599,6 +2753,15 @@ uem_result UKCPUTaskManager_GetTaskState(HCPUTaskManager hCPUTaskManager, int nT
 	}
 	else
 	{
+		result = UCDynamicLinkedList_GetLength(pstTaskThread->uMappedCPUList.hMappedCPUList, &nLen);
+		ERRIFGOTO(result, _EXIT);
+
+		if(pstTaskThread->nFinishedThreadNum == nLen)
+		{
+			result = stopSingleTaskThread(pstTaskThread, &nTaskId);
+			ERRIFGOTO(result, _EXIT);
+		}
+
 		if(pstTaskThread->enTaskState == TASK_STATE_RUNNING)
 		{
 			*penTaskState = INTERNAL_STATE_RUN;

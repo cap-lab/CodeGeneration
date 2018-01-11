@@ -484,7 +484,7 @@ public class Application {
 		
 		for(ChannelType channelMetadata: algorithm_metadata.getChannels().getChannel())
 		{
-			Channel channel = new Channel(index, channelMetadata.getSize().intValue());
+			Channel channel = new Channel(index, channelMetadata.getSize().intValue() * channelMetadata.getSampleSize().intValue());
 			
 			// index 0 is only used
 			// TODO: src element in XML schema file must be single occurrence.

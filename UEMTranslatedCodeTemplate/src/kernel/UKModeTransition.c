@@ -49,7 +49,7 @@ int UKModeTransition_GetModeIndexByModeId(SModeTransitionMachine *pstModeTransit
 {
 	int nLoop = 0;
 	int nModeIndex = INVALID_MODE_ID;
-	int nModeLen = ARRAYLEN(pstModeTransition->astModeMap);
+	int nModeLen = pstModeTransition->nNumOfModes;
 
 	for(nLoop = 0 ; nLoop < nModeLen ; nLoop++)
 	{
@@ -68,7 +68,7 @@ int UKModeTransition_GetVariableIndexByName(SModeTransitionMachine *pstModeTrans
 {
 	int nLoop = 0;
 	int nVariableIndex = INVALID_MODE_ID;
-	int nVariableLen = ARRAYLEN(pstModeTransition->astVarIntMap);
+	int nVariableLen = pstModeTransition->nNumOfIntVariables;
 	uem_string_struct strVariableName;
 	uem_string_struct strTargetVariableName;
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -112,7 +112,7 @@ uem_result UKModeTransition_SetModeIntegerParameter (IN char *pszTaskName, IN ch
 		pstTask = pstTask->pstParentGraph->pstParentTask;
 	}
 
-	nLen = ARRAYLEN(pstTask->pstMTMInfo->astVarIntMap);
+	nLen = pstTask->pstMTMInfo->nNumOfIntVariables;
 
 	result = UCString_New(&strTargetParamName, pszParamName, UEMSTRING_MAX);
 	ERRIFGOTO(result, _EXIT);

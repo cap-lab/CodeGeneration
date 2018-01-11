@@ -131,7 +131,9 @@ typedef struct _SVariableIntMap {
 typedef struct _SModeTransitionMachine {
 	int nTaskId;
 	SModeMap *astModeMap;
+	int nNumOfModes;
 	SVariableIntMap *astVarIntMap;
+	int nNumOfIntVariables;
 	FnTaskModeTranstion fnTransition;
 	int nCurModeIndex;
 	int nNextModeIndex;
@@ -146,6 +148,7 @@ typedef struct _SLoopInfo {
 typedef struct _STaskGraph {
 	ETaskGraphType enType;
 	STask *astTasks;
+	int nNumOfTasks;
 	STask *pstParentTask;
 } STaskGraph;
 

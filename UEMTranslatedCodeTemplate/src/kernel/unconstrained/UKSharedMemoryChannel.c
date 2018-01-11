@@ -964,12 +964,15 @@ uem_result UKSharedMemoryChannel_SetExit(SChannel *pstChannel, int nExitFlag)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
+	result = UCThreadMutex_Lock(pstChannel->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
 	if((nExitFlag & EXIT_FLAG_READ) != 0)
 	{
 		pstChannel->bReadExit = TRUE;
 
 		result = UCThreadEvent_SetEvent(pstChannel->hReadEvent);
-		ERRIFGOTO(result, _EXIT);
+		ERRIFGOTO(result, _EXIT_LOCK);
 	}
 
 	if((nExitFlag & EXIT_FLAG_WRITE) != 0)
@@ -977,10 +980,37 @@ uem_result UKSharedMemoryChannel_SetExit(SChannel *pstChannel, int nExitFlag)
 		pstChannel->bWriteExit = TRUE;
 
 		result = UCThreadEvent_SetEvent(pstChannel->hWriteEvent);
-		ERRIFGOTO(result, _EXIT);
+		ERRIFGOTO(result, _EXIT_LOCK);
 	}
 
 	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstChannel->hMutex);
+_EXIT:
+	return result;
+}
+
+
+uem_result UKSharedMemoryChannel_ClearExit(SChannel *pstChannel, int nExitFlag)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	result = UCThreadMutex_Lock(pstChannel->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	if((nExitFlag & EXIT_FLAG_READ) != 0)
+	{
+		pstChannel->bReadExit = FALSE;
+	}
+
+	if((nExitFlag & EXIT_FLAG_WRITE) != 0)
+	{
+		pstChannel->bWriteExit = FALSE;
+	}
+
+	result = ERR_UEM_NOERROR;
+
+	UCThreadMutex_Unlock(pstChannel->hMutex);
 _EXIT:
 	return result;
 }
