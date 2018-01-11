@@ -5,6 +5,8 @@
 #endif
 
 #include <uem_data.h>
+#include <UKTask.h>
+#include <UKModeTransition.h>
 
 SExecutionTime g_stExecutionTime = { ${execution_time.value}, TIME_METRIC_${execution_time.metric} } ;
 
@@ -98,7 +100,7 @@ SPort g_astPortInfo[] = {
 		g_astPortSampleRate_${port.taskName}_${port.portName}, // Array of sample rate list
 		${port.portSampleRateList?size}, // Array element number of sample rate list
 		0, //Selected sample rate index
-		${port.sampleSize}, // Sample size
+		${port.sampleSize?c}, // Sample size
 		PORT_TYPE_${port.portType}, // Port type
 		<#if port.subgraphPort??>&g_astPortInfo[${port_key_to_index[port.subgraphPort.portKey]}]<#else>NULL</#if>, // Pointer to Subgraph port
 	}, // Port information		
@@ -172,7 +174,7 @@ static uem_bool transitMode_${task.name}(SModeTransitionMachine *pstModeTransiti
 {
 	uem_bool bModeChanged = FALSE;
 			<#list task.modeTransition.variableMap as var_name, var_type>
-	${var_type} ${var_name};
+	int ${var_name};
 			</#list>
 	int nCurrentModeId = pstModeTransition->astModeMap[pstModeTransition->nCurModeIndex].nModeId;
 	int nNextModeId = nCurrentModeId;
@@ -192,7 +194,7 @@ static uem_bool transitMode_${task.name}(SModeTransitionMachine *pstModeTransiti
 	}
 			</#list>
 		
-	pstModeTransition->nCurModeIndex = UKModeTransition_GetModeIndexByModeId(pstModeTransition, nNextModeId);
+	pstModeTransition->nNextModeIndex = UKModeTransition_GetModeIndexByModeId(pstModeTransition, nNextModeId);
 	
 	return bModeChanged;
 }
@@ -200,10 +202,11 @@ static uem_bool transitMode_${task.name}(SModeTransitionMachine *pstModeTransiti
 
 SModeTransitionMachine g_stModeTransition_${task.name} = {
 	${task.id},
-	g_astModeMap_${task.name},
-	g_astVariableIntMap_${task.name},
-	<#if (task.modeTransition.modeMap?size > 1)>transitMode_${task.name}<#else>NULL</#if>,
-	0,
+	g_astModeMap_${task.name}, // mode list
+	g_astVariableIntMap_${task.name}, // Integer variable list
+	<#if (task.modeTransition.modeMap?size > 1)>transitMode_${task.name}<#else>NULL</#if>, // mode transition function
+	0, // Current mode index
+	0, // Next mode index
 };
 	</#if>
 </#list>
@@ -281,7 +284,7 @@ SChannel g_astChannels[] = {
 			g_astPortSampleRate_${channel.inputPort.taskName}_${channel.inputPort.portName}, // Array of sample rate list
 			${channel.inputPort.portSampleRateList?size}, // Array element number of sample rate list
 			0, //Selected sample rate index
-			${channel.inputPort.sampleSize}, // Sample size
+			${channel.inputPort.sampleSize?c}, // Sample size
 			PORT_TYPE_${channel.inputPort.portType}, // Port type
 			<#if channel.inputPort.subgraphPort??>&g_astPortInfo[${port_key_to_index[channel.inputPort.subgraphPort.portKey]}]<#else>NULL</#if>, // Pointer to Subgraph port
 		}, // Input port information
@@ -292,7 +295,7 @@ SChannel g_astChannels[] = {
 			g_astPortSampleRate_${channel.outputPort.taskName}_${channel.outputPort.portName}, // Array of sample rate list
 			${channel.outputPort.portSampleRateList?size}, // Array element number of sample rate list
 			0, //Selected sample rate index
-			${channel.outputPort.sampleSize}, // Sample size
+			${channel.outputPort.sampleSize?c}, // Sample size
 			PORT_TYPE_${channel.outputPort.portType}, // Port type
 			<#if channel.outputPort.subgraphPort??>&g_astPortInfo[${port_key_to_index[channel.outputPort.subgraphPort.portKey]}]<#else>NULL</#if>, // Pointer to Subgraph port
 		}, // Output port information
@@ -336,6 +339,7 @@ STask g_astTasks_${task_graph.name}[] = {
 		<#if task.loopStruct??>&g_stLoopStruct_${task.name}<#else>NULL</#if>, // Loop information
 		<#if (task.taskParamList?size > 0)>&g_astTaskParameter_${task.name}<#else>NULL</#if>, // Task parameter information
 		<#if task.staticScheduled == true>TRUE<#else>FALSE</#if>, // Statically scheduled or not
+		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
@@ -351,7 +355,7 @@ STask g_astTasks_${task_graph.name}[] = {
 STaskGraph g_stGraph_${task_graph.name} = {
 		GRAPH_TYPE_PROCESS_NETWORK, // TODO: Task graph type (not used now)
 		g_astTasks_${task_graph.name}, // current task graph's task list
-		NULL, // parent task
+		<#if task_graph.parentTask??>&g_astTasks_${task_graph.parentTask.parentTaskGraphName}[${task_graph.parentTask.inGraphIndex}]<#else>NULL</#if>, // parent task
 };
 
 </#list>
@@ -414,9 +418,20 @@ ${space}{
 ${innerspace}${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}(${flat_task[scheduleItem.taskName].id});
 			<#if compositeMappedProcessor.srcTaskMap[scheduleItem.taskName]??>
 ${innerspace}{
-${innerspace}	uem_bool bTransition = FALSE;			
-${innerspace}	bTransition = transitMode_${parentTaskName}(g_astTasks_${flat_task[parentTaskName].parentTaskGraphName}[${flat_task[parentTaskName].inGraphIndex}].pstMTMInfo);
-${innerspace}	if(bTransition == TRUE) return; // exit when the transition is changed.
+${innerspace}	uem_bool bTransition = FALSE;
+${innerspace}	uem_result result;
+${innerspace}	STask *pstTask = NULL;
+${innerspace}	result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
+${innerspace}	if(result == ERR_UEM_NOERROR)
+${innerspace}	{
+${innerspace}		result = UCThreadMutex_Lock(pstTask->hMutex);
+${innerspace}		if(result == ERR_UEM_NOERROR){
+${innerspace}			bTransition = transitMode_${parentTaskName}(g_astTasks_${flat_task[parentTaskName].parentTaskGraphName}[${flat_task[parentTaskName].inGraphIndex}].pstMTMInfo);
+${innerspace}			UCThreadMutex_Unlock(pstTask->hMutex);
+${innerspace}		}
+${innerspace}		
+${innerspace}		if(bTransition == TRUE) return; // exit when the transition is changed.
+${innerspace}	}
 ${innerspace}}
 			</#if>
 		<#if (scheduleItem.repetition > 1) >		
@@ -438,12 +453,6 @@ void ${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${comp
 				</#list>
 
 			</#if>
-
-			<#if (compositeMappedProcessor.srcTaskMap?size == 0 && flat_task[mapped_schedule.parentTaskName].modeTransition?? &&
-				flat_task[mapped_schedule.parentTaskName].modeTransition.modeMap?size > 1) >
-	//UKModeTransition_UpdateCurrentMode();
-			</#if>>
-
 <#list task_schedule.scheduleList as scheduleItem>
 	<@printScheduledCode scheduleItem "	" compositeMappedProcessor mapped_schedule.parentTaskName />
 </#list>

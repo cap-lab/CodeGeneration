@@ -7,11 +7,14 @@
 
 #include <uem_common.h>
 
+#include <UCSystem.h>
+
 #include <UFSystem.h>
+
 
 void UFSystem_Kill()
 {
-
+	UCSystem_Exit();
 }
 
 

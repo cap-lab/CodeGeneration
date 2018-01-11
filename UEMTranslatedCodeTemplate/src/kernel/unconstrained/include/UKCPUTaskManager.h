@@ -14,6 +14,8 @@
 
 #include <UCThreadMutex.h>
 
+#include <UKTask.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -36,6 +38,7 @@ uem_result UKCPUTaskManager_StoppingTask(HCPUTaskManager hCPUTaskManager, int nT
 uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUTaskManager, int nTaskId);
 uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUTaskManager, int nTaskId);
 uem_result UKCPUTaskManager_ResumeTask(HCPUTaskManager hCPUTaskManager, int nTaskId);
+uem_result UKCPUTaskManager_GetTaskState(HCPUTaskManager hCPUTaskManager, int nTaskId, EInternalTaskState *penTaskState);
 uem_result UKCPUTaskManager_Destroy(IN OUT HCPUTaskManager *phCPUTaskManager);
 
 #ifdef __cplusplus

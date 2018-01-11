@@ -87,6 +87,22 @@ void UKTask_Finalize()
 	}
 }
 
+uem_result UKTask_GetTaskState(char *pszTaskName, EInternalTaskState *penTaskState)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask *pstTask = NULL;
+
+	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKCPUTaskManager_GetTaskState(g_hCPUTaskManager, pstTask->nTaskId, penTaskState);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 
 uem_result UKTask_RunTask (IN char *pszTaskName)
 {
