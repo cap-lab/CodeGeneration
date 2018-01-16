@@ -90,6 +90,7 @@ typedef enum _EUemModuleId {
 	// UEM Kernel module
 	ID_UEM_KERNEL_MODULE = UEM_MODULE_KERNEL,
 	ID_UEM_CPU_TASK_MANAGER,
+	ID_UEM_CPU_COMPOSITE_TASK_MANAGER,
 
 
 } EUemModuleId;

@@ -444,7 +444,6 @@ ${innerspace}	UKTask_GetTaskState("${parentTaskName}", &enState);
 ${innerspace}	if(enState == INTERNAL_STATE_STOP || enState == INTERNAL_STATE_END) return; 
 ${innerspace}}
 			</#if>
-
 		<#if (scheduleItem.repetition > 1) >		
 ${space}}
 
@@ -527,6 +526,40 @@ SMappingSchedulingInfo g_astMappingAndSchedulingInfo[] = {
 	</#list>
 </#list>
 };
+
+SMappedGeneralTaskInfo g_astGeneralTaskMappingInfo[] = {
+<#list mapping_info as task_name, mapped_task>
+	<#list mapped_task.mappedProcessorList as mappedProcessor>
+	{	TASK_TYPE_${mapped_task.mappedTaskType}, // Task type
+		&g_astTasks_${mapped_task.parentTaskGraphName}[${mapped_task.inGraphIndex}], // Task ID or composite task information
+		${mappedProcessor.processorId}, // Processor ID
+		${mappedProcessor.processorLocalId}, // Processor local ID
+	},
+	</#list>
+</#list>
+};
+
+
+SMappedCompositeTaskInfo g_astCompositeTaskMappingInfo[] = {
+<#list schedule_info as task_name, scheduled_task>
+	<#list scheduled_task.mappedProcessorList as scheduledProcessor>
+	{
+		&g_astScheduledTaskList[${scheduledProcessor.inArrayIndex}],
+		${scheduledProcessor.processorId}, // Processor ID
+		${scheduledProcessor.processorLocalId}, // Processor local ID		
+	},
+	</#list>
+</#list>
+};
+
+
+SMappedTaskInfo g_stMappingInfo = {
+	<#if (mapping_info?size > 0)>g_astGeneralTaskMappingInfo<#else>NULL</#if>, // general task array
+	<#if (mapping_info?size > 0)>ARRAYLEN(g_astGeneralTaskMappingInfo)<#else>0</#if>, // size of general task array
+	<#if (schedule_info?size > 0)>g_astCompositeTaskMappingInfo<#else>NULL</#if>, // composite task array
+	<#if (schedule_info?size > 0)>ARRAYLEN(g_astCompositeTaskMappingInfo)<#else>0</#if>, // size of composite task array
+};
+
 // ##MAPPING_SCHEDULING_INFO_TEMPLATE::END
 
 
@@ -535,6 +568,4 @@ int g_nNumOfTasks_top = ARRAYLEN(g_astTasks_top);
 int g_nTaskIdToTaskNum = ARRAYLEN(g_astTaskIdToTask);
 int g_nProcessorInfoNum = ARRAYLEN(g_astProcessorInfo);
 int g_nMappingAndSchedulingInfoNum = ARRAYLEN(g_astMappingAndSchedulingInfo);
-
-
 

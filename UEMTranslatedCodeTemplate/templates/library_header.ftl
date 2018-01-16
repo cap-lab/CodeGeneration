@@ -8,3 +8,5 @@ extern LIBFUNC(${function.returnType}, ${function.name}<#list function.argumentL
 </#list>
 
 #endif /* __UEM_LIB_HEADER_${lib_info.headerGuard}__ */
+
+

@@ -20,9 +20,9 @@
 
 #include <uem_data.h>
 
-#include <UKCPUTaskManager.h>
 #include <UKChannel.h>
 #include <UKTask.h>
+#include <UKCPUTaskManager.h>
 
 
 #define MIN_SLEEP_DURATION (10)
@@ -34,13 +34,6 @@ typedef enum _EMappedTaskType {
 	MAPPED_TYPE_COMPOSITE_TASK,
 	MAPPED_TYPE_GENERAL_TASK,
 } EMappedTaskType;
-
-typedef enum _ECPUTaskState {
-	TASK_STATE_STOP,
-	TASK_STATE_RUNNING,
-	TASK_STATE_SUSPEND,
-	TASK_STATE_STOPPING,
-} ECPUTaskState;
 
 
 typedef union _UMappedCPUList {
@@ -1646,6 +1639,8 @@ static uem_result checkModeTransitionHappened(STaskThread *pstTaskThread, STask 
 	}
 	else if(pstTaskThread->enMappedTaskType == MAPPED_TYPE_GENERAL_TASK)
 	{
+
+		// TODO: fill this part?
 		// MTM check is only performed on two-level
 		if(pstCurrentTask->pstParentGraph->pstParentTask != NULL)
 		{

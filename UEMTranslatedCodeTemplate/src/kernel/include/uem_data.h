@@ -186,7 +186,7 @@ typedef struct _STask {
 	SModeTransitionMachine *pstMTMInfo;
 	SLoopInfo *pstLoopInfo;
 	STaskParameter *astTaskParam;
-	uem_bool bStaticScheduled; // TRUE if a task is mapped or scheduled
+	uem_bool bStaticScheduled;
 	int nThroughputConstraint;
 	HThreadMutex hMutex;
 	HThreadEvent hEvent;
@@ -325,6 +325,26 @@ typedef struct _SMappingSchedulingInfo {
 	int nLocalId;
 } SMappingSchedulingInfo;
 
+typedef struct _SMappedGeneralTaskInfo {
+	ETaskType enType;
+	STask *pstTask;
+	int nProcessorId;
+	int nLocalId;
+} SMappedGeneralTaskInfo;
+
+typedef struct _SMappedCompositeTaskInfo {
+	SScheduledTasks *pstScheduledTasks;
+	int nProcessorId;
+	int nLocalId;
+} SMappedCompositeTaskInfo;
+
+typedef struct _SMappedTaskInfo {
+	SMappedGeneralTaskInfo *pstGeneralTaskMappingInfo;
+	int nMappedGeneralTaskNum;
+	SMappedCompositeTaskInfo *pstCompositeTaskMappingInfo;
+	int nMappedCompositeTaskNum;
+} SMappedTaskInfo;
+
 typedef struct _SExecutionTime {
 	int nValue;
 	ETimeMetric enTimeMetric;
@@ -348,6 +368,8 @@ extern int g_nProcessorInfoNum;
 
 extern SMappingSchedulingInfo g_astMappingAndSchedulingInfo[];
 extern int g_nMappingAndSchedulingInfoNum;
+
+extern SMappedTaskInfo g_stMappingInfo;
 
 #ifdef __cplusplus
 }
