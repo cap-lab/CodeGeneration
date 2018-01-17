@@ -149,19 +149,21 @@ uem_result UCThreadEvent_WaitTimeEvent(HThreadEvent hEvent, long long llSleepTim
 		ERRASSIGNGOTO(result, ERR_UEM_MUTEX_ERROR, _EXIT);
 	}
 
-	ret = pthread_cond_timedwait(&(pstEvent->hCond), &(pstEvent->hMutex), &stTimeOut);
+	while(pstEvent->bIsSet == FALSE) {
+		ret = pthread_cond_timedwait(&(pstEvent->hCond), &(pstEvent->hMutex), &stTimeOut);
 
-	if(ret == 0)
-	{
-	    // do nothing
-	}
-	else if(ret == ETIMEDOUT)
-	{
-	    UEMASSIGNGOTO(result, ERR_UEM_TIME_EXPIRED, _EXIT_LOCK);
-	}
-	else
-	{
-		ERRASSIGNGOTO(result, ERR_UEM_MUTEX_ERROR, _EXIT_LOCK);
+		if(ret == 0)
+		{
+		    // do nothing
+		}
+		else if(ret == ETIMEDOUT)
+		{
+		    UEMASSIGNGOTO(result, ERR_UEM_TIME_EXPIRED, _EXIT_LOCK);
+		}
+		else
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_MUTEX_ERROR, _EXIT_LOCK);
+		}
 	}
 
 	pstEvent->bIsSet = FALSE;

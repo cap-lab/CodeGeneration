@@ -1704,7 +1704,14 @@ static uem_result handleTaskMainRoutine(STaskThread *pstTaskThread, FnUemTaskGo 
 				ERRIFGOTO(result, _EXIT);
 				break;
 			case RUN_CONDITION_DATA_DRIVEN:
-				fnGo(pstCurrentTask->nTaskId);
+				if(pstCurrentTask != NULL)
+				{
+					fnGo(pstCurrentTask->nTaskId);
+				}
+				else // if the whole task graph is a composite task
+				{
+					fnGo(-INVALID_TASK_ID);
+				}
 				break;
 			case RUN_CONDITION_CONTROL_DRIVEN: // run once for control-driven leaf task
 				fnGo(pstCurrentTask->nTaskId);
@@ -2098,29 +2105,29 @@ static uem_result traverseAndCreateComputationalTasks(IN int nOffset, IN void *p
 			int nLoop = 0;
 			pstParentTask = pstTaskThread->uTargetTask.pstScheduledTasks->pstParentTask;
 
-			if(pstParentTask->nThroughputConstraint == 0) // initial setting
-			{
-				pstParentTask->nThroughputConstraint = pstTaskThread->uTargetTask.pstScheduledTasks->astScheduleList[0].nThroughputConstraint;
-			}
-
-			for(nLoop = 0; nLoop < pstTaskThread->uTargetTask.pstScheduledTasks->nScheduleNum ; nLoop++)
-			{
-				if(pstTaskThread->uTargetTask.pstScheduledTasks->astScheduleList[nLoop].nThroughputConstraint ==
-					pstParentTask->nThroughputConstraint)
-				{
-					pstTaskThread->uTargetTask.pstScheduledTasks->nScheduledIndex = nLoop;
-					break;
-				}
-			}
-
-			// skip if there is no matching throughput constraint
-			if(nLoop == pstTaskThread->uTargetTask.pstScheduledTasks->nScheduleNum)
-			{
-				pstTaskThread->uTargetTask.pstScheduledTasks->nScheduledIndex = INVALID_SCHEDULE_ID;
-			}
-
 			if(pstParentTask != NULL)
 			{
+				if(pstParentTask->nThroughputConstraint == 0) // initial setting
+				{
+					pstParentTask->nThroughputConstraint = pstTaskThread->uTargetTask.pstScheduledTasks->astScheduleList[0].nThroughputConstraint;
+				}
+
+				for(nLoop = 0; nLoop < pstTaskThread->uTargetTask.pstScheduledTasks->nScheduleNum ; nLoop++)
+				{
+					if(pstTaskThread->uTargetTask.pstScheduledTasks->astScheduleList[nLoop].nThroughputConstraint ==
+						pstParentTask->nThroughputConstraint)
+					{
+						pstTaskThread->uTargetTask.pstScheduledTasks->nScheduledIndex = nLoop;
+						break;
+					}
+				}
+
+				// skip if there is no matching throughput constraint
+				if(nLoop == pstTaskThread->uTargetTask.pstScheduledTasks->nScheduleNum)
+				{
+					pstTaskThread->uTargetTask.pstScheduledTasks->nScheduledIndex = INVALID_SCHEDULE_ID;
+				}
+
 				enRunCondition = pstParentTask->enRunCondition;
 			}
 			else
