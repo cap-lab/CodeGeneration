@@ -15,7 +15,7 @@
 
 typedef struct _SCPUCompositeTaskManager *HCPUCompositeTaskManager;
 
-typedef struct _STaskThread {
+typedef struct _SCompositeTaskThread {
 	int nSeqId;
 	int nModeId;
 	int nThroughputConstraint;
@@ -26,7 +26,7 @@ typedef struct _STaskThread {
 } SCompositeTaskThread;
 
 
-typedef struct _STaskThread {
+typedef struct _SCompositeTask {
 	STask *pstParentTask;
 	HLinkedList hThreadList;
 	HThreadEvent hEvent;
@@ -45,6 +45,10 @@ typedef struct _SCPUCompositeTaskManager {
 	HThreadMutex hMutex;
 } SCPUCompositeTaskManager;
 
+struct _SCompositeTaskSearchData {
+	SMappedCompositeTaskInfo *pstMappedInfo;
+	SCompositeTask *pstMatchingCompositeTask;
+};
 
 static uem_result destroyCompositeTaskStruct(IN OUT SCompositeTask **ppstCompositeTask)
 {
@@ -79,7 +83,53 @@ static uem_result destroyCompositeTaskStruct(IN OUT SCompositeTask **ppstComposi
 	return result;
 }
 
+static uem_result createCompositeTaskThreadStructPerSchedule(SMappedCompositeTaskInfo *pstMappedInfo, int nScheduleIndex, OUT SCompositeTaskThread **ppstCompositeTaskThread)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCompositeTaskThread *pstCompositeTaskThread = NULL;
 
+	pstCompositeTaskThread = UC_malloc(sizeof(SCompositeTaskThread));
+	ERRMEMGOTO(pstCompositeTaskThread, result, _EXIT);
+
+	pstCompositeTaskThread->enTaskState = TASK_STATE_STOP;
+	pstCompositeTaskThread->fnCompositeGo = pstMappedInfo->pstScheduledTasks->astScheduleList[nScheduleIndex].fnCompositeGo;
+	pstCompositeTaskThread->nThroughputConstraint = pstMappedInfo->pstScheduledTasks->astScheduleList[nScheduleIndex].nThroughputConstraint;
+	pstCompositeTaskThread->hManager = NULL;
+	pstCompositeTaskThread->nModeId = pstMappedInfo->pstScheduledTasks->nModeId;
+	pstCompositeTaskThread->nProcId = pstMappedInfo->nProcessorId;
+	pstCompositeTaskThread->nSeqId = 0;
+
+	*ppstCompositeTaskThread = pstCompositeTaskThread;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result createCompositeTaskThreadStructs(SMappedCompositeTaskInfo *pstMappedInfo, IN OUT HLinkedList hTaskList)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCompositeTaskThread *pstCompositeTaskThread = NULL;
+	int nLoop = 0;
+
+	for(nLoop = 0 ; nLoop < pstMappedInfo->pstScheduledTasks->nScheduleNum ; nLoop++)
+	{
+		result = createCompositeTaskThreadStructPerSchedule(pstMappedInfo, nLoop, &pstCompositeTaskThread);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UCDynamicLinkedList_Add(hTaskList, LINKED_LIST_OFFSET_FIRST, 0, pstCompositeTaskThread);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+// TODO: use hCPUTaskManager?
 static uem_result createCompositeTaskStruct(HCPUTaskManager hCPUTaskManager, SMappedCompositeTaskInfo *pstMappedInfo, OUT SCompositeTask **ppstCompositeTask)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -94,7 +144,7 @@ static uem_result createCompositeTaskStruct(HCPUTaskManager hCPUTaskManager, SMa
 	pstCompositeTask->enTaskState = TASK_STATE_STOP;
 	pstCompositeTask->nFinishedThreadNum = 0;
 	pstCompositeTask->nWaitingThreadNum = 0;
-	pstCompositeTask->pstParentTask = pstMappedInfo;
+	pstCompositeTask->pstParentTask = pstMappedInfo->pstScheduledTasks->pstParentTask;
 
 	result = UCThreadEvent_Create(&(pstCompositeTask->hEvent));
 	ERRIFGOTO(result, _EXIT);
@@ -156,17 +206,18 @@ _EXIT:
 
 
 
-static uem_result traverseCompositeTaskList(IN int nOffset, IN void *pData, IN void *pUserData)
+static uem_result findCompositeTask(IN int nOffset, IN void *pData, IN void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCompositeTask *pstTaskStruct = NULL;
-	SMappedCompositeTaskInfo *pstUserData = NULL;
+	struct _SCompositeTaskSearchData *pstSearchData = NULL;
 
 	pstTaskStruct = (SCompositeTask *) pData;
-	pstUserData = (SMappedCompositeTaskInfo *) pUserData;
+	pstSearchData = (struct _SCompositeTaskSearchData *) pUserData;
 
-	if(pstTaskStruct->pstParentTask->nTaskId == pstUserData->pstScheduledTasks->pstParentTask->nTaskId)
+	if(pstTaskStruct->pstParentTask->nTaskId == pstSearchData->pstMappedInfo->pstScheduledTasks->pstParentTask->nTaskId)
 	{
+		pstSearchData->pstMatchingCompositeTask = pstTaskStruct;
 		UEMASSIGNGOTO(result, ERR_UEM_FOUND_DATA, _EXIT);
 	}
 
@@ -179,6 +230,8 @@ uem_result UKCPUCompositeTaskManager_RegisterTask(HCPUCompositeTaskManager hMana
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUCompositeTaskManager *pstTaskManager = NULL;
+	SCompositeTask *pstCompositeTask = NULL;
+	struct _SCompositeTaskSearchData stSearchData;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(pstMappedTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
@@ -188,10 +241,30 @@ uem_result UKCPUCompositeTaskManager_RegisterTask(HCPUCompositeTaskManager hMana
 #endif
 	pstTaskManager = hManager;
 
-	result = UCDynamicLinkedList_Traverse(pstTaskManager->hTaskList, traverseCompositeTaskList, pstMappedTask);
+	stSearchData.pstMappedInfo = pstMappedTask;
+	stSearchData.pstMatchingCompositeTask = NULL;
+
+	result = UCDynamicLinkedList_Traverse(pstTaskManager->hTaskList, findCompositeTask, &stSearchData);
 	ERRIFGOTO(result, _EXIT);
 
+	if(result == ERR_UEM_FOUND_DATA)
+	{
+		pstCompositeTask = stSearchData.pstMatchingCompositeTask;
+	}
+	else
+	{
+		result = createCompositeTaskStruct(hManager, pstMappedTask, &pstCompositeTask);
+		ERRIFGOTO(result, _EXIT);
 
+		result = UCDynamicLinkedList_Add(pstTaskManager->hTaskList, LINKED_LIST_OFFSET_FIRST, 0, pstCompositeTask);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = createCompositeTaskThreadStructs(pstMappedInfo, pstTaskManager->hTaskList);
+	ERRIFGOTO(result, _EXIT);
+
+	//result = UCDynamicLinkedList_Add(pstTaskManager->hTaskList, LINKED_LIST_OFFSET_FIRST, 0, pstTaskThread);g
+	//ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -218,7 +291,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKCPUCompositeTaskManager_ChangeState(HCPUCompositeTaskManager hManager, STask *pstTargetTask, , EInternalTaskState enTaskState)
+uem_result UKCPUCompositeTaskManager_ChangeState(HCPUCompositeTaskManager hManager, STask *pstTargetTask, EInternalTaskState enTaskState)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUCompositeTaskManager *pstTaskManager = NULL;
