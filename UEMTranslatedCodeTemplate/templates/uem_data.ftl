@@ -420,7 +420,7 @@ ${space}{
 		</#if>
 ${innerspace}${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}(${flat_task[scheduleItem.taskName].id});
 			<#if compositeMappedProcessor.srcTaskMap[scheduleItem.taskName]??>
-				<#if (flat_task[scheduleItem.taskName].modeTransition.modeMap?size > 1)??>
+				<#if (flat_task[parentTaskName].modeTransition.modeMap?size > 1)??>
 ${innerspace}{
 ${innerspace}	uem_bool bTransition = FALSE;
 ${innerspace}	uem_result result;
