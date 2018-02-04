@@ -31,7 +31,6 @@
 typedef struct _SCPUCompositeTaskManager *HCPUCompositeTaskManager;
 
 typedef struct _SCompositeTaskThread {
-	int nSeqId;
 	int nModeId;
 	int nThroughputConstraint;
 	int nProcId;
@@ -67,7 +66,6 @@ typedef struct _SCPUCompositeTaskManager {
 
 struct _SCompositeTaskSearchData {
 	int nTargetParentTaskId;
-	SMappedCompositeTaskInfo *pstMappedInfo;
 	SCompositeTask *pstMatchingCompositeTask;
 };
 
@@ -162,7 +160,6 @@ static uem_result createCompositeTaskThreadStructPerSchedule(SMappedCompositeTas
 	pstCompositeTaskThread->hManager = NULL;
 	pstCompositeTaskThread->nModeId = pstMappedInfo->pstScheduledTasks->nModeId;
 	pstCompositeTaskThread->nProcId = pstMappedInfo->nProcessorId;
-	pstCompositeTaskThread->nSeqId = 0;
 	pstCompositeTaskThread->hThread = NULL;
 	pstCompositeTaskThread->bIsThreadFinished = TRUE;
 	pstCompositeTaskThread->hEvent = NULL;
@@ -824,8 +821,6 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstTask, SCompositeTaskT
 	result = waitRunSignal(pstTask, pstTaskThread, TRUE, &llNextTime, &nMaxRunCount);
 	ERRIFGOTO(result, _EXIT);
 
-	// if nSeqId is changed, it means this thread is detached or stopped from the CPU task manager.
-	// So, end this thread
 	while(pstTaskThread->enTaskState != TASK_STATE_STOP)
 	{
 		switch(pstTaskThread->enTaskState)
@@ -1164,7 +1159,7 @@ uem_result UKCPUCompositeTaskManager_CreateThread(HCPUCompositeTaskManager hMana
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUCompositeTaskManager *pstTaskManager = NULL;
 	SCompositeTask *pstCompositeTask = NULL;
-	struct _SCompositeTaskSearchData stSearchData;
+	struct _SCompositeTaskCreateData stCreateData;
 	int nTaskId = INVALID_TASK_ID;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(pstTargetTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
@@ -1187,7 +1182,9 @@ uem_result UKCPUCompositeTaskManager_CreateThread(HCPUCompositeTaskManager hMana
 	result = handleSubgraphTasks(pstCompositeTask->pstParentTask, callInitFunction);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UCDynamicLinkedList_Traverse(pstCompositeTask->hThreadList, createCompositeTaskThread, &stSearchData);
+	stCreateData.pstCompositeTask = pstCompositeTask;
+
+	result = UCDynamicLinkedList_Traverse(pstCompositeTask->hThreadList, createCompositeTaskThread, &stCreateData);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
