@@ -103,7 +103,7 @@ _EXIT:
 
 
 
-static uem_result getCachedCompositeTask(SCPUGeneralTaskManager *pstTaskManager, int nTaskId, OUT SGeneralTask **ppstGeneralTask)
+static uem_result getCachedTask(SCPUGeneralTaskManager *pstTaskManager, int nTaskId, OUT SGeneralTask **ppstGeneralTask)
 {
 	SGeneralTask *pstGeneralTask = NULL;
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -186,7 +186,7 @@ static uem_result findMatchingGeneralTask(SCPUGeneralTaskManager *pstTaskManager
 	struct _SGeneralTaskSearchData stSearchData;
 
 	// check cache
-	result = getCachedCompositeTask(pstTaskManager, nTaskId, &pstGeneralTask);
+	result = getCachedTask(pstTaskManager, nTaskId, &pstGeneralTask);
 	if(result == ERR_UEM_NOT_FOUND)
 	{
 		stSearchData.nTargetTaskId = nTaskId;
@@ -603,6 +603,8 @@ static uem_result createGeneralTaskThread(IN int nOffset, IN void *pData, IN voi
 	result = UCThread_Create(taskThreadRoutine, pstTaskThreadData, &(pstTaskThread->hThread));
 	ERRIFGOTO(result, _EXIT);
 
+	pstTaskThreadData = NULL;
+
 	if(pstTaskThread->nProcId != MAPPING_NOT_SPECIFIED)
 	{
 		result = UCThread_SetMappedCPU(pstTaskThread->hThread, pstTaskThread->nProcId);
@@ -616,6 +618,7 @@ _EXIT:
 		UCThread_Destroy(&(pstTaskThread->hThread), FALSE, THREAD_DESTROY_TIMEOUT);
 		pstTaskThread->bIsThreadFinished = TRUE;
 	}
+	SAFEMEMFREE(pstTaskThreadData);
     return result;
 }
 
@@ -645,6 +648,70 @@ uem_result UKCPUGeneralTaskManager_CreateThread(HCPUGeneralTaskManager hManager,
 	result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, createGeneralTaskThread, &stCreateData);
 	ERRIFGOTO(result, _EXIT);
 
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+static uem_result checkTaskThreadState(ECPUTaskState enOldState, ECPUTaskState enNewState)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	if(enNewState == enOldState)
+	{
+		UEMASSIGNGOTO(result, ERR_UEM_ALREADY_DONE, _EXIT);
+	}
+
+	switch(enOldState)
+	{
+	case TASK_STATE_RUNNING:
+		// do nothing
+		break;
+	case TASK_STATE_SUSPEND:
+		if(enNewState == TASK_STATE_STOPPING)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+		}
+		break;
+	case TASK_STATE_STOP:
+		if(enNewState != TASK_STATE_RUNNING && enNewState != TASK_STATE_STOPPING)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+		}
+		break;
+	case TASK_STATE_STOPPING:
+		if(enNewState != TASK_STATE_STOP)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+		}
+		break;
+	default:
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+		break;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result checkAndChangeTaskState(STaskThread * pstTaskThread, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	ECPUTaskState enTaskState = *((ECPUTaskState *)pUserData);
+
+	result = checkTaskThreadState(pstTaskThread->enTaskState, enTaskState);
+	ERRIFGOTO(result, _EXIT);
+	if(result == ERR_UEM_ALREADY_DONE)
+	{
+		// TODO: do something?
+	}
+
+	if(pstTaskThread->enTaskState != TASK_STATE_STOP)
+	{
+		pstTaskThread->enTaskState = enTaskState;
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

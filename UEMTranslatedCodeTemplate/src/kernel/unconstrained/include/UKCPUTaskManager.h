@@ -15,6 +15,7 @@
 #include <UCThreadMutex.h>
 
 #include <UKTask.h>
+#include <UKCPUTaskCommon.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -24,13 +25,6 @@ extern "C"
 #define CPU_ID_NOT_SET (-1)
 
 typedef struct _SCPUTaskManager *HCPUTaskManager;
-
-typedef enum _ECPUTaskState {
-	TASK_STATE_STOP,
-	TASK_STATE_RUNNING,
-	TASK_STATE_SUSPEND,
-	TASK_STATE_STOPPING,
-} ECPUTaskState;
 
 // global variable which is used for accessing CPUTaskManager from APIs
 extern HCPUTaskManager g_hCPUTaskManager;

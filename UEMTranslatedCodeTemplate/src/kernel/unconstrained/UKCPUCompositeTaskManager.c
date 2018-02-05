@@ -946,6 +946,8 @@ static uem_result createCompositeTaskThread(IN int nOffset, IN void *pData, IN v
 		result = UCThread_Create(compositeTaskThreadRoutine, pstTaskThreadData, &(pstTaskThread->hThread));
 		ERRIFGOTO(result, _EXIT);
 
+		pstTaskThreadData = NULL;
+
 		if(pstTaskThread->nProcId != MAPPING_NOT_SPECIFIED)
 		{
 			result = UCThread_SetMappedCPU(pstTaskThread->hThread, pstTaskThread->nProcId);
@@ -965,6 +967,7 @@ _EXIT:
 		UCThread_Destroy(&(pstTaskThread->hThread), FALSE, THREAD_DESTROY_TIMEOUT);
 		pstTaskThread->bIsThreadFinished = TRUE;
 	}
+	SAFEMEMFREE(pstTaskThreadData);
     return result;
 }
 
