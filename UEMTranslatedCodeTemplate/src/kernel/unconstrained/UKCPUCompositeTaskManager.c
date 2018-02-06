@@ -85,9 +85,12 @@ struct _SCompositeTaskStopCheck {
 	SCompositeTask *pstCompositeTask;
 };
 
+struct _SCompositeTaskTraverse {
+	CbFnTraverseCompositeTask fnCallback;
+	void *pUserData;
+};
 
 typedef uem_result (*FnCbHandleGeneralTask)(STask *pstTask);
-
 
 static uem_result destroyCompositeTaskThreadStruct(IN int nOffset, IN void *pData, IN void *pUserData)
 {
@@ -944,6 +947,51 @@ static uem_result findMatchingCompositeTask(SCPUCompositeTaskManager *pstTaskMan
 _EXIT:
 	return result;
 }
+
+static uem_result traverseCompositeTaskList(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCompositeTask *pstCompositeTask = NULL;
+	struct _SCompositeTaskTraverse *pstUserData = NULL;
+
+	pstCompositeTask = (SCompositeTask *) pData;
+	pstUserData = (struct _SCompositeTaskTraverse *) pUserData;
+
+	result = pstUserData->fnCallback(pstCompositeTask->pstParentTask, pstUserData->pUserData);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+uem_result UKCPUCompositeTaskManager_TraverseCompositeTaskList(HCPUCompositeTaskManager hManager, CbFnTraverseCompositeTask fnCallback, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCPUCompositeTaskManager *pstTaskManager = NULL;
+	struct _SCompositeTaskTraverse stUserData;
+
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(fnCallback, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	if (IS_VALID_HANDLE(hManager, ID_UEM_CPU_COMPOSITE_TASK_MANAGER) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+#endif
+	pstTaskManager = hManager;
+
+	stUserData.fnCallback = fnCallback;
+	stUserData.pUserData = pUserData;
+
+	result = UCDynamicLinkedList_Traverse(pstTaskManager->hTaskList, traverseCompositeTaskList, &stUserData);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 
 
 uem_result UKCPUCompositeTaskManager_RegisterTask(HCPUCompositeTaskManager hManager, SMappedCompositeTaskInfo *pstMappedTask)

@@ -386,6 +386,52 @@ _EXIT:
 }
 
 
+static uem_result traverseGeneralTaskList(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SGeneralTask *pstGeneralTask = NULL;
+	struct _SGeneralTaskTraverse *pstUserData = NULL;
+
+	pstGeneralTask = (SGeneralTask *) pData;
+	pstUserData = (struct _SGeneralTaskTraverse *) pUserData;
+
+	result = pstUserData->fnCallback(pstGeneralTask->pstParentTask, pstUserData->pUserData);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+uem_result UKCPUGeneralTaskManager_TraverseGeneralTaskList(HCPUGeneralTaskManager hManager, CbFnTraverseGeneralTask fnCallback, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCPUGeneralTaskManager *pstTaskManager = NULL;
+	struct _SGeneralTaskTraverse stUserData;
+
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(fnCallback, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	if (IS_VALID_HANDLE(hManager, ID_UEM_CPU_GENERAL_TASK_MANAGER) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+#endif
+	pstTaskManager = hManager;
+
+	stUserData.fnCallback = fnCallback;
+	stUserData.pUserData = pUserData;
+
+	result = UCDynamicLinkedList_Traverse(pstTaskManager->hTaskList, traverseGeneralTaskList, &stUserData);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+
 static uem_result waitRunSignal(SGeneralTask *pstTask, SGeneralTaskThread *pstTaskThread, uem_bool bStartWait, OUT long long *pllNextTime, OUT int *pnNextMaxRunCount)
 {
 	uem_result result = ERR_UEM_UNKNOWN;

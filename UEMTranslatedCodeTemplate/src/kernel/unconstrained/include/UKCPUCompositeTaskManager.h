@@ -21,8 +21,11 @@ extern "C"
 
 typedef struct _SCPUCompositeTaskManager *HCPUCompositeTaskManager;
 
+typedef uem_result (*CbFnTraverseCompositeTask)(STask *pstTask, IN void *pUserData);
+
 uem_result UKCPUCompositeTaskManager_Create(IN OUT HCPUCompositeTaskManager *phManager);
 uem_result UKCPUCompositeTaskManager_RegisterTask(HCPUCompositeTaskManager hManager, SMappedCompositeTaskInfo *pstMappedTask);
+uem_result UKCPUCompositeTaskManager_TraverseCompositeTaskList(HCPUCompositeTaskManager hManager, CbFnTraverseCompositeTask fnCallback, void *pUserData);
 uem_result UKCPUCompositeTaskManager_CreateThread(HCPUCompositeTaskManager hManager, STask *pstTargetTask);
 uem_result UKCPUCompositeTaskManager_ChangeState(HCPUCompositeTaskManager hManager, STask *pstTargetTask, ECPUTaskState enTaskState);
 uem_result UKCPUCompositeTaskManager_ActivateThread(HCPUCompositeTaskManager hManager, STask *pstTargetTask);

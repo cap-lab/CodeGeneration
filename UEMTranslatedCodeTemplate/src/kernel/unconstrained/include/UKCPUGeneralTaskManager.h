@@ -21,8 +21,11 @@ extern "C"
 
 typedef struct _SCPUGeneralTaskManager *HCPUGeneralTaskManager;
 
+typedef uem_result (*CbFnTraverseGeneralTask)(STask *pstTask, IN void *pUserData);
+
 uem_result UKCPUGeneralTaskManager_Create(IN OUT HCPUGeneralTaskManager *phManager);
 uem_result UKCPUGeneralTaskManager_RegisterTask(HCPUGeneralTaskManager hManager, SMappedGeneralTaskInfo *pstMappedTask);
+uem_result UKCPUGeneralTaskManager_TraverseGeneralTaskList(HCPUGeneralTaskManager hManager, CbFnTraverseGeneralTask fnCallback, void *pUserData);
 uem_result UKCPUGeneralTaskManager_CreateThread(HCPUGeneralTaskManager hManager, STask *pstTargetTask);
 uem_result UKCPUGeneralTaskManager_ChangeState(HCPUGeneralTaskManager hManager, STask *pstTargetTask, ECPUTaskState enTaskState);
 uem_result UKCPUGeneralTaskManager_ActivateThread(HCPUGeneralTaskManager hManager, STask *pstTargetTask);
