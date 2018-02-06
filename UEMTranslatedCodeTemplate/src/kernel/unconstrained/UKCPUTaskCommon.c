@@ -16,9 +16,13 @@
 #include <uem_data.h>
 
 #include <UKTime.h>
+#include <UKCPUTaskCommon.h>
 
 
-uem_result UKCPUTaskCommon_CheckTaskThreadState(ECPUTaskState enOldState, ECPUTaskState enNewState)
+#define MIN_SLEEP_DURATION (10)
+#define MAX_SLEEP_DURATION (100)
+
+uem_result UKCPUTaskCommon_CheckTaskState(ECPUTaskState enOldState, ECPUTaskState enNewState)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 

@@ -22,13 +22,9 @@
 #include <UKCPUTaskManager.h>
 #include <UKTime.h>
 #include <UKChannel.h>
+#include <UKCPUCompositeTaskManager.h>
 
 #define THREAD_DESTROY_TIMEOUT (5000)
-
-#define MIN_SLEEP_DURATION (10)
-#define MAX_SLEEP_DURATION (100)
-
-typedef struct _SCPUCompositeTaskManager *HCPUCompositeTaskManager;
 
 typedef struct _SCompositeTaskThread {
 	int nModeId;
@@ -49,7 +45,6 @@ typedef struct _SCompositeTask {
 	HLinkedList hThreadList; // modified
 	HThreadEvent hEvent;
 	HThreadMutex hMutex;
-	int nFinishedThreadNum; // modified
 	SScheduledTasks *pstScheduledTasks;
 	ECPUTaskState enTaskState; // modified
 	int nCurrentThroughputConstraint; // modified
@@ -213,7 +208,6 @@ static uem_result createCompositeTaskStruct(HCPUCompositeTaskManager hCPUTaskMan
 	pstCompositeTask->hMutex = NULL;
 	pstCompositeTask->hThreadList = NULL;
 	pstCompositeTask->enTaskState = TASK_STATE_STOP;
-	pstCompositeTask->nFinishedThreadNum = 0;
 	pstCompositeTask->pstParentTask = pstMappedInfo->pstScheduledTasks->pstParentTask;
 	pstCompositeTask->nCurrentThroughputConstraint = pstMappedInfo->pstScheduledTasks->astScheduleList[0].nThroughputConstraint;
 
@@ -315,62 +309,6 @@ _EXIT:
 }
 
 
-static uem_result handleTimeDrivenTask(STask *pstCurrentTask, FnUemTaskGo fnGo, IN OUT long long *pllNextTime,
-										IN OUT int *pnRunCount, IN OUT int *pnNextMaxRunCount)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	long long llCurTime = 0;
-	long long llNextTime = 0;
-	int nMaxRunCount = 0;
-	int nRunCount = 0;
-
-	llNextTime = *pllNextTime;
-	nRunCount = *pnRunCount;
-	nMaxRunCount = *pnNextMaxRunCount;
-
-	result = UCTime_GetCurTickInMilliSeconds(&llCurTime);
-	ERRIFGOTO(result, _EXIT);
-	if(llCurTime <= llNextTime) // time is not passed
-	{
-		if(nRunCount < nMaxRunCount) // run count is available
-		{
-			nRunCount++;
-			fnGo(pstCurrentTask->nTaskId);
-		}
-		else // all run count is used and time is not passed yet
-		{
-			// if period is long, sleep by time passing
-			if(llNextTime - llCurTime > MAX_SLEEP_DURATION)
-			{
-				UCTime_Sleep(MAX_SLEEP_DURATION);
-			}
-			else if(llNextTime - llCurTime > MIN_SLEEP_DURATION) // left time is more than SLEEP_DURATION ms
-			{
-				UCTime_Sleep(MIN_SLEEP_DURATION);
-			}
-			else
-			{
-				// otherwise, busy wait
-			}
-		}
-	}
-	else // time is passed, reset
-	{
-		result = UKTime_GetNextTimeByPeriod(llNextTime, pstCurrentTask->nPeriod, pstCurrentTask->enPeriodMetric,
-										&llNextTime, &nMaxRunCount);
-		ERRIFGOTO(result, _EXIT);
-		nRunCount = 0;
-	}
-
-	*pllNextTime = llNextTime;
-	*pnRunCount = nRunCount;
-	*pnNextMaxRunCount = nMaxRunCount;
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
 static uem_bool isModeTransitionTask(SCompositeTask *pstTask)
 {
 	STask *pstCurrentTask = NULL;
@@ -392,48 +330,6 @@ static uem_bool isModeTransitionTask(SCompositeTask *pstTask)
 	return bIsModeTransition;
 }
 
-
-static uem_result checkTaskThreadState(ECPUTaskState enOldState, ECPUTaskState enNewState)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-
-	if(enNewState == enOldState)
-	{
-		UEMASSIGNGOTO(result, ERR_UEM_ALREADY_DONE, _EXIT);
-	}
-
-	switch(enOldState)
-	{
-	case TASK_STATE_RUNNING:
-		// do nothing
-		break;
-	case TASK_STATE_SUSPEND:
-		if(enNewState == TASK_STATE_STOPPING)
-		{
-			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
-		}
-		break;
-	case TASK_STATE_STOP:
-		if(enNewState != TASK_STATE_RUNNING && enNewState != TASK_STATE_STOPPING)
-		{
-			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
-		}
-		break;
-	case TASK_STATE_STOPPING:
-		if(enNewState != TASK_STATE_STOP)
-		{
-			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
-		}
-		break;
-	default:
-		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
-		break;
-	}
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
 
 static int getCurrentTaskModeId(STask *pstTask)
 {
@@ -465,7 +361,7 @@ static uem_result traverseAndChangeTaskState(IN int nOffset, IN void *pData, IN 
 	pstUserData = (struct _SCompositeTaskStateChangeData *) pUserData;
 	pstTask = pstUserData->pstCompositeTask;
 
-	result = checkTaskThreadState(pstTaskThread->enTaskState, pstUserData->enTaskState);
+	result = UKCPUTaskCommon_CheckTaskState(pstTaskThread->enTaskState, pstUserData->enTaskState);
 	ERRIFGOTO(result, _EXIT);
 
 	// For MTM task
@@ -480,23 +376,17 @@ static uem_result traverseAndChangeTaskState(IN int nOffset, IN void *pData, IN 
 			pstTaskThread->enTaskState == TASK_STATE_STOPPING ||
 			pstTaskThread->enTaskState == TASK_STATE_SUSPEND)
 		{
-			// release task if task is suspended
-			if(pstTaskThread->enTaskState == TASK_STATE_SUSPEND)
-			{
-				pstTaskThread->enTaskState = TASK_STATE_STOP;
+			pstTaskThread->enTaskState = TASK_STATE_STOP;
 
-				// exit from WaitEvent
-				result = UCThreadEvent_SetEvent(pstTask->hEvent);
-				ERRIFGOTO(result, _EXIT);
-			}
-			else
+			if(pstTaskThread->bSuspended == TRUE)
 			{
-				pstTaskThread->enTaskState = TASK_STATE_STOP;
+				result = UCThreadEvent_SetEvent(pstTaskThread->hEvent);
+				ERRIFGOTO(result, _EXIT_LOCK);
 			}
 		}
 		else
 		{
-			UEMASSIGNGOTO(result, ERR_UEM_ALREADY_DONE, _EXIT);
+			UEMASSIGNGOTO(result, ERR_UEM_ALREADY_DONE, _EXIT_LOCK);
 		}
 	}
 	else if(pstTask->nCurrentThroughputConstraint != pstTaskThread->nThroughputConstraint)
@@ -526,23 +416,9 @@ static uem_result traverseAndChangeTaskState(IN int nOffset, IN void *pData, IN 
 		}
 	}
 
-	result = UCThreadMutex_Unlock(pstTask->hMutex);
-	ERRIFGOTO(result, _EXIT);
-
 	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-
-static uem_result activateTaskThread(SCompositeTaskThread *pstTaskThread)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-
-	result = UCThreadEvent_SetEvent(pstTaskThread->hEvent);
-	ERRIFGOTO(result, _EXIT);
-
-	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstTask->hMutex);
 _EXIT:
 	return result;
 }
@@ -555,21 +431,11 @@ static uem_result traverseAndSetEventToTaskThread(IN int nOffset, IN void *pData
 
 	pstTaskThread = (SCompositeTaskThread *) pData;
 
-	result = activateTaskThread(pstTaskThread);
-	ERRIFGOTO(result, _EXIT);
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-
-static uem_result activateTask(SCompositeTask *pstTask)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-
-	result = UCDynamicLinkedList_Traverse(pstTask->hThreadList, traverseAndSetEventToTaskThread, NULL);
-	ERRIFGOTO(result, _EXIT);
+	if(pstTaskThread->bSuspended == TRUE)
+	{
+		result = UCThreadEvent_SetEvent(pstTaskThread->hEvent);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -830,7 +696,7 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstTask, SCompositeTaskT
 			{
 			case RUN_CONDITION_TIME_DRIVEN:
 				// pstCurrentTask is not NULL because whole task graph is a data-driven task graph
-				result = handleTimeDrivenTask(pstTask->pstParentTask, fnGo, &llNextTime, &nRunCount, &nMaxRunCount);
+				result = UKCPUTaskCommon_HandleTimeDrivenTask(pstTask->pstParentTask, fnGo, &llNextTime, &nRunCount, &nMaxRunCount);
 				ERRIFGOTO(result, _EXIT);
 				break;
 			case RUN_CONDITION_DATA_DRIVEN:
@@ -1251,7 +1117,7 @@ uem_result UKCPUCompositeTaskManager_ActivateThread(HCPUCompositeTaskManager hMa
 	result = findMatchingCompositeTask(pstTaskManager, nTaskId, &pstCompositeTask);
 	ERRIFGOTO(result, _EXIT);
 
-	result = activateTask(pstCompositeTask);
+	result = UCDynamicLinkedList_Traverse(pstCompositeTask->hThreadList, traverseAndSetEventToTaskThread, NULL);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -1385,29 +1251,10 @@ _EXIT:
 }
 
 
-uem_result UKCPUCompositeTaskManager_DestroyThread(HCPUCompositeTaskManager hManager, STask *pstTargetTask)
+static uem_result destroyCompositeTaskThread(SCompositeTask *pstCompositeTask)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	SCPUCompositeTaskManager *pstTaskManager = NULL;
-	SCompositeTask *pstCompositeTask = NULL;
 	struct _SCompositeTaskStateChangeData stUserData;
-	int nTaskId = INVALID_TASK_ID;
-#ifdef ARGUMENT_CHECK
-	IFVARERRASSIGNGOTO(pstTargetTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-
-	if (IS_VALID_HANDLE(hManager, ID_UEM_CPU_COMPOSITE_TASK_MANAGER) == FALSE) {
-		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
-	}
-#endif
-	pstTaskManager = hManager;
-
-	if(pstTargetTask != NULL)
-	{
-		nTaskId = pstTargetTask->nTaskId;
-	}
-
-	result = findMatchingCompositeTask(pstTaskManager, nTaskId, &pstCompositeTask);
-	ERRIFGOTO(result, _EXIT);
 
 	stUserData.enTaskState = TASK_STATE_STOP;
 	stUserData.pstCompositeTask = pstCompositeTask;
@@ -1436,33 +1283,46 @@ _EXIT:
 }
 
 
+uem_result UKCPUCompositeTaskManager_DestroyThread(HCPUCompositeTaskManager hManager, STask *pstTargetTask)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCPUCompositeTaskManager *pstTaskManager = NULL;
+	SCompositeTask *pstCompositeTask = NULL;
+	int nTaskId = INVALID_TASK_ID;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(pstTargetTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	if (IS_VALID_HANDLE(hManager, ID_UEM_CPU_COMPOSITE_TASK_MANAGER) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+#endif
+	pstTaskManager = hManager;
+
+	if(pstTargetTask != NULL)
+	{
+		nTaskId = pstTargetTask->nTaskId;
+	}
+
+	result = findMatchingCompositeTask(pstTaskManager, nTaskId, &pstCompositeTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = destroyCompositeTaskThread(pstCompositeTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 static uem_result traverseAndDestroyCompositeTask(IN int nOffset, IN void *pData, IN void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCompositeTask *pstCompositeTask = NULL;
-	struct _SCompositeTaskStateChangeData stUserData;
 
 	pstCompositeTask = (SCompositeTask *) pUserData;
 
-	stUserData.enTaskState = TASK_STATE_STOP;
-	stUserData.pstCompositeTask = pstCompositeTask;
-
-	result = UCDynamicLinkedList_Traverse(pstCompositeTask->hThreadList, traverseAndChangeTaskState, &stUserData);
-	ERRIFGOTO(result, _EXIT);
-
-	// set channel block free
-	result = handleSubgraphTasks(pstCompositeTask->pstParentTask, setChannelExitFlags);
-	ERRIFGOTO(result, _EXIT);
-
-	result = UCDynamicLinkedList_Traverse(pstCompositeTask->hThreadList, traverseAndDestroyThread, pstCompositeTask);
-	ERRIFGOTO(result, _EXIT);
-
-	// call wrapup functions
-	result = handleSubgraphTasks(pstCompositeTask->pstParentTask, callWrapupFunction);
-	ERRIFGOTO(result, _EXIT);
-
-	// clear channel exit flags
-	result = handleSubgraphTasks(pstCompositeTask->pstParentTask, clearChannelExitFlags);
+	result = destroyCompositeTaskThread(pstCompositeTask);
 	ERRIFGOTO(result, _EXIT);
 
 	result = destroyCompositeTaskStruct(&pstCompositeTask);

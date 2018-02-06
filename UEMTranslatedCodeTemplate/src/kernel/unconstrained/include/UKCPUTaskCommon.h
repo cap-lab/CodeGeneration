@@ -29,7 +29,7 @@ typedef enum _ECPUTaskState {
 	TASK_STATE_STOPPING,
 } ECPUTaskState;
 
-uem_result UKCPUTaskCommon_CheckTaskThreadState(ECPUTaskState enOldState, ECPUTaskState enNewState);
+uem_result UKCPUTaskCommon_CheckTaskState(ECPUTaskState enOldState, ECPUTaskState enNewState);
 uem_result UKCPUTaskCommon_HandleTimeDrivenTask(STask *pstCurrentTask, FnUemTaskGo fnGo, IN OUT long long *pllNextTime,
 										IN OUT int *pnRunCount, IN OUT int *pnNextMaxRunCount);
 
