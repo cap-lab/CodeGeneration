@@ -43,6 +43,7 @@ typedef struct _SGeneralTask {
 	HThreadMutex hMutex;
 	int nFinishedThreadNum; // modified
 	ECPUTaskState enTaskState; // modified
+	uem_bool bCreated;
 } SGeneralTask;
 
 typedef struct _SCPUGeneralTaskManager {
@@ -71,6 +72,12 @@ struct _SGeneralTaskThreadData {
 struct _SGeneralTaskStopCheck {
 	uem_bool bAllStop;
 	SGeneralTask *pstGeneralTask;
+};
+
+struct _SGeneralTaskTraverse {
+	CbFnTraverseGeneralTask fnCallback;
+	void *pUserData;
+	SCPUGeneralTaskManager *pstManager;
 };
 
 
@@ -115,26 +122,17 @@ static uem_result getCachedTask(SCPUGeneralTaskManager *pstTaskManager, int nTas
 	SGeneralTask *pstGeneralTask = NULL;
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UCThreadMutex_Lock(pstTaskManager->hMutex);
-	ERRIFGOTO(result, _EXIT);
-
 	pstGeneralTask = pstTaskManager->pstCachedTask;
-
-	result = UCThreadMutex_Unlock(pstTaskManager->hMutex);
-	ERRIFGOTO(result, _EXIT);
 
 	if(pstGeneralTask == NULL)
 	{
 		*ppstGeneralTask = NULL;
 		result = ERR_UEM_NOT_FOUND;
 	}
-	else if(pstGeneralTask->pstTask == NULL && nTaskId == INVALID_TASK_ID) // whole task graph
-	{
-		*ppstGeneralTask = pstGeneralTask;
-	}
 	else if(pstGeneralTask->pstTask->nTaskId == nTaskId)
 	{
 		*ppstGeneralTask = pstGeneralTask;
+		result = ERR_UEM_NOERROR;
 	}
 	else
 	{
@@ -142,8 +140,6 @@ static uem_result getCachedTask(SCPUGeneralTaskManager *pstTaskManager, int nTas
 		result = ERR_UEM_NOT_FOUND;
 	}
 
-	result = ERR_UEM_NOERROR;
-_EXIT:
 	return result;
 }
 
@@ -167,25 +163,6 @@ _EXIT:
     return result;
 }
 
-static uem_result setCachedTask(SCPUGeneralTaskManager *pstTaskManager, SGeneralTask *pstGeneralTask)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	result = UCThreadMutex_Lock(pstTaskManager->hMutex);
-	ERRIFGOTO(result, _EXIT);
-
-	pstTaskManager->pstCachedTask = pstGeneralTask;
-
-	result = UCThreadMutex_Unlock(pstTaskManager->hMutex);
-	ERRIFGOTO(result, _EXIT);
-
-
-    result = ERR_UEM_NOERROR;
-_EXIT:
-    return result;
-}
-
-
-
 static uem_result findMatchingGeneralTask(SCPUGeneralTaskManager *pstTaskManager, int nTaskId, OUT SGeneralTask **ppstGeneralTask)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -205,13 +182,14 @@ static uem_result findMatchingGeneralTask(SCPUGeneralTaskManager *pstTaskManager
 		if(result == ERR_UEM_FOUND_DATA)
 		{
 			pstGeneralTask = stSearchData.pstMatchingTask;
-			setCachedTask(pstTaskManager, pstGeneralTask);
+			pstTaskManager->pstCachedTask = pstGeneralTask;
 		}
 		else
 		{
 			UEMASSIGNGOTO(result, ERR_UEM_NOT_FOUND, _EXIT);
 		}
 	}
+	ERRIFGOTO(result, _EXIT);
 
 	*ppstGeneralTask = pstGeneralTask;
 
@@ -286,6 +264,17 @@ static uem_result createGeneralTaskStruct(HCPUGeneralTaskManager hCPUTaskManager
 	pstGeneralTask->hMutex = NULL;
 	pstGeneralTask->hThreadList = NULL;
 	pstGeneralTask->enTaskState = TASK_STATE_STOP;
+	pstGeneralTask->bCreated = FALSE;
+	if(pstMappedInfo->pstTask->enRunCondition == RUN_CONDITION_DATA_DRIVEN ||
+		pstMappedInfo->pstTask->enRunCondition == RUN_CONDITION_TIME_DRIVEN)
+	{
+		pstGeneralTask->enTaskState = TASK_STATE_RUNNING;
+	}
+	else
+	{
+		pstGeneralTask->enTaskState = TASK_STATE_STOP;
+	}
+
 	pstGeneralTask->nFinishedThreadNum = 0;
 	pstGeneralTask->pstTask = pstMappedInfo->pstTask;
 
@@ -320,7 +309,7 @@ static uem_result createGeneralTaskThreadStructs(SMappedGeneralTaskInfo *pstMapp
 	pstGeneralTaskThread = UC_malloc(sizeof(SGeneralTaskThread));
 	ERRMEMGOTO(pstGeneralTaskThread, result, _EXIT);
 
-	pstGeneralTaskThread->nProcId = pstMappedInfo->nProcessorId;
+	pstGeneralTaskThread->nProcId = pstMappedInfo->nLocalId;
 	pstGeneralTaskThread->hThread = NULL;
 	pstGeneralTaskThread->bIsThreadFinished = TRUE;
 	pstGeneralTaskThread->hEvent = NULL;
@@ -391,14 +380,22 @@ static uem_result traverseGeneralTaskList(IN int nOffset, IN void *pData, IN voi
 	uem_result result = ERR_UEM_UNKNOWN;
 	SGeneralTask *pstGeneralTask = NULL;
 	struct _SGeneralTaskTraverse *pstUserData = NULL;
+	SCPUGeneralTaskManager *pstTaskManager = NULL;
 
 	pstGeneralTask = (SGeneralTask *) pData;
 	pstUserData = (struct _SGeneralTaskTraverse *) pUserData;
 
-	result = pstUserData->fnCallback(pstGeneralTask->pstParentTask, pstUserData->pUserData);
+	pstTaskManager = (SCPUGeneralTaskManager *) pstUserData->pstManager;
+
+	result = UCThreadMutex_Unlock(pstTaskManager->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
+	result = pstUserData->fnCallback(pstGeneralTask->pstTask, pstUserData->pUserData);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
 	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Lock(pstTaskManager->hMutex);
 _EXIT:
 	return result;
 }
@@ -421,11 +418,17 @@ uem_result UKCPUGeneralTaskManager_TraverseGeneralTaskList(HCPUGeneralTaskManage
 
 	stUserData.fnCallback = fnCallback;
 	stUserData.pUserData = pUserData;
+	stUserData.pstManager = pstTaskManager;
 
-	result = UCDynamicLinkedList_Traverse(pstTaskManager->hTaskList, traverseGeneralTaskList, &stUserData);
+	result = UCThreadMutex_Lock(pstTaskManager->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
+	result = UCDynamicLinkedList_Traverse(pstTaskManager->hTaskList, traverseGeneralTaskList, &stUserData);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
 	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstTaskManager->hMutex);
 _EXIT:
 	return result;
 }
@@ -583,6 +586,7 @@ static uem_result createGeneralTaskThread(IN int nOffset, IN void *pData, IN voi
 	ERRIFGOTO(result, _EXIT);
 
 	pstTaskThread->bIsThreadFinished = FALSE;
+	pstTaskThread->bSuspended = TRUE;
 
 	result = UCThreadMutex_Unlock(pstGeneralTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
@@ -631,15 +635,22 @@ uem_result UKCPUGeneralTaskManager_CreateThread(HCPUGeneralTaskManager hManager,
 #endif
 	pstTaskManager = hManager;
 
-	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
+	result = UCThreadMutex_Lock(pstTaskManager->hMutex);
 	ERRIFGOTO(result, _EXIT);
+
+	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
+	ERRIFGOTO(result, _EXIT_LOCK);
 
 	stCreateData.pstGeneralTask = pstGeneralTask;
 
 	result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, createGeneralTaskThread, &stCreateData);
-	ERRIFGOTO(result, _EXIT);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	pstGeneralTask->bCreated = TRUE;
 
 	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstTaskManager->hMutex);
 _EXIT:
 	return result;
 }
@@ -655,27 +666,9 @@ static uem_result traverseAndSetIsSuspended(IN int nOffset, IN void *pData, IN v
 	return ERR_UEM_NOERROR;
 }
 
-uem_result UKCPUGeneralTaskManager_ChangeState(HCPUGeneralTaskManager hManager, STask *pstTargetTask, ECPUTaskState enTaskState)
+static uem_result changeTaskState(SGeneralTask *pstGeneralTask, ECPUTaskState enTaskState)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	SCPUGeneralTaskManager *pstTaskManager = NULL;
-	SGeneralTask *pstGeneralTask = NULL;
-#ifdef ARGUMENT_CHECK
-	IFVARERRASSIGNGOTO(pstTargetTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-
-	if (IS_VALID_HANDLE(hManager, ID_UEM_CPU_GENERAL_TASK_MANAGER) == FALSE) {
-		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
-	}
-#endif
-	pstTaskManager = hManager;
-
-	if(pstGeneralTask->enTaskState == TASK_STATE_STOP)
-	{
-		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
-	}
-
-	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
-	ERRIFGOTO(result, _EXIT);
 
 	result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
@@ -700,6 +693,37 @@ uem_result UKCPUGeneralTaskManager_ChangeState(HCPUGeneralTaskManager hManager, 
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
 	UCThreadMutex_Unlock(pstGeneralTask->hMutex);
+_EXIT:
+	return result;
+}
+
+
+uem_result UKCPUGeneralTaskManager_ChangeState(HCPUGeneralTaskManager hManager, STask *pstTargetTask, ECPUTaskState enTaskState)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCPUGeneralTaskManager *pstTaskManager = NULL;
+	SGeneralTask *pstGeneralTask = NULL;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(pstTargetTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	if (IS_VALID_HANDLE(hManager, ID_UEM_CPU_GENERAL_TASK_MANAGER) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+#endif
+	pstTaskManager = hManager;
+
+	result = UCThreadMutex_Lock(pstTaskManager->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	result = changeTaskState(pstGeneralTask, enTaskState);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstTaskManager->hMutex);
 _EXIT:
 	return result;
 }
@@ -737,13 +761,18 @@ uem_result UKCPUGeneralTaskManager_ActivateThread(HCPUGeneralTaskManager hManage
 #endif
 	pstTaskManager = hManager;
 
-	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
+	result = UCThreadMutex_Lock(pstTaskManager->hMutex);
 	ERRIFGOTO(result, _EXIT);
+
+	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
+	ERRIFGOTO(result, _EXIT_LOCK);
 
 	result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, traverseAndSetEventToTaskThread, NULL);
-	ERRIFGOTO(result, _EXIT);
+	ERRIFGOTO(result, _EXIT_LOCK);
 
 	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstTaskManager->hMutex);
 _EXIT:
 	return result;
 }
@@ -795,8 +824,11 @@ uem_result UKCPUGeneralTaskManager_GetTaskState(HCPUGeneralTaskManager hManager,
 #endif
 	pstTaskManager = hManager;
 
-	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
+	result = UCThreadMutex_Lock(pstTaskManager->hMutex);
 	ERRIFGOTO(result, _EXIT);
+
+	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
+	ERRIFGOTO(result, _EXIT_LOCK);
 
 	if(pstGeneralTask->enTaskState == TASK_STATE_STOPPING)
 	{
@@ -804,23 +836,25 @@ uem_result UKCPUGeneralTaskManager_GetTaskState(HCPUGeneralTaskManager hManager,
 		stStopCheck.pstGeneralTask = pstGeneralTask;
 
 		result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, traverseAndCheckStoppingThread, &stStopCheck);
-		ERRIFGOTO(result, _EXIT);
+		ERRIFGOTO(result, _EXIT_LOCK);
 
 		if(stStopCheck.bAllStop == TRUE)
 		{
 			result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
-			ERRIFGOTO(result, _EXIT);
+			ERRIFGOTO(result, _EXIT_LOCK);
 
 			pstGeneralTask->enTaskState = TASK_STATE_STOP;
 
 			result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
-			ERRIFGOTO(result, _EXIT);
+			ERRIFGOTO(result, _EXIT_LOCK);
 		}
 	}
 
 	*penTaskState = pstGeneralTask->enTaskState;
 
 	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstTaskManager->hMutex);
 _EXIT:
 	return result;
 }
@@ -859,19 +893,22 @@ static uem_result destroyGeneralTaskThread(SGeneralTask *pstGeneralTask)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	pstGeneralTask->pstTask = TASK_STATE_STOP;
+	pstGeneralTask->enTaskState = TASK_STATE_STOP;
 
-	result = UKChannel_SetExitByTaskId(pstGeneralTask->pstTask->nTaskId);
-	ERRIFGOTO(result, _EXIT);
+	if(pstGeneralTask->bCreated == TRUE)
+	{
+		result = UKChannel_SetExitByTaskId(pstGeneralTask->pstTask->nTaskId);
+		ERRIFGOTO(result, _EXIT);
 
-	result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, traverseAndSetEventToTaskThread, NULL);
-	ERRIFGOTO(result, _EXIT);
+		result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, traverseAndSetEventToTaskThread, NULL);
+		ERRIFGOTO(result, _EXIT);
 
-	result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, traverseAndDestroyThread, pstGeneralTask);
-	ERRIFGOTO(result, _EXIT);
+		result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, traverseAndDestroyThread, pstGeneralTask);
+		ERRIFGOTO(result, _EXIT);
 
-	result = UKChannel_ClearExitByTaskId(pstGeneralTask->pstTask->nTaskId);
-	ERRIFGOTO(result, _EXIT);
+		result = UKChannel_ClearExitByTaskId(pstGeneralTask->pstTask->nTaskId);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -894,13 +931,20 @@ uem_result UKCPUGeneralTaskManager_DestroyThread(HCPUGeneralTaskManager hManager
 #endif
 	pstTaskManager = hManager;
 
-	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
+	result = UCThreadMutex_Lock(pstTaskManager->hMutex);
 	ERRIFGOTO(result, _EXIT);
+
+	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
+	ERRIFGOTO(result, _EXIT_LOCK);
 
 	result = destroyGeneralTaskThread(pstGeneralTask);
-	ERRIFGOTO(result, _EXIT);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	pstGeneralTask->bCreated = FALSE;
 
 	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstTaskManager->hMutex);
 _EXIT:
 	return result;
 }

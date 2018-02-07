@@ -6752,7 +6752,7 @@ STask g_astTasks_top[] = {
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_H264Dec_PHONE_functions, // Task function array
 		0, // Task function array number
-		RUN_CONDITION_CONTROL_DRIVEN, // Run condition
+		RUN_CONDITION_TIME_DRIVEN, // Run condition
 		1, // Run rate
 		111375, // Period
 		TIME_METRIC_MICROSEC, // Period metric
@@ -6771,7 +6771,7 @@ STask g_astTasks_top[] = {
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_H264Dec_VIDEO_functions, // Task function array
 		0, // Task function array number
-		RUN_CONDITION_CONTROL_DRIVEN, // Run condition
+		RUN_CONDITION_TIME_DRIVEN, // Run condition
 		1, // Run rate
 		111375, // Period
 		TIME_METRIC_MICROSEC, // Period metric
@@ -6790,7 +6790,7 @@ STask g_astTasks_top[] = {
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_MP3Dec_functions, // Task function array
 		0, // Task function array number
-		RUN_CONDITION_CONTROL_DRIVEN, // Run condition
+		RUN_CONDITION_TIME_DRIVEN, // Run condition
 		1, // Run rate
 		4455, // Period
 		TIME_METRIC_MICROSEC, // Period metric
@@ -6809,7 +6809,7 @@ STask g_astTasks_top[] = {
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_x264Enc_functions, // Task function array
 		0, // Task function array number
-		RUN_CONDITION_CONTROL_DRIVEN, // Run condition
+		RUN_CONDITION_TIME_DRIVEN, // Run condition
 		1, // Run rate
 		100, // Period
 		TIME_METRIC_MICROSEC, // Period metric
@@ -6828,7 +6828,7 @@ STask g_astTasks_top[] = {
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_G723Dec_functions, // Task function array
 		1, // Task function array number
-		RUN_CONDITION_CONTROL_DRIVEN, // Run condition
+		RUN_CONDITION_TIME_DRIVEN, // Run condition
 		1, // Run rate
 		4455000, // Period
 		TIME_METRIC_MICROSEC, // Period metric
@@ -6847,7 +6847,7 @@ STask g_astTasks_top[] = {
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_G723Enc_functions, // Task function array
 		1, // Task function array number
-		RUN_CONDITION_CONTROL_DRIVEN, // Run condition
+		RUN_CONDITION_TIME_DRIVEN, // Run condition
 		1, // Run rate
 		4455000, // Period
 		TIME_METRIC_MICROSEC, // Period metric
@@ -6866,7 +6866,7 @@ STask g_astTasks_top[] = {
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_UserInput_functions, // Task function array
 		1, // Task function array number
-		RUN_CONDITION_CONTROL_DRIVEN, // Run condition
+		RUN_CONDITION_TIME_DRIVEN, // Run condition
 		1, // Run rate
 		4455000, // Period
 		TIME_METRIC_MICROSEC, // Period metric
@@ -6885,7 +6885,7 @@ STask g_astTasks_top[] = {
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_Interrupt_functions, // Task function array
 		1, // Task function array number
-		RUN_CONDITION_CONTROL_DRIVEN, // Run condition
+		RUN_CONDITION_TIME_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
 		TIME_METRIC_MICROSEC, // Period metric

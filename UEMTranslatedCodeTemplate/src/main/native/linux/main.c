@@ -34,7 +34,7 @@ uem_result createTasks(HCPUTaskManager hManager)
 	int nLoop = 0;
 	uem_bool bIsCPU = FALSE;
 
-	for(nLoop = 0 ; nLoop < g_nMappingAndSchedulingInfoNum ; nLoop++)
+	/*for(nLoop = 0 ; nLoop < g_nMappingAndSchedulingInfoNum ; nLoop++)
 	{
 		result = UKProcessor_IsCPUByProcessorId(g_astMappingAndSchedulingInfo[nLoop].nProcessorId, &bIsCPU);
 		ERRIFGOTO(result, _EXIT);
@@ -52,6 +52,31 @@ uem_result createTasks(HCPUTaskManager hManager)
 				result = UKCPUTaskManager_RegisterTask(hManager, g_astMappingAndSchedulingInfo[nLoop].uMappedTask.pstTask, g_astMappingAndSchedulingInfo[nLoop].nLocalId);
 				ERRIFGOTO(result, _EXIT);
 			}
+		}
+	}*/
+
+
+	for(nLoop = 0 ; nLoop < g_stMappingInfo.nMappedCompositeTaskNum ; nLoop++)
+	{
+		result = UKProcessor_IsCPUByProcessorId(g_stMappingInfo.pstCompositeTaskMappingInfo[nLoop].nProcessorId, &bIsCPU);
+		ERRIFGOTO(result, _EXIT);
+
+		if(bIsCPU == TRUE)
+		{
+			result = UKCPUTaskManager_RegisterCompositeTask(hManager, &(g_stMappingInfo.pstCompositeTaskMappingInfo[nLoop]));
+			ERRIFGOTO(result, _EXIT);
+		}
+	}
+
+	for(nLoop = 0 ; nLoop < g_stMappingInfo.nMappedGeneralTaskNum ; nLoop++)
+	{
+		result = UKProcessor_IsCPUByProcessorId(g_stMappingInfo.pstGeneralTaskMappingInfo[nLoop].nProcessorId, &bIsCPU);
+		ERRIFGOTO(result, _EXIT);
+
+		if(bIsCPU == TRUE)
+		{
+			result = UKCPUTaskManager_RegisterTask(hManager, &(g_stMappingInfo.pstGeneralTaskMappingInfo[nLoop]));
+			ERRIFGOTO(result, _EXIT);
 		}
 	}
 
