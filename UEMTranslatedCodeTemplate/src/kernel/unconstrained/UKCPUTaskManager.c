@@ -27,6 +27,7 @@
 #include <UKCPUGeneralTaskManager.h>
 
 #define THREAD_DESTROY_TIMEOUT (5000)
+#define CONTROL_WAIT_TIMEOUT (3000)
 
 typedef struct _SCPUTaskManager {
 	EUemModuleId enId;
@@ -209,6 +210,9 @@ static uem_result traverseAndCreateControlTasks(STask *pstTask, IN void *pUserDa
 
 			// Send event signal to execute
 			result = UKCPUGeneralTaskManager_ActivateThread(hManager, pstTask);
+			ERRIFGOTO(result, _EXIT);
+
+			result = UKCPUGeneralTaskManager_WaitTaskActivated(hManager, pstTask, CONTROL_WAIT_TIMEOUT);
 			ERRIFGOTO(result, _EXIT);
 		}
 	}
