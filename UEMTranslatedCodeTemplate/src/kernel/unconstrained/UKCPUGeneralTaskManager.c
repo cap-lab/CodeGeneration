@@ -519,6 +519,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
+	printf("pstCurrentTask out : %s\n", pstCurrentTask->pszTaskName);
 	return result;
 }
 

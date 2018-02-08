@@ -43,11 +43,11 @@ uem_result UKTime_GetNextTimeByPeriod(long long llPrevTime, int nPeriod, ETimeMe
 			*pnNextMaxRunCount = 1;
 		}
 
-		if(nPeriod/1000 <= 0)
+		if(nPeriod/SEC_UNIT <= 0)
 		{
 			nPeriod = 1;
 		}
-		*pllNextTime = llPrevTime + 1 * nPeriod/1000;
+		*pllNextTime = llPrevTime + 1 * nPeriod/SEC_UNIT;
 		break;
 	case TIME_METRIC_MILLISEC:
 		*pllNextTime = llPrevTime + 1 * nPeriod;

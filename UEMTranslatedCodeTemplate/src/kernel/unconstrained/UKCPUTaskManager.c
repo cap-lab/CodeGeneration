@@ -126,7 +126,7 @@ uem_result UKCPUTaskManager_RegisterCompositeTask(HCPUTaskManager hCPUTaskManage
 
 	IFVARERRASSIGNGOTO(pstMappedTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	if(pstMappedTask->nLocalId < 0 && pstMappedTask->nLocalId != MAPPING_NOT_SPECIFIED) {
+	if(pstMappedTask->nLocalId < 0) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
 	}
 #endif
@@ -255,6 +255,33 @@ _EXIT:
 	return result;
 }
 
+
+static uem_result traverseAndActivateTasks(STask *pstTask, IN void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	HCPUGeneralTaskManager hManager = NULL;
+	ECPUTaskState enTaskState = TASK_STATE_STOP;
+
+	hManager = (HCPUGeneralTaskManager) pUserData;
+
+	if (pstTask->enType == TASK_TYPE_COMPUTATIONAL || pstTask->enType == TASK_TYPE_LOOP)
+	{
+		result = UKCPUGeneralTaskManager_GetTaskState(hManager, pstTask, &enTaskState);
+		ERRIFGOTO(result, _EXIT);
+
+		if(enTaskState == TASK_STATE_RUNNING)
+		{
+			// Send event signal to execute
+			result = UKCPUGeneralTaskManager_ActivateThread(hManager, pstTask);
+			ERRIFGOTO(result, _EXIT);
+		}
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 static uem_result traverseAndCreateCompositeTasks(STask *pstTask, IN void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -296,16 +323,25 @@ uem_result UKCPUTaskManager_RunRegisteredTasks(HCPUTaskManager hCPUTaskManager)
 #endif
 	pstManager = hCPUTaskManager;
 
-	result = UKCPUGeneralTaskManager_TraverseGeneralTaskList(pstManager->hGeneralManager, traverseAndCreateControlTasks, pstManager->hGeneralManager);
-	ERRIFGOTO(result, _EXIT);
+	if(pstManager->hGeneralManager != NULL)
+	{
+		result = UKCPUGeneralTaskManager_TraverseGeneralTaskList(pstManager->hGeneralManager, traverseAndCreateControlTasks, pstManager->hGeneralManager);
+		ERRIFGOTO(result, _EXIT);
 
-	UCThread_Yield();
+		UCThread_Yield();
 
-	result = UKCPUGeneralTaskManager_TraverseGeneralTaskList(pstManager->hGeneralManager, traverseAndCreateGeneralTasks, pstManager->hGeneralManager);
-	ERRIFGOTO(result, _EXIT);
+		result = UKCPUGeneralTaskManager_TraverseGeneralTaskList(pstManager->hGeneralManager, traverseAndCreateGeneralTasks, pstManager->hGeneralManager);
+		ERRIFGOTO(result, _EXIT);
 
-	result = UKCPUCompositeTaskManager_TraverseCompositeTaskList(pstManager->hCompositeManager, traverseAndCreateCompositeTasks, pstManager->hCompositeManager);
-	ERRIFGOTO(result, _EXIT);
+		result = UKCPUGeneralTaskManager_TraverseGeneralTaskList(pstManager->hGeneralManager, traverseAndActivateTasks, pstManager->hGeneralManager);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	if(pstManager->hCompositeManager != NULL)
+	{
+		result = UKCPUCompositeTaskManager_TraverseCompositeTaskList(pstManager->hCompositeManager, traverseAndCreateCompositeTasks, pstManager->hCompositeManager);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -360,10 +396,17 @@ uem_result UKCPUTaskManager_StopAllTasks(HCPUTaskManager hCPUTaskManager)
 	pstManager = hCPUTaskManager;
 
 	//UKCPUCompositeTaskManager_DestroyThread(hManager, pstTargetTask)
-	result = UKCPUCompositeTaskManager_TraverseCompositeTaskList(pstManager->hCompositeManager, traverseAndDestroyCompositeThread, pstManager->hCompositeManager);
-	ERRIFGOTO(result, _EXIT);
-	result = UKCPUGeneralTaskManager_TraverseGeneralTaskList(pstManager->hGeneralManager, traverseAndDestroyGeneralThread, pstManager->hGeneralManager);
-	ERRIFGOTO(result, _EXIT);
+	if(pstManager->hCompositeManager != NULL)
+	{
+		result = UKCPUCompositeTaskManager_TraverseCompositeTaskList(pstManager->hCompositeManager, traverseAndDestroyCompositeThread, pstManager->hCompositeManager);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	if(pstManager->hGeneralManager != NULL)
+	{
+		result = UKCPUGeneralTaskManager_TraverseGeneralTaskList(pstManager->hGeneralManager, traverseAndDestroyGeneralThread, pstManager->hGeneralManager);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -636,11 +679,17 @@ uem_result UKCPUTaskManager_Destroy(IN OUT HCPUTaskManager *phCPUTaskManager)
 	result = UKCPUTaskManager_StopAllTasks(*phCPUTaskManager);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UKCPUCompositeTaskManager_Destroy(&(pstManager->hCompositeManager));
-	ERRIFGOTO(result, _EXIT);
+	if(pstManager->hCompositeManager != NULL)
+	{
+		result = UKCPUCompositeTaskManager_Destroy(&(pstManager->hCompositeManager));
+		ERRIFGOTO(result, _EXIT);
+	}
 
-	result = UKCPUGeneralTaskManager_Destroy(&(pstManager->hGeneralManager));
-	ERRIFGOTO(result, _EXIT);
+	if(pstManager->hGeneralManager != NULL)
+	{
+		result = UKCPUGeneralTaskManager_Destroy(&(pstManager->hGeneralManager));
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	result = UCThreadMutex_Destroy(&(pstManager->hMutex));
 	ERRIFGOTO(result, _EXIT);

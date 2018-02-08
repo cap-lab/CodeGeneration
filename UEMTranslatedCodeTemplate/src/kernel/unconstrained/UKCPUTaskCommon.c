@@ -65,7 +65,6 @@ _EXIT:
 }
 
 
-
 uem_result UKCPUTaskCommon_HandleTimeDrivenTask(STask *pstCurrentTask, FnUemTaskGo fnGo, IN OUT long long *pllNextTime,
 										IN OUT int *pnRunCount, IN OUT int *pnNextMaxRunCount)
 {
@@ -83,6 +82,7 @@ uem_result UKCPUTaskCommon_HandleTimeDrivenTask(STask *pstCurrentTask, FnUemTask
 	ERRIFGOTO(result, _EXIT);
 	if(llCurTime <= llNextTime) // time is not passed
 	{
+		//printf("pstCurrentTask (%s) time in: %I64d %I64d %I64d\n", pstCurrentTask->pszTaskName, llCurTime, llNextTime, llNextTime - llCurTime);
 		if(nRunCount < nMaxRunCount) // run count is available
 		{
 			nRunCount++;
@@ -111,6 +111,11 @@ uem_result UKCPUTaskCommon_HandleTimeDrivenTask(STask *pstCurrentTask, FnUemTask
 										&llNextTime, &nMaxRunCount);
 		ERRIFGOTO(result, _EXIT);
 		nRunCount = 0;
+		if(nRunCount < nMaxRunCount) // run count is available
+		{
+			nRunCount++;
+			fnGo(pstCurrentTask->nTaskId);
+		}
 	}
 
 	*pllNextTime = llNextTime;
