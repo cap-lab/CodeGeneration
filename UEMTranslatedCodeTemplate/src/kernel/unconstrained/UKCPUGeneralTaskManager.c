@@ -39,9 +39,7 @@ typedef struct _SGeneralTaskThread {
 typedef struct _SGeneralTask {
 	STask *pstTask;
 	HLinkedList hThreadList; // modified
-	HThreadEvent hEvent;
 	HThreadMutex hMutex;
-	int nFinishedThreadNum; // modified
 	ECPUTaskState enTaskState; // modified
 	uem_bool bCreated;
 } SGeneralTask;
@@ -209,8 +207,11 @@ static uem_result destroyGeneralTaskThreadStruct(IN int nOffset, IN void *pData,
 
 	pstGeneralTaskThread = (SGeneralTaskThread *) pData;
 
-	result = UCThreadEvent_Destroy(&(pstGeneralTaskThread->hEvent));
-	ERRIFGOTO(result, _EXIT);
+	if(pstGeneralTaskThread->hEvent != NULL)
+	{
+		result = UCThreadEvent_Destroy(&(pstGeneralTaskThread->hEvent));
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	SAFEMEMFREE(pstGeneralTaskThread);
 
@@ -233,11 +234,6 @@ static uem_result destroyGeneralTaskStruct(IN OUT SGeneralTask **ppstGeneralTask
 		UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, destroyGeneralTaskThreadStruct, NULL);
 
 		UCDynamicLinkedList_Destroy(&(pstGeneralTask->hThreadList));
-	}
-
-	if(pstGeneralTask->hEvent != NULL)
-	{
-		UCThreadEvent_Destroy(&(pstGeneralTask->hEvent));
 	}
 
 	if(pstGeneralTask->hMutex != NULL)
@@ -264,7 +260,6 @@ static uem_result createGeneralTaskStruct(HCPUGeneralTaskManager hCPUTaskManager
 	pstGeneralTask = UC_malloc(sizeof(SGeneralTask));
 	ERRMEMGOTO(pstGeneralTask, result, _EXIT);
 
-	pstGeneralTask->hEvent = NULL;
 	pstGeneralTask->hMutex = NULL;
 	pstGeneralTask->hThreadList = NULL;
 	pstGeneralTask->enTaskState = TASK_STATE_STOP;
@@ -279,11 +274,7 @@ static uem_result createGeneralTaskStruct(HCPUGeneralTaskManager hCPUTaskManager
 		pstGeneralTask->enTaskState = TASK_STATE_STOP;
 	}
 
-	pstGeneralTask->nFinishedThreadNum = 0;
 	pstGeneralTask->pstTask = pstMappedInfo->pstTask;
-
-	result = UCThreadEvent_Create(&(pstGeneralTask->hEvent));
-	ERRIFGOTO(result, _EXIT);
 
 	result = UCThreadMutex_Create(&(pstGeneralTask->hMutex));
 	ERRIFGOTO(result, _EXIT);
@@ -320,20 +311,12 @@ static uem_result createGeneralTaskThreadStructs(SMappedGeneralTaskInfo *pstMapp
 	pstGeneralTaskThread->bSuspended = FALSE;
 	pstGeneralTaskThread->nTaskFuncId = 0;
 
-	result = UCThreadEvent_Create(&(pstGeneralTaskThread->hEvent));
-	ERRIFGOTO(result, _EXIT);
-
 	*ppstGeneralTaskThread = pstGeneralTaskThread;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
-	if(result != ERR_UEM_NOERROR && pstGeneralTaskThread != NULL)
-	{
-		SAFEMEMFREE(pstGeneralTaskThread);
-	}
 	return result;
 }
-
 
 
 uem_result UKCPUGeneralTaskManager_RegisterTask(HCPUGeneralTaskManager hManager, SMappedGeneralTaskInfo *pstMappedTask)
@@ -590,10 +573,17 @@ static uem_result createGeneralTaskThread(IN int nOffset, IN void *pData, IN voi
 	result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	pstTaskThread->bIsThreadFinished = FALSE;
-	pstTaskThread->bSuspended = TRUE;
-
-	result = UCThreadMutex_Unlock(pstGeneralTask->hMutex);
+	result = UCThreadEvent_Create(&(pstTaskThread->hEvent));
+	if(result == ERR_UEM_NOERROR)
+	{
+		pstTaskThread->bIsThreadFinished = FALSE;
+		pstTaskThread->bSuspended = TRUE;
+		result = UCThreadMutex_Unlock(pstGeneralTask->hMutex);
+	}
+	else
+	{
+		UCThreadMutex_Unlock(pstGeneralTask->hMutex);
+	}
 	ERRIFGOTO(result, _EXIT);
 
 	pstTaskThreadData = UC_malloc(sizeof(struct _SGeneralTaskThreadData));
@@ -963,6 +953,9 @@ static uem_result traverseAndDestroyThread(IN int nOffset, IN void *pData, IN vo
 
 		result = UCThread_Destroy(&(pstTaskThread->hThread), FALSE, THREAD_DESTROY_TIMEOUT);
 		UCThreadMutex_Lock(pstTaskManager->hMutex);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UCThreadEvent_Destroy(&(pstTaskThread->hEvent));
 		ERRIFGOTO(result, _EXIT);
 	}
 
