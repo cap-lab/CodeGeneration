@@ -214,8 +214,12 @@ static uem_result createCompositeTaskStruct(HCPUCompositeTaskManager hCPUTaskMan
 	pstCompositeTask->hThreadList = NULL;
 	pstCompositeTask->bCreated = FALSE;
 	pstCompositeTask->enTaskState = TASK_STATE_STOP;
-	if(pstMappedInfo->pstScheduledTasks->pstParentTask->enRunCondition == RUN_CONDITION_DATA_DRIVEN ||
-		pstMappedInfo->pstScheduledTasks->pstParentTask->enRunCondition == RUN_CONDITION_TIME_DRIVEN)
+	if(pstMappedInfo->pstScheduledTasks->pstParentTask == NULL)
+	{
+		pstCompositeTask->enTaskState = TASK_STATE_RUNNING;
+	}
+	else if(pstMappedInfo->pstScheduledTasks->pstParentTask != NULL && (pstMappedInfo->pstScheduledTasks->pstParentTask->enRunCondition == RUN_CONDITION_DATA_DRIVEN ||
+		pstMappedInfo->pstScheduledTasks->pstParentTask->enRunCondition == RUN_CONDITION_TIME_DRIVEN))
 	{
 		pstCompositeTask->enTaskState = TASK_STATE_RUNNING;
 	}
@@ -866,10 +870,19 @@ static uem_result findCompositeTask(IN int nOffset, IN void *pData, IN void *pUs
 	pstTaskStruct = (SCompositeTask *) pData;
 	pstSearchData = (struct _SCompositeTaskSearchData *) pUserData;
 
-	if(pstTaskStruct->pstParentTask->nTaskId == pstSearchData->nTargetParentTaskId)
+	if(pstSearchData->nTargetParentTaskId == INVALID_TASK_ID && pstTaskStruct->pstParentTask == NULL)
 	{
 		pstSearchData->pstMatchingCompositeTask = pstTaskStruct;
 		UEMASSIGNGOTO(result, ERR_UEM_FOUND_DATA, _EXIT);
+	}
+	else if(pstTaskStruct->pstParentTask != NULL && pstTaskStruct->pstParentTask->nTaskId == pstSearchData->nTargetParentTaskId)
+	{
+		pstSearchData->pstMatchingCompositeTask = pstTaskStruct;
+		UEMASSIGNGOTO(result, ERR_UEM_FOUND_DATA, _EXIT);
+	}
+	else
+	{
+		// skip and find next
 	}
 
     result = ERR_UEM_NOERROR;
@@ -1089,8 +1102,6 @@ uem_result UKCPUCompositeTaskManager_CreateThread(HCPUCompositeTaskManager hMana
 	struct _SCompositeTaskCreateData stCreateData;
 	int nTaskId = INVALID_TASK_ID;
 #ifdef ARGUMENT_CHECK
-	IFVARERRASSIGNGOTO(pstTargetTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-
 	if (IS_VALID_HANDLE(hManager, ID_UEM_CPU_COMPOSITE_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
@@ -1139,8 +1150,6 @@ uem_result UKCPUCompositeTaskManager_ChangeState(HCPUCompositeTaskManager hManag
 	SCompositeTask *pstCompositeTask = NULL;
 	int nTaskId = INVALID_TASK_ID;
 #ifdef ARGUMENT_CHECK
-	IFVARERRASSIGNGOTO(pstTargetTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-
 	if (IS_VALID_HANDLE(hManager, ID_UEM_CPU_COMPOSITE_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
@@ -1176,8 +1185,6 @@ uem_result UKCPUCompositeTaskManager_ActivateThread(HCPUCompositeTaskManager hMa
 	SCompositeTask *pstCompositeTask = NULL;
 	int nTaskId = INVALID_TASK_ID;
 #ifdef ARGUMENT_CHECK
-	IFVARERRASSIGNGOTO(pstTargetTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-
 	if (IS_VALID_HANDLE(hManager, ID_UEM_CPU_COMPOSITE_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}
@@ -1255,7 +1262,6 @@ uem_result UKCPUCompositeTaskManager_GetTaskState(HCPUCompositeTaskManager hMana
 	struct _SCompositeTaskStopCheck stStopCheck;
 	int nTaskId = INVALID_TASK_ID;
 #ifdef ARGUMENT_CHECK
-	IFVARERRASSIGNGOTO(pstTargetTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 	IFVARERRASSIGNGOTO(penTaskState, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
 	if (IS_VALID_HANDLE(hManager, ID_UEM_CPU_COMPOSITE_TASK_MANAGER) == FALSE) {
@@ -1386,8 +1392,6 @@ uem_result UKCPUCompositeTaskManager_DestroyThread(HCPUCompositeTaskManager hMan
 	SCompositeTask *pstCompositeTask = NULL;
 	int nTaskId = INVALID_TASK_ID;
 #ifdef ARGUMENT_CHECK
-	IFVARERRASSIGNGOTO(pstTargetTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-
 	if (IS_VALID_HANDLE(hManager, ID_UEM_CPU_COMPOSITE_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
 	}

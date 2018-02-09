@@ -176,7 +176,6 @@ uem_result executeTasks()
 
 	llEndTime = getEndTime(llCurTime);
 
-
 	while(llEndTime >= llCurTime)
 	{
 		if(llCurTime + DEFAULT_LONG_SLEEP_PERIOD <= llEndTime)
@@ -187,6 +186,7 @@ uem_result executeTasks()
 		else if(llCurTime + DEFAULT_SHORT_SLEEP_PERIOD <= llEndTime)
 		{
 			UCTime_Sleep(DEFAULT_SHORT_SLEEP_PERIOD);
+			nSleepAdd += DEFAULT_SHORT_SLEEP_PERIOD;
 		}
 		else
 		{
@@ -195,9 +195,8 @@ uem_result executeTasks()
 
 		if(nSleepAdd % 10000 == 0)
 		{
-			printf("Merong world: %d\n", g_astChannels[0].nChannelIndex);
+			printf("Merong world: %d\n", nSleepAdd);
 		}
-
 
 		result = UCTime_GetCurTickInMilliSeconds(&llCurTime);
 		ERRIFGOTO(result, _EXIT);
@@ -248,7 +247,7 @@ int main(int argc, char *argv[])
 	// Channel finalization
 	UKChannel_Finalize();
 
-	printf("Merong world: %d\n", g_astChannels[0].nChannelIndex);
+	printf("Merong world: huhu\n");
 
 	return 0;
 }
