@@ -27,7 +27,7 @@ void SYS_REQ_SET_MTM_PARAM_INT(char *pszTaskName, char *pszParamName, long lPara
 
 char *SYS_REQ_GET_MODE(char *pszTaskName);
 
-#define SYS_REQ_GET_CURRENT_MODE_NAME() SYS_REQ_GET_MODE(TASK_NAME)
+#define SYS_REQ_GET_CURRENT_MODE_NAME(a) SYS_REQ_GET_MODE(TASK_NAME)
 
 #ifdef __cplusplus
 }

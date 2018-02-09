@@ -242,8 +242,10 @@ public class CodeOrganizer {
 			
 			@Override
 			public boolean accept(File paramFile) {
+				if(paramFile.getAbsolutePath().contains(srcDir + File.separator + APPLICATION_DIR))
+					return false;
 				// skip object/executable/temporary/log files
-				if(paramFile.getName().endsWith(".o") || paramFile.getName().endsWith(".log") || paramFile.getName().endsWith("~") || 
+				else if(paramFile.getName().endsWith(".o") || paramFile.getName().endsWith(".log") || paramFile.getName().endsWith("~") || 
 					paramFile.getName().startsWith(".")  || paramFile.getName().endsWith(".exe") || paramFile.getName().endsWith(".bak"))
 					return false;
 				else

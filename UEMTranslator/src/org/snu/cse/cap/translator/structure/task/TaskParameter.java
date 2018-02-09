@@ -11,10 +11,14 @@ enum ParameterType {
 		this.value = value;
 	}
 	
-	@Override
-	public String toString() {
-		return value;
-	}
+	public static ParameterType fromValue(String value) {
+		 for (ParameterType c : ParameterType.values()) {
+			 if (c.value.equals(value)) {
+				 return c;
+			 }
+		 }
+		 throw new IllegalArgumentException(value.toString());
+	}	
 }
 
 public abstract class TaskParameter {

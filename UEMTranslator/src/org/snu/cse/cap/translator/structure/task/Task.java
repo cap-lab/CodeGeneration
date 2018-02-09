@@ -144,11 +144,11 @@ public class Task {
 			TaskParameter taskParam;
 			
 			try {
-				if(param.getType().equals(ParameterType.DOUBLE) == true)
+				if(ParameterType.fromValue(param.getType()) == ParameterType.DOUBLE)
 				{
 					taskParam = new TaskDoubleParameter(param.getName(), Double.parseDouble(param.getValue()));
 				}
-				else if(param.getType().equals(ParameterType.INT) == true)
+				else if(ParameterType.fromValue(param.getType()) == ParameterType.INT)
 				{
 					taskParam = new TaskIntegerParameter(param.getName(), Integer.parseInt(param.getValue()));
 				}
