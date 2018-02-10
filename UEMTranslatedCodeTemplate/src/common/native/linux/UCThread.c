@@ -15,6 +15,7 @@
 #ifndef WIN32
 #define _GNU_SOURCE
 #include <pthread.h>
+#include <signal.h>
 #else
 #include <windows.h>
 #endif
@@ -90,8 +91,11 @@ static uem_result destroyPosixThread(SUCThread *pstThread, uem_bool bDetach, int
 			if(result == ERR_UEM_TIME_EXPIRED)
 			{
 				if(pthread_cancel(pstThread->hNativeThread) != 0) {
+					pthread_kill(pstThread->hNativeThread, SIGKILL);
+					printf("Thread is forcedly terminated.\n");
 					ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
 				}
+				printf("Thread cancellation request is delivered.\n");
 				result = ERR_UEM_NOERROR;
 			}
 			ERRIFGOTO(result, _EXIT);

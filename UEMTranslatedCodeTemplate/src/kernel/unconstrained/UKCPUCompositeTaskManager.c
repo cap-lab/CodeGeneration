@@ -709,6 +709,11 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 	result = waitRunSignal(pstCompositeTask, pstTaskThread, TRUE, &llNextTime, &nMaxRunCount);
 	ERRIFGOTO(result, _EXIT);
 
+	if(pstCompositeTask->pstParentTask != NULL)
+	{
+		printf("Composite task initial state : %s (Proc: %d, Mode: %d, State: %d)\n", pstCompositeTask->pstParentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nModeId, pstTaskThread->enTaskState);
+	}
+
 	while(pstTaskThread->enTaskState != TASK_STATE_STOP)
 	{
 		switch(pstTaskThread->enTaskState)
@@ -720,6 +725,7 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 				// pstCurrentTask is not NULL because whole task graph is a data-driven task graph
 				result = UKCPUTaskCommon_HandleTimeDrivenTask(pstCompositeTask->pstParentTask, fnGo, &llNextTime, &nRunCount, &nMaxRunCount);
 				ERRIFGOTO(result, _EXIT);
+
 				break;
 			case RUN_CONDITION_DATA_DRIVEN:
 				if(pstCompositeTask->pstParentTask != NULL)
@@ -733,7 +739,10 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 				break;
 			case RUN_CONDITION_CONTROL_DRIVEN: // run once for control-driven leaf task
 				fnGo(pstCompositeTask->pstParentTask->nTaskId);
-				UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
+				if(pstCompositeTask->pstParentTask != NULL)
+				{
+					printf("Composite task (control driven) : %s\n", pstCompositeTask->pstParentTask->pszTaskName);
+				}
 				break;
 			default:
 				ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
@@ -743,6 +752,10 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 			{
 				result = handleCompositeTaskModeTransition(pstTaskThread, pstCompositeTask);
 				ERRIFGOTO(result, _EXIT);
+			}
+			if(enRunCondition == RUN_CONDITION_CONTROL_DRIVEN)
+			{
+				UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
 			}
 			break;
 		case TASK_STATE_STOPPING:
@@ -771,6 +784,10 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
+	if(pstCompositeTask->pstParentTask != NULL)
+	{
+		printf("Composite task out : %s\n", pstCompositeTask->pstParentTask->pszTaskName);
+	}
 	return result;
 }
 

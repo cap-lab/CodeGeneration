@@ -12,12 +12,14 @@ public class Channel {
 	private Port inputPort; // the most outer port is set here
 	private Port outputPort; // the most outer port is set here
 	private int maximumChunkNum;
+	private int initialDataLen;
 	
-	public Channel(int index, int size) {
+	public Channel(int index, int size, int initialDataLen) {
 		this.size = size;
 		this.index = index;
 		this.channelType = ChannelArrayType.GENERAL;
 		this.maximumChunkNum = 1;
+		this.initialDataLen = initialDataLen;
 	}
 	
 	public int getIndex() {
@@ -76,5 +78,13 @@ public class Channel {
 
 	public void setOutputPort(Port outputPort) {
 		this.outputPort = outputPort;
+	}
+
+	public int getInitialDataLen() {
+		return initialDataLen;
+	}
+
+	public void setInitialDataLen(int initialDataLen) {
+		this.initialDataLen = initialDataLen;
 	}
 }

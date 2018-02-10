@@ -10,6 +10,8 @@
 #include <config.h>
 #endif
 
+#include <uem_common.h>
+
 #include <UCBasic.h>
 #include <UCString.h>
 
@@ -56,6 +58,8 @@ SChannelAPI g_stSharedMemoryChannel = {
 	UKSharedMemoryChannel_Finalize, // fnFinalize
 };
 
+#define DEFAUT_INITIAL_BUF_SIZE (4)
+
 
 static uem_result getAPIStructureFromCommunicationType(IN ECommunicationType enType, OUT SChannelAPI **ppstChannelAPI)
 {
@@ -81,6 +85,32 @@ _EXIT:
 	return result;
 }
 
+
+static uem_result fillInitialData(SChannel *pstChannel, SChannelAPI *pstChannelAPI)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nBuffer = 0; // 4-byte buffer
+	int nTotalDataToWrite = pstChannel->nInitialDataLen;
+	int nDataWritten = 0;
+	int nTotalDataWritten = 0;
+
+	if(pstChannel->nInitialDataLen > pstChannel->nBufSize)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+	}
+
+	while(nTotalDataWritten < nTotalDataToWrite)
+	{
+		result = pstChannelAPI->fnWriteToQueue(pstChannel, (unsigned char *) &nBuffer, MIN(nTotalDataToWrite - nTotalDataWritten, sizeof(int)), 0, &nDataWritten);
+		ERRIFGOTO(result, _EXIT);
+		nTotalDataWritten += nDataWritten;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 uem_result UKChannel_Initialize()
 {
 	uem_result result = ERR_UEM_NOERROR;
@@ -94,6 +124,12 @@ uem_result UKChannel_Initialize()
 
 		result = pstChannelAPI->fnInitialize(&(g_astChannels[nLoop]));
 		ERRIFGOTO(result, _EXIT);
+
+		if(g_astChannels[nLoop].nInitialDataLen > 0)
+		{
+			result = fillInitialData(&(g_astChannels[nLoop]), pstChannelAPI);
+			ERRIFGOTO(result, _EXIT);
+		}
 
 		if( g_astChannels[nLoop].stInputPortChunk.nChunkNum > 1 )
 		{
@@ -289,6 +325,12 @@ uem_result UKChannel_Clear(IN int nChannelId)
 
 	result = pstChannelAPI->fnClear(&g_astChannels[nIndex]);
 	ERRIFGOTO(result, _EXIT);
+
+	if(g_astChannels[nIndex].nInitialDataLen > 0)
+	{
+		result = fillInitialData(&(g_astChannels[nIndex]), pstChannelAPI);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

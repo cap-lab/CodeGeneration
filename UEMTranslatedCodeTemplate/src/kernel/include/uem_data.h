@@ -279,7 +279,7 @@ typedef struct _SChannel {
 	int nMaxChunkNum; // maximum chunk size for all port sample rate cases
 	SAvailableChunk *pstAvailableInputChunkHead;
 	SAvailableChunk *pstAvailableInputChunkTail;
-
+	int nInitialDataLen;
 } SChannel;
 
 

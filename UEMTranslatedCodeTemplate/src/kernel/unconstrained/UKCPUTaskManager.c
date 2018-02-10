@@ -521,6 +521,8 @@ uem_result UKCPUTaskManager_ResumeTask(HCPUTaskManager hCPUTaskManager, int nTas
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
 	}
 #endif
+	pstManager = hCPUTaskManager;
+
 	result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 

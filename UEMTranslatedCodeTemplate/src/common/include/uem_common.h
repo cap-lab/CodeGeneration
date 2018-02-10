@@ -35,6 +35,15 @@ extern "C"
 #   define NULL (void *) (0)
 #endif
 
+#ifndef MIN
+    #define MIN(a, b) ((a) < (b) ? (a): (b))
+#endif
+
+#ifndef MAX
+    #define MAX(a, b) ((a) > (b) ? (a): (b))
+#endif
+
+
 
 #define UEM_RESULT_CATEGORY_INFO  0x10000000
 #define UEM_RESULT_CATEGORY_ERROR 0x20000000
