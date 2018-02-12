@@ -584,6 +584,7 @@ public class Device {
 					task.setTaskFuncNum(newMappedProcNum);
 				}
 			}
+			relatedTaskMap.clear();
 		}
 	}
 	
