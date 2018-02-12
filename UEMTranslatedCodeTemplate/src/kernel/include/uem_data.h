@@ -186,6 +186,7 @@ typedef struct _STask {
 	SModeTransitionMachine *pstMTMInfo;
 	SLoopInfo *pstLoopInfo;
 	STaskParameter *astTaskParam;
+	int nTaskParamNum;
 	uem_bool bStaticScheduled;
 	int nThroughputConstraint;
 	HThreadMutex hMutex;

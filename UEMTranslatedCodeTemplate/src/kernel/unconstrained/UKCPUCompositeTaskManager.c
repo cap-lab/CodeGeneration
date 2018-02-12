@@ -689,6 +689,49 @@ _EXIT:
 }
 
 
+static uem_result traverseAndThreadSuspended(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	uem_bool *pbSuspended = (uem_bool *)pUserData;
+	SCompositeTaskThread *pstTaskThread = (SCompositeTaskThread *) pData;
+
+	if(pstTaskThread->hThread != NULL && pstTaskThread->enTaskState != TASK_STATE_SUSPEND)
+	{
+		*pbSuspended = FALSE;
+	}
+
+	return ERR_UEM_NOERROR;
+}
+
+
+static uem_result checkAllThreadSuspended(SCompositeTask *pstCompositeTask, SCompositeTaskThread *pstTaskThread)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	uem_bool bSuspended = TRUE;
+
+	result = UCThreadMutex_Lock(pstCompositeTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstTaskThread->enTaskState == TASK_STATE_RUNNING)
+	{
+		pstTaskThread->enTaskState = TASK_STATE_SUSPEND;
+	}
+
+	result = UCDynamicLinkedList_Traverse(pstCompositeTask->hThreadList, traverseAndThreadSuspended, &bSuspended);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	if(bSuspended == TRUE)
+	{
+		pstCompositeTask->enTaskState = TASK_STATE_SUSPEND;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstCompositeTask->hMutex);
+_EXIT:
+	return result;
+}
+
+
 static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompositeTaskThread *pstTaskThread, FnUemTaskGo fnGo)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -748,14 +791,15 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 				ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 				break;
 			}
+			if(enRunCondition == RUN_CONDITION_CONTROL_DRIVEN)
+			{
+				result = checkAllThreadSuspended(pstCompositeTask, pstTaskThread);
+				ERRIFGOTO(result, _EXIT);
+			}
 			if(isModeTransitionTask(pstCompositeTask) == TRUE)
 			{
 				result = handleCompositeTaskModeTransition(pstTaskThread, pstCompositeTask);
 				ERRIFGOTO(result, _EXIT);
-			}
-			if(enRunCondition == RUN_CONDITION_CONTROL_DRIVEN)
-			{
-				UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
 			}
 			break;
 		case TASK_STATE_STOPPING:

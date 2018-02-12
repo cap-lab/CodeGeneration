@@ -341,6 +341,7 @@ STask g_astTasks_${task_graph.name}[] = {
 		<#if task.modeTransition??>&g_stModeTransition_${task.name}<#else>NULL</#if>, // MTM information
 		<#if task.loopStruct??>&g_stLoopStruct_${task.name}<#else>NULL</#if>, // Loop information
 		<#if (task.taskParamList?size > 0)>g_astTaskParameter_${task.name}<#else>NULL</#if>, // Task parameter information
+		${task.taskParamList?size}, // Task parameter number
 		<#if task.staticScheduled == true>TRUE<#else>FALSE</#if>, // Statically scheduled or not
 		0,	  // Throughput constraint
 		NULL, // Mutex
