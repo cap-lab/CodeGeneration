@@ -33,7 +33,7 @@ static uem_result getTaskParamElement(EParameterType enType, char *pszParamName,
 	{
 		if(enType == pstTask->astTaskParam[nLoop].enType)
 		{
-			result = UCString_New(&stTargetParamName, pstTask->astTaskParam[nLoop].pszParamName, UEMSTRING_MAX);
+			result = UCString_New(&stTargetParamName, (char *) pstTask->astTaskParam[nLoop].pszParamName, UEMSTRING_MAX);
 			ERRIFGOTO(result, _EXIT);
 
 			if(UCString_IsEqual(&stParamName, &stTargetParamName) == TRUE)

@@ -83,6 +83,12 @@ struct _SWaitTaskTraverse {
 	SCPUGeneralTaskManager *pstManager;
 };
 
+struct _STaskThreadDestroyTraverse {
+	SGeneralTask *pstGeneralTask;
+	SCPUGeneralTaskManager *pstManager;
+};
+
+
 uem_result UKCPUGeneralTaskManager_Create(IN OUT HCPUGeneralTaskManager *phManager)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -493,6 +499,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 				break;
 			case RUN_CONDITION_CONTROL_DRIVEN: // run once for control-driven leaf task
 				fnGo(pstCurrentTask->nTaskId);
+				UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
 				break;
 			default:
 				ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
@@ -943,8 +950,13 @@ static uem_result traverseAndDestroyThread(IN int nOffset, IN void *pData, IN vo
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SGeneralTaskThread *pstTaskThread = (SGeneralTaskThread *) pData;
-	//SGeneralTask *pstGeneralTask = (SGeneralTask *) pUserData;
-	SCPUGeneralTaskManager *pstTaskManager = (SCPUGeneralTaskManager *) pUserData;
+	struct _STaskThreadDestroyTraverse *pstDestroyData = NULL;
+	SGeneralTask *pstGeneralTask = NULL;
+	SCPUGeneralTaskManager *pstTaskManager = NULL;
+
+	pstDestroyData = (struct _STaskThreadDestroyTraverse *) pUserData;
+	pstTaskManager = pstDestroyData->pstManager;
+	pstGeneralTask = pstDestroyData->pstGeneralTask;
 
 	if(pstTaskThread->hThread != NULL)
 	{
@@ -963,14 +975,14 @@ static uem_result traverseAndDestroyThread(IN int nOffset, IN void *pData, IN vo
 _EXIT:
 	if(result != ERR_UEM_NOERROR)
 	{
-//		if(pstGeneralTask->pstTask != NULL)
-//		{
-//			printf("Failed to destroy general task of %s (%d)\n", pstGeneralTask->pstTask->pszTaskName, pstTaskThread->bIsThreadFinished);
-//		}
-//		else
-//		{
-//			printf("Failed to destroy general task of whole task graph (%d)\n", pstTaskThread->bIsThreadFinished);
-//		}
+		if(pstGeneralTask->pstTask != NULL)
+		{
+			printf("Failed to destroy general task of [%s] (%d)\n", pstGeneralTask->pstTask->pszTaskName, pstTaskThread->bIsThreadFinished);
+		}
+		else
+		{
+			printf("Failed to destroy general task of whole task graph (%d)\n", pstTaskThread->bIsThreadFinished);
+		}
 	}
 	return result;
 }
@@ -979,6 +991,7 @@ _EXIT:
 static uem_result destroyGeneralTaskThread(SGeneralTask *pstGeneralTask, SCPUGeneralTaskManager *pstTaskManager)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	struct _STaskThreadDestroyTraverse stDestroyData;
 
 	pstGeneralTask->enTaskState = TASK_STATE_STOP;
 
@@ -990,7 +1003,10 @@ static uem_result destroyGeneralTaskThread(SGeneralTask *pstGeneralTask, SCPUGen
 		result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, traverseAndSetEventToTaskThread, NULL);
 		ERRIFGOTO(result, _EXIT);
 
-		result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, traverseAndDestroyThread, pstTaskManager);
+		stDestroyData.pstGeneralTask = pstGeneralTask;
+		stDestroyData.pstManager = pstTaskManager;
+
+		result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, traverseAndDestroyThread, &stDestroyData);
 		ERRIFGOTO(result, _EXIT);
 
 		result = UKChannel_ClearExitByTaskId(pstGeneralTask->pstTask->nTaskId);

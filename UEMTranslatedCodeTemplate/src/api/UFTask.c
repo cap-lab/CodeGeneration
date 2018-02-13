@@ -8,15 +8,20 @@
 #include <uem_common.h>
 
 #include <UKModeTransition.h>
+#include <UKTaskParameter.h>
 #include <UKTask.h>
 
 #include <UFTask.h>
 
 
 
+
 uem_result UFTask_GetIntegerParameter (IN char *pszTaskName, IN char *pszParamName, OUT int *pnParamVal)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+
+	result = UKTask_GetIntegerParameter(pszTaskName, pszParamName, pnParamVal);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -28,6 +33,9 @@ uem_result UFTask_SetIntegerParameter (IN char *pszTaskName, IN char *pszParamNa
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
+	result = UKTask_SetIntegerParameter(pszTaskName, pszParamName, nParamVal);
+	ERRIFGOTO(result, _EXIT);
+
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
@@ -38,6 +46,9 @@ uem_result UFTask_GetFloatParameter (IN char *pszTaskName, IN char *pszParamName
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
+	result = UKTask_GetFloatParameter(pszTaskName, pszParamName, pdbParamVal);
+	ERRIFGOTO(result, _EXIT);
+
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
@@ -47,6 +58,9 @@ _EXIT:
 uem_result UFTask_SetFloatParameter (IN char *pszTaskName, IN char *pszParamName, IN double dbParamVal)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+
+	result = UKTask_SetFloatParameter(pszTaskName, pszParamName, dbParamVal);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

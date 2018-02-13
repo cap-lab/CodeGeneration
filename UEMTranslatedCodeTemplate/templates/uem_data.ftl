@@ -234,7 +234,7 @@ STaskParameter g_astTaskParameter_${task.name}[] = {
 		${task_param.id},
 		PARAMETER_TYPE_${task_param.type},
 		"${task_param.name}",
-		{ <#if task_param.type == "INT">.nParam = 0,<#else>.dbParam = 0</#if> },
+		{ <#if task_param.type == "INT">.nParam = ${task_param.value?c},<#else>.dbParam = ${task_param.value?c}</#if> },
 	},
 		</#list>
 };
