@@ -67,6 +67,7 @@ public class Constants {
 	public static final String C_FILE_EXTENSION = ".c";
 	public static final String CPP_FILE_EXTENSION = ".cpp";
 	public static final String HEADER_FILE_EXTENSION = ".h";
+	public static final String CIC_HEADER_FILE_EXTENSION = ".cicl.h";
 	public static final String CIC_FILE_EXTENSION = ".cic";
 	public static final String CICL_FILE_EXTENSION = ".cicl";
 	

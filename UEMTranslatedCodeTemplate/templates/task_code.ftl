@@ -17,9 +17,11 @@
 #include <UFControl.h>
 #include <UFControl_deprecated.h>
 
-<#if task_info.linkedLibraryNameList??>
-	<#list task_info.linkedLibraryNameList as libraryHeader>
-#include "${libraryHeader}"
+<#if task_info.masterPortToLibraryMap??>
+#define LIBCALL(x, ...) LIBCALL_##x(__VA_ARGS__)
+	<#list task_info.masterPortToLibraryMap as portName, library>
+#define LIBCALL_${portName}(f, ...) l_${library.name}_##f(__VA_ARGS__)
+#include "${library.header}"
 	</#list>
 </#if>
 

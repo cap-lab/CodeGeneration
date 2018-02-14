@@ -864,21 +864,22 @@ public class Device {
 			}
 		}
 		
-		linkibraryToTasks();
+		linkLibraryToTasks();
 	}
 	
-	private void linkibraryToTasks()
+	private void linkLibraryToTasks()
 	{
 		for(Library library: this.libraryMap.values())
 		{
 			for(LibraryConnection connection: library.getLibraryConnectionList())
 			{
 				if(connection.isMasterLibrary() == false)
-				{
+				{					
 					Task task = this.taskMap.get(connection.getMasterName());
-					if(task.getLinkedLibraryHeaderList().contains(library.getHeader()) == false)
+					
+					if(task.getMasterPortToLibraryMap().containsKey(connection.getPortName()) == false)
 					{
-						task.getLinkedLibraryHeaderList().add(library.getHeader());					
+						task.getMasterPortToLibraryMap().put(connection.getPortName(), library);
 					}
 				}
 			}

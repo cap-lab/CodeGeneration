@@ -1,12 +1,14 @@
 package org.snu.cse.cap.translator.structure.task;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
 import javax.management.modelmbean.InvalidTargetObjectTypeException;
 
 import org.snu.cse.cap.translator.Constants;
+import org.snu.cse.cap.translator.structure.library.Library;
 
 import hopes.cic.xml.LibraryMasterPortType;
 import hopes.cic.xml.LoopStructureType;
@@ -63,17 +65,15 @@ public class Task {
 	private boolean staticScheduled;
 	private TaskRunCondition runCondition;
 	private String taskCodeFile;
-	private HashSet<String> libraryMasterPortSet;
-	private HashSet<String> linkedLibraryHeaderList;
+	private HashMap<String, Library> masterPortToLibraryMap;
 	
 	public Task(int id, TaskType xmlTaskData)
 	{
 		this.taskParamList = new ArrayList<TaskParameter>();
-		this.libraryMasterPortSet = new HashSet<String>();
 		this.loopStruct = null;
 		this.modeTransition = null;
 		this.staticScheduled = false; // default is false
-		this.linkedLibraryHeaderList = new HashSet<String>();
+		this.masterPortToLibraryMap = new HashMap<String, Library>();
 	
 		setId(id);
 		setName(xmlTaskData.getName());
@@ -84,17 +84,8 @@ public class Task {
 		setParameters(xmlTaskData.getParameter());
 		setLoop(xmlTaskData.getLoopStructure());
 		setModeTransition(xmlTaskData.getMtm(), xmlTaskData.getHasMTM());
-		setLibraryMasterPorts(xmlTaskData.getLibraryMasterPort());
 	}
-	
-	private void setLibraryMasterPorts(List<LibraryMasterPortType> libraryMasterPortList)
-	{
-		for(LibraryMasterPortType libraryMasterPort : libraryMasterPortList)
-		{
-			this.libraryMasterPortSet.add(libraryMasterPort.getName());
-		}
-	}
-	
+		
 	private void setModeTransition(MTMType mtm, String hasMTM) 
 	{
 		int loop = 0;
@@ -337,12 +328,12 @@ public class Task {
 			this.taskFuncNum = 1;
 		}
 	}
-
-	public HashSet<String> getLinkedLibraryHeaderList() {
-		return linkedLibraryHeaderList;
-	}
-
+	
 	public ArrayList<TaskParameter> getTaskParamList() {
 		return taskParamList;
+	}
+
+	public HashMap<String, Library> getMasterPortToLibraryMap() {
+		return masterPortToLibraryMap;
 	}
 }

@@ -224,7 +224,9 @@ public class CodeOrganizer {
 				if(paramFile.isFile() == true && 
 					(paramFile.getName().endsWith(Constants.CIC_FILE_EXTENSION) || 
 					paramFile.getName().endsWith(Constants.CICL_FILE_EXTENSION) || 
-					paramFile.getName().endsWith(Constants.HEADER_FILE_EXTENSION)))
+						(paramFile.getName().endsWith(Constants.HEADER_FILE_EXTENSION) && 
+						!paramFile.getName().endsWith(Constants.CIC_HEADER_FILE_EXTENSION))
+					))
 					return true;
 				else
 					return false;

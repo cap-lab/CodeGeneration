@@ -211,7 +211,7 @@ public class CodeGenerator
 	    		Map<String, Object> taskCodeRootHash = new HashMap<>();
 	    		
 	    		taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_INFO, task);
-	    		
+	    		    		
 	    		for(int loop = 0 ; loop < task.getTaskFuncNum() ; loop++)
 	    		{
 	    			String outputFilePath = topDirPath + File.separator + CodeOrganizer.APPLICATION_DIR + File.separator + 
@@ -242,7 +242,7 @@ public class CodeGenerator
 			String outputSourcePath = topDirPath + File.separator + CodeOrganizer.APPLICATION_DIR + File.separator + 
 										library.getName() + Constants.C_FILE_EXTENSION;
 			String outputHeaderPath = topDirPath + File.separator + CodeOrganizer.APPLICATION_DIR + File.separator + 
-										library.getName() + Constants.HEADER_FILE_EXTENSION;
+										library.getName() + Constants.CIC_HEADER_FILE_EXTENSION;
 			// Create the root hash
 			Map<String, Object> libraryRootHash = new HashMap<>();
 			

@@ -871,8 +871,7 @@ _EXIT:
 	return result;
 }
 
-
-uem_result UKSharedMemoryChannel_GetAvailableChunk (SChannel *pstChannel, OUT int *pnChunkIndex)
+static uem_result getAvailableChunkFromArrayQueue(SChannel *pstChannel, OUT int *pnChunkIndex)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nAvailableIndex = 0;
@@ -926,6 +925,72 @@ _EXIT_LOCK:
 		UCThreadEvent_SetEvent(pstChannel->hWriteEvent);
 	}
 	UCThreadMutex_Unlock(pstChannel->hMutex);
+_EXIT:
+	return result;
+}
+
+
+static uem_result getAvailableChunkFromGeneralQueue(SChannel *pstChannel, OUT int *pnChunkIndex)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nDataToRead = 0;
+
+	result = UCThreadMutex_Lock(pstChannel->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	pstChannel->nReadReferenceCount++;
+
+	// wait until the data is arrived
+	while(pstChannel->nDataLen < nDataToRead)
+	{
+		if(pstChannel->bReadExit == TRUE)
+		{
+			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
+		}
+
+		result = UCThreadMutex_Unlock(pstChannel->hMutex);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UCThreadEvent_WaitEvent(pstChannel->hReadEvent);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UCThreadMutex_Lock(pstChannel->hMutex);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	// index is always zero.
+	*pnChunkIndex = 0;
+
+	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	pstChannel->nReadReferenceCount--;
+
+	if(pstChannel->nWriteReferenceCount > 0)
+	{
+		UCThreadEvent_SetEvent(pstChannel->hWriteEvent);
+	}
+	UCThreadMutex_Unlock(pstChannel->hMutex);
+_EXIT:
+	return result;
+}
+
+
+uem_result UKSharedMemoryChannel_GetAvailableChunk (SChannel *pstChannel, OUT int *pnChunkIndex)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	if(pstChannel->enChannelType == CHANNEL_TYPE_GENERAL || pstChannel->enChannelType == CHANNEL_TYPE_OUTPUT_ARRAY)
+	{
+		result = getAvailableChunkFromGeneralQueue(pstChannel, pnChunkIndex);
+		ERRIFGOTO(result, _EXIT);
+	}
+	else
+	{
+		result = getAvailableChunkFromArrayQueue(pstChannel, pnChunkIndex);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
 }

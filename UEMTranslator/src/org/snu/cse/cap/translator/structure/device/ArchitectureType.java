@@ -21,7 +21,7 @@ public enum ArchitectureType {
 	
 	public static ArchitectureType fromValue(String value) {
 		 for (ArchitectureType c : ArchitectureType.values()) {
-			 if (c.value.equals(value)) {
+			 if (c.value.equalsIgnoreCase(value)) {
 				 return c;
 			 }
 		 }

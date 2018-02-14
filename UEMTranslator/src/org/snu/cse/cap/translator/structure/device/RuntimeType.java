@@ -19,7 +19,7 @@ public enum RuntimeType {
 	
 	public static RuntimeType fromValue(String value) {
 		 for (RuntimeType c : RuntimeType.values()) {
-			 if (c.value.equals(value)) {
+			 if (c.value.equalsIgnoreCase(value)) {
 				 return c;
 			 }
 		 }

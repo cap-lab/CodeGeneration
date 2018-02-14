@@ -20,7 +20,7 @@ public enum SoftwarePlatformType {
 	
 	public static SoftwarePlatformType fromValue(String value) {
 		 for (SoftwarePlatformType c : SoftwarePlatformType.values()) {
-			 if (c.value.equals(value)) {
+			 if (c.value.equalsIgnoreCase(value)) {
 				 return c;
 			 }
 		 }
