@@ -106,6 +106,9 @@ typedef void (*FnUemTaskInit)(int nTaskId);
 typedef void (*FnUemTaskGo)(int nTaskId);
 typedef void (*FnUemTaskWrapup)();
 
+typedef void (*FnUemLibraryInit)();
+typedef void (*FnUemLibraryWrapup)();
+
 
 typedef struct _SModeTransitionMachine SModeTransitionMachine;
 
@@ -215,6 +218,13 @@ typedef struct _SPortSampleRate {
 	int nSampleRate; // sample rate (for general task, nSampleRate and nTotalSampleRate are same)
 	int nMaxAvailableDataNum; // for broadcast loop
 } SPortSampleRate;
+
+
+typedef struct _SLibrary {
+	char *pszLibraryName;
+	FnUemLibraryInit fnInit;
+	FnUemLibraryWrapup fnWrapup;
+} SLibrary;
 
 
 typedef struct _SPort SPort;
@@ -371,6 +381,9 @@ extern SMappingSchedulingInfo g_astMappingAndSchedulingInfo[];
 extern int g_nMappingAndSchedulingInfoNum;
 
 extern SMappedTaskInfo g_stMappingInfo;
+
+extern SLibrary g_stLibraryInfo[];
+extern int g_nLibraryInfoNum;
 
 #ifdef __cplusplus
 }

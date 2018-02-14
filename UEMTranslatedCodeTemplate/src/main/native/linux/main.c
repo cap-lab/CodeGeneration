@@ -17,13 +17,13 @@
 #include <uem_data.h>
 
 #include <UCTime.h>
+#include <UCThreadMutex.h>
 
 #include <UKTask.h>
 #include <UKChannel.h>
 #include <UKCPUTaskManager.h>
 #include <UKProcessor.h>
-
-#include <UCThreadMutex.h>
+#include <UKLibrary.h>
 
 // not static which is used globally
 HCPUTaskManager g_hCPUTaskManager = NULL;
@@ -239,6 +239,7 @@ int main(int argc, char *argv[])
 	printf("Hello world: %d\n", g_astChannels[0].nChannelIndex);
 
 	// Channel initialization
+	UKLibrary_Initialize();
 	UKChannel_Initialize();
 
 	// Execute tasks
@@ -246,6 +247,7 @@ int main(int argc, char *argv[])
 
 	// Channel finalization
 	UKChannel_Finalize();
+	UKLibrary_Finalize();
 
 	printf("Merong world: huhu\n");
 

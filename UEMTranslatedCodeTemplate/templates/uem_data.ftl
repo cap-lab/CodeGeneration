@@ -23,6 +23,16 @@ void ${task.name}_Wrapup${task_func_id}();
 </#list>
 // ##TASK_CODE_TEMPLATE::END
 
+
+// ##LIBRARY_INIT_WRAPUP_TEMPLATE::START
+<#list library_info as libraryName, library>
+void l_${libraryName}_init();
+void l_${libraryName}_wrapup();
+
+</#list>
+// ##LIBRARY_INIT_WRAPUP_TEMPLATE::END
+
+
 // ##CHANNEL_SIZE_DEFINITION_TEMPLATE::START
 <#list channel_list as channel>
 #define CHANNEL_${channel.index}_SIZE (${channel.size?c})
@@ -565,9 +575,24 @@ SMappedTaskInfo g_stMappingInfo = {
 // ##MAPPING_SCHEDULING_INFO_TEMPLATE::END
 
 
+// ##LIBRARY_INFO_TEMPLATE::START
+SLibrary g_stLibraryInfo[] = {
+<#list library_info as libraryName, library>
+	{
+		"${libraryName}",
+		l_${libraryName}_init,
+		l_${libraryName}_wrapup,
+	},
+</#list>
+};
+
+// ##LIBRARY_INFO_TEMPLATE::END
+
+
 int g_nChannelNum = ARRAYLEN(g_astChannels);
 int g_nNumOfTasks_top = ARRAYLEN(g_astTasks_top);
 int g_nTaskIdToTaskNum = ARRAYLEN(g_astTaskIdToTask);
 int g_nProcessorInfoNum = ARRAYLEN(g_astProcessorInfo);
 int g_nMappingAndSchedulingInfoNum = ARRAYLEN(g_astMappingAndSchedulingInfo);
+int g_nLibraryInfoNum = <#if (library_info?size > 0)>ARRAYLEN(g_stLibraryInfo)<#else>0</#if>;
 

@@ -50,6 +50,7 @@ public class Constants {
 	public static final String TEMPLATE_TAG_PORT_INFO = "port_info";
 	public static final String TEMPLATE_TAG_PORT_KEY_TO_INDEX = "port_key_to_index";
 	public static final String TEMPLATE_TAG_EXECUTION_TIME = "execution_time";
+	public static final String TEMPLATE_TAG_LIBRARY_INFO = "library_info";
 	
 	// tags for Makefile.ftl
 	public static final String TEMPLATE_TAG_BUILD_INFO = "build_info";
