@@ -158,10 +158,24 @@ static uem_result destroyWindowsThread(SUCThread *pstThread, uem_bool bDetach, i
 		}
 
 		if(dwErrorCode != 0) {
-			// ignore error
-			// possible error cases: WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT, WAIT_FAILED
-			// debug exit for entering this case
-			ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+			switch(dwErrorCode)
+			{
+			case WAIT_TIMEOUT:
+				printf("Thread wait timeout.\n");
+				if(TerminateThread(pstThread->hNativeThread, 0) == 0)
+				{
+					ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+				}
+				printf("Thread is forcedly terminated.\n");
+				break;
+			case WAIT_ABANDONED:
+			case WAIT_FAILED:
+				printf("Fail to wait thread termination.\n");
+				ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+				break;
+			default:
+				ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+			}
 		}
 	}
 	else

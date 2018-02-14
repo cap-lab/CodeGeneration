@@ -776,7 +776,7 @@ STask g_astTasks_top[] = {
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_Counter_functions, // Task function array
 		0, // Task function array number
-		RUN_CONDITION_CONTROL_DRIVEN, // Run condition
+		RUN_CONDITION_TIME_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
 		TIME_METRIC_MICROSEC, // Period metric
