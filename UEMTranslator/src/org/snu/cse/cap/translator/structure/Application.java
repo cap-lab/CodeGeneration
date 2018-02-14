@@ -73,8 +73,6 @@ public class Application {
 	private HashMap<String, Library> libraryMap; // library name : Library class
 	private ExecutionTime executionTime;
 	
-
-	
 	public Application()
 	{
 		this.channelList = new ArrayList<Channel>();
@@ -580,6 +578,30 @@ public class Application {
 		}
 	}
 	
+	private void setLibraryFunction(Library library, LibraryType libraryType)
+	{
+		for(LibraryFunctionType functionType : libraryType.getFunction())
+		{
+			Function function = new Function(functionType.getName(), functionType.getReturnType());
+
+			for(LibraryFunctionArgumentType argType: functionType.getArgument())
+			{
+				Argument argument = new Argument(argType.getName(), argType.getType());
+				function.getArgumentList().add(argument);
+			}
+			
+			library.getFunctionList().add(function);
+		}
+	}
+	
+	private void setExtraHeader(Library library, LibraryType libraryType)
+	{
+		for(String extraHeaderFile : libraryType.getExtraHeader())
+		{
+			library.getExtraHeaderSet().add(extraHeaderFile);
+		}
+	}
+	
 	public void makeLibraryInformation(CICAlgorithmType algorithm_metadata) 
 	{
 		if(algorithm_metadata.getLibraries() != null && algorithm_metadata.getLibraries().getLibrary() != null)
@@ -588,17 +610,13 @@ public class Application {
 			{
 				Library library = new Library(libraryType.getName(), libraryType.getType(), libraryType.getFile(), libraryType.getHeader());
 								
-				for(LibraryFunctionType functionType : libraryType.getFunction())
+				setLibraryFunction(library, libraryType);
+				
+				setExtraHeader(library, libraryType);
+				
+				if(libraryType.getLdflags() != null)
 				{
-					Function function = new Function(functionType.getName(), functionType.getReturnType());
-
-					for(LibraryFunctionArgumentType argType: functionType.getArgument())
-					{
-						Argument argument = new Argument(argType.getName(), argType.getType());
-						function.getArgumentList().add(argument);
-					}
-					
-					library.getFunctionList().add(function);
+					library.setLdFlags(libraryType.getLdflags());	
 				}
 				
 				this.libraryMap.put(libraryType.getName(), library);

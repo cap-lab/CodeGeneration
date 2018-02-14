@@ -10,17 +10,18 @@ DEVICE_RESTRICTION=unconstrained
 
 SYSTEM_CFLAGS=${PTHREAD_CFLAGS}
 
-SYSTEM_LDADD=${PTHREAD_LDADD}
+SYSTEM_LDADD=${PTHREAD_LDADD}   -lX11  
 
 
 bin_PROGRAMS=proc
 
 MAIN_SOURCES=$(MAIN_DIR)/$(PLATFORM_DIR)/main.c
 
-APPLICATION_SOURCES=$(APPLICATION_DIR)/output_0.c\
-	$(APPLICATION_DIR)/input_0.c\
-	$(APPLICATION_DIR)/calculate_0.c\
-	$(APPLICATION_DIR)/math.c
+APPLICATION_SOURCES=$(APPLICATION_DIR)/H263_Dec_0.c\
+	$(APPLICATION_DIR)/H263_Enc_0.c\
+	$(APPLICATION_DIR)/Display_0.c\
+	$(APPLICATION_DIR)/dct.c\
+	$(APPLICATION_DIR)/idct.c
 
 API_SOURCES=$(API_DIR)/UFControl_deprecated.c\
 	$(API_DIR)/UFControl.c\
@@ -37,6 +38,7 @@ KERNEL_SOURCES=$(KERNEL_DIR)/uem_data.c\
 	$(KERNEL_DIR)/UKChannel.c\
 	$(KERNEL_DIR)/UKProcessor.c\
 	$(KERNEL_DIR)/UKModeTransition.c\
+	$(KERNEL_DIR)/UKLibrary.c\
 	$(KERNEL_DIR)/UKTaskParameter.c\
 	$(KERNEL_DIR)/UKTask.c
 			   

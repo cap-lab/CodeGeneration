@@ -8,31 +8,40 @@
 #include <UKTask.h>
 #include <UKModeTransition.h>
 
-SExecutionTime g_stExecutionTime = { 100, TIME_METRIC_MILLISEC } ;
+SExecutionTime g_stExecutionTime = { 20, TIME_METRIC_SEC } ;
 
 // ##TASK_CODE_TEMPLATE::START
-void output_Init0(int nTaskId);
-void output_Go0(int nTaskId);
-void output_Wrapup0();
+void H263_Dec_Init0(int nTaskId);
+void H263_Dec_Go0(int nTaskId);
+void H263_Dec_Wrapup0();
 
-void input_Init0(int nTaskId);
-void input_Go0(int nTaskId);
-void input_Wrapup0();
+void H263_Enc_Init0(int nTaskId);
+void H263_Enc_Go0(int nTaskId);
+void H263_Enc_Wrapup0();
 
-void calculate_Init0(int nTaskId);
-void calculate_Go0(int nTaskId);
-void calculate_Wrapup0();
+void Display_Init0(int nTaskId);
+void Display_Go0(int nTaskId);
+void Display_Wrapup0();
 
 // ##TASK_CODE_TEMPLATE::END
 
+
+// ##LIBRARY_INIT_WRAPUP_TEMPLATE::START
+void l_dct_init();
+void l_dct_wrapup();
+
+void l_idct_init();
+void l_idct_wrapup();
+
+// ##LIBRARY_INIT_WRAPUP_TEMPLATE::END
+
+
 // ##CHANNEL_SIZE_DEFINITION_TEMPLATE::START
-#define CHANNEL_0_SIZE (8)
-#define CHANNEL_1_SIZE (8)
-#define CHANNEL_2_SIZE (8)
-#define CHANNEL_3_SIZE (8)
-#define CHANNEL_4_SIZE (8)
-#define CHANNEL_5_SIZE (8)
-#define CHANNEL_6_SIZE (8)
+#define CHANNEL_0_SIZE (30000)
+#define CHANNEL_1_SIZE (4)
+#define CHANNEL_2_SIZE (25344)
+#define CHANNEL_3_SIZE (6336)
+#define CHANNEL_4_SIZE (6336)
 // ##CHANNEL_SIZE_DEFINITION_TEMPLATE::END
 
 // ##CHANNEL_BUFFER_DEFINITION_TEMPLATE::START
@@ -41,8 +50,6 @@ char s_pChannel_1_buffer[CHANNEL_1_SIZE];
 char s_pChannel_2_buffer[CHANNEL_2_SIZE];
 char s_pChannel_3_buffer[CHANNEL_3_SIZE];
 char s_pChannel_4_buffer[CHANNEL_4_SIZE];
-char s_pChannel_5_buffer[CHANNEL_5_SIZE];
-char s_pChannel_6_buffer[CHANNEL_6_SIZE];
 // ##CHANNEL_BUFFER_DEFINITION_TEMPLATE::END
 
 // ##CHUNK_DEFINITION_TEMPLATE::START
@@ -146,91 +153,39 @@ SChunk g_astChunk_channel_4_in[] = {
 	},
 };
 
-SChunk g_astChunk_channel_5_out[] = {
-	{
-		s_pChannel_5_buffer, // Chunk start pointer
-		s_pChannel_5_buffer, // Data start pointer
-		s_pChannel_5_buffer, // Data end pointer
-		0, // Written data length
-		0, // Available data number;
-	},
-};
-
-SChunk g_astChunk_channel_5_in[] = {
-	{
-		s_pChannel_5_buffer, // Chunk start pointer
-		s_pChannel_5_buffer, // Data start pointer
-		s_pChannel_5_buffer, // Data end pointer
-		0, // Written data length
-		0, // Available data number;
-	},
-};
-
-SChunk g_astChunk_channel_6_out[] = {
-	{
-		s_pChannel_6_buffer, // Chunk start pointer
-		s_pChannel_6_buffer, // Data start pointer
-		s_pChannel_6_buffer, // Data end pointer
-		0, // Written data length
-		0, // Available data number;
-	},
-};
-
-SChunk g_astChunk_channel_6_in[] = {
-	{
-		s_pChannel_6_buffer, // Chunk start pointer
-		s_pChannel_6_buffer, // Data start pointer
-		s_pChannel_6_buffer, // Data end pointer
-		0, // Written data length
-		0, // Available data number;
-	},
-};
-
 // ##CHUNK_DEFINITION_TEMPLATE::END
 //portSampleRateList
 
 
 // ##PORT_SAMPLE_RATE_TEMPLATE::START
-SPortSampleRate g_astPortSampleRate_calculate_input[] = {
+SPortSampleRate g_astPortSampleRate_H263_Dec_stream_in[] = {
 };
 
-SPortSampleRate g_astPortSampleRate_input_output[] = {
+SPortSampleRate g_astPortSampleRate_H263_Enc_stream_out[] = {
 };
 
-SPortSampleRate g_astPortSampleRate_output_input_pow[] = {
+SPortSampleRate g_astPortSampleRate_H263_Dec_size_in[] = {
 };
 
-SPortSampleRate g_astPortSampleRate_calculate_output_pow[] = {
+SPortSampleRate g_astPortSampleRate_H263_Enc_size_out[] = {
 };
 
-SPortSampleRate g_astPortSampleRate_output_input_log[] = {
+SPortSampleRate g_astPortSampleRate_Display_Y_in[] = {
 };
 
-SPortSampleRate g_astPortSampleRate_calculate_output_log[] = {
+SPortSampleRate g_astPortSampleRate_H263_Dec_Y_out[] = {
 };
 
-SPortSampleRate g_astPortSampleRate_output_input_exp[] = {
+SPortSampleRate g_astPortSampleRate_Display_U_in[] = {
 };
 
-SPortSampleRate g_astPortSampleRate_calculate_output_exp[] = {
+SPortSampleRate g_astPortSampleRate_H263_Dec_U_out[] = {
 };
 
-SPortSampleRate g_astPortSampleRate_output_input_sin[] = {
+SPortSampleRate g_astPortSampleRate_Display_V_in[] = {
 };
 
-SPortSampleRate g_astPortSampleRate_calculate_output_sin[] = {
-};
-
-SPortSampleRate g_astPortSampleRate_output_input_cos[] = {
-};
-
-SPortSampleRate g_astPortSampleRate_calculate_output_cos[] = {
-};
-
-SPortSampleRate g_astPortSampleRate_output_input_tan[] = {
-};
-
-SPortSampleRate g_astPortSampleRate_calculate_output_tan[] = {
+SPortSampleRate g_astPortSampleRate_H263_Dec_V_out[] = {
 };
 
 // ##PORT_SAMPLE_RATE_TEMPLATE::END
@@ -240,168 +195,120 @@ SPortSampleRate g_astPortSampleRate_calculate_output_tan[] = {
 SPort g_astPortInfo[] = {
 	{
 		1, // Task ID
-		"input", // Port name
+		"stream_in", // Port name
 		PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-		g_astPortSampleRate_calculate_input, // Array of sample rate list
+		g_astPortSampleRate_H263_Dec_stream_in, // Array of sample rate list
 		0, // Array element number of sample rate list
 		0, //Selected sample rate index
-		8, // Sample size
+		30000, // Sample size
 		PORT_TYPE_QUEUE, // Port type
 		NULL, // Pointer to Subgraph port
 	}, // Port information		
 		
 	{
 		0, // Task ID
-		"output", // Port name
+		"stream_out", // Port name
 		PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-		g_astPortSampleRate_input_output, // Array of sample rate list
+		g_astPortSampleRate_H263_Enc_stream_out, // Array of sample rate list
 		0, // Array element number of sample rate list
 		0, //Selected sample rate index
-		8, // Sample size
-		PORT_TYPE_QUEUE, // Port type
-		NULL, // Pointer to Subgraph port
-	}, // Port information		
-		
-	{
-		2, // Task ID
-		"input_pow", // Port name
-		PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-		g_astPortSampleRate_output_input_pow, // Array of sample rate list
-		0, // Array element number of sample rate list
-		0, //Selected sample rate index
-		8, // Sample size
+		30000, // Sample size
 		PORT_TYPE_QUEUE, // Port type
 		NULL, // Pointer to Subgraph port
 	}, // Port information		
 		
 	{
 		1, // Task ID
-		"output_pow", // Port name
+		"size_in", // Port name
 		PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-		g_astPortSampleRate_calculate_output_pow, // Array of sample rate list
+		g_astPortSampleRate_H263_Dec_size_in, // Array of sample rate list
 		0, // Array element number of sample rate list
 		0, //Selected sample rate index
-		8, // Sample size
+		4, // Sample size
+		PORT_TYPE_QUEUE, // Port type
+		NULL, // Pointer to Subgraph port
+	}, // Port information		
+		
+	{
+		0, // Task ID
+		"size_out", // Port name
+		PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
+		g_astPortSampleRate_H263_Enc_size_out, // Array of sample rate list
+		0, // Array element number of sample rate list
+		0, //Selected sample rate index
+		4, // Sample size
 		PORT_TYPE_QUEUE, // Port type
 		NULL, // Pointer to Subgraph port
 	}, // Port information		
 		
 	{
 		2, // Task ID
-		"input_log", // Port name
+		"Y_in", // Port name
 		PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-		g_astPortSampleRate_output_input_log, // Array of sample rate list
+		g_astPortSampleRate_Display_Y_in, // Array of sample rate list
 		0, // Array element number of sample rate list
 		0, //Selected sample rate index
-		8, // Sample size
+		25344, // Sample size
 		PORT_TYPE_QUEUE, // Port type
 		NULL, // Pointer to Subgraph port
 	}, // Port information		
 		
 	{
 		1, // Task ID
-		"output_log", // Port name
+		"Y_out", // Port name
 		PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-		g_astPortSampleRate_calculate_output_log, // Array of sample rate list
+		g_astPortSampleRate_H263_Dec_Y_out, // Array of sample rate list
 		0, // Array element number of sample rate list
 		0, //Selected sample rate index
-		8, // Sample size
+		25344, // Sample size
 		PORT_TYPE_QUEUE, // Port type
 		NULL, // Pointer to Subgraph port
 	}, // Port information		
 		
 	{
 		2, // Task ID
-		"input_exp", // Port name
+		"U_in", // Port name
 		PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-		g_astPortSampleRate_output_input_exp, // Array of sample rate list
+		g_astPortSampleRate_Display_U_in, // Array of sample rate list
 		0, // Array element number of sample rate list
 		0, //Selected sample rate index
-		8, // Sample size
+		6336, // Sample size
 		PORT_TYPE_QUEUE, // Port type
 		NULL, // Pointer to Subgraph port
 	}, // Port information		
 		
 	{
 		1, // Task ID
-		"output_exp", // Port name
+		"U_out", // Port name
 		PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-		g_astPortSampleRate_calculate_output_exp, // Array of sample rate list
+		g_astPortSampleRate_H263_Dec_U_out, // Array of sample rate list
 		0, // Array element number of sample rate list
 		0, //Selected sample rate index
-		8, // Sample size
+		6336, // Sample size
 		PORT_TYPE_QUEUE, // Port type
 		NULL, // Pointer to Subgraph port
 	}, // Port information		
 		
 	{
 		2, // Task ID
-		"input_sin", // Port name
+		"V_in", // Port name
 		PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-		g_astPortSampleRate_output_input_sin, // Array of sample rate list
+		g_astPortSampleRate_Display_V_in, // Array of sample rate list
 		0, // Array element number of sample rate list
 		0, //Selected sample rate index
-		8, // Sample size
+		6336, // Sample size
 		PORT_TYPE_QUEUE, // Port type
 		NULL, // Pointer to Subgraph port
 	}, // Port information		
 		
 	{
 		1, // Task ID
-		"output_sin", // Port name
+		"V_out", // Port name
 		PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-		g_astPortSampleRate_calculate_output_sin, // Array of sample rate list
+		g_astPortSampleRate_H263_Dec_V_out, // Array of sample rate list
 		0, // Array element number of sample rate list
 		0, //Selected sample rate index
-		8, // Sample size
-		PORT_TYPE_QUEUE, // Port type
-		NULL, // Pointer to Subgraph port
-	}, // Port information		
-		
-	{
-		2, // Task ID
-		"input_cos", // Port name
-		PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-		g_astPortSampleRate_output_input_cos, // Array of sample rate list
-		0, // Array element number of sample rate list
-		0, //Selected sample rate index
-		8, // Sample size
-		PORT_TYPE_QUEUE, // Port type
-		NULL, // Pointer to Subgraph port
-	}, // Port information		
-		
-	{
-		1, // Task ID
-		"output_cos", // Port name
-		PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-		g_astPortSampleRate_calculate_output_cos, // Array of sample rate list
-		0, // Array element number of sample rate list
-		0, //Selected sample rate index
-		8, // Sample size
-		PORT_TYPE_QUEUE, // Port type
-		NULL, // Pointer to Subgraph port
-	}, // Port information		
-		
-	{
-		2, // Task ID
-		"input_tan", // Port name
-		PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-		g_astPortSampleRate_output_input_tan, // Array of sample rate list
-		0, // Array element number of sample rate list
-		0, //Selected sample rate index
-		8, // Sample size
-		PORT_TYPE_QUEUE, // Port type
-		NULL, // Pointer to Subgraph port
-	}, // Port information		
-		
-	{
-		1, // Task ID
-		"output_tan", // Port name
-		PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-		g_astPortSampleRate_calculate_output_tan, // Array of sample rate list
-		0, // Array element number of sample rate list
-		0, //Selected sample rate index
-		8, // Sample size
+		6336, // Sample size
 		PORT_TYPE_QUEUE, // Port type
 		NULL, // Pointer to Subgraph port
 	}, // Port information		
@@ -443,39 +350,33 @@ SAvailableChunk g_astAvailableInputChunk_channel_3[] = {
 SAvailableChunk g_astAvailableInputChunk_channel_4[] = {
 	{ 0, 0, NULL, NULL, },
 };
-SAvailableChunk g_astAvailableInputChunk_channel_5[] = {
-	{ 0, 0, NULL, NULL, },
-};
-SAvailableChunk g_astAvailableInputChunk_channel_6[] = {
-	{ 0, 0, NULL, NULL, },
-};
 // ##AVAILABLE_CHUNK_LIST_TEMPLATE::END
 
 // ##TASK_PARAMETER_TEMPLATE::START
 // ##TASK_PARAMETER_TEMPLATE::END
 
 // ##TASK_FUNCTION_LIST::START
-STaskFunctions g_ast_output_functions[] = {
+STaskFunctions g_ast_H263_Dec_functions[] = {
 	{
-		output_Init0, // Task init function
-		output_Go0, // Task go function
-		output_Wrapup0, // Task wrapup function
+		H263_Dec_Init0, // Task init function
+		H263_Dec_Go0, // Task go function
+		H263_Dec_Wrapup0, // Task wrapup function
 	},
 };
 
-STaskFunctions g_ast_input_functions[] = {
+STaskFunctions g_ast_H263_Enc_functions[] = {
 	{
-		input_Init0, // Task init function
-		input_Go0, // Task go function
-		input_Wrapup0, // Task wrapup function
+		H263_Enc_Init0, // Task init function
+		H263_Enc_Go0, // Task go function
+		H263_Enc_Wrapup0, // Task wrapup function
 	},
 };
 
-STaskFunctions g_ast_calculate_functions[] = {
+STaskFunctions g_ast_Display_functions[] = {
 	{
-		calculate_Init0, // Task init function
-		calculate_Go0, // Task go function
-		calculate_Wrapup0, // Task wrapup function
+		Display_Init0, // Task init function
+		Display_Go0, // Task go function
+		Display_Wrapup0, // Task wrapup function
 	},
 };
 
@@ -502,23 +403,23 @@ SChannel g_astChannels[] = {
 		NULL, // Write available notice event
 		{
 			1, // Task ID
-			"input", // Port name
+			"stream_in", // Port name
 			PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-			g_astPortSampleRate_calculate_input, // Array of sample rate list
+			g_astPortSampleRate_H263_Dec_stream_in, // Array of sample rate list
 			0, // Array element number of sample rate list
 			0, //Selected sample rate index
-			8, // Sample size
+			30000, // Sample size
 			PORT_TYPE_QUEUE, // Port type
 			NULL, // Pointer to Subgraph port
 		}, // Input port information
 		{
 			0, // Task ID
-			"output", // Port name
+			"stream_out", // Port name
 			PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-			g_astPortSampleRate_input_output, // Array of sample rate list
+			g_astPortSampleRate_H263_Enc_stream_out, // Array of sample rate list
 			0, // Array element number of sample rate list
 			0, //Selected sample rate index
-			8, // Sample size
+			30000, // Sample size
 			PORT_TYPE_QUEUE, // Port type
 			NULL, // Pointer to Subgraph port
 		}, // Output port information
@@ -556,24 +457,24 @@ SChannel g_astChannels[] = {
 		NULL, // Read available notice event
 		NULL, // Write available notice event
 		{
-			2, // Task ID
-			"input_pow", // Port name
+			1, // Task ID
+			"size_in", // Port name
 			PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-			g_astPortSampleRate_output_input_pow, // Array of sample rate list
+			g_astPortSampleRate_H263_Dec_size_in, // Array of sample rate list
 			0, // Array element number of sample rate list
 			0, //Selected sample rate index
-			8, // Sample size
+			4, // Sample size
 			PORT_TYPE_QUEUE, // Port type
 			NULL, // Pointer to Subgraph port
 		}, // Input port information
 		{
-			1, // Task ID
-			"output_pow", // Port name
+			0, // Task ID
+			"size_out", // Port name
 			PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-			g_astPortSampleRate_calculate_output_pow, // Array of sample rate list
+			g_astPortSampleRate_H263_Enc_size_out, // Array of sample rate list
 			0, // Array element number of sample rate list
 			0, //Selected sample rate index
-			8, // Sample size
+			4, // Sample size
 			PORT_TYPE_QUEUE, // Port type
 			NULL, // Pointer to Subgraph port
 		}, // Output port information
@@ -612,23 +513,23 @@ SChannel g_astChannels[] = {
 		NULL, // Write available notice event
 		{
 			2, // Task ID
-			"input_log", // Port name
+			"Y_in", // Port name
 			PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-			g_astPortSampleRate_output_input_log, // Array of sample rate list
+			g_astPortSampleRate_Display_Y_in, // Array of sample rate list
 			0, // Array element number of sample rate list
 			0, //Selected sample rate index
-			8, // Sample size
+			25344, // Sample size
 			PORT_TYPE_QUEUE, // Port type
 			NULL, // Pointer to Subgraph port
 		}, // Input port information
 		{
 			1, // Task ID
-			"output_log", // Port name
+			"Y_out", // Port name
 			PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-			g_astPortSampleRate_calculate_output_log, // Array of sample rate list
+			g_astPortSampleRate_H263_Dec_Y_out, // Array of sample rate list
 			0, // Array element number of sample rate list
 			0, //Selected sample rate index
-			8, // Sample size
+			25344, // Sample size
 			PORT_TYPE_QUEUE, // Port type
 			NULL, // Pointer to Subgraph port
 		}, // Output port information
@@ -667,23 +568,23 @@ SChannel g_astChannels[] = {
 		NULL, // Write available notice event
 		{
 			2, // Task ID
-			"input_exp", // Port name
+			"U_in", // Port name
 			PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-			g_astPortSampleRate_output_input_exp, // Array of sample rate list
+			g_astPortSampleRate_Display_U_in, // Array of sample rate list
 			0, // Array element number of sample rate list
 			0, //Selected sample rate index
-			8, // Sample size
+			6336, // Sample size
 			PORT_TYPE_QUEUE, // Port type
 			NULL, // Pointer to Subgraph port
 		}, // Input port information
 		{
 			1, // Task ID
-			"output_exp", // Port name
+			"U_out", // Port name
 			PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-			g_astPortSampleRate_calculate_output_exp, // Array of sample rate list
+			g_astPortSampleRate_H263_Dec_U_out, // Array of sample rate list
 			0, // Array element number of sample rate list
 			0, //Selected sample rate index
-			8, // Sample size
+			6336, // Sample size
 			PORT_TYPE_QUEUE, // Port type
 			NULL, // Pointer to Subgraph port
 		}, // Output port information
@@ -722,23 +623,23 @@ SChannel g_astChannels[] = {
 		NULL, // Write available notice event
 		{
 			2, // Task ID
-			"input_sin", // Port name
+			"V_in", // Port name
 			PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-			g_astPortSampleRate_output_input_sin, // Array of sample rate list
+			g_astPortSampleRate_Display_V_in, // Array of sample rate list
 			0, // Array element number of sample rate list
 			0, //Selected sample rate index
-			8, // Sample size
+			6336, // Sample size
 			PORT_TYPE_QUEUE, // Port type
 			NULL, // Pointer to Subgraph port
 		}, // Input port information
 		{
 			1, // Task ID
-			"output_sin", // Port name
+			"V_out", // Port name
 			PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-			g_astPortSampleRate_calculate_output_sin, // Array of sample rate list
+			g_astPortSampleRate_H263_Dec_V_out, // Array of sample rate list
 			0, // Array element number of sample rate list
 			0, //Selected sample rate index
-			8, // Sample size
+			6336, // Sample size
 			PORT_TYPE_QUEUE, // Port type
 			NULL, // Pointer to Subgraph port
 		}, // Output port information
@@ -759,116 +660,6 @@ SChannel g_astChannels[] = {
 		NULL, // Chunk list tail
 		0, // Initial data length 
 	},
-	{
-		5, // Channel ID
-		COMMUNICATION_TYPE_SHARED_MEMORY, // Channel communication type
-		CHANNEL_TYPE_GENERAL, // Channel type
-		s_pChannel_5_buffer, // Channel buffer pointer
-		CHANNEL_5_SIZE, // Channel size
-		s_pChannel_5_buffer, // Channel data start
-		s_pChannel_5_buffer, // Channel data end
-		0, // Channel data length
-		0, // Read reference count
-		0, // Write reference count
-		FALSE, // Read exit setting
-		FALSE, // Write exit setting
-		NULL, // Mutex
-		NULL, // Read available notice event
-		NULL, // Write available notice event
-		{
-			2, // Task ID
-			"input_cos", // Port name
-			PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-			g_astPortSampleRate_output_input_cos, // Array of sample rate list
-			0, // Array element number of sample rate list
-			0, //Selected sample rate index
-			8, // Sample size
-			PORT_TYPE_QUEUE, // Port type
-			NULL, // Pointer to Subgraph port
-		}, // Input port information
-		{
-			1, // Task ID
-			"output_cos", // Port name
-			PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-			g_astPortSampleRate_calculate_output_cos, // Array of sample rate list
-			0, // Array element number of sample rate list
-			0, //Selected sample rate index
-			8, // Sample size
-			PORT_TYPE_QUEUE, // Port type
-			NULL, // Pointer to Subgraph port
-		}, // Output port information
-		{
-			g_astChunk_channel_5_in, // Array of chunk
-			1, // Chunk number
-			1, // Chunk size
-		}, // Input chunk information
-		{
-			g_astChunk_channel_5_out, // Array of chunk
-			1, // Chunk number
-			1, // Chunk size
-		}, // Output chunk information
-		CHUNK_NUM_NOT_INITIALIZED, // Written output chunk number
-		g_astAvailableInputChunk_channel_5, // Available chunk list
-		1,
-		NULL, // Chunk list head
-		NULL, // Chunk list tail
-		0, // Initial data length 
-	},
-	{
-		6, // Channel ID
-		COMMUNICATION_TYPE_SHARED_MEMORY, // Channel communication type
-		CHANNEL_TYPE_GENERAL, // Channel type
-		s_pChannel_6_buffer, // Channel buffer pointer
-		CHANNEL_6_SIZE, // Channel size
-		s_pChannel_6_buffer, // Channel data start
-		s_pChannel_6_buffer, // Channel data end
-		0, // Channel data length
-		0, // Read reference count
-		0, // Write reference count
-		FALSE, // Read exit setting
-		FALSE, // Write exit setting
-		NULL, // Mutex
-		NULL, // Read available notice event
-		NULL, // Write available notice event
-		{
-			2, // Task ID
-			"input_tan", // Port name
-			PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-			g_astPortSampleRate_output_input_tan, // Array of sample rate list
-			0, // Array element number of sample rate list
-			0, //Selected sample rate index
-			8, // Sample size
-			PORT_TYPE_QUEUE, // Port type
-			NULL, // Pointer to Subgraph port
-		}, // Input port information
-		{
-			1, // Task ID
-			"output_tan", // Port name
-			PORT_SAMPLE_RATE_VARIABLE, // Port sample rate type
-			g_astPortSampleRate_calculate_output_tan, // Array of sample rate list
-			0, // Array element number of sample rate list
-			0, //Selected sample rate index
-			8, // Sample size
-			PORT_TYPE_QUEUE, // Port type
-			NULL, // Pointer to Subgraph port
-		}, // Output port information
-		{
-			g_astChunk_channel_6_in, // Array of chunk
-			1, // Chunk number
-			1, // Chunk size
-		}, // Input chunk information
-		{
-			g_astChunk_channel_6_out, // Array of chunk
-			1, // Chunk number
-			1, // Chunk size
-		}, // Output chunk information
-		CHUNK_NUM_NOT_INITIALIZED, // Written output chunk number
-		g_astAvailableInputChunk_channel_6, // Available chunk list
-		1,
-		NULL, // Chunk list head
-		NULL, // Chunk list tail
-		0, // Initial data length 
-	},
 };
 // ##CHANNEL_LIST_TEMPLATE::END
 
@@ -876,9 +667,9 @@ SChannel g_astChannels[] = {
 // ##TASK_LIST_TEMPLATE::START
 STask g_astTasks_top[] = {
 	{ 	0, // Task ID
-		"input", // Task name
+		"H263_Enc", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		g_ast_input_functions, // Task function array
+		g_ast_H263_Enc_functions, // Task function array
 		1, // Task function array number
 		RUN_CONDITION_TIME_DRIVEN, // Run condition
 		1, // Run rate
@@ -896,9 +687,9 @@ STask g_astTasks_top[] = {
 		NULL, // Conditional variable
 	},
 	{ 	1, // Task ID
-		"calculate", // Task name
+		"H263_Dec", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		g_ast_calculate_functions, // Task function array
+		g_ast_H263_Dec_functions, // Task function array
 		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
@@ -916,9 +707,9 @@ STask g_astTasks_top[] = {
 		NULL, // Conditional variable
 	},
 	{ 	2, // Task ID
-		"output", // Task name
+		"Display", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		g_ast_output_functions, // Task function array
+		g_ast_Display_functions, // Task function array
 		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
@@ -952,17 +743,17 @@ STaskGraph g_stGraph_top = {
 
 // ##TASK_ID_TO_TASK_MAP_TEMPLATE::START
 STaskIdToTaskMap g_astTaskIdToTask[] = {
-	{ 	2, // Task ID
-		"output", // Task name
-		&g_astTasks_top[2], // Task structure pointer
+	{ 	1, // Task ID
+		"H263_Dec", // Task name
+		&g_astTasks_top[1], // Task structure pointer
 	},
 	{ 	0, // Task ID
-		"input", // Task name
+		"H263_Enc", // Task name
 		&g_astTasks_top[0], // Task structure pointer
 	},
-	{ 	1, // Task ID
-		"calculate", // Task name
-		&g_astTasks_top[1], // Task structure pointer
+	{ 	2, // Task ID
+		"Display", // Task name
+		&g_astTasks_top[2], // Task structure pointer
 	},
 };
 // ##TASK_ID_TO_TASK_MAP_TEMPLATE::END
@@ -996,9 +787,9 @@ SScheduledTasks g_astScheduledTaskList[] = {
 // ##MAPPING_SCHEDULING_INFO_TEMPLATE::START
 SMappingSchedulingInfo g_astMappingAndSchedulingInfo[] = {
 	{	TASK_TYPE_COMPUTATIONAL, // Task type
-		{ .pstTask = &g_astTasks_top[2] }, // Task ID or composite task information
+		{ .pstTask = &g_astTasks_top[1] }, // Task ID or composite task information
 		0, // Processor ID
-		2, // Processor local ID
+		1, // Processor local ID
 	},
 	{	TASK_TYPE_COMPUTATIONAL, // Task type
 		{ .pstTask = &g_astTasks_top[0] }, // Task ID or composite task information
@@ -1006,17 +797,17 @@ SMappingSchedulingInfo g_astMappingAndSchedulingInfo[] = {
 		0, // Processor local ID
 	},
 	{	TASK_TYPE_COMPUTATIONAL, // Task type
-		{ .pstTask = &g_astTasks_top[1] }, // Task ID or composite task information
+		{ .pstTask = &g_astTasks_top[2] }, // Task ID or composite task information
 		0, // Processor ID
-		1, // Processor local ID
+		2, // Processor local ID
 	},
 };
 
 SMappedGeneralTaskInfo g_astGeneralTaskMappingInfo[] = {
 	{	TASK_TYPE_COMPUTATIONAL, // Task type
-		&g_astTasks_top[2], // Task ID or composite task information
+		&g_astTasks_top[1], // Task ID or composite task information
 		0, // Processor ID
-		2, // Processor local ID
+		1, // Processor local ID
 	},
 	{	TASK_TYPE_COMPUTATIONAL, // Task type
 		&g_astTasks_top[0], // Task ID or composite task information
@@ -1024,9 +815,9 @@ SMappedGeneralTaskInfo g_astGeneralTaskMappingInfo[] = {
 		0, // Processor local ID
 	},
 	{	TASK_TYPE_COMPUTATIONAL, // Task type
-		&g_astTasks_top[1], // Task ID or composite task information
+		&g_astTasks_top[2], // Task ID or composite task information
 		0, // Processor ID
-		1, // Processor local ID
+		2, // Processor local ID
 	},
 };
 
@@ -1045,9 +836,27 @@ SMappedTaskInfo g_stMappingInfo = {
 // ##MAPPING_SCHEDULING_INFO_TEMPLATE::END
 
 
+// ##LIBRARY_INFO_TEMPLATE::START
+SLibrary g_stLibraryInfo[] = {
+	{
+		"dct",
+		l_dct_init,
+		l_dct_wrapup,
+	},
+	{
+		"idct",
+		l_idct_init,
+		l_idct_wrapup,
+	},
+};
+
+// ##LIBRARY_INFO_TEMPLATE::END
+
+
 int g_nChannelNum = ARRAYLEN(g_astChannels);
 int g_nNumOfTasks_top = ARRAYLEN(g_astTasks_top);
 int g_nTaskIdToTaskNum = ARRAYLEN(g_astTaskIdToTask);
 int g_nProcessorInfoNum = ARRAYLEN(g_astProcessorInfo);
 int g_nMappingAndSchedulingInfoNum = ARRAYLEN(g_astMappingAndSchedulingInfo);
+int g_nLibraryInfoNum = ARRAYLEN(g_stLibraryInfo);
 

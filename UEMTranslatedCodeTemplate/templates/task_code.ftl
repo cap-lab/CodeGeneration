@@ -32,6 +32,11 @@
 #define TASK_WRAPUP void ${task_info.name}_Wrapup${task_func_id}()
 
 #define STATIC static
+
+<#list task_info.extraHeaderSet as headerFile>
+#include "${headerFile}"
+</#list>
+
 #include "${task_info.taskCodeFile}"
 
 

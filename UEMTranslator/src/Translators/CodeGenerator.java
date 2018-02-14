@@ -268,6 +268,7 @@ public class CodeGenerator
 				String topSrcDir = this.mOutputPath + File.separator + device.getName();
 				
 				codeOrganizer.extractDataFromProperties(this.translatorProperties);
+				codeOrganizer.extraInfoFromTaskAndLibraryMap(device.getTaskMap(), device.getLibraryMap());
 				codeOrganizer.fillSourceCodeListFromTaskMap(device.getTaskMap());
 				codeOrganizer.fillSourceCodeListFromLibraryMap(device.getLibraryMap());
 				codeOrganizer.copyFilesFromTranslatedCodeTemplate(this.translatedCodeTemplateDir, topSrcDir);

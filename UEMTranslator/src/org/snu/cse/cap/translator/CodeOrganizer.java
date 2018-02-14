@@ -2,24 +2,15 @@ package org.snu.cse.cap.translator;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 import static java.nio.file.StandardCopyOption.*;
 
 import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.task.Task;
-
-import freemarker.template.Template;
 
 public class CodeOrganizer {
 	private String architecture;
@@ -188,6 +179,25 @@ public class CodeOrganizer {
 		}
 		
 		this.platformDir = this.runtime + MAKEFILE_PATH_SEPARATOR + this.platform;
+	}
+	
+	public void extraInfoFromTaskAndLibraryMap(HashMap<String, Task> taskMap, HashMap<String, Library> libraryMap)
+	{
+		for(Task task: taskMap.values())
+		{
+			if(task.getLdFlags() != null)
+			{
+				this.ldadd = this.ldadd + " " + task.getLdFlags();
+			}
+		}
+		
+		for(Library library: libraryMap.values())
+		{
+			if(library.getLdFlags() != null)
+			{
+				this.ldadd = this.ldadd + " " + library.getLdFlags();
+			}
+		}
 	}
 	
 	public void fillSourceCodeListFromTaskMap(HashMap<String, Task> taskMap)
