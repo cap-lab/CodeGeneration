@@ -10,18 +10,27 @@ DEVICE_RESTRICTION=unconstrained
 
 SYSTEM_CFLAGS=${PTHREAD_CFLAGS}
 
-SYSTEM_LDADD=${PTHREAD_LDADD}   -lX11  
+SYSTEM_LDADD=${PTHREAD_LDADD}   -lX11        -lX11  -lX11   
 
 
 bin_PROGRAMS=proc
 
 MAIN_SOURCES=$(MAIN_DIR)/$(PLATFORM_DIR)/main.c
 
-APPLICATION_SOURCES=$(APPLICATION_DIR)/H263_Dec_0.c\
-	$(APPLICATION_DIR)/H263_Enc_0.c\
-	$(APPLICATION_DIR)/Display_0.c\
-	$(APPLICATION_DIR)/dct.c\
-	$(APPLICATION_DIR)/idct.c
+APPLICATION_SOURCES=$(APPLICATION_DIR)/Image_Smoother_0.c\
+	$(APPLICATION_DIR)/Graph_Counter_0.c\
+	$(APPLICATION_DIR)/Image_Display_Image_S_0.c\
+	$(APPLICATION_DIR)/Image_Noising_C_0.c\
+	$(APPLICATION_DIR)/Input_0.c\
+	$(APPLICATION_DIR)/Control_0.c\
+	$(APPLICATION_DIR)/Image_ReadImage_0.c\
+	$(APPLICATION_DIR)/Graph_Calculator_0.c\
+	$(APPLICATION_DIR)/Image_Display_Image_C_0.c\
+	$(APPLICATION_DIR)/Image_Noising_S_0.c\
+	$(APPLICATION_DIR)/Graph_Display_Graph_0.c\
+	$(APPLICATION_DIR)/Image_Sharpener_0.c\
+	$(APPLICATION_DIR)/Image_RandomGen.c\
+	$(APPLICATION_DIR)/Graph_Math.c
 
 API_SOURCES=$(API_DIR)/UFControl_deprecated.c\
 	$(API_DIR)/UFControl.c\

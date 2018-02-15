@@ -216,11 +216,16 @@ uem_result UKChannel_WriteToBuffer(int nChannelId, IN unsigned char *pBuffer, IN
 	nIndex = getChannelIndexById(nChannelId);
 	IFVARERRASSIGNGOTO(nIndex, INVALID_CHANNEL_ID, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	result = getAPIStructureFromCommunicationType(g_astChannels[nIndex].enType, &pstChannelAPI);
-	ERRIFGOTO(result, _EXIT);
+	while(nIndex >= 0)
+	{
+		result = getAPIStructureFromCommunicationType(g_astChannels[nIndex].enType, &pstChannelAPI);
+		ERRIFGOTO(result, _EXIT);
 
-	result = pstChannelAPI->fnWriteToBuffer(&g_astChannels[nIndex], pBuffer, nDataToWrite, nChunkIndex, pnDataWritten);
-	ERRIFGOTO(result, _EXIT);
+		result = pstChannelAPI->fnWriteToBuffer(&g_astChannels[nIndex], pBuffer, nDataToWrite, nChunkIndex, pnDataWritten);
+		ERRIFGOTO(result, _EXIT);
+
+		nIndex = getChannelIndexById(g_astChannels[nIndex].nNextChannelIndex);
+	}
 
 	// to preserve, ERR_UEM_SUSPEND, do not set UEM_NOERROR here
 _EXIT:
@@ -237,11 +242,16 @@ uem_result UKChannel_WriteToQueue(int nChannelId, IN unsigned char *pBuffer, IN 
 	nIndex = getChannelIndexById(nChannelId);
 	IFVARERRASSIGNGOTO(nIndex, INVALID_CHANNEL_ID, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	result = getAPIStructureFromCommunicationType(g_astChannels[nIndex].enType, &pstChannelAPI);
-	ERRIFGOTO(result, _EXIT);
+	while(nIndex >= 0)
+	{
+		result = getAPIStructureFromCommunicationType(g_astChannels[nIndex].enType, &pstChannelAPI);
+		ERRIFGOTO(result, _EXIT);
 
-	result = pstChannelAPI->fnWriteToQueue(&g_astChannels[nIndex], pBuffer, nDataToWrite, nChunkIndex, pnDataWritten);
-	ERRIFGOTO(result, _EXIT);
+		result = pstChannelAPI->fnWriteToQueue(&g_astChannels[nIndex], pBuffer, nDataToWrite, nChunkIndex, pnDataWritten);
+		ERRIFGOTO(result, _EXIT);
+
+		nIndex = getChannelIndexById(g_astChannels[nIndex].nNextChannelIndex);
+	}
 
 	// to preserve, ERR_UEM_SUSPEND, do not set UEM_NOERROR here
 _EXIT:

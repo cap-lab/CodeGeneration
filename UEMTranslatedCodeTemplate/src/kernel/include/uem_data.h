@@ -264,6 +264,7 @@ typedef struct _SChunkInfo {
 
 typedef struct _SChannel {
 	int nChannelIndex;
+	int nNextChannelIndex;
 	ECommunicationType enType;
 	EChannelType enChannelType;
 	void *pBuffer;

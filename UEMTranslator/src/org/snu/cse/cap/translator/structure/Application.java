@@ -475,11 +475,35 @@ public class Application {
 		}
 	}
 	
+	private void setNextChannelId(HashMap<String, ArrayList<Channel>> portToChannelConnection, Port srcPort, Channel curChannel)
+	{
+		String portStartKey;
+		ArrayList<Channel> sameSourceChannelList;
+		Channel prevChannel;
+		
+		portStartKey = srcPort.getTaskId() + Constants.NAME_SPLITER + srcPort.getPortName();
+		if(portToChannelConnection.containsKey(portStartKey) == false)
+		{
+			portToChannelConnection.put(portStartKey, new ArrayList<Channel>());	
+		}
+	
+		sameSourceChannelList = portToChannelConnection.get(portStartKey);
+		
+		if(sameSourceChannelList.size() > 0)
+		{
+			prevChannel = sameSourceChannelList.get(sameSourceChannelList.size() - 1);
+			prevChannel.setNextChannelIndex(curChannel.getIndex());
+		}
+		
+		sameSourceChannelList.add(curChannel);
+	}
+	
 	public void makeChannelInformation(CICAlgorithmType algorithm_metadata) throws InvalidDataInMetadataFileException
 	{
 		algorithm_metadata.getChannels().getChannel();
 		int index = 0;
-		
+		HashMap<String, ArrayList<Channel>> portToChannelConnection = new HashMap<String, ArrayList<Channel>>();
+	
 		for(ChannelType channelMetadata: algorithm_metadata.getChannels().getChannel())
 		{
 			Channel channel = new Channel(index, channelMetadata.getSize().intValue() * channelMetadata.getSampleSize().intValue(), 
@@ -494,6 +518,9 @@ public class Application {
 			
 			Port srcPort = this.portInfo.get(channelSrcPort.getTask() + Constants.NAME_SPLITER + channelSrcPort.getPort() + Constants.NAME_SPLITER + PortDirection.OUTPUT);
 			Port dstPort = this.portInfo.get(channelDstPort.getTask() + Constants.NAME_SPLITER + channelDstPort.getPort() + Constants.NAME_SPLITER + PortDirection.INPUT);
+
+			// This information is used for single port multiple channel connection cases
+			setNextChannelId(portToChannelConnection, srcPort, channel);
 			
 			// channel type
 			setChannelType(channel, srcPort, dstPort);

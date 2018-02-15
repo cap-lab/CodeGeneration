@@ -244,7 +244,7 @@ public class CodeGenerator
 			String outputSourcePath = topDirPath + File.separator + CodeOrganizer.APPLICATION_DIR + File.separator + 
 										library.getName() + Constants.C_FILE_EXTENSION;
 			String outputHeaderPath = topDirPath + File.separator + CodeOrganizer.APPLICATION_DIR + File.separator + 
-										library.getName() + Constants.CIC_HEADER_FILE_EXTENSION;
+										library.getHeader();
 			// Create the root hash
 			Map<String, Object> libraryRootHash = new HashMap<>();
 			

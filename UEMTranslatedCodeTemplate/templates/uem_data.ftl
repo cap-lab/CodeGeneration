@@ -8,7 +8,7 @@
 #include <UKTask.h>
 #include <UKModeTransition.h>
 
-SExecutionTime g_stExecutionTime = { ${execution_time.value}, TIME_METRIC_${execution_time.metric} } ;
+SExecutionTime g_stExecutionTime = { ${execution_time.value?c}, TIME_METRIC_${execution_time.metric} } ;
 
 // ##TASK_CODE_TEMPLATE::START
 <#list flat_task as task_name, task>
@@ -77,18 +77,9 @@ SChunk g_astChunk_channel_${channel.index}_in[] = {
 
 
 // ##PORT_SAMPLE_RATE_TEMPLATE::START
-<#list channel_list as channel>
-SPortSampleRate g_astPortSampleRate_${channel.inputPort.taskName}_${channel.inputPort.portName}[] = {
-	<#list channel.inputPort.portSampleRateList as sample_rate>
-	{ 	"${sample_rate.modeName}", // Mode name
-		${sample_rate.sampleRate}, // Sample rate
-		${sample_rate.maxAvailableNum}, // Available number of data
-	},
-	</#list>	
-};
-
-SPortSampleRate g_astPortSampleRate_${channel.outputPort.taskName}_${channel.outputPort.portName}[] = {
-	<#list channel.outputPort.portSampleRateList as sample_rate>
+<#list port_info as port>
+SPortSampleRate g_astPortSampleRate_${port.taskName}_${port.portName}[] = {
+	<#list port.portSampleRateList as sample_rate>
 	{ 	"${sample_rate.modeName}", // Mode name
 		${sample_rate.sampleRate}, // Sample rate
 		${sample_rate.maxAvailableNum}, // Available number of data
@@ -114,7 +105,6 @@ SPort g_astPortInfo[] = {
 		PORT_TYPE_${port.portType}, // Port type
 		<#if port.subgraphPort??>&g_astPortInfo[${port_key_to_index[port.subgraphPort.portKey]}]<#else>NULL</#if>, // Pointer to Subgraph port
 	}, // Port information		
-		
 </#list>
 };
 // ##PORT_ARRAY_TEMPLATE::END
@@ -275,6 +265,7 @@ SChannel g_astChannels[] = {
 <#list channel_list as channel>
 	{
 		${channel.index}, // Channel ID
+		${channel.nextChannelIndex}, // Next channel index (which is used for single port is connecting to multiple channels)
 		COMMUNICATION_TYPE_${channel.communicationType}, // Channel communication type
 		CHANNEL_TYPE_${channel.channelType}, // Channel type
 		s_pChannel_${channel.index}_buffer, // Channel buffer pointer

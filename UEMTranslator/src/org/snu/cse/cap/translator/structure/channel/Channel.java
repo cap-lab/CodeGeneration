@@ -2,6 +2,7 @@ package org.snu.cse.cap.translator.structure.channel;
 
 import java.util.HashMap;
 
+import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.structure.task.Task;
 
 public class Channel {
@@ -13,6 +14,7 @@ public class Channel {
 	private Port outputPort; // the most outer port is set here
 	private int maximumChunkNum;
 	private int initialDataLen;
+	private int nextChannelIndex;
 	
 	public Channel(int index, int size, int initialDataLen) {
 		this.size = size;
@@ -20,6 +22,7 @@ public class Channel {
 		this.channelType = ChannelArrayType.GENERAL;
 		this.maximumChunkNum = 1;
 		this.initialDataLen = initialDataLen;
+		this.nextChannelIndex = Constants.INVALID_ID_VALUE;
 	}
 	
 	public int getIndex() {
@@ -86,5 +89,13 @@ public class Channel {
 
 	public void setInitialDataLen(int initialDataLen) {
 		this.initialDataLen = initialDataLen;
+	}
+
+	public int getNextChannelIndex() {
+		return nextChannelIndex;
+	}
+
+	public void setNextChannelIndex(int nextChannelIndex) {
+		this.nextChannelIndex = nextChannelIndex;
 	}
 }
