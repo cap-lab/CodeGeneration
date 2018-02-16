@@ -8,7 +8,7 @@
 #include <UKTask.h>
 #include <UKModeTransition.h>
 
-SExecutionTime g_stExecutionTime = { 20, TIME_METRIC_SEC } ;
+SExecutionTime g_stExecutionTime = { 15, TIME_METRIC_SEC } ;
 
 // ##TASK_CODE_TEMPLATE::START
 void Image_Smoother_Init0(int nTaskId);
@@ -614,13 +614,13 @@ STaskGraph g_stGraph_Image;
 
 // ##MODE_TRANSITION_TEMPLATE::START
 STask *g_pastRelatedChildTasks_Image_Default[] = {
-	&g_astTasks_Image[5],
+	&g_astTasks_Image[3],
+	&g_astTasks_Image[4],
 	&g_astTasks_Image[6],
 	&g_astTasks_Image[1],
-	&g_astTasks_Image[3],
-	&g_astTasks_Image[2],
 	&g_astTasks_Image[0],
-	&g_astTasks_Image[4],
+	&g_astTasks_Image[2],
+	&g_astTasks_Image[5],
 };
 		
 SModeMap g_astModeMap_Image[] = {
@@ -648,13 +648,13 @@ SModeTransitionMachine g_stModeTransition_Image = {
 };
 STask *g_pastRelatedChildTasks_Graph_COS[] = {
 	&g_astTasks_Graph[1],
-	&g_astTasks_Graph[2],
 	&g_astTasks_Graph[0],
+	&g_astTasks_Graph[2],
 };
 STask *g_pastRelatedChildTasks_Graph_SIN[] = {
 	&g_astTasks_Graph[1],
-	&g_astTasks_Graph[2],
 	&g_astTasks_Graph[0],
+	&g_astTasks_Graph[2],
 };
 		
 SModeMap g_astModeMap_Graph[] = {
@@ -1381,12 +1381,12 @@ SChannel g_astChannels[] = {
 
 // ##TASK_LIST_TEMPLATE::START
 STask g_astTasks_Graph[] = {
-	{ 	5, // Task ID
-		"Graph_Display_Graph", // Task name
+	{ 	3, // Task ID
+		"Graph_Counter", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		g_ast_Graph_Display_Graph_functions, // Task function array
+		g_ast_Graph_Counter_functions, // Task function array
 		1, // Task function array number
-		RUN_CONDITION_DATA_DRIVEN, // Run condition
+		RUN_CONDITION_TIME_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
 		TIME_METRIC_MICROSEC, // Period metric
@@ -1421,12 +1421,12 @@ STask g_astTasks_Graph[] = {
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
-	{ 	3, // Task ID
-		"Graph_Counter", // Task name
+	{ 	5, // Task ID
+		"Graph_Display_Graph", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		g_ast_Graph_Counter_functions, // Task function array
+		g_ast_Graph_Display_Graph_functions, // Task function array
 		1, // Task function array number
-		RUN_CONDITION_TIME_DRIVEN, // Run condition
+		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
 		1, // Period
 		TIME_METRIC_MICROSEC, // Period metric
@@ -1527,10 +1527,10 @@ STask g_astTasks_top[] = {
 };
 
 STask g_astTasks_Image[] = {
-	{ 	8, // Task ID
-		"Image_Sharpener", // Task name
+	{ 	11, // Task ID
+		"Image_Noising_S", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		g_ast_Image_Sharpener_functions, // Task function array
+		g_ast_Image_Noising_S_functions, // Task function array
 		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
@@ -1547,10 +1547,50 @@ STask g_astTasks_Image[] = {
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
-	{ 	11, // Task ID
-		"Image_Noising_S", // Task name
+	{ 	13, // Task ID
+		"Image_Display_Image_S", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		g_ast_Image_Noising_S_functions, // Task function array
+		g_ast_Image_Display_Image_S_functions, // Task function array
+		1, // Task function array number
+		RUN_CONDITION_DATA_DRIVEN, // Run condition
+		1, // Run rate
+		1, // Period
+		TIME_METRIC_MICROSEC, // Period metric
+		NULL, // Subgraph
+		&g_stGraph_Image, // Parent task graph
+		NULL, // MTM information
+		NULL, // Loop information
+		NULL, // Task parameter information
+		0, // Task parameter number
+		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
+		NULL, // Mutex
+		NULL, // Conditional variable
+	},
+	{ 	7, // Task ID
+		"Image_ReadImage", // Task name
+		TASK_TYPE_COMPUTATIONAL, // Task Type
+		g_ast_Image_ReadImage_functions, // Task function array
+		1, // Task function array number
+		RUN_CONDITION_TIME_DRIVEN, // Run condition
+		1, // Run rate
+		1, // Period
+		TIME_METRIC_MICROSEC, // Period metric
+		NULL, // Subgraph
+		&g_stGraph_Image, // Parent task graph
+		NULL, // MTM information
+		NULL, // Loop information
+		NULL, // Task parameter information
+		0, // Task parameter number
+		TRUE, // Statically scheduled or not
+		0,	  // Throughput constraint
+		NULL, // Mutex
+		NULL, // Conditional variable
+	},
+	{ 	8, // Task ID
+		"Image_Sharpener", // Task name
+		TASK_TYPE_COMPUTATIONAL, // Task Type
+		g_ast_Image_Sharpener_functions, // Task function array
 		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
@@ -1607,50 +1647,10 @@ STask g_astTasks_Image[] = {
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
-	{ 	7, // Task ID
-		"Image_ReadImage", // Task name
-		TASK_TYPE_COMPUTATIONAL, // Task Type
-		g_ast_Image_ReadImage_functions, // Task function array
-		1, // Task function array number
-		RUN_CONDITION_TIME_DRIVEN, // Run condition
-		1, // Run rate
-		1, // Period
-		TIME_METRIC_MICROSEC, // Period metric
-		NULL, // Subgraph
-		&g_stGraph_Image, // Parent task graph
-		NULL, // MTM information
-		NULL, // Loop information
-		NULL, // Task parameter information
-		0, // Task parameter number
-		TRUE, // Statically scheduled or not
-		0,	  // Throughput constraint
-		NULL, // Mutex
-		NULL, // Conditional variable
-	},
 	{ 	9, // Task ID
 		"Image_Smoother", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
 		g_ast_Image_Smoother_functions, // Task function array
-		1, // Task function array number
-		RUN_CONDITION_DATA_DRIVEN, // Run condition
-		1, // Run rate
-		1, // Period
-		TIME_METRIC_MICROSEC, // Period metric
-		NULL, // Subgraph
-		&g_stGraph_Image, // Parent task graph
-		NULL, // MTM information
-		NULL, // Loop information
-		NULL, // Task parameter information
-		0, // Task parameter number
-		TRUE, // Statically scheduled or not
-		0,	  // Throughput constraint
-		NULL, // Mutex
-		NULL, // Conditional variable
-	},
-	{ 	13, // Task ID
-		"Image_Display_Image_S", // Task name
-		TASK_TYPE_COMPUTATIONAL, // Task Type
-		g_ast_Image_Display_Image_S_functions, // Task function array
 		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
@@ -1700,19 +1700,19 @@ STaskGraph g_stGraph_Image = {
 STaskIdToTaskMap g_astTaskIdToTask[] = {
 	{ 	9, // Task ID
 		"Image_Smoother", // Task name
-		&g_astTasks_Image[5], // Task structure pointer
+		&g_astTasks_Image[6], // Task structure pointer
 	},
 	{ 	3, // Task ID
 		"Graph_Counter", // Task name
-		&g_astTasks_Graph[2], // Task structure pointer
+		&g_astTasks_Graph[0], // Task structure pointer
 	},
 	{ 	13, // Task ID
 		"Image_Display_Image_S", // Task name
-		&g_astTasks_Image[6], // Task structure pointer
+		&g_astTasks_Image[1], // Task structure pointer
 	},
 	{ 	10, // Task ID
 		"Image_Noising_C", // Task name
-		&g_astTasks_Image[2], // Task structure pointer
+		&g_astTasks_Image[4], // Task structure pointer
 	},
 	{ 	6, // Task ID
 		"Image", // Task name
@@ -1732,7 +1732,7 @@ STaskIdToTaskMap g_astTaskIdToTask[] = {
 	},
 	{ 	7, // Task ID
 		"Image_ReadImage", // Task name
-		&g_astTasks_Image[4], // Task structure pointer
+		&g_astTasks_Image[2], // Task structure pointer
 	},
 	{ 	4, // Task ID
 		"Graph_Calculator", // Task name
@@ -1740,19 +1740,19 @@ STaskIdToTaskMap g_astTaskIdToTask[] = {
 	},
 	{ 	12, // Task ID
 		"Image_Display_Image_C", // Task name
-		&g_astTasks_Image[3], // Task structure pointer
+		&g_astTasks_Image[5], // Task structure pointer
 	},
 	{ 	11, // Task ID
 		"Image_Noising_S", // Task name
-		&g_astTasks_Image[1], // Task structure pointer
+		&g_astTasks_Image[0], // Task structure pointer
 	},
 	{ 	5, // Task ID
 		"Graph_Display_Graph", // Task name
-		&g_astTasks_Graph[0], // Task structure pointer
+		&g_astTasks_Graph[2], // Task structure pointer
 	},
 	{ 	8, // Task ID
 		"Image_Sharpener", // Task name
-		&g_astTasks_Image[0], // Task structure pointer
+		&g_astTasks_Image[3], // Task structure pointer
 	},
 };
 // ##TASK_ID_TO_TASK_MAP_TEMPLATE::END
@@ -1774,16 +1774,28 @@ SProcessor g_astProcessorInfo[] = {
 // ##SCHEDULED_COMPOSITE_TASK_FUNCTION_IMPLEMENTATION::START
 void Graph_1_0_0_0_Go(int nTaskId) 
 {
-	Graph_Display_Graph_Go0(5);
-	Graph_Display_Graph_Go0(5);
-	Graph_Display_Graph_Go0(5);
-	Graph_Display_Graph_Go0(5);
-	Graph_Display_Graph_Go0(5);
-	Graph_Display_Graph_Go0(5);
-	Graph_Display_Graph_Go0(5);
-	Graph_Display_Graph_Go0(5);
-	Graph_Display_Graph_Go0(5);
-	Graph_Display_Graph_Go0(5);
+	Graph_Counter_Go0(3);
+	{
+		uem_bool bTransition = FALSE;
+		uem_result result;
+		STask *pstTask = NULL;
+		result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
+		if(result == ERR_UEM_NOERROR)
+		{
+			result = UCThreadMutex_Lock(pstTask->hMutex);
+			if(result == ERR_UEM_NOERROR){
+				bTransition = transitMode_Graph(g_astTasks_top[0].pstMTMInfo);
+				UCThreadMutex_Unlock(pstTask->hMutex);
+			}
+			
+			if(bTransition == TRUE) return; // exit when the transition is changed.
+		}
+	}
+	{
+		EInternalTaskState enState = INTERNAL_STATE_STOP;
+		UKTask_GetTaskState("Graph", &enState);
+		if(enState == INTERNAL_STATE_STOP || enState == INTERNAL_STATE_END) return; 
+	}
 }
 
 void Graph_1_0_1_0_Go(int nTaskId) 
@@ -1802,37 +1814,20 @@ void Graph_1_0_1_0_Go(int nTaskId)
 
 void Graph_1_0_3_0_Go(int nTaskId) 
 {
-	Graph_Counter_Go0(3);
-	{
-		uem_bool bTransition = FALSE;
-		uem_result result;
-		STask *pstTask = NULL;
-		result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
-		if(result == ERR_UEM_NOERROR)
-		{
-			result = UCThreadMutex_Lock(pstTask->hMutex);
-			if(result == ERR_UEM_NOERROR){
-				bTransition = transitMode_Graph(g_astTasks_top[0].pstMTMInfo);
-				UCThreadMutex_Unlock(pstTask->hMutex);
-			}
-			
-			if(bTransition == TRUE) return; // exit when the transition is changed.
-		}
-	}
-	{
-		EInternalTaskState enState = INTERNAL_STATE_STOP;
-		UKTask_GetTaskState("Graph", &enState);
-		if(enState == INTERNAL_STATE_STOP || enState == INTERNAL_STATE_END) return; 
-	}
+	Graph_Display_Graph_Go0(5);
+	Graph_Display_Graph_Go0(5);
+	Graph_Display_Graph_Go0(5);
+	Graph_Display_Graph_Go0(5);
+	Graph_Display_Graph_Go0(5);
+	Graph_Display_Graph_Go0(5);
+	Graph_Display_Graph_Go0(5);
+	Graph_Display_Graph_Go0(5);
+	Graph_Display_Graph_Go0(5);
+	Graph_Display_Graph_Go0(5);
 }
 
 void Graph_0_0_0_0_Go(int nTaskId) 
 {
-	Graph_Display_Graph_Go0(5);
-}
-
-void Graph_0_0_3_0_Go(int nTaskId) 
-{
 	Graph_Counter_Go0(3);
 	{
 		uem_bool bTransition = FALSE;
@@ -1855,30 +1850,39 @@ void Graph_0_0_3_0_Go(int nTaskId)
 		UKTask_GetTaskState("Graph", &enState);
 		if(enState == INTERNAL_STATE_STOP || enState == INTERNAL_STATE_END) return; 
 	}
+}
+
+void Graph_0_0_1_0_Go(int nTaskId) 
+{
 	Graph_Calculator_Go0(4);
+}
+
+void Graph_0_0_3_0_Go(int nTaskId) 
+{
+	Graph_Display_Graph_Go0(5);
 }
 
 void Image_0_0_0_0_Go(int nTaskId) 
 {
-	Image_Sharpener_Go0(8);
 	Image_Noising_S_Go0(11);
+	Image_Display_Image_S_Go0(13);
 }
 
 void Image_0_0_1_0_Go(int nTaskId) 
+{
+	Image_ReadImage_Go0(7);
+	Image_Sharpener_Go0(8);
+}
+
+void Image_0_0_2_0_Go(int nTaskId) 
 {
 	Image_Noising_C_Go0(10);
 	Image_Display_Image_C_Go0(12);
 }
 
-void Image_0_0_2_0_Go(int nTaskId) 
-{
-	Image_ReadImage_Go0(7);
-	Image_Smoother_Go0(9);
-}
-
 void Image_0_0_3_0_Go(int nTaskId) 
 {
-	Image_Display_Image_S_Go0(13);
+	Image_Smoother_Go0(9);
 }
 
 // ##SCHEDULED_COMPOSITE_TASK_FUNCTION_IMPLEMENTATION::END
@@ -1905,6 +1909,12 @@ SScheduleList g_astScheduleList_Graph_1_0_3[] = {
 SScheduleList g_astScheduleList_Graph_0_0_0[] = {
 	{
 		Graph_0_0_0_0_Go, // Composite GO function
+		0, // Throughput constraint
+	},
+};
+SScheduleList g_astScheduleList_Graph_0_0_1[] = {
+	{
+		Graph_0_0_1_0_Go, // Composite GO function
 		0, // Throughput constraint
 	},
 };
@@ -1973,10 +1983,17 @@ SScheduledTasks g_astScheduledTaskList[] = {
 	},
 	{	&g_astTasks_top[0], // Parent Task ID
 		0, // Mode transition mode ID
-		g_astScheduleList_Graph_0_0_3, // schedule list per throughput constraint
+		g_astScheduleList_Graph_0_0_1, // schedule list per throughput constraint
 		1, // The number of schedules in the schedule list
 		0, // Schedule Index (Default to set 0)
 		1, // Mode Sequence ID 
+	},
+	{	&g_astTasks_top[0], // Parent Task ID
+		0, // Mode transition mode ID
+		g_astScheduleList_Graph_0_0_3, // schedule list per throughput constraint
+		1, // The number of schedules in the schedule list
+		0, // Schedule Index (Default to set 0)
+		2, // Mode Sequence ID 
 	},
 	{	&g_astTasks_top[1], // Parent Task ID
 		0, // Mode transition mode ID
@@ -2044,25 +2061,30 @@ SMappingSchedulingInfo g_astMappingAndSchedulingInfo[] = {
 	{	TASK_TYPE_COMPOSITE, // Task type
 		{ .pstScheduledTasks = &g_astScheduledTaskList[4] }, // Task ID or composite task information
 		0, // Processor ID
-		3, // Processor local ID
+		1, // Processor local ID
 	},
 	{	TASK_TYPE_COMPOSITE, // Task type
 		{ .pstScheduledTasks = &g_astScheduledTaskList[5] }, // Task ID or composite task information
 		0, // Processor ID
-		0, // Processor local ID
+		3, // Processor local ID
 	},
 	{	TASK_TYPE_COMPOSITE, // Task type
 		{ .pstScheduledTasks = &g_astScheduledTaskList[6] }, // Task ID or composite task information
 		0, // Processor ID
-		1, // Processor local ID
+		0, // Processor local ID
 	},
 	{	TASK_TYPE_COMPOSITE, // Task type
 		{ .pstScheduledTasks = &g_astScheduledTaskList[7] }, // Task ID or composite task information
 		0, // Processor ID
-		2, // Processor local ID
+		1, // Processor local ID
 	},
 	{	TASK_TYPE_COMPOSITE, // Task type
 		{ .pstScheduledTasks = &g_astScheduledTaskList[8] }, // Task ID or composite task information
+		0, // Processor ID
+		2, // Processor local ID
+	},
+	{	TASK_TYPE_COMPOSITE, // Task type
+		{ .pstScheduledTasks = &g_astScheduledTaskList[9] }, // Task ID or composite task information
 		0, // Processor ID
 		3, // Processor local ID
 	},
@@ -2106,25 +2128,30 @@ SMappedCompositeTaskInfo g_astCompositeTaskMappingInfo[] = {
 	{
 		&g_astScheduledTaskList[4],
 		0, // Processor ID
-		3, // Processor local ID		
+		1, // Processor local ID		
 	},
 	{
 		&g_astScheduledTaskList[5],
 		0, // Processor ID
-		0, // Processor local ID		
+		3, // Processor local ID		
 	},
 	{
 		&g_astScheduledTaskList[6],
 		0, // Processor ID
-		1, // Processor local ID		
+		0, // Processor local ID		
 	},
 	{
 		&g_astScheduledTaskList[7],
 		0, // Processor ID
-		2, // Processor local ID		
+		1, // Processor local ID		
 	},
 	{
 		&g_astScheduledTaskList[8],
+		0, // Processor ID
+		2, // Processor local ID		
+	},
+	{
+		&g_astScheduledTaskList[9],
 		0, // Processor ID
 		3, // Processor local ID		
 	},

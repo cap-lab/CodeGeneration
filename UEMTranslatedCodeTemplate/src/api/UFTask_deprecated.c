@@ -24,13 +24,15 @@ void SYS_REQ_SET_THROUGHPUT(char *pszTaskName, char *pszValue, char *pszUnit)
 
 long SYS_REQ_GET_PARAM_INT(char *pszTaskName, char *pszParamName)
 {
+	uem_result result = ERR_UEM_UNKNOWN;
 	long lParamVal = 0;
 	int nParamVal = 0;
 
-	UFTask_GetIntegerParameter (pszTaskName, pszParamName, &nParamVal);
+	result = UFTask_GetIntegerParameter (pszTaskName, pszParamName, &nParamVal);
+	ERRIFGOTO(result, _EXIT);
 
 	lParamVal = (long) nParamVal;
-
+_EXIT:
 	return lParamVal;
 }
 
@@ -38,36 +40,50 @@ long SYS_REQ_GET_PARAM_INT(char *pszTaskName, char *pszParamName)
 void SYS_REQ_SET_PARAM_INT(char *pszTaskName, char *pszParamName, long lParamVal)
 {
 	int nParamVal = 0;
+	uem_result result = ERR_UEM_UNKNOWN;
 
 	nParamVal = (int) lParamVal;
 
-	UFTask_SetIntegerParameter (pszTaskName, pszParamName, nParamVal);
+	result = UFTask_SetIntegerParameter (pszTaskName, pszParamName, nParamVal);
+	ERRIFGOTO(result, _EXIT);
+_EXIT:
+	return;
 }
 
 
 double SYS_REQ_GET_PARAM_FLOAT(char *pszTaskName, char *pszParamName)
 {
 	double dbParamVal = 0;
+	uem_result result = ERR_UEM_UNKNOWN;
 
-	UFTask_GetFloatParameter(pszTaskName, pszParamName, &dbParamVal);
+	result = UFTask_GetFloatParameter(pszTaskName, pszParamName, &dbParamVal);
+	ERRIFGOTO(result, _EXIT);
 
+_EXIT:
 	return dbParamVal;
 }
 
 
 void SYS_REQ_SET_PARAM_FLOAT(char *pszTaskName, char *pszParamName, double dbParamVal)
 {
-	UFTask_SetFloatParameter(pszTaskName, pszParamName, dbParamVal);
+	uem_result result = ERR_UEM_UNKNOWN;
+	result = UFTask_SetFloatParameter(pszTaskName, pszParamName, dbParamVal);
+	ERRIFGOTO(result, _EXIT);
+
+_EXIT:
+	return;
 }
 
 // STATE_RUN (0), STATE_STOP (1) STATE_WAIT (2) STATE_END (3)
 
 int SYS_REQ_CHECK_TASK_STATE(char *pszTaskName)
 {
-	int nTaskState;
+	int nTaskState = 1;
 	ETaskState enTaskState = STATE_STOP;
+	uem_result result = ERR_UEM_UNKNOWN;
 
-	UFTask_GetState(pszTaskName, &enTaskState);
+	result = UFTask_GetState(pszTaskName, &enTaskState);
+	ERRIFGOTO(result, _EXIT);
 
 	switch(enTaskState)
 	{
@@ -88,32 +104,44 @@ int SYS_REQ_CHECK_TASK_STATE(char *pszTaskName)
 		break;
 	}
 
+_EXIT:
 	return nTaskState;
 }
 
 
 void SYS_REQ_EXECUTE_TRANSITION(char *pszTaskName)
 {
-	UFTask_UpdateMode(pszTaskName);
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	result = UFTask_UpdateMode(pszTaskName);
+	ERRIFGOTO(result, _EXIT);
+_EXIT:
+	return;
 }
 
 
 void SYS_REQ_SET_MTM_PARAM_INT(char *pszTaskName, char *pszParamName, long lParamVal)
 {
 	int nParamVal = 0;
+	uem_result result = ERR_UEM_UNKNOWN;
 
 	nParamVal = (int) lParamVal;
 
-	UFTask_SetModeIntegerParameter (pszTaskName, pszParamName, nParamVal);
+	result = UFTask_SetModeIntegerParameter (pszTaskName, pszParamName, nParamVal);
+	ERRIFGOTO(result, _EXIT);
+_EXIT:
+	return;
 }
 
 
 char *SYS_REQ_GET_MODE(char *pszTaskName)
 {
 	char *pszModeName = NULL;
+	uem_result result = ERR_UEM_UNKNOWN;
 
-	UFTask_GetCurrentModeName (pszTaskName, &pszModeName);
-
+	result = UFTask_GetCurrentModeName (pszTaskName, &pszModeName);
+	ERRIFGOTO(result, _EXIT);
+_EXIT:
 	return pszModeName;
 }
 

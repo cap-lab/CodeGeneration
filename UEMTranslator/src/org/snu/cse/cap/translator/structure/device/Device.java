@@ -816,6 +816,7 @@ public class Device {
 			break;
 		case STATIC_ASSIGNMENT: // Need mapping only (needed file: mapping)
 			setGeneralTaskMappingInfo( mapping_metadata, globalTaskMap);
+			setParentTaskOfTaskGraph();
 			setNumOfProcsOfTasks();
 			break;
 		// TODO: fully dynamic is not supported now

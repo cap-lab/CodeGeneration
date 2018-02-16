@@ -37,10 +37,7 @@ uem_result UKCPUTaskCommon_CheckTaskState(ECPUTaskState enOldState, ECPUTaskStat
 		// do nothing
 		break;
 	case TASK_STATE_SUSPEND:
-		if(enNewState == TASK_STATE_STOPPING)
-		{
-			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
-		}
+		// do nothing
 		break;
 	case TASK_STATE_STOP:
 		if(enNewState != TASK_STATE_RUNNING && enNewState != TASK_STATE_STOPPING)
