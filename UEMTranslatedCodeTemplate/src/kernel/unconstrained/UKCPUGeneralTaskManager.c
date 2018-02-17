@@ -70,6 +70,7 @@ struct _SGeneralTaskThreadData {
 struct _SGeneralTaskStopCheck {
 	uem_bool bAllStop;
 	SGeneralTask *pstGeneralTask;
+	SCPUGeneralTaskManager *pstManager;
 };
 
 struct _SGeneralTaskTraverse {
@@ -869,13 +870,21 @@ static uem_result traverseAndCheckStoppingThread(IN int nOffset, IN void *pData,
 	uem_result result = ERR_UEM_UNKNOWN;
 	SGeneralTaskThread *pstTaskThread = NULL;
 	struct _SGeneralTaskStopCheck *pstStopCheck = NULL;
+	SCPUGeneralTaskManager *pstManager = NULL;
+	HThread hThread = NULL;
 
 	pstTaskThread = (SGeneralTaskThread *) pData;
 	pstStopCheck = (struct _SGeneralTaskStopCheck *) pUserData;
 
-	if(pstTaskThread->bIsThreadFinished == TRUE)
+	if(pstTaskThread->hThread != NULL && pstTaskThread->bIsThreadFinished == TRUE)
 	{
-		result = UCThread_Destroy(&(pstTaskThread->hThread), FALSE, THREAD_DESTROY_TIMEOUT);
+		hThread = pstTaskThread->hThread;
+		pstTaskThread->hThread = NULL;
+		result = UCThreadMutex_Unlock(pstManager->hMutex);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UCThread_Destroy(&hThread, FALSE, THREAD_DESTROY_TIMEOUT);
+		UCThreadMutex_Lock(pstManager->hMutex);
 		ERRIFGOTO(result, _EXIT);
 	}
 
@@ -920,6 +929,7 @@ uem_result UKCPUGeneralTaskManager_GetTaskState(HCPUGeneralTaskManager hManager,
 	{
 		stStopCheck.bAllStop = TRUE;
 		stStopCheck.pstGeneralTask = pstGeneralTask;
+		stStopCheck.pstManager = pstTaskManager;
 
 		result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, traverseAndCheckStoppingThread, &stStopCheck);
 		ERRIFGOTO(result, _EXIT_LOCK);
@@ -953,6 +963,7 @@ static uem_result traverseAndDestroyThread(IN int nOffset, IN void *pData, IN vo
 	struct _STaskThreadDestroyTraverse *pstDestroyData = NULL;
 	SGeneralTask *pstGeneralTask = NULL;
 	SCPUGeneralTaskManager *pstTaskManager = NULL;
+	HThread hThread = NULL;
 
 	pstDestroyData = (struct _STaskThreadDestroyTraverse *) pUserData;
 	pstTaskManager = pstDestroyData->pstManager;
@@ -960,10 +971,12 @@ static uem_result traverseAndDestroyThread(IN int nOffset, IN void *pData, IN vo
 
 	if(pstTaskThread->hThread != NULL)
 	{
+		hThread = pstTaskThread->hThread;
+		pstTaskThread->hThread = NULL;
 		result = UCThreadMutex_Unlock(pstTaskManager->hMutex);
 		ERRIFGOTO(result, _EXIT);
 
-		result = UCThread_Destroy(&(pstTaskThread->hThread), FALSE, THREAD_DESTROY_TIMEOUT);
+		result = UCThread_Destroy(&hThread, FALSE, THREAD_DESTROY_TIMEOUT);
 		UCThreadMutex_Lock(pstTaskManager->hMutex);
 		ERRIFGOTO(result, _EXIT);
 
@@ -1038,6 +1051,10 @@ uem_result UKCPUGeneralTaskManager_DestroyThread(HCPUGeneralTaskManager hManager
 	ERRIFGOTO(result, _EXIT);
 
 	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
+	if(result == ERR_UEM_NOT_FOUND)
+	{
+		printf("cannot find matching task: %s\n", pstTargetTask->pszTaskName);
+	}
 	ERRIFGOTO(result, _EXIT_LOCK);
 
 	result = destroyGeneralTaskThread(pstGeneralTask, pstTaskManager);

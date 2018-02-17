@@ -74,13 +74,14 @@ uem_result UCThreadEvent_SetEvent(HThreadEvent hEvent)
 	pstEvent->bIsSet = TRUE; // event is set
 	// send a signal
 	nErrorNum = pthread_cond_broadcast(&(pstEvent->hCond));
-	if(nErrorNum != 0)
-	{
-		ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
-	}
 
 	if (bMutexFailed == FALSE && pthread_mutex_unlock(&(pstEvent->hMutex)) != 0) {
 		// ignore error
+	}
+
+	if(nErrorNum != 0)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
 	}
 
 	result = ERR_UEM_NOERROR;

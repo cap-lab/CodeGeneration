@@ -435,6 +435,10 @@ static uem_result traverseAndChangeTaskState(IN int nOffset, IN void *pData, IN 
 			pstTaskThread->enTaskState = TASK_STATE_SUSPEND;
 			pstTaskThread->bSuspended = TRUE;
 		}
+		else if(pstUserData->enTaskState == TASK_STATE_STOPPING)
+		{
+			pstTaskThread->enTaskState = pstUserData->enTaskState;
+		}
 	}
 
 	result = ERR_UEM_NOERROR;
