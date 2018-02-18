@@ -9,6 +9,8 @@
 #include <config.h>
 #endif
 
+#include <stdlib.h>
+
 #include <uem_common.h>
 #include <UCBasic.h>
 
@@ -137,5 +139,40 @@ uem_bool UCString_IsEqual(uem_string strCompare1, uem_string strCompare2)
 _EXIT:
     return bEqual;
 }
+
+int UCString_ToInteger(uem_string strTarget, int nIndex, OUT int *pnEndIndex)
+{
+    uem_result result = ERR_UEM_UNKNOWN;
+    uem_string_struct *pstStr = NULL;
+    char *pTail = NULL;
+    int nValue = 0;
+
+    IFVARERRASSIGNGOTO(strTarget, NULL, result, ERR_UEM_INVALID_HANDLE, _EXIT);
+
+    pstStr = (uem_string_struct *) strTarget;
+
+    nValue = (int) strtol(pstStr->pszStr + nIndex, &pTail, 10);
+    if(nValue == 0 && pstStr->pszStr + nIndex == pTail)
+    {
+        // not converted
+        ERRASSIGNGOTO(result, ERR_UEM_CONVERSION_ERROR, _EXIT);
+    }
+
+    if(pnEndIndex != NULL)
+    {
+        *pnEndIndex = pTail - (pstStr->pszStr + nIndex);
+    }
+
+    result = ERR_UEM_NOERROR;
+_EXIT:
+    if(result != ERR_UEM_NOERROR && pnEndIndex != NULL)
+    {
+        *pnEndIndex = 0;
+        nValue = 0;
+    }
+    return nValue;
+}
+
+
 
 

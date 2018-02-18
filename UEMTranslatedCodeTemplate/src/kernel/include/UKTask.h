@@ -36,10 +36,12 @@ uem_result UKTask_SuspendTask (IN char *pszTaskName);
 uem_result UKTask_ResumeTask (IN char *pszTaskName);
 uem_result UKTask_CallTask (IN char *pszTaskName);
 uem_result UKTask_GetTaskState(char *pszTaskName, EInternalTaskState *penTaskState);
+uem_result UKTask_SetThroughputConstraint (IN char *pszTaskName, IN char *pszValue, IN char *pszUnit);
 
 uem_result UKTask_GetTaskFromTaskName(char *szTaskName, STask **ppstTask);
 uem_result UKTask_GetTaskFromTaskId(int nTaskId, STask **ppstTask);
 uem_result UKTask_TraverseAllTasks(FnTaskTraverse fnCallback, void *pUserData);
+
 
 #ifdef __cplusplus
 }

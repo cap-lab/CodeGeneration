@@ -72,6 +72,9 @@ uem_result UFTask_SetThroughput (IN char *pszTaskName, IN char *pszValue, IN cha
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
+	result = UKTask_SetThroughputConstraint (pszTaskName, pszValue, pszUnit);
+	ERRIFGOTO(result, _EXIT);
+
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;

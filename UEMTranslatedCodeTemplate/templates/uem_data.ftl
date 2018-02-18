@@ -317,7 +317,7 @@ SChannel g_astChannels[] = {
 		${channel.maximumChunkNum},
 		NULL, // Chunk list head
 		NULL, // Chunk list tail
-		${channel.initialDataLen}, // Initial data length 
+		${channel.initialDataLen?c}, // Initial data length 
 	},
 </#list>
 };

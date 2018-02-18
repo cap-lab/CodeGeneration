@@ -81,6 +81,7 @@ typedef enum _EUemResult {
 	ERR_UEM_ILLEGAL_DATA,
 	ERR_UEM_NOT_SUPPORTED_YET,
 	ERR_UEM_NOT_FOUND,
+	ERR_UEM_CONVERSION_ERROR,
 
 
 } uem_result;

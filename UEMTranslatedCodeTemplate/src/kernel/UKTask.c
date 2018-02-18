@@ -292,3 +292,41 @@ _EXIT:
 	return result;
 }
 
+
+uem_result UKTask_SetThroughputConstraint (IN char *pszTaskName, IN char *pszValue, IN char *pszUnit)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask *pstTask = NULL;
+	uem_string_struct stValue;
+	int nValue = 0;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(pszValue, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+	IFVARERRASSIGNGOTO(pszUnit, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+#endif
+	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCString_New(&stValue, pszValue, UEMSTRING_MAX);
+	ERRIFGOTO(result, _EXIT);
+
+	nValue = UCString_ToInteger(&stValue, 0, NULL);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadMutex_Lock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	// TODO: need to adjust pszUnit value
+	pstTask->nThroughputConstraint = nValue;
+
+	result = UCThreadMutex_Unlock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+
+
+
