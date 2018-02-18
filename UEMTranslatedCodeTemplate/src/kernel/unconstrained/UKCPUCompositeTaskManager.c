@@ -1318,13 +1318,21 @@ uem_result UKCPUCompositeTaskManager_GetTaskState(HCPUCompositeTaskManager hMana
 
 		if(stStopCheck.bAllStop == TRUE)
 		{
-			result = UCThreadMutex_Lock(pstCompositeTask->hMutex);
-			ERRIFGOTO(result, _EXIT_LOCK);
-
 			pstCompositeTask->enTaskState = TASK_STATE_STOP;
 
-			result = UCThreadMutex_Unlock(pstCompositeTask->hMutex);
-			ERRIFGOTO(result, _EXIT_LOCK);
+			result = UCThreadMutex_Unlock(pstTaskManager->hMutex);
+			ERRIFGOTO(result, _EXIT);
+
+			// call wrapup functions
+			result = handleSubgraphTasks(pstCompositeTask->pstParentTask, callWrapupFunction);
+			UCThreadMutex_Lock(pstTaskManager->hMutex);
+			ERRIFGOTO(result, _EXIT);
+
+			// clear channel exit flags
+			result = handleSubgraphTasks(pstCompositeTask->pstParentTask, clearChannelExitFlags);
+			ERRIFGOTO(result, _EXIT);
+
+			pstCompositeTask->bCreated = FALSE;
 		}
 	}
 
