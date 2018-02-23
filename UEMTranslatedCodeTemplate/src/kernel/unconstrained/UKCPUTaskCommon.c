@@ -40,9 +40,9 @@ uem_result UKCPUTaskCommon_CheckTaskState(ECPUTaskState enOldState, ECPUTaskStat
 		// do nothing
 		break;
 	case TASK_STATE_STOP:
-		if(enNewState != TASK_STATE_RUNNING && enNewState != TASK_STATE_STOPPING)
+		if(enNewState == TASK_STATE_SUSPEND)
 		{
-			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+			UEMASSIGNGOTO(result, ERR_UEM_SKIP_THIS, _EXIT);
 		}
 		break;
 	case TASK_STATE_STOPPING:
@@ -63,13 +63,14 @@ _EXIT:
 
 
 uem_result UKCPUTaskCommon_HandleTimeDrivenTask(STask *pstCurrentTask, FnUemTaskGo fnGo, IN OUT long long *pllNextTime,
-										IN OUT int *pnRunCount, IN OUT int *pnNextMaxRunCount)
+										IN OUT int *pnRunCount, IN OUT int *pnNextMaxRunCount, OUT uem_bool *pbFunctionCalled)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	long long llCurTime = 0;
 	long long llNextTime = 0;
 	int nMaxRunCount = 0;
 	int nRunCount = 0;
+	uem_bool bFunctionCalled = FALSE;
 
 	llNextTime = *pllNextTime;
 	nRunCount = *pnRunCount;
@@ -84,6 +85,7 @@ uem_result UKCPUTaskCommon_HandleTimeDrivenTask(STask *pstCurrentTask, FnUemTask
 		{
 			nRunCount++;
 			fnGo(pstCurrentTask->nTaskId);
+			bFunctionCalled = TRUE;
 		}
 		else // all run count is used and time is not passed yet
 		{
@@ -112,12 +114,14 @@ uem_result UKCPUTaskCommon_HandleTimeDrivenTask(STask *pstCurrentTask, FnUemTask
 		{
 			nRunCount++;
 			fnGo(pstCurrentTask->nTaskId);
+			bFunctionCalled = TRUE;
 		}
 	}
 
 	*pllNextTime = llNextTime;
 	*pnRunCount = nRunCount;
 	*pnNextMaxRunCount = nMaxRunCount;
+	*pbFunctionCalled = bFunctionCalled;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

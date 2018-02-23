@@ -14,6 +14,7 @@
 
 #include <uem_data.h>
 
+#define MILLISEC_UNIT (1000)
 #define SEC_UNIT (1000)
 #define MINUTE_UNIT (60)
 #define HOUR_UNIT (60)
@@ -34,23 +35,23 @@ uem_result UKTime_GetNextTimeByPeriod(long long llPrevTime, int nPeriod, ETimeMe
 		*pnNextMaxRunCount = 1;
 		break;
 	case TIME_METRIC_MICROSEC: // TODO: micro-second time tick is even not correct
-		if(nPeriod > 0 && nPeriod < SEC_UNIT)
+		if(nPeriod > 0 && nPeriod < MILLISEC_UNIT)
 		{
-			*pnNextMaxRunCount = SEC_UNIT/nPeriod;
+			*pnNextMaxRunCount = MILLISEC_UNIT/nPeriod;
 		}
 		else
 		{
 			*pnNextMaxRunCount = 1;
 		}
 
-		if(nPeriod/SEC_UNIT <= 0)
+		if(nPeriod/MILLISEC_UNIT <= 0)
 		{
 			nPeriod = 1;
 		}
-		*pllNextTime = llPrevTime + 1 * nPeriod/SEC_UNIT;
+		*pllNextTime = llPrevTime + nPeriod/MILLISEC_UNIT;
 		break;
 	case TIME_METRIC_MILLISEC:
-		*pllNextTime = llPrevTime + 1 * nPeriod;
+		*pllNextTime = llPrevTime + nPeriod;
 		*pnNextMaxRunCount = 1;
 		break;
 	case TIME_METRIC_SEC:

@@ -102,6 +102,13 @@ typedef enum _ETaskGraphType {
 	GRAPH_TYPE_DATAFLOW,
 } ETaskGraphType;
 
+
+typedef enum _EModeState {
+	MODE_STATE_NORMAL,
+	MODE_STATE_TRANSITING,
+} EModeState;
+
+
 typedef void (*FnUemTaskInit)(int nTaskId);
 typedef void (*FnUemTaskGo)(int nTaskId);
 typedef void (*FnUemTaskWrapup)();
@@ -140,6 +147,7 @@ typedef struct _SModeTransitionMachine {
 	FnTaskModeTranstion fnTransition;
 	int nCurModeIndex;
 	int nNextModeIndex;
+	EModeState enModeState;
 } SModeTransitionMachine;
 
 typedef struct _SLoopInfo {
@@ -305,6 +313,7 @@ typedef struct _STaskIdToTaskMap {
 typedef struct _SScheduleList {
 	FnUemTaskGo fnCompositeGo;
 	int nThroughputConstraint;
+	uem_bool bHasSourceTask; // This variable is used for finding which composite task thread contains source task
 } SScheduleList;
 
 // SScheduledTasks can be existed per each task mode
@@ -323,19 +332,6 @@ typedef struct _SProcessor {
 	char *pszProcessorName;
 	int nPoolSize;
 } SProcessor;
-
-typedef union _UMappingTarget {
-	STask *pstTask;
-	SScheduledTasks *pstScheduledTasks;
-} UMappingTarget;
-
-
-typedef struct _SMappingSchedulingInfo {
-	ETaskType enType;
-	UMappingTarget uMappedTask;
-	int nProcessorId;
-	int nLocalId;
-} SMappingSchedulingInfo;
 
 typedef struct _SMappedGeneralTaskInfo {
 	ETaskType enType;
@@ -377,9 +373,6 @@ extern int g_nTaskIdToTaskNum;
 
 extern SProcessor g_astProcessorInfo[];
 extern int g_nProcessorInfoNum;
-
-extern SMappingSchedulingInfo g_astMappingAndSchedulingInfo[];
-extern int g_nMappingAndSchedulingInfoNum;
 
 extern SMappedTaskInfo g_stMappingInfo;
 

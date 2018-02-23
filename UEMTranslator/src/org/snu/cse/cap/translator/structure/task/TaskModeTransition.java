@@ -60,11 +60,11 @@ public class TaskModeTransition {
 		return modeMap;
 	}
 	
-	public void putRelatedChildTask(int procId, int procLocalId, int modeId, Task task)
+	public void putRelatedChildTask(int procId, int procLocalId, int modeId, int throughputConstraint, Task task)
 	{
 		TaskMode mode;
 		mode = this.modeIdMap.get("" + modeId);
-		mode.putChildTask(procId, procLocalId, task);
+		mode.putChildTask(procId, procLocalId, throughputConstraint, task);
 	}
 	
 	public HashMap<String, TaskMode> getModeIdMap() {

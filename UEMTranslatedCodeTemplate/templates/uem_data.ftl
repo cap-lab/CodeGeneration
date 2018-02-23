@@ -193,8 +193,11 @@ static uem_bool transitMode_${task.name}(SModeTransitionMachine *pstModeTransiti
 		bModeChanged = TRUE;
 	}
 			</#list>
-		
-	pstModeTransition->nNextModeIndex = UKModeTransition_GetModeIndexByModeId(pstModeTransition, nNextModeId);
+	if(bModeChanged == TRUE)
+	{	// update only the mode is changed
+		pstModeTransition->nNextModeIndex = UKModeTransition_GetModeIndexByModeId(pstModeTransition, nNextModeId);
+		pstModeTransition->enModeState = MODE_STATE_TRANSITING;
+	}
 	
 	return bModeChanged;
 }
@@ -209,6 +212,7 @@ SModeTransitionMachine g_stModeTransition_${task.name} = {
 	<#if (task.modeTransition.modeMap?size > 1)>transitMode_${task.name}<#else>NULL</#if>, // mode transition function
 	0, // Current mode index
 	0, // Next mode index
+	MODE_STATE_TRANSITING, // mode state (to decide source task execution)
 };
 	</#if>
 </#list>
@@ -421,33 +425,41 @@ ${space}{
 		<#else>
 			<#assign innerspace="${space}" />
 		</#if>
-${innerspace}${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}(${flat_task[scheduleItem.taskName].id});
-			<#if compositeMappedProcessor.srcTaskMap[scheduleItem.taskName]??>
-				<#if (flat_task[parentTaskName].modeTransition.modeMap?size > 1)??>
+		<#if compositeMappedProcessor.srcTaskMap[scheduleItem.taskName]?? && (flat_task[parentTaskName].modeTransition.modeMap?size > 1)>
 ${innerspace}{
-${innerspace}	uem_bool bTransition = FALSE;
+${innerspace}	EModeState enModeState = MODE_STATE_TRANSITING;
 ${innerspace}	uem_result result;
 ${innerspace}	STask *pstTask = NULL;
+${innerspace}	
+${innerspace}	enModeState = UKModeTransition_GetModeState(nTaskId);
+${innerspace}
+${innerspace}	if(enModeState == MODE_STATE_TRANSITING)
+${innerspace}	{
+${innerspace}		${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}(${flat_task[scheduleItem.taskName].id});//printf("${scheduleItem.taskName}_Go${scheduleItem.taskFuncId} called-- (Line: %d)\n", __LINE__);
+${innerspace}	}
 ${innerspace}	result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
 ${innerspace}	if(result == ERR_UEM_NOERROR)
 ${innerspace}	{
 ${innerspace}		result = UCThreadMutex_Lock(pstTask->hMutex);
 ${innerspace}		if(result == ERR_UEM_NOERROR){
-${innerspace}			bTransition = transitMode_${parentTaskName}(g_astTasks_${flat_task[parentTaskName].parentTaskGraphName}[${flat_task[parentTaskName].inGraphIndex}].pstMTMInfo);
+${innerspace}			transitMode_${parentTaskName}(g_astTasks_${flat_task[parentTaskName].parentTaskGraphName}[${flat_task[parentTaskName].inGraphIndex}].pstMTMInfo);
 ${innerspace}			UCThreadMutex_Unlock(pstTask->hMutex);
 ${innerspace}		}
 ${innerspace}		
-${innerspace}		if(bTransition == TRUE) return; // exit when the transition is changed.
+${innerspace}		return; // exit when the mode is MODE_STATE_TRANSITING
 ${innerspace}	}
 ${innerspace}}
-				</#if>
+		<#else>
+${innerspace}${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}(${flat_task[scheduleItem.taskName].id});//<#if (flat_task[parentTaskName].modeTransition.modeMap?size > 1)>printf("${scheduleItem.taskName}_Go${scheduleItem.taskFuncId} called (Line: %d)\n", __LINE__);</#if>
+		</#if>
+		<#if compositeMappedProcessor.srcTaskMap[scheduleItem.taskName]??>
 ${innerspace}{
 ${innerspace}	EInternalTaskState enState = INTERNAL_STATE_STOP;
 ${innerspace}	UKTask_GetTaskState("${parentTaskName}", &enState);
 ${innerspace}	if(enState == INTERNAL_STATE_STOP || enState == INTERNAL_STATE_END) return; 
 ${innerspace}}
-			</#if>
-		<#if (scheduleItem.repetition > 1) >		
+		</#if>			
+		<#if (scheduleItem.repetition > 1) >
 ${space}}
 
 		</#if>
@@ -484,6 +496,7 @@ SScheduleList g_astScheduleList_${scheduled_task.parentTaskName}_${compositeMapp
 	{
 		${scheduled_task.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}_${task_schedule.throughputConstraint?c}_Go, // Composite GO function
 		${task_schedule.throughputConstraint?c}, // Throughput constraint
+		<#if task_schedule.hasSourceTask == true>TRUE<#else>FALSE</#if>,
 	},
 		</#list>
 };
@@ -509,26 +522,6 @@ SScheduledTasks g_astScheduledTaskList[] = {
 
 
 // ##MAPPING_SCHEDULING_INFO_TEMPLATE::START
-SMappingSchedulingInfo g_astMappingAndSchedulingInfo[] = {
-<#list mapping_info as task_name, mapped_task>
-	<#list mapped_task.mappedProcessorList as mappedProcessor>
-	{	TASK_TYPE_${mapped_task.mappedTaskType}, // Task type
-		{ .pstTask = &g_astTasks_${mapped_task.parentTaskGraphName}[${mapped_task.inGraphIndex}] }, // Task ID or composite task information
-		${mappedProcessor.processorId}, // Processor ID
-		${mappedProcessor.processorLocalId}, // Processor local ID
-	},
-	</#list>
-</#list>
-<#list schedule_info as task_name, scheduled_task>
-	<#list scheduled_task.mappedProcessorList as scheduledProcessor>
-	{	TASK_TYPE_${scheduled_task.mappedTaskType}, // Task type
-		{ .pstScheduledTasks = &g_astScheduledTaskList[${scheduledProcessor.inArrayIndex}] }, // Task ID or composite task information
-		${scheduledProcessor.processorId}, // Processor ID
-		${scheduledProcessor.processorLocalId}, // Processor local ID
-	},
-	</#list>
-</#list>
-};
 
 SMappedGeneralTaskInfo g_astGeneralTaskMappingInfo[] = {
 <#list mapping_info as task_name, mapped_task>
@@ -584,6 +577,5 @@ int g_nChannelNum = ARRAYLEN(g_astChannels);
 int g_nNumOfTasks_top = ARRAYLEN(g_astTasks_top);
 int g_nTaskIdToTaskNum = ARRAYLEN(g_astTaskIdToTask);
 int g_nProcessorInfoNum = ARRAYLEN(g_astProcessorInfo);
-int g_nMappingAndSchedulingInfoNum = ARRAYLEN(g_astMappingAndSchedulingInfo);
 int g_nLibraryInfoNum = <#if (library_info?size > 0)>ARRAYLEN(g_stLibraryInfo)<#else>0</#if>;
 

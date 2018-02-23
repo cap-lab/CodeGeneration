@@ -37,6 +37,7 @@ typedef struct _SCompositeTaskThread {
 	HThreadEvent hEvent;
 	uem_bool bSuspended; // modified
 	HCPUCompositeTaskManager hManager; // handle for accessing higher data structures
+	uem_bool bHasSourceTask; // the composite task thread contains source task in this thread
 } SCompositeTaskThread;
 
 
@@ -48,7 +49,7 @@ typedef struct _SCompositeTask {
 	SScheduledTasks *pstScheduledTasks;
 	ECPUTaskState enTaskState; // modified
 	int nCurrentThroughputConstraint; // modified
-	uem_bool bCreated;
+	uem_bool bCreated; // modified
 } SCompositeTask;
 
 
@@ -86,6 +87,7 @@ struct _SCompositeTaskStopCheck {
 	SCompositeTask *pstCompositeTask;
 };
 
+
 struct _SCompositeTaskTraverse {
 	CbFnTraverseCompositeTask fnCallback;
 	void *pUserData;
@@ -96,6 +98,18 @@ struct _SCompositeStopTaskTraverse {
 	SCompositeTask *pstCompositeTask;
 	SCPUCompositeTaskManager *pstTaskManager;
 };
+
+struct _SModeTransitionSetEventCheck {
+	int nModeId;
+	SCompositeTaskThread *pstCurrentThread;
+};
+
+struct _SModeTransitionSuspendCheck {
+	uem_bool bAllSuspended;
+	SCompositeTask *pstCompositeTask;
+	SCompositeTaskThread *pstCurrentThread;
+};
+
 
 typedef uem_result (*FnCbHandleGeneralTask)(STask *pstTask);
 
@@ -169,6 +183,7 @@ static uem_result createCompositeTaskThreadStructPerSchedule(SMappedCompositeTas
 	pstCompositeTaskThread->bIsThreadFinished = TRUE;
 	pstCompositeTaskThread->hEvent = NULL;
 	pstCompositeTaskThread->bSuspended = FALSE;
+	pstCompositeTaskThread->bHasSourceTask = pstMappedInfo->pstScheduledTasks->astScheduleList[nScheduleIndex].bHasSourceTask;
 
 	result = UCThreadEvent_Create(&(pstCompositeTaskThread->hEvent));
 	ERRIFGOTO(result, _EXIT);
@@ -388,6 +403,11 @@ static uem_result traverseAndChangeTaskState(IN int nOffset, IN void *pData, IN 
 	result = UKCPUTaskCommon_CheckTaskState(pstTaskThread->enTaskState, pstUserData->enTaskState);
 	ERRIFGOTO(result, _EXIT);
 
+	if(result == ERR_UEM_SKIP_THIS)
+	{
+		UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
+	}
+
 	// For MTM task
 	nCurModeId = getCurrentTaskModeId(pstCompositeTask->pstParentTask);
 
@@ -449,6 +469,54 @@ _EXIT:
 }
 
 
+static uem_result traverseAndRunModeTransittingState(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	struct _SCompositeTaskStateChangeData *pstUserData = NULL;
+	int nCurModeId = 0;
+	SCompositeTaskThread *pstTaskThread = (SCompositeTaskThread *) pData;
+	SCompositeTask *pstCompositeTask = NULL;
+	pstUserData = (struct _SCompositeTaskStateChangeData *) pUserData;
+	pstCompositeTask = pstUserData->pstCompositeTask;
+
+	result = UKCPUTaskCommon_CheckTaskState(pstTaskThread->enTaskState, pstUserData->enTaskState);
+	ERRIFGOTO(result, _EXIT);
+
+	// For MTM task
+	nCurModeId = getCurrentTaskModeId(pstCompositeTask->pstParentTask);
+
+	if(pstUserData->enTaskState != TASK_STATE_RUNNING)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
+
+	result = UCThreadMutex_Lock(pstCompositeTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstCompositeTask->nCurrentThroughputConstraint != pstTaskThread->nThroughputConstraint)
+	{
+		pstTaskThread->enTaskState = TASK_STATE_STOP;
+	}
+	else if(pstTaskThread->nModeId == nCurModeId && pstTaskThread->bHasSourceTask == TRUE)
+	{
+		pstTaskThread->enTaskState = TASK_STATE_RUNNING;
+	}
+	else
+	{
+		// Other modes needs to be suspended when specific mode becomes running
+		pstTaskThread->enTaskState = TASK_STATE_SUSPEND;
+		pstTaskThread->bSuspended = TRUE;
+	}
+
+	result = ERR_UEM_NOERROR;
+
+	UCThreadMutex_Unlock(pstCompositeTask->hMutex);
+_EXIT:
+	return result;
+}
+
+
+
 static uem_result traverseAndSetEventToTaskThread(IN int nOffset, IN void *pData, IN void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -458,6 +526,32 @@ static uem_result traverseAndSetEventToTaskThread(IN int nOffset, IN void *pData
 
 	if(pstTaskThread->bSuspended == TRUE)
 	{
+		result = UCThreadEvent_SetEvent(pstTaskThread->hEvent);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result traverseAndSetEventToTemporarySuspendedTask(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCompositeTaskThread *pstTaskThread = NULL;
+	SCompositeTaskThread *pstSourceThread = NULL;
+	struct _SModeTransitionSetEventCheck *pstNewModeData = NULL;
+
+	pstTaskThread = (SCompositeTaskThread *) pData;
+	pstNewModeData = (struct _SModeTransitionSetEventCheck *) pUserData;
+	pstSourceThread = (SCompositeTaskThread *) pstNewModeData->pstCurrentThread;
+
+	if(pstTaskThread->enTaskState == TASK_STATE_SUSPEND && pstNewModeData->nModeId == pstTaskThread->nModeId &&
+		pstSourceThread->nThroughputConstraint == pstTaskThread->nThroughputConstraint)
+	{
+		pstTaskThread->enTaskState = TASK_STATE_RUNNING;
+
 		result = UCThreadEvent_SetEvent(pstTaskThread->hEvent);
 		ERRIFGOTO(result, _EXIT);
 	}
@@ -635,13 +729,26 @@ static uem_result changeCompositeTaskState(SCompositeTask *pstCompositeTask, ECP
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _SCompositeTaskStateChangeData stCompositeTaskData;
+	STask *pstTask = NULL;
 
 	stCompositeTaskData.enTaskState = enTargetState;
 	stCompositeTaskData.pstCompositeTask = pstCompositeTask;
+	pstTask = pstCompositeTask->pstParentTask;
 
-	// Change all composite task state
-	result = UCDynamicLinkedList_Traverse(hTaskList, traverseAndChangeTaskState, &stCompositeTaskData);
-	ERRIFGOTO(result, _EXIT);
+	// initial execution of multi-mode MTM task is different to normal composite task
+	if(pstCompositeTask->pstParentTask->pstMTMInfo != NULL && pstCompositeTask->pstParentTask->pstMTMInfo->nNumOfModes > 1 &&
+		enTargetState == TASK_STATE_RUNNING && pstTask->pstMTMInfo->enModeState == MODE_STATE_TRANSITING)
+	{
+		// Change all composite task state
+		result = UCDynamicLinkedList_Traverse(hTaskList, traverseAndRunModeTransittingState, &stCompositeTaskData);
+		ERRIFGOTO(result, _EXIT);
+	}
+	else
+	{
+		// Change all composite task state
+		result = UCDynamicLinkedList_Traverse(hTaskList, traverseAndChangeTaskState, &stCompositeTaskData);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	result = UCThreadMutex_Lock(pstCompositeTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
@@ -663,37 +770,99 @@ _EXIT:
 	return result;
 }
 
+static uem_result traverseAndCheckDifferentModeIsAllSuspended(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	struct _SModeTransitionSuspendCheck *pstUserData = NULL;
+	SCompositeTaskThread *pstTaskThread = NULL;
+
+	pstUserData = (struct _SModeTransitionSuspendCheck *) pUserData;
+	pstTaskThread = (SCompositeTaskThread *) pData;
+
+	if(pstTaskThread->enTaskState != TASK_STATE_SUSPEND && pstTaskThread->enTaskState != TASK_STATE_STOP)
+	{
+		//printf("not end task: %p (%d)\n", pstTaskThread, pstTaskThread->enTaskState);
+		pstUserData->bAllSuspended = FALSE;
+	}
+	else
+	{
+		//printf("end task: %p (%d)\n", pstTaskThread, pstTaskThread->enTaskState);
+	}
+
+	return ERR_UEM_NOERROR;
+}
+
 
 static uem_result handleCompositeTaskModeTransition(SCompositeTaskThread *pstTaskThread, SCompositeTask *pstTask)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstCurrentTask = NULL;
-
 	pstCurrentTask = pstTask->pstParentTask;
+	int nCurModeIndex = 0;
+	struct _SModeTransitionSuspendCheck stUserData;
+	struct _SModeTransitionSetEventCheck stNewModeData;
 
 	result = UCThreadMutex_Lock(pstCurrentTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	// Mode transition is happened (suspend current thread and wait for other threads to be suspended)
-	if(pstCurrentTask->pstMTMInfo->nCurModeIndex != pstCurrentTask->pstMTMInfo->nNextModeIndex)
+	if(pstCurrentTask->pstMTMInfo->enModeState == MODE_STATE_TRANSITING)
 	{
-		pstCurrentTask->pstMTMInfo->nCurModeIndex = pstCurrentTask->pstMTMInfo->nNextModeIndex;
+		if(pstCurrentTask->pstMTMInfo->nCurModeIndex != pstCurrentTask->pstMTMInfo->nNextModeIndex)
+		{
+			pstCurrentTask->pstMTMInfo->nCurModeIndex = pstCurrentTask->pstMTMInfo->nNextModeIndex;
+			nCurModeIndex = pstCurrentTask->pstMTMInfo->nCurModeIndex;
+		}
+		else
+		{
+			nCurModeIndex = pstCurrentTask->pstMTMInfo->nCurModeIndex;
+		}
 
-		result = UCThreadMutex_Unlock(pstCurrentTask->hMutex);
-		ERRIFGOTO(result, _EXIT);
+		pstCurrentTask->pstMTMInfo->enModeState = MODE_STATE_NORMAL;
 
-		// rerun composite task with new mode id
-		result = changeCompositeTaskState(pstTask, TASK_STATE_RUNNING, pstTask->hThreadList);
-		ERRIFGOTO(result, _EXIT);
+		if(pstTask->enTaskState == TASK_STATE_RUNNING)
+		{
+			pstTaskThread->enTaskState = TASK_STATE_SUSPEND;
 
-		result = UCDynamicLinkedList_Traverse(pstTask->hThreadList, traverseAndSetEventToTaskThread, NULL);
-		ERRIFGOTO(result, _EXIT);
+			stNewModeData.pstCurrentThread = pstTaskThread;
+			stNewModeData.nModeId = pstCurrentTask->pstMTMInfo->astModeMap[nCurModeIndex].nModeId;
+
+			result = UCDynamicLinkedList_Traverse(pstTask->hThreadList, traverseAndSetEventToTemporarySuspendedTask, &stNewModeData);
+			ERRIFGOTO(result, _EXIT);
+		}
 	}
 	else
 	{
-		result = UCThreadMutex_Unlock(pstCurrentTask->hMutex);
+		stUserData.bAllSuspended = TRUE;
+		stUserData.pstCompositeTask = pstTask;
+		stUserData.pstCurrentThread = pstTaskThread;
+
+		pstTaskThread->enTaskState = TASK_STATE_SUSPEND;
+
+		result = UCDynamicLinkedList_Traverse(pstTask->hThreadList, traverseAndCheckDifferentModeIsAllSuspended, &stUserData);
 		ERRIFGOTO(result, _EXIT);
+
+		if(stUserData.bAllSuspended == TRUE)
+		{
+			pstCurrentTask->pstMTMInfo->enModeState = MODE_STATE_TRANSITING;
+
+			if(pstTask->enTaskState == TASK_STATE_RUNNING)
+			{
+				result = UCThreadMutex_Unlock(pstCurrentTask->hMutex);
+				ERRIFGOTO(result, _EXIT);
+
+				result = changeCompositeTaskState(pstTask, TASK_STATE_RUNNING, pstTask->hThreadList);
+				ERRIFGOTO(result, _EXIT);
+
+				result = UCThreadMutex_Lock(pstCurrentTask->hMutex);
+				ERRIFGOTO(result, _EXIT);
+
+				result = UCDynamicLinkedList_Traverse(pstTask->hThreadList, traverseAndSetEventToTaskThread, NULL);
+				ERRIFGOTO(result, _EXIT);
+			}
+		}
 	}
+
+	result = UCThreadMutex_Unlock(pstCurrentTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -708,6 +877,7 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 	int nMaxRunCount = 0;
 	int nRunCount = 0;
 	ERunCondition enRunCondition;
+	uem_bool bFunctionCalled = TRUE;
 
 	if(pstCompositeTask->pstParentTask == NULL)
 	{
@@ -715,7 +885,14 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 	}
 	else
 	{
-		enRunCondition = pstCompositeTask->pstParentTask->enRunCondition;
+		if(pstTaskThread->bHasSourceTask == TRUE)
+		{
+			enRunCondition = pstCompositeTask->pstParentTask->enRunCondition;
+		}
+		else
+		{
+			enRunCondition = RUN_CONDITION_DATA_DRIVEN;
+		}
 	}
 
 	result = waitRunSignal(pstCompositeTask, pstTaskThread, TRUE, &llNextTime, &nMaxRunCount);
@@ -735,9 +912,8 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 			{
 			case RUN_CONDITION_TIME_DRIVEN:
 				// pstCurrentTask is not NULL because whole task graph is a data-driven task graph
-				result = UKCPUTaskCommon_HandleTimeDrivenTask(pstCompositeTask->pstParentTask, fnGo, &llNextTime, &nRunCount, &nMaxRunCount);
+				result = UKCPUTaskCommon_HandleTimeDrivenTask(pstCompositeTask->pstParentTask, fnGo, &llNextTime, &nRunCount, &nMaxRunCount, &bFunctionCalled);
 				ERRIFGOTO(result, _EXIT);
-
 				break;
 			case RUN_CONDITION_DATA_DRIVEN:
 				if(pstCompositeTask->pstParentTask != NULL)
@@ -761,7 +937,9 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 				ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 				break;
 			}
-			if(isModeTransitionTask(pstCompositeTask) == TRUE)
+
+			if(isModeTransitionTask(pstCompositeTask) == TRUE && bFunctionCalled == TRUE &&
+				pstCompositeTask->enTaskState == TASK_STATE_RUNNING)
 			{
 				result = handleCompositeTaskModeTransition(pstTaskThread, pstCompositeTask);
 				ERRIFGOTO(result, _EXIT);
@@ -1523,3 +1701,5 @@ uem_result UKCPUCompositeTaskManager_Destroy(IN OUT HCPUCompositeTaskManager *ph
 _EXIT:
 	return result;
 }
+
+

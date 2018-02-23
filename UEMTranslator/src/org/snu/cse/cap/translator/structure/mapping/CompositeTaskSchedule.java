@@ -7,6 +7,7 @@ public class CompositeTaskSchedule {
 	private int numOfUsableCPU;
 	private int throughputConstraint;
 	private int maxLoopVariableNum;
+	private boolean hasSourceTask;
 	
 	public int getMaxLoopVariableNum() {
 		return maxLoopVariableNum;
@@ -19,6 +20,7 @@ public class CompositeTaskSchedule {
 	public CompositeTaskSchedule(int numOfUsableCPU, int throughputConstraint) {
 		this.scheduleList = new ArrayList<ScheduleItem>();
 		this.throughputConstraint = throughputConstraint;
+		this.hasSourceTask = false;
 	}
 	
 	public ArrayList<ScheduleItem> getScheduleList() {
@@ -39,5 +41,13 @@ public class CompositeTaskSchedule {
 
 	public int getNumOfUsableCPU() {
 		return numOfUsableCPU;
+	}
+
+	public boolean getHasSourceTask() {
+		return hasSourceTask;
+	}
+
+	public void setHasSourceTask(boolean hasSourceTask) {
+		this.hasSourceTask = hasSourceTask;
 	}
 }

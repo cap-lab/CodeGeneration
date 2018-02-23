@@ -24,6 +24,8 @@ uem_result UKModeTransition_GetCurrentModeName (IN char *pszTaskName, OUT char *
 uem_result UKModeTransition_SetModeIntegerParameter (IN char *pszTaskName, IN char *pszParamName, IN int nParamVal);
 uem_result UKModeTransition_UpdateMode (IN char *pszTaskName);
 
+EModeState UKModeTransition_GetModeState(int nTaskId);
+
 int UKModeTransition_GetModeIndexByModeId(SModeTransitionMachine *pstModeTransition, int nModeId);
 int UKModeTransition_GetVariableIndexByName(SModeTransitionMachine *pstModeTransition, char *pszVariableName);
 

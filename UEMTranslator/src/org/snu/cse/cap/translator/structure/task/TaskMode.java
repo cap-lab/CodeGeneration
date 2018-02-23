@@ -13,11 +13,14 @@ public class TaskMode {
 	private static final int TASK_PROC_MAP_LOCAL_ID_INDEX = 1;
 	private static final int TASK_PROC_MAP_TASK_NAME_INDEX = 2;
 	
+	private HashMap<Integer, HashMap<String, String>> taskProcMapWithThroughput; // key: throughput constraint, value: (procKey : Task name) 
+	
 	public TaskMode(int modeId, String modeName) {
 		this.id = modeId;
 		this.name = modeName;
 		this.relatedChildTaskSet = new HashSet<Task>();
 		this.relatedChildTaskProcMap = new HashMap<String, String>();
+		this.taskProcMapWithThroughput = new HashMap<Integer, HashMap<String, String>>();
 	}
 	
 	public interface ChildTaskTraverseCallback<T> {
@@ -25,15 +28,29 @@ public class TaskMode {
 	}
 
 	
-	public void putChildTask(int procId, int procLocalId, Task task)
+	public void putChildTask(int procId, int procLocalId, int throughputConstraint, Task task)
 	{
+		HashMap<String, String> taskProcMap = null;
+		String procMapKey = null;
+		
+		procMapKey = procId + TASK_PROC_MAP_SEPARATOR  + procLocalId + TASK_PROC_MAP_SEPARATOR + task.getName();
+		
 		this.relatedChildTaskSet.add(task);
-		this.relatedChildTaskProcMap.put(procId + TASK_PROC_MAP_SEPARATOR  + procLocalId + TASK_PROC_MAP_SEPARATOR + task.getName(), task.getName());
+		this.relatedChildTaskProcMap.put(procMapKey, task.getName());
+		
+		taskProcMap = this.taskProcMapWithThroughput.get(new Integer(throughputConstraint));
+		if(taskProcMap == null)
+		{
+			taskProcMap = new HashMap<String, String>();
+			this.taskProcMapWithThroughput.put(new Integer(throughputConstraint), taskProcMap);
+		}
+		taskProcMap.put(procMapKey, task.getName());
 	}
 	
-	public <T> void traverseRelatedChildTask(ChildTaskTraverseCallback<T> childTaskCallback, T userData)
+	public <T> void traverseRelatedChildTask(Integer throughputConstraint, ChildTaskTraverseCallback<T> childTaskCallback, T userData)
 	{
-		for(String combinedKey : this.relatedChildTaskProcMap.keySet())
+		HashMap<String, String> taskProcMap = this.taskProcMapWithThroughput.get(throughputConstraint);
+		for(String combinedKey : taskProcMap.keySet())
 		{
 			String[] splitedKey;
 			splitedKey = combinedKey.split(TASK_PROC_MAP_SEPARATOR);
@@ -61,4 +78,9 @@ public class TaskMode {
 	public HashSet<Task> getRelatedChildTaskSet() {
 		return relatedChildTaskSet;
 	}
+
+	public HashMap<Integer, HashMap<String, String>> getTaskProcMapWithThroughput() {
+		return taskProcMapWithThroughput;
+	}
 }
+

@@ -498,7 +498,7 @@ public class Device {
 		}
 	}
 	
-	private void recursivePutTask(ArrayList<ScheduleItem> scheduleItemList, TaskModeTransition targetTaskModeTransition, 
+	private void recursivePutTask(CompositeTaskSchedule schedule, ArrayList<ScheduleItem> scheduleItemList, TaskModeTransition targetTaskModeTransition, 
 			CompositeTaskMappedProcessor compositeMappedProc) 
 	{		
 		for(ScheduleItem item: scheduleItemList)
@@ -507,14 +507,14 @@ public class Device {
 			{
 			case LOOP:
 				ScheduleLoop scheduleLoop = (ScheduleLoop) item; 
-				recursivePutTask(scheduleLoop.getScheduleItemList(), targetTaskModeTransition, compositeMappedProc);
+				recursivePutTask(schedule, scheduleLoop.getScheduleItemList(), targetTaskModeTransition, compositeMappedProc);
 				break;
 			case TASK:
 				ScheduleTask task = (ScheduleTask) item;
 				Task  taskObject = this.taskMap.get(task.getTaskName());
 				targetTaskModeTransition.putRelatedChildTask(compositeMappedProc.getProcessorId(), compositeMappedProc.getProcessorLocalId(), 
-						compositeMappedProc.getModeId(), taskObject);
-				
+						compositeMappedProc.getModeId(), schedule.getThroughputConstraint(), taskObject);
+
 				break;
 			}
 		}
@@ -525,7 +525,7 @@ public class Device {
 	{
 		for(CompositeTaskSchedule schedule: compositeMappedProc.getCompositeTaskScheduleList())
 		{		
-			recursivePutTask(schedule.getScheduleList(), targetTaskModeTransition, compositeMappedProc);
+			recursivePutTask(schedule, schedule.getScheduleList(), targetTaskModeTransition, compositeMappedProc);
 		}
 	}
 	
@@ -571,20 +571,26 @@ public class Device {
 			}
 		};
 		
+		
+		
 		for(TaskMode mode: modeMap.values())
 		{
-			mode.traverseRelatedChildTask(childTaskCallback, relatedTaskMap);
-			
-			for(String taskName: relatedTaskMap.keySet())
+			for(Integer throughputConstraint: mode.getTaskProcMapWithThroughput().keySet())
 			{
-				Task task = this.taskMap.get(taskName);
-				int newMappedProcNum = relatedTaskMap.get(taskName).intValue();
-				if(task.getTaskFuncNum() < newMappedProcNum)
+				mode.traverseRelatedChildTask(throughputConstraint, childTaskCallback, relatedTaskMap);
+				
+				for(String taskName: relatedTaskMap.keySet())
 				{
-					task.setTaskFuncNum(newMappedProcNum);
+					Task task = this.taskMap.get(taskName);
+					int newMappedProcNum = relatedTaskMap.get(taskName).intValue();
+					if(task.getTaskFuncNum() < newMappedProcNum)
+					{
+						task.setTaskFuncNum(newMappedProcNum);
+						System.out.println("task ("+task.getName() +") num: " + newMappedProcNum);
+					}
 				}
+				relatedTaskMap.clear();			
 			}
-			relatedTaskMap.clear();
 		}
 	}
 	
@@ -608,19 +614,19 @@ public class Device {
 		}
 	}
 	
-	private void recursiveScheduleLoopTraverse(ArrayList<ScheduleItem> scheduleItemList, HashMap<String, TaskFuncIdChecker> taskFuncIdMap, int modeId)
+	private void recursiveScheduleLoopTraverse(ArrayList<ScheduleItem> scheduleItemList, HashMap<String, TaskFuncIdChecker> taskFuncIdMap, int modeId, int throughputConstraint)
 	{
 		for(ScheduleItem scheduleItem : scheduleItemList)
 		{
 			if(scheduleItem.getItemType() == ScheduleItemType.LOOP)
 			{
 				ScheduleLoop scheduleInnerLoop = (ScheduleLoop) scheduleItem;
-				recursiveScheduleLoopTraverse(scheduleInnerLoop.getScheduleItemList(), taskFuncIdMap, modeId);
+				recursiveScheduleLoopTraverse(scheduleInnerLoop.getScheduleItemList(), taskFuncIdMap, modeId, throughputConstraint);
 			}
 			else
 			{
 				ScheduleTask scheduleTask = (ScheduleTask) scheduleItem;
-				String taskFuncIdKey = modeId + scheduleTask.getTaskName();
+				String taskFuncIdKey = modeId + Constants.TASK_NAME_FUNC_ID_SEPARATOR + throughputConstraint + scheduleTask.getTaskName();
 				
 				if(taskFuncIdMap.containsKey(taskFuncIdKey))
 				{
@@ -650,7 +656,7 @@ public class Device {
 				
 				for(CompositeTaskSchedule taskScheule: compositeMappedProcessor.getCompositeTaskScheduleList())
 				{
-					recursiveScheduleLoopTraverse(taskScheule.getScheduleList(), taskFuncIdMap, compositeMappedProcessor.getModeId());
+					recursiveScheduleLoopTraverse(taskScheule.getScheduleList(), taskFuncIdMap, compositeMappedProcessor.getModeId(), taskScheule.getThroughputConstraint());
 					
 					for(TaskFuncIdChecker funcIdChecker: taskFuncIdMap.values())
 					{
@@ -749,14 +755,14 @@ public class Device {
 		return isSourceTask;
 	}
 	
-	private void recursiveFindAndInsertSourceTask(ArrayList<ScheduleItem> scheduleItemList, HashMap<String, Task> srcTaskMap)
+	private void recursiveFindAndInsertSourceTask(CompositeTaskSchedule taskSchedule, ArrayList<ScheduleItem> scheduleItemList, HashMap<String, Task> srcTaskMap)
 	{
 		for(ScheduleItem scheduleItem : scheduleItemList)
 		{
 			if(scheduleItem.getItemType() == ScheduleItemType.LOOP)
 			{
 				ScheduleLoop scheduleInnerLoop = (ScheduleLoop) scheduleItem;
-				recursiveFindAndInsertSourceTask(scheduleInnerLoop.getScheduleItemList(), srcTaskMap);
+				recursiveFindAndInsertSourceTask(taskSchedule, scheduleInnerLoop.getScheduleItemList(), srcTaskMap);
 			}
 			else
 			{
@@ -767,6 +773,7 @@ public class Device {
 				if(checkIsSourceTask(task) == true && srcTaskMap.containsKey(scheduleTask.getTaskName()) == false)
 				{
 					srcTaskMap.put(scheduleTask.getTaskName(), task);
+					taskSchedule.setHasSourceTask(true);
 				}
 			}
 		}
@@ -788,7 +795,7 @@ public class Device {
 					
 					for(CompositeTaskSchedule taskScheule: compositeMappedProc.getCompositeTaskScheduleList())
 					{
-						recursiveFindAndInsertSourceTask(taskScheule.getScheduleList(), compositeMappedProc.getSrcTaskMap());
+						recursiveFindAndInsertSourceTask(taskScheule, taskScheule.getScheduleList(), compositeMappedProc.getSrcTaskMap());
 					}
 				}
 			}

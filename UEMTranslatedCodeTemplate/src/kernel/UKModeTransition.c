@@ -91,6 +91,26 @@ _EXIT:
 	return nVariableIndex;
 }
 
+EModeState UKModeTransition_GetModeState(int nTaskId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask *pstTask = NULL;
+	EModeState enModeState = MODE_STATE_TRANSITING;
+
+	result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadMutex_Lock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	enModeState = pstTask->pstMTMInfo->enModeState;
+
+	result = UCThreadMutex_Unlock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+_EXIT:
+	return enModeState;
+}
+
 
 uem_result UKModeTransition_SetModeIntegerParameter (IN char *pszTaskName, IN char *pszParamName, IN int nParamVal)
 {
@@ -169,5 +189,4 @@ uem_result UKModeTransition_UpdateMode (IN char *pszTaskName)
 _EXIT:
 	return result;
 }
-
 

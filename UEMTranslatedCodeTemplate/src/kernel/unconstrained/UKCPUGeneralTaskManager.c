@@ -475,6 +475,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 	int nMaxRunCount = 0;
 	int nRunCount = 0;
 	ERunCondition enRunCondition;
+	uem_bool bFunctionCalled = TRUE;
 
 	pstCurrentTask = pstGeneralTask->pstTask;
 	enRunCondition = pstCurrentTask->enRunCondition;
@@ -492,7 +493,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			switch(enRunCondition)
 			{
 			case RUN_CONDITION_TIME_DRIVEN:
-				result = UKCPUTaskCommon_HandleTimeDrivenTask(pstCurrentTask, fnGo, &llNextTime, &nRunCount, &nMaxRunCount);
+				result = UKCPUTaskCommon_HandleTimeDrivenTask(pstCurrentTask, fnGo, &llNextTime, &nRunCount, &nMaxRunCount, &bFunctionCalled);
 				ERRIFGOTO(result, _EXIT);
 				break;
 			case RUN_CONDITION_DATA_DRIVEN:
@@ -681,20 +682,14 @@ static uem_result changeTaskState(SGeneralTask *pstGeneralTask, ECPUTaskState en
 
 	result = UKCPUTaskCommon_CheckTaskState(pstGeneralTask->enTaskState, enTaskState);
 	ERRIFGOTO(result, _EXIT_LOCK);
-	if(result == ERR_UEM_ALREADY_DONE)
+
+	if(enTaskState == TASK_STATE_SUSPEND)
 	{
-		// TODO: do something?
+		result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, traverseAndSetIsSuspended, NULL);
+		ERRIFGOTO(result, _EXIT_LOCK);
 	}
 
-	if(pstGeneralTask->enTaskState != TASK_STATE_STOP)
-	{
-		if(enTaskState == TASK_STATE_SUSPEND)
-		{
-			result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, traverseAndSetIsSuspended, NULL);
-			ERRIFGOTO(result, _EXIT_LOCK);
-		}
-		pstGeneralTask->enTaskState = enTaskState;
-	}
+	pstGeneralTask->enTaskState = enTaskState;
 
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
@@ -875,6 +870,7 @@ static uem_result traverseAndCheckStoppingThread(IN int nOffset, IN void *pData,
 
 	pstTaskThread = (SGeneralTaskThread *) pData;
 	pstStopCheck = (struct _SGeneralTaskStopCheck *) pUserData;
+	pstManager = pstStopCheck->pstManager;
 
 	if(pstTaskThread->hThread != NULL && pstTaskThread->bIsThreadFinished == TRUE)
 	{
