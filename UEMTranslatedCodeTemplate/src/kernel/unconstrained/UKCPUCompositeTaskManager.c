@@ -885,13 +885,20 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 	}
 	else
 	{
-		if(pstTaskThread->bHasSourceTask == TRUE)
+		if(pstCompositeTask->pstParentTask->enRunCondition != RUN_CONDITION_CONTROL_DRIVEN)
 		{
-			enRunCondition = pstCompositeTask->pstParentTask->enRunCondition;
+			if(pstTaskThread->bHasSourceTask == TRUE)
+			{
+				enRunCondition = pstCompositeTask->pstParentTask->enRunCondition;
+			}
+			else
+			{
+				enRunCondition = RUN_CONDITION_DATA_DRIVEN;
+			}
 		}
 		else
 		{
-			enRunCondition = RUN_CONDITION_DATA_DRIVEN;
+			enRunCondition = pstCompositeTask->pstParentTask->enRunCondition;
 		}
 	}
 
@@ -1486,7 +1493,8 @@ uem_result UKCPUCompositeTaskManager_GetTaskState(HCPUCompositeTaskManager hMana
 	result = findMatchingCompositeTask(pstTaskManager, nTaskId, &pstCompositeTask);
 	ERRIFGOTO(result, _EXIT_LOCK);
 
-	if(pstCompositeTask->enTaskState == TASK_STATE_STOPPING)
+	if(pstCompositeTask->enTaskState == TASK_STATE_STOPPING ||
+		(pstTargetTask != NULL && pstTargetTask->enRunCondition == RUN_CONDITION_CONTROL_DRIVEN))
 	{
 		stStopCheck.bAllStop = TRUE;
 		stStopCheck.pstCompositeTask = pstCompositeTask;

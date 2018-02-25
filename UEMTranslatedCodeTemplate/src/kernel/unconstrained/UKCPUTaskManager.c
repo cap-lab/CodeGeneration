@@ -293,7 +293,7 @@ static uem_result traverseAndCreateCompositeTasks(STask *pstTask, IN void *pUser
 	result = UKCPUCompositeTaskManager_GetTaskState(hManager, pstTask, &enTaskState);
 	ERRIFGOTO(result, _EXIT);
 
-	if(enTaskState == TASK_STATE_RUNNING)
+	if(enTaskState == TASK_STATE_RUNNING && pstTask->enRunCondition != RUN_CONDITION_CONTROL_DRIVEN)
 	{
 		result = UKCPUCompositeTaskManager_CreateThread(hManager, pstTask);
 		ERRIFGOTO(result, _EXIT);
