@@ -15,4 +15,13 @@ public enum TaskLoopType {
 	public String toString() {
 		return value;
 	}
+	
+	public static TaskLoopType fromValue(String value) {
+		 for (TaskLoopType c : TaskLoopType.values()) {
+			 if (c.value.equals(value)) {
+				 return c;
+			 }
+		 }
+		 throw new IllegalArgumentException(value.toString());
+	}	
 }

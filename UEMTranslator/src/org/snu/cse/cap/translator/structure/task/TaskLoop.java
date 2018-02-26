@@ -10,7 +10,7 @@ public class TaskLoop {
 	
 	public TaskLoop (String loopType, int loopCount) 
 	{
-		this.loopType = TaskLoopType.valueOf(loopType);
+		this.loopType = TaskLoopType.fromValue(loopType);
 		this.loopCount = loopCount;
 		this.designatedTaskName = null;
 		this.designatedTaskId = Constants.INVALID_ID_VALUE;
