@@ -1,4 +1,8 @@
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 
 #define TASK_STATUS_RUN 0
 #define TASK_STATUS_STOP 1
@@ -16,6 +20,9 @@
 
 #include <UFControl.h>
 #include <UFControl_deprecated.h>
+
+#include <UFSystem.h>
+#include <UFSystem_deprecated.h>
 
 <#if task_info.masterPortToLibraryMap??>
 #define LIBCALL(x, ...) LIBCALL_##x(__VA_ARGS__)

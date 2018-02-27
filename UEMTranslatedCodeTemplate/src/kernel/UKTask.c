@@ -193,6 +193,11 @@ uem_result UKTask_CallTask (IN char *pszTaskName)
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
+	if(pstTask->nTaskFunctionSetNum == 0)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+
 	// CallTask calls the first init/go/wrapup functions
 	pstTask->astTaskFunctions[0].fnInit(pstTask->nTaskId);
 	pstTask->astTaskFunctions[0].fnGo(pstTask->nTaskId);
