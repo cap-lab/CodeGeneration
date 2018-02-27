@@ -1,6 +1,7 @@
 package org.snu.cse.cap.translator.structure.library;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -14,6 +15,7 @@ public class Library {
 	private String headerGuard;
 	private HashSet<String> extraHeaderSet;
 	private HashSet<String> extraSourceSet;
+	private HashMap<String, Library> masterPortToLibraryMap;
 	private String ldFlags;
 	
 	// // Master can be a task or a library
@@ -28,6 +30,7 @@ public class Library {
 		this.headerGuard = header.toUpperCase().replace(".", "_");
 		this.extraHeaderSet = new HashSet<String>();
 		this.extraSourceSet = new HashSet<String>();
+		this.masterPortToLibraryMap = new HashMap<String, Library>();
 		this.ldFlags = null;
 	}
 	
@@ -89,5 +92,9 @@ public class Library {
 
 	public HashSet<String> getExtraSourceSet() {
 		return extraSourceSet;
+	}
+
+	public HashMap<String, Library> getMasterPortToLibraryMap() {
+		return masterPortToLibraryMap;
 	}
 }

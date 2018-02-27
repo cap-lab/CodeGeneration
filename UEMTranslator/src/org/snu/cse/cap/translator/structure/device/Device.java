@@ -872,10 +872,10 @@ public class Device {
 			}
 		}
 		
-		linkLibraryToTasks();
+		linkLibraryToLibraryAndTasks();
 	}
 	
-	private void linkLibraryToTasks()
+	private void linkLibraryToLibraryAndTasks()
 	{
 		for(Library library: this.libraryMap.values())
 		{
@@ -888,6 +888,15 @@ public class Device {
 					if(task.getMasterPortToLibraryMap().containsKey(connection.getPortName()) == false)
 					{
 						task.getMasterPortToLibraryMap().put(connection.getPortName(), library);
+					}
+				}
+				else
+				{
+					Library masterLibrary = this.libraryMap.get(connection.getMasterName());
+					
+					if(masterLibrary.getMasterPortToLibraryMap().containsKey(connection.getPortName()) == false)
+					{
+						masterLibrary.getMasterPortToLibraryMap().put(connection.getPortName(), library);
 					}
 				}
 			}
