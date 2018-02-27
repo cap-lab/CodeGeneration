@@ -2,6 +2,7 @@ package org.snu.cse.cap.translator.structure.library;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 public class Library {
 	private String name;
@@ -11,7 +12,8 @@ public class Library {
 	private ArrayList<Function> functionList;
 	private ArrayList<LibraryConnection> libraryConnectionList; 
 	private String headerGuard;
-	private HashSet<String> extraHeaderSet; 
+	private HashSet<String> extraHeaderSet;
+	private HashSet<String> extraSourceSet;
 	private String ldFlags;
 	
 	// // Master can be a task or a library
@@ -25,7 +27,24 @@ public class Library {
 		this.libraryConnectionList = new ArrayList<LibraryConnection>();
 		this.headerGuard = header.toUpperCase().replace(".", "_");
 		this.extraHeaderSet = new HashSet<String>();
+		this.extraSourceSet = new HashSet<String>();
 		this.ldFlags = null;
+	}
+	
+	public void setExtraHeaderSet(List<String> extraHeaderList)
+	{
+		for(String extraHeaderFile: extraHeaderList)
+		{
+			this.extraHeaderSet.add(extraHeaderFile);
+		}
+	}
+	
+	public void setExtraSourceSet(List<String> extraSourceList)
+	{
+		for(String extraSourceFile: extraSourceList)
+		{
+			this.extraSourceSet.add(extraSourceFile);
+		}	
 	}
 
 	public String getName() {
@@ -66,5 +85,9 @@ public class Library {
 
 	public void setLdFlags(String ldFlags) {
 		this.ldFlags = ldFlags;
+	}
+
+	public HashSet<String> getExtraSourceSet() {
+		return extraSourceSet;
 	}
 }

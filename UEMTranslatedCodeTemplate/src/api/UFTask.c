@@ -5,6 +5,10 @@
  *      Author: jej
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <uem_common.h>
 
 #include <UKModeTransition.h>
@@ -12,9 +16,6 @@
 #include <UKTask.h>
 
 #include <UFTask.h>
-
-
-
 
 uem_result UFTask_GetIntegerParameter (IN char *pszTaskName, IN char *pszParamName, OUT int *pnParamVal)
 {

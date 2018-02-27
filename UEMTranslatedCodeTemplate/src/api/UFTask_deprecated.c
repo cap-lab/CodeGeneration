@@ -5,6 +5,9 @@
  *      Author: jej
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <uem_common.h>
 
@@ -12,8 +15,6 @@
 
 #include <UFTask_deprecated.h>
 #include <UFTask.h>
-
-
 
 
 void SYS_REQ_SET_THROUGHPUT(char *pszTaskName, char *pszValue, char *pszUnit)

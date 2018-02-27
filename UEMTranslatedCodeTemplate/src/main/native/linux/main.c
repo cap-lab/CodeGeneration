@@ -154,7 +154,7 @@ uem_result executeTasks()
 
 	llEndTime = getEndTime(llCurTime);
 
-	while(llEndTime >= llCurTime)
+	while(llEndTime >= llCurTime && g_bSystenExit == FALSE)
 	{
 		if(llCurTime + DEFAULT_LONG_SLEEP_PERIOD <= llEndTime)
 		{
@@ -179,25 +179,6 @@ uem_result executeTasks()
 		result = UCTime_GetCurTickInMilliSeconds(&llCurTime);
 		ERRIFGOTO(result, _EXIT);
 	}
-
-	// MTM initialize
-
-	// control thread count++
-
-	// pthread create TASK_ROUTINE (CONTROL)
-
-	// pthread create (REST OF TASKS)
-
-	// pthread create virtual tasks
-
-	// check task running
-	// until end_flag is set by top-level tasks
-
-	// thread_cancel
-
-	// thread cancel
-
-
 
 _EXIT:
 	if(hManager != NULL)

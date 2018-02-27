@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Properties;
 import static java.nio.file.StandardCopyOption.*;
 
@@ -24,6 +25,7 @@ public class CodeOrganizer {
 	private ArrayList<String> mainSourceList;
 	private ArrayList<String> kernelSourceList;
 	private ArrayList<String> kernelDeviceSourceList;
+	private HashSet<String> extraSourceCodeSet;
 	private String cflags;
 	private String ldadd;
 	
@@ -45,6 +47,7 @@ public class CodeOrganizer {
 		this.kernelSourceList = new ArrayList<String>();
 		this.kernelDeviceSourceList = new ArrayList<String>();
 		this.taskSourceCodeList = new ArrayList<String>();
+		this.extraSourceCodeSet = new HashSet<String>();
 		this.cflags = "";
 		this.ldadd = "";
 	}
@@ -211,6 +214,11 @@ public class CodeOrganizer {
 					this.taskSourceCodeList.add(task.getName() + Constants.TASK_NAME_FUNC_ID_SEPARATOR + i);
 				}
 			}
+			
+			for(String extraSource : task.getExtraSourceSet())
+			{
+				this.extraSourceCodeSet.add(extraSource);
+			}
 		}
 	}
 	
@@ -219,6 +227,11 @@ public class CodeOrganizer {
 		for(Library library : libraryMap.values())
 		{
 			this.taskSourceCodeList.add(library.getName());
+			
+			for(String extraSource : library.getExtraSourceSet())
+			{
+				this.extraSourceCodeSet.add(extraSource);
+			}
 		}
 	}
 	

@@ -8,7 +8,7 @@
 #include <UKTask.h>
 #include <UKModeTransition.h>
 
-SExecutionTime g_stExecutionTime = { 20, TIME_METRIC_SEC } ;
+SExecutionTime g_stExecutionTime = { 10, TIME_METRIC_SEC } ;
 
 // ##TASK_CODE_TEMPLATE::START
 void Receiver_Decryption_Init0(int nTaskId);
@@ -1171,10 +1171,10 @@ SChannel g_astChannels[] = {
 
 // ##TASK_LIST_TEMPLATE::START
 STask g_astTasks_Sender[] = {
-	{ 	6, // Task ID
-		"Sender_Transfer", // Task name
+	{ 	4, // Task ID
+		"Sender_Packing", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		g_ast_Sender_Transfer_functions, // Task function array
+		g_ast_Sender_Packing_functions, // Task function array
 		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
@@ -1211,10 +1211,10 @@ STask g_astTasks_Sender[] = {
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
-	{ 	4, // Task ID
-		"Sender_Packing", // Task name
+	{ 	6, // Task ID
+		"Sender_Transfer", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		g_ast_Sender_Packing_functions, // Task function array
+		g_ast_Sender_Transfer_functions, // Task function array
 		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
@@ -1357,10 +1357,10 @@ STask g_astTasks_Receiver[] = {
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
-	{ 	10, // Task ID
-		"Receiver_Display", // Task name
+	{ 	9, // Task ID
+		"Receiver_Unpacking", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		g_ast_Receiver_Display_functions, // Task function array
+		g_ast_Receiver_Unpacking_functions, // Task function array
 		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
@@ -1377,10 +1377,10 @@ STask g_astTasks_Receiver[] = {
 		NULL, // Mutex
 		NULL, // Conditional variable
 	},
-	{ 	9, // Task ID
-		"Receiver_Unpacking", // Task name
+	{ 	10, // Task ID
+		"Receiver_Display", // Task name
 		TASK_TYPE_COMPUTATIONAL, // Task Type
-		g_ast_Receiver_Unpacking_functions, // Task function array
+		g_ast_Receiver_Display_functions, // Task function array
 		1, // Task function array number
 		RUN_CONDITION_DATA_DRIVEN, // Run condition
 		1, // Run rate
@@ -1442,7 +1442,7 @@ STaskIdToTaskMap g_astTaskIdToTask[] = {
 	},
 	{ 	9, // Task ID
 		"Receiver_Unpacking", // Task name
-		&g_astTasks_Receiver[2], // Task structure pointer
+		&g_astTasks_Receiver[1], // Task structure pointer
 	},
 	{ 	5, // Task ID
 		"Sender_Encryption", // Task name
@@ -1454,7 +1454,7 @@ STaskIdToTaskMap g_astTaskIdToTask[] = {
 	},
 	{ 	6, // Task ID
 		"Sender_Transfer", // Task name
-		&g_astTasks_Sender[0], // Task structure pointer
+		&g_astTasks_Sender[2], // Task structure pointer
 	},
 	{ 	0, // Task ID
 		"UserInput", // Task name
@@ -1462,11 +1462,11 @@ STaskIdToTaskMap g_astTaskIdToTask[] = {
 	},
 	{ 	10, // Task ID
 		"Receiver_Display", // Task name
-		&g_astTasks_Receiver[1], // Task structure pointer
+		&g_astTasks_Receiver[2], // Task structure pointer
 	},
 	{ 	4, // Task ID
 		"Sender_Packing", // Task name
-		&g_astTasks_Sender[2], // Task structure pointer
+		&g_astTasks_Sender[0], // Task structure pointer
 	},
 	{ 	1, // Task ID
 		"IncomingMsg", // Task name
@@ -1490,24 +1490,21 @@ SProcessor g_astProcessorInfo[] = {
 
 
 // ##SCHEDULED_COMPOSITE_TASK_FUNCTION_IMPLEMENTATION::START
-void Sender_0_0_1_50000_Go(int nTaskId) 
+void Sender_0_0_0_50000_Go(int nTaskId) 
 {
-	Sender_Transfer_Go0(6);//
-}
-
-void Sender_0_0_2_50000_Go(int nTaskId) 
-{
+	Sender_Packing_Go0(4);//
 	Sender_Encryption_Go0(5);//
 }
 
 void Sender_0_0_3_50000_Go(int nTaskId) 
 {
-	Sender_Packing_Go0(4);//
+	Sender_Transfer_Go0(6);//
 }
 
 void Receiver_0_0_1_50000_Go(int nTaskId) 
 {
 	Receiver_Decryption_Go0(8);//
+	Receiver_Unpacking_Go0(9);//
 }
 
 void Receiver_0_0_2_50000_Go(int nTaskId) 
@@ -1515,24 +1512,12 @@ void Receiver_0_0_2_50000_Go(int nTaskId)
 	Receiver_Display_Go0(10);//
 }
 
-void Receiver_0_0_3_50000_Go(int nTaskId) 
-{
-	Receiver_Unpacking_Go0(9);//
-}
-
 // ##SCHEDULED_COMPOSITE_TASK_FUNCTION_IMPLEMENTATION::END
 
 // ##SCHEDULED_COMPOSITE_TASKS_TEMPLATE::START
-SScheduleList g_astScheduleList_Sender_0_0_1[] = {
+SScheduleList g_astScheduleList_Sender_0_0_0[] = {
 	{
-		Sender_0_0_1_50000_Go, // Composite GO function
-		50000, // Throughput constraint
-		FALSE,
-	},
-};
-SScheduleList g_astScheduleList_Sender_0_0_2[] = {
-	{
-		Sender_0_0_2_50000_Go, // Composite GO function
+		Sender_0_0_0_50000_Go, // Composite GO function
 		50000, // Throughput constraint
 		FALSE,
 	},
@@ -1558,13 +1543,6 @@ SScheduleList g_astScheduleList_Receiver_0_0_2[] = {
 		FALSE,
 	},
 };
-SScheduleList g_astScheduleList_Receiver_0_0_3[] = {
-	{
-		Receiver_0_0_3_50000_Go, // Composite GO function
-		50000, // Throughput constraint
-		FALSE,
-	},
-};
 // ##SCHEDULED_COMPOSITE_TASKS_TEMPLATE::END
 
 
@@ -1572,24 +1550,17 @@ SScheduleList g_astScheduleList_Receiver_0_0_3[] = {
 SScheduledTasks g_astScheduledTaskList[] = {
 	{	&g_astTasks_top[1], // Parent Task ID
 		0, // Mode transition mode ID
-		g_astScheduleList_Sender_0_0_1, // schedule list per throughput constraint
+		g_astScheduleList_Sender_0_0_0, // schedule list per throughput constraint
 		1, // The number of schedules in the schedule list
 		0, // Schedule Index (Default to set 0)
 		0, // Mode Sequence ID 
 	},
 	{	&g_astTasks_top[1], // Parent Task ID
 		0, // Mode transition mode ID
-		g_astScheduleList_Sender_0_0_2, // schedule list per throughput constraint
-		1, // The number of schedules in the schedule list
-		0, // Schedule Index (Default to set 0)
-		1, // Mode Sequence ID 
-	},
-	{	&g_astTasks_top[1], // Parent Task ID
-		0, // Mode transition mode ID
 		g_astScheduleList_Sender_0_0_3, // schedule list per throughput constraint
 		1, // The number of schedules in the schedule list
 		0, // Schedule Index (Default to set 0)
-		2, // Mode Sequence ID 
+		1, // Mode Sequence ID 
 	},
 	{	&g_astTasks_top[0], // Parent Task ID
 		0, // Mode transition mode ID
@@ -1605,13 +1576,6 @@ SScheduledTasks g_astScheduledTaskList[] = {
 		0, // Schedule Index (Default to set 0)
 		1, // Mode Sequence ID 
 	},
-	{	&g_astTasks_top[0], // Parent Task ID
-		0, // Mode transition mode ID
-		g_astScheduleList_Receiver_0_0_3, // schedule list per throughput constraint
-		1, // The number of schedules in the schedule list
-		0, // Schedule Index (Default to set 0)
-		2, // Mode Sequence ID 
-	},
 };
 
 
@@ -1621,7 +1585,7 @@ SMappedGeneralTaskInfo g_astGeneralTaskMappingInfo[] = {
 	{	TASK_TYPE_CONTROL, // Task type
 		&g_astTasks_top[4], // Task ID or composite task information
 		0, // Processor ID
-		2, // Processor local ID
+		0, // Processor local ID
 	},
 	{	TASK_TYPE_COMPUTATIONAL, // Task type
 		&g_astTasks_top[2], // Task ID or composite task information
@@ -1631,7 +1595,7 @@ SMappedGeneralTaskInfo g_astGeneralTaskMappingInfo[] = {
 	{	TASK_TYPE_COMPUTATIONAL, // Task type
 		&g_astTasks_top[3], // Task ID or composite task information
 		0, // Processor ID
-		1, // Processor local ID
+		0, // Processor local ID
 	},
 };
 
@@ -1640,32 +1604,22 @@ SMappedCompositeTaskInfo g_astCompositeTaskMappingInfo[] = {
 	{
 		&g_astScheduledTaskList[0],
 		0, // Processor ID
-		1, // Processor local ID		
+		0, // Processor local ID		
 	},
 	{
 		&g_astScheduledTaskList[1],
 		0, // Processor ID
-		2, // Processor local ID		
+		3, // Processor local ID		
 	},
 	{
 		&g_astScheduledTaskList[2],
 		0, // Processor ID
-		3, // Processor local ID		
+		1, // Processor local ID		
 	},
 	{
 		&g_astScheduledTaskList[3],
 		0, // Processor ID
-		1, // Processor local ID		
-	},
-	{
-		&g_astScheduledTaskList[4],
-		0, // Processor ID
 		2, // Processor local ID		
-	},
-	{
-		&g_astScheduledTaskList[5],
-		0, // Processor ID
-		3, // Processor local ID		
 	},
 };
 

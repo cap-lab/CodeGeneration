@@ -248,7 +248,15 @@ static uem_result createCompositeTaskStruct(HCPUCompositeTaskManager hCPUTaskMan
 		pstCompositeTask->enTaskState = TASK_STATE_STOP;
 	}
 	pstCompositeTask->pstParentTask = pstMappedInfo->pstScheduledTasks->pstParentTask;
-	pstCompositeTask->nCurrentThroughputConstraint = pstMappedInfo->pstScheduledTasks->astScheduleList[0].nThroughputConstraint;
+
+	if(pstMappedInfo->pstScheduledTasks->pstParentTask->nThroughputConstraint > 0)
+	{
+		pstCompositeTask->nCurrentThroughputConstraint = pstMappedInfo->pstScheduledTasks->pstParentTask->nThroughputConstraint;
+	}
+	else
+	{
+		pstCompositeTask->nCurrentThroughputConstraint = pstMappedInfo->pstScheduledTasks->astScheduleList[0].nThroughputConstraint;
+	}
 
 	result = UCThreadEvent_Create(&(pstCompositeTask->hEvent));
 	ERRIFGOTO(result, _EXIT);
@@ -1329,6 +1337,12 @@ uem_result UKCPUCompositeTaskManager_CreateThread(HCPUCompositeTaskManager hMana
 
 	result = findMatchingCompositeTask(pstTaskManager, nTaskId, &pstCompositeTask);
 	ERRIFGOTO(result, _EXIT_LOCK);
+
+	// Throughput constraint setting is occurred here.
+	if(pstCompositeTask->pstParentTask->nThroughputConstraint > 0)
+	{
+		pstCompositeTask->nCurrentThroughputConstraint = pstCompositeTask->pstParentTask->nThroughputConstraint;
+	}
 
 	result = UCThreadMutex_Unlock(pstTaskManager->hMutex);
 	ERRIFGOTO(result, _EXIT);

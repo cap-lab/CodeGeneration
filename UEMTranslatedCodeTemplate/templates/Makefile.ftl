@@ -21,6 +21,9 @@ MAIN_SOURCES=<#list build_info.mainSourceList as source_file><#if (source_file?i
 APPLICATION_SOURCES=<#list build_info.taskSourceCodeList as source_file><#if (source_file?index > 0)>
 	</#if>$(APPLICATION_DIR)/${source_file}.c<#if (source_file?index < build_info.taskSourceCodeList?size - 1)>\</#if></#list>
 
+EXTRA_SOURCES=<#if build_info.extraSourceCodeSet??><#list build_info.extraSourceCodeSet as source_file><#if (source_file?index > 0)>
+	</#if>$(APPLICATION_DIR)/${source_file}.c<#if (source_file?index < build_info.extraSourceCodeSet?size - 1)>\</#if></#list></#if>
+
 API_SOURCES=<#list build_info.apiSourceList as source_file><#if (source_file?index > 0)>
 	</#if>$(API_DIR)/${source_file}<#if (source_file?index < build_info.apiSourceList?size - 1)>\</#if></#list>
 
@@ -33,7 +36,7 @@ KERNEL_DEVICE_SOURCES=<#list build_info.kernelDeviceSourceList as source_file><#
 COMMON_SOURCES=<#list build_info.commonSourceList as source_file><#if (source_file?index > 0)>
 	</#if>$(COMMON_DIR)/$(PLATFORM_DIR)/${source_file}<#if (source_file?index < build_info.commonSourceList?size - 1)>\</#if></#list>
 
-proc_SOURCES=$(MAIN_SOURCES) $(APPLICATION_SOURCES) $(API_SOURCES) $(KERNEL_SOURCES) $(KERNEL_DEVICE_SOURCES) $(COMMON_SOURCES)
+proc_SOURCES=$(MAIN_SOURCES) $(APPLICATION_SOURCES) $(EXTRA_SOURCES) $(API_SOURCES) $(KERNEL_SOURCES) $(KERNEL_DEVICE_SOURCES) $(COMMON_SOURCES)
 			 
 
 MAIN_CFLAGS=-I$(MAIN_DIR)/include

@@ -66,7 +66,8 @@ public class Task {
 	private TaskRunCondition runCondition;
 	private String taskCodeFile;
 	private HashMap<String, Library> masterPortToLibraryMap;
-	private HashSet<String> extraHeaderSet; 
+	private HashSet<String> extraHeaderSet;
+	private HashSet<String> extraSourceSet;
 	private String ldFlags;
 	
 	public Task(int id, TaskType xmlTaskData)
@@ -78,6 +79,7 @@ public class Task {
 		this.masterPortToLibraryMap = new HashMap<String, Library>();
 		this.ldFlags = null;
 		this.extraHeaderSet = new HashSet<String>();
+		this.extraSourceSet = new HashSet<String>();
 	
 		setId(id);
 		setName(xmlTaskData.getName());
@@ -89,6 +91,7 @@ public class Task {
 		setLoop(xmlTaskData.getLoopStructure());
 		setModeTransition(xmlTaskData.getMtm(), xmlTaskData.getHasMTM());
 		setExtraHeaderSet(xmlTaskData.getExtraHeader());
+		setExtraSourceSet(xmlTaskData.getExtraSource());
 		
 		if(xmlTaskData.getLdflags() != null)
 		{
@@ -101,6 +104,15 @@ public class Task {
 		for(String extraHeaderFile: extraHeaderList)
 		{
 			this.extraHeaderSet.add(extraHeaderFile);
+		}
+	}
+	
+	
+	private void setExtraSourceSet(List<String> extraSourceList)
+	{
+		for(String extraSourceFile: extraSourceList)
+		{
+			this.extraSourceSet.add(extraSourceFile);
 		}
 	}
 		
@@ -365,5 +377,9 @@ public class Task {
 
 	public void setLdFlags(String ldFlags) {
 		this.ldFlags = ldFlags;
+	}
+
+	public HashSet<String> getExtraSourceSet() {
+		return extraSourceSet;
 	}
 }

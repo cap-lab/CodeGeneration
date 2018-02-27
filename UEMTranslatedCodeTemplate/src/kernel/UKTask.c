@@ -45,6 +45,8 @@ typedef struct _STaskAPI {
 //};
 
 
+uem_bool g_bSystenExit = FALSE;
+
 uem_result UKTask_Initialize()
 {
 	uem_result result = ERR_UEM_UNKNOWN;

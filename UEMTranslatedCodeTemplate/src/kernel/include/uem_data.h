@@ -379,6 +379,9 @@ extern SMappedTaskInfo g_stMappingInfo;
 extern SLibrary g_stLibraryInfo[];
 extern int g_nLibraryInfoNum;
 
+
+extern uem_bool g_bSystenExit;
+
 #ifdef __cplusplus
 }
 #endif

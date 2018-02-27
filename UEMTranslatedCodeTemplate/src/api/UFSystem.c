@@ -5,11 +5,18 @@
  *      Author: jej
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+
 #include <uem_common.h>
 
 #include <UCSystem.h>
 
 #include <UFSystem.h>
+
+#include <uem_data.h>
 
 
 void UFSystem_Kill()
@@ -20,7 +27,7 @@ void UFSystem_Kill()
 
 void UFSystem_Stop()
 {
-
+	g_bSystenExit = TRUE;
 }
 
 

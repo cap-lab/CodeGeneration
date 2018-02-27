@@ -5,6 +5,11 @@
  *      Author: jej
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+
 #include <uem_common.h>
 
 #include <UFPort.h>

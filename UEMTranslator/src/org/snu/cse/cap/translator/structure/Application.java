@@ -621,14 +621,6 @@ public class Application {
 		}
 	}
 	
-	private void setExtraHeader(Library library, LibraryType libraryType)
-	{
-		for(String extraHeaderFile : libraryType.getExtraHeader())
-		{
-			library.getExtraHeaderSet().add(extraHeaderFile);
-		}
-	}
-	
 	public void makeLibraryInformation(CICAlgorithmType algorithm_metadata) 
 	{
 		if(algorithm_metadata.getLibraries() != null && algorithm_metadata.getLibraries().getLibrary() != null)
@@ -638,9 +630,9 @@ public class Application {
 				Library library = new Library(libraryType.getName(), libraryType.getType(), libraryType.getFile(), libraryType.getHeader());
 								
 				setLibraryFunction(library, libraryType);
-				
-				setExtraHeader(library, libraryType);
-				
+				library.setExtraHeaderSet(libraryType.getExtraHeader());
+				library.setExtraSourceSet(libraryType.getExtraSource());
+								
 				if(libraryType.getLdflags() != null)
 				{
 					library.setLdFlags(libraryType.getLdflags());	
