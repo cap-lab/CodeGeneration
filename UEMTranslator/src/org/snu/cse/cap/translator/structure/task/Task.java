@@ -232,23 +232,18 @@ public class Task {
 	
 	public void setType(String taskType, LoopStructureType loopStructure) {
 		
-		if(taskType.equalsIgnoreCase("Computational"))
+		if(TaskShapeType.fromValue(taskType) == TaskShapeType.LOOP)
 		{
-			if(loopStructure != null)
-			{
-				this.type = TaskShapeType.LOOP;
-			}
-			else 
-			{
-				this.type = TaskShapeType.COMPUTATIONAL;
-			}
+			this.type = TaskShapeType.LOOP;		
 		}
-		else if(taskType.equalsIgnoreCase("Control")) 
+		else if(TaskShapeType.fromValue(taskType) == TaskShapeType.CONTROL) 
 		{
 			this.type = TaskShapeType.CONTROL;
 		}
-		
-		//this.type = taskType;
+		else if(TaskShapeType.fromValue(taskType) == TaskShapeType.COMPUTATIONAL)
+		{
+			this.type = TaskShapeType.COMPUTATIONAL;
+		}
 	}
 	
 	public int getTaskFuncNum() {

@@ -11,11 +11,6 @@ public enum TaskLoopType {
 		this.value = value;
 	}
 	
-	@Override
-	public String toString() {
-		return value;
-	}
-	
 	public static TaskLoopType fromValue(String value) {
 		 for (TaskLoopType c : TaskLoopType.values()) {
 			 if (c.value.equals(value)) {

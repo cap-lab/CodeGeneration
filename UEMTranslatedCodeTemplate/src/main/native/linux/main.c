@@ -84,6 +84,7 @@ uem_result destroyTasks()
 #define SEC_UNIT (1000)
 #define MINUTE_UNIT (60)
 #define HOUR_UNIT (60)
+#define MILLISEC_UNIT (1000)
 
 long long getEndTime(long long llStartTime)
 {
@@ -101,10 +102,17 @@ long long getEndTime(long long llStartTime)
 		llEndTime = llStartTime + 1 * nValue;
 		break;
 	case TIME_METRIC_MICROSEC:
-		llEndTime = llStartTime + 1 * nValue;
+		if(nValue/MILLISEC_UNIT <= 0)
+		{
+			llEndTime = llStartTime + 1;
+		}
+		else
+		{
+			llEndTime = llStartTime + nValue/MILLISEC_UNIT;
+		}
 		break;
 	case TIME_METRIC_MILLISEC:
-		llEndTime = llStartTime + 1 * nValue;
+		llEndTime = llStartTime + nValue;
 		break;
 	case TIME_METRIC_SEC:
 		llEndTime = llStartTime + SEC_UNIT * nValue;

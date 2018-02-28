@@ -48,7 +48,7 @@ char s_pChannel_${channel.index}_buffer[CHANNEL_${channel.index}_SIZE];
 // ##CHUNK_DEFINITION_TEMPLATE::START
 <#list channel_list as channel>
 SChunk g_astChunk_channel_${channel.index}_out[] = {
-<#list 0..(channel.maximumChunkNum-1) as chunk_id>
+<#list 0..(channel.outputPort.maximumChunkNum-1) as chunk_id>
 	{
 		s_pChannel_${channel.index}_buffer, // Chunk start pointer
 		s_pChannel_${channel.index}_buffer, // Data start pointer
@@ -60,7 +60,7 @@ SChunk g_astChunk_channel_${channel.index}_out[] = {
 };
 
 SChunk g_astChunk_channel_${channel.index}_in[] = {
-<#list 0..(channel.maximumChunkNum-1) as chunk_id>
+<#list 0..(channel.inputPort.maximumChunkNum-1) as chunk_id>
 	{
 		s_pChannel_${channel.index}_buffer, // Chunk start pointer
 		s_pChannel_${channel.index}_buffer, // Data start pointer
@@ -81,7 +81,7 @@ SChunk g_astChunk_channel_${channel.index}_in[] = {
 SPortSampleRate g_astPortSampleRate_${port.taskName}_${port.portName}[] = {
 	<#list port.portSampleRateList as sample_rate>
 	{ 	"${sample_rate.modeName}", // Mode name
-		${sample_rate.sampleRate}, // Sample rate
+		${sample_rate.sampleRate?c}, // Sample rate
 		${sample_rate.maxAvailableNum}, // Available number of data
 	},
 	</#list>	
@@ -114,9 +114,9 @@ SPort g_astPortInfo[] = {
 <#list flat_task as task_name, task>
 	<#if task.loopStruct??>
 SLoopInfo g_stLoopStruct_${task.name} = {
-	LOOP_TYPE_${task.loopType},
-	${task.loopCount},
-	"${task.designatedTaskId}",
+	LOOP_TYPE_${task.loopStruct.loopType},
+	${task.loopStruct.loopCount},
+	${task.loopStruct.designatedTaskId},
 };
 
 	</#if>
@@ -222,7 +222,7 @@ SModeTransitionMachine g_stModeTransition_${task.name} = {
 // ##AVAILABLE_CHUNK_LIST_TEMPLATE::START
 <#list channel_list as channel>
 SAvailableChunk g_astAvailableInputChunk_channel_${channel.index}[] = {
-<#list 0..(channel.maximumChunkNum-1) as chunk_id>
+<#list 0..(channel.inputPort.maximumChunkNum-1) as chunk_id>
 	{ ${chunk_id}, 0, NULL, NULL, },
 </#list>
 };
@@ -318,7 +318,7 @@ SChannel g_astChannels[] = {
 		}, // Output chunk information
 		CHUNK_NUM_NOT_INITIALIZED, // Written output chunk number
 		g_astAvailableInputChunk_channel_${channel.index}, // Available chunk list
-		${channel.maximumChunkNum},
+		${channel.inputPort.maximumChunkNum}, // maximum input port chunk size for all port sample rate cases
 		NULL, // Chunk list head
 		NULL, // Chunk list tail
 		${channel.initialDataLen?c}, // Initial data length 

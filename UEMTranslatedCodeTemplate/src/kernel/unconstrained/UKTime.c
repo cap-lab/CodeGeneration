@@ -46,9 +46,12 @@ uem_result UKTime_GetNextTimeByPeriod(long long llPrevTime, int nPeriod, ETimeMe
 
 		if(nPeriod/MILLISEC_UNIT <= 0)
 		{
-			nPeriod = 1;
+			*pllNextTime = llPrevTime + 1;
 		}
-		*pllNextTime = llPrevTime + nPeriod/MILLISEC_UNIT;
+		else
+		{
+			*pllNextTime = llPrevTime + nPeriod/MILLISEC_UNIT;
+		}
 		break;
 	case TIME_METRIC_MILLISEC:
 		*pllNextTime = llPrevTime + nPeriod;

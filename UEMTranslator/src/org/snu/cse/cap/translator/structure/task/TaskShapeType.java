@@ -15,7 +15,7 @@ public enum TaskShapeType {
 	
 	public static TaskShapeType fromValue(String value) {
 		 for (TaskShapeType c : TaskShapeType.values()) {
-			 if (c.value.equals(value)) {
+			 if (c.value.equalsIgnoreCase(value)) {
 				 return c;
 			 }
 		 }

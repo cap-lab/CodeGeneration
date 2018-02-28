@@ -46,6 +46,7 @@ public class Port {
 	private LoopPortType loopPortType;
 	private PortDirection direction;
 	private String portKey;
+	private int maximumChunkNum;
 	
 	
 	public Port(int taskId, String taskName, String portName, int sampleSize, String portType, PortDirection direction) {
@@ -61,6 +62,7 @@ public class Port {
 		this.loopPortType = null;
 		this.direction = direction;
 		this.portKey = taskName + Constants.NAME_SPLITER + portName + Constants.NAME_SPLITER + direction;
+		this.maximumChunkNum = 1;
 	}
 	
 	public Port getMostUpperPortInfo()
@@ -75,7 +77,7 @@ public class Port {
 		return upperPort;
 	}
 	
-	public int getMaximumParallelNumber(HashMap<String, Task> taskMap) {
+	public void setMaximumParallelNumber(HashMap<String, Task> taskMap) {
 		int maxParallel = 1;
 		Port port;
 		Task task;
@@ -102,7 +104,7 @@ public class Port {
 			port = port.getSubgraphPort();
 		}
 		
-		return maxParallel;
+		this.maximumChunkNum = maxParallel;
 	}
 	
 	public boolean isDistributingPort() {
@@ -231,5 +233,9 @@ public class Port {
 
 	public String getPortKey() {
 		return portKey;
+	}
+
+	public int getMaximumChunkNum() {
+		return maximumChunkNum;
 	}
 }

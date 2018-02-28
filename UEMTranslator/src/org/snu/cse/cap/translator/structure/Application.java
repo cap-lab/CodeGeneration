@@ -152,15 +152,19 @@ public class Application {
 	{
 		for(PortMapType portMapType: algorithm_metadata.getPortMaps().getPortMap())
 		{
+			PortDirection direction = PortDirection.fromValue(portMapType.getDirection().value());
 			Task task = this.taskMap.get(portMapType.getTask());
 			Port port = this.portInfo.get(portMapType.getTask() + Constants.NAME_SPLITER + portMapType.getPort() + 
-										Constants.NAME_SPLITER + portMapType.getDirection());
+										Constants.NAME_SPLITER + direction);
 			
-			Port childPort = this.portInfo.get(portMapType.getChildTask() + Constants.NAME_SPLITER + portMapType.getChildTaskPort() + 
-					Constants.NAME_SPLITER + portMapType.getDirection());
-			
-			port.setSubgraphPort(childPort);
-			childPort.setUpperGraphPort(port);
+			if(portMapType.getChildTask() != null && portMapType.getChildTaskPort() != null)
+			{
+				Port childPort = this.portInfo.get(portMapType.getChildTask() + Constants.NAME_SPLITER + portMapType.getChildTaskPort() + 
+						Constants.NAME_SPLITER + direction);
+				
+				port.setSubgraphPort(childPort);
+				childPort.setUpperGraphPort(port);
+			}
 			
 			port.setLoopPortType(LoopPortType.fromValue(portMapType.getType().value()));
 			
@@ -383,7 +387,7 @@ public class Application {
 	private boolean isDataLoopTask(Task task) {
 		boolean isDataLoop = false;
 		
-		while(task.getParentTaskGraphName().equals(Constants.TOP_TASKGRAPH_NAME) == false)
+		while(task != null)
 		{
 			if(task.getLoopStruct() != null && task.getLoopStruct().getLoopType() == TaskLoopType.DATA)
 			{
@@ -528,7 +532,7 @@ public class Application {
 			// input/output port (port information)
 			channel.setOutputPort(srcPort.getMostUpperPortInfo());
 			channel.setInputPort(dstPort.getMostUpperPortInfo());
-			
+					
 			// maximum chunk number
 			channel.setMaximumChunkNum(this.taskMap);
 			

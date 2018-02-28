@@ -12,7 +12,6 @@ public class Channel {
 	private int size;
 	private Port inputPort; // the most outer port is set here
 	private Port outputPort; // the most outer port is set here
-	private int maximumChunkNum;
 	private int initialDataLen;
 	private int nextChannelIndex;
 	
@@ -20,7 +19,6 @@ public class Channel {
 		this.size = size;
 		this.index = index;
 		this.channelType = ChannelArrayType.GENERAL;
-		this.maximumChunkNum = 1;
 		this.initialDataLen = initialDataLen;
 		this.nextChannelIndex = Constants.INVALID_ID_VALUE;
 	}
@@ -40,11 +38,7 @@ public class Channel {
 	public int getSize() {
 		return size;
 	}
-	
-	public int getMaximumChunkNum() {
-		return maximumChunkNum;
-	}
-	
+		
 	public void setIndex(int channelIndex) {
 		this.index = channelIndex;
 	}
@@ -60,10 +54,6 @@ public class Channel {
 	public void setSize(int channelSize) {
 		this.size = channelSize;
 	}
-	
-	public void setMaximumChunkNum(HashMap<String, Task> taskMap) {		
-		this.maximumChunkNum = this.inputPort.getMaximumParallelNumber(taskMap);
-	}
 
 	public Port getInputPort() {
 		return inputPort;
@@ -77,6 +67,12 @@ public class Channel {
 		this.inputPort = inputPort;
 		
 		// also set maximum chunk number here
+	}
+	
+	public void setMaximumChunkNum(HashMap<String, Task> taskMap)
+	{
+		this.inputPort.setMaximumParallelNumber(taskMap);
+		this.outputPort.setMaximumParallelNumber(taskMap);
 	}
 
 	public void setOutputPort(Port outputPort) {

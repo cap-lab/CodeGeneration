@@ -60,7 +60,7 @@ static uem_result setChunkNumAndLen(SPort *pstPort, SChunkInfo *pstChunkInfo)
 		else if(pstCurTask->pstLoopInfo->enType == LOOP_TYPE_DATA &&
 			pstPort->astSampleRates[nCurrentSampleRateIndex].nMaxAvailableDataNum == 1)
 		{
-			pstChunkInfo->nChunkNum = nOuterMostSampleRate / pstCurTask->pstLoopInfo->nLoopCount;
+			pstChunkInfo->nChunkNum = nOuterMostSampleRate / (nOuterMostSampleRate / pstCurTask->pstLoopInfo->nLoopCount);
 			pstChunkInfo->nChunkLen = (nOuterMostSampleRate * pstPort->nSampleSize) / pstChunkInfo->nChunkNum;
 		}
 		else // broadcasting or convergent
@@ -189,6 +189,7 @@ static uem_result removeChunkFromAvailableChunkList(SChannel *pstChannel, int nC
 			pstAvailableChunk->pstNext = NULL;
 			break;
 		}
+		pstAvailableChunk = pstAvailableChunk->pstNext;
 	}
 
 	if(pstAvailableChunk == NULL)
@@ -367,11 +368,6 @@ static uem_result setInputChunks(SChannel *pstChannel)
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nLoop = 0;
 	int nMaxAvailableNum = 0;
-	int nExpectedConsumeSize = 0;
-	int nCurrentSampleRateIndex = 0;
-
-	nCurrentSampleRateIndex = pstChannel->stInputPort.nCurrentSampleRateIndex;
-	nExpectedConsumeSize = pstChannel->stInputPort.astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->stInputPort.nSampleSize;
 
 	for(nLoop = 0 ; nLoop < pstChannel->stInputPortChunk.nChunkNum ; nLoop++)
 	{
@@ -379,7 +375,7 @@ static uem_result setInputChunks(SChannel *pstChannel)
 		ERRIFGOTO(result, _EXIT);
 		pstChannel->stInputPortChunk.astChunk[nLoop].nAvailableDataNum = nMaxAvailableNum;
 		pstChannel->stInputPortChunk.astChunk[nLoop].nChunkDataLen = pstChannel->stInputPortChunk.nChunkLen;
-		pstChannel->stInputPortChunk.astChunk[nLoop].pDataStart = pstChannel->pDataStart + nExpectedConsumeSize * nLoop;
+		pstChannel->stInputPortChunk.astChunk[nLoop].pDataStart = pstChannel->pDataStart + pstChannel->stInputPortChunk.nChunkLen * nLoop;
 		pstChannel->stInputPortChunk.astChunk[nLoop].pDataEnd = NULL;
 		pstChannel->stInputPortChunk.astChunk[nLoop].pChunkStart = NULL;
 	}
@@ -410,7 +406,7 @@ static uem_result makeAvailableInputChunkList(SChannel *pstChannel)
 			pstChannel->astAvailableInputChunkList[nLoop].pstPrev = &(pstChannel->astAvailableInputChunkList[nLoop-1]);
 		}
 
-		if(nLoop - 1 == nChunkNum)
+		if(nLoop == nChunkNum - 1)
 		{
 			pstChannel->pstAvailableInputChunkTail = &(pstChannel->astAvailableInputChunkList[nLoop]);
 			pstChannel->astAvailableInputChunkList[nLoop].pstNext = NULL;
@@ -420,6 +416,8 @@ static uem_result makeAvailableInputChunkList(SChannel *pstChannel)
 			pstChannel->astAvailableInputChunkList[nLoop].pstNext = &(pstChannel->astAvailableInputChunkList[nLoop+1]);
 		}
 	}
+
+	printf("available chunk create: %d : %d : %p : %d\n", pstChannel->nChannelIndex, nChunkNum, pstChannel->pstAvailableInputChunkHead, pstChannel->pstAvailableInputChunkHead->nChunkIndex);
 
 	result = setInputChunks(pstChannel);
 	ERRIFGOTO(result, _EXIT);
@@ -509,20 +507,20 @@ static uem_result readFromArrayQueue(SChannel *pstChannel, IN OUT unsigned char 
 		{
 			result = moveDataPointerOfArrayQueue(pstChannel);
 			ERRIFGOTO(result, _EXIT_LOCK);
-		}
 
-		if(pstChannel->nDataLen > 0)
-		{
-			int nCurrentSampleRateIndex = 0;
-			int nExpectedConsumeSize = 0;
-
-			nCurrentSampleRateIndex = pstChannel->stInputPort.nCurrentSampleRateIndex;
-			nExpectedConsumeSize = pstChannel->stInputPort.astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->stInputPort.nSampleSize;
-
-			if(nExpectedConsumeSize <= pstChannel->nDataLen)
+			if(pstChannel->nDataLen > 0)
 			{
-				result = makeAvailableInputChunkList(pstChannel);
-				ERRIFGOTO(result, _EXIT_LOCK);
+				int nCurrentSampleRateIndex = 0;
+				int nExpectedConsumeSize = 0;
+
+				nCurrentSampleRateIndex = pstChannel->stInputPort.nCurrentSampleRateIndex;
+				nExpectedConsumeSize = pstChannel->stInputPort.astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->stInputPort.nSampleSize;
+
+				if(nExpectedConsumeSize <= pstChannel->nDataLen)
+				{
+					result = makeAvailableInputChunkList(pstChannel);
+					ERRIFGOTO(result, _EXIT_LOCK);
+				}
 			}
 		}
 	}
@@ -535,6 +533,13 @@ _EXIT_LOCK:
 	{
 		UCThreadEvent_SetEvent(pstChannel->hWriteEvent);
 	}
+
+	if(pstChannel->nReadReferenceCount > 0 &&
+		pstChannel->pstAvailableInputChunkHead != NULL)
+	{
+		UCThreadEvent_SetEvent(pstChannel->hReadEvent);
+	}
+
 	UCThreadMutex_Unlock(pstChannel->hMutex);
 _EXIT:
 	return result;
@@ -666,6 +671,11 @@ static uem_result writeToGeneralQueue(SChannel *pstChannel, IN unsigned char *pB
 		ERRIFGOTO(result, _EXIT);
 	}
 
+	if(pstChannel->nChannelIndex == 17)
+	{
+		printf("nDataToWrite: %d, pstChannel->nDataLen: %d\n", nDataToWrite, pstChannel->nDataLen);
+	}
+
 	result = copyAndMovePointerToRoundedQueue(pstChannel, pBuffer, nDataToWrite, nChunkIndex);
 	ERRIFGOTO(result, _EXIT_LOCK);
 
@@ -674,7 +684,7 @@ static uem_result writeToGeneralQueue(SChannel *pstChannel, IN unsigned char *pB
 		nCurrentSampleRateIndex = pstChannel->stInputPort.nCurrentSampleRateIndex;
 		nExpectedConsumeSize = pstChannel->stInputPort.astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->stInputPort.nSampleSize;
 
-		if(nExpectedConsumeSize < pstChannel->nDataLen)
+		if(nExpectedConsumeSize <= pstChannel->nDataLen)
 		{
 			result = makeAvailableInputChunkList(pstChannel);
 			ERRIFGOTO(result, _EXIT_LOCK);
@@ -745,9 +755,11 @@ static uem_result writeToArrayQueue(SChannel *pstChannel, IN unsigned char *pBuf
 
 	pstChannel->nWriteReferenceCount++;
 
-	// pstChannel->nWrittenOutputChunkNum >= 0means it uses output chunk
+	// pstChannel->nWrittenOutputChunkNum >= 0 means it uses output chunk
 	if(pstChannel->nWrittenOutputChunkNum >= 0 && pstChannel->stOutputPortChunk.nChunkLen != nDataToWrite)
 	{
+		printf("pstChannel->index: %d, (input: %s)\n", pstChannel->nChannelIndex, pstChannel->stInputPort.pszPortName);
+		printf("pstChannel->nWrittenOutputChunkNum: %d, pstChannel->stOutputPortChunk.nChunkLen: %d, nDataToWrite: %d\n", pstChannel->nWrittenOutputChunkNum, pstChannel->stOutputPortChunk.nChunkLen, nDataToWrite);
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT_LOCK);
 	}
 
@@ -813,6 +825,12 @@ _EXIT_LOCK:
 	{
 		UCThreadEvent_SetEvent(pstChannel->hReadEvent);
 	}
+
+	if(pstChannel->nWriteReferenceCount > 0)
+	{
+		UCThreadEvent_SetEvent(pstChannel->hWriteEvent);
+	}
+
 	UCThreadMutex_Unlock(pstChannel->hMutex);
 _EXIT:
 	return result;
