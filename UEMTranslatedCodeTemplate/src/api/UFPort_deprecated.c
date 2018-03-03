@@ -86,7 +86,7 @@ int AC_SEND(int nChannelId, unsigned char *pBuffer, int nLen, int nIndex)
 	int nDataWritten = 0;
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UFPort_WriteToQueue (nChannelId, pBuffer, nLen, 0, &nDataWritten);
+	result = UFPort_WriteToQueue (nChannelId, pBuffer, nLen, nIndex, &nDataWritten);
 	ERRIFGOTO(result, _EXIT);
 
 _EXIT:

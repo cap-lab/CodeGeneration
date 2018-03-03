@@ -66,7 +66,21 @@ public class Channel {
 	public void setInputPort(Port inputPort) {
 		this.inputPort = inputPort;
 		
-		// also set maximum chunk number here
+		// update initial data length depending on port sample rate
+		if(inputPort.getPortSampleRateType() == PortSampleRateType.FIXED)
+		{
+			this.initialDataLen = this.initialDataLen * inputPort.getPortSampleRateList().get(0).getSampleRate();	
+		}
+		else if(inputPort.getPortSampleRateType() == PortSampleRateType.MULTIPLE)
+		{
+			// TODO: how can I get port sample rate from MTM task?
+			System.out.println("Initial data cannot be unknown at this time. Please be careful to use on MTM task");
+			this.initialDataLen = this.initialDataLen * inputPort.getPortSampleRateList().get(0).getSampleRate();
+		}
+		else // inputPort.getPortSampleRateType() == PortSampleRateType.VARIABLE
+		{
+			// do nothing
+		}
 	}
 	
 	public void setMaximumChunkNum(HashMap<String, Task> taskMap)

@@ -7163,7 +7163,7 @@ SChannel g_astChannels[] = {
 		99, // maximum input port chunk size for all port sample rate cases
 		NULL, // Chunk list head
 		NULL, // Chunk list tail
-		11324*99, // Initial data length
+		1121076, // Initial data length 
 	},
 	{
 		10, // Channel ID
