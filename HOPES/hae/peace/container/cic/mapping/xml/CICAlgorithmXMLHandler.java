@@ -6,13 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import hae.kernel.util.ObjectList;
-import hae.peace.container.cic.mapping.CICDSEPanel;
-import hae.peace.container.cic.mapping.CICManualDSEPanel;
 import hae.peace.container.cic.mapping.MappingTask;
 import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICAlgorithmType;
 import hopes.cic.xml.CICAlgorithmTypeLoader;
 import hopes.cic.xml.DataParallelType;
+import hopes.cic.xml.LoopStructureTypeType;
 import hopes.cic.xml.TaskType;
 
 public class CICAlgorithmXMLHandler {
@@ -32,6 +31,7 @@ public class CICAlgorithmXMLHandler {
 	public void updateTaskList(ObjectList taskList)
 	{
 		Map<String, DataParallelType> mapParallelType = new HashMap<String, DataParallelType>();
+		Map<String, LoopStructureTypeType> mapLoopType = new HashMap<String, LoopStructureTypeType>();
 		
 		for(TaskType taskType : algorithm.getTasks().getTask())
 		{
@@ -40,6 +40,11 @@ public class CICAlgorithmXMLHandler {
 			{
 				String key = taskName;
 				mapParallelType.put(key, taskType.getDataParallel().getType());
+			}
+			if(taskType.getTaskType().equals("Loop"))
+			{
+				String key = taskName;
+				mapLoopType.put(key, taskType.getLoopStructure().getType());
 			}
 		}
 		
@@ -50,6 +55,8 @@ public class CICAlgorithmXMLHandler {
 				String key = task.getName();
 				if(mapParallelType.containsKey(key))
 					task.setParallelType(mapParallelType.get(key));
+				if(mapLoopType.containsKey(key))
+					task.setLoopType(mapLoopType.get(key));
 			}
 		}
 	}
