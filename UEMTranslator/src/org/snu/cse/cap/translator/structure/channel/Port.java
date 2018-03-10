@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.structure.task.Task;
+import org.snu.cse.cap.translator.structure.task.TaskLoopType;
 
 enum PortSampleRateType {
 	FIXED,
@@ -77,7 +78,37 @@ public class Port {
 		return upperPort;
 	}
 	
-	public void setMaximumParallelNumber(HashMap<String, Task> taskMap) {
+	private int setOutputMaximumParallelNumber(HashMap<String, Task> taskMap) {
+		int maxParallel = 1;
+		Port port;
+		Task task;
+		
+		port = this;
+		while(port != null)
+		{
+			task = taskMap.get(port.getTaskName());
+			if(task.getLoopStruct() != null && task.getLoopStruct().getLoopType() == TaskLoopType.DATA)
+			{
+				maxParallel *= task.getLoopStruct().getLoopCount();
+			}
+			port = port.getUpperGraphPort();
+		}
+		
+		port = this.getSubgraphPort();
+		while(port != null)
+		{
+			task = taskMap.get(port.getTaskName());
+			if(task.getLoopStruct() != null && task.getLoopStruct().getLoopType() == TaskLoopType.DATA)
+			{
+				maxParallel *= task.getLoopStruct().getLoopCount();
+			}
+			port = port.getSubgraphPort();
+		}
+		
+		return maxParallel;
+	}
+	
+	private int setInputMaximumParallelNumber(HashMap<String, Task> taskMap) {
 		int maxParallel = 1;
 		Port port;
 		Task task;
@@ -103,6 +134,22 @@ public class Port {
 			}
 			port = port.getSubgraphPort();
 		}
+		
+		return maxParallel;
+	}
+	
+	public void setMaximumParallelNumber(HashMap<String, Task> taskMap) {
+		int maxParallel = 1;
+		
+		if(this.direction == PortDirection.INPUT)
+		{
+			maxParallel = setInputMaximumParallelNumber(taskMap);
+		}
+		else
+		{
+			maxParallel = setOutputMaximumParallelNumber(taskMap);
+		}
+
 		
 		this.maximumChunkNum = maxParallel;
 	}

@@ -18,12 +18,41 @@
 
 #include <UKTask.h>
 
+static uem_bool isLocatedInsideLoopTask(SPort *pstPort)
+{
+	uem_bool bInLoopTask = FALSE;
+	SPort *pstCurrentPort = NULL;
+	STask *pstTask = NULL;
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	pstCurrentPort = pstPort;
+	while(pstCurrentPort != NULL)
+	{
+		result = UKTask_GetTaskFromTaskId(pstCurrentPort->nTaskId, &pstTask);
+		ERRIFGOTO(result, _EXIT);
+
+		while(pstTask != NULL)
+		{
+			if(pstTask->pstLoopInfo != NULL)
+			{
+				bInLoopTask = TRUE;
+				break;
+			}
+			pstTask = pstTask->pstParentGraph->pstParentTask;
+		}
+
+		pstCurrentPort = pstCurrentPort->pstSubGraphPort;
+	}
+
+_EXIT:
+	return bInLoopTask;
+}
 
 static uem_result setChunkNumAndLen(SPort *pstPort, SChunkInfo *pstChunkInfo)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nCurrentSampleRateIndex = 0;
-	SPort *pstCurrentPort = NULL;
+	SPort *pstMostInnerPort = NULL;
 	int nOuterMostSampleRate = 0;
 	STask *pstCurTask = NULL;
 	int nLoop = 0;
@@ -32,29 +61,28 @@ static uem_result setChunkNumAndLen(SPort *pstPort, SChunkInfo *pstChunkInfo)
 
 	nOuterMostSampleRate = pstPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
 
-	pstCurrentPort = pstPort;
-	while(pstCurrentPort->pstSubGraphPort != NULL)
+	pstMostInnerPort = pstPort;
+	while(pstMostInnerPort->pstSubGraphPort != NULL)
 	{
-		pstCurrentPort = pstCurrentPort->pstSubGraphPort;
+		pstMostInnerPort = pstMostInnerPort->pstSubGraphPort;
 	}
 
-	if(pstCurrentPort != pstPort)
+	if(pstPort != pstMostInnerPort)
 	{
-		nCurrentSampleRateIndex = pstCurrentPort->nCurrentSampleRateIndex;
+		nCurrentSampleRateIndex = pstMostInnerPort->nCurrentSampleRateIndex;
 
-		pstChunkInfo->nChunkNum = nOuterMostSampleRate / pstCurrentPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
-		pstChunkInfo->nChunkLen = pstCurrentPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstCurrentPort->nSampleSize;
+		pstChunkInfo->nChunkNum = nOuterMostSampleRate / pstMostInnerPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
+		pstChunkInfo->nChunkLen = pstMostInnerPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstMostInnerPort->nSampleSize;
 	}
 	else
 	{
-
 		result = UKTask_GetTaskFromTaskId(pstPort->nTaskId, &pstCurTask);
 		ERRIFGOTO(result, _EXIT);
 
 		if(pstCurTask->pstLoopInfo == NULL) // general task
 		{
 			pstChunkInfo->nChunkNum = 1;
-			pstChunkInfo->nChunkLen = nOuterMostSampleRate;
+			pstChunkInfo->nChunkLen = nOuterMostSampleRate * pstPort->nSampleSize;
 
 		}
 		else if(pstCurTask->pstLoopInfo->enType == LOOP_TYPE_DATA &&
@@ -257,10 +285,21 @@ static uem_result copyToRoundedChunk(SChannel *pstChannel, unsigned char *pSrc, 
 
 		UC_memcpy(pstDestChunk->pDataEnd, pSrc, nSegmentLen);
 		UC_memcpy(pstChannel->pBuffer, pSrc + nSegmentLen, nRemainderLen);
+
+		pstDestChunk->pDataEnd = pstChannel->pBuffer + nDataToWrite - nSegmentLen;
 	}
 	else
 	{
 		UC_memcpy(pstDestChunk->pDataEnd, pSrc, nDataToWrite);
+
+		if(pstDestChunk->pDataEnd == pstChannel->pBuffer + pstChannel->nBufSize)
+		{
+			pstDestChunk->pDataEnd = pstChannel->pBuffer;
+		}
+		else
+		{
+			pstDestChunk->pDataEnd += nDataToWrite;
+		}
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -336,7 +375,7 @@ static uem_result copyFromRoundedChunk(unsigned char *pDest, SChannel *pstChanne
 	return result;
 }
 
-static uem_result GetMaximumAvailableNum(SPort *pstPort, int *pnMaxAvailableNum)
+static uem_result getMaximumAvailableNum(SPort *pstPort, int *pnMaxAvailableNum)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nCurrentSampleRateIndex = 0;
@@ -371,7 +410,7 @@ static uem_result setInputChunks(SChannel *pstChannel)
 
 	for(nLoop = 0 ; nLoop < pstChannel->stInputPortChunk.nChunkNum ; nLoop++)
 	{
-		result = GetMaximumAvailableNum(&(pstChannel->stInputPort), &nMaxAvailableNum);
+		result = getMaximumAvailableNum(&(pstChannel->stInputPort), &nMaxAvailableNum);
 		ERRIFGOTO(result, _EXIT);
 		pstChannel->stInputPortChunk.astChunk[nLoop].nAvailableDataNum = nMaxAvailableNum;
 		pstChannel->stInputPortChunk.astChunk[nLoop].nChunkDataLen = pstChannel->stInputPortChunk.nChunkLen;
@@ -417,7 +456,7 @@ static uem_result makeAvailableInputChunkList(SChannel *pstChannel)
 		}
 	}
 
-	printf("available chunk create: %d : %d : %p : %d\n", pstChannel->nChannelIndex, nChunkNum, pstChannel->pstAvailableInputChunkHead, pstChannel->pstAvailableInputChunkHead->nChunkIndex);
+	//printf("available chunk create: %d : %d : %p : %d\n", pstChannel->nChannelIndex, nChunkNum, pstChannel->pstAvailableInputChunkHead, pstChannel->pstAvailableInputChunkHead->nChunkIndex);
 
 	result = setInputChunks(pstChannel);
 	ERRIFGOTO(result, _EXIT);
@@ -572,8 +611,44 @@ static uem_result readFromGeneralQueue(SChannel *pstChannel, IN OUT unsigned cha
 		ERRIFGOTO(result, _EXIT);
 	}
 
+	if(pstChannel->enChannelType == CHANNEL_TYPE_OUTPUT_ARRAY)
+	{
+		int nNewChunkIndex = 0 ;
+		nNewChunkIndex = (pstChannel->stOutputPortChunk.nChunkLen * pstChannel->stOutputPortChunk.nChunkNum -
+						MIN(pstChannel->nDataLen, pstChannel->stOutputPortChunk.nChunkLen * pstChannel->stOutputPortChunk.nChunkNum))/pstChannel->stOutputPortChunk.nChunkLen;
+
+		nChunkIndex = nNewChunkIndex;
+	}
+
 	result = copyAndMovePointerFromRoundedQueue(pBuffer, pstChannel, nDataToRead);
 	ERRIFGOTO(result, _EXIT_LOCK);
+
+	if(pstChannel->enChannelType == CHANNEL_TYPE_OUTPUT_ARRAY)
+	{
+		int nLoop = 0;
+		int nTotalDataRead = 0;
+		int nDataRead = 0;
+
+		for(nLoop = nChunkIndex ; nLoop < pstChannel->stOutputPortChunk.nChunkNum ; nLoop++)
+		{
+			if(pstChannel->stOutputPortChunk.astChunk[nLoop].nChunkDataLen < nDataToRead)
+			{
+				nDataRead = pstChannel->stOutputPortChunk.astChunk[nLoop].nChunkDataLen;
+			}
+			else // pstChannel->stOutputPortChunk.astChunk[nLoop].nChunkDataLen >= nDataToRead
+			{
+				nDataRead = nDataToRead;
+			}
+
+			pstChannel->stOutputPortChunk.astChunk[nLoop].nChunkDataLen -= nDataRead;
+			nTotalDataRead += nDataRead;
+
+			if(nTotalDataRead >= nDataToRead)
+			{
+				break;
+			}
+		}
+	}
 
 	*pnDataRead = nDataToRead;
 
@@ -671,11 +746,6 @@ static uem_result writeToGeneralQueue(SChannel *pstChannel, IN unsigned char *pB
 		ERRIFGOTO(result, _EXIT);
 	}
 
-	if(pstChannel->nChannelIndex == 17)
-	{
-		printf("nDataToWrite: %d, pstChannel->nDataLen: %d\n", nDataToWrite, pstChannel->nDataLen);
-	}
-
 	result = copyAndMovePointerToRoundedQueue(pstChannel, pBuffer, nDataToWrite, nChunkIndex);
 	ERRIFGOTO(result, _EXIT_LOCK);
 
@@ -714,14 +784,19 @@ static uem_result clearOutputChunkInfo(SChannel *pstChannel)
 	void *pNextChunkDataEnd = NULL;
 	int nSegmentLen = 0;
 
-	for(nLoop = 0 ; nLoop <= pstChannel->stOutputPortChunk.nChunkNum ; nLoop++)
+	if(pstChannel->pDataEnd == pstChannel->pBuffer + pstChannel->nBufSize)
+	{
+		pstChannel->pDataEnd = pstChannel->pBuffer;
+	}
+
+	for(nLoop = 0 ; nLoop < pstChannel->stOutputPortChunk.nChunkNum ; nLoop++)
 	{
 		// if(pstChannel->stOutputPortChunk.astChunk[nLoop].pDataEnd )
 		pNextChunkDataEnd = pstChannel->pDataEnd + pstChannel->stOutputPortChunk.nChunkLen * nLoop;
 
 		if(pNextChunkDataEnd >= pstChannel->pBuffer + pstChannel->nBufSize)
 		{
-			nSegmentLen = pNextChunkDataEnd - pstChannel->pBuffer + pstChannel->nBufSize;
+			nSegmentLen = pNextChunkDataEnd - (pstChannel->pBuffer + pstChannel->nBufSize);
 			pstChannel->stOutputPortChunk.astChunk[nLoop].pDataEnd = pstChannel->pBuffer + nSegmentLen;
 		}
 		else
@@ -754,14 +829,6 @@ static uem_result writeToArrayQueue(SChannel *pstChannel, IN unsigned char *pBuf
 	ERRIFGOTO(result, _EXIT);
 
 	pstChannel->nWriteReferenceCount++;
-
-	// pstChannel->nWrittenOutputChunkNum >= 0 means it uses output chunk
-	if(pstChannel->nWrittenOutputChunkNum >= 0 && pstChannel->stOutputPortChunk.nChunkLen != nDataToWrite)
-	{
-		printf("pstChannel->index: %d, (input: %s)\n", pstChannel->nChannelIndex, pstChannel->stInputPort.pszPortName);
-		printf("pstChannel->nWrittenOutputChunkNum: %d, pstChannel->stOutputPortChunk.nChunkLen: %d, nDataToWrite: %d\n", pstChannel->nWrittenOutputChunkNum, pstChannel->stOutputPortChunk.nChunkLen, nDataToWrite);
-		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT_LOCK);
-	}
 
 	nCurrentSampleRateIndex = pstChannel->stOutputPort.nCurrentSampleRateIndex;
 	nExpectedProduceSize = pstChannel->stOutputPort.astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->stOutputPort.nSampleSize;
@@ -798,18 +865,28 @@ static uem_result writeToArrayQueue(SChannel *pstChannel, IN unsigned char *pBuf
 
 	pstChannel->stOutputPortChunk.astChunk[nChunkIndex].nChunkDataLen = nDataToWrite;
 
-	pstChannel->nWrittenOutputChunkNum++;
+	if(pstChannel->stOutputPortChunk.astChunk[nChunkIndex].nChunkDataLen == pstChannel->stOutputPortChunk.nChunkLen)
+	{
+		pstChannel->nWrittenOutputChunkNum++;
+	}
 
 	if(pstChannel->nWrittenOutputChunkNum == pstChannel->stOutputPortChunk.nChunkNum)
 	{
-		pstChannel->pDataEnd = pstChannel->pDataEnd + nExpectedProduceSize;
+		void *pNewEnd = NULL;
+		int nSegmentLen = 0;
+		pNewEnd = pstChannel->pDataEnd + nExpectedProduceSize;
+		if(pNewEnd >= pstChannel->pBuffer + pstChannel->nBufSize)
+		{
+			nSegmentLen = pNewEnd - (pstChannel->pBuffer + pstChannel->nBufSize);
+			pNewEnd = pstChannel->pBuffer + nSegmentLen;
+		}
 		pstChannel->nDataLen += nExpectedProduceSize;
 	}
 
 	nCurrentReadSampleRateIndex = pstChannel->stInputPort.nCurrentSampleRateIndex;
 	nExpectedConsumeSize = pstChannel->stInputPort.astSampleRates[nCurrentReadSampleRateIndex].nSampleRate * pstChannel->stInputPort.nSampleSize;
 
-	if(nExpectedConsumeSize <= pstChannel->nDataLen)
+	if(pstChannel->enChannelType == CHANNEL_TYPE_FULL_ARRAY && nExpectedConsumeSize <= pstChannel->nDataLen)
 	{
 		result = makeAvailableInputChunkList(pstChannel);
 		ERRIFGOTO(result, _EXIT_LOCK);

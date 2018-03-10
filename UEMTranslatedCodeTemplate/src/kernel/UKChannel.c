@@ -162,22 +162,31 @@ static int getChannelIndexById(int nChannelId)
 	return nIndex;
 }
 
-static uem_bool isPortTaskIdAndPortNameEqual(SPort *pstPort, uem_string strPortName, int nTaskId)
+static uem_bool isPortTaskIdAndPortNameEqual(SPort *pstTopPort, uem_string strPortName, int nTaskId)
 {
 	uem_string_struct stStructPortName;
 	uem_result result = ERR_UEM_UNKNOWN;
 	uem_bool bIsMatch = FALSE;
+	SPort *pstPort = NULL;
 
-	if(pstPort->nTaskId == nTaskId)
+	pstPort = pstTopPort;
+
+	while(pstPort != NULL)
 	{
-		result = UCString_New(&stStructPortName, pstPort->pszPortName, UEMSTRING_MAX);
-		ERRIFGOTO(result, _EXIT);
-
-		if(UCString_IsEqual(strPortName, &stStructPortName) == TRUE)
+		if(pstPort->nTaskId == nTaskId)
 		{
-			bIsMatch = TRUE;
+			result = UCString_New(&stStructPortName, pstTopPort->pszPortName, UEMSTRING_MAX);
+			ERRIFGOTO(result, _EXIT);
+
+			if(UCString_IsEqual(strPortName, &stStructPortName) == TRUE)
+			{
+				bIsMatch = TRUE;
+				break;
+			}
 		}
+		pstPort = pstPort->pstSubGraphPort;
 	}
+
 _EXIT:
 	return bIsMatch;
 }
@@ -212,7 +221,12 @@ uem_result UKChannel_WriteToBuffer(int nChannelId, IN unsigned char *pBuffer, IN
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nIndex = 0;
 	SChannelAPI *pstChannelAPI = NULL;
-
+#ifdef ARGUMENT_CHECK
+	if(nChunkIndex < 0 )
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+#endif
 	nIndex = getChannelIndexById(nChannelId);
 	IFVARERRASSIGNGOTO(nIndex, INVALID_CHANNEL_ID, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
@@ -238,7 +252,12 @@ uem_result UKChannel_WriteToQueue(int nChannelId, IN unsigned char *pBuffer, IN 
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nIndex = 0;
 	SChannelAPI *pstChannelAPI = NULL;
-
+#ifdef ARGUMENT_CHECK
+	if(nChunkIndex < 0 )
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+#endif
 	nIndex = getChannelIndexById(nChannelId);
 	IFVARERRASSIGNGOTO(nIndex, INVALID_CHANNEL_ID, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
@@ -264,7 +283,12 @@ uem_result UKChannel_ReadFromQueue(int nChannelId, IN OUT unsigned char *pBuffer
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nIndex = 0;
 	SChannelAPI *pstChannelAPI = NULL;
-
+#ifdef ARGUMENT_CHECK
+	if(nChunkIndex < 0 )
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+#endif
 	nIndex = getChannelIndexById(nChannelId);
 	IFVARERRASSIGNGOTO(nIndex, INVALID_CHANNEL_ID, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
@@ -284,7 +308,12 @@ uem_result UKChannel_ReadFromBuffer(int nChannelId, IN OUT unsigned char *pBuffe
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nIndex = 0;
 	SChannelAPI *pstChannelAPI = NULL;
-
+#ifdef ARGUMENT_CHECK
+	if(nChunkIndex < 0 )
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+#endif
 	nIndex = getChannelIndexById(nChannelId);
 	IFVARERRASSIGNGOTO(nIndex, INVALID_CHANNEL_ID, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
@@ -305,7 +334,12 @@ uem_result UKChannel_GetNumOfAvailableData (IN int nChannelId, IN int nChunkInde
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nIndex = 0;
 	SChannelAPI *pstChannelAPI = NULL;
-
+#ifdef ARGUMENT_CHECK
+	if(nChunkIndex < 0 )
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+#endif
 	nIndex = getChannelIndexById(nChannelId);
 	IFVARERRASSIGNGOTO(nIndex, INVALID_CHANNEL_ID, result, ERR_UEM_INVALID_PARAM, _EXIT);
 

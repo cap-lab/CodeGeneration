@@ -168,14 +168,17 @@ public class Application {
 			
 			port.setLoopPortType(LoopPortType.fromValue(portMapType.getType().value()));
 			
-			for(PortSampleRate portRate: port.getPortSampleRateList())
+			if(direction == PortDirection.INPUT)
 			{
-				// maximum available number will be more than 1
-				if(task.getLoopStruct().getLoopType() == TaskLoopType.CONVERGENT || 
-					LoopPortType.fromValue(portMapType.getType().value()) == LoopPortType.BROADCASTING)
-				{ 
-					portRate.setMaxAvailableNum(task.getLoopStruct().getLoopCount());
-				}
+				for(PortSampleRate portRate: port.getPortSampleRateList())
+				{
+					// maximum available number will be more than 1
+					if(task.getLoopStruct().getLoopType() == TaskLoopType.CONVERGENT || 
+						LoopPortType.fromValue(portMapType.getType().value()) == LoopPortType.BROADCASTING)
+					{ 
+						portRate.setMaxAvailableNum(task.getLoopStruct().getLoopCount());
+					}
+				}				
 			}
 		}
 	}
@@ -400,7 +403,7 @@ public class Application {
 		
 		return isDataLoop;
 	}
-
+	
 	// ports and tasks are the most lower-level 
 	private void setChannelType(Channel channel, Port srcPort, Port dstPort) {
 		boolean isDstDataLoop = false;
@@ -417,16 +420,15 @@ public class Application {
 		isSrcDistributing = srcPort.isDistributingPort();
 		isDstDistributing = dstPort.isDistributingPort();
 		
-		if(isSrcDataLoop == true  && isDstDataLoop == true && 
-			isSrcDistributing == true && isDstDistributing == true)
+		if(isSrcDataLoop == true  && isDstDataLoop == true && isSrcDistributing == true && isDstDistributing == true)
 		{
 			channel.setChannelType(ChannelArrayType.FULL_ARRAY);
 		}
-		else if(isDstDataLoop == true && isDstDistributing == true)
+		else if(isDstDataLoop == true) // even a task uses broadcasting it needs to be input_array type to manage available number
 		{
 			channel.setChannelType(ChannelArrayType.INPUT_ARRAY);
 		}
-		else if(isSrcDataLoop == true && isSrcDistributing == true)
+		else if(isSrcDataLoop == true)
 		{
 			channel.setChannelType(ChannelArrayType.OUTPUT_ARRAY);
 		}

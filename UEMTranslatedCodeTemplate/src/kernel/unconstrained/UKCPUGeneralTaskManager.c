@@ -476,6 +476,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 	int nRunCount = 0;
 	ERunCondition enRunCondition;
 	uem_bool bFunctionCalled = TRUE;
+	int nExecutionCount = 0;
 
 	pstCurrentTask = pstGeneralTask->pstTask;
 	enRunCondition = pstCurrentTask->enRunCondition;
@@ -495,15 +496,21 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			case RUN_CONDITION_TIME_DRIVEN:
 				result = UKCPUTaskCommon_HandleTimeDrivenTask(pstCurrentTask, fnGo, &llNextTime, &nRunCount, &nMaxRunCount, &bFunctionCalled);
 				ERRIFGOTO(result, _EXIT);
-				printf("%s (time-driven, Proc: %d, func_id: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId);
+				if(bFunctionCalled == TRUE)
+				{
+					//printf("%s (time-driven, Proc: %d, func_id: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId);
+					nExecutionCount++;
+				}
 				break;
 			case RUN_CONDITION_DATA_DRIVEN:
 				fnGo(pstCurrentTask->nTaskId);
-				printf("%s (data-driven, Proc: %d, func_id: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId);
+				//printf("%s (data-driven, Proc: %d, func_id: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId);
+				nExecutionCount++;
 				break;
 			case RUN_CONDITION_CONTROL_DRIVEN: // run once for control-driven leaf task
 				fnGo(pstCurrentTask->nTaskId);
-				printf("%s (control-driven, Proc: %d, func_id: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId);
+				//printf("%s (control-driven, Proc: %d, func_id: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId);
+				nExecutionCount++;
 				UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
 				break;
 			default:
@@ -530,7 +537,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
-	printf("pstCurrentTask out : %s\n", pstCurrentTask->pszTaskName);
+	printf("pstCurrentTask out : %s (count: %d)\n", pstCurrentTask->pszTaskName, nExecutionCount);
 	return result;
 }
 
