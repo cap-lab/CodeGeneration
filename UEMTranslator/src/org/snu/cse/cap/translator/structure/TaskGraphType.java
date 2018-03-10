@@ -14,17 +14,11 @@ public enum TaskGraphType {
 	
 	public static TaskGraphType fromValue(String value) {
 		 for (TaskGraphType c : TaskGraphType.values()) {
-			 if (c.value.equals(value)) {
+			 if (c.value.equalsIgnoreCase(value)) {
 				 return c;
 			 }
 		 }
 		 throw new IllegalArgumentException(value.toString());
-	}
-
-	
-	@Override
-	public String toString() {
-		return value;
 	}
 }
 

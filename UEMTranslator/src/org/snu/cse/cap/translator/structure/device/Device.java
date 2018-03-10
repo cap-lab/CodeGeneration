@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 import org.snu.cse.cap.translator.structure.TaskGraph;
+import org.snu.cse.cap.translator.structure.TaskGraphType;
 import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.structure.ExecutionPolicy;
 import org.snu.cse.cap.translator.structure.channel.Channel;
@@ -268,6 +269,7 @@ public class Device {
 	private void putTaskHierarchicallyToTaskMap(String taskName, HashMap<String, Task> globalTaskMap)
 	{
 		Task currentTask;
+		Task parentTask;
 		TaskGraph taskGraph;
 		int inGraphIndex = 0;
 		currentTask = globalTaskMap.get(taskName);
@@ -281,7 +283,17 @@ public class Device {
 			}
 			else
 			{
-				taskGraph = new TaskGraph(currentTask.getParentTaskGraphName());
+				parentTask = globalTaskMap.get(currentTask.getParentTaskGraphName());
+				
+				if(parentTask != null)
+				{
+					taskGraph = new TaskGraph(currentTask.getParentTaskGraphName(), parentTask.getTaskGraphProperty());	
+				}
+				else
+				{
+					taskGraph = new TaskGraph(currentTask.getParentTaskGraphName());
+				}
+				
 				this.taskGraphMap.put(currentTask.getParentTaskGraphName(), taskGraph);
 			}
 
@@ -805,7 +817,8 @@ public class Device {
 	}
 	
 	public void putInDeviceTaskInformation(HashMap<String, Task> globalTaskMap, 
-									String scheduleFolderPath, CICMappingType mapping_metadata, ExecutionPolicy executionPolicy)
+									String scheduleFolderPath, CICMappingType mapping_metadata, ExecutionPolicy executionPolicy, 
+									TaskGraphType topTaskGraphType)
 	throws FileNotFoundException, InvalidScheduleFileNameException, InvalidDataInMetadataFileException, NoProcessorFoundException
 	{
 		switch(executionPolicy)
@@ -831,6 +844,10 @@ public class Device {
 			setGeneralTaskMappingInfo( mapping_metadata, globalTaskMap);
 			break;
 		}
+		
+		// set top-level task graph property which is located at CICAlgorithm element's property attribute
+		TaskGraph taskGraph = this.taskGraphMap.get(Constants.TOP_TASKGRAPH_NAME);
+		taskGraph.setTaskGraphType(topTaskGraphType);
 	}
 	
 

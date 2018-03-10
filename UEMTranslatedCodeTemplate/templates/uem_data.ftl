@@ -362,7 +362,7 @@ STask g_astTasks_${task_graph.name}[] = {
 // ##TASK_GRAPH_TEMPLATE::START
 <#list task_graph as graph_name, task_graph_element>
 STaskGraph g_stGraph_${task_graph_element.name} = {
-		GRAPH_TYPE_PROCESS_NETWORK, // TODO: Task graph type (not used now)
+		GRAPH_TYPE_${task_graph_element.taskGraphType}, // Task graph type
 		g_astTasks_${task_graph_element.name}, // current task graph's task list
 		${task_graph_element.taskList?size}, // number of tasks
 		<#if task_graph_element.parentTask??>&g_astTasks_${task_graph_element.parentTask.parentTaskGraphName}[${task_graph_element.parentTask.inGraphIndex}]<#else>NULL</#if>, // parent task

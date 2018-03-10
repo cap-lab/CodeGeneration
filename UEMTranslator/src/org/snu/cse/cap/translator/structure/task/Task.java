@@ -69,6 +69,7 @@ public class Task {
 	private HashSet<String> extraHeaderSet;
 	private HashSet<String> extraSourceSet;
 	private String ldFlags;
+	private String taskGraphProperty;
 	
 	public Task(int id, TaskType xmlTaskData)
 	{
@@ -80,6 +81,7 @@ public class Task {
 		this.ldFlags = null;
 		this.extraHeaderSet = new HashSet<String>();
 		this.extraSourceSet = new HashSet<String>();
+		this.taskGraphProperty = xmlTaskData.getSubGraphProperty();
 	
 		setId(id);
 		setName(xmlTaskData.getName());
@@ -376,5 +378,9 @@ public class Task {
 
 	public HashSet<String> getExtraSourceSet() {
 		return extraSourceSet;
+	}
+
+	public String getTaskGraphProperty() {
+		return taskGraphProperty;
 	}
 }

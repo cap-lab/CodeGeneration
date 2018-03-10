@@ -123,6 +123,7 @@
     <xs:attribute name="taskType" type="xs:string" use="required" />
 	<xs:attribute name="ParentTask" type="xs:string" use="required" />
     <xs:attribute name="isHardwareDependent" type="YesNoType" use="optional" />
+    <xs:attribute name="subGraphProperty" type="NameType" use="optional" />
   </xs:complexType>
 
   <xs:complexType name="TaskDataParallelType">
@@ -415,6 +416,13 @@
     <xs:restriction base="xs:string">
       <xs:enumeration value="distributing" />
       <xs:enumeration value="broadcasting" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+    <xs:simpleType name="TaskGraphPropertyType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ProcessNetwork" />
+      <xs:enumeration value="DataFlow" />
     </xs:restriction>
   </xs:simpleType>
 

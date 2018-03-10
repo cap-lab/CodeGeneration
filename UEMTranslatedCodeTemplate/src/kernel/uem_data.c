@@ -3067,14 +3067,14 @@ STask g_astTasks_top[] = {
 
 // ##TASK_GRAPH_TEMPLATE::START
 STaskGraph g_stGraph_CTypeLoop = {
-		GRAPH_TYPE_PROCESS_NETWORK, // TODO: Task graph type (not used now)
+		GRAPH_TYPE_PROCESS_NETWORK, // Task graph type
 		g_astTasks_CTypeLoop, // current task graph's task list
 		2, // number of tasks
 		&g_astTasks_top[1], // parent task
 };
 
 STaskGraph g_stGraph_top = {
-		GRAPH_TYPE_PROCESS_NETWORK, // TODO: Task graph type (not used now)
+		GRAPH_TYPE_DATAFLOW, // Task graph type
 		g_astTasks_top, // current task graph's task list
 		3, // number of tasks
 		NULL, // parent task
