@@ -20,5 +20,10 @@ public enum TaskGraphType {
 		 }
 		 throw new IllegalArgumentException(value.toString());
 	}
+	
+	public String getString()
+	{
+		return this.value;
+	}
 }
 

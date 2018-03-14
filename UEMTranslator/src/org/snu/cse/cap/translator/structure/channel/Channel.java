@@ -14,13 +14,15 @@ public class Channel {
 	private Port outputPort; // the most outer port is set here
 	private int initialDataLen;
 	private int nextChannelIndex;
+	private int channelSampleSize;
 	
-	public Channel(int index, int size, int initialDataLen) {
+	public Channel(int index, int size, int initialDataLen, int sampleSize) {
 		this.size = size;
 		this.index = index;
 		this.channelType = ChannelArrayType.GENERAL;
 		this.initialDataLen = initialDataLen;
 		this.nextChannelIndex = Constants.INVALID_ID_VALUE;
+		this.channelSampleSize = sampleSize;
 	}
 	
 	public int getIndex() {
@@ -67,6 +69,7 @@ public class Channel {
 		this.inputPort = inputPort;
 		
 		// update initial data length depending on port sample rate
+		/*
 		if(inputPort.getPortSampleRateType() == PortSampleRateType.FIXED)
 		{
 			this.initialDataLen = this.initialDataLen * inputPort.getPortSampleRateList().get(0).getSampleRate();	
@@ -81,6 +84,7 @@ public class Channel {
 		{
 			// do nothing
 		}
+		*/
 	}
 	
 	public void setMaximumChunkNum(HashMap<String, Task> taskMap)
@@ -107,5 +111,9 @@ public class Channel {
 
 	public void setNextChannelIndex(int nextChannelIndex) {
 		this.nextChannelIndex = nextChannelIndex;
+	}
+
+	public int getChannelSampleSize() {
+		return channelSampleSize;
 	}
 }

@@ -70,6 +70,7 @@ public class Task {
 	private HashSet<String> extraSourceSet;
 	private String ldFlags;
 	private String taskGraphProperty;
+	private HashMap<String, Integer> iterationCountList;  // mode name : iteration count
 	
 	public Task(int id, TaskType xmlTaskData)
 	{
@@ -82,6 +83,7 @@ public class Task {
 		this.extraHeaderSet = new HashSet<String>();
 		this.extraSourceSet = new HashSet<String>();
 		this.taskGraphProperty = xmlTaskData.getSubGraphProperty();
+		this.iterationCountList = new HashMap<String, Integer>();
 	
 		setId(id);
 		setName(xmlTaskData.getName());
@@ -382,5 +384,9 @@ public class Task {
 
 	public String getTaskGraphProperty() {
 		return taskGraphProperty;
+	}
+
+	public HashMap<String, Integer> getIterationCountList() {
+		return iterationCountList;
 	}
 }

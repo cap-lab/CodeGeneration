@@ -23,6 +23,7 @@ public class Constants {
 	public static final String SCHEDULE_FILE_SPLITER = ",";
 	
 	public static final int INVALID_ID_VALUE = -1;
+	public static final int INVALID_VALUE = -1;
 	
 	public static final String NAME_SPLITER = "/";
 	
@@ -73,4 +74,6 @@ public class Constants {
 	public static final String CICL_FILE_EXTENSION = ".cicl";
 	
 	public static final String TASK_NAME_FUNC_ID_SEPARATOR = "_";
+	
+	public static final String DEFAULT_MODE_NAME = "Default";
 }

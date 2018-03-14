@@ -4,6 +4,7 @@ package org.snu.cse.cap.translator.structure;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.ExecutionTime;
@@ -32,7 +33,7 @@ import org.snu.cse.cap.translator.structure.mapping.InvalidScheduleFileNameExcep
 import org.snu.cse.cap.translator.structure.mapping.MappingInfo;
 import org.snu.cse.cap.translator.structure.task.Task;
 import org.snu.cse.cap.translator.structure.task.TaskLoopType;
-import org.snu.cse.cap.translator.structure.task.TimeMetric;
+import org.snu.cse.cap.translator.structure.task.TaskMode;
 
 import hopes.cic.xml.ArchitectureConnectType;
 import hopes.cic.xml.ArchitectureConnectionSlaveType;
@@ -52,14 +53,26 @@ import hopes.cic.xml.LibraryFunctionArgumentType;
 import hopes.cic.xml.LibraryFunctionType;
 import hopes.cic.xml.LibraryLibraryConnectionType;
 import hopes.cic.xml.LibraryType;
+import hopes.cic.xml.LoopType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.ModeType;
 import hopes.cic.xml.PortMapType;
 import hopes.cic.xml.TCPConnectionType;
+import hopes.cic.xml.TaskInstanceType;
 import hopes.cic.xml.TaskLibraryConnectionType;
 import hopes.cic.xml.TaskPortType;
 import hopes.cic.xml.TaskRateType;
 import hopes.cic.xml.TaskType;
+import mapss.dif.csdf.sdf.SDFEdgeWeight;
+import mapss.dif.csdf.sdf.SDFGraph;
+import mapss.dif.csdf.sdf.SDFNodeWeight;
+import mapss.dif.csdf.sdf.sched.FlatStrategy;
+import mapss.dif.csdf.sdf.sched.MinBufferStrategy;
+import mapss.dif.csdf.sdf.sched.TwoNodeStrategy;
+import mocgraph.Edge;
+import mocgraph.Node;
+import mocgraph.sched.Firing;
+import mocgraph.sched.ScheduleElement;
 
 public class Application {
 	// Overall metadata information
@@ -504,6 +517,293 @@ public class Application {
 		sameSourceChannelList.add(curChannel);
 	}
 	
+	private void addNode(SDFGraph graph, ArrayList<Task> taskList, HashMap<String, Node> unconnectedSDFTaskMap)
+	{
+		int instanceid = 0;
+		for (int i = 0; i < taskList.size(); i++) {
+			String nodeName = taskList.get(i).getName();
+			SDFNodeWeight weight = new SDFNodeWeight(nodeName, instanceid++);
+			Node node = new Node(weight);
+			graph.addNode(node);
+			unconnectedSDFTaskMap.put(nodeName, node);
+			graph.setName(node, nodeName);
+		}
+	}
+	
+	private boolean addEdge(SDFGraph graph, TaskMode mode, Channel channel, HashMap<String, Node> unconnectedSDFTaskMap)
+	{
+		boolean isSDF = true;
+		Task srcTask;
+		Task dstTask;
+		int srcRate = 0;
+		int dstRate = 0;
+		srcTask = this.taskMap.get(channel.getOutputPort().getTaskName());
+		dstTask = this.taskMap.get(channel.getInputPort().getTaskName());
+		
+		if(channel.getOutputPort().getPortSampleRateList().size() == 1 || mode == null)
+		{
+			srcRate = channel.getOutputPort().getPortSampleRateList().get(0).getSampleRate();
+		}
+		else
+		{
+			srcRate = Constants.INVALID_VALUE;
+			for(PortSampleRate rate: channel.getOutputPort().getPortSampleRateList())
+			{
+				if(mode.getName().equals(rate.getModeName()) == true)
+				{
+					srcRate = rate.getSampleRate();
+					break;
+				}
+			}
+		}
+		
+
+		if(channel.getInputPort().getPortSampleRateList().size() == 1 || mode == null)
+		{
+			dstRate = channel.getInputPort().getPortSampleRateList().get(0).getSampleRate();
+		}
+		else
+		{
+			dstRate = Constants.INVALID_VALUE;
+			for(PortSampleRate rate: channel.getInputPort().getPortSampleRateList())
+			{
+				if(mode.getName().equals(rate.getModeName()) == true)
+				{
+					dstRate = rate.getSampleRate();
+					break;
+				}
+			}
+		}
+		
+		if(srcRate > 0 && dstRate > 0)
+		{
+			Node srcNode = null;
+			Node dstNode = null;
+			int initialData = channel.getInitialDataLen()/channel.getChannelSampleSize();
+			
+			if(srcTask.getLoopStruct() != null && srcTask.getChildTaskGraphName() == null)
+			{
+				srcRate = srcRate / srcTask.getLoopStruct().getLoopCount();
+			}
+			
+			if(dstTask.getLoopStruct() != null && dstTask.getLoopStruct().getLoopType() == TaskLoopType.DATA && 
+				dstTask.getChildTaskGraphName() == null && channel.getInputPort().getLoopPortType() == LoopPortType.DISTRIBUTING)
+			{
+				dstRate = dstRate / dstTask.getLoopStruct().getLoopCount();
+			}
+			else if(dstTask.getLoopStruct() != null && 
+				dstTask.getChildTaskGraphName() == null)
+			{
+				if(dstRate / dstTask.getLoopStruct().getLoopCount() == 0)
+				{
+					srcRate = srcRate * dstTask.getLoopStruct().getLoopCount();
+					initialData = initialData * dstTask.getLoopStruct().getLoopCount();
+				}
+				else
+				{
+					dstRate = dstRate / dstTask.getLoopStruct().getLoopCount();	
+				}
+			}
+			
+			for(Object nodeObj : graph.nodes())
+			{
+				Node node = (Node) nodeObj;
+				if(graph.getName(node).equals(srcTask.getName()) == true)
+				{
+					srcNode = node;
+					unconnectedSDFTaskMap.remove(srcTask.getName());
+				}
+				
+				if(graph.getName(node).equals(dstTask.getName()) == true)
+				{
+					dstNode = node;
+					unconnectedSDFTaskMap.remove(dstTask.getName());
+				}
+			}
+			
+			SDFEdgeWeight weight = new SDFEdgeWeight(channel.getOutputPort().getPortName(), channel.getInputPort().getPortName(), srcRate,
+					dstRate, initialData);
+			
+			Edge edge = new Edge(srcNode, dstNode);
+			edge.setWeight(weight);
+			graph.addEdge(edge);
+			graph.setName(edge, channel.getOutputPort().getPortName() + "to" + channel.getInputPort().getPortName());
+		}
+		else if(srcRate == Constants.INVALID_VALUE || dstRate == Constants.INVALID_VALUE)
+		{
+			isSDF = false;
+		}
+		else
+		{
+			// do nothing
+		}
+		
+		return isSDF;
+	}
+	
+	private SDFGraph makeSDFGraph(ArrayList<Task> taskList, ArrayList<Channel> channelList, TaskMode mode)
+	{
+		SDFGraph graph = new SDFGraph(taskList.size(), channelList.size());
+		HashMap<String, Node> unconnectedSDFTaskMap = new HashMap<String, Node>(); 
+		boolean isSDF = false;
+		
+		addNode(graph, taskList, unconnectedSDFTaskMap);
+		
+		for (Channel channel : channelList) 
+		{
+			isSDF = addEdge(graph, mode, channel, unconnectedSDFTaskMap);
+			if(isSDF == false)
+			{
+				break;
+			}
+		}
+
+		if(isSDF == false)
+		{
+			graph = null;
+		}
+		else
+		{
+			for(Node node : unconnectedSDFTaskMap.values())
+			{
+				graph.removeNode(node);
+			}	
+		}
+		
+		return graph;
+	}
+	
+	private void handleScheduleElement(SDFGraph graph, mocgraph.sched.Schedule schedule, String modeName)
+	{
+		Task task;
+		int taskRep;
+		Iterator iterator = schedule.iterator();
+		while (iterator.hasNext()) {
+			ScheduleElement scheduleElement = (ScheduleElement) iterator.next();
+			if (scheduleElement instanceof mocgraph.sched.Schedule) 
+			{
+				mocgraph.sched.Schedule innerSchedule = (mocgraph.sched.Schedule) scheduleElement;
+				handleScheduleElement(graph, innerSchedule, modeName);
+			} else if (scheduleElement instanceof Firing) {
+				Firing firing = (Firing) scheduleElement;
+				String taskName = graph.getName((Node) firing.getFiringElement());
+				task = this.taskMap.get(taskName);
+				if(task.getIterationCountList().containsKey(modeName) == true)
+				{
+					taskRep = task.getIterationCountList().get(modeName).intValue() + firing.getIterationCount();
+				}
+				else
+				{
+					taskRep = firing.getIterationCount();
+				}
+				task.getIterationCountList().put(modeName, taskRep);
+			}
+		}
+	}
+	
+	private void setIndividualIterationCount(ArrayList<Task> taskList, SDFGraph graph, String modeName)
+	{
+		mocgraph.sched.Schedule schedule;
+		
+		if(taskList.size() <= 2)
+		{
+			TwoNodeStrategy st = new TwoNodeStrategy(graph);			
+			schedule = st.schedule();
+		}
+		else
+		{
+			MinBufferStrategy st = new MinBufferStrategy(graph);
+			schedule = st.schedule();
+		}
+		
+		handleScheduleElement(graph, schedule, modeName);
+	}
+	
+	private void setIterationCount(HashMap<String, TaskGraph> taskGraphMap)
+	{
+		for(TaskGraph taskGraph: taskGraphMap.values())
+		{
+			if(taskGraph.getTaskGraphType() == TaskGraphType.DATAFLOW)
+			{
+				SDFGraph graph = null;
+				ArrayList<Channel> channelList = new ArrayList<Channel>();
+				
+				for(Channel channel : this.channelList)
+				{
+					Task srcTask;
+					Task dstTask;
+					
+					srcTask = this.taskMap.get(channel.getOutputPort().getTaskName());
+					dstTask = this.taskMap.get(channel.getInputPort().getTaskName());
+					
+					if(srcTask.getParentTaskGraphName().equals(taskGraph.getName()) == true && 
+						dstTask.getParentTaskGraphName().equals(taskGraph.getName()) == true)
+					{
+						channelList.add(channel);
+					}
+				}
+					
+				if(taskGraph.getParentTask() != null && taskGraph.getParentTask().getModeTransition() != null)
+				{		
+					for(TaskMode mode : taskGraph.getParentTask().getModeTransition().getModeMap().values())
+					{
+						graph = makeSDFGraph(taskGraph.getTaskList(), channelList, mode);
+						
+						if(graph != null)
+						{
+							setIndividualIterationCount(taskGraph.getTaskList(), graph, mode.getName());
+						}
+					}
+				}
+				else
+				{
+					graph = makeSDFGraph(taskGraph.getTaskList(), channelList, null);
+					
+					if(graph != null)
+					{
+						setIndividualIterationCount(taskGraph.getTaskList(), graph, Constants.DEFAULT_MODE_NAME);
+					}
+				}
+			}
+		}
+	}
+	
+	private void makeSDFTaskIterationCount()
+	{
+		HashMap<String, TaskGraph> taskGraphMap = new HashMap<String, TaskGraph>();
+		Task parentTask;
+		
+		// make global task graph list
+		for(Task task : this.taskMap.values())
+		{
+			TaskGraph taskGraph;
+			if(taskGraphMap.containsKey(task.getParentTaskGraphName()) == false)
+			{
+				parentTask = this.taskMap.get(task.getParentTaskGraphName());
+				
+				if(parentTask != null)
+				{
+					taskGraph = new TaskGraph(task.getParentTaskGraphName(), parentTask.getTaskGraphProperty());
+					taskGraph.setParentTask(parentTask);
+				}
+				else
+				{
+					taskGraph = new TaskGraph(task.getParentTaskGraphName(), this.applicationGraphProperty.getString());
+				}
+				
+				taskGraphMap.put(task.getParentTaskGraphName(), taskGraph);
+			}
+			else
+			{
+				taskGraph = taskGraphMap.get(task.getParentTaskGraphName());
+			}
+			
+			taskGraph.putTask(task);
+		}
+		
+		setIterationCount(taskGraphMap);
+	}
+	
 	public void makeChannelInformation(CICAlgorithmType algorithm_metadata) throws InvalidDataInMetadataFileException
 	{
 		algorithm_metadata.getChannels().getChannel();
@@ -513,7 +813,7 @@ public class Application {
 		for(ChannelType channelMetadata: algorithm_metadata.getChannels().getChannel())
 		{
 			Channel channel = new Channel(index, channelMetadata.getSize().intValue() * channelMetadata.getSampleSize().intValue(), 
-										channelMetadata.getInitialDataSize().intValue() * channelMetadata.getSampleSize().intValue());
+										channelMetadata.getInitialDataSize().intValue() * channelMetadata.getSampleSize().intValue(), channelMetadata.getSampleSize().intValue());
 			
 			// index 0 is only used
 			// TODO: src element in XML schema file must be single occurrence.
@@ -554,6 +854,8 @@ public class Application {
 		{
 			device.setSrcTaskOfMTM();	
 		}
+		
+		makeSDFTaskIterationCount();
 	}
 
 	// scheduleFolderPath : output + /convertedSDF3xml/
