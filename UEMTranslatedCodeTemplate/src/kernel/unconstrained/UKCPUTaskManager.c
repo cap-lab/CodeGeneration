@@ -147,6 +147,22 @@ _EXIT:
 }
 
 
+static uem_result suspendDataflowSubgraphTask(STask *pstTask, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	HCPUGeneralTaskManager hGeneralTaskManager = NULL;
+
+	hGeneralTaskManager = (HCPUGeneralTaskManager) pUserData;
+
+	result = UKCPUGeneralTaskManager_ChangeState(hGeneralTaskManager, pstTask, TASK_STATE_SUSPEND);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 uem_result UKCPUTaskManager_SuspendTask(HCPUTaskManager hCPUTaskManager, int nTaskId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -173,7 +189,16 @@ uem_result UKCPUTaskManager_SuspendTask(HCPUTaskManager hCPUTaskManager, int nTa
 	}
 	else if(pstTask->pstSubGraph != NULL) // task with subgraph which is not static scheduled cannot be controlled
 	{
-		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		// task with subgraph which is not SDF cannot be controlled
+		if(pstTask->pstSubGraph->enType == GRAPH_TYPE_PROCESS_NETWORK)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		}
+		else
+		{
+			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, suspendDataflowSubgraphTask, pstManager->hGeneralManager);
+			ERRIFGOTO(result, _EXIT);
+		}
 	}
 	else
 	{
@@ -414,6 +439,82 @@ _EXIT:
 }
 
 
+static uem_result stopDataflowSubgraphTask(STask *pstTask, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	HCPUGeneralTaskManager hGeneralTaskManager = NULL;
+
+	hGeneralTaskManager = (HCPUGeneralTaskManager) pUserData;
+
+	result = UKCPUGeneralTaskManager_DestroyThread(hGeneralTaskManager, pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result runDataflowSubgraphTask(STask *pstTask, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	HCPUGeneralTaskManager hGeneralTaskManager = NULL;
+
+	hGeneralTaskManager = (HCPUGeneralTaskManager) pUserData;
+
+	result = UKCPUGeneralTaskManager_CreateThread(hGeneralTaskManager, pstTask);
+			ERRIFGOTO(result, _EXIT);
+
+	result = UKCPUGeneralTaskManager_ChangeState(hGeneralTaskManager, pstTask, TASK_STATE_RUNNING);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKCPUGeneralTaskManager_ActivateThread(hGeneralTaskManager, pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result resumeDataflowSubgraphTask(STask *pstTask, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	HCPUGeneralTaskManager hGeneralTaskManager = NULL;
+
+	hGeneralTaskManager = (HCPUGeneralTaskManager) pUserData;
+
+	result = UKCPUGeneralTaskManager_CreateThread(hGeneralTaskManager, pstTask);
+			ERRIFGOTO(result, _EXIT);
+
+	result = UKCPUGeneralTaskManager_ChangeState(hGeneralTaskManager, pstTask, TASK_STATE_RUNNING);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKCPUGeneralTaskManager_ActivateThread(hGeneralTaskManager, pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result stoppingDataflowSubgraphTask(STask *pstTask, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	HCPUGeneralTaskManager hGeneralTaskManager = NULL;
+
+	hGeneralTaskManager = (HCPUGeneralTaskManager) pUserData;
+
+	result = UKCPUGeneralTaskManager_ChangeState(hGeneralTaskManager, pstTask, TASK_STATE_STOPPING);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUTaskManager, int nTaskId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -438,9 +539,18 @@ uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUTaskManager, int nTaskI
 		result = UKCPUCompositeTaskManager_DestroyThread(pstManager->hCompositeManager, pstTask);
 		ERRIFGOTO(result, _EXIT);
 	}
-	else if(pstTask->pstSubGraph != NULL) // task with subgraph which is not static scheduled cannot be controlled
+	else if(pstTask->pstSubGraph != NULL)
 	{
-		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		// task with subgraph which is not SDF cannot be controlled
+		if(pstTask->pstSubGraph->enType == GRAPH_TYPE_PROCESS_NETWORK)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		}
+		else
+		{
+			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, stopDataflowSubgraphTask, pstManager->hGeneralManager);
+			ERRIFGOTO(result, _EXIT);
+		}
 	}
 	else
 	{
@@ -485,9 +595,18 @@ uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUTaskManager, int nTaskId
 		result = UKCPUCompositeTaskManager_ActivateThread(pstManager->hCompositeManager, pstTask);
 		ERRIFGOTO(result, _EXIT);
 	}
-	else if(pstTask->pstSubGraph != NULL) // task with subgraph which is not static scheduled cannot be controlled
+	else if(pstTask->pstSubGraph != NULL)
 	{
-		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		// task with subgraph which is not SDF cannot be controlled
+		if(pstTask->pstSubGraph->enType == GRAPH_TYPE_PROCESS_NETWORK)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		}
+		else
+		{
+			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, runDataflowSubgraphTask, pstManager->hGeneralManager);
+			ERRIFGOTO(result, _EXIT);
+		}
 	}
 	else
 	{
@@ -534,9 +653,18 @@ uem_result UKCPUTaskManager_ResumeTask(HCPUTaskManager hCPUTaskManager, int nTas
 		result = UKCPUCompositeTaskManager_ActivateThread(pstManager->hCompositeManager, pstTask);
 		ERRIFGOTO(result, _EXIT);
 	}
-	else if(pstTask->pstSubGraph != NULL) // task with subgraph which is not static scheduled cannot be controlled
+	else if(pstTask->pstSubGraph != NULL)
 	{
-		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		// task with subgraph which is not SDF cannot be controlled
+		if(pstTask->pstSubGraph->enType == GRAPH_TYPE_PROCESS_NETWORK)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		}
+		else
+		{
+			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, resumeDataflowSubgraphTask, pstManager->hGeneralManager);
+			ERRIFGOTO(result, _EXIT);
+		}
 	}
 	else
 	{
@@ -581,9 +709,18 @@ uem_result UKCPUTaskManager_StoppingTask(HCPUTaskManager hCPUTaskManager, int nT
 		result = UKCPUCompositeTaskManager_ActivateThread(pstManager->hCompositeManager, pstTask);
 		ERRIFGOTO(result, _EXIT);
 	}
-	else if(pstTask->pstSubGraph != NULL) // task with subgraph which is not static scheduled cannot be controlled
+	else if(pstTask->pstSubGraph != NULL)
 	{
-		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		// task with subgraph which is not SDF cannot be controlled
+		if(pstTask->pstSubGraph->enType == GRAPH_TYPE_PROCESS_NETWORK)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		}
+		else
+		{
+			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, stoppingDataflowSubgraphTask, pstManager->hGeneralManager);
+			ERRIFGOTO(result, _EXIT);
+		}
 	}
 	else
 	{

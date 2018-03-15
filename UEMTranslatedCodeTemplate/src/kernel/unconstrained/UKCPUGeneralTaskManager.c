@@ -467,6 +467,59 @@ _EXIT:
 }
 
 
+static uem_result increaseRunCount(STask *pstTask)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nModeNum;
+	int nModeId;
+	int nCurModeIndex = 0;
+	int nLoop = 0;
+	int nIndex = 0;
+
+	result = UCThreadMutex_Lock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstTask->pstMTMInfo != NULL)
+	{
+		nModeNum = pstTask->pstMTMInfo->nNumOfModes;
+		nCurModeIndex = pstTask->pstMTMInfo->nCurModeIndex;
+		nModeId = pstTask->pstMTMInfo->astModeMap[nCurModeIndex].nModeId;
+
+		for(nLoop  = 0 ; nLoop < nModeNum ; nLoop++)
+		{
+			if(pstTask->astTaskIteration[nLoop].nModeId == nModeId)
+			{
+				nIndex = nLoop;
+				break;
+			}
+		}
+
+		if(nLoop == nModeNum)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT_LOCK);
+		}
+	}
+	else
+	{
+		nIndex = 0;
+	}
+
+	pstTask->nCurRunInIteration++;
+
+	if(pstTask->nCurRunInIteration >= pstTask->astTaskIteration[nIndex].nRunInIteration)
+	{
+		pstTask->nCurRunInIteration = 0;
+		pstTask->nCurIteration++;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstTask->hMutex);
+_EXIT:
+	return result;
+}
+
+
 static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTaskThread *pstTaskThread, FnUemTaskGo fnGo)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -500,17 +553,23 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 				{
 					//printf("%s (time-driven, Proc: %d, func_id: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId);
 					nExecutionCount++;
+					result = increaseRunCount(pstCurrentTask);
+					ERRIFGOTO(result, _EXIT);
 				}
 				break;
 			case RUN_CONDITION_DATA_DRIVEN:
 				fnGo(pstCurrentTask->nTaskId);
 				//printf("%s (data-driven, Proc: %d, func_id: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId);
 				nExecutionCount++;
+				result = increaseRunCount(pstCurrentTask);
+				ERRIFGOTO(result, _EXIT);
 				break;
 			case RUN_CONDITION_CONTROL_DRIVEN: // run once for control-driven leaf task
 				fnGo(pstCurrentTask->nTaskId);
 				//printf("%s (control-driven, Proc: %d, func_id: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId);
 				nExecutionCount++;
+				result = increaseRunCount(pstCurrentTask);
+				ERRIFGOTO(result, _EXIT);
 				UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
 				break;
 			default:

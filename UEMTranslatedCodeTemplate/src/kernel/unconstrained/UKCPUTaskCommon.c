@@ -12,15 +12,154 @@
 #include <uem_common.h>
 
 #include <UCTime.h>
+#include <UCDynamicStack.h>
 
 #include <uem_data.h>
 
+#include <UKTask.h>
 #include <UKTime.h>
 #include <UKCPUTaskCommon.h>
 
 
 #define MIN_SLEEP_DURATION (10)
 #define MAX_SLEEP_DURATION (100)
+
+
+static uem_result checkAndPopStack(HStack hStack, IN OUT STaskGraph **ppstTaskGraph, IN OUT int *pnIndex)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	STaskGraph *pstTaskGraph = NULL;
+	int nIndex = 0;
+	int nStackNum = 0;
+	void *pIndex = NULL;
+
+	pstTaskGraph = *ppstTaskGraph;
+	nIndex = *pnIndex;
+
+	result = UCDynamicStack_Length(hStack, &nStackNum);
+	ERRIFGOTO(result, _EXIT);
+
+	if(nIndex >= pstTaskGraph->nNumOfTasks && nStackNum > 0)
+	{
+		result = UCDynamicStack_Pop(hStack, &pIndex);
+		ERRIFGOTO(result, _EXIT);
+
+#if SIZEOF_VOID_P == 8
+		nIndex = (int) ((long long) pIndex);
+#else
+		nIndex = (int) pIndex;
+#endif
+
+		result = UCDynamicStack_Pop(hStack, (void **) &pstTaskGraph);
+		ERRIFGOTO(result, _EXIT);
+
+		*ppstTaskGraph = pstTaskGraph;
+		*pnIndex = nIndex;
+	}
+	else
+	{
+		// do nothing
+	}
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result callFunctionsInHierarchicalTaskGraph(STask *pstParentTask, FnTaskTraverse fnCallback, HStack hStack, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nCurrentIndex = 0;
+	int nStackNum = 0;
+	STaskGraph *pstCurrentTaskGraph = NULL;
+	STaskGraph *pstNextTaskGraph = NULL;
+	STask *pstCurTask = NULL;
+	int nNumOfTasks = 0;
+
+	nNumOfTasks = pstParentTask->pstSubGraph->nNumOfTasks;
+	pstCurrentTaskGraph = pstParentTask->pstSubGraph;
+
+	while(nCurrentIndex < nNumOfTasks || nStackNum > 0)
+	{
+		if(pstCurrentTaskGraph->astTasks[nCurrentIndex].pstSubGraph != NULL)
+		{
+			pstNextTaskGraph = pstCurrentTaskGraph->astTasks[nCurrentIndex].pstSubGraph;
+			// the current task has subgraph, skip current task index
+			nCurrentIndex++;
+
+			if(nCurrentIndex < pstCurrentTaskGraph->nNumOfTasks)
+			{
+				result = UCDynamicStack_Push(hStack, pstCurrentTaskGraph);
+				ERRIFGOTO(result, _EXIT);
+#if SIZEOF_VOID_P == 8
+				result = UCDynamicStack_Push(hStack, (void *) (long long) nCurrentIndex);
+#else
+				result = UCDynamicStack_Push(hStack, (void *) nCurrentIndex);
+#endif
+				ERRIFGOTO(result, _EXIT);
+			}
+
+			// reset values
+			pstCurrentTaskGraph = pstNextTaskGraph;
+			nCurrentIndex = 0;
+			nNumOfTasks = pstCurrentTaskGraph->nNumOfTasks;
+		}
+		else // does not have internal task
+		{
+			// call current index's proper callback function
+			pstCurTask = &(pstCurrentTaskGraph->astTasks[nCurrentIndex]);
+
+			result = fnCallback(pstCurTask, pUserData);
+			ERRIFGOTO(result, _EXIT);
+
+			// proceed index, if all index is proceeded, pop the task graph from stack
+			nCurrentIndex++;
+
+			result = checkAndPopStack(hStack, &pstCurrentTaskGraph, &nCurrentIndex);
+			ERRIFGOTO(result, _EXIT);
+
+			nNumOfTasks = pstCurrentTaskGraph->nNumOfTasks;
+		}
+
+		result = UCDynamicStack_Length(hStack, &nStackNum);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+uem_result UKCPUTaskCommon_TraverseSubGraphTasks(STask *pstParentTask, FnTaskTraverse fnCallback, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	HStack hStack = NULL;
+
+	if(pstParentTask != NULL)
+	{
+		result = UCDynamicStack_Create(&hStack);
+		ERRIFGOTO(result, _EXIT);
+
+		result = callFunctionsInHierarchicalTaskGraph(pstParentTask, fnCallback, hStack, pUserData);
+		ERRIFGOTO(result, _EXIT);
+	}
+	else
+	{
+		result = UKTask_TraverseAllTasks(fnCallback, pUserData);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	if(hStack != NULL)
+	{
+		UCDynamicStack_Destroy(&hStack, NULL, NULL);
+	}
+	return result;
+}
+
 
 uem_result UKCPUTaskCommon_CheckTaskState(ECPUTaskState enOldState, ECPUTaskState enNewState)
 {

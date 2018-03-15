@@ -110,9 +110,6 @@ struct _SModeTransitionSuspendCheck {
 	SCompositeTaskThread *pstCurrentThread;
 };
 
-
-typedef uem_result (*FnCbHandleGeneralTask)(STask *pstTask);
-
 static uem_result destroyCompositeTaskThreadStruct(IN int nOffset, IN void *pData, IN void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -570,157 +567,7 @@ _EXIT:
 }
 
 
-static uem_result checkAndPopStack(HStack hStack, IN OUT STaskGraph **ppstTaskGraph, IN OUT int *pnIndex)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-
-	STaskGraph *pstTaskGraph = NULL;
-	int nIndex = 0;
-	int nStackNum = 0;
-	void *pIndex = NULL;
-
-	pstTaskGraph = *ppstTaskGraph;
-	nIndex = *pnIndex;
-
-	result = UCDynamicStack_Length(hStack, &nStackNum);
-	ERRIFGOTO(result, _EXIT);
-
-	if(nIndex >= pstTaskGraph->nNumOfTasks && nStackNum > 0)
-	{
-		result = UCDynamicStack_Pop(hStack, &pIndex);
-		ERRIFGOTO(result, _EXIT);
-
-#if SIZEOF_VOID_P == 8
-		nIndex = (int) ((long long) pIndex);
-#else
-		nIndex = (int) pIndex;
-#endif
-
-		result = UCDynamicStack_Pop(hStack, (void **) &pstTaskGraph);
-		ERRIFGOTO(result, _EXIT);
-
-		*ppstTaskGraph = pstTaskGraph;
-		*pnIndex = nIndex;
-	}
-	else
-	{
-		// do nothing
-	}
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-
-static uem_result callFunctionsInHierarchicalTaskGraph(STask *pstParentTask, FnCbHandleGeneralTask fnCallback, HStack hStack)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	int nCurrentIndex = 0;
-	int nStackNum = 0;
-	STaskGraph *pstCurrentTaskGraph = NULL;
-	STaskGraph *pstNextTaskGraph = NULL;
-	STask *pstCurTask = NULL;
-	int nNumOfTasks = 0;
-
-	nNumOfTasks = pstParentTask->pstSubGraph->nNumOfTasks;
-	pstCurrentTaskGraph = pstParentTask->pstSubGraph;
-
-	while(nCurrentIndex < nNumOfTasks || nStackNum > 0)
-	{
-		if(pstCurrentTaskGraph->astTasks[nCurrentIndex].pstSubGraph != NULL)
-		{
-			pstNextTaskGraph = pstCurrentTaskGraph->astTasks[nCurrentIndex].pstSubGraph;
-			// the current task has subgraph, skip current task index
-			nCurrentIndex++;
-
-			if(nCurrentIndex < pstCurrentTaskGraph->nNumOfTasks)
-			{
-				result = UCDynamicStack_Push(hStack, pstCurrentTaskGraph);
-				ERRIFGOTO(result, _EXIT);
-#if SIZEOF_VOID_P == 8
-				result = UCDynamicStack_Push(hStack, (void *) (long long) nCurrentIndex);
-#else
-				result = UCDynamicStack_Push(hStack, (void *) nCurrentIndex);
-#endif
-				ERRIFGOTO(result, _EXIT);
-			}
-
-			// reset values
-			pstCurrentTaskGraph = pstNextTaskGraph;
-			nCurrentIndex = 0;
-			nNumOfTasks = pstCurrentTaskGraph->nNumOfTasks;
-		}
-		else // does not have internal task
-		{
-			// call current index's proper callback function
-			pstCurTask = &(pstCurrentTaskGraph->astTasks[nCurrentIndex]);
-
-			result = fnCallback(pstCurTask);
-			ERRIFGOTO(result, _EXIT);
-
-			// proceed index, if all index is proceeded, pop the task graph from stack
-			nCurrentIndex++;
-
-			result = checkAndPopStack(hStack, &pstCurrentTaskGraph, &nCurrentIndex);
-			ERRIFGOTO(result, _EXIT);
-
-			nNumOfTasks = pstCurrentTaskGraph->nNumOfTasks;
-		}
-
-		result = UCDynamicStack_Length(hStack, &nStackNum);
-		ERRIFGOTO(result, _EXIT);
-	}
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-
-static uem_result traverseAndHandleAllTasks(STask *pstTask, void *pUserData)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	FnCbHandleGeneralTask fnCallback = NULL;
-
-	fnCallback = (FnCbHandleGeneralTask) pUserData;
-
-	result = fnCallback(pstTask);
-	ERRIFGOTO(result, _EXIT);
-_EXIT:
-	return result;
-}
-
-
-static uem_result handleSubgraphTasks(STask *pstParentTask, FnCbHandleGeneralTask fnCallback)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	HStack hStack = NULL;
-
-	if(pstParentTask != NULL)
-	{
-		result = UCDynamicStack_Create(&hStack);
-		ERRIFGOTO(result, _EXIT);
-
-		result = callFunctionsInHierarchicalTaskGraph(pstParentTask, fnCallback, hStack);
-		ERRIFGOTO(result, _EXIT);
-	}
-	else
-	{
-		result = UKTask_TraverseAllTasks(traverseAndHandleAllTasks, fnCallback);
-		ERRIFGOTO(result, _EXIT);
-	}
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	if(hStack != NULL)
-	{
-		UCDynamicStack_Destroy(&hStack, NULL, NULL);
-	}
-	return result;
-}
-
-
-static uem_result setChannelExitFlags(STask *pstLeafTask)
+static uem_result setChannelExitFlags(STask *pstLeafTask, void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
@@ -769,7 +616,7 @@ static uem_result changeCompositeTaskState(SCompositeTask *pstCompositeTask, ECP
 	if(enTargetState == TASK_STATE_STOPPING && pstCompositeTask->pstParentTask != NULL && pstCompositeTask->pstParentTask->pstSubGraph != NULL)
 	{
 		// release channel block related to the task to be stopped
-		result = handleSubgraphTasks(pstCompositeTask->pstParentTask, setChannelExitFlags);
+		result = UKCPUTaskCommon_TraverseSubGraphTasks(pstCompositeTask->pstParentTask, setChannelExitFlags, NULL);
 		ERRIFGOTO(result, _EXIT);
 	}
 
@@ -1275,7 +1122,7 @@ _EXIT:
 }
 
 
-static uem_result callInitFunction(STask *pstLeafTask)
+static uem_result callInitFunction(STask *pstLeafTask, void *pUserData)
 {
 	int nLoop = 0;
 
@@ -1287,7 +1134,7 @@ static uem_result callInitFunction(STask *pstLeafTask)
 	return ERR_UEM_NOERROR;
 }
 
-static uem_result callWrapupFunction(STask *pstLeafTask)
+static uem_result callWrapupFunction(STask *pstLeafTask, void *pUserData)
 {
 	int nLoop = 0;
 
@@ -1300,7 +1147,7 @@ static uem_result callWrapupFunction(STask *pstLeafTask)
 }
 
 
-static uem_result clearChannelExitFlags(STask *pstLeafTask)
+static uem_result clearChannelExitFlags(STask *pstLeafTask, void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
@@ -1348,7 +1195,7 @@ uem_result UKCPUCompositeTaskManager_CreateThread(HCPUCompositeTaskManager hMana
 	ERRIFGOTO(result, _EXIT);
 
 	// call init functions
-	result = handleSubgraphTasks(pstCompositeTask->pstParentTask, callInitFunction);
+	result = UKCPUTaskCommon_TraverseSubGraphTasks(pstCompositeTask->pstParentTask, callInitFunction, NULL);
 	ERRIFGOTO(result, _EXIT);
 
 	stCreateData.pstCompositeTask = pstCompositeTask;
@@ -1524,12 +1371,12 @@ uem_result UKCPUCompositeTaskManager_GetTaskState(HCPUCompositeTaskManager hMana
 			ERRIFGOTO(result, _EXIT);
 
 			// call wrapup functions
-			result = handleSubgraphTasks(pstCompositeTask->pstParentTask, callWrapupFunction);
+			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstCompositeTask->pstParentTask, callWrapupFunction, NULL);
 			UCThreadMutex_Lock(pstTaskManager->hMutex);
 			ERRIFGOTO(result, _EXIT);
 
 			// clear channel exit flags
-			result = handleSubgraphTasks(pstCompositeTask->pstParentTask, clearChannelExitFlags);
+			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstCompositeTask->pstParentTask, clearChannelExitFlags, NULL);
 			ERRIFGOTO(result, _EXIT);
 
 			pstCompositeTask->bCreated = FALSE;
@@ -1605,7 +1452,7 @@ static uem_result destroyCompositeTaskThread(SCompositeTask *pstCompositeTask, S
 		ERRIFGOTO(result, _EXIT);
 
 		// set channel block free
-		result = handleSubgraphTasks(pstCompositeTask->pstParentTask, setChannelExitFlags);
+		result = UKCPUTaskCommon_TraverseSubGraphTasks(pstCompositeTask->pstParentTask, setChannelExitFlags, NULL);
 		ERRIFGOTO(result, _EXIT);
 
 		stStopUserData.pstCompositeTask = pstCompositeTask;
@@ -1618,12 +1465,12 @@ static uem_result destroyCompositeTaskThread(SCompositeTask *pstCompositeTask, S
 		ERRIFGOTO(result, _EXIT);
 
 		// call wrapup functions
-		result = handleSubgraphTasks(pstCompositeTask->pstParentTask, callWrapupFunction);
+		result = UKCPUTaskCommon_TraverseSubGraphTasks(pstCompositeTask->pstParentTask, callWrapupFunction, NULL);
 		UCThreadMutex_Lock(pstTaskManager->hMutex);
 		ERRIFGOTO(result, _EXIT);
 
 		// clear channel exit flags
-		result = handleSubgraphTasks(pstCompositeTask->pstParentTask, clearChannelExitFlags);
+		result = UKCPUTaskCommon_TraverseSubGraphTasks(pstCompositeTask->pstParentTask, clearChannelExitFlags, NULL);
 		ERRIFGOTO(result, _EXIT);
 
 		pstCompositeTask->bCreated = FALSE;
