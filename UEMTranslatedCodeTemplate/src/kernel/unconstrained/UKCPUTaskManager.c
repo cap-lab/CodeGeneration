@@ -38,6 +38,14 @@ typedef struct _SCPUTaskManager {
 } SCPUTaskManager;
 
 
+typedef struct _SSubgraphTaskStateUserData {
+	HCPUGeneralTaskManager hGeneralTaskManager;
+	int nTaskStateStop;
+	int nTaskStateRunning;
+	int nTaskStateStopping;
+	int nTaskStateSuspend;
+} SSubgraphTaskStateUserData;
+
 uem_result UKCPUTaskManager_Create(OUT HCPUTaskManager *phCPUTaskManager)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -515,11 +523,88 @@ _EXIT:
 }
 
 
+static uem_result getTaskStateDataflowSubgraphTask(STask *pstTask, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	HCPUGeneralTaskManager hGeneralTaskManager = NULL;
+	SSubgraphTaskStateUserData *pstUserData = NULL;
+	ECPUTaskState enTaskState;
+
+	pstUserData = (SSubgraphTaskStateUserData *) pUserData;
+
+	hGeneralTaskManager = pstUserData->hGeneralTaskManager;
+
+	result = UKCPUGeneralTaskManager_GetTaskState(hGeneralTaskManager, pstTask, &enTaskState);
+	ERRIFGOTO(result, _EXIT);
+
+	switch(enTaskState)
+	{
+	case TASK_STATE_RUNNING:
+		pstUserData->nTaskStateRunning++;
+		break;
+	case TASK_STATE_STOP:
+		pstUserData->nTaskStateStop++;
+		break;
+	case TASK_STATE_STOPPING:
+		pstUserData->nTaskStateStopping++;
+		break;
+	case TASK_STATE_SUSPEND:
+		pstUserData->nTaskStateSuspend++;
+		break;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result getSubgraphTaskState(HCPUGeneralTaskManager hGeneralTaskManager, STask *pstTask, OUT ECPUTaskState *penTaskState)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SSubgraphTaskStateUserData stUserData;
+	ECPUTaskState enTaskState;
+
+	stUserData.hGeneralTaskManager = hGeneralTaskManager;
+	stUserData.nTaskStateStopping = 0;
+	stUserData.nTaskStateRunning = 0;
+	stUserData.nTaskStateStop = 0;
+	stUserData.nTaskStateSuspend = 0;
+
+	result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, getTaskStateDataflowSubgraphTask, &stUserData);
+	ERRIFGOTO(result, _EXIT);
+
+	if(stUserData.nTaskStateRunning > 0)
+	{
+		enTaskState = TASK_STATE_RUNNING;
+	}
+	else if(stUserData.nTaskStateSuspend > 0)
+	{
+		enTaskState = TASK_STATE_SUSPEND;
+	}
+	else if(stUserData.nTaskStateStopping > 0)
+	{
+		enTaskState = TASK_STATE_STOPPING;
+	}
+	else
+	{
+		enTaskState = TASK_STATE_STOP;
+	}
+
+	*penTaskState = enTaskState;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUTaskManager, int nTaskId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
 	STask *pstTask = NULL;
+	ECPUTaskState enTaskState;
 #ifdef ARGUMENT_CHECK
 	if (IS_VALID_HANDLE(hCPUTaskManager, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
@@ -548,6 +633,17 @@ uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUTaskManager, int nTaskI
 		}
 		else
 		{
+			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, stoppingDataflowSubgraphTask, pstManager->hGeneralManager);
+			ERRIFGOTO(result, _EXIT);
+
+			do // wait for the tasks are going to be stopped
+			{
+				UCThread_Yield();
+
+				result = getSubgraphTaskState(pstManager->hGeneralManager, pstTask, &enTaskState);
+				ERRIFGOTO(result, _EXIT);
+			}while(enTaskState != TASK_STATE_STOP);
+
 			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, stopDataflowSubgraphTask, pstManager->hGeneralManager);
 			ERRIFGOTO(result, _EXIT);
 		}
@@ -734,7 +830,6 @@ _EXIT:
 	return result;
 }
 
-
 uem_result UKCPUTaskManager_GetTaskState(HCPUTaskManager hCPUTaskManager, int nTaskId, EInternalTaskState *penTaskState)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -763,9 +858,18 @@ uem_result UKCPUTaskManager_GetTaskState(HCPUTaskManager hCPUTaskManager, int nT
 		result = UKCPUCompositeTaskManager_GetTaskState(pstManager->hCompositeManager, pstTask, &enTaskState);
 		ERRIFGOTO(result, _EXIT);
 	}
-	else if(pstTask->pstSubGraph != NULL) // task with subgraph which is not static scheduled cannot be controlled
+	else if(pstTask->pstSubGraph != NULL)
 	{
-		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		// task with subgraph which is not SDF cannot be controlled
+		if(pstTask->pstSubGraph->enType == GRAPH_TYPE_PROCESS_NETWORK)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		}
+		else
+		{
+			result = getSubgraphTaskState(pstManager->hGeneralManager, pstTask, &enTaskState);
+			ERRIFGOTO(result, _EXIT);
+		}
 	}
 	else
 	{

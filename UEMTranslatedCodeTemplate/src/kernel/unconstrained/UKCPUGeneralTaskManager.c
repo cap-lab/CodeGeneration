@@ -467,7 +467,25 @@ _EXIT:
 }
 
 
-static uem_result increaseRunCount(STask *pstTask)
+static uem_result clearRunCount(STask *pstTask)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	result = UCThreadMutex_Lock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	pstTask->nCurRunInIteration = 0;
+	pstTask->nCurIteration = 0;
+
+	result = ERR_UEM_NOERROR;
+
+	UCThreadMutex_Unlock(pstTask->hMutex);
+_EXIT:
+	return result;
+}
+
+
+static uem_result increaseRunCount(STask *pstTask, uem_bool *pbIterationClear)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nModeNum;
@@ -475,6 +493,7 @@ static uem_result increaseRunCount(STask *pstTask)
 	int nCurModeIndex = 0;
 	int nLoop = 0;
 	int nIndex = 0;
+	uem_bool bIterationClear = FALSE;
 
 	result = UCThreadMutex_Lock(pstTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
@@ -510,6 +529,12 @@ static uem_result increaseRunCount(STask *pstTask)
 	{
 		pstTask->nCurRunInIteration = 0;
 		pstTask->nCurIteration++;
+		bIterationClear = TRUE;
+	}
+
+	if(pbIterationClear != NULL)
+	{
+		*pbIterationClear = bIterationClear;
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -530,6 +555,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 	ERunCondition enRunCondition;
 	uem_bool bFunctionCalled = TRUE;
 	int nExecutionCount = 0;
+	uem_bool bIterationClear = FALSE;
 
 	pstCurrentTask = pstGeneralTask->pstTask;
 	enRunCondition = pstCurrentTask->enRunCondition;
@@ -553,7 +579,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 				{
 					//printf("%s (time-driven, Proc: %d, func_id: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId);
 					nExecutionCount++;
-					result = increaseRunCount(pstCurrentTask);
+					result = increaseRunCount(pstCurrentTask, &bIterationClear);
 					ERRIFGOTO(result, _EXIT);
 				}
 				break;
@@ -561,14 +587,14 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 				fnGo(pstCurrentTask->nTaskId);
 				//printf("%s (data-driven, Proc: %d, func_id: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId);
 				nExecutionCount++;
-				result = increaseRunCount(pstCurrentTask);
+				result = increaseRunCount(pstCurrentTask, &bIterationClear);
 				ERRIFGOTO(result, _EXIT);
 				break;
 			case RUN_CONDITION_CONTROL_DRIVEN: // run once for control-driven leaf task
 				fnGo(pstCurrentTask->nTaskId);
 				//printf("%s (control-driven, Proc: %d, func_id: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId);
 				nExecutionCount++;
-				result = increaseRunCount(pstCurrentTask);
+				result = increaseRunCount(pstCurrentTask, &bIterationClear);
 				ERRIFGOTO(result, _EXIT);
 				UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
 				break;
@@ -578,7 +604,13 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			}
 			break;
 		case TASK_STATE_STOPPING:
-			//fnGo(pstCurrentTask->nTaskId);
+			// run until iteration count;
+			while(bIterationClear == FALSE)
+			{
+				fnGo(pstCurrentTask->nTaskId);
+				result = increaseRunCount(pstCurrentTask, &bIterationClear);
+				ERRIFGOTO(result, _EXIT);
+			}
 			UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
 			break;
 		case TASK_STATE_STOP:
@@ -722,6 +754,9 @@ uem_result UKCPUGeneralTaskManager_CreateThread(HCPUGeneralTaskManager hManager,
 		ERRIFGOTO(result, _EXIT_LOCK);
 
 		pstGeneralTask->bCreated = TRUE;
+
+		result = clearRunCount(pstTargetTask);
+		ERRIFGOTO(result, _EXIT_LOCK);
 	}
 
 	result = ERR_UEM_NOERROR;
