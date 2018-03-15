@@ -673,7 +673,7 @@ public class Application {
 		return graph;
 	}
 	
-	private void handleScheduleElement(SDFGraph graph, mocgraph.sched.Schedule schedule, String modeName)
+	private void handleScheduleElement(SDFGraph graph, mocgraph.sched.Schedule schedule, int modeId)
 	{
 		Task task;
 		int taskRep;
@@ -683,25 +683,25 @@ public class Application {
 			if (scheduleElement instanceof mocgraph.sched.Schedule) 
 			{
 				mocgraph.sched.Schedule innerSchedule = (mocgraph.sched.Schedule) scheduleElement;
-				handleScheduleElement(graph, innerSchedule, modeName);
+				handleScheduleElement(graph, innerSchedule, modeId);
 			} else if (scheduleElement instanceof Firing) {
 				Firing firing = (Firing) scheduleElement;
 				String taskName = graph.getName((Node) firing.getFiringElement());
 				task = this.taskMap.get(taskName);
-				if(task.getIterationCountList().containsKey(modeName) == true)
+				if(task.getIterationCountList().containsKey(modeId+"") == true)
 				{
-					taskRep = task.getIterationCountList().get(modeName).intValue() + firing.getIterationCount();
+					taskRep = task.getIterationCountList().get(modeId+"").intValue() + firing.getIterationCount();
 				}
 				else
 				{
 					taskRep = firing.getIterationCount();
 				}
-				task.getIterationCountList().put(modeName, taskRep);
+				task.getIterationCountList().put(modeId+"", taskRep);
 			}
 		}
 	}
 	
-	private void setIndividualIterationCount(ArrayList<Task> taskList, SDFGraph graph, String modeName)
+	private void setIndividualIterationCount(ArrayList<Task> taskList, SDFGraph graph, int modeId)
 	{
 		mocgraph.sched.Schedule schedule;
 		
@@ -716,7 +716,7 @@ public class Application {
 			schedule = st.schedule();
 		}
 		
-		handleScheduleElement(graph, schedule, modeName);
+		handleScheduleElement(graph, schedule, modeId);
 	}
 	
 	private void setIterationCount(HashMap<String, TaskGraph> taskGraphMap)
@@ -751,7 +751,7 @@ public class Application {
 						
 						if(graph != null)
 						{
-							setIndividualIterationCount(taskGraph.getTaskList(), graph, mode.getName());
+							setIndividualIterationCount(taskGraph.getTaskList(), graph, mode.getId());
 						}
 					}
 				}
@@ -761,7 +761,7 @@ public class Application {
 					
 					if(graph != null)
 					{
-						setIndividualIterationCount(taskGraph.getTaskList(), graph, Constants.DEFAULT_MODE_NAME);
+						setIndividualIterationCount(taskGraph.getTaskList(), graph, 0);
 					}
 				}
 			}

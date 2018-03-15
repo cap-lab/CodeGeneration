@@ -327,6 +327,20 @@ SChannel g_astChannels[] = {
 };
 // ##CHANNEL_LIST_TEMPLATE::END
 
+// ##TASK_ITERATION_TEMPLATE::START
+<#list flat_task as task_name, task>
+STaskIteration g_astTaskIteration_${task_name}[] = {
+	<#list task.iterationCountList as mode_id, count_value>
+	{
+		${mode_id}, // Mode ID
+		${count_value}, // iteration count
+	},
+	</#list>	
+};
+
+</#list>
+// ##TASK_ITERATION_TEMPLATE::END
+
 
 // ##TASK_LIST_TEMPLATE::START
 <#list task_graph as graph_name, task_graph>
@@ -351,6 +365,9 @@ STask g_astTasks_${task_graph.name}[] = {
 		0,	  // Throughput constraint
 		NULL, // Mutex
 		NULL, // Conditional variable
+		g_astTaskIteration_${task.name}, // Task iteration count (only used when the parent task graph is data flow)
+		0, // current run count in iteration
+		0, // current iteration
 	},
 	</#list>
 };

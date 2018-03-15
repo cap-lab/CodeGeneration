@@ -182,6 +182,11 @@ typedef struct _STaskFunctions {
 	FnUemTaskWrapup fnWrapup;
 } STaskFunctions;
 
+typedef struct _STaskIteration {
+	int nModeId;
+	int nRunInIteration;
+} STaskIteration;
+
 typedef struct _STask {
 	int nTaskId;
 	const char *pszTaskName;
@@ -202,6 +207,9 @@ typedef struct _STask {
 	int nThroughputConstraint;
 	HThreadMutex hMutex;
 	HThreadEvent hEvent;
+	STaskIteration *astTaskIteration;
+	int nCurRunInIteration;
+	int nCurIteration;
 } STask;
 
 typedef struct _SChunk {
