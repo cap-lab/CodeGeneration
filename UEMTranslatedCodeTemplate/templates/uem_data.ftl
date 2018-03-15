@@ -333,7 +333,7 @@ STaskIteration g_astTaskIteration_${task_name}[] = {
 	<#list task.iterationCountList as mode_id, count_value>
 	{
 		${mode_id}, // Mode ID
-		${count_value}, // iteration count
+		<#if count_value == 0>1<#else>${count_value}</#if>>, // iteration count
 	},
 	</#list>	
 };

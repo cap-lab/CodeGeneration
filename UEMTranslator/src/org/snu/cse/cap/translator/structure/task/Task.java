@@ -86,7 +86,7 @@ public class Task {
 		this.iterationCountList = new HashMap<String, Integer>();
 		
 		// mode 0 with single iteration is the default iteration count for all tasks
-		this.iterationCountList.put(0+"", 1);
+		this.iterationCountList.put(0+"", 0);
 	
 		setId(id);
 		setName(xmlTaskData.getName());
