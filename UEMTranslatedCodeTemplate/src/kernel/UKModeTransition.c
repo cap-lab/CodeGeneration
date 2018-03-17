@@ -100,6 +100,8 @@ EModeState UKModeTransition_GetModeState(int nTaskId)
 	result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
+	IFVARERRASSIGNGOTO(pstTask->pstMTMInfo, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
 	result = UCThreadMutex_Lock(pstTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
 

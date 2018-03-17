@@ -333,7 +333,7 @@ STaskIteration g_astTaskIteration_${task_name}[] = {
 	<#list task.iterationCountList as mode_id, count_value>
 	{
 		${mode_id}, // Mode ID
-		<#if count_value == 0>1<#else>${count_value}</#if>>, // iteration count
+		<#if count_value == 0>1<#else>${count_value}</#if>, // iteration count
 	},
 	</#list>	
 };
@@ -453,17 +453,16 @@ ${innerspace}
 ${innerspace}	if(enModeState == MODE_STATE_TRANSITING)
 ${innerspace}	{
 ${innerspace}		${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}(${flat_task[scheduleItem.taskName].id});//printf("${scheduleItem.taskName}_Go${scheduleItem.taskFuncId} called-- (Line: %d)\n", __LINE__);
-${innerspace}	}
-${innerspace}	result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
-${innerspace}	if(result == ERR_UEM_NOERROR)
-${innerspace}	{
-${innerspace}		result = UCThreadMutex_Lock(pstTask->hMutex);
-${innerspace}		if(result == ERR_UEM_NOERROR){
-${innerspace}			transitMode_${parentTaskName}(g_astTasks_${flat_task[parentTaskName].parentTaskGraphName}[${flat_task[parentTaskName].inGraphIndex}].pstMTMInfo);
-${innerspace}			UCThreadMutex_Unlock(pstTask->hMutex);
+${innerspace}		result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
+${innerspace}		if(result == ERR_UEM_NOERROR)
+${innerspace}		{
+${innerspace}			result = UCThreadMutex_Lock(pstTask->hMutex);
+${innerspace}			if(result == ERR_UEM_NOERROR){
+${innerspace}				transitMode_${parentTaskName}(g_astTasks_${flat_task[parentTaskName].parentTaskGraphName}[${flat_task[parentTaskName].inGraphIndex}].pstMTMInfo);
+${innerspace}				UCThreadMutex_Unlock(pstTask->hMutex);
+${innerspace}			}	
+${innerspace}			return; // exit when the mode is MODE_STATE_TRANSITING
 ${innerspace}		}
-${innerspace}		
-${innerspace}		return; // exit when the mode is MODE_STATE_TRANSITING
 ${innerspace}	}
 ${innerspace}}
 		<#else>

@@ -21,7 +21,14 @@ public class TaskGraph {
 		this.taskList = new ArrayList<Task>();
 		this.name = graphName;
 		this.parentTask = null;
-		this.taskGraphType = TaskGraphType.fromValue(taskGraphType);
+		if(taskGraphType != null)
+		{
+			this.taskGraphType = TaskGraphType.fromValue(taskGraphType);	
+		}
+		else
+		{
+			this.taskGraphType = TaskGraphType.PROCESS_NETWORK;
+		}
 	}
 	
 	public void putTask(Task task) {

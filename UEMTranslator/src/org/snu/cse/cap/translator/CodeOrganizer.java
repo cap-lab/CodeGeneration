@@ -347,5 +347,9 @@ public class CodeOrganizer {
 	public ArrayList<String> getTaskSourceCodeList() {
 		return taskSourceCodeList;
 	}
+
+	public HashSet<String> getExtraSourceCodeSet() {
+		return extraSourceCodeSet;
+	}
 }
 

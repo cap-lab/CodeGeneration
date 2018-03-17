@@ -22,7 +22,7 @@ APPLICATION_SOURCES=<#list build_info.taskSourceCodeList as source_file><#if (so
 	</#if>$(APPLICATION_DIR)/${source_file}.c<#if (source_file?index < build_info.taskSourceCodeList?size - 1)>\</#if></#list>
 
 EXTRA_SOURCES=<#if build_info.extraSourceCodeSet??><#list build_info.extraSourceCodeSet as source_file><#if (source_file?index > 0)>
-	</#if>$(APPLICATION_DIR)/${source_file}.c<#if (source_file?index < build_info.extraSourceCodeSet?size - 1)>\</#if></#list></#if>
+	</#if>$(APPLICATION_DIR)/${source_file}<#if (source_file?index < build_info.extraSourceCodeSet?size - 1)>\</#if></#list></#if>
 
 API_SOURCES=<#list build_info.apiSourceList as source_file><#if (source_file?index > 0)>
 	</#if>$(API_DIR)/${source_file}<#if (source_file?index < build_info.apiSourceList?size - 1)>\</#if></#list>
