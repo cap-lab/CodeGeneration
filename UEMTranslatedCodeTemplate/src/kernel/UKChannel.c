@@ -16,6 +16,7 @@
 #include <UCString.h>
 
 #include <uem_data.h>
+#include <UKTask.h>
 #include <UKSharedMemoryChannel.h>
 
 typedef uem_result (*FnChannelInitialize)(SChannel *pstChannel);
@@ -552,6 +553,58 @@ uem_result UKChannel_ClearExitByTaskId(int nTaskId)
 	return result;
 }
 
+static uem_bool matchIsSubgraphPort(SPort *pstPort, int nParentTaskId)
+{
+	uem_bool bIsMatched = FALSE;
+
+	while(pstPort != NULL)
+	{
+		if(UKTask_isParentTask(pstPort->nTaskId, nParentTaskId) == TRUE)
+		{
+			bIsMatched = TRUE;
+			break;
+		}
+
+		pstPort = pstPort->pstSubGraphPort;
+	}
+
+	return bIsMatched;
+}
+
+uem_result UKChannel_ClearChannelInSubgraph(int nParentTaskId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop = 0;
+	SChannelAPI *pstChannelAPI = NULL;
+
+	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
+	{
+		result = getAPIStructureFromCommunicationType(g_astChannels[nLoop].enType, &pstChannelAPI);
+		ERRIFGOTO(result, _EXIT);
+
+		if(matchIsSubgraphPort(&(g_astChannels[nLoop].stInputPort), nParentTaskId) == TRUE &&
+			matchIsSubgraphPort(&(g_astChannels[nLoop].stOutputPort), nParentTaskId) == TRUE)
+		{ // this channel is located in subgraph
+
+			result = pstChannelAPI->fnClear(&(g_astChannels[nLoop]));
+			ERRIFGOTO(result, _EXIT);
+
+			if(g_astChannels[nLoop].nInitialDataLen > 0)
+			{
+				result = fillInitialData(&(g_astChannels[nLoop]), pstChannelAPI);
+				ERRIFGOTO(result, _EXIT);
+			}
+		}
+		else
+		{
+			// no match
+		}
+
+	}
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
 
 
 uem_result UKChannel_Finalize()

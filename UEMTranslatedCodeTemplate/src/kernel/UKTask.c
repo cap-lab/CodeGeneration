@@ -299,6 +299,33 @@ _EXIT:
 	return result;
 }
 
+uem_bool UKTask_isParentTask(int nTaskId, int nParentTaskId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask *pstTask = NULL;
+	STask *pstParentTask = NULL;
+	uem_bool bIsParentTask = FALSE;
+
+	result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	pstParentTask = pstTask->pstParentGraph->pstParentTask;
+
+	while(pstParentTask != NULL)
+	{
+		if(pstParentTask->nTaskId == nParentTaskId)
+		{
+			bIsParentTask = TRUE;
+			break;
+		}
+
+		pstParentTask = pstParentTask->pstParentGraph->pstParentTask;
+	}
+
+_EXIT:
+	return bIsParentTask;
+}
+
 
 uem_result UKTask_SetThroughputConstraint (IN char *pszTaskName, IN char *pszValue, IN char *pszUnit)
 {

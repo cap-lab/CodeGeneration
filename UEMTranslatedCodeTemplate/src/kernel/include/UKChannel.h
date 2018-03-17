@@ -28,6 +28,7 @@ uem_bool UKChannel_IsTaskSourceTask(int nTaskId);
 uem_result UKChannel_SetExit();
 uem_result UKChannel_SetExitByTaskId(int nTaskId);
 uem_result UKChannel_ClearExitByTaskId(int nTaskId);
+uem_result UKChannel_ClearChannelInSubgraph(int nParentTaskId);
 uem_result UKChannel_Finalize();
 
 

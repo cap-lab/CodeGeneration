@@ -635,12 +635,12 @@ static uem_result traverseAndCheckDifferentModeIsAllSuspended(IN int nOffset, IN
 
 	if(pstTaskThread->enTaskState != TASK_STATE_SUSPEND && pstTaskThread->enTaskState != TASK_STATE_STOP)
 	{
-		//printf("not end task: %p (%d)\n", pstTaskThread, pstTaskThread->enTaskState);
+		//printf("not end task: %p (%d), mode: %d, proc: %d\n", pstTaskThread, pstTaskThread->enTaskState, pstTaskThread->nModeId, pstTaskThread->nProcId);
 		pstUserData->bAllSuspended = FALSE;
 	}
 	else
 	{
-		//printf("end task: %p (%d)\n", pstTaskThread, pstTaskThread->enTaskState);
+		//printf("end task: %p (%d), mode: %d, proc: %d\n", pstTaskThread, pstTaskThread->enTaskState, pstTaskThread->nModeId, pstTaskThread->nProcId);
 	}
 
 	return ERR_UEM_NOERROR;
@@ -683,6 +683,8 @@ static uem_result handleCompositeTaskModeTransition(SCompositeTaskThread *pstTas
 			result = UCDynamicLinkedList_Traverse(pstTask->hThreadList, traverseAndSetEventToTemporarySuspendedTask, &stNewModeData);
 			ERRIFGOTO(result, _EXIT);
 		}
+
+		//printf("mode state: MODE_STATE_TRANSITING to MODE_STATE_NORMAL\n");
 	}
 	else
 	{
@@ -713,6 +715,8 @@ static uem_result handleCompositeTaskModeTransition(SCompositeTaskThread *pstTas
 				result = UCDynamicLinkedList_Traverse(pstTask->hThreadList, traverseAndSetEventToTaskThread, NULL);
 				ERRIFGOTO(result, _EXIT);
 			}
+
+			//printf("mode state: MODE_STATE_NORMAL to MODE_STATE_TRANSITING\n");
 		}
 	}
 
@@ -1134,6 +1138,7 @@ static uem_result callInitFunction(STask *pstLeafTask, void *pUserData)
 	return ERR_UEM_NOERROR;
 }
 
+
 static uem_result callWrapupFunction(STask *pstLeafTask, void *pUserData)
 {
 	int nLoop = 0;
@@ -1185,18 +1190,28 @@ uem_result UKCPUCompositeTaskManager_CreateThread(HCPUCompositeTaskManager hMana
 	result = findMatchingCompositeTask(pstTaskManager, nTaskId, &pstCompositeTask);
 	ERRIFGOTO(result, _EXIT_LOCK);
 
-	// Throughput constraint setting is occurred here.
-	if(pstCompositeTask->pstParentTask->nThroughputConstraint > 0)
+	if(pstCompositeTask->pstParentTask != NULL)
 	{
-		pstCompositeTask->nCurrentThroughputConstraint = pstCompositeTask->pstParentTask->nThroughputConstraint;
+		// Throughput constraint setting is occurred here.
+		if(pstCompositeTask->pstParentTask->nThroughputConstraint > 0)
+		{
+			pstCompositeTask->nCurrentThroughputConstraint = pstCompositeTask->pstParentTask->nThroughputConstraint;
+		}
+
+		// clear channels
+		result = UKChannel_ClearChannelInSubgraph(pstCompositeTask->pstParentTask->nTaskId);
+		ERRIFGOTO(result, _EXIT_LOCK);
 	}
 
 	result = UCThreadMutex_Unlock(pstTaskManager->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	// call init functions
-	result = UKCPUTaskCommon_TraverseSubGraphTasks(pstCompositeTask->pstParentTask, callInitFunction, NULL);
-	ERRIFGOTO(result, _EXIT);
+	if(pstCompositeTask->pstParentTask != NULL)
+	{
+		// call init functions (if pstCompositeTask->pstParentTask is NULL, the whole graph is initialized when UKChannel_Initialze is called)
+		result = UKCPUTaskCommon_TraverseSubGraphTasks(pstCompositeTask->pstParentTask, callInitFunction, NULL);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	stCreateData.pstCompositeTask = pstCompositeTask;
 
