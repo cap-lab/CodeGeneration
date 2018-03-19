@@ -530,6 +530,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			while(bTargetIterationReached == FALSE)
 			{
 				fnGo(pstCurrentTask->nTaskId);
+				nExecutionCount++;
 				result = UKTask_IncreaseRunCount(pstCurrentTask, &bTargetIterationReached);
 				ERRIFGOTO(result, _EXIT);
 			}

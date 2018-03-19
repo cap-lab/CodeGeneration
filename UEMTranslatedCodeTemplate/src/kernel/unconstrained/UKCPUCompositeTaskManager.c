@@ -38,6 +38,8 @@ typedef struct _SCompositeTaskThread {
 	uem_bool bSuspended; // modified
 	HCPUCompositeTaskManager hManager; // handle for accessing higher data structures
 	uem_bool bHasSourceTask; // the composite task thread contains source task in this thread
+	int nIteration;
+
 } SCompositeTaskThread;
 
 
@@ -50,6 +52,7 @@ typedef struct _SCompositeTask {
 	ECPUTaskState enTaskState; // modified
 	int nCurrentThroughputConstraint; // modified
 	uem_bool bCreated; // modified
+	int nTargetIteration;
 } SCompositeTask;
 
 
@@ -102,6 +105,7 @@ struct _SCompositeStopTaskTraverse {
 struct _SModeTransitionSetEventCheck {
 	int nModeId;
 	SCompositeTaskThread *pstCurrentThread;
+	int nTargetIteration;
 };
 
 struct _SModeTransitionSuspendCheck {
@@ -181,6 +185,7 @@ static uem_result createCompositeTaskThreadStructPerSchedule(SMappedCompositeTas
 	pstCompositeTaskThread->hEvent = NULL;
 	pstCompositeTaskThread->bSuspended = FALSE;
 	pstCompositeTaskThread->bHasSourceTask = pstMappedInfo->pstScheduledTasks->astScheduleList[nScheduleIndex].bHasSourceTask;
+	pstCompositeTaskThread->nIteration = 0;
 
 	result = UCThreadEvent_Create(&(pstCompositeTaskThread->hEvent));
 	ERRIFGOTO(result, _EXIT);
@@ -231,6 +236,7 @@ static uem_result createCompositeTaskStruct(HCPUCompositeTaskManager hCPUTaskMan
 	pstCompositeTask->hThreadList = NULL;
 	pstCompositeTask->bCreated = FALSE;
 	pstCompositeTask->enTaskState = TASK_STATE_STOP;
+	pstCompositeTask->nTargetIteration = 0;
 	if(pstMappedInfo->pstScheduledTasks->pstParentTask == NULL)
 	{
 		pstCompositeTask->enTaskState = TASK_STATE_RUNNING;
@@ -780,6 +786,10 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 				// pstCurrentTask is not NULL because whole task graph is a data-driven task graph
 				result = UKCPUTaskCommon_HandleTimeDrivenTask(pstCompositeTask->pstParentTask, fnGo, &llNextTime, &nRunCount, &nMaxRunCount, &bFunctionCalled);
 				ERRIFGOTO(result, _EXIT);
+				if(bFunctionCalled == TRUE)
+				{
+					pstTaskThread->nIteration++;
+				}
 				break;
 			case RUN_CONDITION_DATA_DRIVEN:
 				if(pstCompositeTask->pstParentTask != NULL)
@@ -790,9 +800,11 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 				{
 					fnGo(INVALID_TASK_ID);
 				}
+				pstTaskThread->nIteration++;
 				break;
 			case RUN_CONDITION_CONTROL_DRIVEN: // run once for control-driven leaf task
 				fnGo(pstCompositeTask->pstParentTask->nTaskId);
+				pstTaskThread->nIteration++;
 				if(pstCompositeTask->pstParentTask != NULL)
 				{
 					printf("Composite task (control driven) : %s\n", pstCompositeTask->pstParentTask->pszTaskName);
@@ -804,14 +816,42 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 				break;
 			}
 
-			if(isModeTransitionTask(pstCompositeTask) == TRUE && bFunctionCalled == TRUE &&
-				pstCompositeTask->enTaskState == TASK_STATE_RUNNING)
+			if(isModeTransitionTask(pstCompositeTask) == TRUE)
 			{
-				result = handleCompositeTaskModeTransition(pstTaskThread, pstCompositeTask);
+				if(bFunctionCalled == TRUE && pstCompositeTask->enTaskState == TASK_STATE_RUNNING)
+				{
+					result = handleCompositeTaskModeTransition(pstTaskThread, pstCompositeTask);
+					ERRIFGOTO(result, _EXIT);
+				}
+			}
+			else
+			{
+				result = UCThreadMutex_Lock(pstCompositeTask->hMutex);
+				ERRIFGOTO(result, _EXIT);
+				if(pstCompositeTask->nTargetIteration < pstTaskThread->nIteration)
+				{
+					pstCompositeTask->nTargetIteration = pstTaskThread->nIteration;
+				}
+				result = UCThreadMutex_Unlock(pstCompositeTask->hMutex);
 				ERRIFGOTO(result, _EXIT);
 			}
 			break;
 		case TASK_STATE_STOPPING:
+			if(isModeTransitionTask(pstCompositeTask) == FALSE)
+			{
+				while(pstTaskThread->nIteration < pstCompositeTask->nTargetIteration)
+				{
+					if(pstCompositeTask->pstParentTask != NULL)
+					{
+						fnGo(pstCompositeTask->pstParentTask->nTaskId);
+					}
+					else // if pstCurrentTask is NULL, the whole task graph is a composite task
+					{
+						fnGo(INVALID_TASK_ID);
+					}
+					pstTaskThread->nIteration++;
+				}
+			}
 			UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
 			break;
 		case TASK_STATE_STOP:
@@ -839,7 +879,7 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 _EXIT:
 	if(pstCompositeTask->pstParentTask != NULL)
 	{
-		printf("Composite task out : %s\n", pstCompositeTask->pstParentTask->pszTaskName);
+		printf("Composite task out : %s, %d (%d), mode: %d\n", pstCompositeTask->pstParentTask->pszTaskName, pstTaskThread->nIteration, pstTaskThread->bHasSourceTask, pstTaskThread->nModeId);
 	}
 	return result;
 }
@@ -891,8 +931,10 @@ static uem_result createCompositeTaskThread(IN int nOffset, IN void *pData, IN v
 
 	if(pstCompositeTask->nCurrentThroughputConstraint == pstTaskThread->nThroughputConstraint)
 	{
+		pstCompositeTask->nTargetIteration = 0;
 		pstTaskThread->bIsThreadFinished = FALSE;
 		pstTaskThread->bSuspended = TRUE;
+		pstTaskThread->nIteration = 0;
 
 		result = UCThreadMutex_Unlock(pstCompositeTask->hMutex);
 		ERRIFGOTO(result, _EXIT);
