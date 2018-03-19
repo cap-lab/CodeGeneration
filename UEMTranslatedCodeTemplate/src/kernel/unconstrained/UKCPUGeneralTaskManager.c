@@ -725,6 +725,76 @@ _EXIT:
 }
 
 
+static uem_result traverseAndCheckStoppingThread(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SGeneralTaskThread *pstTaskThread = NULL;
+	struct _SGeneralTaskStopCheck *pstStopCheck = NULL;
+	SCPUGeneralTaskManager *pstManager = NULL;
+	HThread hThread = NULL;
+
+	pstTaskThread = (SGeneralTaskThread *) pData;
+	pstStopCheck = (struct _SGeneralTaskStopCheck *) pUserData;
+	pstManager = pstStopCheck->pstManager;
+
+	if(pstTaskThread->hThread != NULL && pstTaskThread->bIsThreadFinished == TRUE)
+	{
+		hThread = pstTaskThread->hThread;
+		pstTaskThread->hThread = NULL;
+		result = UCThreadMutex_Unlock(pstManager->hMutex);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UCThread_Destroy(&hThread, FALSE, THREAD_DESTROY_TIMEOUT);
+		UCThreadMutex_Lock(pstManager->hMutex);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	if(pstTaskThread->bIsThreadFinished != TRUE)
+	{
+		pstStopCheck->bAllStop = FALSE;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	if(result != ERR_UEM_NOERROR && pstStopCheck != NULL)
+	{
+		printf("Error is happened during checking stopping task.\n");
+		pstStopCheck->bAllStop = FALSE;
+	}
+	return result;
+}
+
+
+static uem_result checkAndStopStoppingThread(SCPUGeneralTaskManager *pstTaskManager, SGeneralTask *pstGeneralTask)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	struct _SGeneralTaskStopCheck stStopCheck;
+
+	stStopCheck.bAllStop = TRUE;
+	stStopCheck.pstGeneralTask = pstGeneralTask;
+	stStopCheck.pstManager = pstTaskManager;
+
+	result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, traverseAndCheckStoppingThread, &stStopCheck);
+	ERRIFGOTO(result, _EXIT);
+
+	if(stStopCheck.bAllStop == TRUE)
+	{
+		result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
+		ERRIFGOTO(result, _EXIT);
+
+		pstGeneralTask->enTaskState = TASK_STATE_STOP;
+		pstGeneralTask->bCreated = FALSE;
+
+		result = UCThreadMutex_Unlock(pstGeneralTask->hMutex);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 uem_result UKCPUGeneralTaskManager_CreateThread(HCPUGeneralTaskManager hManager, STask *pstTargetTask)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -745,6 +815,12 @@ uem_result UKCPUGeneralTaskManager_CreateThread(HCPUGeneralTaskManager hManager,
 
 	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
 	ERRIFGOTO(result, _EXIT_LOCK);
+
+	if(pstGeneralTask->enTaskState == TASK_STATE_STOPPING)
+	{
+		result = checkAndStopStoppingThread(pstTaskManager, pstGeneralTask);
+		ERRIFGOTO(result, _EXIT_LOCK);
+	}
 
 	stCreateData.pstGeneralTask = pstGeneralTask;
 
@@ -964,44 +1040,6 @@ _EXIT:
 }
 
 
-static uem_result traverseAndCheckStoppingThread(IN int nOffset, IN void *pData, IN void *pUserData)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	SGeneralTaskThread *pstTaskThread = NULL;
-	struct _SGeneralTaskStopCheck *pstStopCheck = NULL;
-	SCPUGeneralTaskManager *pstManager = NULL;
-	HThread hThread = NULL;
-
-	pstTaskThread = (SGeneralTaskThread *) pData;
-	pstStopCheck = (struct _SGeneralTaskStopCheck *) pUserData;
-	pstManager = pstStopCheck->pstManager;
-
-	if(pstTaskThread->hThread != NULL && pstTaskThread->bIsThreadFinished == TRUE)
-	{
-		hThread = pstTaskThread->hThread;
-		pstTaskThread->hThread = NULL;
-		result = UCThreadMutex_Unlock(pstManager->hMutex);
-		ERRIFGOTO(result, _EXIT);
-
-		result = UCThread_Destroy(&hThread, FALSE, THREAD_DESTROY_TIMEOUT);
-		UCThreadMutex_Lock(pstManager->hMutex);
-		ERRIFGOTO(result, _EXIT);
-	}
-
-	if(pstTaskThread->bIsThreadFinished != TRUE)
-	{
-		pstStopCheck->bAllStop = FALSE;
-	}
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	if(result != ERR_UEM_NOERROR && pstStopCheck != NULL)
-	{
-		printf("Error is happened during checking stopping task.\n");
-		pstStopCheck->bAllStop = FALSE;
-	}
-	return result;
-}
 
 
 uem_result UKCPUGeneralTaskManager_GetTaskState(HCPUGeneralTaskManager hManager, STask *pstTargetTask, ECPUTaskState *penTaskState)
@@ -1009,7 +1047,6 @@ uem_result UKCPUGeneralTaskManager_GetTaskState(HCPUGeneralTaskManager hManager,
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUGeneralTaskManager *pstTaskManager = NULL;
 	SGeneralTask *pstGeneralTask = NULL;
-	struct _SGeneralTaskStopCheck stStopCheck;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(pstTargetTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
@@ -1027,23 +1064,8 @@ uem_result UKCPUGeneralTaskManager_GetTaskState(HCPUGeneralTaskManager hManager,
 
 	if(pstGeneralTask->enTaskState == TASK_STATE_STOPPING)
 	{
-		stStopCheck.bAllStop = TRUE;
-		stStopCheck.pstGeneralTask = pstGeneralTask;
-		stStopCheck.pstManager = pstTaskManager;
-
-		result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, traverseAndCheckStoppingThread, &stStopCheck);
+		result = checkAndStopStoppingThread(pstTaskManager, pstGeneralTask);
 		ERRIFGOTO(result, _EXIT_LOCK);
-
-		if(stStopCheck.bAllStop == TRUE)
-		{
-			result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
-			ERRIFGOTO(result, _EXIT_LOCK);
-
-			pstGeneralTask->enTaskState = TASK_STATE_STOP;
-
-			result = UCThreadMutex_Unlock(pstGeneralTask->hMutex);
-			ERRIFGOTO(result, _EXIT_LOCK);
-		}
 	}
 
 	*penTaskState = pstGeneralTask->enTaskState;
