@@ -361,6 +361,152 @@ _EXIT:
 }
 
 
+uem_result UKTask_ClearRunCount(STask *pstTask)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	result = UCThreadMutex_Lock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	pstTask->nCurRunInIteration = 0;
+	pstTask->nCurIteration = 0;
+	pstTask->nTargetIteration = 0;
+
+	result = ERR_UEM_NOERROR;
+
+	UCThreadMutex_Unlock(pstTask->hMutex);
+_EXIT:
+	return result;
+}
+
+
+static uem_result getTaskIterationIndex(STask *pstTask, int *pbIndex)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nModeNum;
+	int nModeId;
+	int nCurModeIndex = 0;
+	int nLoop = 0;
+	int nIndex = 0;
+
+	if(pstTask->pstMTMInfo != NULL)
+	{
+		nModeNum = pstTask->pstMTMInfo->nNumOfModes;
+		nCurModeIndex = pstTask->pstMTMInfo->nCurModeIndex;
+		nModeId = pstTask->pstMTMInfo->astModeMap[nCurModeIndex].nModeId;
+
+		for(nLoop  = 0 ; nLoop < nModeNum ; nLoop++)
+		{
+			if(pstTask->astTaskIteration[nLoop].nModeId == nModeId)
+			{
+				nIndex = nLoop;
+				break;
+			}
+		}
+
+		if(nLoop == nModeNum)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		}
+	}
+	else
+	{
+		nIndex = 0;
+	}
+
+	*pbIndex = nIndex;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+uem_result UKTask_SetTargetIteration(STask *pstTask, int nTargetIteration, int nTargetTaskId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nIndex = 0;
+	int nNewIteration = 1;
+	STask *pstCurrentTask = NULL;
+	uem_bool bFound = FALSE;
+
+	result = UCThreadMutex_Lock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	pstCurrentTask = pstTask;
+	while(pstCurrentTask != NULL)
+	{
+		if(pstCurrentTask->nTaskId == nTargetTaskId ||
+			(pstCurrentTask->pstParentGraph->pstParentTask != NULL &&
+			pstCurrentTask->pstParentGraph->pstParentTask->nTaskId == nTargetTaskId))
+		{
+			nNewIteration = nNewIteration * nTargetIteration;
+			bFound = TRUE;
+			break;
+		}
+		result = getTaskIterationIndex(pstCurrentTask, &nIndex);
+		ERRIFGOTO(result, _EXIT_LOCK);
+
+		nNewIteration = nNewIteration * pstCurrentTask->astTaskIteration[nIndex].nRunInIteration;
+
+		pstCurrentTask = pstCurrentTask->pstParentGraph->pstParentTask;
+	}
+
+	if(bFound == TRUE)
+	{
+		pstTask->nTargetIteration = nNewIteration;
+	}
+	else
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_NOT_FOUND, _EXIT_LOCK);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstTask->hMutex);
+_EXIT:
+	return result;
+}
+
+
+
+uem_result UKTask_IncreaseRunCount(STask *pstTask, uem_bool *pbTargetIterationReached)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nIndex = 0;
+	uem_bool bTargetIterationReached = FALSE;
+
+	result = UCThreadMutex_Lock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = getTaskIterationIndex(pstTask, &nIndex);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	pstTask->nCurRunInIteration++;
+
+	if(pstTask->nCurRunInIteration >= pstTask->astTaskIteration[nIndex].nRunInIteration)
+	{
+		pstTask->nCurRunInIteration = 0;
+		pstTask->nCurIteration++;
+		if(pstTask->nTargetIteration > 0 && pstTask->nCurIteration >= pstTask->nTargetIteration)
+		{
+			bTargetIterationReached = TRUE;
+		}
+	}
+
+	if(pbTargetIterationReached != NULL)
+	{
+		*pbTargetIterationReached = bTargetIterationReached;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstTask->hMutex);
+_EXIT:
+	return result;
+}
+
+
 
 
 

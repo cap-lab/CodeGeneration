@@ -368,6 +368,7 @@ STask g_astTasks_${task_graph.name}[] = {
 		g_astTaskIteration_${task.name}, // Task iteration count (only used when the parent task graph is data flow)
 		0, // current run count in iteration
 		0, // current iteration
+		0, // target iteration (this variable is used for calling delayed stop task)
 	},
 	</#list>
 };

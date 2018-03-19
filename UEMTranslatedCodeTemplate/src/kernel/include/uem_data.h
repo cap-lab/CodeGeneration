@@ -210,6 +210,7 @@ typedef struct _STask {
 	STaskIteration *astTaskIteration;
 	int nCurRunInIteration;
 	int nCurIteration;
+	int nTargetIteration;
 } STask;
 
 typedef struct _SChunk {

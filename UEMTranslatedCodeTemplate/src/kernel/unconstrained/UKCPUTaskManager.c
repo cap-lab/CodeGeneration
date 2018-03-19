@@ -46,6 +46,11 @@ typedef struct _SSubgraphTaskStateUserData {
 	int nTaskStateSuspend;
 } SSubgraphTaskStateUserData;
 
+typedef struct _SMaxIterationSetCallback {
+	int nMaxIteration;
+	int nBaseTaskId;
+} SMaxIterationSetCallback;
+
 uem_result UKCPUTaskManager_Create(OUT HCPUTaskManager *phCPUTaskManager)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -507,6 +512,38 @@ _EXIT:
 }
 
 
+static uem_result setMaximumTaskIteration(STask *pstTask, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SMaxIterationSetCallback *pstIterationSet = NULL;
+
+	pstIterationSet = (SMaxIterationSetCallback *) pUserData;
+
+	result = UKTask_SetTargetIteration(pstTask, pstIterationSet->nMaxIteration, pstIterationSet->nBaseTaskId);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result activateDataflowSubgraphTask(STask *pstTask, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	HCPUGeneralTaskManager hGeneralTaskManager = NULL;
+
+	hGeneralTaskManager = (HCPUGeneralTaskManager) pUserData;
+
+	result = UKCPUGeneralTaskManager_ActivateThread(hGeneralTaskManager, pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 static uem_result stoppingDataflowSubgraphTask(STask *pstTask, void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -814,13 +851,40 @@ uem_result UKCPUTaskManager_StoppingTask(HCPUTaskManager hCPUTaskManager, int nT
 		}
 		else
 		{
+			int nLoop = 0 ;
+			int nMaxIteration = 0;
+			SMaxIterationSetCallback stIterationSet;
+
+			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, suspendDataflowSubgraphTask, pstManager->hGeneralManager);
+			ERRIFGOTO(result, _EXIT);
+
+			for(nLoop = 0 ; nLoop < pstTask->pstSubGraph->nNumOfTasks ; nLoop++)
+			{
+				if(nMaxIteration < pstTask->pstSubGraph->astTasks[nLoop].nCurIteration)
+				{
+					nMaxIteration = pstTask->pstSubGraph->astTasks[nLoop].nCurIteration;
+					printf("Max iteration: %d, task name: %s\n", nMaxIteration, pstTask->pstSubGraph->astTasks[nLoop].pszTaskName);
+				}
+			}
+
+			stIterationSet.nBaseTaskId = nTaskId;
+			stIterationSet.nMaxIteration = nMaxIteration;
+
+			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, setMaximumTaskIteration, &stIterationSet);
+			ERRIFGOTO(result, _EXIT);
+
 			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, stoppingDataflowSubgraphTask, pstManager->hGeneralManager);
+			ERRIFGOTO(result, _EXIT);
+
+			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, activateDataflowSubgraphTask, pstManager->hGeneralManager);
 			ERRIFGOTO(result, _EXIT);
 		}
 	}
 	else
 	{
-		// TODO: Stopping is allowed? or not?
+		result = UKTask_SetTargetIteration(pstTask, pstTask->nCurIteration, pstTask->nTaskId);
+		ERRIFGOTO(result, _EXIT);
+
 		result = UKCPUGeneralTaskManager_ChangeState(pstManager->hGeneralManager, pstTask, TASK_STATE_STOPPING);
 		ERRIFGOTO(result, _EXIT);
 	}

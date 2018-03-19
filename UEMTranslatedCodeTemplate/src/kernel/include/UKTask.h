@@ -42,6 +42,9 @@ uem_bool UKTask_isParentTask(int nTaskId, int nParentTaskId);
 uem_result UKTask_GetTaskFromTaskName(char *szTaskName, STask **ppstTask);
 uem_result UKTask_GetTaskFromTaskId(int nTaskId, STask **ppstTask);
 uem_result UKTask_TraverseAllTasks(FnTaskTraverse fnCallback, void *pUserData);
+uem_result UKTask_ClearRunCount(STask *pstTask);
+uem_result UKTask_IncreaseRunCount(STask *pstTask, uem_bool *pbTargetIterationReached);
+uem_result UKTask_SetTargetIteration(STask *pstTask, int nTargetIteration, int nTargetTaskId);
 
 
 #ifdef __cplusplus
