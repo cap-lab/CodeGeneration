@@ -27,6 +27,7 @@ extern "C"
 #define VARIABLE_SAMPLE_RATE (-1)
 #define MAPPING_NOT_SPECIFIED (-1)
 #define CHUNK_NUM_NOT_INITIALIZED (-1)
+#define INVALID_ARRAY_INDEX (-1)
 
 typedef enum _EParameterType {
 	PARAMETER_TYPE_DOUBLE,
@@ -138,6 +139,13 @@ typedef struct _SVariableIntMap {
 } SVariableIntMap;
 
 
+#define MODE_TRANSITION_ARRAY_SIZE (1000)
+
+typedef struct _SModeTransitionHistory {
+	int nIteration;
+	int nModeIndex;
+} SModeTransitionHistory;
+
 typedef struct _SModeTransitionMachine {
 	int nTaskId;
 	SModeMap *astModeMap;
@@ -148,6 +156,10 @@ typedef struct _SModeTransitionMachine {
 	int nCurModeIndex;
 	int nNextModeIndex;
 	EModeState enModeState;
+	SModeTransitionHistory astModeTransition[MODE_TRANSITION_ARRAY_SIZE];
+	int nCurHistoryStartIndex;
+	int nCurHistoryLen;
+	int nCurrentIteration;
 } SModeTransitionMachine;
 
 typedef struct _SLoopInfo {

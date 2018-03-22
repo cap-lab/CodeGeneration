@@ -22,6 +22,8 @@
 #include <UKCPUTaskCommon.h>
 #include <UKTime.h>
 #include <UKChannel.h>
+#include <UKModeTransition.h>
+
 #include <UKCPUGeneralTaskManager.h>
 
 #define THREAD_DESTROY_TIMEOUT (3000)
@@ -42,6 +44,10 @@ typedef struct _SGeneralTask {
 	HThreadMutex hMutex;
 	ECPUTaskState enTaskState; // modified
 	uem_bool bCreated;
+	uem_bool bIsModeTransition;
+	STask *pstMTMParentTask;
+	uem_bool bMTMSourceTask;
+	HCPUGeneralTaskManager hManager;
 } SGeneralTask;
 
 typedef struct _SCPUGeneralTaskManager {
@@ -89,6 +95,14 @@ struct _STaskThreadDestroyTraverse {
 	SCPUGeneralTaskManager *pstManager;
 };
 
+
+struct _SModeTransitionSetEventCheck {
+	SGeneralTask *pstCallerTask;
+	int nNewStartIteration;
+	int nPrevModeIndex;
+	int nNewModeIndex;
+	uem_bool bModeChanged;
+};
 
 uem_result UKCPUGeneralTaskManager_Create(IN OUT HCPUGeneralTaskManager *phManager)
 {
@@ -257,6 +271,32 @@ static uem_result destroyGeneralTaskStruct(IN OUT SGeneralTask **ppstGeneralTask
 	return result;
 }
 
+static uem_bool isModeTransitionTask(STask *pstTask, OUT STask **ppstMTMTask)
+{
+	STask *pstCurrentTask = NULL;
+	uem_bool bIsModeTransition = FALSE;
+
+	pstCurrentTask = pstTask->pstParentGraph->pstParentTask;
+
+	while(pstCurrentTask != NULL)
+	{
+		if(pstCurrentTask->pstMTMInfo != NULL && pstCurrentTask->pstMTMInfo->nNumOfModes > 1)
+		{
+			*ppstMTMTask = pstCurrentTask;
+			bIsModeTransition = TRUE;
+			break;
+		}
+
+		pstCurrentTask = pstCurrentTask->pstParentGraph->pstParentTask;
+	}
+
+	if(bIsModeTransition == FALSE)
+	{
+		*ppstMTMTask = NULL;
+	}
+
+	return bIsModeTransition;
+}
 
 
 static uem_result createGeneralTaskStruct(HCPUGeneralTaskManager hCPUTaskManager, SMappedGeneralTaskInfo *pstMappedInfo, OUT SGeneralTask **ppstGeneralTask)
@@ -271,6 +311,19 @@ static uem_result createGeneralTaskStruct(HCPUGeneralTaskManager hCPUTaskManager
 	pstGeneralTask->hThreadList = NULL;
 	pstGeneralTask->enTaskState = TASK_STATE_STOP;
 	pstGeneralTask->bCreated = FALSE;
+	pstGeneralTask->pstMTMParentTask = NULL;
+	pstGeneralTask->bIsModeTransition = isModeTransitionTask(pstMappedInfo->pstTask, &(pstGeneralTask->pstMTMParentTask));
+	pstGeneralTask->pstTask = pstMappedInfo->pstTask;
+
+	if(pstGeneralTask->bIsModeTransition == TRUE)
+	{
+		pstGeneralTask->bMTMSourceTask = UKChannel_IsTaskSourceTask(pstGeneralTask->pstTask->nTaskId);
+	}
+	else
+	{
+		pstGeneralTask->bMTMSourceTask = FALSE;
+	}
+
 	if(pstMappedInfo->pstTask->enRunCondition == RUN_CONDITION_DATA_DRIVEN ||
 		pstMappedInfo->pstTask->enRunCondition == RUN_CONDITION_TIME_DRIVEN)
 	{
@@ -281,15 +334,13 @@ static uem_result createGeneralTaskStruct(HCPUGeneralTaskManager hCPUTaskManager
 		pstGeneralTask->enTaskState = TASK_STATE_STOP;
 	}
 
-	pstGeneralTask->pstTask = pstMappedInfo->pstTask;
-
 	result = UCThreadMutex_Create(&(pstGeneralTask->hMutex));
 	ERRIFGOTO(result, _EXIT);
 
 	result = UCDynamicLinkedList_Create(&(pstGeneralTask->hThreadList));
 	ERRIFGOTO(result, _EXIT);
 
-	//pstGeneralTask->hManager = hCPUTaskManager;
+	pstGeneralTask->hManager = hCPUTaskManager;
 
 	*ppstGeneralTask = pstGeneralTask;
 
@@ -467,6 +518,236 @@ _EXIT:
 }
 
 
+static uem_result traverseAndSetEventToTemporarySuspendedTask(STask *pstTask, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	struct _SModeTransitionSetEventCheck *pstNewModeData = NULL;
+	HCPUGeneralTaskManager hManager = NULL;
+	ECPUTaskState enState;
+	char *pszOldModeName = NULL;
+	char *pszCurModeName = NULL;
+	uem_bool bCurrentPortAvailable = FALSE;
+
+	pstNewModeData = (struct _SModeTransitionSetEventCheck *) pUserData;
+
+	hManager = pstNewModeData->pstCallerTask->hManager;
+
+	result = UKCPUGeneralTaskManager_GetTaskState(hManager, pstTask, &enState);
+	ERRIFGOTO(result, _EXIT);
+
+	if(enState == TASK_STATE_SUSPEND && pstNewModeData->pstCallerTask->pstTask->nTaskId != pstTask->nTaskId)
+	{
+		pszCurModeName = pstNewModeData->pstCallerTask->pstMTMParentTask->pstMTMInfo->astModeMap[pstNewModeData->nNewModeIndex].pszModeName;
+
+		bCurrentPortAvailable = UKChannel_IsPortRateAvailableTask(pstTask->nTaskId, pszCurModeName);
+		//printf("task: %s, available: %d, mode_name: %s\n", pstTask->pszTaskName, bCurrentPortAvailable, pszCurModeName);
+
+		if(pstNewModeData->bModeChanged == TRUE)
+		{
+			pszOldModeName = pstNewModeData->pstCallerTask->pstMTMParentTask->pstMTMInfo->astModeMap[pstNewModeData->nPrevModeIndex].pszModeName;
+
+			if(UKChannel_IsPortRateAvailableTask(pstTask->nTaskId, pszOldModeName) == FALSE &&
+				bCurrentPortAvailable == TRUE)
+			{
+				//printf("new task: %s, previous_iteration: %d, new_iteration: %d\n", pstTask->pszTaskName, pstTask->nCurIteration, pstNewModeData->nNewStartIteration);
+
+				pstTask->nCurIteration = pstNewModeData->nNewStartIteration;
+			}
+		}
+
+		if(bCurrentPortAvailable == TRUE)
+		{
+			result = UKCPUGeneralTaskManager_ChangeState(hManager, pstTask, TASK_STATE_RUNNING);
+			ERRIFGOTO(result, _EXIT);
+
+			result = UKCPUGeneralTaskManager_ActivateThread(hManager, pstTask);
+			ERRIFGOTO(result, _EXIT);
+		}
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result traverseAndSetIsSuspended(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	SGeneralTaskThread *pstTaskThread = NULL;
+
+	pstTaskThread = (SGeneralTaskThread *) pData;
+	pstTaskThread->bSuspended = TRUE;
+
+	return ERR_UEM_NOERROR;
+}
+
+
+static uem_result changeTaskState(SGeneralTask *pstGeneralTask, ECPUTaskState enTaskState)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	char *pszModeName = NULL;
+	int nCurModeIndex = 0;
+
+	result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKCPUTaskCommon_CheckTaskState(pstGeneralTask->enTaskState, enTaskState);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	// change task state to suspend when the target task is included in MTM task graph and is not a source task.
+	if(pstGeneralTask->bIsModeTransition == TRUE && enTaskState == TASK_STATE_RUNNING &&
+	UKModeTransition_GetModeStateInternal(pstGeneralTask->pstMTMParentTask->pstMTMInfo) == MODE_STATE_TRANSITING &&
+	pstGeneralTask->bMTMSourceTask == FALSE)
+	{
+		enTaskState = TASK_STATE_SUSPEND;
+	}
+
+	if(enTaskState == TASK_STATE_SUSPEND)
+	{
+		result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, traverseAndSetIsSuspended, NULL);
+		ERRIFGOTO(result, _EXIT_LOCK);
+	}
+
+	if(pstGeneralTask->enTaskState == TASK_STATE_SUSPEND && enTaskState == TASK_STATE_STOPPING && pstGeneralTask->bIsModeTransition == TRUE)
+	{
+		result = UKModeTransition_GetCurrentModeIndexByIteration(pstGeneralTask->pstMTMParentTask->pstMTMInfo, pstGeneralTask->pstTask->nCurIteration, &nCurModeIndex);
+		if(result == ERR_UEM_NOT_FOUND)
+		{
+			pszModeName = pstGeneralTask->pstMTMParentTask->pstMTMInfo->astModeMap[nCurModeIndex].pszModeName;
+			if(UKChannel_IsPortRateAvailableTask(pstGeneralTask->pstTask->nTaskId, pszModeName) == FALSE)
+			{
+				pstGeneralTask->pstTask->nCurIteration = pstGeneralTask->pstTask->nTargetIteration;
+			}
+		}
+	}
+
+	pstGeneralTask->enTaskState = enTaskState;
+
+	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstGeneralTask->hMutex);
+_EXIT:
+	return result;
+}
+
+
+static uem_result updateCurrentIteration(SModeTransitionMachine *pstMTMInfo, STask *pstTask)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	int nModeIndex;
+	char *pszCurModeName = NULL;
+	uem_bool bCurrentPortAvailable = FALSE;
+
+	result = UKModeTransition_GetCurrentModeIndexByIteration(pstMTMInfo, pstTask->nCurIteration, &nModeIndex);
+	ERRIFGOTO(result, _EXIT);
+
+	while(bCurrentPortAvailable == FALSE)
+	{
+		pszCurModeName = pstMTMInfo->astModeMap[nModeIndex].pszModeName;
+
+		bCurrentPortAvailable = UKChannel_IsPortRateAvailableTask(pstTask->nTaskId, pszCurModeName);
+		if(bCurrentPortAvailable == FALSE)
+		{
+			result = UKModeTransition_GetNextModeStartIndexByIteration(pstMTMInfo, pstTask->nCurIteration,
+																		&nModeIndex, &(pstTask->nCurIteration));
+			if(result == ERR_UEM_NO_DATA)
+			{
+				pstTask->nCurIteration = pstMTMInfo->nCurrentIteration;
+				break;
+			}
+			ERRIFGOTO(result, _EXIT);
+		}
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result handleTaskModeTransition(SGeneralTaskThread *pstTaskThread, SGeneralTask *pstGeneralTask)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask *pstMTMTask = NULL;
+	struct _SModeTransitionSetEventCheck stNewModeData;
+	EModeState enModeState;
+
+	pstMTMTask = pstGeneralTask->pstMTMParentTask;
+
+	result = UCThreadMutex_Lock(pstMTMTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstGeneralTask->bMTMSourceTask == TRUE)
+	{
+		//printf("merong: %s\n", pstGeneralTask->pstTask->pszTaskName);
+		pstMTMTask->pstMTMInfo->fnTransition(pstMTMTask->pstMTMInfo);
+
+		enModeState = UKModeTransition_GetModeStateInternal(pstMTMTask->pstMTMInfo);
+
+		stNewModeData.nPrevModeIndex = pstMTMTask->pstMTMInfo->nCurModeIndex;
+
+		if(enModeState == MODE_STATE_TRANSITING)
+		{
+			enModeState = UKModeTransition_UpdateModeStateInternal(pstMTMTask->pstMTMInfo, MODE_STATE_NORMAL, pstGeneralTask->pstTask->nCurIteration-1);
+
+			stNewModeData.bModeChanged = TRUE;
+		}
+		else
+		{
+			stNewModeData.bModeChanged = FALSE;
+		}
+
+		stNewModeData.nNewModeIndex = pstMTMTask->pstMTMInfo->nCurModeIndex;
+
+		stNewModeData.pstCallerTask = pstGeneralTask;
+		stNewModeData.nNewStartIteration = pstGeneralTask->pstTask->nCurIteration-1;
+
+		result = UKCPUTaskCommon_TraverseSubGraphTasks(pstMTMTask, traverseAndSetEventToTemporarySuspendedTask, &stNewModeData);
+		ERRIFGOTO(result, _EXIT_LOCK);
+
+		pstMTMTask->pstMTMInfo->nCurrentIteration = pstGeneralTask->pstTask->nCurIteration;
+	}
+	else
+	{
+		if(pstMTMTask->pstMTMInfo->nCurrentIteration <= pstGeneralTask->pstTask->nCurIteration)
+		{
+			result = UCThreadMutex_Unlock(pstMTMTask->hMutex);
+			ERRIFGOTO(result, _EXIT);
+
+			result = changeTaskState(pstGeneralTask, TASK_STATE_SUSPEND);
+			ERRIFGOTO(result, _EXIT);
+
+			result = UCThreadMutex_Lock(pstMTMTask->hMutex);
+			ERRIFGOTO(result, _EXIT);
+		}
+		else
+		{
+			result = updateCurrentIteration(pstMTMTask->pstMTMInfo, pstGeneralTask->pstTask);
+			ERRIFGOTO(result, _EXIT_LOCK);
+
+			if(pstMTMTask->pstMTMInfo->nCurrentIteration <= pstGeneralTask->pstTask->nCurIteration)
+			{
+				result = UCThreadMutex_Unlock(pstMTMTask->hMutex);
+				ERRIFGOTO(result, _EXIT);
+
+				result = changeTaskState(pstGeneralTask, TASK_STATE_SUSPEND);
+				ERRIFGOTO(result, _EXIT);
+
+				result = UCThreadMutex_Lock(pstMTMTask->hMutex);
+				ERRIFGOTO(result, _EXIT);
+			}
+		}
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstMTMTask->hMutex);
+_EXIT:
+	return result;
+}
+
+
 static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTaskThread *pstTaskThread, FnUemTaskGo fnGo)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -475,7 +756,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 	int nMaxRunCount = 0;
 	int nRunCount = 0;
 	ERunCondition enRunCondition;
-	uem_bool bFunctionCalled = TRUE;
+	uem_bool bFunctionCalled = FALSE;
 	int nExecutionCount = 0;
 	uem_bool bTargetIterationReached = FALSE;
 
@@ -489,6 +770,12 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 	// So, end this thread
 	while(pstGeneralTask->enTaskState != TASK_STATE_STOP)
 	{
+		if(bFunctionCalled == TRUE && pstGeneralTask->bIsModeTransition == TRUE && pstGeneralTask->enTaskState == TASK_STATE_RUNNING)
+		{
+			result = handleTaskModeTransition(pstTaskThread, pstGeneralTask);
+			ERRIFGOTO(result, _EXIT);
+		}
+
 		switch(pstGeneralTask->enTaskState)
 		{
 		case TASK_STATE_RUNNING:
@@ -497,39 +784,53 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			case RUN_CONDITION_TIME_DRIVEN:
 				result = UKCPUTaskCommon_HandleTimeDrivenTask(pstCurrentTask, fnGo, &llNextTime, &nRunCount, &nMaxRunCount, &bFunctionCalled);
 				ERRIFGOTO(result, _EXIT);
-				if(bFunctionCalled == TRUE)
-				{
-					//printf("%s (time-driven, Proc: %d, func_id: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId);
-					nExecutionCount++;
-					result = UKTask_IncreaseRunCount(pstCurrentTask, &bTargetIterationReached);
-					ERRIFGOTO(result, _EXIT);
-				}
 				break;
 			case RUN_CONDITION_DATA_DRIVEN:
+			case RUN_CONDITION_CONTROL_DRIVEN:
 				fnGo(pstCurrentTask->nTaskId);
-				//printf("%s (data-driven, Proc: %d, func_id: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId);
-				nExecutionCount++;
-				result = UKTask_IncreaseRunCount(pstCurrentTask, &bTargetIterationReached);
-				ERRIFGOTO(result, _EXIT);
-				break;
-			case RUN_CONDITION_CONTROL_DRIVEN: // run once for control-driven leaf task
-				fnGo(pstCurrentTask->nTaskId);
-				//printf("%s (control-driven, Proc: %d, func_id: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId);
-				nExecutionCount++;
-				result = UKTask_IncreaseRunCount(pstCurrentTask, &bTargetIterationReached);
-				ERRIFGOTO(result, _EXIT);
-				UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
+				bFunctionCalled = TRUE;
 				break;
 			default:
 				ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 				break;
 			}
+			if(bFunctionCalled == TRUE)
+			{
+				nExecutionCount++;
+				result = UKTask_IncreaseRunCount(pstCurrentTask, &bTargetIterationReached);
+				ERRIFGOTO(result, _EXIT);
+
+				//printf("%s (Proc: %d, func_id: %d, current iteration: %d, reached: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId, pstCurrentTask->nCurIteration, bTargetIterationReached);
+			}
+			if(enRunCondition == RUN_CONDITION_CONTROL_DRIVEN) // run once for control-driven leaf task
+			{
+				UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
+			}
 			break;
 		case TASK_STATE_STOPPING:
+			// check one more time to handle suspended tasks
+			result = UKTask_CheckIterationRunCount(pstCurrentTask, &bTargetIterationReached);
+			ERRIFGOTO(result, _EXIT);
 			// run until iteration count;
 			while(bTargetIterationReached == FALSE)
 			{
+				if(pstGeneralTask->bIsModeTransition == TRUE)
+				{
+					result = UCThreadMutex_Lock(pstGeneralTask->pstMTMParentTask->hMutex);
+					ERRIFGOTO(result, _EXIT);
+
+					result = updateCurrentIteration(pstGeneralTask->pstMTMParentTask->pstMTMInfo, pstGeneralTask->pstTask);
+
+					UCThreadMutex_Unlock(pstGeneralTask->pstMTMParentTask->hMutex); // ignore error to preserve previous result value
+					ERRIFGOTO(result, _EXIT);
+
+					if(pstGeneralTask->pstMTMParentTask->pstMTMInfo->nCurrentIteration <= pstGeneralTask->pstTask->nCurIteration)
+					{
+						break;
+					}
+				}
 				fnGo(pstCurrentTask->nTaskId);
+				//printf("%s (stopping-driven, Proc: %d, func_id: %d, current iteration: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId, pstCurrentTask->nCurIteration);
 				nExecutionCount++;
 				result = UKTask_IncreaseRunCount(pstCurrentTask, &bTargetIterationReached);
 				ERRIFGOTO(result, _EXIT);
@@ -540,6 +841,14 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			// do nothing
 			break;
 		case TASK_STATE_SUSPEND:
+			result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
+			ERRIFGOTO(result, _EXIT);
+
+			pstTaskThread->bSuspended = TRUE;
+
+			result = UCThreadMutex_Unlock(pstGeneralTask->hMutex);
+			ERRIFGOTO(result, _EXIT);
+
 			result = waitRunSignal(pstGeneralTask, pstTaskThread, FALSE, &llNextTime, &nMaxRunCount);
 			ERRIFGOTO(result, _EXIT);
 			break;
@@ -739,7 +1048,7 @@ uem_result UKCPUGeneralTaskManager_CreateThread(HCPUGeneralTaskManager hManager,
 	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
 	ERRIFGOTO(result, _EXIT_LOCK);
 
-	if(pstGeneralTask->enTaskState == TASK_STATE_STOPPING)
+	if(pstGeneralTask->enTaskState == TASK_STATE_STOPPING || pstGeneralTask->pstTask->enRunCondition == RUN_CONDITION_CONTROL_DRIVEN)
 	{
 		result = checkAndStopStoppingThread(pstTaskManager, pstGeneralTask);
 		ERRIFGOTO(result, _EXIT_LOCK);
@@ -761,42 +1070,6 @@ uem_result UKCPUGeneralTaskManager_CreateThread(HCPUGeneralTaskManager hManager,
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
 	UCThreadMutex_Unlock(pstTaskManager->hMutex);
-_EXIT:
-	return result;
-}
-
-
-static uem_result traverseAndSetIsSuspended(IN int nOffset, IN void *pData, IN void *pUserData)
-{
-	SGeneralTaskThread *pstTaskThread = NULL;
-
-	pstTaskThread = (SGeneralTaskThread *) pData;
-	pstTaskThread->bSuspended = TRUE;
-
-	return ERR_UEM_NOERROR;
-}
-
-static uem_result changeTaskState(SGeneralTask *pstGeneralTask, ECPUTaskState enTaskState)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-
-	result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
-	ERRIFGOTO(result, _EXIT);
-
-	result = UKCPUTaskCommon_CheckTaskState(pstGeneralTask->enTaskState, enTaskState);
-	ERRIFGOTO(result, _EXIT_LOCK);
-
-	if(enTaskState == TASK_STATE_SUSPEND)
-	{
-		result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, traverseAndSetIsSuspended, NULL);
-		ERRIFGOTO(result, _EXIT_LOCK);
-	}
-
-	pstGeneralTask->enTaskState = enTaskState;
-
-	result = ERR_UEM_NOERROR;
-_EXIT_LOCK:
-	UCThreadMutex_Unlock(pstGeneralTask->hMutex);
 _EXIT:
 	return result;
 }

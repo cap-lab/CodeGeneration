@@ -44,6 +44,7 @@ uem_result UKTask_GetTaskFromTaskId(int nTaskId, STask **ppstTask);
 uem_result UKTask_TraverseAllTasks(FnTaskTraverse fnCallback, void *pUserData);
 uem_result UKTask_ClearRunCount(STask *pstTask);
 uem_result UKTask_IncreaseRunCount(STask *pstTask, uem_bool *pbTargetIterationReached);
+uem_result UKTask_CheckIterationRunCount(STask *pstTask, OUT uem_bool *pbTargetIterationReached);
 uem_result UKTask_SetTargetIteration(STask *pstTask, int nTargetIteration, int nTargetTaskId);
 
 

@@ -22,7 +22,9 @@
 #include <UKCPUTaskManager.h>
 #include <UKTime.h>
 #include <UKChannel.h>
+#include <UKModeTransition.h>
 #include <UKCPUCompositeTaskManager.h>
+
 
 #define THREAD_DESTROY_TIMEOUT (5000)
 
@@ -53,6 +55,7 @@ typedef struct _SCompositeTask {
 	int nCurrentThroughputConstraint; // modified
 	uem_bool bCreated; // modified
 	int nTargetIteration;
+	uem_bool bIsModeTransition;
 } SCompositeTask;
 
 
@@ -222,6 +225,26 @@ _EXIT:
 	return result;
 }
 
+
+static uem_bool isModeTransitionTask(STask *pstTask)
+{
+	STask *pstCurrentTask = NULL;
+	uem_bool bIsModeTransition = FALSE;
+
+	pstCurrentTask = pstTask;
+
+	if(pstCurrentTask != NULL && pstCurrentTask->pstMTMInfo != NULL)
+	{
+		if(pstCurrentTask->pstMTMInfo->nNumOfModes > 1)
+		{
+			bIsModeTransition = TRUE;
+		}
+	}
+
+	return bIsModeTransition;
+}
+
+
 // TODO: use hCPUTaskManager?
 static uem_result createCompositeTaskStruct(HCPUCompositeTaskManager hCPUTaskManager, SMappedCompositeTaskInfo *pstMappedInfo, OUT SCompositeTask **ppstCompositeTask)
 {
@@ -237,6 +260,10 @@ static uem_result createCompositeTaskStruct(HCPUCompositeTaskManager hCPUTaskMan
 	pstCompositeTask->bCreated = FALSE;
 	pstCompositeTask->enTaskState = TASK_STATE_STOP;
 	pstCompositeTask->nTargetIteration = 0;
+	pstCompositeTask->bIsModeTransition = isModeTransitionTask(pstCompositeTask->pstParentTask);
+
+	pstCompositeTask->pstParentTask = pstMappedInfo->pstScheduledTasks->pstParentTask;
+
 	if(pstMappedInfo->pstScheduledTasks->pstParentTask == NULL)
 	{
 		pstCompositeTask->enTaskState = TASK_STATE_RUNNING;
@@ -250,7 +277,7 @@ static uem_result createCompositeTaskStruct(HCPUCompositeTaskManager hCPUTaskMan
 	{
 		pstCompositeTask->enTaskState = TASK_STATE_STOP;
 	}
-	pstCompositeTask->pstParentTask = pstMappedInfo->pstScheduledTasks->pstParentTask;
+
 
 	if(pstMappedInfo->pstScheduledTasks->pstParentTask->nThroughputConstraint > 0)
 	{
@@ -356,28 +383,6 @@ static uem_result waitRunSignal(SCompositeTask *pstCompositeTask, SCompositeTask
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
-}
-
-
-static uem_bool isModeTransitionTask(SCompositeTask *pstTask)
-{
-	STask *pstCurrentTask = NULL;
-	uem_bool bIsModeTransition = FALSE;
-	int nLen = 0;
-
-	pstCurrentTask = pstTask->pstParentTask;
-
-	if(pstCurrentTask != NULL && pstCurrentTask->pstMTMInfo != NULL)
-	{
-		nLen = pstCurrentTask->pstMTMInfo->nNumOfModes;
-
-		if(nLen > 1)
-		{
-			bIsModeTransition = TRUE;
-		}
-	}
-
-	return bIsModeTransition;
 }
 
 
@@ -597,7 +602,7 @@ static uem_result changeCompositeTaskState(SCompositeTask *pstCompositeTask, ECP
 	pstTask = pstCompositeTask->pstParentTask;
 
 	// initial execution of multi-mode MTM task is different to normal composite task
-	if(pstCompositeTask->pstParentTask->pstMTMInfo != NULL && pstCompositeTask->pstParentTask->pstMTMInfo->nNumOfModes > 1 &&
+	if(pstCompositeTask->bIsModeTransition == TRUE &&
 		enTargetState == TASK_STATE_RUNNING && pstTask->pstMTMInfo->enModeState == MODE_STATE_TRANSITING)
 	{
 		// Change all composite task state
@@ -657,31 +662,27 @@ static uem_result handleCompositeTaskModeTransition(SCompositeTaskThread *pstTas
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstCurrentTask = NULL;
-	pstCurrentTask = pstTask->pstParentTask;
 	int nCurModeIndex = 0;
 	struct _SModeTransitionSuspendCheck stUserData;
 	struct _SModeTransitionSetEventCheck stNewModeData;
+	EModeState enModeState;
+
+	pstCurrentTask = pstTask->pstParentTask;
 
 	result = UCThreadMutex_Lock(pstCurrentTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstCurrentTask->pstMTMInfo->enModeState == MODE_STATE_TRANSITING)
-	{
-		if(pstCurrentTask->pstMTMInfo->nCurModeIndex != pstCurrentTask->pstMTMInfo->nNextModeIndex)
-		{
-			pstCurrentTask->pstMTMInfo->nCurModeIndex = pstCurrentTask->pstMTMInfo->nNextModeIndex;
-			nCurModeIndex = pstCurrentTask->pstMTMInfo->nCurModeIndex;
-		}
-		else
-		{
-			nCurModeIndex = pstCurrentTask->pstMTMInfo->nCurModeIndex;
-		}
+	enModeState = UKModeTransition_GetModeStateInternal(pstCurrentTask->pstMTMInfo);
 
-		pstCurrentTask->pstMTMInfo->enModeState = MODE_STATE_NORMAL;
+	if(enModeState == MODE_STATE_TRANSITING)
+	{
+		UKModeTransition_UpdateModeStateInternal(pstCurrentTask->pstMTMInfo, MODE_STATE_NORMAL, pstTaskThread->nIteration);
 
 		if(pstTask->enTaskState == TASK_STATE_RUNNING)
 		{
 			pstTaskThread->enTaskState = TASK_STATE_SUSPEND;
+
+			nCurModeIndex = pstCurrentTask->pstMTMInfo->nCurModeIndex;
 
 			stNewModeData.pstCurrentThread = pstTaskThread;
 			stNewModeData.nModeId = pstCurrentTask->pstMTMInfo->astModeMap[nCurModeIndex].nModeId;
@@ -689,7 +690,6 @@ static uem_result handleCompositeTaskModeTransition(SCompositeTaskThread *pstTas
 			result = UCDynamicLinkedList_Traverse(pstTask->hThreadList, traverseAndSetEventToTemporarySuspendedTask, &stNewModeData);
 			ERRIFGOTO(result, _EXIT);
 		}
-
 		//printf("mode state: MODE_STATE_TRANSITING to MODE_STATE_NORMAL\n");
 	}
 	else
@@ -705,7 +705,7 @@ static uem_result handleCompositeTaskModeTransition(SCompositeTaskThread *pstTas
 
 		if(stUserData.bAllSuspended == TRUE)
 		{
-			pstCurrentTask->pstMTMInfo->enModeState = MODE_STATE_TRANSITING;
+			UKModeTransition_UpdateModeStateInternal(pstCurrentTask->pstMTMInfo, MODE_STATE_TRANSITING, pstTaskThread->nIteration);
 
 			if(pstTask->enTaskState == TASK_STATE_RUNNING)
 			{
@@ -816,7 +816,7 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 				break;
 			}
 
-			if(isModeTransitionTask(pstCompositeTask) == TRUE)
+			if(pstCompositeTask->bIsModeTransition == TRUE)
 			{
 				if(bFunctionCalled == TRUE && pstCompositeTask->enTaskState == TASK_STATE_RUNNING)
 				{
@@ -837,7 +837,7 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 			}
 			break;
 		case TASK_STATE_STOPPING:
-			if(isModeTransitionTask(pstCompositeTask) == FALSE)
+			if(pstCompositeTask->bIsModeTransition == FALSE)
 			{
 				while(pstTaskThread->nIteration < pstCompositeTask->nTargetIteration)
 				{

@@ -22,6 +22,7 @@
 
 #include <UKChannel.h>
 #include <UKTask.h>
+#include <UKModeTransition.h>
 #include <UKCPUTaskManager.h>
 #include <UKCPUCompositeTaskManager.h>
 #include <UKCPUGeneralTaskManager.h>
@@ -737,6 +738,11 @@ uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUTaskManager, int nTaskId
 		}
 		else
 		{
+			if(pstTask->pstMTMInfo != NULL)
+			{
+				result = UKModeTransition_Clear(pstTask->pstMTMInfo);
+				ERRIFGOTO(result, _EXIT);
+			}
 			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, runDataflowSubgraphTask, pstManager->hGeneralManager);
 			ERRIFGOTO(result, _EXIT);
 		}

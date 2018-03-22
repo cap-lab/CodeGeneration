@@ -16,6 +16,8 @@
 #include <UCString.h>
 
 #include <UKTask.h>
+#include <UKModeTransition.h>
+
 #include <UKCPUTaskManager.h>
 
 typedef void *HTaskHandle;
@@ -374,25 +376,36 @@ uem_result UKTask_ClearRunCount(STask *pstTask)
 
 	result = ERR_UEM_NOERROR;
 
-	UCThreadMutex_Unlock(pstTask->hMutex);
+	result = UCThreadMutex_Unlock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
 _EXIT:
 	return result;
 }
 
 
-static uem_result getTaskIterationIndex(STask *pstTask, int *pbIndex)
+static uem_result getTaskIterationIndex(STask *pstTask, int nCurrentIteration, int *pbIndex)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nModeNum;
 	int nModeId;
-	int nCurModeIndex = 0;
+	int nCurModeIndex = INVALID_ARRAY_INDEX;
 	int nLoop = 0;
 	int nIndex = 0;
 
 	if(pstTask->pstMTMInfo != NULL)
 	{
 		nModeNum = pstTask->pstMTMInfo->nNumOfModes;
-		nCurModeIndex = pstTask->pstMTMInfo->nCurModeIndex;
+
+		if(pstTask->bStaticScheduled == TRUE)
+		{
+			nCurModeIndex = pstTask->pstMTMInfo->nCurModeIndex;
+		}
+		else
+		{
+			result = UKModeTransition_GetCurrentModeIndexByIteration(pstTask->pstMTMInfo, nCurrentIteration, &nCurModeIndex);
+			ERRIFGOTO(result, _EXIT);
+		}
+
 		nModeId = pstTask->pstMTMInfo->astModeMap[nCurModeIndex].nModeId;
 
 		for(nLoop  = 0 ; nLoop < nModeNum ; nLoop++)
@@ -429,9 +442,12 @@ uem_result UKTask_SetTargetIteration(STask *pstTask, int nTargetIteration, int n
 	int nNewIteration = 1;
 	STask *pstCurrentTask = NULL;
 	uem_bool bFound = FALSE;
+	int nCurrentIteration;
 
 	result = UCThreadMutex_Lock(pstTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
+
+	nCurrentIteration = pstTask->nCurIteration;
 
 	pstCurrentTask = pstTask;
 	while(pstCurrentTask != NULL)
@@ -444,10 +460,11 @@ uem_result UKTask_SetTargetIteration(STask *pstTask, int nTargetIteration, int n
 			bFound = TRUE;
 			break;
 		}
-		result = getTaskIterationIndex(pstCurrentTask, &nIndex);
+		result = getTaskIterationIndex(pstCurrentTask, nCurrentIteration, &nIndex);
 		ERRIFGOTO(result, _EXIT_LOCK);
 
 		nNewIteration = nNewIteration * pstCurrentTask->astTaskIteration[nIndex].nRunInIteration;
+		nCurrentIteration = nCurrentIteration / pstCurrentTask->astTaskIteration[nIndex].nRunInIteration;
 
 		pstCurrentTask = pstCurrentTask->pstParentGraph->pstParentTask;
 	}
@@ -469,8 +486,34 @@ _EXIT:
 }
 
 
+uem_result UKTask_CheckIterationRunCount(STask *pstTask, OUT uem_bool *pbTargetIterationReached)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	uem_bool bTargetIterationReached = FALSE;
 
-uem_result UKTask_IncreaseRunCount(STask *pstTask, uem_bool *pbTargetIterationReached)
+	result = UCThreadMutex_Lock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstTask->nTargetIteration > 0 && pstTask->nCurIteration >= pstTask->nTargetIteration)
+	{
+		//printf("Task2: %s => nTargetIteration: %d, current: %d\n", pstTask->pszTaskName, pstTask->nTargetIteration, pstTask->nCurIteration);
+		bTargetIterationReached = TRUE;
+	}
+
+	result = UCThreadMutex_Unlock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pbTargetIterationReached != NULL)
+	{
+		*pbTargetIterationReached = bTargetIterationReached;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+uem_result UKTask_IncreaseRunCount(STask *pstTask, OUT uem_bool *pbTargetIterationReached)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nIndex = 0;
@@ -479,7 +522,7 @@ uem_result UKTask_IncreaseRunCount(STask *pstTask, uem_bool *pbTargetIterationRe
 	result = UCThreadMutex_Lock(pstTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	result = getTaskIterationIndex(pstTask, &nIndex);
+	result = getTaskIterationIndex(pstTask, pstTask->nCurIteration, &nIndex);
 	ERRIFGOTO(result, _EXIT_LOCK);
 
 	pstTask->nCurRunInIteration++;
@@ -490,6 +533,7 @@ uem_result UKTask_IncreaseRunCount(STask *pstTask, uem_bool *pbTargetIterationRe
 		pstTask->nCurIteration++;
 		if(pstTask->nTargetIteration > 0 && pstTask->nCurIteration >= pstTask->nTargetIteration)
 		{
+			//printf("Task2: %s => nTargetIteration: %d, current: %d\n", pstTask->pszTaskName, pstTask->nTargetIteration, pstTask->nCurIteration);
 			bTargetIterationReached = TRUE;
 		}
 	}

@@ -469,6 +469,51 @@ static uem_bool isChannelLocatedInSameTaskGraph(SChannel *pstChannel)
 }
 
 
+uem_bool UKChannel_IsPortRateAvailableTask(int nTaskId, char *pszModeName)
+{
+	int nLoop = 0;
+	int nInLoop = 0;
+	uem_bool bAvailable = FALSE;
+	uem_string_struct stModeName;
+	uem_string_struct stPortModeName;
+	uem_result result;
+
+	result = UCString_New(&stModeName, pszModeName, UEMSTRING_MAX);
+	ERRIFGOTO(result, _EXIT);
+
+	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
+	{
+		if(matchTaskIdInPort(&(g_astChannels[nLoop].stInputPort), nTaskId) == TRUE)
+		{
+			if(g_astChannels[nLoop].stInputPort.nNumOfSampleRates == 1)
+			{
+				bAvailable = TRUE;
+				break;
+			}
+
+			for(nInLoop = 0 ; nInLoop < g_astChannels[nLoop].stInputPort.nNumOfSampleRates; nInLoop++)
+			{
+				result = UCString_New(&stPortModeName, g_astChannels[nLoop].stInputPort.astSampleRates[nInLoop].pszModeName, UEMSTRING_MAX);
+				ERRIFGOTO(result, _EXIT);
+
+				if(UCString_IsEqual(&stModeName, &stPortModeName) == TRUE &&
+					g_astChannels[nLoop].stInputPort.astSampleRates[nInLoop].nSampleRate > 0)
+				{
+					bAvailable = TRUE;
+					break;
+				}
+			}
+
+			if(bAvailable == TRUE)
+			{
+				break;
+			}
+		}
+	}
+_EXIT:
+	return bAvailable;
+}
+
 // all matched input must have data more than sample rate
 uem_bool UKChannel_IsTaskSourceTask(int nTaskId)
 {

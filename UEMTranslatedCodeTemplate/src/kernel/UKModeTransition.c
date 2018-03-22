@@ -13,14 +13,123 @@
 
 #include <UKTask.h>
 
+
+static int findIndexByIteration(SModeTransitionMachine *pstModeTransition, int nCurrentIteration, OUT int *pnHistoryEnd)
+{
+	int nLoop = 0;
+	int nHistoryEnd;
+	int nCheckNum = 0;
+	int nIndex = INVALID_ARRAY_INDEX;
+
+	nHistoryEnd = pstModeTransition->nCurHistoryStartIndex + pstModeTransition->nCurHistoryLen - 1;
+
+	if(nHistoryEnd >= MODE_TRANSITION_ARRAY_SIZE)
+	{
+		nHistoryEnd = nHistoryEnd - MODE_TRANSITION_ARRAY_SIZE;
+	}
+
+	for(nLoop = nHistoryEnd; nCheckNum < pstModeTransition->nCurHistoryLen ; nLoop--)
+	{
+		//printf("pstModeTransition->astModeTransition[%d]: mode: %d, iteration: %d, nCurrentIteration: %d\n", nLoop, pstModeTransition->astModeTransition[nLoop].nModeIndex, pstModeTransition->astModeTransition[nLoop].nIteration, nCurrentIteration);
+		if(pstModeTransition->astModeTransition[nLoop].nIteration <= nCurrentIteration)
+		{
+			nIndex = nLoop;
+			break;
+		}
+
+		if(nLoop <= 0)
+		{
+			nLoop = MODE_TRANSITION_ARRAY_SIZE;
+		}
+		nCheckNum++;
+	}
+
+	if(pnHistoryEnd != NULL)
+	{
+		*pnHistoryEnd = nHistoryEnd;
+	}
+
+	return nIndex;
+}
+
+
+uem_result UKModeTransition_GetCurrentModeIndexByIteration(SModeTransitionMachine *pstModeTransition, int nCurrentIteration, OUT int *pnModeIndex)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nHistoryEnd;
+	int nIndex = 0;
+
+	nIndex = findIndexByIteration(pstModeTransition, nCurrentIteration, &nHistoryEnd);
+
+	if(nIndex == INVALID_ARRAY_INDEX)
+	{
+		printf("aaa nHistoryEnd: %d, pstModeTransition->nCurHistoryStartIndex: %d\n", nHistoryEnd, pstModeTransition->nCurHistoryStartIndex);
+		printf("aaa nCurrentIteration: %d\n", nCurrentIteration);
+		UEMASSIGNGOTO(result, ERR_UEM_NOT_FOUND, _EXIT);
+	}
+
+	*pnModeIndex = pstModeTransition->astModeTransition[nIndex].nModeIndex;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+uem_result UKModeTransition_GetNextModeStartIndexByIteration(SModeTransitionMachine *pstModeTransition, int nCurrentIteration, OUT int *pnModeIndex, OUT int *pnStartIteration)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nHistoryEnd;
+	int nIndex = 0;
+
+	nIndex = findIndexByIteration(pstModeTransition, nCurrentIteration, &nHistoryEnd);
+
+	nHistoryEnd = pstModeTransition->nCurHistoryStartIndex + pstModeTransition->nCurHistoryLen - 1;
+
+	if(nIndex == INVALID_ARRAY_INDEX)
+	{
+		printf("aaa nHistoryEnd: %d, pstModeTransition->nCurHistoryStartIndex: %d\n", nHistoryEnd, pstModeTransition->nCurHistoryStartIndex);
+		printf("aaa nCurrentIteration: %d\n", nCurrentIteration);
+		UEMASSIGNGOTO(result, ERR_UEM_NOT_FOUND, _EXIT);
+	}
+	else if(nIndex == nHistoryEnd)
+	{
+		// no next mode start index
+		UEMASSIGNGOTO(result, ERR_UEM_NO_DATA, _EXIT);
+	}
+
+	nIndex++;
+	if(nIndex >= MODE_TRANSITION_ARRAY_SIZE)
+	{
+		nIndex = 0;
+	}
+
+	if(pnStartIteration != NULL)
+	{
+		*pnStartIteration = pstModeTransition->astModeTransition[nIndex].nIteration;
+	}
+	if(pnModeIndex != NULL)
+	{
+		*pnModeIndex = pstModeTransition->astModeTransition[nIndex].nModeIndex;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 uem_result UKModeTransition_GetCurrentModeName (IN char *pszTaskName, OUT char **ppszModeName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
-	int nCurModeIndex = 0;
+	int nCurModeIndex = INVALID_ARRAY_INDEX;
+	int nCurrentIteration;
 
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
+
+	nCurrentIteration = pstTask->nCurIteration;
 
 	if(pstTask->pstMTMInfo == NULL)
 	{
@@ -33,9 +142,17 @@ uem_result UKModeTransition_GetCurrentModeName (IN char *pszTaskName, OUT char *
 	result = UCThreadMutex_Lock(pstTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	nCurModeIndex = pstTask->pstMTMInfo->nCurModeIndex;
+	if(pstTask->bStaticScheduled == TRUE)
+	{
+		nCurModeIndex = pstTask->pstMTMInfo->nCurModeIndex;
+	}
+	else
+	{
+		result = UKModeTransition_GetCurrentModeIndexByIteration(pstTask->pstMTMInfo, nCurrentIteration, &nCurModeIndex);
+		// ignore error check here to unlock the lock
+	}
 
-	result = UCThreadMutex_Unlock(pstTask->hMutex);
+	UCThreadMutex_Unlock(pstTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
 	*ppszModeName = pstTask->pstMTMInfo->astModeMap[nCurModeIndex].pszModeName;
@@ -110,6 +227,73 @@ EModeState UKModeTransition_GetModeState(int nTaskId)
 	result = UCThreadMutex_Unlock(pstTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
 _EXIT:
+	return enModeState;
+}
+
+
+EModeState UKModeTransition_GetModeStateInternal(SModeTransitionMachine *pstModeTransition)
+{
+	EModeState enModeState = MODE_STATE_TRANSITING;
+
+	enModeState = pstModeTransition->enModeState;
+
+	return enModeState;
+}
+
+
+uem_result UKModeTransition_Clear(SModeTransitionMachine *pstModeTransition)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	pstModeTransition->nCurHistoryStartIndex = 0;
+	pstModeTransition->nCurModeIndex = 0;
+	pstModeTransition->enModeState = MODE_STATE_TRANSITING;
+	pstModeTransition->nCurHistoryLen = 0;
+	pstModeTransition->nCurrentIteration = 0;
+	pstModeTransition->nNextModeIndex = 0;
+
+	result = ERR_UEM_NOERROR;
+
+	return result;
+}
+
+
+EModeState UKModeTransition_UpdateModeStateInternal(SModeTransitionMachine *pstModeTransition, EModeState enModeState, int nIteration)
+{
+	int nHistoryEnd;
+	// MODE_STATE_TRANSITING => MODE_STATE_NORMAL
+	if(pstModeTransition->enModeState == MODE_STATE_TRANSITING && enModeState == MODE_STATE_NORMAL)
+	{
+		if(pstModeTransition->nCurModeIndex != pstModeTransition->nNextModeIndex)
+		{
+			pstModeTransition->nCurModeIndex = pstModeTransition->nNextModeIndex;
+
+			if(pstModeTransition->nCurHistoryLen < MODE_TRANSITION_ARRAY_SIZE)
+			{
+				pstModeTransition->nCurHistoryLen++;
+			}
+			else
+			{
+				pstModeTransition->nCurHistoryStartIndex++;
+				if(pstModeTransition->nCurHistoryStartIndex >= MODE_TRANSITION_ARRAY_SIZE)
+				{
+					pstModeTransition->nCurHistoryStartIndex = 0;
+				}
+			}
+
+			nHistoryEnd = pstModeTransition->nCurHistoryStartIndex + pstModeTransition->nCurHistoryLen - 1;
+			if(nHistoryEnd >= MODE_TRANSITION_ARRAY_SIZE)
+			{
+				nHistoryEnd -= MODE_TRANSITION_ARRAY_SIZE;
+			}
+
+			pstModeTransition->astModeTransition[nHistoryEnd].nIteration = nIteration;
+			pstModeTransition->astModeTransition[nHistoryEnd].nModeIndex = pstModeTransition->nCurModeIndex;
+		}
+	}
+
+	pstModeTransition->enModeState = enModeState;
+
 	return enModeState;
 }
 

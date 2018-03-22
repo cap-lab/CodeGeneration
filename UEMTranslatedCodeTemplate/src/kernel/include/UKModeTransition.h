@@ -28,6 +28,12 @@ EModeState UKModeTransition_GetModeState(int nTaskId);
 
 int UKModeTransition_GetModeIndexByModeId(SModeTransitionMachine *pstModeTransition, int nModeId);
 int UKModeTransition_GetVariableIndexByName(SModeTransitionMachine *pstModeTransition, char *pszVariableName);
+uem_result UKModeTransition_GetCurrentModeIndexByIteration(SModeTransitionMachine *pstModeTransition, int nCurrentIteration, int *pnModeIndex);
+uem_result UKModeTransition_GetNextModeStartIndexByIteration(SModeTransitionMachine *pstModeTransition, int nCurrentIteration, OUT int *pnModeIndex, OUT int *pnStartIteration);
+
+uem_result UKModeTransition_Clear(SModeTransitionMachine *pstModeTransition);
+EModeState UKModeTransition_GetModeStateInternal(SModeTransitionMachine *pstModeTransition);
+EModeState UKModeTransition_UpdateModeStateInternal(SModeTransitionMachine *pstModeTransition, EModeState enModeState, int nIteration);
 
 
 #ifdef __cplusplus
