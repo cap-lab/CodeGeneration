@@ -467,7 +467,7 @@ ${innerspace}		}
 ${innerspace}	}
 ${innerspace}}
 		<#else>
-${innerspace}${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}(${flat_task[scheduleItem.taskName].id});//<#if (flat_task[parentTaskName].modeTransition.modeMap?size > 1)>printf("${scheduleItem.taskName}_Go${scheduleItem.taskFuncId} called (Line: %d)\n", __LINE__);</#if>
+${innerspace}${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}(${flat_task[scheduleItem.taskName].id});//printf("${scheduleItem.taskName}_Go${scheduleItem.taskFuncId} called (Line: %d)\n", __LINE__);
 		</#if>
 		<#if compositeMappedProcessor.srcTaskMap[scheduleItem.taskName]??>
 ${innerspace}{

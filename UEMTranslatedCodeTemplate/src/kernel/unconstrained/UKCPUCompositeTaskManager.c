@@ -260,32 +260,34 @@ static uem_result createCompositeTaskStruct(HCPUCompositeTaskManager hCPUTaskMan
 	pstCompositeTask->bCreated = FALSE;
 	pstCompositeTask->enTaskState = TASK_STATE_STOP;
 	pstCompositeTask->nTargetIteration = 0;
-	pstCompositeTask->bIsModeTransition = isModeTransitionTask(pstCompositeTask->pstParentTask);
-
 	pstCompositeTask->pstParentTask = pstMappedInfo->pstScheduledTasks->pstParentTask;
+	pstCompositeTask->bIsModeTransition = isModeTransitionTask(pstCompositeTask->pstParentTask);
+	pstCompositeTask->nCurrentThroughputConstraint = 0;
 
 	if(pstMappedInfo->pstScheduledTasks->pstParentTask == NULL)
 	{
 		pstCompositeTask->enTaskState = TASK_STATE_RUNNING;
 	}
-	else if(pstMappedInfo->pstScheduledTasks->pstParentTask != NULL && (pstMappedInfo->pstScheduledTasks->pstParentTask->enRunCondition == RUN_CONDITION_DATA_DRIVEN ||
-		pstMappedInfo->pstScheduledTasks->pstParentTask->enRunCondition == RUN_CONDITION_TIME_DRIVEN))
-	{
-		pstCompositeTask->enTaskState = TASK_STATE_RUNNING;
-	}
 	else
 	{
-		pstCompositeTask->enTaskState = TASK_STATE_STOP;
-	}
+		if(pstMappedInfo->pstScheduledTasks->pstParentTask->enRunCondition == RUN_CONDITION_DATA_DRIVEN ||
+			pstMappedInfo->pstScheduledTasks->pstParentTask->enRunCondition == RUN_CONDITION_TIME_DRIVEN)
+		{
+			pstCompositeTask->enTaskState = TASK_STATE_RUNNING;
+		}
+		else
+		{
+			pstCompositeTask->enTaskState = TASK_STATE_STOP;
+		}
 
-
-	if(pstMappedInfo->pstScheduledTasks->pstParentTask->nThroughputConstraint > 0)
-	{
-		pstCompositeTask->nCurrentThroughputConstraint = pstMappedInfo->pstScheduledTasks->pstParentTask->nThroughputConstraint;
-	}
-	else
-	{
-		pstCompositeTask->nCurrentThroughputConstraint = pstMappedInfo->pstScheduledTasks->astScheduleList[0].nThroughputConstraint;
+		if(pstMappedInfo->pstScheduledTasks->pstParentTask->nThroughputConstraint > 0)
+		{
+			pstCompositeTask->nCurrentThroughputConstraint = pstMappedInfo->pstScheduledTasks->pstParentTask->nThroughputConstraint;
+		}
+		else
+		{
+			pstCompositeTask->nCurrentThroughputConstraint = pstMappedInfo->pstScheduledTasks->astScheduleList[0].nThroughputConstraint;
+		}
 	}
 
 	result = UCThreadEvent_Create(&(pstCompositeTask->hEvent));
@@ -1248,12 +1250,9 @@ uem_result UKCPUCompositeTaskManager_CreateThread(HCPUCompositeTaskManager hMana
 	result = UCThreadMutex_Unlock(pstTaskManager->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstCompositeTask->pstParentTask != NULL)
-	{
-		// call init functions (if pstCompositeTask->pstParentTask is NULL, the whole graph is initialized when UKChannel_Initialze is called)
-		result = UKCPUTaskCommon_TraverseSubGraphTasks(pstCompositeTask->pstParentTask, callInitFunction, NULL);
-		ERRIFGOTO(result, _EXIT);
-	}
+	// call init functions (if pstCompositeTask->pstParentTask is NULL, the whole graph is initialized when UKChannel_Initialze is called)
+	result = UKCPUTaskCommon_TraverseSubGraphTasks(pstCompositeTask->pstParentTask, callInitFunction, NULL);
+	ERRIFGOTO(result, _EXIT);
 
 	stCreateData.pstCompositeTask = pstCompositeTask;
 
