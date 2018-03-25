@@ -406,6 +406,8 @@ static uem_result getTaskIterationIndex(STask *pstTask, int nCurrentIteration, i
 			ERRIFGOTO(result, _EXIT);
 		}
 
+		//printf("nCurModeIndex: pstTask: %s %d\n", pstTask->pszTaskName, nCurModeIndex);
+
 		nModeId = pstTask->pstMTMInfo->astModeMap[nCurModeIndex].nModeId;
 
 		for(nLoop  = 0 ; nLoop < nModeNum ; nLoop++)
@@ -513,17 +515,71 @@ _EXIT:
 	return result;
 }
 
+
 uem_result UKTask_IncreaseRunCount(STask *pstTask, OUT uem_bool *pbTargetIterationReached)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nIndex = 0;
 	uem_bool bTargetIterationReached = FALSE;
+	int nModeNum;
+	int nModeId;
+	int nCurModeIndex = INVALID_ARRAY_INDEX;
+	int nLoop = 0;
+	STask *pstCurrentTask = NULL;
+	STask *pstMTMTask = NULL;
 
 	result = UCThreadMutex_Lock(pstTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	result = getTaskIterationIndex(pstTask, pstTask->nCurIteration, &nIndex);
-	ERRIFGOTO(result, _EXIT_LOCK);
+	pstCurrentTask = pstTask;
+
+	while(pstCurrentTask != NULL)
+	{
+		if(pstCurrentTask->pstMTMInfo != NULL)
+		{
+			pstMTMTask = pstCurrentTask;
+			break;
+		}
+
+		pstCurrentTask = pstCurrentTask->pstParentGraph->pstParentTask;
+	}
+
+	if(pstMTMTask != NULL && pstMTMTask->pstMTMInfo->nNumOfModes > 1)
+	{
+		nModeNum = pstMTMTask->pstMTMInfo->nNumOfModes;
+
+		if(pstMTMTask->bStaticScheduled == TRUE)
+		{
+			nCurModeIndex = pstTask->pstMTMInfo->nCurModeIndex;
+		}
+		else
+		{
+			result = UKModeTransition_GetCurrentModeIndexByIteration(pstMTMTask->pstMTMInfo, pstTask->nCurIteration, &nCurModeIndex);
+			ERRIFGOTO(result, _EXIT_LOCK);
+		}
+
+		nModeId = pstMTMTask->pstMTMInfo->astModeMap[nCurModeIndex].nModeId;
+
+		for(nLoop  = 0 ; nLoop < nModeNum ; nLoop++)
+		{
+			if(pstTask->astTaskIteration[nLoop].nModeId == nModeId)
+			{
+				nIndex = nLoop;
+				break;
+			}
+		}
+
+		if(nLoop == nModeNum)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT_LOCK);
+		}
+	}
+	else
+	{
+		nIndex = 0;
+	}
+
+	//printf("Task!!: %s => pstTask->astTaskIteration[%d].nRunInIteration: %d, nCurModeIndex: %d\n", pstTask->pszTaskName, nIndex, pstTask->astTaskIteration[nIndex].nRunInIteration, nCurModeIndex);
 
 	pstTask->nCurRunInIteration++;
 
@@ -549,7 +605,6 @@ _EXIT_LOCK:
 _EXIT:
 	return result;
 }
-
 
 
 

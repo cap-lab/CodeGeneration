@@ -710,7 +710,7 @@ static uem_result handleTaskModeTransition(SGeneralTaskThread *pstTaskThread, SG
 	}
 	else
 	{
-		if(pstMTMTask->pstMTMInfo->nCurrentIteration <= pstGeneralTask->pstTask->nCurIteration)
+		if(pstMTMTask->pstMTMInfo->nCurrentIteration < pstGeneralTask->pstTask->nCurIteration)
 		{
 			result = UCThreadMutex_Unlock(pstMTMTask->hMutex);
 			ERRIFGOTO(result, _EXIT);
@@ -726,7 +726,7 @@ static uem_result handleTaskModeTransition(SGeneralTaskThread *pstTaskThread, SG
 			result = updateCurrentIteration(pstMTMTask->pstMTMInfo, pstGeneralTask->pstTask);
 			ERRIFGOTO(result, _EXIT_LOCK);
 
-			if(pstMTMTask->pstMTMInfo->nCurrentIteration <= pstGeneralTask->pstTask->nCurIteration)
+			if(pstMTMTask->pstMTMInfo->nCurrentIteration < pstGeneralTask->pstTask->nCurIteration)
 			{
 				result = UCThreadMutex_Unlock(pstMTMTask->hMutex);
 				ERRIFGOTO(result, _EXIT);
@@ -824,7 +824,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 					UCThreadMutex_Unlock(pstGeneralTask->pstMTMParentTask->hMutex); // ignore error to preserve previous result value
 					ERRIFGOTO(result, _EXIT);
 
-					if(pstGeneralTask->pstMTMParentTask->pstMTMInfo->nCurrentIteration <= pstGeneralTask->pstTask->nCurIteration)
+					if(pstGeneralTask->pstMTMParentTask->pstMTMInfo->nCurrentIteration < pstGeneralTask->pstTask->nCurIteration)
 					{
 						break;
 					}
@@ -861,6 +861,13 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	printf("pstCurrentTask out : %s (count: %d)\n", pstCurrentTask->pszTaskName, nExecutionCount);
+//	{
+//		int nLoop = 0;
+//		for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
+//		{
+//			printf("g_astChannels[%d]: size: %d, dataLen: %d\n", nLoop, g_astChannels[nLoop].nBufSize, g_astChannels[nLoop].nDataLen);
+//		}
+//	}
 	return result;
 }
 

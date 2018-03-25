@@ -61,14 +61,20 @@ uem_result UKModeTransition_GetCurrentModeIndexByIteration(SModeTransitionMachin
 
 	nIndex = findIndexByIteration(pstModeTransition, nCurrentIteration, &nHistoryEnd);
 
-	if(nIndex == INVALID_ARRAY_INDEX)
+	if(nIndex == INVALID_ARRAY_INDEX && nCurrentIteration != 0)
 	{
 		printf("aaa nHistoryEnd: %d, pstModeTransition->nCurHistoryStartIndex: %d\n", nHistoryEnd, pstModeTransition->nCurHistoryStartIndex);
 		printf("aaa nCurrentIteration: %d\n", nCurrentIteration);
 		UEMASSIGNGOTO(result, ERR_UEM_NOT_FOUND, _EXIT);
 	}
-
-	*pnModeIndex = pstModeTransition->astModeTransition[nIndex].nModeIndex;
+	else if(nIndex == INVALID_ARRAY_INDEX && nCurrentIteration == 0)
+	{
+		*pnModeIndex = 0;
+	}
+	else
+	{
+		*pnModeIndex = pstModeTransition->astModeTransition[nIndex].nModeIndex;
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -84,9 +90,7 @@ uem_result UKModeTransition_GetNextModeStartIndexByIteration(SModeTransitionMach
 
 	nIndex = findIndexByIteration(pstModeTransition, nCurrentIteration, &nHistoryEnd);
 
-	nHistoryEnd = pstModeTransition->nCurHistoryStartIndex + pstModeTransition->nCurHistoryLen - 1;
-
-	if(nIndex == INVALID_ARRAY_INDEX)
+	if(nIndex == INVALID_ARRAY_INDEX && nCurrentIteration != 0)
 	{
 		printf("aaa nHistoryEnd: %d, pstModeTransition->nCurHistoryStartIndex: %d\n", nHistoryEnd, pstModeTransition->nCurHistoryStartIndex);
 		printf("aaa nCurrentIteration: %d\n", nCurrentIteration);
@@ -149,6 +153,11 @@ uem_result UKModeTransition_GetCurrentModeName (IN char *pszTaskName, OUT char *
 	else
 	{
 		result = UKModeTransition_GetCurrentModeIndexByIteration(pstTask->pstMTMInfo, nCurrentIteration, &nCurModeIndex);
+		if(result == ERR_UEM_NOT_FOUND && nCurrentIteration == 0)
+		{
+			nCurModeIndex = pstTask->pstMTMInfo->nCurModeIndex;
+			result = ERR_UEM_NOERROR;
+		}
 		// ignore error check here to unlock the lock
 	}
 
@@ -264,7 +273,7 @@ EModeState UKModeTransition_UpdateModeStateInternal(SModeTransitionMachine *pstM
 	// MODE_STATE_TRANSITING => MODE_STATE_NORMAL
 	if(pstModeTransition->enModeState == MODE_STATE_TRANSITING && enModeState == MODE_STATE_NORMAL)
 	{
-		if(pstModeTransition->nCurModeIndex != pstModeTransition->nNextModeIndex)
+		if(pstModeTransition->nCurModeIndex != pstModeTransition->nNextModeIndex || nIteration == 0)
 		{
 			pstModeTransition->nCurModeIndex = pstModeTransition->nNextModeIndex;
 
