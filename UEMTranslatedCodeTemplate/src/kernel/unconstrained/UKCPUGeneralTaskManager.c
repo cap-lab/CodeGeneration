@@ -1068,9 +1068,6 @@ uem_result UKCPUGeneralTaskManager_CreateThread(HCPUGeneralTaskManager hManager,
 		ERRIFGOTO(result, _EXIT_LOCK);
 
 		pstGeneralTask->bCreated = TRUE;
-
-		result = UKTask_ClearRunCount(pstTargetTask);
-		ERRIFGOTO(result, _EXIT_LOCK);
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -1427,7 +1424,11 @@ uem_result UKCPUGeneralTaskManager_Destroy(IN OUT HCPUGeneralTaskManager *phMana
 
 	pstTaskManager = *phManager;
 
+	result = UCThreadMutex_Lock(pstTaskManager->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
 	result = UCDynamicLinkedList_Traverse(pstTaskManager->hTaskList, traverseAndDestroyGeneralTask, pstTaskManager);
+	UCThreadMutex_Unlock(pstTaskManager->hMutex); // ignore result
 	ERRIFGOTO(result, _EXIT);
 
 	result = UCDynamicLinkedList_Destroy(&(pstTaskManager->hTaskList));

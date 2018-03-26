@@ -491,6 +491,28 @@ _EXIT:
 }
 
 
+static uem_result runOnceDataflowSubgraphTask(STask *pstTask, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	HCPUGeneralTaskManager hGeneralTaskManager = NULL;
+
+	hGeneralTaskManager = (HCPUGeneralTaskManager) pUserData;
+
+	result = UKCPUGeneralTaskManager_CreateThread(hGeneralTaskManager, pstTask);
+			ERRIFGOTO(result, _EXIT);
+
+	result = UKCPUGeneralTaskManager_ChangeState(hGeneralTaskManager, pstTask, TASK_STATE_STOPPING);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKCPUGeneralTaskManager_ActivateThread(hGeneralTaskManager, pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 static uem_result resumeDataflowSubgraphTask(STask *pstTask, void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -521,6 +543,19 @@ static uem_result setMaximumTaskIteration(STask *pstTask, void *pUserData)
 	pstIterationSet = (SMaxIterationSetCallback *) pUserData;
 
 	result = UKTask_SetTargetIteration(pstTask, pstIterationSet->nMaxIteration, pstIterationSet->nBaseTaskId);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result clearTaskIteration(STask *pstTask, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	result = UKTask_ClearRunCount(pstTask);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -749,12 +784,38 @@ uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUTaskManager, int nTaskId
 				result = UKModeTransition_Clear(pstTask->pstMTMInfo);
 				ERRIFGOTO(result, _EXIT);
 			}
-			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, runDataflowSubgraphTask, pstManager->hGeneralManager);
+
+			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, clearTaskIteration, NULL);
 			ERRIFGOTO(result, _EXIT);
+
+			if(pstTask->enRunCondition == RUN_CONDITION_CONTROL_DRIVEN)
+			{
+				SMaxIterationSetCallback stIterationSet;
+
+				stIterationSet.nBaseTaskId = nTaskId;
+				stIterationSet.nMaxIteration = pstTask->nCurIteration+1;
+
+				result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, setMaximumTaskIteration, &stIterationSet);
+				ERRIFGOTO(result, _EXIT);
+			}
+
+			if(pstTask->enRunCondition == RUN_CONDITION_CONTROL_DRIVEN)
+			{
+				result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, runOnceDataflowSubgraphTask, pstManager->hGeneralManager);
+				ERRIFGOTO(result, _EXIT);
+			}
+			else
+			{
+				result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, runDataflowSubgraphTask, pstManager->hGeneralManager);
+				ERRIFGOTO(result, _EXIT);
+			}
 		}
 	}
 	else
 	{
+		result = UKTask_ClearRunCount(pstTask);
+		ERRIFGOTO(result, _EXIT);
+
 		result = UKCPUGeneralTaskManager_CreateThread(pstManager->hGeneralManager, pstTask);
 		ERRIFGOTO(result, _EXIT);
 

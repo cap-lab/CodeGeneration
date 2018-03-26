@@ -1241,10 +1241,6 @@ uem_result UKCPUCompositeTaskManager_CreateThread(HCPUCompositeTaskManager hMana
 		{
 			pstCompositeTask->nCurrentThroughputConstraint = pstCompositeTask->pstParentTask->nThroughputConstraint;
 		}
-
-		// clear channels
-		result = UKChannel_ClearChannelInSubgraph(pstCompositeTask->pstParentTask->nTaskId);
-		ERRIFGOTO(result, _EXIT_LOCK);
 	}
 
 	result = UCThreadMutex_Unlock(pstTaskManager->hMutex);
