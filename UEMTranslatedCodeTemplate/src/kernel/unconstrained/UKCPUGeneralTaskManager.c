@@ -680,7 +680,6 @@ static uem_result handleTaskModeTransition(SGeneralTaskThread *pstTaskThread, SG
 
 	if(pstGeneralTask->bMTMSourceTask == TRUE)
 	{
-		//printf("merong: %s\n", pstGeneralTask->pstTask->pszTaskName);
 		pstMTMTask->pstMTMInfo->fnTransition(pstMTMTask->pstMTMInfo);
 
 		enModeState = UKModeTransition_GetModeStateInternal(pstMTMTask->pstMTMInfo);
