@@ -709,7 +709,7 @@ static uem_result handleTaskModeTransition(SGeneralTaskThread *pstTaskThread, SG
 	}
 	else
 	{
-		if(pstMTMTask->pstMTMInfo->nCurrentIteration < pstGeneralTask->pstTask->nCurIteration)
+		if(pstMTMTask->pstMTMInfo->nCurrentIteration <= pstGeneralTask->pstTask->nCurIteration)
 		{
 			result = UCThreadMutex_Unlock(pstMTMTask->hMutex);
 			ERRIFGOTO(result, _EXIT);
@@ -725,7 +725,7 @@ static uem_result handleTaskModeTransition(SGeneralTaskThread *pstTaskThread, SG
 			result = updateCurrentIteration(pstMTMTask->pstMTMInfo, pstGeneralTask->pstTask);
 			ERRIFGOTO(result, _EXIT_LOCK);
 
-			if(pstMTMTask->pstMTMInfo->nCurrentIteration < pstGeneralTask->pstTask->nCurIteration)
+			if(pstMTMTask->pstMTMInfo->nCurrentIteration <= pstGeneralTask->pstTask->nCurIteration)
 			{
 				result = UCThreadMutex_Unlock(pstMTMTask->hMutex);
 				ERRIFGOTO(result, _EXIT);
@@ -797,9 +797,9 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			{
 				nExecutionCount++;
 				result = UKTask_IncreaseRunCount(pstCurrentTask, &bTargetIterationReached);
+				if(result != ERR_UEM_NOERROR)
+					printf("%s (Proc: %d, func_id: %d, current iteration: %d, reached: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId, pstCurrentTask->nCurIteration, bTargetIterationReached);
 				ERRIFGOTO(result, _EXIT);
-
-				//printf("%s (Proc: %d, func_id: %d, current iteration: %d, reached: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId, pstCurrentTask->nCurIteration, bTargetIterationReached);
 			}
 			if(enRunCondition == RUN_CONDITION_CONTROL_DRIVEN) // run once for control-driven leaf task
 			{
@@ -823,7 +823,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 					UCThreadMutex_Unlock(pstGeneralTask->pstMTMParentTask->hMutex); // ignore error to preserve previous result value
 					ERRIFGOTO(result, _EXIT);
 
-					if(pstGeneralTask->pstMTMParentTask->pstMTMInfo->nCurrentIteration < pstGeneralTask->pstTask->nCurIteration)
+					if(pstGeneralTask->pstMTMParentTask->pstMTMInfo->nCurrentIteration <= pstGeneralTask->pstTask->nCurIteration)
 					{
 						break;
 					}
