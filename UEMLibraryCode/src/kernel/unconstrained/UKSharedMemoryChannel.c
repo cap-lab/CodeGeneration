@@ -117,32 +117,35 @@ uem_result UKSharedMemoryChannel_Clear(SChannel *pstChannel)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nLoop = 0;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
+
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
 
 	// information clear
 	// pDataStart => clear (pBuffer)
 	// nDataLen => clear (0)
-	pstChannel->pDataStart = pstChannel->pBuffer;
-	pstChannel->pDataEnd = pstChannel->pBuffer;
-	pstChannel->nDataLen = 0;
-	pstChannel->nReadReferenceCount = 0;
-	pstChannel->nWriteReferenceCount = 0;
+	pstSharedMemroyChannel->pDataStart = pstSharedMemroyChannel->pBuffer;
+	pstSharedMemroyChannel->pDataEnd = pstSharedMemroyChannel->pBuffer;
+	pstSharedMemroyChannel->nDataLen = 0;
+	pstSharedMemroyChannel->nReadReferenceCount = 0;
+	pstSharedMemroyChannel->nWriteReferenceCount = 0;
 
 	// the chunk num and chunk length is dependent to sample rate of mode transition
-	result = setChunkNumAndLen(&(pstChannel->stInputPort), &(pstChannel->stInputPortChunk));
+	result = setChunkNumAndLen(&(pstChannel->stInputPort), &(pstSharedMemroyChannel->stInputPortChunk));
 	ERRIFGOTO(result, _EXIT);
 
-	result = setChunkNumAndLen(&(pstChannel->stOutputPort), &(pstChannel->stOutputPortChunk));
+	result = setChunkNumAndLen(&(pstChannel->stOutputPort), &(pstSharedMemroyChannel->stOutputPortChunk));
 	ERRIFGOTO(result, _EXIT);
 
-	pstChannel->nWrittenOutputChunkNum = CHUNK_NUM_NOT_INITIALIZED;
+	pstSharedMemroyChannel->nWrittenOutputChunkNum = CHUNK_NUM_NOT_INITIALIZED;
 
-	pstChannel->pstAvailableInputChunkHead = NULL;
-	pstChannel->pstAvailableInputChunkTail = NULL;
+	pstSharedMemroyChannel->pstAvailableInputChunkHead = NULL;
+	pstSharedMemroyChannel->pstAvailableInputChunkTail = NULL;
 
-	for(nLoop = 0 ; nLoop < pstChannel->nMaxChunkNum ; nLoop++)
+	for(nLoop = 0 ; nLoop < pstSharedMemroyChannel->nMaxChunkNum ; nLoop++)
 	{
-		pstChannel->astAvailableInputChunkList[nLoop].pstPrev = NULL;
-		pstChannel->astAvailableInputChunkList[nLoop].pstNext = NULL;
+		pstSharedMemroyChannel->astAvailableInputChunkList[nLoop].pstPrev = NULL;
+		pstSharedMemroyChannel->astAvailableInputChunkList[nLoop].pstNext = NULL;
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -153,22 +156,26 @@ _EXIT:
 uem_result UKSharedMemoryChannel_Initialize(SChannel *pstChannel)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
+
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
 	// initialize buffer
 	// If not set, initialize those things, // pBuffer => is NULL => alloc
-	if(pstChannel->pBuffer == NULL)
+	if(pstSharedMemroyChannel->pBuffer == NULL)
 	{
-		pstChannel->pBuffer = UC_malloc(pstChannel->nBufSize);
-		ERRMEMGOTO(pstChannel->pBuffer, result, _EXIT);
+		pstSharedMemroyChannel->pBuffer = UC_malloc(pstChannel->nBufSize);
+		ERRMEMGOTO(pstSharedMemroyChannel->pBuffer, result, _EXIT);
 	}
 
 	// hMutex => initialize/create
-	result = UCThreadMutex_Create(&(pstChannel->hMutex));
+	result = UCThreadMutex_Create(&(pstSharedMemroyChannel->hMutex));
 	ERRIFGOTO(result, _EXIT);
 
 	// hEvent => initialize/create
-	result = UCThreadEvent_Create(&(pstChannel->hReadEvent));
+	result = UCThreadEvent_Create(&(pstSharedMemroyChannel->hReadEvent));
 	ERRIFGOTO(result, _EXIT);
-	result = UCThreadEvent_Create(&(pstChannel->hWriteEvent));
+	result = UCThreadEvent_Create(&(pstSharedMemroyChannel->hWriteEvent));
 	ERRIFGOTO(result, _EXIT);
 
 	result = UKSharedMemoryChannel_Clear(pstChannel);
@@ -185,8 +192,11 @@ static uem_result removeChunkFromAvailableChunkList(SChannel *pstChannel, int nC
 	SAvailableChunk *pstAvailableChunk = NULL;
 	SAvailableChunk *pstPreviousChunk = NULL;
 	SAvailableChunk *pstNextChunk = NULL;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
 
-	pstAvailableChunk = pstChannel->pstAvailableInputChunkHead;
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	pstAvailableChunk = pstSharedMemroyChannel->pstAvailableInputChunkHead;
 
 	while(pstAvailableChunk != NULL)
 	{
@@ -201,7 +211,7 @@ static uem_result removeChunkFromAvailableChunkList(SChannel *pstChannel, int nC
 			}
 			else // pstPreviousChunk == NULL => pstAvailableChunk is a head chunk
 			{
-				pstChannel->pstAvailableInputChunkHead = pstAvailableChunk->pstNext;
+				pstSharedMemroyChannel->pstAvailableInputChunkHead = pstAvailableChunk->pstNext;
 			}
 
 			if(pstNextChunk != NULL)
@@ -210,7 +220,7 @@ static uem_result removeChunkFromAvailableChunkList(SChannel *pstChannel, int nC
 			}
 			else // pstNextChunk == NULL => pstAvailableChunk is a tail chunk
 			{
-				pstChannel->pstAvailableInputChunkTail = pstAvailableChunk->pstPrev;
+				pstSharedMemroyChannel->pstAvailableInputChunkTail = pstAvailableChunk->pstPrev;
 			}
 
 			pstAvailableChunk->pstPrev = NULL;
@@ -235,33 +245,36 @@ static uem_result copyAndMovePointerFromRoundedQueue(unsigned char *pDest, SChan
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nSegmentLen = 0;
 	int nRemainderLen = 0;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
+
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
 
 	// data is divided into two segments because the start point of the chunk is close to the end of buffer range
-	if(pstChannel->pDataStart + nDataToRead > pstChannel->pBuffer + pstChannel->nBufSize)
+	if(pstSharedMemroyChannel->pDataStart + nDataToRead > pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize)
 	{
-		nSegmentLen = pstChannel->pBuffer + pstChannel->nBufSize - pstChannel->pDataStart;
+		nSegmentLen = pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize - pstSharedMemroyChannel->pDataStart;
 		nRemainderLen = nDataToRead - nSegmentLen;
 
-		UC_memcpy(pDest, pstChannel->pDataStart, nSegmentLen);
-		UC_memcpy(pDest + nSegmentLen, pstChannel->pBuffer, nRemainderLen);
+		UC_memcpy(pDest, pstSharedMemroyChannel->pDataStart, nSegmentLen);
+		UC_memcpy(pDest + nSegmentLen, pstSharedMemroyChannel->pBuffer, nRemainderLen);
 
-		pstChannel->pDataStart = pstChannel->pBuffer + nRemainderLen;
+		pstSharedMemroyChannel->pDataStart = pstSharedMemroyChannel->pBuffer + nRemainderLen;
 	}
 	else
 	{
-		UC_memcpy(pDest, pstChannel->pDataStart, nDataToRead);
+		UC_memcpy(pDest, pstSharedMemroyChannel->pDataStart, nDataToRead);
 
-		if(pstChannel->pDataStart + nDataToRead == pstChannel->pBuffer + pstChannel->nBufSize)
+		if(pstSharedMemroyChannel->pDataStart + nDataToRead == pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize)
 		{
-			pstChannel->pDataStart = pstChannel->pBuffer;
+			pstSharedMemroyChannel->pDataStart = pstSharedMemroyChannel->pBuffer;
 		}
 		else
 		{
-			pstChannel->pDataStart += nDataToRead;
+			pstSharedMemroyChannel->pDataStart += nDataToRead;
 		}
 	}
 
-	pstChannel->nDataLen -= nDataToRead;
+	pstSharedMemroyChannel->nDataLen -= nDataToRead;
 
 	result = ERR_UEM_NOERROR;
 
@@ -274,27 +287,30 @@ static uem_result copyToRoundedChunk(SChannel *pstChannel, unsigned char *pSrc, 
 	SChunk *pstDestChunk = NULL;
 	int nSegmentLen = 0;
 	int nRemainderLen = 0;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
 
-	pstDestChunk = &(pstChannel->stOutputPortChunk.astChunk[nChunkIndex]);
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	pstDestChunk = &(pstSharedMemroyChannel->stOutputPortChunk.astChunk[nChunkIndex]);
 
 	// Chunk is divided into two segments because the start point of the chunk is close to the end of buffer range
-	if(pstDestChunk->pDataEnd + nDataToWrite > pstChannel->pBuffer + pstChannel->nBufSize)
+	if(pstDestChunk->pDataEnd + nDataToWrite > pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize)
 	{
-		nSegmentLen = pstChannel->pBuffer + pstChannel->nBufSize - pstDestChunk->pDataEnd;
+		nSegmentLen = pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize - pstDestChunk->pDataEnd;
 		nRemainderLen = nDataToWrite - nSegmentLen;
 
 		UC_memcpy(pstDestChunk->pDataEnd, pSrc, nSegmentLen);
-		UC_memcpy(pstChannel->pBuffer, pSrc + nSegmentLen, nRemainderLen);
+		UC_memcpy(pstSharedMemroyChannel->pBuffer, pSrc + nSegmentLen, nRemainderLen);
 
-		pstDestChunk->pDataEnd = pstChannel->pBuffer + nDataToWrite - nSegmentLen;
+		pstDestChunk->pDataEnd = pstSharedMemroyChannel->pBuffer + nDataToWrite - nSegmentLen;
 	}
 	else
 	{
 		UC_memcpy(pstDestChunk->pDataEnd, pSrc, nDataToWrite);
 
-		if(pstDestChunk->pDataEnd == pstChannel->pBuffer + pstChannel->nBufSize)
+		if(pstDestChunk->pDataEnd == pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize)
 		{
-			pstDestChunk->pDataEnd = pstChannel->pBuffer;
+			pstDestChunk->pDataEnd = pstSharedMemroyChannel->pBuffer;
 		}
 		else
 		{
@@ -313,33 +329,36 @@ static uem_result copyAndMovePointerToRoundedQueue(SChannel *pstChannel, unsigne
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nSegmentLen = 0;
 	int nRemainderLen = 0;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
+
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
 
 	// Chunk is divided into two segments because the start point of the chunk is close to the end of buffer range
-	if(pstChannel->pDataEnd + nDataToWrite > pstChannel->pBuffer + pstChannel->nBufSize)
+	if(pstSharedMemroyChannel->pDataEnd + nDataToWrite > pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize)
 	{
-		nSegmentLen = pstChannel->pBuffer + pstChannel->nBufSize - pstChannel->pDataEnd;
+		nSegmentLen = pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize - pstSharedMemroyChannel->pDataEnd;
 		nRemainderLen = nDataToWrite - nSegmentLen;
 
-		UC_memcpy(pstChannel->pDataEnd, pSrc, nSegmentLen);
-		UC_memcpy(pstChannel->pBuffer, pSrc + nSegmentLen, nRemainderLen);
+		UC_memcpy(pstSharedMemroyChannel->pDataEnd, pSrc, nSegmentLen);
+		UC_memcpy(pstSharedMemroyChannel->pBuffer, pSrc + nSegmentLen, nRemainderLen);
 
-		pstChannel->pDataEnd = pstChannel->pBuffer + nDataToWrite - nSegmentLen;
+		pstSharedMemroyChannel->pDataEnd = pstSharedMemroyChannel->pBuffer + nDataToWrite - nSegmentLen;
 	}
 	else
 	{
-		UC_memcpy(pstChannel->pDataEnd, pSrc, nDataToWrite);
+		UC_memcpy(pstSharedMemroyChannel->pDataEnd, pSrc, nDataToWrite);
 
-		if(pstChannel->pDataEnd == pstChannel->pBuffer + pstChannel->nBufSize)
+		if(pstSharedMemroyChannel->pDataEnd == pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize)
 		{
-			pstChannel->pDataEnd = pstChannel->pBuffer;
+			pstSharedMemroyChannel->pDataEnd = pstSharedMemroyChannel->pBuffer;
 		}
 		else
 		{
-			pstChannel->pDataEnd += nDataToWrite;
+			pstSharedMemroyChannel->pDataEnd += nDataToWrite;
 		}
 	}
 
-	pstChannel->nDataLen += nDataToWrite;
+	pstSharedMemroyChannel->nDataLen += nDataToWrite;
 
 	result = ERR_UEM_NOERROR;
 
@@ -353,17 +372,20 @@ static uem_result copyFromRoundedChunk(unsigned char *pDest, SChannel *pstChanne
 	SChunk *pstSrcChunk = NULL;
 	int nSegmentLen = 0;
 	int nRemainderLen = 0;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
 
-	pstSrcChunk = &(pstChannel->stInputPortChunk.astChunk[nChunkIndex]);
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	pstSrcChunk = &(pstSharedMemroyChannel->stInputPortChunk.astChunk[nChunkIndex]);
 
 	// Chunk is divided into two segments because the start point of the chunk is close to the end of buffer range
-	if(pstSrcChunk->pDataStart + nDataToRead > pstChannel->pBuffer + pstChannel->nBufSize)
+	if(pstSrcChunk->pDataStart + nDataToRead > pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize)
 	{
-		nSegmentLen = pstChannel->pBuffer + pstChannel->nBufSize - pstSrcChunk->pDataStart;
+		nSegmentLen = pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize - pstSrcChunk->pDataStart;
 		nRemainderLen = nDataToRead - nSegmentLen;
 
 		UC_memcpy(pDest, pstSrcChunk->pDataStart, nSegmentLen);
-		UC_memcpy(pDest + nSegmentLen, pstChannel->pBuffer, nRemainderLen);
+		UC_memcpy(pDest + nSegmentLen, pstSharedMemroyChannel->pBuffer, nRemainderLen);
 	}
 	else
 	{
@@ -407,16 +429,19 @@ static uem_result setInputChunks(SChannel *pstChannel)
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nLoop = 0;
 	int nMaxAvailableNum = 0;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
 
-	for(nLoop = 0 ; nLoop < pstChannel->stInputPortChunk.nChunkNum ; nLoop++)
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	for(nLoop = 0 ; nLoop < pstSharedMemroyChannel->stInputPortChunk.nChunkNum ; nLoop++)
 	{
 		result = getMaximumAvailableNum(&(pstChannel->stInputPort), &nMaxAvailableNum);
 		ERRIFGOTO(result, _EXIT);
-		pstChannel->stInputPortChunk.astChunk[nLoop].nAvailableDataNum = nMaxAvailableNum;
-		pstChannel->stInputPortChunk.astChunk[nLoop].nChunkDataLen = pstChannel->stInputPortChunk.nChunkLen;
-		pstChannel->stInputPortChunk.astChunk[nLoop].pDataStart = pstChannel->pDataStart + pstChannel->stInputPortChunk.nChunkLen * nLoop;
-		pstChannel->stInputPortChunk.astChunk[nLoop].pDataEnd = NULL;
-		pstChannel->stInputPortChunk.astChunk[nLoop].pChunkStart = NULL;
+		pstSharedMemroyChannel->stInputPortChunk.astChunk[nLoop].nAvailableDataNum = nMaxAvailableNum;
+		pstSharedMemroyChannel->stInputPortChunk.astChunk[nLoop].nChunkDataLen = pstSharedMemroyChannel->stInputPortChunk.nChunkLen;
+		pstSharedMemroyChannel->stInputPortChunk.astChunk[nLoop].pDataStart = pstSharedMemroyChannel->pDataStart + pstSharedMemroyChannel->stInputPortChunk.nChunkLen * nLoop;
+		pstSharedMemroyChannel->stInputPortChunk.astChunk[nLoop].pDataEnd = NULL;
+		pstSharedMemroyChannel->stInputPortChunk.astChunk[nLoop].pChunkStart = NULL;
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -430,29 +455,32 @@ static uem_result makeAvailableInputChunkList(SChannel *pstChannel)
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nChunkNum = 0;
 	int nLoop = 0;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
 
-	nChunkNum = pstChannel->stInputPortChunk.nChunkNum;
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	nChunkNum = pstSharedMemroyChannel->stInputPortChunk.nChunkNum;
 
 	for(nLoop = 0; nLoop < nChunkNum ; nLoop++)
 	{
 		if(nLoop == 0)
 		{
-			pstChannel->pstAvailableInputChunkHead = &(pstChannel->astAvailableInputChunkList[nLoop]);
-			pstChannel->astAvailableInputChunkList[nLoop].pstPrev = NULL;
+			pstSharedMemroyChannel->pstAvailableInputChunkHead = &(pstSharedMemroyChannel->astAvailableInputChunkList[nLoop]);
+			pstSharedMemroyChannel->astAvailableInputChunkList[nLoop].pstPrev = NULL;
 		}
 		else
 		{
-			pstChannel->astAvailableInputChunkList[nLoop].pstPrev = &(pstChannel->astAvailableInputChunkList[nLoop-1]);
+			pstSharedMemroyChannel->astAvailableInputChunkList[nLoop].pstPrev = &(pstSharedMemroyChannel->astAvailableInputChunkList[nLoop-1]);
 		}
 
 		if(nLoop == nChunkNum - 1)
 		{
-			pstChannel->pstAvailableInputChunkTail = &(pstChannel->astAvailableInputChunkList[nLoop]);
-			pstChannel->astAvailableInputChunkList[nLoop].pstNext = NULL;
+			pstSharedMemroyChannel->pstAvailableInputChunkTail = &(pstSharedMemroyChannel->astAvailableInputChunkList[nLoop]);
+			pstSharedMemroyChannel->astAvailableInputChunkList[nLoop].pstNext = NULL;
 		}
 		else
 		{
-			pstChannel->astAvailableInputChunkList[nLoop].pstNext = &(pstChannel->astAvailableInputChunkList[nLoop+1]);
+			pstSharedMemroyChannel->astAvailableInputChunkList[nLoop].pstNext = &(pstSharedMemroyChannel->astAvailableInputChunkList[nLoop+1]);
 		}
 	}
 
@@ -469,23 +497,26 @@ _EXIT:
 static uem_result moveDataPointerOfArrayQueue(SChannel *pstChannel)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
 
-	pstChannel->nDataLen = pstChannel->nDataLen - (pstChannel->stInputPortChunk.nChunkNum * pstChannel->stInputPortChunk.nChunkLen);
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	pstSharedMemroyChannel->nDataLen = pstSharedMemroyChannel->nDataLen - (pstSharedMemroyChannel->stInputPortChunk.nChunkNum * pstSharedMemroyChannel->stInputPortChunk.nChunkLen);
 
 	// if the next pDataStart needs to be moved to the front pointer
-	if(pstChannel->pBuffer + pstChannel->nBufSize < pstChannel->pDataStart + pstChannel->stInputPortChunk.nChunkNum * pstChannel->stInputPortChunk.nChunkLen)
+	if(pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize < pstSharedMemroyChannel->pDataStart + pstSharedMemroyChannel->stInputPortChunk.nChunkNum * pstSharedMemroyChannel->stInputPortChunk.nChunkLen)
 	{
-		pstChannel->pDataStart = pstChannel->pBuffer +
-					(pstChannel->stInputPortChunk.nChunkNum * pstChannel->stInputPortChunk.nChunkLen) -
-					(pstChannel->pBuffer + pstChannel->nBufSize - pstChannel->pDataStart);
+		pstSharedMemroyChannel->pDataStart = pstSharedMemroyChannel->pBuffer +
+					(pstSharedMemroyChannel->stInputPortChunk.nChunkNum * pstSharedMemroyChannel->stInputPortChunk.nChunkLen) -
+					(pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize - pstSharedMemroyChannel->pDataStart);
 	}
 	else
 	{
-		pstChannel->pDataStart = pstChannel->pDataStart + pstChannel->stInputPortChunk.nChunkNum * pstChannel->stInputPortChunk.nChunkLen;
+		pstSharedMemroyChannel->pDataStart = pstSharedMemroyChannel->pDataStart + pstSharedMemroyChannel->stInputPortChunk.nChunkNum * pstSharedMemroyChannel->stInputPortChunk.nChunkLen;
 
-		if(pstChannel->pDataStart == pstChannel->pBuffer + pstChannel->nBufSize)
+		if(pstSharedMemroyChannel->pDataStart == pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize)
 		{
-			pstChannel->pDataStart = pstChannel->pBuffer;
+			pstSharedMemroyChannel->pDataStart = pstSharedMemroyChannel->pBuffer;
 		}
 	}
 
@@ -499,30 +530,33 @@ static uem_result readFromArrayQueue(SChannel *pstChannel, IN OUT unsigned char 
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SChunk *pstTargetChunk = NULL;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
 
-	result = UCThreadMutex_Lock(pstChannel->hMutex);
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	result = UCThreadMutex_Lock(pstSharedMemroyChannel->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	pstChannel->nReadReferenceCount++;
+	pstSharedMemroyChannel->nReadReferenceCount++;
 
-	while(pstChannel->stInputPortChunk.astChunk[nChunkIndex].nAvailableDataNum == 0)
+	while(pstSharedMemroyChannel->stInputPortChunk.astChunk[nChunkIndex].nAvailableDataNum == 0)
 	{
-		if(pstChannel->bReadExit == TRUE)
+		if(pstSharedMemroyChannel->bReadExit == TRUE)
 		{
 			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
 		}
 
-		result = UCThreadMutex_Unlock(pstChannel->hMutex);
+		result = UCThreadMutex_Unlock(pstSharedMemroyChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
 
-		result = UCThreadEvent_WaitEvent(pstChannel->hReadEvent);
+		result = UCThreadEvent_WaitEvent(pstSharedMemroyChannel->hReadEvent);
 		ERRIFGOTO(result, _EXIT);
 
-		result = UCThreadMutex_Lock(pstChannel->hMutex);
+		result = UCThreadMutex_Lock(pstSharedMemroyChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
 	}
 
-	pstTargetChunk = &(pstChannel->stInputPortChunk.astChunk[nChunkIndex]);
+	pstTargetChunk = &(pstSharedMemroyChannel->stInputPortChunk.astChunk[nChunkIndex]);
 
 	if(nDataToRead != pstTargetChunk->nChunkDataLen)
 	{
@@ -536,18 +570,18 @@ static uem_result readFromArrayQueue(SChannel *pstChannel, IN OUT unsigned char 
 
 	if(pstTargetChunk->nAvailableDataNum == 0)
 	{
-		pstChannel->stInputPortChunk.astChunk[nChunkIndex].nChunkDataLen = 0;
+		pstSharedMemroyChannel->stInputPortChunk.astChunk[nChunkIndex].nChunkDataLen = 0;
 
 		result = removeChunkFromAvailableChunkList(pstChannel, nChunkIndex);
 		ERRIFGOTO(result, _EXIT_LOCK);
 
 		// All chunk list removed?
-		if(pstChannel->pstAvailableInputChunkHead == NULL)
+		if(pstSharedMemroyChannel->pstAvailableInputChunkHead == NULL)
 		{
 			result = moveDataPointerOfArrayQueue(pstChannel);
 			ERRIFGOTO(result, _EXIT_LOCK);
 
-			if(pstChannel->nDataLen > 0)
+			if(pstSharedMemroyChannel->nDataLen > 0)
 			{
 				int nCurrentSampleRateIndex = 0;
 				int nExpectedConsumeSize = 0;
@@ -555,7 +589,7 @@ static uem_result readFromArrayQueue(SChannel *pstChannel, IN OUT unsigned char 
 				nCurrentSampleRateIndex = pstChannel->stInputPort.nCurrentSampleRateIndex;
 				nExpectedConsumeSize = pstChannel->stInputPort.astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->stInputPort.nSampleSize;
 
-				if(nExpectedConsumeSize <= pstChannel->nDataLen)
+				if(nExpectedConsumeSize <= pstSharedMemroyChannel->nDataLen)
 				{
 					result = makeAvailableInputChunkList(pstChannel);
 					ERRIFGOTO(result, _EXIT_LOCK);
@@ -566,20 +600,20 @@ static uem_result readFromArrayQueue(SChannel *pstChannel, IN OUT unsigned char 
 
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
-	pstChannel->nReadReferenceCount--;
+	pstSharedMemroyChannel->nReadReferenceCount--;
 
-	if(pstChannel->nWriteReferenceCount > 0)
+	if(pstSharedMemroyChannel->nWriteReferenceCount > 0)
 	{
-		UCThreadEvent_SetEvent(pstChannel->hWriteEvent);
+		UCThreadEvent_SetEvent(pstSharedMemroyChannel->hWriteEvent);
 	}
 
-	if(pstChannel->nReadReferenceCount > 0 &&
-		pstChannel->pstAvailableInputChunkHead != NULL)
+	if(pstSharedMemroyChannel->nReadReferenceCount > 0 &&
+			pstSharedMemroyChannel->pstAvailableInputChunkHead != NULL)
 	{
-		UCThreadEvent_SetEvent(pstChannel->hReadEvent);
+		UCThreadEvent_SetEvent(pstSharedMemroyChannel->hReadEvent);
 	}
 
-	UCThreadMutex_Unlock(pstChannel->hMutex);
+	UCThreadMutex_Unlock(pstSharedMemroyChannel->hMutex);
 _EXIT:
 	return result;
 }
@@ -587,35 +621,38 @@ _EXIT:
 static uem_result readFromGeneralQueue(SChannel *pstChannel, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
 
-	result = UCThreadMutex_Lock(pstChannel->hMutex);
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	result = UCThreadMutex_Lock(pstSharedMemroyChannel->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	pstChannel->nReadReferenceCount++;
+	pstSharedMemroyChannel->nReadReferenceCount++;
 
 	// TODO: Error check out exit logic needed
-	while(pstChannel->nDataLen < nDataToRead)
+	while(pstSharedMemroyChannel->nDataLen < nDataToRead)
 	{
-		if(pstChannel->bReadExit == TRUE)
+		if(pstSharedMemroyChannel->bReadExit == TRUE)
 		{
 			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
 		}
 
-		result = UCThreadMutex_Unlock(pstChannel->hMutex);
+		result = UCThreadMutex_Unlock(pstSharedMemroyChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
 
-		result = UCThreadEvent_WaitEvent(pstChannel->hReadEvent);
+		result = UCThreadEvent_WaitEvent(pstSharedMemroyChannel->hReadEvent);
 		ERRIFGOTO(result, _EXIT);
 
-		result = UCThreadMutex_Lock(pstChannel->hMutex);
+		result = UCThreadMutex_Lock(pstSharedMemroyChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
 	}
 
 	if(pstChannel->enChannelType == CHANNEL_TYPE_OUTPUT_ARRAY)
 	{
 		int nNewChunkIndex = 0 ;
-		nNewChunkIndex = (pstChannel->stOutputPortChunk.nChunkLen * pstChannel->stOutputPortChunk.nChunkNum -
-						MIN(pstChannel->nDataLen, pstChannel->stOutputPortChunk.nChunkLen * pstChannel->stOutputPortChunk.nChunkNum))/pstChannel->stOutputPortChunk.nChunkLen;
+		nNewChunkIndex = (pstSharedMemroyChannel->stOutputPortChunk.nChunkLen * pstSharedMemroyChannel->stOutputPortChunk.nChunkNum -
+						MIN(pstSharedMemroyChannel->nDataLen, pstSharedMemroyChannel->stOutputPortChunk.nChunkLen * pstSharedMemroyChannel->stOutputPortChunk.nChunkNum))/pstSharedMemroyChannel->stOutputPortChunk.nChunkLen;
 
 		nChunkIndex = nNewChunkIndex;
 	}
@@ -629,18 +666,18 @@ static uem_result readFromGeneralQueue(SChannel *pstChannel, IN OUT unsigned cha
 		int nTotalDataRead = 0;
 		int nDataRead = 0;
 
-		for(nLoop = nChunkIndex ; nLoop < pstChannel->stOutputPortChunk.nChunkNum ; nLoop++)
+		for(nLoop = nChunkIndex ; nLoop < pstSharedMemroyChannel->stOutputPortChunk.nChunkNum ; nLoop++)
 		{
-			if(pstChannel->stOutputPortChunk.astChunk[nLoop].nChunkDataLen < nDataToRead)
+			if(pstSharedMemroyChannel->stOutputPortChunk.astChunk[nLoop].nChunkDataLen < nDataToRead)
 			{
-				nDataRead = pstChannel->stOutputPortChunk.astChunk[nLoop].nChunkDataLen;
+				nDataRead = pstSharedMemroyChannel->stOutputPortChunk.astChunk[nLoop].nChunkDataLen;
 			}
 			else // pstChannel->stOutputPortChunk.astChunk[nLoop].nChunkDataLen >= nDataToRead
 			{
 				nDataRead = nDataToRead;
 			}
 
-			pstChannel->stOutputPortChunk.astChunk[nLoop].nChunkDataLen -= nDataRead;
+			pstSharedMemroyChannel->stOutputPortChunk.astChunk[nLoop].nChunkDataLen -= nDataRead;
 			nTotalDataRead += nDataRead;
 
 			if(nTotalDataRead >= nDataToRead)
@@ -654,13 +691,13 @@ static uem_result readFromGeneralQueue(SChannel *pstChannel, IN OUT unsigned cha
 
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
-	pstChannel->nReadReferenceCount--;
+pstSharedMemroyChannel->nReadReferenceCount--;
 
-	if(pstChannel->nWriteReferenceCount > 0)
+	if(pstSharedMemroyChannel->nWriteReferenceCount > 0)
 	{
-		UCThreadEvent_SetEvent(pstChannel->hWriteEvent);
+		UCThreadEvent_SetEvent(pstSharedMemroyChannel->hWriteEvent);
 	}
-	UCThreadMutex_Unlock(pstChannel->hMutex);
+	UCThreadMutex_Unlock(pstSharedMemroyChannel->hMutex);
 _EXIT:
 	return result;
 }
@@ -690,29 +727,32 @@ _EXIT:
 uem_result UKSharedMemoryChannel_ReadFromBuffer(SChannel *pstChannel, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
 
-	result = UCThreadMutex_Lock(pstChannel->hMutex);
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	result = UCThreadMutex_Lock(pstSharedMemroyChannel->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstChannel->nDataLen < nDataToRead)
+	if(pstSharedMemroyChannel->nDataLen < nDataToRead)
 	{
-		if(pstChannel->nDataLen > 0)
+		if(pstSharedMemroyChannel->nDataLen > 0)
 		{
-			UC_memcpy(pBuffer, pstChannel->pDataStart, pstChannel->nDataLen);
+			UC_memcpy(pBuffer, pstSharedMemroyChannel->pDataStart, pstSharedMemroyChannel->nDataLen);
 		}
 
-		*pnDataRead = pstChannel->nDataLen;
+		*pnDataRead = pstSharedMemroyChannel->nDataLen;
 	}
 	else // pstChannel->nDataLen >= nDataToRead
 	{
-		UC_memcpy(pBuffer, pstChannel->pDataStart, nDataToRead);
+		UC_memcpy(pBuffer, pstSharedMemroyChannel->pDataStart, nDataToRead);
 
 		*pnDataRead = nDataToRead;
 	}
 
 	result = ERR_UEM_NOERROR;
 
-	UCThreadMutex_Unlock(pstChannel->hMutex);
+	UCThreadMutex_Unlock(pstSharedMemroyChannel->hMutex);
 _EXIT:
 	return result;
 }
@@ -722,39 +762,42 @@ static uem_result writeToGeneralQueue(SChannel *pstChannel, IN unsigned char *pB
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nCurrentSampleRateIndex = 0;
 	int nExpectedConsumeSize = 0;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
 
-	result = UCThreadMutex_Lock(pstChannel->hMutex);
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	result = UCThreadMutex_Lock(pstSharedMemroyChannel->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	pstChannel->nWriteReferenceCount++;
+	pstSharedMemroyChannel->nWriteReferenceCount++;
 
 	// TODO: Error check out exit logic needed
-	while(pstChannel->nDataLen + nDataToWrite > pstChannel->nBufSize)
+	while(pstSharedMemroyChannel->nDataLen + nDataToWrite > pstChannel->nBufSize)
 	{
-		if(pstChannel->bWriteExit == TRUE)
+		if(pstSharedMemroyChannel->bWriteExit == TRUE)
 		{
 			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
 		}
 
-		result = UCThreadMutex_Unlock(pstChannel->hMutex);
+		result = UCThreadMutex_Unlock(pstSharedMemroyChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
 
-		result = UCThreadEvent_WaitEvent(pstChannel->hWriteEvent);
+		result = UCThreadEvent_WaitEvent(pstSharedMemroyChannel->hWriteEvent);
 		ERRIFGOTO(result, _EXIT);
 
-		result = UCThreadMutex_Lock(pstChannel->hMutex);
+		result = UCThreadMutex_Lock(pstSharedMemroyChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
 	}
 
 	result = copyAndMovePointerToRoundedQueue(pstChannel, pBuffer, nDataToWrite, nChunkIndex);
 	ERRIFGOTO(result, _EXIT_LOCK);
 
-	if(pstChannel->enChannelType == CHANNEL_TYPE_INPUT_ARRAY && pstChannel->pstAvailableInputChunkHead == NULL)
+	if(pstChannel->enChannelType == CHANNEL_TYPE_INPUT_ARRAY && pstSharedMemroyChannel->pstAvailableInputChunkHead == NULL)
 	{
 		nCurrentSampleRateIndex = pstChannel->stInputPort.nCurrentSampleRateIndex;
 		nExpectedConsumeSize = pstChannel->stInputPort.astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->stInputPort.nSampleSize;
 
-		if(nExpectedConsumeSize <= pstChannel->nDataLen)
+		if(nExpectedConsumeSize <= pstSharedMemroyChannel->nDataLen)
 		{
 			result = makeAvailableInputChunkList(pstChannel);
 			ERRIFGOTO(result, _EXIT_LOCK);
@@ -765,13 +808,13 @@ static uem_result writeToGeneralQueue(SChannel *pstChannel, IN unsigned char *pB
 
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
-	pstChannel->nWriteReferenceCount--;
+	pstSharedMemroyChannel->nWriteReferenceCount--;
 
-	if(pstChannel->nReadReferenceCount > 0)
+	if(pstSharedMemroyChannel->nReadReferenceCount > 0)
 	{
-		UCThreadEvent_SetEvent(pstChannel->hReadEvent);
+		UCThreadEvent_SetEvent(pstSharedMemroyChannel->hReadEvent);
 	}
-	UCThreadMutex_Unlock(pstChannel->hMutex);
+	UCThreadMutex_Unlock(pstSharedMemroyChannel->hMutex);
 _EXIT:
 	return result;
 }
@@ -783,32 +826,35 @@ static uem_result clearOutputChunkInfo(SChannel *pstChannel)
 	int nLoop = 0;
 	void *pNextChunkDataEnd = NULL;
 	int nSegmentLen = 0;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
 
-	if(pstChannel->pDataEnd == pstChannel->pBuffer + pstChannel->nBufSize)
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	if(pstSharedMemroyChannel->pDataEnd == pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize)
 	{
-		pstChannel->pDataEnd = pstChannel->pBuffer;
+		pstSharedMemroyChannel->pDataEnd = pstSharedMemroyChannel->pBuffer;
 	}
 
-	for(nLoop = 0 ; nLoop < pstChannel->stOutputPortChunk.nChunkNum ; nLoop++)
+	for(nLoop = 0 ; nLoop < pstSharedMemroyChannel->stOutputPortChunk.nChunkNum ; nLoop++)
 	{
 		// if(pstChannel->stOutputPortChunk.astChunk[nLoop].pDataEnd )
-		pNextChunkDataEnd = pstChannel->pDataEnd + pstChannel->stOutputPortChunk.nChunkLen * nLoop;
+		pNextChunkDataEnd = pstSharedMemroyChannel->pDataEnd + pstSharedMemroyChannel->stOutputPortChunk.nChunkLen * nLoop;
 
-		if(pNextChunkDataEnd >= pstChannel->pBuffer + pstChannel->nBufSize)
+		if(pNextChunkDataEnd >= pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize)
 		{
-			nSegmentLen = pNextChunkDataEnd - (pstChannel->pBuffer + pstChannel->nBufSize);
-			pstChannel->stOutputPortChunk.astChunk[nLoop].pDataEnd = pstChannel->pBuffer + nSegmentLen;
+			nSegmentLen = pNextChunkDataEnd - (pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize);
+			pstSharedMemroyChannel->stOutputPortChunk.astChunk[nLoop].pDataEnd = pstSharedMemroyChannel->pBuffer + nSegmentLen;
 		}
 		else
 		{
-			pstChannel->stOutputPortChunk.astChunk[nLoop].pDataEnd = pNextChunkDataEnd;
+			pstSharedMemroyChannel->stOutputPortChunk.astChunk[nLoop].pDataEnd = pNextChunkDataEnd;
 		}
 
 		// maximum available number is not needed for output chunk
-		pstChannel->stOutputPortChunk.astChunk[nLoop].nAvailableDataNum = 1;
+		pstSharedMemroyChannel->stOutputPortChunk.astChunk[nLoop].nAvailableDataNum = 1;
 	}
 
-	pstChannel->nWrittenOutputChunkNum = 0;
+	pstSharedMemroyChannel->nWrittenOutputChunkNum = 0;
 
 	result = ERR_UEM_NOERROR;
 //_EXIT:
@@ -824,37 +870,40 @@ static uem_result writeToArrayQueue(SChannel *pstChannel, IN unsigned char *pBuf
 	int nCurrentReadSampleRateIndex = 0;
 	int nExpectedProduceSize = 0;
 	int nExpectedConsumeSize = 0;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
 
-	result = UCThreadMutex_Lock(pstChannel->hMutex);
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	result = UCThreadMutex_Lock(pstSharedMemroyChannel->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	pstChannel->nWriteReferenceCount++;
+	pstSharedMemroyChannel->nWriteReferenceCount++;
 
 	nCurrentSampleRateIndex = pstChannel->stOutputPort.nCurrentSampleRateIndex;
 	nExpectedProduceSize = pstChannel->stOutputPort.astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->stOutputPort.nSampleSize;
 
 	// TODO: Error check out exit logic needed
-	while(pstChannel->nDataLen + nExpectedProduceSize > pstChannel->nBufSize || // nBuffer is full or
-		(pstChannel->nWrittenOutputChunkNum > 0 && pstChannel->nWrittenOutputChunkNum < pstChannel->stOutputPortChunk.nChunkNum &&
-		pstChannel->stOutputPortChunk.astChunk[nChunkIndex].nChunkDataLen > 0)) // current chunk index is already filled with data
+	while(pstSharedMemroyChannel->nDataLen + nExpectedProduceSize > pstChannel->nBufSize || // nBuffer is full or
+		(pstSharedMemroyChannel->nWrittenOutputChunkNum > 0 && pstSharedMemroyChannel->nWrittenOutputChunkNum < pstSharedMemroyChannel->stOutputPortChunk.nChunkNum &&
+				pstSharedMemroyChannel->stOutputPortChunk.astChunk[nChunkIndex].nChunkDataLen > 0)) // current chunk index is already filled with data
 	{
-		if(pstChannel->bWriteExit == TRUE)
+		if(pstSharedMemroyChannel->bWriteExit == TRUE)
 		{
 			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
 		}
 
-		result = UCThreadMutex_Unlock(pstChannel->hMutex);
+		result = UCThreadMutex_Unlock(pstSharedMemroyChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
 
-		result = UCThreadEvent_WaitEvent(pstChannel->hWriteEvent);
+		result = UCThreadEvent_WaitEvent(pstSharedMemroyChannel->hWriteEvent);
 		ERRIFGOTO(result, _EXIT);
 
-		result = UCThreadMutex_Lock(pstChannel->hMutex);
+		result = UCThreadMutex_Lock(pstSharedMemroyChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
 	}
 
 	// Chunk needs to be initialized
-	if(pstChannel->nWrittenOutputChunkNum < 0 || pstChannel->nWrittenOutputChunkNum >= pstChannel->stOutputPortChunk.nChunkNum)
+	if(pstSharedMemroyChannel->nWrittenOutputChunkNum < 0 || pstSharedMemroyChannel->nWrittenOutputChunkNum >= pstSharedMemroyChannel->stOutputPortChunk.nChunkNum)
 	{
 		result = clearOutputChunkInfo(pstChannel);
 		ERRIFGOTO(result, _EXIT_LOCK);
@@ -863,30 +912,30 @@ static uem_result writeToArrayQueue(SChannel *pstChannel, IN unsigned char *pBuf
 	result = copyToRoundedChunk(pstChannel, pBuffer, nDataToWrite, nChunkIndex);
 	ERRIFGOTO(result, _EXIT_LOCK);
 
-	pstChannel->stOutputPortChunk.astChunk[nChunkIndex].nChunkDataLen = nDataToWrite;
+	pstSharedMemroyChannel->stOutputPortChunk.astChunk[nChunkIndex].nChunkDataLen = nDataToWrite;
 
-	if(pstChannel->stOutputPortChunk.astChunk[nChunkIndex].nChunkDataLen == pstChannel->stOutputPortChunk.nChunkLen)
+	if(pstSharedMemroyChannel->stOutputPortChunk.astChunk[nChunkIndex].nChunkDataLen == pstSharedMemroyChannel->stOutputPortChunk.nChunkLen)
 	{
-		pstChannel->nWrittenOutputChunkNum++;
+		pstSharedMemroyChannel->nWrittenOutputChunkNum++;
 	}
 
-	if(pstChannel->nWrittenOutputChunkNum == pstChannel->stOutputPortChunk.nChunkNum)
+	if(pstSharedMemroyChannel->nWrittenOutputChunkNum == pstSharedMemroyChannel->stOutputPortChunk.nChunkNum)
 	{
 		void *pNewEnd = NULL;
 		int nSegmentLen = 0;
-		pNewEnd = pstChannel->pDataEnd + nExpectedProduceSize;
-		if(pNewEnd >= pstChannel->pBuffer + pstChannel->nBufSize)
+		pNewEnd = pstSharedMemroyChannel->pDataEnd + nExpectedProduceSize;
+		if(pNewEnd >= pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize)
 		{
-			nSegmentLen = pNewEnd - (pstChannel->pBuffer + pstChannel->nBufSize);
-			pNewEnd = pstChannel->pBuffer + nSegmentLen;
+			nSegmentLen = pNewEnd - (pstSharedMemroyChannel->pBuffer + pstChannel->nBufSize);
+			pNewEnd = pstSharedMemroyChannel->pBuffer + nSegmentLen;
 		}
-		pstChannel->nDataLen += nExpectedProduceSize;
+		pstSharedMemroyChannel->nDataLen += nExpectedProduceSize;
 	}
 
 	nCurrentReadSampleRateIndex = pstChannel->stInputPort.nCurrentSampleRateIndex;
 	nExpectedConsumeSize = pstChannel->stInputPort.astSampleRates[nCurrentReadSampleRateIndex].nSampleRate * pstChannel->stInputPort.nSampleSize;
 
-	if(pstChannel->enChannelType == CHANNEL_TYPE_FULL_ARRAY && nExpectedConsumeSize <= pstChannel->nDataLen)
+	if(pstChannel->enChannelType == CHANNEL_TYPE_FULL_ARRAY && nExpectedConsumeSize <= pstSharedMemroyChannel->nDataLen)
 	{
 		result = makeAvailableInputChunkList(pstChannel);
 		ERRIFGOTO(result, _EXIT_LOCK);
@@ -896,19 +945,19 @@ static uem_result writeToArrayQueue(SChannel *pstChannel, IN unsigned char *pBuf
 
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
-	pstChannel->nWriteReferenceCount--;
+	pstSharedMemroyChannel->nWriteReferenceCount--;
 
-	if(pstChannel->nReadReferenceCount > 0)
+	if(pstSharedMemroyChannel->nReadReferenceCount > 0)
 	{
-		UCThreadEvent_SetEvent(pstChannel->hReadEvent);
+		UCThreadEvent_SetEvent(pstSharedMemroyChannel->hReadEvent);
 	}
 
-	if(pstChannel->nWriteReferenceCount > 0)
+	if(pstSharedMemroyChannel->nWriteReferenceCount > 0)
 	{
-		UCThreadEvent_SetEvent(pstChannel->hWriteEvent);
+		UCThreadEvent_SetEvent(pstSharedMemroyChannel->hWriteEvent);
 	}
 
-	UCThreadMutex_Unlock(pstChannel->hMutex);
+	UCThreadMutex_Unlock(pstSharedMemroyChannel->hMutex);
 _EXIT:
 	return result;
 }
@@ -939,29 +988,33 @@ _EXIT:
 uem_result UKSharedMemoryChannel_WriteToBuffer (SChannel *pstChannel, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
 
-	result = UCThreadMutex_Lock(pstChannel->hMutex);
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+
+	result = UCThreadMutex_Lock(pstSharedMemroyChannel->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
 	if(pstChannel->nBufSize >= nDataToWrite)
 	{
 		if (nDataToWrite > 0)
 		{
-			UC_memcpy(pstChannel->pDataStart, pBuffer, nDataToWrite);
+			UC_memcpy(pstSharedMemroyChannel->pDataStart, pBuffer, nDataToWrite);
 		}
 
 		*pnDataWritten = nDataToWrite;
 	}
 	else // pstChannel->nBufSize < nDataToWrite
 	{
-		UC_memcpy(pstChannel->pDataStart, pBuffer, pstChannel->nBufSize);
+		UC_memcpy(pstSharedMemroyChannel->pDataStart, pBuffer, pstChannel->nBufSize);
 
 		*pnDataWritten = pstChannel->nBufSize;
 	}
 
 	result = ERR_UEM_NOERROR;
 
-	UCThreadMutex_Unlock(pstChannel->hMutex);
+	UCThreadMutex_Unlock(pstSharedMemroyChannel->hMutex);
 _EXIT:
 	return result;
 }
@@ -972,54 +1025,57 @@ static uem_result getAvailableChunkFromArrayQueue(SChannel *pstChannel, OUT int 
 	int nAvailableIndex = 0;
 	SAvailableChunk *pstNextChunk = NULL;
 	SAvailableChunk *pstCurChunk = NULL;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
 
-	result = UCThreadMutex_Lock(pstChannel->hMutex);
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	result = UCThreadMutex_Lock(pstSharedMemroyChannel->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	pstChannel->nReadReferenceCount++;
+	pstSharedMemroyChannel->nReadReferenceCount++;
 
-	while(pstChannel->pstAvailableInputChunkHead == NULL)
+	while(pstSharedMemroyChannel->pstAvailableInputChunkHead == NULL)
 	{
-		if(pstChannel->bReadExit == TRUE)
+		if(pstSharedMemroyChannel->bReadExit == TRUE)
 		{
 			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
 		}
 
-		result = UCThreadMutex_Unlock(pstChannel->hMutex);
+		result = UCThreadMutex_Unlock(pstSharedMemroyChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
 
-		result = UCThreadEvent_WaitEvent(pstChannel->hReadEvent);
+		result = UCThreadEvent_WaitEvent(pstSharedMemroyChannel->hReadEvent);
 		ERRIFGOTO(result, _EXIT);
 
-		result = UCThreadMutex_Lock(pstChannel->hMutex);
+		result = UCThreadMutex_Lock(pstSharedMemroyChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
 	}
 
-	nAvailableIndex = pstChannel->pstAvailableInputChunkHead->nChunkIndex;
-	pstCurChunk = pstChannel->pstAvailableInputChunkHead;
+	nAvailableIndex = pstSharedMemroyChannel->pstAvailableInputChunkHead->nChunkIndex;
+	pstCurChunk = pstSharedMemroyChannel->pstAvailableInputChunkHead;
 
-	pstChannel->pstAvailableInputChunkTail->pstNext = pstCurChunk;
-	pstCurChunk->pstPrev = pstChannel->pstAvailableInputChunkTail;
+	pstSharedMemroyChannel->pstAvailableInputChunkTail->pstNext = pstCurChunk;
+	pstCurChunk->pstPrev = pstSharedMemroyChannel->pstAvailableInputChunkTail;
 
 	pstNextChunk = pstCurChunk->pstNext;
 	pstNextChunk->pstPrev = NULL;
 
-	pstChannel->pstAvailableInputChunkTail = pstCurChunk;
-	pstChannel->pstAvailableInputChunkTail->pstNext = NULL;
+	pstSharedMemroyChannel->pstAvailableInputChunkTail = pstCurChunk;
+	pstSharedMemroyChannel->pstAvailableInputChunkTail->pstNext = NULL;
 
-	pstChannel->pstAvailableInputChunkHead = pstNextChunk;
+	pstSharedMemroyChannel->pstAvailableInputChunkHead = pstNextChunk;
 
 	*pnChunkIndex = nAvailableIndex;
 
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
-	pstChannel->nReadReferenceCount--;
+pstSharedMemroyChannel->nReadReferenceCount--;
 
-	if(pstChannel->nWriteReferenceCount > 0)
+	if(pstSharedMemroyChannel->nWriteReferenceCount > 0)
 	{
-		UCThreadEvent_SetEvent(pstChannel->hWriteEvent);
+		UCThreadEvent_SetEvent(pstSharedMemroyChannel->hWriteEvent);
 	}
-	UCThreadMutex_Unlock(pstChannel->hMutex);
+	UCThreadMutex_Unlock(pstSharedMemroyChannel->hMutex);
 _EXIT:
 	return result;
 }
@@ -1029,27 +1085,30 @@ static uem_result getAvailableChunkFromGeneralQueue(SChannel *pstChannel, OUT in
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nDataToRead = 0;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
 
-	result = UCThreadMutex_Lock(pstChannel->hMutex);
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	result = UCThreadMutex_Lock(pstSharedMemroyChannel->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	pstChannel->nReadReferenceCount++;
+	pstSharedMemroyChannel->nReadReferenceCount++;
 
 	// wait until the data is arrived
-	while(pstChannel->nDataLen < nDataToRead)
+	while(pstSharedMemroyChannel->nDataLen < nDataToRead)
 	{
-		if(pstChannel->bReadExit == TRUE)
+		if(pstSharedMemroyChannel->bReadExit == TRUE)
 		{
 			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
 		}
 
-		result = UCThreadMutex_Unlock(pstChannel->hMutex);
+		result = UCThreadMutex_Unlock(pstSharedMemroyChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
 
-		result = UCThreadEvent_WaitEvent(pstChannel->hReadEvent);
+		result = UCThreadEvent_WaitEvent(pstSharedMemroyChannel->hReadEvent);
 		ERRIFGOTO(result, _EXIT);
 
-		result = UCThreadMutex_Lock(pstChannel->hMutex);
+		result = UCThreadMutex_Lock(pstSharedMemroyChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
 	}
 
@@ -1058,13 +1117,13 @@ static uem_result getAvailableChunkFromGeneralQueue(SChannel *pstChannel, OUT in
 
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
-	pstChannel->nReadReferenceCount--;
+	pstSharedMemroyChannel->nReadReferenceCount--;
 
-	if(pstChannel->nWriteReferenceCount > 0)
+	if(pstSharedMemroyChannel->nWriteReferenceCount > 0)
 	{
-		UCThreadEvent_SetEvent(pstChannel->hWriteEvent);
+		UCThreadEvent_SetEvent(pstSharedMemroyChannel->hWriteEvent);
 	}
-	UCThreadMutex_Unlock(pstChannel->hMutex);
+	UCThreadMutex_Unlock(pstSharedMemroyChannel->hMutex);
 _EXIT:
 	return result;
 }
@@ -1093,19 +1152,22 @@ _EXIT:
 uem_result UKSharedMemoryChannel_GetNumOfAvailableData (SChannel *pstChannel, IN int nChunkIndex, OUT int *pnDataNum)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
 
-	result = UCThreadMutex_Lock(pstChannel->hMutex);
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	result = UCThreadMutex_Lock(pstSharedMemroyChannel->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
 	if(pstChannel->enChannelType == CHANNEL_TYPE_GENERAL || pstChannel->enChannelType == CHANNEL_TYPE_OUTPUT_ARRAY)
 	{
-		*pnDataNum = pstChannel->nDataLen;
+		*pnDataNum = pstSharedMemroyChannel->nDataLen;
 	}
 	else // if( pstChannel->enChannelType == CHANNEL_TYPE_INPUT_ARRAY || pstChannel->enChannelType == CHANNEL_TYPE_FULL_ARRAY)
 	{
-		if(pstChannel->pstAvailableInputChunkHead != NULL)
+		if(pstSharedMemroyChannel->pstAvailableInputChunkHead != NULL)
 		{
-			*pnDataNum = pstChannel->stInputPortChunk.astChunk[nChunkIndex].nChunkDataLen;
+			*pnDataNum = pstSharedMemroyChannel->stInputPortChunk.astChunk[nChunkIndex].nChunkDataLen;
 		}
 		else
 		{
@@ -1115,7 +1177,7 @@ uem_result UKSharedMemoryChannel_GetNumOfAvailableData (SChannel *pstChannel, IN
 
 	result = ERR_UEM_NOERROR;
 
-	UCThreadMutex_Unlock(pstChannel->hMutex);
+	UCThreadMutex_Unlock(pstSharedMemroyChannel->hMutex);
 _EXIT:
 	return result;
 }
@@ -1123,29 +1185,32 @@ _EXIT:
 uem_result UKSharedMemoryChannel_SetExit(SChannel *pstChannel, int nExitFlag)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
 
-	result = UCThreadMutex_Lock(pstChannel->hMutex);
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	result = UCThreadMutex_Lock(pstSharedMemroyChannel->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
 	if((nExitFlag & EXIT_FLAG_READ) != 0)
 	{
-		pstChannel->bReadExit = TRUE;
+		pstSharedMemroyChannel->bReadExit = TRUE;
 
-		result = UCThreadEvent_SetEvent(pstChannel->hReadEvent);
+		result = UCThreadEvent_SetEvent(pstSharedMemroyChannel->hReadEvent);
 		ERRIFGOTO(result, _EXIT_LOCK);
 	}
 
 	if((nExitFlag & EXIT_FLAG_WRITE) != 0)
 	{
-		pstChannel->bWriteExit = TRUE;
+		pstSharedMemroyChannel->bWriteExit = TRUE;
 
-		result = UCThreadEvent_SetEvent(pstChannel->hWriteEvent);
+		result = UCThreadEvent_SetEvent(pstSharedMemroyChannel->hWriteEvent);
 		ERRIFGOTO(result, _EXIT_LOCK);
 	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
-	UCThreadMutex_Unlock(pstChannel->hMutex);
+	UCThreadMutex_Unlock(pstSharedMemroyChannel->hMutex);
 _EXIT:
 	return result;
 }
@@ -1154,23 +1219,26 @@ _EXIT:
 uem_result UKSharedMemoryChannel_ClearExit(SChannel *pstChannel, int nExitFlag)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
 
-	result = UCThreadMutex_Lock(pstChannel->hMutex);
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	result = UCThreadMutex_Lock(pstSharedMemroyChannel->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
 	if((nExitFlag & EXIT_FLAG_READ) != 0)
 	{
-		pstChannel->bReadExit = FALSE;
+		pstSharedMemroyChannel->bReadExit = FALSE;
 	}
 
 	if((nExitFlag & EXIT_FLAG_WRITE) != 0)
 	{
-		pstChannel->bWriteExit = FALSE;
+		pstSharedMemroyChannel->bWriteExit = FALSE;
 	}
 
 	result = ERR_UEM_NOERROR;
 
-	UCThreadMutex_Unlock(pstChannel->hMutex);
+	UCThreadMutex_Unlock(pstSharedMemroyChannel->hMutex);
 _EXIT:
 	return result;
 }
@@ -1179,13 +1247,16 @@ _EXIT:
 uem_result UKSharedMemoryChannel_Finalize(SChannel *pstChannel)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
+
+	pstSharedMemroyChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
 
 	// ignore error
-	UCThreadMutex_Destroy(&(pstChannel->hMutex));
+	UCThreadMutex_Destroy(&(pstSharedMemroyChannel->hMutex));
 
 	// ignore error
-	UCThreadEvent_Destroy(&(pstChannel->hReadEvent));
-	UCThreadEvent_Destroy(&(pstChannel->hWriteEvent));
+	UCThreadEvent_Destroy(&(pstSharedMemroyChannel->hReadEvent));
+	UCThreadEvent_Destroy(&(pstSharedMemroyChannel->hWriteEvent));
 
 	result = ERR_UEM_NOERROR;
 

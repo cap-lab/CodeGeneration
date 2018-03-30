@@ -264,16 +264,12 @@ STaskFunctions g_ast_${task.name}_functions[] = {
 // ##TASK_FUNCTION_LIST::END
 
 
-// ##CHANNEL_LIST_TEMPLATE::START
-SChannel g_astChannels[] = {
+// ##SPECIFIC_CHANNEL_LIST_TEMPLATE::START
 <#list channel_list as channel>
-	{
-		${channel.index}, // Channel ID
-		${channel.nextChannelIndex}, // Next channel index (which is used for single port is connecting to multiple channels)
-		COMMUNICATION_TYPE_${channel.communicationType}, // Channel communication type
-		CHANNEL_TYPE_${channel.channelType}, // Channel type
+	<#switch channel.communicationType>
+		<#case "SHARED_MEMORY">
+SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 		s_pChannel_${channel.index}_buffer, // Channel buffer pointer
-		CHANNEL_${channel.index}_SIZE, // Channel size
 		s_pChannel_${channel.index}_buffer, // Channel data start
 		s_pChannel_${channel.index}_buffer, // Channel data end
 		0, // Channel data length
@@ -284,6 +280,42 @@ SChannel g_astChannels[] = {
 		NULL, // Mutex
 		NULL, // Read available notice event
 		NULL, // Write available notice event
+		{
+			g_astChunk_channel_${channel.index}_in, // Array of chunk
+			1, // Chunk number
+			1, // Chunk size
+		}, // Input chunk information
+		{
+			g_astChunk_channel_${channel.index}_out, // Array of chunk
+			1, // Chunk number
+			1, // Chunk size
+		}, // Output chunk information
+		CHUNK_NUM_NOT_INITIALIZED, // Written output chunk number
+		g_astAvailableInputChunk_channel_${channel.index}, // Available chunk list
+		${channel.inputPort.maximumChunkNum}, // maximum input port chunk size for all port sample rate cases
+		NULL, // Chunk list head
+		NULL, // Chunk list tail 
+};
+
+			<#break>
+		<#case "TCP_CLIENT">
+			<#break>
+		<#case "TCP_SERVER">
+			<#break>
+	</#switch>
+</#list>
+// ##SPECIFIC_CHANNEL_LIST_TEMPLATE::END
+
+
+// ##CHANNEL_LIST_TEMPLATE::START
+SChannel g_astChannels[] = {
+<#list channel_list as channel>
+	{
+		${channel.index}, // Channel ID
+		${channel.nextChannelIndex}, // Next channel index (which is used for single port is connecting to multiple channels)
+		COMMUNICATION_TYPE_${channel.communicationType}, // Channel communication type
+		CHANNEL_TYPE_${channel.channelType}, // Channel type
+		CHANNEL_${channel.index}_SIZE, // Channel size
 		{
 			${channel.inputPort.taskId}, // Task ID
 			"${channel.inputPort.portName}", // Port name
@@ -306,26 +338,23 @@ SChannel g_astChannels[] = {
 			PORT_TYPE_${channel.outputPort.portType}, // Port type
 			<#if channel.outputPort.subgraphPort??>&g_astPortInfo[${port_key_to_index[channel.outputPort.subgraphPort.portKey]}]<#else>NULL</#if>, // Pointer to Subgraph port
 		}, // Output port information
-		{
-			g_astChunk_channel_${channel.index}_in, // Array of chunk
-			1, // Chunk number
-			1, // Chunk size
-		}, // Input chunk information
-		{
-			g_astChunk_channel_${channel.index}_out, // Array of chunk
-			1, // Chunk number
-			1, // Chunk size
-		}, // Output chunk information
-		CHUNK_NUM_NOT_INITIALIZED, // Written output chunk number
-		g_astAvailableInputChunk_channel_${channel.index}, // Available chunk list
-		${channel.inputPort.maximumChunkNum}, // maximum input port chunk size for all port sample rate cases
-		NULL, // Chunk list head
-		NULL, // Chunk list tail
-		${channel.initialDataLen?c}, // Initial data length 
+		${channel.initialDataLen?c}, // Initial data length
+	<#switch channel.communicationType>
+		<#case "SHARED_MEMORY">		
+		&g_stSharedMemoryChannel_${channel.index}, // specific shared memory channel structure pointer
+			<#break>
+		<#case "TCP_CLIENT">
+			<#break>
+		<#case "TCP_SERVER">
+			<#break>
+		</#switch>
 	},
 </#list>
 };
 // ##CHANNEL_LIST_TEMPLATE::END
+
+
+
 
 // ##TASK_ITERATION_TEMPLATE::START
 <#list flat_task as task_name, task>

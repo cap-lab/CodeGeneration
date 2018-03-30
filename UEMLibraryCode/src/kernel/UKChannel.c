@@ -131,16 +131,6 @@ uem_result UKChannel_Initialize()
 			result = fillInitialData(&(g_astChannels[nLoop]), pstChannelAPI);
 			ERRIFGOTO(result, _EXIT);
 		}
-
-		if( g_astChannels[nLoop].stInputPortChunk.nChunkNum > 1 )
-		{
-			//channel is read by multiple tasks
-		}
-
-		if( g_astChannels[nLoop].stOutputPortChunk.nChunkNum > 1 )
-		{
-			// channel is written by multiple tasks
-		}
 	}
 _EXIT:
 	return result;
