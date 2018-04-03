@@ -65,6 +65,20 @@ typedef struct _SSharedMemoryChannel {
 	SAvailableChunk *pstAvailableInputChunkTail;
 } SSharedMemoryChannel;
 
+typedef struct _SGPUSharedMemoryChannel {
+	void *pBuffer;
+	void *pDataStart;
+	void *pDataEnd;
+	int nDataLen;
+	int nReadReferenceCount;
+	int nWriteReferenceCount;
+	uem_bool bReadExit;
+	uem_bool bWriteExit;
+	HThreadMutex hMutex; // Channel global mutex
+	HThreadEvent hReadEvent; // Channel read available notice conditional variable
+	HThreadEvent hWriteEvent; // Channel write available notice conditional variable
+} SGPUSharedMemoryChannel;
+
 
 #ifdef __cplusplus
 }
