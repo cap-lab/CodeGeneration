@@ -31,6 +31,7 @@ import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.library.LibraryConnection;
 import org.snu.cse.cap.translator.structure.mapping.InvalidScheduleFileNameException;
 import org.snu.cse.cap.translator.structure.mapping.MappingInfo;
+import org.snu.cse.cap.translator.structure.mapping.TaskGPUMappingInfo;
 import org.snu.cse.cap.translator.structure.task.Task;
 import org.snu.cse.cap.translator.structure.task.TaskLoopType;
 import org.snu.cse.cap.translator.structure.task.TaskMode;
@@ -44,6 +45,7 @@ import hopes.cic.xml.BluetoothConnectionType;
 import hopes.cic.xml.CICAlgorithmType;
 import hopes.cic.xml.CICArchitectureType;
 import hopes.cic.xml.CICConfigurationType;
+import hopes.cic.xml.CICGPUSetupType;
 import hopes.cic.xml.CICMappingType;
 import hopes.cic.xml.CICProfileType;
 import hopes.cic.xml.ChannelPortType;
@@ -200,7 +202,7 @@ public class Application {
 	public void makeTaskInformation(CICAlgorithmType algorithm_metadata)
 	{
 		Task task;
-		
+
 		this.applicationGraphProperty = TaskGraphType.fromValue(algorithm_metadata.getProperty());
 		
 		fillBasicTaskMapAndGraphInfo(algorithm_metadata);
@@ -376,7 +378,33 @@ public class Application {
 		return mappingInfo;
 	}
 	
-	private void setChannelCommunicationType(Channel channel, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo) 
+	private TaskGPUMappingInfo findGPUMappingInfoByTaskName(String taskName) throws InvalidDataInMetadataFileException
+	{
+		Task task;
+		TaskGPUMappingInfo gpumappingInfo = null;
+		
+		for(Device device: this.deviceInfo.values())
+		{
+			// task is mapped in this device
+			if(device.getTaskMap().containsKey(taskName)) 
+			{
+				if(device.getGPUMappingInfo().containsKey(taskName))
+				{
+					gpumappingInfo = device.getGPUMappingInfo().get(taskName);
+				}
+				else
+				{
+					// task is mapped in cpu processor
+				}
+				break;
+			}
+		}
+		
+		//Is it okay to return null?
+		return gpumappingInfo;
+	}
+	
+	private void setChannelCommunicationType(Channel channel, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo,TaskGPUMappingInfo srcTaskGPUMappingInfo,TaskGPUMappingInfo dstTaskGPUMappingInfo) 
 	{
 		// Two tasks are connected on different devices
 		// TODO: multi device connection must be supported
@@ -388,14 +416,38 @@ public class Application {
 		{
 			// TODO: this part should handle heterogeneous computing devices, so processor name check is also needed
 			// currently only the first mapped processor is used for checking the both tasks are located at the same processor pool.
-			if(srcTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId() == 
-					dstTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId())
+			if(srcTaskGPUMappingInfo != null || dstTaskGPUMappingInfo != null)
 			{
-				channel.setCommunicationType(CommunicationType.SHARED_MEMORY);
+				if(srcTaskGPUMappingInfo != null && dstTaskGPUMappingInfo == null)
+				{
+					channel.setCommunicationType(CommunicationType.GPU_CPU);
+				}
+				else if(srcTaskGPUMappingInfo == null && dstTaskGPUMappingInfo != null)
+				{
+					channel.setCommunicationType(CommunicationType.CPU_GPU);
+				}
+				else
+				{
+					if (srcTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId() ==
+							dstTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId())
+					{
+						channel.setCommunicationType(CommunicationType.GPU_GPU);
+					} else {
+						channel.setCommunicationType(CommunicationType.GPU_GPU_DIFFERENT);
+					}
+				}
 			}
 			else
 			{
-				throw new UnsupportedOperationException();
+				if (srcTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId() ==
+						dstTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId())
+				{
+					channel.setCommunicationType(CommunicationType.SHARED_MEMORY);
+				}
+				else
+				{
+					throw new UnsupportedOperationException();
+				}
 			}
 		}
 	}
@@ -644,7 +696,7 @@ public class Application {
 	private SDFGraph makeSDFGraph(ArrayList<Task> taskList, ArrayList<Channel> channelList, TaskMode mode)
 	{
 		SDFGraph graph = new SDFGraph(taskList.size(), channelList.size());
-		HashMap<String, Node> unconnectedSDFTaskMap = new HashMap<String, Node>(); 
+		HashMap<String, Node> unconnectedSDFTaskMap = new HashMap<String, Node>();
 		boolean isSDF = false;
 		
 		addNode(graph, taskList, unconnectedSDFTaskMap);
@@ -820,7 +872,9 @@ public class Application {
 			ChannelPortType channelSrcPort = channelMetadata.getSrc().get(0);
 			ChannelPortType channelDstPort = channelMetadata.getDst().get(0);
 			MappingInfo srcTaskMappingInfo;
-			MappingInfo dstTaskMappingInfo;	
+			MappingInfo dstTaskMappingInfo;
+			TaskGPUMappingInfo srcTaskGPUMappingInfo;
+			TaskGPUMappingInfo dstTaskGPUMappingInfo;
 			
 			Port srcPort = this.portInfo.get(channelSrcPort.getTask() + Constants.NAME_SPLITER + channelSrcPort.getPort() + Constants.NAME_SPLITER + PortDirection.OUTPUT);
 			Port dstPort = this.portInfo.get(channelDstPort.getTask() + Constants.NAME_SPLITER + channelDstPort.getPort() + Constants.NAME_SPLITER + PortDirection.INPUT);
@@ -841,8 +895,11 @@ public class Application {
 			srcTaskMappingInfo = findMappingInfoByTaskName(channelSrcPort.getTask());
 			dstTaskMappingInfo = findMappingInfoByTaskName(channelDstPort.getTask());
 			
+			srcTaskGPUMappingInfo = findGPUMappingInfoByTaskName(channelSrcPort.getTask());
+			dstTaskGPUMappingInfo = findGPUMappingInfoByTaskName(channelDstPort.getTask());
+			
 			// communication type (device information)
-			setChannelCommunicationType(channel, srcTaskMappingInfo, dstTaskMappingInfo);
+			setChannelCommunicationType(channel, srcTaskMappingInfo, dstTaskMappingInfo,srcTaskGPUMappingInfo,dstTaskGPUMappingInfo);
 			addChannelAndPortInfoToDevice(channel, srcTaskMappingInfo, dstTaskMappingInfo);
 			
 			this.channelList.add(channel);
@@ -859,7 +916,7 @@ public class Application {
 	}
 
 	// scheduleFolderPath : output + /convertedSDF3xml/
-	public void makeMappingAndTaskInformationPerDevices(CICMappingType mapping_metadata, CICProfileType profile_metadata, CICConfigurationType config_metadata, String scheduleFolderPath)
+	public void makeMappingAndTaskInformationPerDevices(CICMappingType mapping_metadata, CICProfileType profile_metadata, CICConfigurationType config_metadata, String scheduleFolderPath, CICGPUSetupType gpusetup_metadata)
 	{
 		//config_metadata.getCodeGeneration().getRuntimeExecutionPolicy().equals(anObject)
 		ExecutionPolicy executionPolicy = ExecutionPolicy.fromValue(config_metadata.getCodeGeneration().getRuntimeExecutionPolicy());
@@ -868,7 +925,7 @@ public class Application {
 		{
 			try 
 			{
-				device.putInDeviceTaskInformation(this.taskMap, scheduleFolderPath, mapping_metadata, executionPolicy, this.applicationGraphProperty);
+				device.putInDeviceTaskInformation(this.taskMap, scheduleFolderPath, mapping_metadata, executionPolicy, this.applicationGraphProperty, gpusetup_metadata);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

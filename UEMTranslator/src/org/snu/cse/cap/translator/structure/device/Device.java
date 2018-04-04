@@ -29,6 +29,7 @@ import org.snu.cse.cap.translator.structure.mapping.ScheduleItem;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleItemType;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleLoop;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleTask;
+import org.snu.cse.cap.translator.structure.mapping.TaskGPUMappingInfo;
 import org.snu.cse.cap.translator.structure.task.Task;
 import org.snu.cse.cap.translator.structure.task.TaskMode;
 import org.snu.cse.cap.translator.structure.task.TaskModeTransition;
@@ -36,10 +37,14 @@ import org.snu.cse.cap.translator.structure.task.TaskShapeType;
 import org.snu.cse.cap.translator.structure.task.TaskMode.ChildTaskTraverseCallback;
 
 import hopes.cic.exception.CICXMLException;
+import hopes.cic.xml.CICGPUSetupType;
 import hopes.cic.xml.CICMappingType;
 import hopes.cic.xml.CICScheduleType;
 import hopes.cic.xml.CICScheduleTypeLoader;
+import hopes.cic.xml.GPUTaskType;
 import hopes.cic.xml.MappingDeviceType;
+import hopes.cic.xml.MappingGPUDeviceType;
+import hopes.cic.xml.MappingGPUProcessorIdType;
 import hopes.cic.xml.MappingProcessorIdType;
 import hopes.cic.xml.MappingTaskType;
 import hopes.cic.xml.ScheduleElementType;
@@ -59,6 +64,7 @@ public class Device {
 	private HashMap<String, Task> taskMap; // Task name : Task class
 	private HashMap<String, TaskGraph> taskGraphMap; // Task graph name : TaskGraph class
 	private HashMap<String, GeneralTaskMappingInfo> generalMappingInfo; // Task name : GeneralTaskMappingInfo class
+	private HashMap<String, TaskGPUMappingInfo> gpuMappingInfo; // Task name : TaskGPUMappingInfo class
 	private HashMap<String, CompositeTaskMappingInfo> staticScheduleMappingInfo; // Parent task Name : CompositeTaskMappingInfo class
 	private ArrayList<Port> portList;
 	private HashMap<String, Library> libraryMap;
@@ -78,6 +84,7 @@ public class Device {
 		this.taskMap = new HashMap<String, Task>();
 		this.taskGraphMap = new HashMap<String, TaskGraph>();
 		this.generalMappingInfo = new HashMap<String, GeneralTaskMappingInfo>();
+		this.gpuMappingInfo = new HashMap<String, TaskGPUMappingInfo>();
 		this.staticScheduleMappingInfo = new HashMap<String, CompositeTaskMappingInfo>();
 		this.libraryMap = new HashMap<String, Library>();
 		this.portList = new ArrayList<Port>();
@@ -479,6 +486,46 @@ public class Device {
 		}
 	}
 	
+	private void setTaskGPUMappingInfo(CICGPUSetupType gpusetup_metadata, HashMap<String, Task> globalTaskMap) throws InvalidDataInMetadataFileException, NoProcessorFoundException
+	{
+		for(GPUTaskType mappedTask: gpusetup_metadata.getTasks().getTask())
+		{
+			for(MappingGPUDeviceType device: mappedTask.getDevice())
+			{
+				if(device.getName().equals(this.name) &&
+					checkTaskIsIncludedInCompositeTask(mappedTask.getName(), globalTaskMap) == false)
+				{					
+					TaskGPUMappingInfo gpumappingInfo = new TaskGPUMappingInfo(mappedTask.getName(), getTaskType(mappedTask.getName()), mappedTask.getClustering(), mappedTask.getPipelining(), mappedTask.getMaxStream().intValue());
+					
+					gpumappingInfo.setBlockSizeWidth(mappedTask.getGlobalWorkSize().getWidth());
+					gpumappingInfo.setBlockSizeHeight(mappedTask.getGlobalWorkSize().getHeight());
+					gpumappingInfo.setBlockSizeDepth(mappedTask.getGlobalWorkSize().getDepth());
+
+					gpumappingInfo.setThreadSizeWidth(mappedTask.getLocalWorkSize().getWidth());
+					gpumappingInfo.setThreadSizeHeight(mappedTask.getLocalWorkSize().getHeight());
+					gpumappingInfo.setThreadSizeDepth(mappedTask.getLocalWorkSize().getDepth());
+					
+					gpumappingInfo.setMappedDeviceName(device.getName());
+					
+					for(MappingGPUProcessorIdType proc: device.getProcessor())
+					{
+						MappedProcessor processor = new MappedProcessor(getProcessorIdByName(proc.getPool()), 0);
+						gpumappingInfo.putProcessor(processor);
+					}
+					if(this.gpuMappingInfo.containsKey(mappedTask.getName()) == false)
+					{
+						this.gpuMappingInfo.put(mappedTask.getName(), gpumappingInfo);				
+					}
+					else // if same task is already in the gpumappingInfo, ignore the later one
+					{
+						// ignore the mapping (because the duplicated key means it already registered 
+					}
+					break;
+				}
+			}
+		}		
+	}
+	
 	private void recursiveSetSubgraphTaskToStaticScheduled(TaskGraph taskGraph)
 	{		
 		TaskGraph subTaskGraph;
@@ -818,7 +865,7 @@ public class Device {
 	
 	public void putInDeviceTaskInformation(HashMap<String, Task> globalTaskMap, 
 									String scheduleFolderPath, CICMappingType mapping_metadata, ExecutionPolicy executionPolicy, 
-									TaskGraphType topTaskGraphType)
+									TaskGraphType topTaskGraphType, CICGPUSetupType gpusetup_metadata)
 	throws FileNotFoundException, InvalidScheduleFileNameException, InvalidDataInMetadataFileException, NoProcessorFoundException
 	{
 		switch(executionPolicy)
@@ -845,13 +892,15 @@ public class Device {
 			break;
 		}
 		
+		if(gpusetup_metadata != null){
+			setTaskGPUMappingInfo(gpusetup_metadata,globalTaskMap);
+		}
 		// set top-level task graph property which is located at CICAlgorithm element's property attribute
 		TaskGraph taskGraph = this.taskGraphMap.get(Constants.TOP_TASKGRAPH_NAME);
-		taskGraph.setTaskGraphType(topTaskGraphType);
+		if(taskGraph != null)
+			taskGraph.setTaskGraphType(topTaskGraphType);
 	}
-	
 
-	
 	private boolean recursiveIsLibraryUsedInDevice(ArrayList<LibraryConnection> libraryConnection, HashMap<String, Library> globalLibraryMap)
 	{
 		boolean isUsed = false;
@@ -987,6 +1036,10 @@ public class Device {
 
 	public HashMap<String, GeneralTaskMappingInfo> getGeneralMappingInfo() {
 		return generalMappingInfo;
+	}
+	
+	public HashMap<String, TaskGPUMappingInfo> getGPUMappingInfo() {
+		return gpuMappingInfo;
 	}
 
 	public HashMap<String, CompositeTaskMappingInfo> getStaticScheduleMappingInfo() {

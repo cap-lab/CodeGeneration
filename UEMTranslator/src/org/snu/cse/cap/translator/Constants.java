@@ -11,6 +11,7 @@ public class Constants {
 	public static final String UEMXML_CONTROL_PREFIX = "_control.xml";
 	public static final String UEMXML_PROFILE_PREFIX = "_profile.xml";
 	public static final String UEMXML_SCHEDULE_PREFIX = ",schedule.xml";
+	public static final String UEMXML_GPUSETUP_PREFIX = "_gpusetup.xml";
 	
 	public static final String TOP_TASKGRAPH_NAME = "top";
 	public static final String XML_PREFIX = ".xml";

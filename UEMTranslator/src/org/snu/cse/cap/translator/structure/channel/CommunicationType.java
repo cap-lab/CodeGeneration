@@ -4,4 +4,8 @@ public enum CommunicationType {
 	SHARED_MEMORY,
 	TCP_CLIENT,
 	TCP_SERVER,
+	CPU_GPU,
+	GPU_CPU,
+	GPU_GPU,
+	GPU_GPU_DIFFERENT,
 }

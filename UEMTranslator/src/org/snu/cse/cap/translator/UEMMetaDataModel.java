@@ -18,6 +18,8 @@ import hopes.cic.xml.CICMappingType;
 import hopes.cic.xml.CICMappingTypeLoader;
 import hopes.cic.xml.CICProfileType;
 import hopes.cic.xml.CICProfileTypeLoader;
+import hopes.cic.xml.CICGPUSetupType;
+import hopes.cic.xml.CICGPUSetupTypeLoader;
 
 public class UEMMetaDataModel {
     private CICAlgorithmType algorithmMetadata = null;
@@ -26,6 +28,7 @@ public class UEMMetaDataModel {
     private CICControlType controlMetadata = null;
     private CICConfigurationType configurationMetadata = null;
     private CICProfileType profileMetadata = null;
+    private CICGPUSetupType gpusetupMetadata = null;
     private String schedulePath = null;
     //private CICScheduleType mSchedule = null;
     
@@ -46,6 +49,7 @@ public class UEMMetaDataModel {
         CICConfigurationTypeLoader configurationLoader = new CICConfigurationTypeLoader();
         CICControlTypeLoader controlLoader = new CICControlTypeLoader();
         CICProfileTypeLoader profileLoader = new CICProfileTypeLoader();
+        CICGPUSetupTypeLoader gpusetupLoader = new CICGPUSetupTypeLoader();
         
         try {
         	// Mandatory XML Files
@@ -72,6 +76,11 @@ public class UEMMetaDataModel {
         	{
         		profileMetadata = profileLoader.loadResource(uemXMLPath + Constants.UEMXML_PROFILE_PREFIX);
         	}
+        	
+        	if(new File(uemXMLPath + Constants.UEMXML_GPUSETUP_PREFIX).isFile() == true)
+        	{
+        		gpusetupMetadata = gpusetupLoader.loadResource(uemXMLPath + Constants.UEMXML_GPUSETUP_PREFIX);
+        	}
         }
         catch(CICXMLException e) {
         	System.out.println("XML Parse Error: " + e.getMessage());
@@ -86,7 +95,7 @@ public class UEMMetaDataModel {
     	this.application.makeDeviceInformation(architectureMetadata);
     	
     	this.application.makeTaskInformation(algorithmMetadata);
-    	this.application.makeMappingAndTaskInformationPerDevices(mappingMetadata, profileMetadata, configurationMetadata, this.schedulePath);
+    	this.application.makeMappingAndTaskInformationPerDevices(mappingMetadata, profileMetadata, configurationMetadata, this.schedulePath, gpusetupMetadata);
     	this.application.makeChannelInformation(algorithmMetadata);
     	this.application.makeLibraryInformation(algorithmMetadata);
     	this.application.makeConfigurationInformation(configurationMetadata);
