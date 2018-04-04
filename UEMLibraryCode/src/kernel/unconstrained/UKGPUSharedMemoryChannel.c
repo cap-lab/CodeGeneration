@@ -11,7 +11,7 @@
 
 #include <uem_common.h>
 
-#include "../../common/include/gpu/UCGPUMemory.h"
+#include <UCGPUMemory.h>
 #include <UCBasic.h>
 #include <UCThreadMutex.h>
 
@@ -60,10 +60,12 @@ uem_result UKGPUSharedMemoryChannel_Initialize(SChannel *pstChannel)
 			pstGPUSharedMemroyChannel->pBuffer = UC_malloc(pstChannel->nBufSize);
 			break;
 		case COMMUNICATION_TYPE_GPU_GPU:
-			pstGPUSharedMemroyChannel->pBuffer = UC_cudaMalloc(pstChannel->nBufSize);
+			result = UCGPUMemory_Malloc(pstGPUSharedMemroyChannel->pBuffer, pstChannel->nBufSize);
+			ERRIFGOTO(result, _EXIT);
 			break;
 		case COMMUNICATION_TYPE_GPU_GPU_DIFFERENT:
-			pstGPUSharedMemroyChannel->pBuffer = UC_cudaHostAlloc(pstChannel->nBufSize, 1); //flag is 'cudaHostAllocPortable'
+			result = UCGPUMemory_HostAlloc(pstGPUSharedMemroyChannel->pBuffer, pstChannel->nBufSize, MEMORY_PROPERTY_PORTABLE); //flag is 'cudaHostAllocPortable'
+			ERRIFGOTO(result, _EXIT);
 			break;
 		default :
 			break;
@@ -114,13 +116,15 @@ static uem_result copyAndMovePointerFromRoundedQueue(unsigned char *pDest, SChan
 			break;
 		case COMMUNICATION_TYPE_GPU_GPU:
 			//The flag for cudamemcpy is DeviceToDevice.
-			UC_cudaMemcpy(pDest, pstGPUSharedMemroyChannel->pDataStart, nSegmentLen, 3);
-			UC_cudaMemcpy(pDest + nSegmentLen, pstGPUSharedMemroyChannel->pDataStart, nRemainderLen, 3);
+			result = UCGPUMemory_Memcpy(pDest, pstGPUSharedMemroyChannel->pDataStart, nSegmentLen, MEMCPY_KIND_DEVICE_TO_DEVICE);
+			result = UCGPUMemory_Memcpy(pDest + nSegmentLen, pstGPUSharedMemroyChannel->pDataStart, nRemainderLen, MEMCPY_KIND_DEVICE_TO_DEVICE);
+			ERRIFGOTO(result, _EXIT);
 			break;
 		case COMMUNICATION_TYPE_GPU_GPU_DIFFERENT:
 			//The flag for cudamemcpy is HostToDevice.
-			UC_cudaMemcpy(pDest, pstGPUSharedMemroyChannel->pDataStart, nSegmentLen, 1);
-			UC_cudaMemcpy(pDest + nSegmentLen, pstGPUSharedMemroyChannel->pDataStart, nRemainderLen, 1);
+			result = UCGPUMemory_Memcpy(pDest, pstGPUSharedMemroyChannel->pDataStart, nSegmentLen, MEMCPY_KIND_HOST_TO_DEVICE);
+			result = UCGPUMemory_Memcpy(pDest + nSegmentLen, pstGPUSharedMemroyChannel->pDataStart, nRemainderLen, MEMCPY_KIND_HOST_TO_DEVICE);
+			ERRIFGOTO(result, _EXIT);
 			break;
 		default:
 			break;
@@ -137,11 +141,13 @@ static uem_result copyAndMovePointerFromRoundedQueue(unsigned char *pDest, SChan
 			break;
 		case COMMUNICATION_TYPE_GPU_GPU:
 			//The flag for cudamemcpy is DeviceToDevice.
-			UC_cudaMemcpy(pDest, pstGPUSharedMemroyChannel->pDataStart, nDataToRead,3);
+			result = UCGPUMemory_Memcpy(pDest, pstGPUSharedMemroyChannel->pDataStart, nDataToRead, MEMCPY_KIND_DEVICE_TO_DEVICE);
+			ERRIFGOTO(result, _EXIT);
 			break;
 		case COMMUNICATION_TYPE_GPU_GPU_DIFFERENT:
 			//The flag for cudamemcpy is HostToDevice.
-			UC_cudaMemcpy(pDest, pstGPUSharedMemroyChannel->pDataStart, nDataToRead,1);
+			result = UCGPUMemory_Memcpy(pDest, pstGPUSharedMemroyChannel->pDataStart, nDataToRead, MEMCPY_KIND_HOST_TO_DEVICE);
+			ERRIFGOTO(result, _EXIT);
 			break;
 		default :
 			break;
@@ -160,7 +166,7 @@ static uem_result copyAndMovePointerFromRoundedQueue(unsigned char *pDest, SChan
 	pstGPUSharedMemroyChannel->nDataLen -= nDataToRead;
 
 	result = ERR_UEM_NOERROR;
-
+_EXIT:
 	return result;
 }
 
@@ -249,12 +255,14 @@ static uem_result copyAndMovePointerToRoundedQueue(SChannel *pstChannel, unsigne
 			UC_memcpy(pstGPUSharedMemroyChannel->pBuffer, pSrc + nSegmentLen, nRemainderLen);
 			break;
 		case COMMUNICATION_TYPE_GPU_GPU:
-			//The flag of cudamemcpy is DeviceToDevice.
-			UC_cudaMemcpy(pstGPUSharedMemroyChannel->pDataEnd, pSrc, nSegmentLen, 3);
-			UC_cudaMemcpy(pstGPUSharedMemroyChannel->pBuffer, pSrc + nSegmentLen, nRemainderLen, 3);
+			result = UCGPUMemory_Memcpy(pstGPUSharedMemroyChannel->pDataEnd, pSrc, nSegmentLen, MEMCPY_KIND_DEVICE_TO_DEVICE);
+			result = UCGPUMemory_Memcpy(pstGPUSharedMemroyChannel->pBuffer, pSrc + nSegmentLen, nRemainderLen, MEMCPY_KIND_DEVICE_TO_DEVICE);
+			ERRIFGOTO(result, _EXIT);
 			break;
 		case COMMUNICATION_TYPE_GPU_GPU_DIFFERENT:
-			//The flag of cudamemcpy is DeviceToHost.
+			result = UCGPUMemory_Memcpy(pstGPUSharedMemroyChannel->pDataEnd, pSrc, nSegmentLen, MEMCPY_KIND_DEVICE_TO_HOST);
+			result = UCGPUMemory_Memcpy(pstGPUSharedMemroyChannel->pBuffer, pSrc + nSegmentLen, nRemainderLen, MEMCPY_KIND_DEVICE_TO_HOST);
+			ERRIFGOTO(result, _EXIT);
 			break;
 		default :
 			break;
@@ -270,12 +278,12 @@ static uem_result copyAndMovePointerToRoundedQueue(SChannel *pstChannel, unsigne
 			UC_memcpy(pstGPUSharedMemroyChannel->pDataEnd, pSrc, nDataToWrite);
 			break;
 		case COMMUNICATION_TYPE_GPU_GPU:
-			//The flag for cudamemcpy is DeviceToDevice.
-			UC_cudaMemcpy(pstGPUSharedMemroyChannel->pDataEnd, pSrc, nDataToWrite, 3);
+			result = UCGPUMemory_Memcpy(pstGPUSharedMemroyChannel->pDataEnd, pSrc, nDataToWrite, MEMCPY_KIND_DEVICE_TO_DEVICE);
+			ERRIFGOTO(result, _EXIT);
 			break;
 		case COMMUNICATION_TYPE_GPU_GPU_DIFFERENT:
-			//The flag for cudamemcpy is DeviceToHost.
-			UC_cudaMemcpy(pstGPUSharedMemroyChannel->pDataEnd, pSrc, nDataToWrite, 2);
+			result = UCGPUMemory_Memcpy(pstGPUSharedMemroyChannel->pDataEnd, pSrc, nDataToWrite, MEMCPY_KIND_DEVICE_TO_HOST);
+			ERRIFGOTO(result, _EXIT);
 			break;
 		default :
 			break;
@@ -294,7 +302,7 @@ static uem_result copyAndMovePointerToRoundedQueue(SChannel *pstChannel, unsigne
 	pstGPUSharedMemroyChannel->nDataLen += nDataToWrite;
 
 	result = ERR_UEM_NOERROR;
-
+_EXIT:
 	return result;
 }
 
@@ -374,6 +382,67 @@ uem_result UKGPUSharedMemoryChannel_GetNumOfAvailableData (SChannel *pstChannel,
 	ERRIFGOTO(result, _EXIT);
 
 	*pnDataNum = pstGPUSharedMemroyChannel->nDataLen;
+
+	result = ERR_UEM_NOERROR;
+
+	UCThreadMutex_Unlock(pstGPUSharedMemroyChannel->hMutex);
+_EXIT:
+	return result;
+}
+
+uem_result UKSharedMemoryChannel_SetExit(SChannel *pstChannel, int nExitFlag)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SGPUSharedMemoryChannel *pstGPUSharedMemroyChannel = NULL;
+
+	pstGPUSharedMemroyChannel = (SGPUSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	result = UCThreadMutex_Lock(pstGPUSharedMemroyChannel->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	if((nExitFlag & EXIT_FLAG_READ) != 0)
+	{
+		pstGPUSharedMemroyChannel->bReadExit = TRUE;
+
+		result = UCThreadEvent_SetEvent(pstGPUSharedMemroyChannel->hReadEvent);
+		ERRIFGOTO(result, _EXIT_LOCK);
+	}
+
+	if((nExitFlag & EXIT_FLAG_WRITE) != 0)
+	{
+		pstGPUSharedMemroyChannel->bWriteExit = TRUE;
+
+		result = UCThreadEvent_SetEvent(pstGPUSharedMemroyChannel->hWriteEvent);
+		ERRIFGOTO(result, _EXIT_LOCK);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstGPUSharedMemroyChannel->hMutex);
+_EXIT:
+	return result;
+}
+
+
+uem_result UKSharedMemoryChannel_ClearExit(SChannel *pstChannel, int nExitFlag)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SGPUSharedMemoryChannel *pstGPUSharedMemroyChannel = NULL;
+
+	pstGPUSharedMemroyChannel = (SGPUSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	result = UCThreadMutex_Lock(pstGPUSharedMemroyChannel->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	if((nExitFlag & EXIT_FLAG_READ) != 0)
+	{
+		pstGPUSharedMemroyChannel->bReadExit = FALSE;
+	}
+
+	if((nExitFlag & EXIT_FLAG_WRITE) != 0)
+	{
+		pstGPUSharedMemroyChannel->bWriteExit = FALSE;
+	}
 
 	result = ERR_UEM_NOERROR;
 

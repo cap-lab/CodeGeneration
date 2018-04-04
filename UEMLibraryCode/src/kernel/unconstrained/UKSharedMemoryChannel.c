@@ -1182,7 +1182,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKSharedMemoryChannel_SetExit(SChannel *pstChannel, int nExitFlag)
+uem_result UKGPUSharedMemoryChannel_SetExit(SChannel *pstChannel, int nExitFlag)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;
@@ -1216,7 +1216,7 @@ _EXIT:
 }
 
 
-uem_result UKSharedMemoryChannel_ClearExit(SChannel *pstChannel, int nExitFlag)
+uem_result UKGPUSharedMemoryChannel_ClearExit(SChannel *pstChannel, int nExitFlag)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSharedMemoryChannel *pstSharedMemroyChannel = NULL;

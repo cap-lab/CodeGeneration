@@ -19,60 +19,105 @@
 
 #include <UCBasic.h>
 
-void *UCGPUMemory_Malloc(int nSize)
+uem_result convertCUDAErrorToUEMError(cudaError_t error)
 {
-	void *pMemory = NULL;
+	uem_result result = ERR_UEM_UNKNOWN;
 
-	cudaMalloc((void**)&pMemory,nSize);
+	switch(error){
+	// cudaMalloc, cudaHostAlloc, cudaFreeHost,  cudaMemcpy
+	case cudaErrorInvalidValue :
+		result = ERR_UEM_CUDA_INVALID_VALUE;
+		break;
+	// cudaMalloc, cudaHostAlloc
+	case ERR_UEM_CUDA_MEMORY_ALLOCATION :
+		result = CUDA_ERROR;
+		break;
+	// cudaFree
+	case cudaErrorInvalidDevicePointer :
+		result = ERR_UEM_CUDA_INVALID_DEVICE_POINTER;
+		break;
+	// cudaFree, cudaFreeHost
+	case cudaErrorInitializationError :
+		result = ERR_UEM_CUDA_INITIALIZATION;
+		break;
+	// cudaMemcpy
+	case cudaErrorInvalidMemcpyDirection :
+		result = ERR_UEM_CUDA_INVALID_MEMCPY_DIRECTION;
+		break;
+	// cudaSucess
+	default :
+		break;
+	}
 
-	return pMemory;
+	return result;
 }
 
 
-void *UCGPUMemory_HostAlloc(int nSize, unsigned int flags)
+uem_result UCGPUMemory_Malloc(void **pMemory, int nSize)
 {
-	void *pMemory = NULL;
+	cudaError_t error;
+
+	error = cudaMalloc((void**)&pMemory,nSize);
+
+	return convertCUDAErrorToUEMError(error);
+}
+
+
+uem_result UCGPUMemory_HostAlloc(void **pMemory, int nSize, EMemoryProperty flags)
+{
+	cudaError_t error;
 
 	cudaHostAlloc((void**)&pMemory,nSize,flags);
 
-	return pMemory;
-}
+	return convertCUDAErrorToUEMError(error);
 
-void UCGPUMemory_Free(void *pMem)
-{
-	cudaFree(pMem);
-}
-
-void UCGPUMemory_FreeHost(void *pMem)
-{
-	cudaFreeHost(pMem);
 }
 
 
-void *UCGPUMemory_Memcpy(void *pDest, const void *pSrc, int nSize, unsigned int flags)
+uem_result UCGPUMemory_Free(void *pMemory)
 {
-	void *pMemory = NULL;
+	cudaError_t error;
+
+	cudaFree(pMemory);
+
+	return convertCUDAErrorToUEMError(error);
+}
+
+
+uem_result UCGPUMemory_FreeHost(void *pMemory)
+{
+	cudaError_t error;
+
+	cudaFreeHost(pMemory);
+
+	return convertCUDAErrorToUEMError(error);
+}
+
+
+uem_result UCGPUMemory_Memcpy(void *pDest, const void *pSrc, int nSize, EMemcpyKind flags)
+{
+	cudaError_t error;
 
 	switch (flags){
-	case 0:
-		pMemory = cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyHostToHost);
+	case HOST_TO_HOST:
+		cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyHostToHost);
 		break;
-	case 1:
-		pMemory = cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyHostToDevice);
+	case HOST_TO_DEVICE:
+		cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyHostToDevice);
 		break;
-	case 2:
-		pMemory = cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyDeviceToHost);
+	case DEVICE_TO_HOST:
+		cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyDeviceToHost);
 		break;
-	case 3:
-		pMemory = cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyDeviceToDevice);
+	case DEVICE_TO_DEVICE:
+		cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyDeviceToDevice);
 		break;
-	case 4:
-		pMemory = cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyDefault);
+	case MEMCOPY_DEFAULT:
+		cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyDefault);
 		break;
 	default:
 		//error;
 		break;
 	}
 
-	return pMemory;
+	return convertCUDAErrorToUEMError(error);
 }

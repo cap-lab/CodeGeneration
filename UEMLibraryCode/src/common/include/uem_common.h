@@ -85,6 +85,13 @@ typedef enum _EUemResult {
 	ERR_UEM_NOT_FOUND,
 	ERR_UEM_CONVERSION_ERROR,
 
+	// Insert CUDA error
+	ERR_UEM_CUDA_INVALID_VALUE,				//cudaErrorInvalidValue
+	ERR_UEM_CUDA_MEMORY_ALLOCATION,			//cudaErrorMemoryAllocation
+	ERR_UEM_CUDA_INVALID_DEVICE_POINTER,	//cudaErrorInvalidDevicePointer
+	ERR_UEM_CUDA_INITIALIZATION,			//cudaErrorInitializationError
+	ERR_UEM_CUDA_INVALID_MEMCPY_DIRECTION,	//cudaErrorInvalidMemcpyDirection
+
 
 } uem_result;
 

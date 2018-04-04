@@ -15,11 +15,29 @@ extern "C"
 {
 #endif
 
-void *UCGPUMemory_Malloc(int nSize);
-void *UCGPUMemory_HostAlloc(int nSize, unsigned int flags);
-void UCGPUMemory_Free(void *pMem);
-void UCGPUMemory_FreeHost(void *pMem);
-void *UCGPUMemory_Memcpy(void *pDest, const void *pSrc, int nSize, unsigned int flags);
+
+typedef enum _EMemcpyKind {
+	MEMCPY_KIND_HOST_TO_HOST,
+	MEMCPY_KIND_HOST_TO_DEVICE,
+	MEMCPY_KIND_DEVICE_TO_HOST,
+	MEMCPY_KIND_DEVICE_TO_DEVICE,
+	MEMCPY_KIND_DEFAULT,
+} EMemcpyKind;
+
+
+typedef enum _EMemoryProperty {
+	MEMORY_PROPERTY_DEFAULT,		//cudaHostAllocDefault
+	MEMORY_PROPERTY_PORTABLE,		//cudaHostAllocPortable
+	MEMORY_PROPERTY_MAPPED,			//cudaHostAllocMapped
+	MEMORY_PROPERTY_WRITE_COMBINED,	//cudaHostAllocWriteCombined
+} EMemoryProperty;
+
+
+uem_result UCGPUMemory_Malloc(void **pMemory, int nSize);
+uem_result UCGPUMemory_HostAlloc(void **pMemory, int nSize, EMemoryProperty flags);
+uem_result UCGPUMemory_Free(void *pMemory);
+uem_result UCGPUMemory_FreeHost(void *pMemory);
+uem_result UCGPUMemory_Memcpy(void *pDest, const void *pSrc, int nSize, EMemcpyKind flags);
 
 #define SAFEMEMFREE(mem) if((mem) != NULL){UC_free((mem));mem=NULL;}
 
