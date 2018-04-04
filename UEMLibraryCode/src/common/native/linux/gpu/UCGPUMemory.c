@@ -29,8 +29,8 @@ uem_result convertCUDAErrorToUEMError(cudaError_t error)
 		result = ERR_UEM_CUDA_INVALID_VALUE;
 		break;
 	// cudaMalloc, cudaHostAlloc
-	case ERR_UEM_CUDA_MEMORY_ALLOCATION :
-		result = CUDA_ERROR;
+	case cudaErrorMemoryAllocation :
+		result = ERR_UEM_CUDA_MEMORY_ALLOCATION;
 		break;
 	// cudaFree
 	case cudaErrorInvalidDevicePointer :
@@ -99,19 +99,19 @@ uem_result UCGPUMemory_Memcpy(void *pDest, const void *pSrc, int nSize, EMemcpyK
 	cudaError_t error;
 
 	switch (flags){
-	case HOST_TO_HOST:
+	case MEMCPY_KIND_HOST_TO_HOST:
 		cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyHostToHost);
 		break;
-	case HOST_TO_DEVICE:
+	case MEMCPY_KIND_HOST_TO_DEVICE:
 		cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyHostToDevice);
 		break;
-	case DEVICE_TO_HOST:
+	case MEMCPY_KIND_DEVICE_TO_HOST:
 		cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyDeviceToHost);
 		break;
-	case DEVICE_TO_DEVICE:
+	case MEMCPY_KIND_DEVICE_TO_DEVICE:
 		cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyDeviceToDevice);
 		break;
-	case MEMCOPY_DEFAULT:
+	case MEMCPY_KIND_DEFAULT:
 		cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyDefault);
 		break;
 	default:
