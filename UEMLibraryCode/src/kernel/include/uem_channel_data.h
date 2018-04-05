@@ -42,6 +42,18 @@ typedef struct _SAvailableChunk {
 	SAvailableChunk *pstNext;
 } SAvailableChunk;
 
+typedef uem_result (*FnCreateMemory)(int nSize, OUT void **ppMemory);
+typedef uem_result (*FnCopyToMemory)(IN void *pMemory, IN void *pSource, int nCopySize);
+typedef uem_result (*FnCopyFromMemory)(IN void *pDestination, IN void *pMemory, int nCopySize);
+typedef uem_result (*FnDestroyMemory)(IN OUT void **ppMemory);
+
+typedef struct _SGenericMemoryAccess {
+	FnCreateMemory fnCreateMemory;
+	FnCopyToMemory fnCopyToMemory;
+	FnCopyFromMemory fnCopyFromMemory;
+	FnDestroyMemory fnDestroyMemory;
+} SGenericMemoryAccess;
+
 typedef struct _SSharedMemoryChannel {
 	void *pBuffer;
 	void *pDataStart;
@@ -63,6 +75,8 @@ typedef struct _SSharedMemoryChannel {
 	int nMaxChunkNum; // maximum chunk size for all port sample rate cases
 	SAvailableChunk *pstAvailableInputChunkHead;
 	SAvailableChunk *pstAvailableInputChunkTail;
+	SGenericMemoryAccess *pstMemoryAccessAPI;
+	uem_bool bStaticAllocation;
 } SSharedMemoryChannel;
 
 typedef struct _SGPUSharedMemoryChannel {

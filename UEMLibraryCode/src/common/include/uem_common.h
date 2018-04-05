@@ -127,7 +127,7 @@ typedef enum _EUemModuleId {
 #define EXIT_FLAG_WRITE (0x2)
 
 
-#define _DEBUG
+//#define _DEBUG
 
 #ifdef _DEBUG
 

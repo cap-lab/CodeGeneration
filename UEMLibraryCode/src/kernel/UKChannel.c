@@ -59,7 +59,7 @@ SChannelAPI g_stSharedMemoryChannel = {
 	UKSharedMemoryChannel_Finalize, // fnFinalize
 };
 
-
+/*
 SChannelAPI g_stSharedGPUMemoryChannel = {
 	UKGPUSharedMemoryChannel_Initialize, // fnInitialize
 	UKGPUSharedMemoryChannel_ReadFromQueue, // fnReadFromQueue
@@ -72,7 +72,7 @@ SChannelAPI g_stSharedGPUMemoryChannel = {
 	UKGPUSharedMemoryChannel_SetExit,
 	UKGPUSharedMemoryChannel_ClearExit,
 	UKGPUSharedMemoryChannel_Finalize, // fnFinalize
-};
+};*/
 
 #define DEFAUT_INITIAL_BUF_SIZE (4)
 
@@ -91,12 +91,12 @@ static uem_result getAPIStructureFromCommunicationType(IN ECommunicationType enT
 	case COMMUNICATION_TYPE_TCP_CLIENT:
 		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED_YET, _EXIT)
 		break;
-	case COMMUNICATION_TYPE_CPU_GPU:
-	case COMMUNICATION_TYPE_GPU_CPU:
-	case COMMUNICATION_TYPE_GPU_GPU:
-	case COMMUNICATION_TYPE_GPU_GPU_DIFFERENT:
-		*ppstChannelAPI = &g_stSharedGPUMemoryChannel;
-		break;
+//	case COMMUNICATION_TYPE_CPU_GPU:
+//	case COMMUNICATION_TYPE_GPU_CPU:
+//	case COMMUNICATION_TYPE_GPU_GPU:
+//	case COMMUNICATION_TYPE_GPU_GPU_DIFFERENT:
+//		*ppstChannelAPI = &g_stSharedGPUMemoryChannel;
+//		break;
 	default:
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT)
 		break;

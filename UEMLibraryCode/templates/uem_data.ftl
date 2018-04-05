@@ -7,6 +7,8 @@
 #include <uem_data.h>
 #include <UKTask.h>
 #include <UKModeTransition.h>
+#include <UKHostMemorySystem.h>
+//#include <UKGPUMemorySystem.h>
 
 SExecutionTime g_stExecutionTime = { ${execution_time.value?c}, TIME_METRIC_${execution_time.metric} } ;
 
@@ -264,6 +266,43 @@ STaskFunctions g_ast_${task.name}_functions[] = {
 // ##TASK_FUNCTION_LIST::END
 
 
+SGenericMemoryAccess g_stHostMemory = {
+	UKHostMemorySystem_CreateMemory,
+	UKHostMemorySystem_CopyToMemory,
+	UKHostMemorySystem_CopyFromMemory,
+	UKHostMemorySystem_DestroyMemory,
+};
+
+/*
+SGenericMemoryAccess g_stHostToDeviceMemory = {
+	UKHostMemorySystem_CreateMemory,
+	UKGPUMemorySystem_CopyHostToDeviceMemory,
+	UKGPUMemorySystem_CopyDeviceToHostMemory,
+	UKHostMemorySystem_DestroyMemory,
+};
+
+SGenericMemoryAccess g_stDeviceToHostMemory = {
+	UKHostMemorySystem_CreateMemory,
+	UKGPUMemorySystem_CopyDeviceToHostMemory,
+	UKGPUMemorySystem_CopyHostToDeviceMemory,
+	UKHostMemorySystem_DestroyMemory,
+};
+
+SGenericMemoryAccess g_stDeviceItSelfMemory = {
+	UKGPUMemorySystem_CreateMemory,
+	UKGPUMemorySystem_CopyDeviceToDeviceMemory,
+	UKGPUMemorySystem_CopyDeviceToDeviceMemory,
+	UKGPUMemorySystem_DestroyMemory,
+};
+
+SGenericMemoryAccess g_stDeviceToDeviceMemory = {
+	UKGPUMemorySystem_CreateHostAllocMemory,
+	UKGPUMemorySystem_CopyHostToDeviceMemory,
+	UKGPUMemorySystem_CopyDeviceToHostMemory,
+	UKGPUMemorySystem_DestroyHostAllocMemory,
+};
+*/
+
 // ##SPECIFIC_CHANNEL_LIST_TEMPLATE::START
 <#list channel_list as channel>
 	<#switch channel.communicationType>
@@ -295,6 +334,8 @@ SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 		${channel.inputPort.maximumChunkNum}, // maximum input port chunk size for all port sample rate cases
 		NULL, // Chunk list head
 		NULL, // Chunk list tail 
+		&g_stHostMemory, // Host memory access API
+		TRUE, // memory is statically allocated
 };
 
 			<#break>
