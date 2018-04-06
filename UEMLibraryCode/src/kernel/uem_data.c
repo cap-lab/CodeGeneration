@@ -1010,18 +1010,18 @@ SGenericMemoryAccess g_stHostMemory = {
 	UKHostMemorySystem_DestroyMemory,
 };
 
-/*
+
 SGenericMemoryAccess g_stHostToDeviceMemory = {
 	UKHostMemorySystem_CreateMemory,
+	UKHostMemorySystem_CopyToMemory,
 	UKGPUMemorySystem_CopyHostToDeviceMemory,
-	UKGPUMemorySystem_CopyDeviceToHostMemory,
 	UKHostMemorySystem_DestroyMemory,
 };
 
 SGenericMemoryAccess g_stDeviceToHostMemory = {
 	UKHostMemorySystem_CreateMemory,
 	UKGPUMemorySystem_CopyDeviceToHostMemory,
-	UKGPUMemorySystem_CopyHostToDeviceMemory,
+	UKHostMemorySystem_CopyFromMemory,
 	UKHostMemorySystem_DestroyMemory,
 };
 
@@ -1034,11 +1034,11 @@ SGenericMemoryAccess g_stDeviceItSelfMemory = {
 
 SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 	UKGPUMemorySystem_CreateHostAllocMemory,
-	UKGPUMemorySystem_CopyHostToDeviceMemory,
 	UKGPUMemorySystem_CopyDeviceToHostMemory,
+	UKGPUMemorySystem_CopyHostToDeviceMemory,
 	UKGPUMemorySystem_DestroyHostAllocMemory,
 };
-*/
+
 
 // ##SPECIFIC_CHANNEL_LIST_TEMPLATE::START
 SSharedMemoryChannel g_stSharedMemoryChannel_0 = {

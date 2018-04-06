@@ -33,8 +33,8 @@ typedef enum _EMemoryProperty {
 } EMemoryProperty;
 
 
-uem_result UCGPUMemory_Malloc(void **pMemory, int nSize);
-uem_result UCGPUMemory_HostAlloc(void **pMemory, int nSize, EMemoryProperty flags);
+uem_result UCGPUMemory_Malloc(void **ppMemory, int nSize);
+uem_result UCGPUMemory_HostAlloc(void **ppMemory, int nSize, EMemoryProperty flags);
 uem_result UCGPUMemory_Free(void *pMemory);
 uem_result UCGPUMemory_FreeHost(void *pMemory);
 uem_result UCGPUMemory_Memcpy(void *pDest, const void *pSrc, int nSize, EMemcpyKind flags);

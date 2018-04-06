@@ -1287,7 +1287,7 @@ uem_result UKSharedMemoryChannel_Finalize(SChannel *pstChannel)
 
 	if(pstSharedMemoryChannel->pBuffer != NULL && pstSharedMemoryChannel->bStaticAllocation == FALSE)
 	{
-		UKHostMemorySystem_DestroyMemory(&(pstSharedMemoryChannel->pBuffer));
+		pstSharedMemoryChannel->pstMemoryAccessAPI->fnDestroyMemory(&(pstSharedMemoryChannel->pBuffer));
 	}
 
 	result = ERR_UEM_NOERROR;

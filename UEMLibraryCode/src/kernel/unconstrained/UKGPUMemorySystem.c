@@ -90,7 +90,8 @@ uem_result UKGPUMemorySystem_DestroyHostAllocMemory(IN OUT void **ppMemory)
 	IFVARERRASSIGNGOTO(*ppMemory , NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
 	// insert your API here
-	UCGPUMemory_FreeHost(*ppMemory);
+	result = UCGPUMemory_FreeHost(*ppMemory);
+	ERRIFGOTO(result, _EXIT);
 
 	*ppMemory = NULL;
 
@@ -109,6 +110,8 @@ uem_result UKGPUMemorySystem_DestroyMemory(IN OUT void **ppMemory)
 	IFVARERRASSIGNGOTO(*ppMemory , NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
 	// insert your API here
+	result = UCGPUMemory_Free(*ppMemory);
+	ERRIFGOTO(result, _EXIT);
 
 	*ppMemory = NULL;
 

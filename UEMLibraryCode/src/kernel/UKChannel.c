@@ -91,12 +91,13 @@ static uem_result getAPIStructureFromCommunicationType(IN ECommunicationType enT
 	case COMMUNICATION_TYPE_TCP_CLIENT:
 		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED_YET, _EXIT)
 		break;
-//	case COMMUNICATION_TYPE_CPU_GPU:
-//	case COMMUNICATION_TYPE_GPU_CPU:
-//	case COMMUNICATION_TYPE_GPU_GPU:
-//	case COMMUNICATION_TYPE_GPU_GPU_DIFFERENT:
+	case COMMUNICATION_TYPE_CPU_GPU:
+	case COMMUNICATION_TYPE_GPU_CPU:
+	case COMMUNICATION_TYPE_GPU_GPU:
+	case COMMUNICATION_TYPE_GPU_GPU_DIFFERENT:
+		*ppstChannelAPI = &g_stSharedMemoryChannel;
 //		*ppstChannelAPI = &g_stSharedGPUMemoryChannel;
-//		break;
+		break;
 	default:
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT)
 		break;
