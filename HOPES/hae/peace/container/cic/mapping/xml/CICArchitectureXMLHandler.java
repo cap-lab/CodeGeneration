@@ -99,7 +99,7 @@ public class CICArchitectureXMLHandler {
 				for (int i = 0; i < poolSize; i++) {
 					// deleted for release (2015/12) - 더이상 processor 에서는 allow
 					// Data ParallelMapping이 쓰이지 않음
-					Processor proc = new Processor(i, element.getName(), /* bParallel, */os, element.getType(), device.getName());
+					Processor proc = new Processor(i, element.getName(), /* bParallel, */os, element.getType(), elementType.getSubcategory(), device.getName());
 					procList.add(proc);
 				}
 			}
