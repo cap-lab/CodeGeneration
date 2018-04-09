@@ -12,6 +12,27 @@
 #define TASK_CODE_END
 #define TASK_NAME "${task_info.name}"
 
+<#if task_gpu_mapping_info??>
+#define GRID __grid
+
+#define GRID_X ${task_gpu_mapping_info.inBlockSizeWidth}
+#define GRID_Y ${task_gpu_mapping_info.inBlockSizeHeight}
+#define GRID_Z ${task_gpu_mapping_info.inBlockSizeDepth}
+
+static dim3 __grid(GRID_X, GRID_Y, GRID_Z);
+
+#define THREADS __threads
+
+#define THREAD_X ${task_gpu_mapping_info.inThreadSizeWidth}
+#define THREAD_Y ${task_gpu_mapping_info.inThreadSizeHeight}
+#define THREAD_Z ${task_gpu_mapping_info.inThreadSizeDepth}
+
+static dim3 __threads(THREAD_X, THREAD_Y, THREAD_Z);
+
+#define KERNEL_CALL(x, ...) x<<<GRID, THREADS>>>(__VA_ARGS__);
+</#if>
+
+
 #include <UFPort.h> 
 #include <UFPort_deprecated.h>
 

@@ -8,7 +8,7 @@
 #include <UKTask.h>
 #include <UKModeTransition.h>
 #include <UKHostMemorySystem.h>
-//#include <UKGPUMemorySystem.h>
+#include <UKGPUMemorySystem.h>
 
 SExecutionTime g_stExecutionTime = { ${execution_time.value?c}, TIME_METRIC_${execution_time.metric} } ;
 
@@ -105,7 +105,7 @@ SPort g_astPortInfo[] = {
 		0, //Selected sample rate index
 		${port.sampleSize?c}, // Sample size
 		PORT_TYPE_${port.portType}, // Port type
-		<#if port.subgraphPort??>&g_astPortInfo[${port_key_to_index[port.subgraphPort.portKey]}]<#else>NULL</#if>, // Pointer to Subgraph port
+		<#if port.subgraphPort??>&g_astPortInfo[${port_key_to_index[port.subgraphPort.portKey]}]<#else>(SPort *) NULL</#if>, // Pointer to Subgraph port
 	}, // Port information		
 </#list>
 };
@@ -127,14 +127,14 @@ SLoopInfo g_stLoopStruct_${task.name} = {
 
 // ##TASK_LIST_DECLARATION_TEMPLATE::START
 <#list task_graph as graph_name, task_graph>
-STask g_astTasks_${task_graph.name}[];
+extern STask g_astTasks_${task_graph.name}[];
 </#list>
 // ##TASK_LIST_DECLARATION_TEMPLATE::END
 
 
 // ##TASK_GRAPH_DECLARATION_TEMPLATE::START
 <#list task_graph as graph_name, task_graph>
-STaskGraph g_stGraph_${task_graph.name};
+extern STaskGraph g_stGraph_${task_graph.name};
 </#list>
 // ##TASK_GRAPH_DECLARATION_TEMPLATE::END
 
@@ -225,7 +225,7 @@ SModeTransitionMachine g_stModeTransition_${task.name} = {
 <#list channel_list as channel>
 SAvailableChunk g_astAvailableInputChunk_channel_${channel.index}[] = {
 <#list 0..(channel.inputPort.maximumChunkNum-1) as chunk_id>
-	{ ${chunk_id}, 0, NULL, NULL, },
+	{ ${chunk_id}, 0, (SAvailableChunk *) NULL, (SAvailableChunk *) NULL, },
 </#list>
 };
 </#list>
@@ -273,18 +273,18 @@ SGenericMemoryAccess g_stHostMemory = {
 	UKHostMemorySystem_DestroyMemory,
 };
 
-/*
+
 SGenericMemoryAccess g_stHostToDeviceMemory = {
 	UKHostMemorySystem_CreateMemory,
+	UKHostMemorySystem_CopyToMemory,
 	UKGPUMemorySystem_CopyHostToDeviceMemory,
-	UKGPUMemorySystem_CopyDeviceToHostMemory,
 	UKHostMemorySystem_DestroyMemory,
 };
 
 SGenericMemoryAccess g_stDeviceToHostMemory = {
 	UKHostMemorySystem_CreateMemory,
 	UKGPUMemorySystem_CopyDeviceToHostMemory,
-	UKGPUMemorySystem_CopyHostToDeviceMemory,
+	UKHostMemorySystem_CopyFromMemory,
 	UKHostMemorySystem_DestroyMemory,
 };
 
@@ -297,28 +297,43 @@ SGenericMemoryAccess g_stDeviceItSelfMemory = {
 
 SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 	UKGPUMemorySystem_CreateHostAllocMemory,
-	UKGPUMemorySystem_CopyHostToDeviceMemory,
 	UKGPUMemorySystem_CopyDeviceToHostMemory,
+	UKGPUMemorySystem_CopyHostToDeviceMemory,
 	UKGPUMemorySystem_DestroyHostAllocMemory,
 };
-*/
+
 
 // ##SPECIFIC_CHANNEL_LIST_TEMPLATE::START
 <#list channel_list as channel>
-	<#switch channel.communicationType>
-		<#case "SHARED_MEMORY">
+
 SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
+	<#switch channel.communicationType>
+		<#case "SHARED_MEMORY">		 
 		s_pChannel_${channel.index}_buffer, // Channel buffer pointer
 		s_pChannel_${channel.index}_buffer, // Channel data start
 		s_pChannel_${channel.index}_buffer, // Channel data end
+			<#break>
+		<#case "CPU_GPU">
+		<#case "GPU_CPU">
+		<#case "GPU_GPU">
+		<#case "GPU_GPU_DIFFERENT">
+		NULL, // Channel buffer pointer
+		NULL, // Channel data start
+		NULL, // Channel data end
+			<#break>
+		<#case "TCP_CLIENT">
+			<#break>
+		<#case "TCP_SERVER">
+			<#break>
+	</#switch>
 		0, // Channel data length
 		0, // Read reference count
 		0, // Write reference count
 		FALSE, // Read exit setting
 		FALSE, // Write exit setting
-		NULL, // Mutex
-		NULL, // Read available notice event
-		NULL, // Write available notice event
+		(HThreadMutex) NULL, // Mutex
+		(HThreadEvent) NULL, // Read available notice event
+		(HThreadEvent) NULL, // Write available notice event
 		{
 			g_astChunk_channel_${channel.index}_in, // Array of chunk
 			1, // Chunk number
@@ -332,18 +347,36 @@ SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 		CHUNK_NUM_NOT_INITIALIZED, // Written output chunk number
 		g_astAvailableInputChunk_channel_${channel.index}, // Available chunk list
 		${channel.inputPort.maximumChunkNum}, // maximum input port chunk size for all port sample rate cases
-		NULL, // Chunk list head
-		NULL, // Chunk list tail 
+		(SAvailableChunk *) NULL, // Chunk list head
+		(SAvailableChunk *) NULL, // Chunk list tail
+	<#switch channel.communicationType>
+		<#case "SHARED_MEMORY">		 
 		&g_stHostMemory, // Host memory access API
 		TRUE, // memory is statically allocated
-};
-
+			<#break>
+		<#case "CPU_GPU">		 
+		&g_stHostToDeviceMemory, // Host memory access API
+		FALSE, // memory is statically allocated
+			<#break>
+		<#case "GPU_CPU">		 
+		&g_stDeviceToHostMemory, // Host memory access API
+		FALSE, // memory is statically allocated
+			<#break>
+		<#case "GPU_GPU">		 
+		&g_stDeviceItSelfMemory, // Host memory access API
+		FALSE, // memory is statically allocated
+			<#break>
+		<#case "GPU_GPU_DIFFERENT">		 
+		&g_stDeviceToDeviceMemory, // Host memory access API
+		FALSE, // memory is statically allocated
 			<#break>
 		<#case "TCP_CLIENT">
 			<#break>
 		<#case "TCP_SERVER">
 			<#break>
 	</#switch>
+};
+
 </#list>
 // ##SPECIFIC_CHANNEL_LIST_TEMPLATE::END
 
@@ -366,7 +399,7 @@ SChannel g_astChannels[] = {
 			0, //Selected sample rate index
 			${channel.inputPort.sampleSize?c}, // Sample size
 			PORT_TYPE_${channel.inputPort.portType}, // Port type
-			<#if channel.inputPort.subgraphPort??>&g_astPortInfo[${port_key_to_index[channel.inputPort.subgraphPort.portKey]}]<#else>NULL</#if>, // Pointer to Subgraph port
+			<#if channel.inputPort.subgraphPort??>&g_astPortInfo[${port_key_to_index[channel.inputPort.subgraphPort.portKey]}]<#else>(SPort *) NULL</#if>, // Pointer to Subgraph port
 		}, // Input port information
 		{
 			${channel.outputPort.taskId}, // Task ID
@@ -377,11 +410,15 @@ SChannel g_astChannels[] = {
 			0, //Selected sample rate index
 			${channel.outputPort.sampleSize?c}, // Sample size
 			PORT_TYPE_${channel.outputPort.portType}, // Port type
-			<#if channel.outputPort.subgraphPort??>&g_astPortInfo[${port_key_to_index[channel.outputPort.subgraphPort.portKey]}]<#else>NULL</#if>, // Pointer to Subgraph port
+			<#if channel.outputPort.subgraphPort??>&g_astPortInfo[${port_key_to_index[channel.outputPort.subgraphPort.portKey]}]<#else>(SPort *) NULL</#if>, // Pointer to Subgraph port
 		}, // Output port information
 		${channel.initialDataLen?c}, // Initial data length
 	<#switch channel.communicationType>
-		<#case "SHARED_MEMORY">		
+		<#case "SHARED_MEMORY">
+		<#case "CPU_GPU">
+		<#case "GPU_CPU">
+		<#case "GPU_GPU">
+		<#case "GPU_GPU_DIFFERENT">
 		&g_stSharedMemoryChannel_${channel.index}, // specific shared memory channel structure pointer
 			<#break>
 		<#case "TCP_CLIENT">
@@ -425,16 +462,16 @@ STask g_astTasks_${task_graph.name}[] = {
 		1, // Run rate
 		${task.period?c}, // Period
 		TIME_METRIC_${task.periodMetric}, // Period metric
-		<#if task.childTaskGraphName??>&g_stGraph_${task.childTaskGraphName}<#else>NULL</#if>, // Subgraph
+		<#if task.childTaskGraphName??>&g_stGraph_${task.childTaskGraphName}<#else>(STaskGraph *) NULL</#if>, // Subgraph
 		&g_stGraph_${task.parentTaskGraphName}, // Parent task graph
-		<#if task.modeTransition??>&g_stModeTransition_${task.name}<#else>NULL</#if>, // MTM information
-		<#if task.loopStruct??>&g_stLoopStruct_${task.name}<#else>NULL</#if>, // Loop information
-		<#if (task.taskParamList?size > 0)>g_astTaskParameter_${task.name}<#else>NULL</#if>, // Task parameter information
+		<#if task.modeTransition??>&g_stModeTransition_${task.name}<#else>(SModeTransitionMachine *) NULL</#if>, // MTM information
+		<#if task.loopStruct??>&g_stLoopStruct_${task.name}<#else>(SLoopInfo *) NULL</#if>, // Loop information
+		<#if (task.taskParamList?size > 0)>g_astTaskParameter_${task.name}<#else>(STaskParameter *) NULL</#if>, // Task parameter information
 		${task.taskParamList?size}, // Task parameter number
 		<#if task.staticScheduled == true>TRUE<#else>FALSE</#if>, // Statically scheduled or not
 		0,	  // Throughput constraint
-		NULL, // Mutex
-		NULL, // Conditional variable
+		(HThreadMutex) NULL, // Mutex
+		(HThreadEvent) NULL, // Conditional variable
 		g_astTaskIteration_${task.name}, // Task iteration count (only used when the parent task graph is data flow)
 		0, // current run count in iteration
 		0, // current iteration
@@ -453,7 +490,7 @@ STaskGraph g_stGraph_${task_graph_element.name} = {
 		GRAPH_TYPE_${task_graph_element.taskGraphType}, // Task graph type
 		g_astTasks_${task_graph_element.name}, // current task graph's task list
 		${task_graph_element.taskList?size}, // number of tasks
-		<#if task_graph_element.parentTask??>&g_astTasks_${task_graph_element.parentTask.parentTaskGraphName}[${task_graph_element.parentTask.inGraphIndex}]<#else>NULL</#if>, // parent task
+		<#if task_graph_element.parentTask??>&g_astTasks_${task_graph_element.parentTask.parentTaskGraphName}[${task_graph_element.parentTask.inGraphIndex}]<#else>(STask *) NULL</#if>, // parent task
 };
 
 </#list>
@@ -639,7 +676,7 @@ SMappedCompositeTaskInfo g_astCompositeTaskMappingInfo[] = {
 SMappedTaskInfo g_stMappingInfo = {
 	<#if (mapping_info?size > 0)>g_astGeneralTaskMappingInfo<#else>NULL</#if>, // general task array
 	<#if (mapping_info?size > 0)>ARRAYLEN(g_astGeneralTaskMappingInfo)<#else>0</#if>, // size of general task array
-	<#if (schedule_info?size > 0)>g_astCompositeTaskMappingInfo<#else>NULL</#if>, // composite task array
+	<#if (schedule_info?size > 0)>g_astCompositeTaskMappingInfo<#else>(SMappedCompositeTaskInfo *) NULL</#if>, // composite task array
 	<#if (schedule_info?size > 0)>ARRAYLEN(g_astCompositeTaskMappingInfo)<#else>0</#if>, // size of composite task array
 };
 

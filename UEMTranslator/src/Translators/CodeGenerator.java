@@ -26,6 +26,7 @@ import org.snu.cse.cap.translator.UnsupportedHardwareInformation;
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 import org.snu.cse.cap.translator.structure.device.Device;
 import org.snu.cse.cap.translator.structure.library.Library;
+import org.snu.cse.cap.translator.structure.mapping.TaskGPUMappingInfo;
 import org.snu.cse.cap.translator.structure.task.Task;
 
 import freemarker.template.Configuration;
@@ -57,7 +58,7 @@ public class CodeGenerator
     	return canonicalPath;
     }
     
-    public CodeGenerator(String[] args) 
+    public CodeGenerator(String[] args)
     {   	
 		this.templateConfig = new Configuration(Configuration.VERSION_2_3_27);
 		
@@ -213,11 +214,19 @@ public class CodeGenerator
 	    		Map<String, Object> taskCodeRootHash = new HashMap<>();
 	    		
 	    		taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_INFO, task);
+				taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_GPU_MAPPING_INFO, device.getGPUMappingInfo().get(task.getName()));
 	    		    		
 	    		for(int loop = 0 ; loop < task.getTaskFuncNum() ; loop++)
 	    		{
 	    			String outputFilePath = topDirPath + File.separator + CodeOrganizer.APPLICATION_DIR + File.separator + 
-	    									task.getName() +  Constants.TASK_NAME_FUNC_ID_SEPARATOR + loop + Constants.C_FILE_EXTENSION;
+	    									task.getName() +  Constants.TASK_NAME_FUNC_ID_SEPARATOR + loop;
+	    			
+	    			if(device.getGPUMappingInfo().size() == 0){
+	    				outputFilePath += Constants.C_FILE_EXTENSION;
+	    			}
+	    			else{
+	    				outputFilePath += Constants.CUDA_FILE_EXTENSION;
+	    			}
 	    			
 	    			if(taskCodeRootHash.containsKey(Constants.TEMPLATE_TAG_TASK_FUNC_ID) == true)
 	    			{

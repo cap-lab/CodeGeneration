@@ -211,7 +211,7 @@ public class CodeOrganizer {
 			{
 				for(int i = 0 ; i < task.getTaskFuncNum() ; i++)
 				{
-					this.taskSourceCodeList.add(task.getName() + Constants.TASK_NAME_FUNC_ID_SEPARATOR + i);
+					this.taskSourceCodeList.add(task.getName() + Constants.TASK_NAME_FUNC_ID_SEPARATOR + i + Constants.C_FILE_EXTENSION);
 				}
 			}
 			
@@ -226,7 +226,7 @@ public class CodeOrganizer {
 	{
 		for(Library library : libraryMap.values())
 		{
-			this.taskSourceCodeList.add(library.getName());
+			this.taskSourceCodeList.add(library.getName() + Constants.C_FILE_EXTENSION);
 			
 			for(String extraSource : library.getExtraSourceSet())
 			{

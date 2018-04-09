@@ -19,7 +19,7 @@ MAIN_SOURCES=<#list build_info.mainSourceList as source_file><#if (source_file?i
 	</#if>$(MAIN_DIR)/$(PLATFORM_DIR)/${source_file}<#if (source_file?index < build_info.mainSourceList?size - 1)>\</#if></#list>
 
 APPLICATION_SOURCES=<#list build_info.taskSourceCodeList as source_file><#if (source_file?index > 0)>
-	</#if>$(APPLICATION_DIR)/${source_file}.c<#if (source_file?index < build_info.taskSourceCodeList?size - 1)>\</#if></#list>
+	</#if>$(APPLICATION_DIR)/${source_file}<#if (source_file?index < build_info.taskSourceCodeList?size - 1)>\</#if></#list>
 
 EXTRA_SOURCES=<#if build_info.extraSourceCodeSet??><#list build_info.extraSourceCodeSet as source_file><#if (source_file?index > 0)>
 	</#if>$(APPLICATION_DIR)/${source_file}<#if (source_file?index < build_info.extraSourceCodeSet?size - 1)>\</#if></#list></#if>

@@ -60,6 +60,7 @@ public class Constants {
 	// tags for task_code.ftl
 	public static final String TEMPLATE_TAG_TASK_INFO = "task_info";
 	public static final String TEMPLATE_TAG_TASK_FUNC_ID = "task_func_id";
+	public static final String TEMPLATE_TAG_TASK_GPU_MAPPING_INFO = "task_gpu_mapping_info";
 	
 	// tags for library_code.ftl/library_header.ftl
 	public static final String TEMPLATE_TAG_LIB_INFO = "lib_info";
@@ -69,6 +70,7 @@ public class Constants {
 	
 	public static final String C_FILE_EXTENSION = ".c";
 	public static final String CPP_FILE_EXTENSION = ".cpp";
+	public static final String CUDA_FILE_EXTENSION = ".cu";
 	public static final String HEADER_FILE_EXTENSION = ".h";
 	public static final String CIC_HEADER_FILE_EXTENSION = ".cicl.h";
 	public static final String CIC_FILE_EXTENSION = ".cic";

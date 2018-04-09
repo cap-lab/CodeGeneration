@@ -48,14 +48,8 @@ uem_result createTasks(HCPUTaskManager hManager)
 
 	for(nLoop = 0 ; nLoop < g_stMappingInfo.nMappedGeneralTaskNum ; nLoop++)
 	{
-		result = UKProcessor_IsCPUByProcessorId(g_stMappingInfo.pstGeneralTaskMappingInfo[nLoop].nProcessorId, &bIsCPU);
+		result = UKCPUTaskManager_RegisterTask(hManager, &(g_stMappingInfo.pstGeneralTaskMappingInfo[nLoop]));
 		ERRIFGOTO(result, _EXIT);
-
-		if(bIsCPU == TRUE)
-		{
-			result = UKCPUTaskManager_RegisterTask(hManager, &(g_stMappingInfo.pstGeneralTaskMappingInfo[nLoop]));
-			ERRIFGOTO(result, _EXIT);
-		}
 	}
 
 _EXIT:
@@ -218,6 +212,7 @@ int main(int argc, char *argv[])
 	UKChannel_Finalize();
 	UKLibrary_Finalize();
 
+	fflush(stdout);
 	printf("Program end\n");
 
 	return 0;

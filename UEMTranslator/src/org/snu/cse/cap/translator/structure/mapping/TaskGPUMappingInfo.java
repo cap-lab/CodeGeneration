@@ -10,12 +10,10 @@ public class TaskGPUMappingInfo extends MappingInfo {
 	private String taskName;
 	private boolean isClustering;
 	private boolean isPipelining;
-	private int inMaxStream;
-	
+	private int inMaxStream;	
 	private int inBlockSizeWidth;
 	private int inBlockSizeHeight;
 	private int inBlockSizeDepth;
-	
 	private int inThreadSizeWidth;
 	private int inThreadSizeHeight;
 	private int inThreadSizeDepth;
@@ -45,32 +43,31 @@ public class TaskGPUMappingInfo extends MappingInfo {
 	public boolean getIsPipelining() {
 		return isPipelining;
 	}
-	
-	public int getMaxStream(){
+	public int getInMaxStream() {
 		return inMaxStream;
 	}
-	
-	public int getBlockSizeWidth(){
+
+	public int getInBlockSizeWidth() {
 		return inBlockSizeWidth;
 	}
-	
-	public int getBlockSizeHeight(){
+
+	public int getInBlockSizeHeight() {
 		return inBlockSizeHeight;
 	}
-	
-	public int getBlockSizeDepth(){
+
+	public int getInBlockSizeDepth() {
 		return inBlockSizeDepth;
 	}
-	
-	public int getThreadSizeWidth(){
+
+	public int getInThreadSizeWidth() {
 		return inThreadSizeWidth;
 	}
-	
-	public int getThreadSizeHeight(){
+
+	public int getInThreadSizeHeight() {
 		return inThreadSizeHeight;
 	}
-	
-	public int getThreadSizeDepth(){
+
+	public int getInThreadSizeDepth() {
 		return inThreadSizeDepth;
 	}
 
