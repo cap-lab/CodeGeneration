@@ -26,7 +26,6 @@ import org.snu.cse.cap.translator.UnsupportedHardwareInformation;
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 import org.snu.cse.cap.translator.structure.device.Device;
 import org.snu.cse.cap.translator.structure.library.Library;
-import org.snu.cse.cap.translator.structure.mapping.TaskGPUMappingInfo;
 import org.snu.cse.cap.translator.structure.task.Task;
 
 import freemarker.template.Configuration;
@@ -182,7 +181,13 @@ public class CodeGenerator
     	Template uemDataTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_UEM_DATA);
 		// Create the root hash
 		Map<String, Object> uemDataRootHash = new HashMap<>();
-		String outputFilePath = topDirPath + File.separator + CodeOrganizer.KERNEL_DIR + File.separator + Constants.DEFAULT_UEM_DATA_C;
+		String outputFilePath = topDirPath + File.separator + CodeOrganizer.KERNEL_DIR + File.separator;
+		if(device.getGPUMappingInfo().size() == 0){
+			outputFilePath += Constants.DEFAULT_UEM_DATA_C;
+		}
+		else{
+			outputFilePath += Constants.DEFAULT_UEM_DATA_CUDA;
+		}
 		
 		// Put UEM data model
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TASK_MAP, device.getTaskMap());
@@ -267,13 +272,22 @@ public class CodeGenerator
 		}
     }
     
+	public boolean isMappedGPU(Device device)
+	{
+		if (device.getGPUMappingInfo().size() == 0)
+		{
+			return false;
+		}
+		return true;
+	}
+    
     public void generateCode()
     {
    		try {
 			for(Device device : uemDatamodel.getApplication().getDeviceInfo().values())
 			{
 				CodeOrganizer codeOrganizer = new CodeOrganizer(device.getArchitecture().toString(), 
-						device.getPlatform().toString(), device.getRuntime().toString());
+						device.getPlatform().toString(), device.getRuntime().toString(), isMappedGPU(device));
 				String topSrcDir = this.mOutputPath + File.separator + device.getName();
 				
 				codeOrganizer.extractDataFromProperties(this.translatorProperties);

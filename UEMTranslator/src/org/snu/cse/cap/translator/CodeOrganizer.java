@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import static java.nio.file.StandardCopyOption.*;
 
+import org.snu.cse.cap.translator.structure.device.Device;
 import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.task.Task;
 
@@ -28,6 +29,7 @@ public class CodeOrganizer {
 	private HashSet<String> extraSourceCodeSet;
 	private String cflags;
 	private String ldadd;
+	private boolean isMappedGPU;
 	
 	public static final String MAIN_DIR = "src" + File.separator + "main";
 	public static final String API_DIR = "src" + File.separator + "api";
@@ -37,7 +39,7 @@ public class CodeOrganizer {
 	
 	public static final String MAKEFILE_PATH_SEPARATOR = "/";
 	
-	public CodeOrganizer(String architecture, String platform, String runtime) {
+	public CodeOrganizer(String architecture, String platform, String runtime, boolean isMappedGPU) {
 		this.architecture = architecture;
 		this.platform = platform;
 		this.runtime = runtime;
@@ -50,6 +52,7 @@ public class CodeOrganizer {
 		this.extraSourceCodeSet = new HashSet<String>();
 		this.cflags = "";
 		this.ldadd = "";
+		this.isMappedGPU = isMappedGPU;
 	}
 	
 	private boolean isArchitectureAvailable(String[] architectureList) {
@@ -210,8 +213,14 @@ public class CodeOrganizer {
 			if(task.getChildTaskGraphName() == null)
 			{
 				for(int i = 0 ; i < task.getTaskFuncNum() ; i++)
-				{
-					this.taskSourceCodeList.add(task.getName() + Constants.TASK_NAME_FUNC_ID_SEPARATOR + i + Constants.C_FILE_EXTENSION);
+				{					
+					if(isMappedGPU == false){
+
+						this.taskSourceCodeList.add(task.getName() + Constants.TASK_NAME_FUNC_ID_SEPARATOR + i + Constants.C_FILE_EXTENSION);
+	    			}
+	    			else{
+						this.taskSourceCodeList.add(task.getName() + Constants.TASK_NAME_FUNC_ID_SEPARATOR + i + Constants.CUDA_FILE_EXTENSION);
+	    			}
 				}
 			}
 			
@@ -350,6 +359,10 @@ public class CodeOrganizer {
 
 	public HashSet<String> getExtraSourceCodeSet() {
 		return extraSourceCodeSet;
+	}
+
+	public boolean getIsMappedGPU() {
+		return isMappedGPU;
 	}
 }
 
