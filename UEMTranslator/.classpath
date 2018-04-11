@@ -17,5 +17,7 @@
 	<classpathentry kind="lib" path="jars/mapss.jar"/>
 	<classpathentry kind="lib" path="jars/mocgraph.jar"/>
 	<classpathentry kind="lib" path="jars/ptolemy.jar"/>
+	<classpathentry kind="lib" path="jars/jaxb-api.jar"/>
+	<classpathentry kind="lib" path="jars/jaxb-impl.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
