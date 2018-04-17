@@ -68,6 +68,7 @@ public class Task {
 	private HashMap<String, Library> masterPortToLibraryMap;
 	private HashSet<String> extraHeaderSet;
 	private HashSet<String> extraSourceSet;
+	private String cFlags;
 	private String ldFlags;
 	private String taskGraphProperty;
 	private HashMap<String, Integer> iterationCountList;  // mode ID : iteration count
@@ -80,6 +81,7 @@ public class Task {
 		this.staticScheduled = false; // default is false
 		this.masterPortToLibraryMap = new HashMap<String, Library>();
 		this.ldFlags = null;
+		this.cFlags = null;
 		this.extraHeaderSet = new HashSet<String>();
 		this.extraSourceSet = new HashSet<String>();
 		this.taskGraphProperty = xmlTaskData.getSubGraphProperty();
@@ -103,6 +105,11 @@ public class Task {
 		if(xmlTaskData.getLdflags() != null)
 		{
 			this.ldFlags = xmlTaskData.getLdflags();
+		}
+		
+		if(xmlTaskData.getCflags() != null)
+		{
+			this.cFlags = xmlTaskData.getCflags();
 		}
 	}
 	
@@ -377,10 +384,6 @@ public class Task {
 		return ldFlags;
 	}
 
-	public void setLdFlags(String ldFlags) {
-		this.ldFlags = ldFlags;
-	}
-
 	public HashSet<String> getExtraSourceSet() {
 		return extraSourceSet;
 	}
@@ -391,5 +394,9 @@ public class Task {
 
 	public HashMap<String, Integer> getIterationCountList() {
 		return iterationCountList;
+	}
+
+	public String getcFlags() {
+		return cFlags;
 	}
 }

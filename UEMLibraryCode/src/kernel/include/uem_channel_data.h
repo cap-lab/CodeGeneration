@@ -10,7 +10,8 @@
 
 #include <uem_common.h>
 
-#include <uem_data.h>
+#include <UCThreadMutex.h>
+#include <UCThreadEvent.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -70,7 +71,6 @@ typedef struct _SSharedMemoryChannel {
 	SChunkInfo stOutputPortChunk;
 	int nWrittenOutputChunkNum;
 
-	// These values can be changed during execution depending on Mode transition
 	SAvailableChunk *astAvailableInputChunkList; // size
 	int nMaxChunkNum; // maximum chunk size for all port sample rate cases
 	SAvailableChunk *pstAvailableInputChunkHead;
@@ -78,20 +78,6 @@ typedef struct _SSharedMemoryChannel {
 	SGenericMemoryAccess *pstMemoryAccessAPI;
 	uem_bool bStaticAllocation;
 } SSharedMemoryChannel;
-
-typedef struct _SGPUSharedMemoryChannel {
-	void *pBuffer;
-	void *pDataStart;
-	void *pDataEnd;
-	int nDataLen;
-	int nReadReferenceCount;
-	int nWriteReferenceCount;
-	uem_bool bReadExit;
-	uem_bool bWriteExit;
-	HThreadMutex hMutex; // Channel global mutex
-	HThreadEvent hReadEvent; // Channel read available notice conditional variable
-	HThreadEvent hWriteEvent; // Channel write available notice conditional variable
-} SGPUSharedMemoryChannel;
 
 
 #ifdef __cplusplus

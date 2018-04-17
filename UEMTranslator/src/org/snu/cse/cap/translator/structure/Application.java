@@ -997,6 +997,11 @@ public class Application {
 				setLibraryFunction(library, libraryType);
 				library.setExtraHeaderSet(libraryType.getExtraHeader());
 				library.setExtraSourceSet(libraryType.getExtraSource());
+				
+				if(libraryType.getCflags() != null)
+				{
+					library.setcFlags(libraryType.getCflags());	
+				}
 								
 				if(libraryType.getLdflags() != null)
 				{

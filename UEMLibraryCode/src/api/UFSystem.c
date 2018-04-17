@@ -27,7 +27,7 @@ void UFSystem_Kill()
 
 void UFSystem_Stop()
 {
-	g_bSystenExit = TRUE;
+	g_bSystemExit = TRUE;
 }
 
 

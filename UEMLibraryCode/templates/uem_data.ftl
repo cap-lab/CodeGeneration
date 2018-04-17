@@ -8,7 +8,9 @@
 #include <UKTask.h>
 #include <UKModeTransition.h>
 #include <UKHostMemorySystem.h>
+<#if gpu_used == true>
 #include <UKGPUMemorySystem.h>
+</#if>
 
 SExecutionTime g_stExecutionTime = { ${execution_time.value?c}, TIME_METRIC_${execution_time.metric} } ;
 
@@ -273,7 +275,7 @@ SGenericMemoryAccess g_stHostMemory = {
 	UKHostMemorySystem_DestroyMemory,
 };
 
-
+<#if gpu_used == true>
 SGenericMemoryAccess g_stHostToDeviceMemory = {
 	UKHostMemorySystem_CreateMemory,
 	UKHostMemorySystem_CopyToMemory,
@@ -301,7 +303,7 @@ SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 	UKGPUMemorySystem_CopyHostToDeviceMemory,
 	UKGPUMemorySystem_DestroyHostAllocMemory,
 };
-
+</#if>
 
 // ##SPECIFIC_CHANNEL_LIST_TEMPLATE::START
 <#list channel_list as channel>

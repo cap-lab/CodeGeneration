@@ -87,40 +87,48 @@ long long getEndTime(long long llStartTime)
 
 	nValue = g_stExecutionTime.nValue;
 
-	switch(g_stExecutionTime.enTimeMetric)
+	if(nValue == 0) // endless execution
 	{
-	case TIME_METRIC_COUNT: // currently, same to 1 ms
-		llEndTime = llStartTime + 1 * nValue;
-		break;
-	case TIME_METRIC_CYCLE: // currently, same to 1 ms
-		llEndTime = llStartTime + 1 * nValue;
-		break;
-	case TIME_METRIC_MICROSEC:
-		if(nValue/MILLISEC_UNIT <= 0)
-		{
-			llEndTime = llStartTime + 1;
-		}
-		else
-		{
-			llEndTime = llStartTime + nValue/MILLISEC_UNIT;
-		}
-		break;
-	case TIME_METRIC_MILLISEC:
-		llEndTime = llStartTime + nValue;
-		break;
-	case TIME_METRIC_SEC:
-		llEndTime = llStartTime + SEC_UNIT * nValue;
-		break;
-	case TIME_METRIC_MINUTE:
-		llEndTime = llStartTime + SEC_UNIT * MINUTE_UNIT * nValue;
-		break;
-	case TIME_METRIC_HOUR:
-		llEndTime = llStartTime + SEC_UNIT * MINUTE_UNIT * HOUR_UNIT * nValue;
-		break;
-	default:
-		llEndTime = llStartTime + 1;
-		break;
+		llEndTime = 0;
 	}
+	else
+	{
+		switch(g_stExecutionTime.enTimeMetric)
+		{
+		case TIME_METRIC_COUNT: // currently, same to 1 ms
+			llEndTime = llStartTime + 1 * nValue;
+			break;
+		case TIME_METRIC_CYCLE: // currently, same to 1 ms
+			llEndTime = llStartTime + 1 * nValue;
+			break;
+		case TIME_METRIC_MICROSEC:
+			if(nValue/MILLISEC_UNIT <= 0)
+			{
+				llEndTime = llStartTime + 1;
+			}
+			else
+			{
+				llEndTime = llStartTime + nValue/MILLISEC_UNIT;
+			}
+			break;
+		case TIME_METRIC_MILLISEC:
+			llEndTime = llStartTime + nValue;
+			break;
+		case TIME_METRIC_SEC:
+			llEndTime = llStartTime + SEC_UNIT * nValue;
+			break;
+		case TIME_METRIC_MINUTE:
+			llEndTime = llStartTime + SEC_UNIT * MINUTE_UNIT * nValue;
+			break;
+		case TIME_METRIC_HOUR:
+			llEndTime = llStartTime + SEC_UNIT * MINUTE_UNIT * HOUR_UNIT * nValue;
+			break;
+		default:
+			llEndTime = llStartTime + 1;
+			break;
+		}
+	}
+
 
 	return llEndTime;
 }
@@ -158,24 +166,32 @@ uem_result executeTasks()
 	llStartTime = llCurTime;
 	llEndTime = getEndTime(llCurTime);
 
-	while(llEndTime >= llCurTime && g_bSystenExit == FALSE)
+	while(llEndTime > 0 && llEndTime >= llCurTime && g_bSystemExit == FALSE)
 	{
-		if(llCurTime + DEFAULT_LONG_SLEEP_PERIOD <= llEndTime)
+		if(llEndTime > 0)
+		{
+			if(llCurTime + DEFAULT_LONG_SLEEP_PERIOD <= llEndTime)
+			{
+				UCTime_Sleep(DEFAULT_LONG_SLEEP_PERIOD);
+				nSleepAdd += DEFAULT_LONG_SLEEP_PERIOD;
+			}
+			else if(llCurTime + DEFAULT_SHORT_SLEEP_PERIOD <= llEndTime)
+			{
+				UCTime_Sleep(DEFAULT_SHORT_SLEEP_PERIOD);
+				nSleepAdd += DEFAULT_SHORT_SLEEP_PERIOD;
+			}
+			else
+			{
+				// otherwise, busy wait
+			}
+		}
+		else // for endless execution, sleep long
 		{
 			UCTime_Sleep(DEFAULT_LONG_SLEEP_PERIOD);
 			nSleepAdd += DEFAULT_LONG_SLEEP_PERIOD;
 		}
-		else if(llCurTime + DEFAULT_SHORT_SLEEP_PERIOD <= llEndTime)
-		{
-			UCTime_Sleep(DEFAULT_SHORT_SLEEP_PERIOD);
-			nSleepAdd += DEFAULT_SHORT_SLEEP_PERIOD;
-		}
-		else
-		{
-			// otherwise, busy wait
-		}
 
-		if(nSleepAdd % 10000 == 0)
+		if(nSleepAdd > 0 && nSleepAdd % 10000 == 0)
 		{
 			printf("Elapsed time: %d seconds\n", (int) (llCurTime - llStartTime)/1000);
 		}

@@ -55,6 +55,8 @@ public class Constants {
 	public static final String TEMPLATE_TAG_EXECUTION_TIME = "execution_time";
 	public static final String TEMPLATE_TAG_LIBRARY_INFO = "library_info";
 	
+	public static final String TEMPLATE_TAG_GPU_USED = "gpu_used";
+	
 	// tags for Makefile.ftl
 	public static final String TEMPLATE_TAG_BUILD_INFO = "build_info";
 	
@@ -80,4 +82,6 @@ public class Constants {
 	public static final String TASK_NAME_FUNC_ID_SEPARATOR = "_";
 	
 	public static final String DEFAULT_MODE_NAME = "Default";
+	
+	public static final String FLAG_SEPARATOR = " ";
 }

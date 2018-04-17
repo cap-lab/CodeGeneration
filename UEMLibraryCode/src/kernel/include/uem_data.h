@@ -13,6 +13,8 @@
 #include <UCThreadMutex.h>
 #include <UCThreadEvent.h>
 
+#include <uem_channel_data.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -362,12 +364,11 @@ extern SLibrary g_stLibraryInfo[];
 extern int g_nLibraryInfoNum;
 
 
-extern uem_bool g_bSystenExit;
+extern uem_bool g_bSystemExit;
 
 #ifdef __cplusplus
 }
 #endif
 
-#include "uem_channel_data.h"
 
 #endif /* SRC_API_INCLUDE_UEM_DATA_H_ */

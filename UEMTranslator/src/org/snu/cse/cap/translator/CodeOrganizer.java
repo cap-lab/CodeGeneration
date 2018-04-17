@@ -30,12 +30,15 @@ public class CodeOrganizer {
 	private String cflags;
 	private String ldadd;
 	private boolean isMappedGPU;
+	private HashSet<String> usedPeripheralList;
 	
 	public static final String MAIN_DIR = "src" + File.separator + "main";
 	public static final String API_DIR = "src" + File.separator + "api";
 	public static final String KERNEL_DIR = "src" + File.separator + "kernel";
 	public static final String COMMON_DIR = "src" + File.separator + "common";
 	public static final String APPLICATION_DIR = "src" + File.separator + "application";
+	
+	public static final String GPU = "gpu";
 	
 	public static final String MAKEFILE_PATH_SEPARATOR = "/";
 	
@@ -53,6 +56,12 @@ public class CodeOrganizer {
 		this.cflags = "";
 		this.ldadd = "";
 		this.isMappedGPU = isMappedGPU;
+		this.usedPeripheralList = new HashSet<String>();
+		
+		if(this.isMappedGPU == true)
+		{
+			this.usedPeripheralList.add(GPU);
+		}
 	}
 	
 	private boolean isArchitectureAvailable(String[] architectureList) {
@@ -103,9 +112,34 @@ public class CodeOrganizer {
 		return isAvailable;
 	}
 	
-	private void makeSourceFileList(String key, Properties translatorProperties, ArrayList<String> list) {
-		String sourceFileString = translatorProperties.getProperty(key);
+	private boolean isPeripheralAvailable(String[] peripheralList) {
 		
+		boolean isAvailable = true;
+		
+		for(String peripheralUsed: this.usedPeripheralList)
+		{
+			isAvailable = false;
+			for(String peripheralName: peripheralList)
+			{
+				if(peripheralName.equals(peripheralUsed))
+				{
+					isAvailable = true;
+					break;
+				}		
+			}
+			
+			if(isAvailable == false)
+			{
+				break;
+			}
+		}
+		
+		return isAvailable;
+	}
+	
+	
+	private void addSourceFileFromSourceString(String sourceFileString, ArrayList<String> list)
+	{
 		if(sourceFileString != null && sourceFileString.length() > 0)
 		{
 			String[] sourceFileList = sourceFileString.split(TranslatorProperties.PROPERTY_VALUE_DELIMITER);
@@ -113,7 +147,22 @@ public class CodeOrganizer {
 			for(String sourceFile : sourceFileList)
 			{
 				list.add(sourceFile);
-			}			
+			}
+		}
+	}
+	
+	private void makeSourceFileList(String key, Properties translatorProperties, ArrayList<String> list) {
+		String sourceFileString = translatorProperties.getProperty(key);
+		String peripheralKey;
+		
+		addSourceFileFromSourceString(sourceFileString, list);
+				
+		for(String peripheralName: this.usedPeripheralList)
+		{
+			peripheralKey = key + TranslatorProperties.PROPERTY_DELIMITER + peripheralName;
+			sourceFileString = translatorProperties.getProperty(peripheralKey);
+			
+			addSourceFileFromSourceString(peripheralName + MAKEFILE_PATH_SEPARATOR + sourceFileString, list);
 		}
 	}
 	
@@ -150,10 +199,11 @@ public class CodeOrganizer {
 		String[] architectureList = translatorProperties.getProperty(TranslatorProperties.PROPERTIES_ARCHITECTURE_LIST).split(TranslatorProperties.PROPERTY_VALUE_DELIMITER);
 		String[] platformList = translatorProperties.getProperty(TranslatorProperties.PROPERTIES_PLATFORM_LIST).split(TranslatorProperties.PROPERTY_VALUE_DELIMITER);
 		String[] runtimeList = translatorProperties.getProperty(TranslatorProperties.PROPERTIES_RUNTIME_LIST).split(TranslatorProperties.PROPERTY_VALUE_DELIMITER);
+		String[] peripheralList = translatorProperties.getProperty(TranslatorProperties.PROPERTIES_PERIPHERAL_PROCESSOR_LIST).split(TranslatorProperties.PROPERTY_VALUE_DELIMITER);
 		String propertyKey;
 		
 		if(isArchitectureAvailable(architectureList) == false || isPlatformAvailable(platformList) == false || 
-				isRuntimeAvailable(runtimeList) == false)
+				isRuntimeAvailable(runtimeList) == false || isPeripheralAvailable(peripheralList) == false)
 		{
 			throw new UnsupportedHardwareInformation();
 		}
@@ -187,23 +237,60 @@ public class CodeOrganizer {
 		this.platformDir = this.runtime + MAKEFILE_PATH_SEPARATOR + this.platform;
 	}
 	
-	public void extraInfoFromTaskAndLibraryMap(HashMap<String, Task> taskMap, HashMap<String, Library> libraryMap)
+	private void addLibraryFlags(HashMap<String, Task> taskMap, HashMap<String, Library> libraryMap)
 	{
+		HashSet<String> ldAddSet = new HashSet<String>();
 		for(Task task: taskMap.values())
 		{
-			if(task.getLdFlags() != null)
-			{
-				this.ldadd = this.ldadd + " " + task.getLdFlags();
+			if(task.getLdFlags() != null && task.getLdFlags().trim().length() > 0)
+			{			
+				ldAddSet.add(task.getLdFlags().trim());
 			}
 		}
 		
 		for(Library library: libraryMap.values())
 		{
-			if(library.getLdFlags() != null)
+			if(library.getLdFlags() != null && library.getLdFlags().trim().length() > 0)
 			{
-				this.ldadd = this.ldadd + " " + library.getLdFlags();
+				ldAddSet.add(library.getLdFlags().trim());
 			}
 		}
+		
+		for(String ldAdd: ldAddSet)
+		{
+			this.ldadd = this.ldadd + " " + ldAdd;
+		}
+	}
+	
+	private void addCFlags(HashMap<String, Task> taskMap, HashMap<String, Library> libraryMap)
+	{
+		HashSet<String> cFlagsSet = new HashSet<String>();
+		for(Task task: taskMap.values())
+		{
+			if(task.getcFlags() != null && task.getcFlags().trim().length() > 0)
+			{
+				cFlagsSet.add(task.getcFlags().trim());
+			}
+		}
+		
+		for(Library library: libraryMap.values())
+		{
+			if(library.getcFlags() != null && library.getcFlags().trim().length() > 0)
+			{
+				cFlagsSet.add(library.getcFlags().trim());
+			}
+		}
+		
+		for(String cFlag: cFlagsSet)
+		{
+			this.cflags = this.cflags + " " + cFlag;
+		}
+	}
+	
+	public void extraInfoFromTaskAndLibraryMap(HashMap<String, Task> taskMap, HashMap<String, Library> libraryMap)
+	{
+		addLibraryFlags(taskMap, libraryMap);
+		addCFlags(taskMap, libraryMap);
 	}
 	
 	public void fillSourceCodeListFromTaskMap(HashMap<String, Task> taskMap)
@@ -268,7 +355,7 @@ public class CodeOrganizer {
 		copyAllFiles(output, source, filter);
 	}
 	
-	public void copyFilesFromTranslatedCodeTemplate(String srcDir, String outputDir) throws IOException
+	public void copyFilesFromLibraryCodeTemplate(String srcDir, String outputDir) throws IOException
 	{
 		File source = new File(srcDir);
 		File output = new File(outputDir);
@@ -363,6 +450,10 @@ public class CodeOrganizer {
 
 	public boolean getIsMappedGPU() {
 		return isMappedGPU;
+	}
+
+	public HashSet<String> getUsedPeripheralList() {
+		return usedPeripheralList;
 	}
 }
 

@@ -44,7 +44,7 @@ public class CodeGenerator
     private UEMMetaDataModel uemDatamodel;
     private Configuration templateConfig;
     private String templateDir;
-    private String translatedCodeTemplateDir;
+    private String libraryCodeTemplateDir;
     private Properties translatorProperties;
     
     private String getCanonicalPath(String path) throws IOException 
@@ -75,9 +75,9 @@ public class CodeGenerator
 																	Constants.DEFAULT_TEMPLATE_DIR);
 			this.templateDir = getCanonicalPath(this.templateDir);
 			
-			this.translatedCodeTemplateDir = this.translatorProperties.getProperty(TranslatorProperties.PROPERTIES_TRANSLATED_CODE_TEMPLATE_PATH,
+			this.libraryCodeTemplateDir = this.translatorProperties.getProperty(TranslatorProperties.PROPERTIES_TRANSLATED_CODE_TEMPLATE_PATH,
 												Constants.DEFAULT_TRANSLATED_CODE_TEMPLATE_DIR);
-			this.translatedCodeTemplateDir = getCanonicalPath(this.translatedCodeTemplateDir);
+			this.libraryCodeTemplateDir = getCanonicalPath(this.libraryCodeTemplateDir);
 			
 			this.templateConfig.setDirectoryForTemplateLoading(new File(this.templateDir));
 			
@@ -200,6 +200,14 @@ public class CodeGenerator
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_PORT_KEY_TO_INDEX, device.getPortKeyToIndex());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_EXECUTION_TIME, this.uemDatamodel.getApplication().getExecutionTime());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_LIBRARY_INFO, device.getLibraryMap());
+		if(device.getGPUMappingInfo().size() == 0)
+		{
+			uemDataRootHash.put(Constants.TEMPLATE_TAG_GPU_USED, false);
+		}
+		else
+		{
+			uemDataRootHash.put(Constants.TEMPLATE_TAG_GPU_USED, true);
+		}
 		
 		
 		Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
@@ -294,7 +302,7 @@ public class CodeGenerator
 				codeOrganizer.extraInfoFromTaskAndLibraryMap(device.getTaskMap(), device.getLibraryMap());
 				codeOrganizer.fillSourceCodeListFromTaskMap(device.getTaskMap());
 				codeOrganizer.fillSourceCodeListFromLibraryMap(device.getLibraryMap());
-				codeOrganizer.copyFilesFromTranslatedCodeTemplate(this.translatedCodeTemplateDir, topSrcDir);
+				codeOrganizer.copyFilesFromLibraryCodeTemplate(this.libraryCodeTemplateDir, topSrcDir);
 				codeOrganizer.copyApplicationCodes(this.mOutputPath, topSrcDir);
 				
 				generateMakefile(codeOrganizer, topSrcDir);

@@ -47,7 +47,7 @@ typedef struct _STaskAPI {
 //};
 
 
-uem_bool g_bSystenExit = FALSE;
+uem_bool g_bSystemExit = FALSE;
 
 uem_result UKTask_Initialize()
 {

@@ -17,6 +17,7 @@ public class Library {
 	private HashSet<String> extraSourceSet;
 	private HashMap<String, Library> masterPortToLibraryMap;
 	private String ldFlags;
+	private String cFlags;
 	
 	// // Master can be a task or a library
 	public Library(String name, String type, String file, String header)
@@ -32,6 +33,7 @@ public class Library {
 		this.extraSourceSet = new HashSet<String>();
 		this.masterPortToLibraryMap = new HashMap<String, Library>();
 		this.ldFlags = null;
+		this.cFlags = null;
 	}
 	
 	public void setExtraHeaderSet(List<String> extraHeaderList)
@@ -96,5 +98,13 @@ public class Library {
 
 	public HashMap<String, Library> getMasterPortToLibraryMap() {
 		return masterPortToLibraryMap;
+	}
+
+	public String getcFlags() {
+		return cFlags;
+	}
+
+	public void setcFlags(String cFlags) {
+		this.cFlags = cFlags;
 	}
 }
