@@ -14,5 +14,6 @@
 
 uem_result UKTime_GetNextTimeByPeriod(long long llPrevTime, int nPeriod, ETimeMetric enPeriodMetric,
 											OUT long long *pllNextTime, OUT int *pnNextMaxRunCount);
+uem_result UKTime_GetProgramExecutionTime(OUT int *pnValue, OUT ETimeMetric *penMetric);
 
 #endif /* SRC_KERNEL_UNCONSTRAINED_INCLUDE_UKTIME_H_ */

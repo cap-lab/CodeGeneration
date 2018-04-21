@@ -46,7 +46,7 @@ uem_result UKTask_ClearRunCount(STask *pstTask);
 uem_result UKTask_IncreaseRunCount(STask *pstTask, uem_bool *pbTargetIterationReached);
 uem_result UKTask_CheckIterationRunCount(STask *pstTask, OUT uem_bool *pbTargetIterationReached);
 uem_result UKTask_SetTargetIteration(STask *pstTask, int nTargetIteration, int nTargetTaskId);
-
+uem_result UKTask_SetAllTargetIteration(int nTargetIteration);
 
 #ifdef __cplusplus
 }

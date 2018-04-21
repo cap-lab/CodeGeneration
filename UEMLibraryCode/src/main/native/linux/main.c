@@ -24,6 +24,7 @@
 #include <UKCPUTaskManager.h>
 #include <UKProcessor.h>
 #include <UKLibrary.h>
+#include <UKTime.h>
 
 // not static which is used globally
 HCPUTaskManager g_hCPUTaskManager = NULL;
@@ -33,6 +34,18 @@ uem_result createTasks(HCPUTaskManager hManager)
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nLoop = 0;
 	uem_bool bIsCPU = FALSE;
+	int nValue;
+	ETimeMetric enMetric;
+
+
+	result = UKTime_GetProgramExecutionTime(&nValue, &enMetric);
+	ERRIFGOTO(result, _EXIT);
+
+	if(nValue > 0 && enMetric == TIME_METRIC_COUNT)
+	{
+		result = UKTask_SetAllTargetIteration(nValue);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	for(nLoop = 0 ; nLoop < g_stMappingInfo.nMappedCompositeTaskNum ; nLoop++)
 	{
@@ -95,8 +108,8 @@ long long getEndTime(long long llStartTime)
 	{
 		switch(g_stExecutionTime.enTimeMetric)
 		{
-		case TIME_METRIC_COUNT: // currently, same to 1 ms
-			llEndTime = llStartTime + 1 * nValue;
+		case TIME_METRIC_COUNT: // end time is not used for count metric
+			llEndTime = 0;
 			break;
 		case TIME_METRIC_CYCLE: // currently, same to 1 ms
 			llEndTime = llStartTime + 1 * nValue;
@@ -144,6 +157,7 @@ uem_result executeTasks()
 	long long llEndTime;
 	long long llStartTime;
 	int nSleepAdd = 0;
+	uem_bool bStopped = FALSE;
 
 	result = UKTask_Initialize();
 	ERRIFGOTO(result, _EXIT);
@@ -166,7 +180,8 @@ uem_result executeTasks()
 	llStartTime = llCurTime;
 	llEndTime = getEndTime(llCurTime);
 
-	while(llEndTime > 0 && llEndTime >= llCurTime && g_bSystemExit == FALSE)
+	// llEndTime == 0 means infinite loop
+	while((llEndTime == 0 || (llEndTime > 0 && llEndTime >= llCurTime)) && g_bSystemExit == FALSE)
 	{
 		if(llEndTime > 0)
 		{
@@ -189,6 +204,14 @@ uem_result executeTasks()
 		{
 			UCTime_Sleep(DEFAULT_LONG_SLEEP_PERIOD);
 			nSleepAdd += DEFAULT_LONG_SLEEP_PERIOD;
+
+			result = UKCPUTaskManager_IsAllTaskStopped(hManager, &bStopped);
+			ERRIFGOTO(result, _EXIT);
+
+			if(bStopped == TRUE)
+			{
+				break;
+			}
 		}
 
 		if(nSleepAdd > 0 && nSleepAdd % 10000 == 0)

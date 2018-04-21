@@ -488,6 +488,36 @@ _EXIT:
 }
 
 
+uem_result UKTask_SetAllTargetIteration(int nTargetIteration)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop = 0;
+	STask *pstTask = NULL;
+	STask *pstTopParentTask = NULL;
+
+#ifdef ARGUMENT_CHECK
+	if(nTargetIteration < 0) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+#endif
+	for(nLoop = 0 ; nLoop < g_nTaskIdToTaskNum ; nLoop++)
+	{
+		pstTask = g_astTaskIdToTask[nLoop].pstTask;
+		pstTopParentTask = pstTask;
+		while(pstTopParentTask->pstParentGraph->pstParentTask != NULL)
+		{
+			pstTopParentTask = pstTopParentTask->pstParentGraph->pstParentTask;
+		}
+		result = UKTask_SetTargetIteration(pstTask, nTargetIteration, pstTopParentTask->nTaskId);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 uem_result UKTask_CheckIterationRunCount(STask *pstTask, OUT uem_bool *pbTargetIterationReached)
 {
 	uem_result result = ERR_UEM_UNKNOWN;

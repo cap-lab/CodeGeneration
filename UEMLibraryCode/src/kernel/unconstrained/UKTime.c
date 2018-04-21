@@ -19,6 +19,24 @@
 #define MINUTE_UNIT (60)
 #define HOUR_UNIT (60)
 
+
+uem_result UKTime_GetProgramExecutionTime(OUT int *pnValue, OUT ETimeMetric *penMetric)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(pnValue, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+	IFVARERRASSIGNGOTO(penMetric, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+#endif
+
+	*pnValue = g_stExecutionTime.nValue;
+	*penMetric = g_stExecutionTime.enTimeMetric;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 uem_result UKTime_GetNextTimeByPeriod(long long llPrevTime, int nPeriod, ETimeMetric enPeriodMetric,
 											OUT long long *pllNextTime, OUT int *pnNextMaxRunCount)
 {

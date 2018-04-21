@@ -594,6 +594,11 @@ static uem_result changeTaskState(SGeneralTask *pstGeneralTask, ECPUTaskState en
 	result = UKCPUTaskCommon_CheckTaskState(pstGeneralTask->enTaskState, enTaskState);
 	ERRIFGOTO(result, _EXIT_LOCK);
 
+	if(result != ERR_UEM_NOERROR)
+	{
+		UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT_LOCK);
+	}
+
 	// change task state to suspend when the target task is included in MTM task graph and is not a source task.
 	if(pstGeneralTask->bIsModeTransition == TRUE && enTaskState == TASK_STATE_RUNNING &&
 	UKModeTransition_GetModeStateInternal(pstGeneralTask->pstMTMParentTask->pstMTMInfo) == MODE_STATE_TRANSITING &&
@@ -800,6 +805,12 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 				if(result != ERR_UEM_NOERROR)
 					printf("%s (Proc: %d, func_id: %d, current iteration: %d, reached: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId, pstCurrentTask->nCurIteration, bTargetIterationReached);
 				ERRIFGOTO(result, _EXIT);
+
+				if(bTargetIterationReached == TRUE)
+				{
+					result = changeTaskState(pstGeneralTask, TASK_STATE_STOPPING);
+					ERRIFGOTO(result, _EXIT);
+				}
 			}
 			if(enRunCondition == RUN_CONDITION_CONTROL_DRIVEN) // run once for control-driven leaf task
 			{
@@ -1405,6 +1416,72 @@ static uem_result traverseAndDestroyGeneralTask(IN int nOffset, IN void *pData, 
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result checkGeneralTaskStillRunning(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SGeneralTask *pstGeneralTask = NULL;
+	SCPUGeneralTaskManager *pstTaskManager = NULL;
+
+	pstGeneralTask = (SGeneralTask *) pData;
+	pstTaskManager = (SCPUGeneralTaskManager *) pUserData;
+
+	if(pstGeneralTask->enTaskState == TASK_STATE_STOPPING)
+	{
+		result = checkAndStopStoppingThread(pstTaskManager, pstGeneralTask);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	if(pstGeneralTask->enTaskState != TASK_STATE_STOP)
+	{
+		result = ERR_UEM_FOUND_DATA;
+	}
+	else
+	{
+		result = ERR_UEM_NOERROR;
+	}
+
+_EXIT:
+    return result;
+}
+
+
+uem_result UKCPUGeneralTaskManager_CheckAllTaskStopped(HCPUGeneralTaskManager hManager, uem_bool *pbStopped)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCPUGeneralTaskManager *pstTaskManager = NULL;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(pbStopped, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	if (IS_VALID_HANDLE(hManager, ID_UEM_CPU_GENERAL_TASK_MANAGER) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+#endif
+
+	pstTaskManager = hManager;
+
+	result = UCThreadMutex_Lock(pstTaskManager->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCDynamicLinkedList_Traverse(pstTaskManager->hTaskList, checkGeneralTaskStillRunning, pstTaskManager);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	if(result == ERR_UEM_FOUND_DATA) // there are some tasks still running
+	{
+		*pbStopped = FALSE;
+	}
+	else
+	{
+		*pbStopped = TRUE;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstTaskManager->hMutex);
 _EXIT:
 	return result;
 }

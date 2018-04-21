@@ -1037,6 +1037,56 @@ _EXIT:
 }
 
 
+uem_result UKCPUTaskManager_IsAllTaskStopped(HCPUTaskManager hCPUTaskManager, uem_bool *pbStopped)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCPUTaskManager *pstManager = NULL;
+	uem_bool bCompositeTaskStopped = FALSE;
+	uem_bool bGeneralTaskStopped = FALSE;
+#ifdef ARGUMENT_CHECK
+	if (IS_VALID_HANDLE(hCPUTaskManager, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+
+	IFVARERRASSIGNGOTO(pbStopped, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	pstManager = hCPUTaskManager;
+
+	if(pstManager->hCompositeManager != NULL)
+	{
+		result = UKCPUCompositeTaskManager_CheckAllTaskStopped(pstManager->hCompositeManager, &bCompositeTaskStopped);
+		ERRIFGOTO(result, _EXIT);
+	}
+	else
+	{
+		bCompositeTaskStopped = TRUE;
+	}
+
+	if(pstManager->hGeneralManager != NULL)
+	{
+		result = UKCPUGeneralTaskManager_CheckAllTaskStopped(pstManager->hGeneralManager, &bGeneralTaskStopped);
+		ERRIFGOTO(result, _EXIT);
+	}
+	else
+	{
+		bGeneralTaskStopped = TRUE;
+	}
+
+	if(bCompositeTaskStopped == TRUE && bGeneralTaskStopped == TRUE)
+	{
+		*pbStopped = TRUE;
+	}
+	else
+	{
+		*pbStopped = FALSE;
+	}
+
+#endif
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 uem_result UKCPUTaskManager_Destroy(IN OUT HCPUTaskManager *phCPUTaskManager)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
