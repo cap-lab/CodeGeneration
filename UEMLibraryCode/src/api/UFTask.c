@@ -17,11 +17,11 @@
 
 #include <UFTask.h>
 
-uem_result UFTask_GetIntegerParameter (IN char *pszTaskName, IN char *pszParamName, OUT int *pnParamVal)
+uem_result UFTask_GetIntegerParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, OUT int *pnParamVal)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKTask_GetIntegerParameter(pszTaskName, pszParamName, pnParamVal);
+	result = UKTask_GetIntegerParameter(nCallerTaskId, pszTaskName, pszParamName, pnParamVal);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -30,11 +30,11 @@ _EXIT:
 }
 
 
-uem_result UFTask_SetIntegerParameter (IN char *pszTaskName, IN char *pszParamName, IN int nParamVal)
+uem_result UFTask_SetIntegerParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, IN int nParamVal)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKTask_SetIntegerParameter(pszTaskName, pszParamName, nParamVal);
+	result = UKTask_SetIntegerParameter(nCallerTaskId, pszTaskName, pszParamName, nParamVal);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -43,11 +43,11 @@ _EXIT:
 }
 
 
-uem_result UFTask_GetFloatParameter (IN char *pszTaskName, IN char *pszParamName, OUT double *pdbParamVal)
+uem_result UFTask_GetFloatParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, OUT double *pdbParamVal)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKTask_GetFloatParameter(pszTaskName, pszParamName, pdbParamVal);
+	result = UKTask_GetFloatParameter(nCallerTaskId, pszTaskName, pszParamName, pdbParamVal);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -56,11 +56,11 @@ _EXIT:
 }
 
 
-uem_result UFTask_SetFloatParameter (IN char *pszTaskName, IN char *pszParamName, IN double dbParamVal)
+uem_result UFTask_SetFloatParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, IN double dbParamVal)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKTask_SetFloatParameter(pszTaskName, pszParamName, dbParamVal);
+	result = UKTask_SetFloatParameter(nCallerTaskId, pszTaskName, pszParamName, dbParamVal);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -69,11 +69,11 @@ _EXIT:
 }
 
 
-uem_result UFTask_SetThroughput (IN char *pszTaskName, IN char *pszValue, IN char *pszUnit)
+uem_result UFTask_SetThroughput (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszValue, IN char *pszUnit)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKTask_SetThroughputConstraint (pszTaskName, pszValue, pszUnit);
+	result = UKTask_SetThroughputConstraint (nCallerTaskId, pszTaskName, pszValue, pszUnit);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -82,12 +82,12 @@ _EXIT:
 }
 
 
-uem_result UFTask_GetState (IN char *pszTaskName, OUT ETaskState *penTaskState)
+uem_result UFTask_GetState (IN int nCallerTaskId, IN char *pszTaskName, OUT ETaskState *penTaskState)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	EInternalTaskState enTaskState;
 
-	result = UKTask_GetTaskState(pszTaskName, &enTaskState);
+	result = UKTask_GetTaskState(nCallerTaskId, pszTaskName, &enTaskState);
 	ERRIFGOTO(result, _EXIT);
 
 	switch(enTaskState)
@@ -112,11 +112,11 @@ _EXIT:
 }
 
 
-uem_result UFTask_GetCurrentModeName (IN char *pszTaskName, OUT char **ppszModeName)
+uem_result UFTask_GetCurrentModeName (IN int nCallerTaskId, IN char *pszTaskName, OUT char **ppszModeName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKModeTransition_GetCurrentModeName (pszTaskName, ppszModeName);
+	result = UKModeTransition_GetCurrentModeName (nCallerTaskId, pszTaskName, ppszModeName);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -125,11 +125,11 @@ _EXIT:
 }
 
 
-uem_result UFTask_SetModeIntegerParameter (IN char *pszTaskName, IN char *pszParamName, IN int nParamVal)
+uem_result UFTask_SetModeIntegerParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, IN int nParamVal)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKModeTransition_SetModeIntegerParameter (pszTaskName, pszParamName, nParamVal);
+	result = UKModeTransition_SetModeIntegerParameter (nCallerTaskId, pszTaskName, pszParamName, nParamVal);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -138,11 +138,11 @@ _EXIT:
 }
 
 
-uem_result UFTask_UpdateMode (IN char *pszTaskName)
+uem_result UFTask_UpdateMode (IN int nCallerTaskId, IN char *pszTaskName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKModeTransition_UpdateMode (pszTaskName);
+	result = UKModeTransition_UpdateMode (nCallerTaskId, pszTaskName);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;

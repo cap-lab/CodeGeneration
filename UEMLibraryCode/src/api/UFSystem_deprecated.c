@@ -13,15 +13,15 @@
 
 #include <UFSystem.h>
 
-void SYS_REQ_KILL()
+void SYS_REQ_KILL(int nCallerTaskId)
 {
-	UFSystem_Kill();
+	UFSystem_Kill(nCallerTaskId);
 }
 
 
-void SYS_REQ_STOP()
+void SYS_REQ_STOP(int nCallerTaskId)
 {
-	UFSystem_Stop();
+	UFSystem_Stop(nCallerTaskId);
 }
 
 

@@ -19,13 +19,13 @@
 #include <uem_data.h>
 
 
-void UFSystem_Kill()
+void UFSystem_Kill(int nCallerTaskId)
 {
 	UCSystem_Exit();
 }
 
 
-void UFSystem_Stop()
+void UFSystem_Stop(int nCallerTaskId)
 {
 	g_bSystemExit = TRUE;
 }

@@ -13,12 +13,12 @@ extern "C"
 {
 #endif
 
-void SYS_REQ_END_TASK(char *pszTaskName);
-void SYS_REQ_RUN_TASK(char *pszTaskName);
-void SYS_REQ_STOP_TASK(char *pszTaskName);
-void SYS_REQ_SUSPEND_TASK(char *pszTaskName);
-void SYS_REQ_RESUME_TASK(char *pszTaskName);
-void SYS_REQ_CALL_TASK(char *pszTaskName);
+void SYS_REQ_END_TASK(int nCallerTaskId, char *pszTaskName);
+void SYS_REQ_RUN_TASK(int nCallerTaskId, char *pszTaskName);
+void SYS_REQ_STOP_TASK(int nCallerTaskId, char *pszTaskName);
+void SYS_REQ_SUSPEND_TASK(int nCallerTaskId, char *pszTaskName);
+void SYS_REQ_RESUME_TASK(int nCallerTaskId, char *pszTaskName);
+void SYS_REQ_CALL_TASK(int nCallerTaskId, char *pszTaskName);
 
 #ifdef __cplusplus
 }

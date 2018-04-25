@@ -15,7 +15,7 @@ enum PortSampleRateType {
 
 enum PortType {
 	QUEUE("fifo"),
-	BUFFER("buffer"),
+	BUFFER("overwritable"),
 	;
 	
 	private final String value;

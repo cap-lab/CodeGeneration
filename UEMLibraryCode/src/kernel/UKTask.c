@@ -91,13 +91,98 @@ void UKTask_Finalize()
 	}
 }
 
-uem_result UKTask_GetTaskState(char *pszTaskName, EInternalTaskState *penTaskState)
+
+
+static uem_result UKTask_GetTaskInTaskGraphByTaskName(STaskGraph *pstTaskGraph, uem_string strTaskName, STask **ppstTask)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop = 0;
+	uem_string_struct stCurrentTaskName;
+
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(ppstTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+	IFVARERRASSIGNGOTO(pstTaskGraph, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+	IFVARERRASSIGNGOTO(strTaskName, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+#endif
+
+	for(nLoop = 0 ; nLoop < pstTaskGraph->nNumOfTasks ; nLoop++)
+	{
+		result = UCString_New(&stCurrentTaskName, (char *) pstTaskGraph->astTasks[nLoop].pszTaskName, UEMSTRING_MAX);
+		ERRIFGOTO(result, _EXIT);
+
+		if(UCString_IsEqual(&stCurrentTaskName, strTaskName) == TRUE)
+		{
+			*ppstTask = &(pstTaskGraph->astTasks[nLoop]);
+			break;
+		}
+	}
+
+	if(nLoop == pstTaskGraph->nNumOfTasks)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_NO_DATA, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+#define TASK_NAME_DELIMITER "_"
+
+uem_result UKTask_GetTaskByTaskNameAndCallerTask(STask *pstCallerTask, char *pszTaskName, OUT STask **ppstTask)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
+	uem_string_struct stTargetTaskName;
+	char aszCombinedTaskName[MAX_TASK_NAME_LEN];
 
-	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
+	if(pstCallerTask->pstParentGraph->pstParentTask != NULL)
+	{
+		result = UCString_New(&stTargetTaskName, aszCombinedTaskName, UEMSTRING_MAX);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UCString_SetLow(&stTargetTaskName, pstCallerTask->pstParentGraph->pstParentTask->pszTaskName, UEMSTRING_MAX);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UCString_AppendLow(&stTargetTaskName, TASK_NAME_DELIMITER, sizeof(TASK_NAME_DELIMITER)-1);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UCString_AppendLow(&stTargetTaskName, pszTaskName, UEMSTRING_MAX);
+		ERRIFGOTO(result, _EXIT);
+	}
+	else // pstCallerTask->pstParentGraph->pstParentTask == NULL -> top-level graph
+	{
+		result = UCString_New(&stTargetTaskName, pszTaskName, UEMSTRING_MAX);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = UKTask_GetTaskInTaskGraphByTaskName(pstCallerTask->pstParentGraph, &stTargetTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
+
+	*ppstTask = pstTask;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+uem_result UKTask_GetTaskState(IN int nCallerTaskId, IN char *pszTaskName, OUT EInternalTaskState *penTaskState)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask *pstTask = NULL;
+	STask *pstCallerTask = NULL;
+
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstCallerTask->enType != TASK_TYPE_CONTROL && pstTask->nTaskId != nCallerTaskId)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
 
 	result = UKCPUTaskManager_GetTaskState(g_hCPUTaskManager, pstTask->nTaskId, penTaskState);
 	ERRIFGOTO(result, _EXIT);
@@ -108,15 +193,21 @@ _EXIT:
 }
 
 
-uem_result UKTask_RunTask (IN char *pszTaskName)
+uem_result UKTask_RunTask (IN int nCallerTaskId, IN char *pszTaskName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
-//	int nLen = 0;
-//	int nLoop = 0;
-//	STaskGraph *pstTaskGraph = NULL;
+	STask *pstCallerTask = NULL;
 
-	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstCallerTask->enType != TASK_TYPE_CONTROL)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
+
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
 	result = UKCPUTaskManager_RunTask(g_hCPUTaskManager, pstTask->nTaskId);
@@ -128,21 +219,43 @@ _EXIT:
 }
 
 
-uem_result UKTask_StopTask (IN char *pszTaskName, IN uem_bool bDelayedStop)
+uem_result UKTask_StopTask (IN int nCallerTaskId, IN char *pszTaskName, IN uem_bool bDelayedStop)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
+	STask *pstCallerTask = NULL;
 
-	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
-	ERRIFGOTO(result, _EXIT);
+
+
+
 
 	if(bDelayedStop == FALSE)
 	{
+		result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+		ERRIFGOTO(result, _EXIT);
+
+		if(pstCallerTask->enType != TASK_TYPE_CONTROL)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+		}
+
+		result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
+		ERRIFGOTO(result, _EXIT);
+
 		result = UKCPUTaskManager_StopTask(g_hCPUTaskManager, pstTask->nTaskId);
 		ERRIFGOTO(result, _EXIT);
 	}
 	else // bDelayedStop == TRUE
 	{
+		if(pstCallerTask->enType == TASK_TYPE_COMPUTATIONAL &&
+						pstCallerTask->pstParentGraph->pstParentTask == NULL && pstCallerTask->nTaskId != pstTask->nTaskId)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+		}
+
+		result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
+		ERRIFGOTO(result, _EXIT);
+
 		result = UKCPUTaskManager_StoppingTask(g_hCPUTaskManager, pstTask->nTaskId);
 		ERRIFGOTO(result, _EXIT);
 	}
@@ -153,12 +266,21 @@ _EXIT:
 }
 
 
-uem_result UKTask_SuspendTask (IN char *pszTaskName)
+uem_result UKTask_SuspendTask (IN int nCallerTaskId, IN char *pszTaskName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
+	STask *pstCallerTask = NULL;
 
-	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstCallerTask->enType != TASK_TYPE_CONTROL)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
+
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
 	result = UKCPUTaskManager_SuspendTask(g_hCPUTaskManager, pstTask->nTaskId);
@@ -170,12 +292,21 @@ _EXIT:
 }
 
 
-uem_result UKTask_ResumeTask (IN char *pszTaskName)
+uem_result UKTask_ResumeTask (IN int nCallerTaskId, IN char *pszTaskName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
+	STask *pstCallerTask = NULL;
 
-	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstCallerTask->enType != TASK_TYPE_CONTROL)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
+
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
 	result = UKCPUTaskManager_ResumeTask(g_hCPUTaskManager, pstTask->nTaskId);
@@ -187,12 +318,16 @@ _EXIT:
 }
 
 
-uem_result UKTask_CallTask (IN char *pszTaskName)
+uem_result UKTask_CallTask (IN int nCallerTaskId, IN char *pszTaskName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
+	STask *pstCallerTask = NULL;
 
-	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
 	if(pstTask->nTaskFunctionSetNum == 0)
@@ -329,17 +464,27 @@ _EXIT:
 }
 
 
-uem_result UKTask_SetThroughputConstraint (IN char *pszTaskName, IN char *pszValue, IN char *pszUnit)
+uem_result UKTask_SetThroughputConstraint (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszValue, IN char *pszUnit)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
 	uem_string_struct stValue;
 	int nValue = 0;
+	STask *pstCallerTask = NULL;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(pszValue, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 	IFVARERRASSIGNGOTO(pszUnit, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
-	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
+
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstCallerTask->enType != TASK_TYPE_CONTROL)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
+
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
 	result = UCString_New(&stValue, pszValue, UEMSTRING_MAX);

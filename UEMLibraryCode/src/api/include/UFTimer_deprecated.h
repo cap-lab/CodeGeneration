@@ -13,10 +13,10 @@ extern "C"
 {
 #endif
 
-unsigned int SYS_REQ_GET_CURRENT_TIME_BASE();
-int SYS_REQ_SET_TIMER(unsigned int nTimeValue, char *pszTimeUnit);
-int SYS_REQ_GET_TIMER_ALARMED(unsigned int nTimerId);
-void SYS_REQ_RESET_TIMER(unsigned int nTimerId);
+unsigned int SYS_REQ_GET_CURRENT_TIME_BASE(int nCallerTaskId);
+int SYS_REQ_SET_TIMER(int nCallerTaskId, unsigned int nTimeValue, char *pszTimeUnit);
+int SYS_REQ_GET_TIMER_ALARMED(int nCallerTaskId, unsigned int nTimerId);
+void SYS_REQ_RESET_TIMER(int nCallerTaskId, unsigned int nTimerId);
 
 #ifdef __cplusplus
 }

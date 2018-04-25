@@ -16,8 +16,8 @@ extern "C"
 #endif
 
 
-void UFSystem_Kill();
-void UFSystem_Stop();
+void UFSystem_Kill(IN int nCallerTaskId);
+void UFSystem_Stop(IN int nCallerTaskId);
 
 
 #ifdef __cplusplus

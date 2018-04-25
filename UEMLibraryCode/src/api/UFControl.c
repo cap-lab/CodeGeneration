@@ -15,11 +15,11 @@
 #include <UKTask.h>
 #include <UFControl.h>
 
-uem_result UFControl_RunTask (IN char *pszTaskName)
+uem_result UFControl_RunTask (IN int nCallerTaskId, IN char *pszTaskName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKTask_RunTask(pszTaskName);
+	result = UKTask_RunTask(nCallerTaskId, pszTaskName);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -28,11 +28,11 @@ _EXIT:
 }
 
 
-uem_result UFControl_StopTask (IN char *pszTaskName, IN uem_bool bDelayedStop)
+uem_result UFControl_StopTask (IN int nCallerTaskId, IN char *pszTaskName, IN uem_bool bDelayedStop)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKTask_StopTask(pszTaskName, bDelayedStop);
+	result = UKTask_StopTask(nCallerTaskId, pszTaskName, bDelayedStop);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -41,11 +41,11 @@ _EXIT:
 }
 
 
-uem_result UFControl_SuspendTask (IN char *pszTaskName)
+uem_result UFControl_SuspendTask (IN int nCallerTaskId, IN char *pszTaskName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKTask_SuspendTask(pszTaskName);
+	result = UKTask_SuspendTask(nCallerTaskId, pszTaskName);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -54,11 +54,11 @@ _EXIT:
 }
 
 
-uem_result UFControl_ResumeTask (IN char *pszTaskName)
+uem_result UFControl_ResumeTask (IN int nCallerTaskId, IN char *pszTaskName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKTask_ResumeTask(pszTaskName);
+	result = UKTask_ResumeTask(nCallerTaskId, pszTaskName);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -67,13 +67,12 @@ _EXIT:
 }
 
 
-uem_result UFControl_CallTask (IN char *pszTaskName)
+uem_result UFControl_CallTask (IN int nCallerTaskId, IN char *pszTaskName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKTask_CallTask(pszTaskName);
+	result = UKTask_CallTask(nCallerTaskId, pszTaskName);
 	ERRIFGOTO(result, _EXIT);
-
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

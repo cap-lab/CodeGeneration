@@ -54,14 +54,23 @@ _EXIT:
 	return result;
 }
 
-uem_result UKTask_GetIntegerParameter (IN char *pszTaskName, IN char *pszParamName, OUT int *pnParamVal)
+uem_result UKTask_GetIntegerParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, OUT int *pnParamVal)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
 	STaskParameter *pstParam = NULL;
+	STask *pstCallerTask = NULL;
 
-	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
 	ERRIFGOTO(result, _EXIT);
+
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstCallerTask->enType != TASK_TYPE_CONTROL && pstTask->nTaskId != nCallerTaskId)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
 
 	result = getTaskParamElement(PARAMETER_TYPE_INT, pszParamName, pstTask, &pstParam);
 	ERRIFGOTO(result, _EXIT);
@@ -79,13 +88,22 @@ _EXIT:
 	return result;
 }
 
-uem_result UKTask_SetIntegerParameter (IN char *pszTaskName, IN char *pszParamName, IN int nParamVal)
+uem_result UKTask_SetIntegerParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, IN int nParamVal)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
 	STaskParameter *pstParam = NULL;
+	STask *pstCallerTask = NULL;
 
-	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstCallerTask->enType != TASK_TYPE_CONTROL)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
+
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
 	result = getTaskParamElement(PARAMETER_TYPE_INT, pszParamName, pstTask, &pstParam);
@@ -105,14 +123,23 @@ _EXIT:
 }
 
 
-uem_result UKTask_GetFloatParameter (IN char *pszTaskName, IN char *pszParamName, OUT double *pdbParamVal)
+uem_result UKTask_GetFloatParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, OUT double *pdbParamVal)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
 	STaskParameter *pstParam = NULL;
+	STask *pstCallerTask = NULL;
 
-	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
 	ERRIFGOTO(result, _EXIT);
+
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstCallerTask->enType != TASK_TYPE_CONTROL && pstTask->nTaskId != nCallerTaskId)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
 
 	result = getTaskParamElement(PARAMETER_TYPE_DOUBLE, pszParamName, pstTask, &pstParam);
 	ERRIFGOTO(result, _EXIT);
@@ -131,13 +158,22 @@ _EXIT:
 }
 
 
-uem_result UKTask_SetFloatParameter (IN char *pszTaskName, IN char *pszParamName, IN double dbParamVal)
+uem_result UKTask_SetFloatParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, IN double dbParamVal)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
 	STaskParameter *pstParam = NULL;
+	STask *pstCallerTask = NULL;
 
-	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstCallerTask->enType != TASK_TYPE_CONTROL)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
+
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
 	result = getTaskParamElement(PARAMETER_TYPE_DOUBLE, pszParamName, pstTask, &pstParam);

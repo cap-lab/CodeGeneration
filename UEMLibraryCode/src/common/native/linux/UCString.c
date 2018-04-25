@@ -173,6 +173,57 @@ _EXIT:
     return nValue;
 }
 
+uem_result UCString_AppendLow(uem_string strDst, char *pszSrc, int nSrcBufLen)
+{
+    uem_result result = ERR_UEM_UNKNOWN;
+    uem_string_struct *pstStrDst = NULL;
+    int nSrcRealLen = 0;
+    int nLoop = 0;
+    int nNewStringLen = 0;
+
+    IFVARERRASSIGNGOTO(strDst, NULL, result, ERR_UEM_INVALID_HANDLE, _EXIT);
+
+    pstStrDst = (uem_string_struct *) strDst;
+
+    if(nSrcBufLen <= 0 || pszSrc == NULL)
+    {
+        // do nothing
+    	result = ERR_UEM_NOERROR;
+    }
+    else
+    {
+        for(nLoop = 0; nLoop < nSrcBufLen ; nLoop++)
+        {
+            if(pszSrc[nLoop] == '\0')
+            {
+                break;
+            }
+        }
+
+        nSrcRealLen = nLoop;
+        nNewStringLen = pstStrDst->nStringLen + nSrcRealLen;
+
+        // truncate string
+        if(nNewStringLen >= pstStrDst->nBufferLen)
+        {
+        	nSrcRealLen = pstStrDst->nBufferLen - pstStrDst->nStringLen - 1;
+        	nNewStringLen = pstStrDst->nStringLen + nSrcRealLen;
+        	result = ERR_UEM_TRUNCATED;
+        }
+        else // there is enough space to append source string
+        {
+            // do nothing
+        	result = ERR_UEM_NOERROR;
+        }
+
+        // copy string
+        UC_memcpy(pstStrDst->pszStr + pstStrDst->nStringLen, pszSrc, nSrcRealLen*sizeof(UEMSTRING_CHARTYPE));
+        pstStrDst->pszStr[nNewStringLen] = '\0';
+        pstStrDst->nStringLen = nNewStringLen;
+    }
+_EXIT:
+    return result;
+}
 
 
 

@@ -581,7 +581,7 @@ ${innerspace}${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}(${flat_task[s
 		<#if compositeMappedProcessor.srcTaskMap[scheduleItem.taskName]??>
 ${innerspace}{
 ${innerspace}	EInternalTaskState enState = INTERNAL_STATE_STOP;
-${innerspace}	UKTask_GetTaskState("${parentTaskName}", &enState);
+${innerspace}	UKTask_GetTaskState(nTaskId, "${parentTaskName}", &enState);
 ${innerspace}	if(enState == INTERNAL_STATE_STOP || enState == INTERNAL_STATE_END) return; 
 ${innerspace}}
 		</#if>			

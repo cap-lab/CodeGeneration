@@ -17,10 +17,10 @@ extern "C"
 {
 #endif
 
-uem_result UKTask_GetIntegerParameter (IN char *pszTaskName, IN char *pszParamName, OUT int *pnParamVal);
-uem_result UKTask_SetIntegerParameter (IN char *pszTaskName, IN char *pszParamName, IN int nParamVal);
-uem_result UKTask_GetFloatParameter (IN char *pszTaskName, IN char *pszParamName, OUT double *pdbParamVal);
-uem_result UKTask_SetFloatParameter (IN char *pszTaskName, IN char *pszParamName, IN double dbParamVal);
+uem_result UKTask_GetIntegerParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, OUT int *pnParamVal);
+uem_result UKTask_SetIntegerParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, IN int nParamVal);
+uem_result UKTask_GetFloatParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, OUT double *pdbParamVal);
+uem_result UKTask_SetFloatParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, IN double dbParamVal);
 
 #ifdef __cplusplus
 }

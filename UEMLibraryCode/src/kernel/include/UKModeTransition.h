@@ -20,9 +20,9 @@ extern "C"
 uem_result UKModeTransition_Initialize();
 uem_result UKModeTransition_Finalize();
 
-uem_result UKModeTransition_GetCurrentModeName (IN char *pszTaskName, OUT char **ppszModeName);
-uem_result UKModeTransition_SetModeIntegerParameter (IN char *pszTaskName, IN char *pszParamName, IN int nParamVal);
-uem_result UKModeTransition_UpdateMode (IN char *pszTaskName);
+uem_result UKModeTransition_GetCurrentModeName (IN int nCallerTaskId, IN char *pszTaskName, OUT char **ppszModeName);
+uem_result UKModeTransition_SetModeIntegerParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, IN int nParamVal);
+uem_result UKModeTransition_UpdateMode (IN int nCallerTaskId, IN char *pszTaskName);
 
 EModeState UKModeTransition_GetModeState(int nTaskId);
 

@@ -22,16 +22,16 @@ typedef enum _ETaskState {
 	STATE_END,
 } ETaskState;
 
-uem_result UFTask_GetIntegerParameter (IN char *pszTaskName, IN char *pszParamName, OUT int *pnParamVal);
-uem_result UFTask_SetIntegerParameter (IN char *pszTaskName, IN char *pszParamName, IN int nParamVal);
-uem_result UFTask_GetFloatParameter (IN char *pszTaskName, IN char *pszParamName, OUT double *pdbParamVal);
-uem_result UFTask_SetFloatParameter (IN char *pszTaskName, IN char *pszParamName, IN double dbParamVal);
-uem_result UFTask_SetThroughput (IN char *pszTaskName, IN char *pszValue, IN char *pszUnit);
-uem_result UFTask_GetState (IN char *pszTaskName, OUT ETaskState *penTaskState);
+uem_result UFTask_GetIntegerParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, OUT int *pnParamVal);
+uem_result UFTask_SetIntegerParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, IN int nParamVal);
+uem_result UFTask_GetFloatParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, OUT double *pdbParamVal);
+uem_result UFTask_SetFloatParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, IN double dbParamVal);
+uem_result UFTask_SetThroughput (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszValue, IN char *pszUnit);
+uem_result UFTask_GetState (IN int nCallerTaskId, IN char *pszTaskName, OUT ETaskState *penTaskState);
 
-uem_result UFTask_GetCurrentModeName (IN char *pszTaskName, OUT char **ppszModeName);
-uem_result UFTask_SetModeIntegerParameter (IN char *pszTaskName, IN char *pszParamName, IN int nParamVal);
-uem_result UFTask_UpdateMode (IN char *pszTaskName);
+uem_result UFTask_GetCurrentModeName (IN int nCallerTaskId, IN char *pszTaskName, OUT char **ppszModeName);
+uem_result UFTask_SetModeIntegerParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, IN int nParamVal);
+uem_result UFTask_UpdateMode (IN int nCallerTaskId, IN char *pszTaskName);
 
 #ifdef __cplusplus
 }

@@ -123,6 +123,8 @@ typedef enum _EUemModuleId {
 #define IS_VALID_HANDLE(handle, id) (handle != NULL && (*((int *)(handle))) == id)
 
 
+#define MAX_TASK_NAME_LEN (100)
+
 #define EXIT_FLAG_READ 	(0x1)
 #define EXIT_FLAG_WRITE (0x2)
 

@@ -15,11 +15,11 @@ extern "C"
 {
 #endif
 
-uem_result UFControl_RunTask (IN char *pszTaskName);
-uem_result UFControl_StopTask (IN char *pszTaskName, IN uem_bool bDelayedStop);
-uem_result UFControl_SuspendTask (IN char *pszTaskName);
-uem_result UFControl_ResumeTask (IN char *pszTaskName);
-uem_result UFControl_CallTask (IN char *pszTaskName);
+uem_result UFControl_RunTask (IN int nCallerTaskId, IN char *pszTaskName);
+uem_result UFControl_StopTask (IN int nCallerTaskId, IN char *pszTaskName, IN uem_bool bDelayedStop);
+uem_result UFControl_SuspendTask (IN int nCallerTaskId, IN char *pszTaskName);
+uem_result UFControl_ResumeTask (IN int nCallerTaskId, IN char *pszTaskName);
+uem_result UFControl_CallTask (IN int nCallerTaskId, IN char *pszTaskName);
 
 #ifdef __cplusplus
 }

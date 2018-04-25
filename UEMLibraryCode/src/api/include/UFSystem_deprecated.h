@@ -13,8 +13,8 @@ extern "C"
 {
 #endif
 
-void SYS_REQ_KILL();
-void SYS_REQ_STOP();
+void SYS_REQ_KILL(int nCallerTaskId);
+void SYS_REQ_STOP(int nCallerTaskId);
 
 #ifdef __cplusplus
 }

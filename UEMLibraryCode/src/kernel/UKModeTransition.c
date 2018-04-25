@@ -123,12 +123,19 @@ _EXIT:
 }
 
 
-uem_result UKModeTransition_GetCurrentModeName (IN char *pszTaskName, OUT char **ppszModeName)
+uem_result UKModeTransition_GetCurrentModeName (IN int nCallerTaskId, IN char *pszTaskName, OUT char **ppszModeName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
 	int nCurModeIndex = INVALID_ARRAY_INDEX;
 	int nCurrentIteration;
+	/*STask *pstCallerTask = NULL;
+
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
+	ERRIFGOTO(result, _EXIT);*/
 
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
@@ -307,7 +314,7 @@ EModeState UKModeTransition_UpdateModeStateInternal(SModeTransitionMachine *pstM
 }
 
 
-uem_result UKModeTransition_SetModeIntegerParameter (IN char *pszTaskName, IN char *pszParamName, IN int nParamVal)
+uem_result UKModeTransition_SetModeIntegerParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, IN int nParamVal)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
@@ -315,6 +322,13 @@ uem_result UKModeTransition_SetModeIntegerParameter (IN char *pszTaskName, IN ch
 	int nLen = 0;
 	uem_string_struct strTargetParamName;
 	uem_string_struct strParamName;
+	/*STask *pstCallerTask = NULL;
+
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
+	ERRIFGOTO(result, _EXIT);*/
 
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
@@ -356,10 +370,17 @@ _EXIT:
 }
 
 
-uem_result UKModeTransition_UpdateMode (IN char *pszTaskName)
+uem_result UKModeTransition_UpdateMode (IN int nCallerTaskId, IN char *pszTaskName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
+	/*STask *pstCallerTask = NULL;
+
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
+	ERRIFGOTO(result, _EXIT);*/
 
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);

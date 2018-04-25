@@ -11,6 +11,7 @@
 #define TASK_CODE_BEGIN
 #define TASK_CODE_END
 #define TASK_NAME "${task_info.name}"
+#define THIS_TASK_ID (${task_info.id})
 
 <#if task_gpu_mapping_info??>
 #define GRID __grid
@@ -52,8 +53,7 @@ static dim3 __threads(THREAD_X, THREAD_Y, THREAD_Z);
 #include "${library.header}"
 	</#list>
 </#if>
-
-#define SYS_REQ(x, ...) SYS_REQ_##x(__VA_ARGS__)
+#define SYS_REQ(x, ...) SYS_REQ_##x(THIS_TASK_ID, ##__VA_ARGS__)
 
 #define TASK_INIT void ${task_info.name}_Init${task_func_id}(int TASK_ID)
 #define TASK_GO void ${task_info.name}_Go${task_func_id}(int nTaskId)
