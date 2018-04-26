@@ -1,34 +1,0 @@
-10
-
-dir
-19
-svn+ssh://forge.snu.ac.kr/svnroot/cicxml4java/src/main
-svn+ssh://forge.snu.ac.kr/svnroot/cicxml4java
-
-
-
-2011-05-06T02:44:47.713961Z
-16
-astrokjw
-
-
-svn:special svn:externals svn:needs-lock
-
-
-
-
-
-
-
-
-
-
-
-329c94c0-8d68-49eb-b830-3757e53b4033
-
-about
-dir
-
-hopes
-dir
-
