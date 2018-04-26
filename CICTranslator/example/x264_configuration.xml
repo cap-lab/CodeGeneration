@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<CIC_Configuration xmlns="http://peace.snu.ac.kr/CICXMLSchema">
-    <simulation>
-        <executionTime value="900000" metric="us"/>
-    </simulation>
-</CIC_Configuration>
-

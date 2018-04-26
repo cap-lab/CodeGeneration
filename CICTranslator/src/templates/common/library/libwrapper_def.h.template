@@ -1,5 +1,0 @@
-##EXTERN_FUNC_DECL
-
-LIB_WRAPPER lib_wrappers[] = {
-##LIBWRAPPER_ENTRIES
-};
