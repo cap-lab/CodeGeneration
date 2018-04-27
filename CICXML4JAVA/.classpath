@@ -4,8 +4,8 @@
 	<classpathentry kind="src" path="src/schemas"/>
 	<classpathentry kind="src" path="src/test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/jaxb-api.jar"/>
-	<classpathentry kind="lib" path="lib/jaxb-impl.jar"/>
-	<classpathentry kind="lib" path="lib/jaxb-xjc.jar"/>
+	<classpathentry kind="lib" path="/JavaLibraries/jars/jaxb-api.jar"/>
+	<classpathentry kind="lib" path="/JavaLibraries/jars/jaxb-impl.jar"/>
+	<classpathentry kind="lib" path="/JavaLibraries/jars/jaxb-xjc.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
