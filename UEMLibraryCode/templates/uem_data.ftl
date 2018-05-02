@@ -14,6 +14,28 @@
 
 SExecutionTime g_stExecutionTime = { ${execution_time.value?c}, TIME_METRIC_${execution_time.metric} } ;
 
+
+<#assign timerSlotSize=10 />
+#define MAX_TIMER_SLOT_SIZE (${timerSlotSize})
+
+
+
+<#list flat_task as task_name, task>
+	<#if task.type == "CONTROL">
+STimer g_stTimer_${task.name}[MAX_TIMER_SLOT_SIZE] = {
+		<#list 0..(timerSlotSize-1) as index>
+	{
+		${index}, // Slot ID 
+		INVALID_TIME_VALUE, // Timer value
+		FALSE, // Alarm checked
+		0, // Alarm time
+	},
+		</#list>
+};
+
+	</#if>
+</#list>
+
 // ##TASK_CODE_TEMPLATE::START
 <#list flat_task as task_name, task>
 	<#if !task.childTaskGraphName??>
@@ -478,6 +500,7 @@ STask g_astTasks_${task_graph.name}[] = {
 		0, // current run count in iteration
 		0, // current iteration
 		0, // target iteration (this variable is used for calling delayed stop task)
+		<#if task.type == "CONTROL">g_stTimer_${task.name}<#else>NULL</#if>, // Timer slot (used by control task)
 	},
 	</#list>
 };
@@ -704,4 +727,4 @@ int g_nNumOfTasks_top = ARRAYLEN(g_astTasks_top);
 int g_nTaskIdToTaskNum = ARRAYLEN(g_astTaskIdToTask);
 int g_nProcessorInfoNum = ARRAYLEN(g_astProcessorInfo);
 int g_nLibraryInfoNum = <#if (library_info?size > 0)>ARRAYLEN(g_stLibraryInfo)<#else>0</#if>;
-
+int g_nTimerSlotNum = MAX_TIMER_SLOT_SIZE;

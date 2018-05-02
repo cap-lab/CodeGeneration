@@ -42,7 +42,8 @@ KERNEL_SOURCES=$(KERNEL_DIR)/UKChannel.c\
 	$(KERNEL_DIR)/UKModeTransition.c\
 	$(KERNEL_DIR)/UKLibrary.c\
 	$(KERNEL_DIR)/UKTaskParameter.c\
-	$(KERNEL_DIR)/UKTask.c
+	$(KERNEL_DIR)/UKTask.c\
+	$(KERNEL_DIR)/UKTimer.c
 			   
 KERNEL_DEVICE_SOURCES=$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKCPUTaskManager.c\
 	$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKCPUCompositeTaskManager.c\

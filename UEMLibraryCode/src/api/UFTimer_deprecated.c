@@ -18,36 +18,42 @@
 
 unsigned int SYS_REQ_GET_CURRENT_TIME_BASE(int nCallerTaskId)
 {
-	unsigned int unTimeValue;
-	long long llCurTime;
+	uem_result result;
+	unsigned int unTimeValue = 0;
+	long long llCurTime = 0;
 
-	UFTimer_GetCurrentTime(nCallerTaskId, &llCurTime);
+	result = UFTimer_GetCurrentTime(nCallerTaskId, &llCurTime);
+	ERRIFGOTO(result, _EXIT);
 
 	unTimeValue = (long long) llCurTime;
-
+_EXIT:
 	return unTimeValue;
 }
 
 
-int SYS_REQ_SET_TIMER(int nCallerTaskId, unsigned int nTimeValue, char *pszTimeUnit)
+int SYS_REQ_SET_TIMER(int nCallerTaskId, unsigned int unTimeValue, char *pszTimeUnit)
 {
+	uem_result result;
 	int nTimerSlotId = INVALID_TIMER_SLOT_ID;
-	long long llTimeValue;
+	int nTimeValue;
 
-	llTimeValue = (long long) nTimeValue;
+	nTimeValue = (int) unTimeValue;
 
-	UFTimer_Set (nCallerTaskId, llTimeValue, pszTimeUnit, &nTimerSlotId);
-
+	result = UFTimer_SetAlarm (nCallerTaskId, nTimeValue, pszTimeUnit, &nTimerSlotId);
+	ERRIFGOTO(result, _EXIT);
+_EXIT:
 	return nTimerSlotId;
 }
 
 
 int SYS_REQ_GET_TIMER_ALARMED(int nCallerTaskId, int nTimerId)
 {
-	int nTimerAlarmed;
+	uem_result result;
+	int nTimerAlarmed = -1;
 	uem_bool bTimerPassed = FALSE;
 
-	UFTimer_GetAlarmed (nCallerTaskId, nTimerId, &bTimerPassed);
+	result = UFTimer_GetAlarmed (nCallerTaskId, nTimerId, &bTimerPassed);
+	ERRIFGOTO(result, _EXIT);
 
 	if(bTimerPassed == TRUE)
 	{
@@ -57,7 +63,7 @@ int SYS_REQ_GET_TIMER_ALARMED(int nCallerTaskId, int nTimerId)
 	{
 		nTimerAlarmed = 0;
 	}
-
+_EXIT:
 	return nTimerAlarmed;
 }
 

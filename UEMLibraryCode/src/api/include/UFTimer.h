@@ -17,7 +17,7 @@ extern "C"
 
 
 uem_result UFTimer_GetCurrentTime (IN int nCallerTaskId, OUT long long *pllCurTime);
-uem_result UFTimer_Set (IN int nCallerTaskId, IN long long llTimeValue, IN char *pszTimeUnit, OUT int *pnTimerId);
+uem_result UFTimer_SetAlarm (IN int nCallerTaskId, IN int nTimeValue, IN char *pszTimeUnit, OUT int *pnTimerId);
 uem_result UFTimer_GetAlarmed (IN int nCallerTaskId, IN int nTimerId, OUT uem_bool *pbTimerPassed);
 uem_result UFTimer_Reset (IN int nCallerTaskId, IN int nTimerId);
 

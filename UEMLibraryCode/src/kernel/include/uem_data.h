@@ -26,6 +26,7 @@ extern "C"
 #define INVALID_CHANNEL_ID (-1)
 #define INVALID_CHUNK_INDEX (-1)
 #define INVALID_TIMER_SLOT_ID (-1)
+#define INVALID_TIME_VALUE (-1)
 #define VARIABLE_SAMPLE_RATE (-1)
 #define MAPPING_NOT_SPECIFIED (-1)
 #define CHUNK_NUM_NOT_INITIALIZED (-1)
@@ -205,6 +206,15 @@ typedef struct _STaskIteration {
 	int nRunInIteration;
 } STaskIteration;
 
+
+typedef struct _STimer {
+	int nSlotId;
+	int nTimeInMilliSec;
+	uem_bool bAlarmChecked;
+	long long llAlarmTime;
+} STimer;
+
+
 typedef struct _STask {
 	int nTaskId;
 	const char *pszTaskName;
@@ -229,8 +239,8 @@ typedef struct _STask {
 	int nCurRunInIteration;
 	int nCurIteration;
 	int nTargetIteration;
+	STimer *astTimer;
 } STask;
-
 
 
 typedef struct _SPortSampleRate {
@@ -363,6 +373,7 @@ extern SMappedTaskInfo g_stMappingInfo;
 extern SLibrary g_stLibraryInfo[];
 extern int g_nLibraryInfoNum;
 
+extern int g_nTimerSlotNum;
 
 extern uem_bool g_bSystemExit;
 
