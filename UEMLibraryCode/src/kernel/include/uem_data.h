@@ -244,7 +244,7 @@ typedef struct _STask {
 
 
 typedef struct _SPortSampleRate {
-	char *pszModeName; // Except MTM, all mode name becomes "Default"
+	const char *pszModeName; // Except MTM, all mode name becomes "Default"
 	int nSampleRate; // sample rate (for general task, nSampleRate and nTotalSampleRate are same)
 	int nMaxAvailableDataNum; // for broadcast loop
 } SPortSampleRate;
@@ -263,7 +263,7 @@ typedef struct _SPort SPort;
 
 typedef struct _SPort {
 	int nTaskId;
-	char *pszPortName;
+	const char *pszPortName;
 	EPortSampleRateType enSampleRateType;
 	SPortSampleRate *astSampleRates; // If the task is MTM, multiple sample rates can be existed.
 	int nNumOfSampleRates;
@@ -299,7 +299,7 @@ typedef struct _SChannel {
 
 typedef struct _STaskIdToTaskMap {
 	int nTaskId;
-	char *pszTaskName;
+	const char *pszTaskName;
 	STask *pstTask;
 } STaskIdToTaskMap;
 
@@ -323,7 +323,7 @@ typedef struct _SScheduledTasks {
 typedef struct _SProcessor {
 	int nProcessorId;
 	uem_bool bIsCPU;
-	char *pszProcessorName;
+	const char *pszProcessorName;
 	int nPoolSize;
 } SProcessor;
 
