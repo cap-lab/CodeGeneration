@@ -500,7 +500,7 @@ STask g_astTasks_${task_graph.name}[] = {
 		0, // current run count in iteration
 		0, // current iteration
 		0, // target iteration (this variable is used for calling delayed stop task)
-		<#if task.type == "CONTROL">g_stTimer_${task.name}<#else>NULL</#if>, // Timer slot (used by control task)
+		<#if task.type == "CONTROL">g_stTimer_${task.name}<#else>(STimer *) NULL</#if>, // Timer slot (used by control task)
 	},
 	</#list>
 };

@@ -2,13 +2,14 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT([UEM Translated Code], [0.1], [sha@snu.ac.kr])
+AC_INIT([UEM Translated Code], [0.4], [sha@snu.ac.kr])
 AC_CONFIG_HEADERS([config.h])
 AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE()
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_CXX
 AX_PTHREAD
 
 
@@ -24,8 +25,8 @@ AC_CHECK_SIZEOF([void *])
 # Checks for library functions.
 AC_CHECK_FUNCS(mingw_gettimeofday)
 
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
+# Checks for library functions.
+AC_CHECK_FUNCS([memset malloc realloc])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
