@@ -11,7 +11,7 @@ AM_INIT_AUTOMAKE()
 AC_PROG_CC
 AC_PROG_CXX
 AX_PTHREAD
-
+AC_C_BIGENDIAN
 
 # Checks for libraries.
 

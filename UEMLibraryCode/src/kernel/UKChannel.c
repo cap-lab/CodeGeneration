@@ -28,6 +28,7 @@ typedef uem_result (*FnChannelGetAvailableChunk)(SChannel *pstChannel, OUT int *
 typedef uem_result (*FnChannelGetNumOfAvailableData)(SChannel *pstChannel, IN int nChunkIndex, OUT int *pnDataNum);
 typedef uem_result (*FnChannelClear)(SChannel *pstChannel);
 typedef uem_result (*FnChannelSetExit)(SChannel *pstChannel, int nExitFlag);
+typedef uem_result (*FnChannelClearExit)(SChannel *pstChannel, int nExitFlag);
 typedef uem_result (*FnChannelFinalize)(SChannel *pstChannel);
 
 typedef struct _SChannelAPI {
@@ -40,7 +41,7 @@ typedef struct _SChannelAPI {
 	FnChannelGetNumOfAvailableData fnGetNumOfAvailableData;
 	FnChannelClear fnClear;
 	FnChannelSetExit fnSetExit;
-	FnChannelSetExit fnClearExit;
+	FnChannelClearExit fnClearExit;
 	FnChannelFinalize fnFinalize;
 } SChannelAPI;
 

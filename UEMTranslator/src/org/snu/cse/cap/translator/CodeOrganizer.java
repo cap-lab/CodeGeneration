@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import static java.nio.file.StandardCopyOption.*;
 
-import org.snu.cse.cap.translator.structure.device.Device;
+import org.snu.cse.cap.translator.structure.ProgrammingLanguage;
 import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.task.Task;
 
@@ -26,11 +26,13 @@ public class CodeOrganizer {
 	private ArrayList<String> mainSourceList;
 	private ArrayList<String> kernelSourceList;
 	private ArrayList<String> kernelDeviceSourceList;
+	private ArrayList<String> kernelDataSourceList;
 	private HashSet<String> extraSourceCodeSet;
 	private String cflags;
 	private String ldadd;
 	private boolean isMappedGPU;
 	private HashSet<String> usedPeripheralList;
+	private ProgrammingLanguage language;
 	
 	public static final String MAIN_DIR = "src" + File.separator + "main";
 	public static final String API_DIR = "src" + File.separator + "api";
@@ -52,11 +54,14 @@ public class CodeOrganizer {
 		this.kernelSourceList = new ArrayList<String>();
 		this.kernelDeviceSourceList = new ArrayList<String>();
 		this.taskSourceCodeList = new ArrayList<String>();
+		this.kernelDataSourceList = new ArrayList<String>();
 		this.extraSourceCodeSet = new HashSet<String>();
+		
 		this.cflags = "";
 		this.ldadd = "";
 		this.isMappedGPU = isMappedGPU;
 		this.usedPeripheralList = new HashSet<String>();
+		this.language = ProgrammingLanguage.C;
 		
 		if(this.isMappedGPU == true)
 		{
@@ -166,6 +171,45 @@ public class CodeOrganizer {
 		}
 	}
 	
+	private void setMissingExtension(ArrayList<String> fileList, String fileExtension)
+	{
+		int index = 0;
+		String fileName;
+		
+		for(index = 0; index < fileList.size() ; index++) {
+			fileName = fileList.get(index);
+			if(fileName.contains(".") == false) { // set file extension
+				fileList.set(index, fileName + fileExtension);
+			}
+			else {
+				// skip file extension which is already determined				
+			}
+		}
+	}
+	
+	private void setGenerateKernelData(Properties translatorProperties)
+	{
+		String propertyKey;
+		String fileExtension;
+		
+		propertyKey = TranslatorProperties.PROPERTIES_GENERATED_KERNEL_DATA_FILE;
+		makeSourceFileList(propertyKey, translatorProperties, this.kernelDataSourceList);
+		
+		if(this.isMappedGPU == true) {
+			fileExtension = Constants.CUDA_FILE_EXTENSION; 
+		}
+		else {
+			if(this.language == ProgrammingLanguage.CPP) {
+				fileExtension = Constants.CPP_FILE_EXTENSION;
+			}
+			else {
+				fileExtension = Constants.C_FILE_EXTENSION;
+			}
+		}
+		
+		setMissingExtension(this.kernelDataSourceList, fileExtension);
+	}
+	
 	private void makeAllSourceFileList(Properties translatorProperties)
 	{
 		String propertyKey;
@@ -192,6 +236,8 @@ public class CodeOrganizer {
 		{
 			this.deviceRestriction = TranslatorProperties.PROPERTY_VALUE_CONSTRAINED;
 		}
+		
+		setGenerateKernelData(translatorProperties);
 	}
 	
 	public void extractDataFromProperties(Properties translatorProperties) throws UnsupportedHardwareInformation
@@ -293,17 +339,33 @@ public class CodeOrganizer {
 		addCFlags(taskMap, libraryMap);
 	}
 	
-	public void fillSourceCodeListFromTaskMap(HashMap<String, Task> taskMap)
+	private void setExtraSources(HashSet<String> extraSourceSet)
+	{
+		for(String extraSource : extraSourceSet)
+		{
+			this.extraSourceCodeSet.add(extraSource);
+			if(extraSource.endsWith(Constants.CPP_FILE_EXTENSION) == true)
+			{
+				this.language = ProgrammingLanguage.CPP;
+			}
+		}
+	}
+	
+	private void fillSourceCodeListFromTaskMap(HashMap<String, Task> taskMap)
 	{
 		for(Task task : taskMap.values())
 		{
 			if(task.getChildTaskGraphName() == null)
 			{
 				for(int i = 0 ; i < task.getTaskFuncNum() ; i++)
-				{					
+				{
+					if(task.getLanguage() == ProgrammingLanguage.CPP)
+					{
+						this.language = ProgrammingLanguage.CPP;
+					}
+					
 					if(isMappedGPU == false){
-
-						this.taskSourceCodeList.add(task.getName() + Constants.TASK_NAME_FUNC_ID_SEPARATOR + i + Constants.C_FILE_EXTENSION);
+						this.taskSourceCodeList.add(task.getName() + Constants.TASK_NAME_FUNC_ID_SEPARATOR + i + task.getFileExtension());
 	    			}
 	    			else{
 						this.taskSourceCodeList.add(task.getName() + Constants.TASK_NAME_FUNC_ID_SEPARATOR + i + Constants.CUDA_FILE_EXTENSION);
@@ -311,24 +373,29 @@ public class CodeOrganizer {
 				}
 			}
 			
-			for(String extraSource : task.getExtraSourceSet())
-			{
-				this.extraSourceCodeSet.add(extraSource);
-			}
+			setExtraSources(task.getExtraSourceSet());
 		}
 	}
 	
-	public void fillSourceCodeListFromLibraryMap(HashMap<String, Library> libraryMap)
+	private void fillSourceCodeListFromLibraryMap(HashMap<String, Library> libraryMap)
 	{
 		for(Library library : libraryMap.values())
 		{
-			this.taskSourceCodeList.add(library.getName() + Constants.C_FILE_EXTENSION);
-			
-			for(String extraSource : library.getExtraSourceSet())
+			if(library.getLanguage() == ProgrammingLanguage.CPP)
 			{
-				this.extraSourceCodeSet.add(extraSource);
+				this.language = ProgrammingLanguage.CPP;
 			}
+			
+			this.taskSourceCodeList.add(library.getName() + library.getFileExtension());
+			
+			setExtraSources(library.getExtraSourceSet());
 		}
+	}
+	
+	public void fillSourceCodeListFromTaskAndLibraryMap(HashMap<String, Task> taskMap, HashMap<String, Library> libraryMap)
+	{
+		fillSourceCodeListFromTaskMap(taskMap);
+		fillSourceCodeListFromLibraryMap(libraryMap);
 	}
 	
 	public void copyApplicationCodes(String srcDir, String outputDir) throws IOException
@@ -343,6 +410,8 @@ public class CodeOrganizer {
 				if(paramFile.isFile() == true && 
 					(paramFile.getName().endsWith(Constants.CIC_FILE_EXTENSION) || 
 					paramFile.getName().endsWith(Constants.CICL_FILE_EXTENSION) || 
+					paramFile.getName().endsWith(Constants.C_FILE_EXTENSION) ||
+					paramFile.getName().endsWith(Constants.CPP_FILE_EXTENSION) ||
 						(paramFile.getName().endsWith(Constants.HEADER_FILE_EXTENSION) && 
 						!paramFile.getName().endsWith(Constants.CIC_HEADER_FILE_EXTENSION))
 					))
@@ -454,6 +523,14 @@ public class CodeOrganizer {
 
 	public HashSet<String> getUsedPeripheralList() {
 		return usedPeripheralList;
+	}
+
+	public ProgrammingLanguage getLanguage() {
+		return language;
+	}
+
+	public ArrayList<String> getKernelDataSourceList() {
+		return kernelDataSourceList;
 	}
 }
 

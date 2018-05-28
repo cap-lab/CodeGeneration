@@ -39,11 +39,22 @@ STimer g_stTimer_${task.name}[MAX_TIMER_SLOT_SIZE] = {
 // ##TASK_CODE_TEMPLATE::START
 <#list flat_task as task_name, task>
 	<#if !task.childTaskGraphName??>
+		<#if task.language=="C">
+#ifdef __cplusplus
+extern "C"
+{
+#endif 
+		</#if>
 		<#list 0..(task.taskFuncNum-1) as task_func_id>
 void ${task.name}_Init${task_func_id}(int nTaskId);
 void ${task.name}_Go${task_func_id}(int nTaskId);
 void ${task.name}_Wrapup${task_func_id}();
 		</#list>
+		<#if task.language=="C">
+#ifdef __cplusplus
+}
+#endif 
+		</#if>
 	</#if>
 
 </#list>
@@ -52,8 +63,19 @@ void ${task.name}_Wrapup${task_func_id}();
 
 // ##LIBRARY_INIT_WRAPUP_TEMPLATE::START
 <#list library_info as libraryName, library>
+		<#if library.language=="C">
+#ifdef __cplusplus
+extern "C"
+{
+#endif 
+		</#if>
 void l_${libraryName}_init();
 void l_${libraryName}_wrapup();
+		<#if library.language=="C">
+#ifdef __cplusplus
+}
+#endif 
+		</#if>
 
 </#list>
 // ##LIBRARY_INIT_WRAPUP_TEMPLATE::END

@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import org.snu.cse.cap.translator.Constants;
+import org.snu.cse.cap.translator.structure.ProgrammingLanguage;
+
 public class Library {
 	private String name;
 	private String type;
@@ -18,6 +21,8 @@ public class Library {
 	private HashMap<String, Library> masterPortToLibraryMap;
 	private String ldFlags;
 	private String cFlags;
+	private ProgrammingLanguage language;
+	private String fileExtension;
 	
 	// // Master can be a task or a library
 	public Library(String name, String type, String file, String header)
@@ -106,5 +111,26 @@ public class Library {
 
 	public void setcFlags(String cFlags) {
 		this.cFlags = cFlags;
+	}
+
+	public ProgrammingLanguage getLanguage() {
+		return language;
+	}
+
+	public void setLanguageAndFileExtension(String language) {	
+		if(language.equals(ProgrammingLanguage.CPP.toString()))
+		{
+			this.fileExtension = Constants.CPP_FILE_EXTENSION;
+			this.language = ProgrammingLanguage.CPP;
+		}
+		else
+		{
+			this.fileExtension = Constants.C_FILE_EXTENSION;
+			this.language = ProgrammingLanguage.C;
+		}
+	}
+
+	public String getFileExtension() {
+		return fileExtension;
 	}
 }

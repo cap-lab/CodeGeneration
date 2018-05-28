@@ -27,11 +27,9 @@ EXTRA_SOURCES=<#if build_info.extraSourceCodeSet??><#list build_info.extraSource
 API_SOURCES=<#list build_info.apiSourceList as source_file><#if (source_file?index > 0)>
 	</#if>$(API_DIR)/${source_file}<#if (source_file?index < build_info.apiSourceList?size - 1)>\</#if></#list>
 
-<#if build_info.isMappedGPU == true>
-KERNEL_DATA_SOURCES=$(KERNEL_DIR)/uem_data.cu
-<#else>
-KERNEL_DATA_SOURCES=$(KERNEL_DIR)/uem_data.c
-</#if>
+
+KERNEL_DATA_SOURCES=<#list build_info.kernelDataSourceList as source_file><#if (source_file?index > 0)>
+	</#if>$(KERNEL_DIR)/${source_file}<#if (source_file?index < build_info.kernelDataSourceList?size - 1)>\</#if></#list>
 
 KERNEL_SOURCES=<#list build_info.kernelSourceList as source_file><#if (source_file?index > 0)>
 	</#if>$(KERNEL_DIR)/${source_file}<#if (source_file?index < build_info.kernelSourceList?size - 1)>\</#if></#list>
@@ -55,12 +53,15 @@ TOP_CFLAGS=-I$(top_srcdir)
 
 COMMON_CFLAGS=-I$(COMMON_DIR)/include <#list build_info.usedPeripheralList as peripheralName>-I$(COMMON_DIR)/include/${peripheralName}</#list>
 
-<#if build_info.isMappedGPU == true>
 CFLAGS_LIST=$(TOP_CFLAGS) $(MAIN_CFLAGS) $(API_CFLAGS) $(KERNEL_CFLAGS) $(COMMON_CFLAGS)
- 
+
+<#if build_info.isMappedGPU == true> 
 proc_CFLAGS= $(CFLAGS_LIST) $(SYSTEM_CFLAGS)
 <#else>
-proc_CFLAGS=-Wall $(TOP_CFLAGS) $(MAIN_CFLAGS) $(API_CFLAGS) $(KERNEL_CFLAGS) $(COMMON_CFLAGS) $(SYSTEM_CFLAGS)
+proc_CFLAGS=-Wall $(CFLAGS_LIST) $(SYSTEM_CFLAGS)
+	<#if build_info.language=="C++">
+proc_CXXFLAGS=-Wall $(CFLAGS_LIST) $(SYSTEM_CFLAGS)
+	</#if>
 </#if>
 
 MAIN_LDADD=

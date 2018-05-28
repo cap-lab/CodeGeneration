@@ -23,7 +23,7 @@ Build file for CIC XML - for use with Jakarta Ant-->
 	<!-- Base directories -->
 	<property name="src.dir" value="src" />
     <property name="target.dir" value="classes" />
-	<property name="lib.dir" value="lib" />
+	<property name="lib.dir" value="../JavaLibraries/jars" />
 	<property name="dist.dir" value="dist" />
     
     <property name="schemas.dir" value="xsd" />

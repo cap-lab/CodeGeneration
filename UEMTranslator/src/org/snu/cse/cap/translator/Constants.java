@@ -33,6 +33,7 @@ public class Constants {
 	public static final String DEFAULT_TEMPLATE_DIR = "templates";
 	public static final String DEFAULT_TRANSLATED_CODE_TEMPLATE_DIR = ".." + File.separator + "UEMTranslatedCodeTemplate";
 	public static final String DEFAULT_UEM_DATA_C = "uem_data.c";
+	public static final String DEFAULT_UEM_DATA_CPP = "uem_data.cpp";
 	public static final String DEFAULT_UEM_DATA_CUDA = "uem_data.cu";
 	public static final String DEFAULT_MAKEFILE_AM = "Makefile.am";
 	
