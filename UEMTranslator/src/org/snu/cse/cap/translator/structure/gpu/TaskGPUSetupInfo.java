@@ -1,4 +1,4 @@
-package org.snu.cse.cap.translator.structure.mapping;
+package org.snu.cse.cap.translator.structure.gpu;
 
 import java.math.BigInteger;
 
@@ -6,7 +6,7 @@ import org.snu.cse.cap.translator.structure.task.TaskShapeType;
 
 import hopes.cic.xml.YesNoType;
 
-public class TaskGPUMappingInfo extends MappingInfo {
+public class TaskGPUSetupInfo {
 	private String taskName;
 	private boolean isClustering;
 	private boolean isPipelining;
@@ -18,8 +18,7 @@ public class TaskGPUMappingInfo extends MappingInfo {
 	private int inThreadSizeHeight;
 	private int inThreadSizeDepth;
 	
-	public TaskGPUMappingInfo(String taskName, TaskShapeType mappedTaskType, YesNoType isClustering, YesNoType isPipelining,int inMaxStrem) {
-		super(mappedTaskType);
+	public TaskGPUSetupInfo(String taskName, TaskShapeType mappedTaskType, YesNoType isClustering, YesNoType isPipelining,int inMaxStrem) {
 		this.taskName = taskName;
 		if(isClustering.toString().equals("YES")) this.isClustering = true;
 		else this.isClustering = false;

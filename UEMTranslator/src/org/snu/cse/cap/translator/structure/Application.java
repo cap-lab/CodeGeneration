@@ -25,13 +25,13 @@ import org.snu.cse.cap.translator.structure.device.ProcessorElementType;
 import org.snu.cse.cap.translator.structure.device.TCPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.DeviceConnection;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
+import org.snu.cse.cap.translator.structure.gpu.TaskGPUSetupInfo;
 import org.snu.cse.cap.translator.structure.library.Argument;
 import org.snu.cse.cap.translator.structure.library.Function;
 import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.library.LibraryConnection;
 import org.snu.cse.cap.translator.structure.mapping.InvalidScheduleFileNameException;
 import org.snu.cse.cap.translator.structure.mapping.MappingInfo;
-import org.snu.cse.cap.translator.structure.mapping.TaskGPUMappingInfo;
 import org.snu.cse.cap.translator.structure.task.Task;
 import org.snu.cse.cap.translator.structure.task.TaskLoopType;
 import org.snu.cse.cap.translator.structure.task.TaskMode;
@@ -378,19 +378,18 @@ public class Application {
 		return mappingInfo;
 	}
 	
-	private TaskGPUMappingInfo findGPUMappingInfoByTaskName(String taskName) throws InvalidDataInMetadataFileException
+	private TaskGPUSetupInfo findGPUSetupInfoByTaskName(String taskName) throws InvalidDataInMetadataFileException
 	{
-		Task task;
-		TaskGPUMappingInfo gpumappingInfo = null;
+		TaskGPUSetupInfo gpuSetupInfo = null;
 		
 		for(Device device: this.deviceInfo.values())
 		{
 			// task is mapped in this device
 			if(device.getTaskMap().containsKey(taskName)) 
 			{
-				if(device.getGPUMappingInfo().containsKey(taskName))
+				if(device.getGPUSetupInfo().containsKey(taskName))
 				{
-					gpumappingInfo = device.getGPUMappingInfo().get(taskName);
+					gpuSetupInfo = device.getGPUSetupInfo().get(taskName);
 				}
 				else
 				{
@@ -401,10 +400,11 @@ public class Application {
 		}
 		
 		//Is it okay to return null?
-		return gpumappingInfo;
+		return gpuSetupInfo;
 	}
 	
-	private void setChannelCommunicationType(Channel channel, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo,TaskGPUMappingInfo srcTaskGPUMappingInfo,TaskGPUMappingInfo dstTaskGPUMappingInfo) 
+	private void setChannelCommunicationType(Channel channel, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo, 
+											TaskGPUSetupInfo srcTaskGPUSetupInfo, TaskGPUSetupInfo dstTaskGPUSetupInfo) 
 	{
 		// Two tasks are connected on different devices
 		// TODO: multi device connection must be supported
@@ -416,13 +416,13 @@ public class Application {
 		{
 			// TODO: this part should handle heterogeneous computing devices, so processor name check is also needed
 			// currently only the first mapped processor is used for checking the both tasks are located at the same processor pool.
-			if(srcTaskGPUMappingInfo != null || dstTaskGPUMappingInfo != null)
+			if(srcTaskGPUSetupInfo != null || dstTaskGPUSetupInfo != null)
 			{
-				if(srcTaskGPUMappingInfo != null && dstTaskGPUMappingInfo == null)
+				if(srcTaskGPUSetupInfo != null && dstTaskGPUSetupInfo == null)
 				{
 					channel.setCommunicationType(CommunicationType.GPU_CPU);
 				}
-				else if(srcTaskGPUMappingInfo == null && dstTaskGPUMappingInfo != null)
+				else if(srcTaskGPUSetupInfo == null && dstTaskGPUSetupInfo != null)
 				{
 					channel.setCommunicationType(CommunicationType.CPU_GPU);
 				}
@@ -873,8 +873,8 @@ public class Application {
 			ChannelPortType channelDstPort = channelMetadata.getDst().get(0);
 			MappingInfo srcTaskMappingInfo;
 			MappingInfo dstTaskMappingInfo;
-			TaskGPUMappingInfo srcTaskGPUMappingInfo;
-			TaskGPUMappingInfo dstTaskGPUMappingInfo;
+			TaskGPUSetupInfo srcTaskGPUSetupInfo;
+			TaskGPUSetupInfo dstTaskGPUSetupInfo;
 			
 			Port srcPort = this.portInfo.get(channelSrcPort.getTask() + Constants.NAME_SPLITER + channelSrcPort.getPort() + Constants.NAME_SPLITER + PortDirection.OUTPUT);
 			Port dstPort = this.portInfo.get(channelDstPort.getTask() + Constants.NAME_SPLITER + channelDstPort.getPort() + Constants.NAME_SPLITER + PortDirection.INPUT);
@@ -895,11 +895,11 @@ public class Application {
 			srcTaskMappingInfo = findMappingInfoByTaskName(channelSrcPort.getTask());
 			dstTaskMappingInfo = findMappingInfoByTaskName(channelDstPort.getTask());
 			
-			srcTaskGPUMappingInfo = findGPUMappingInfoByTaskName(channelSrcPort.getTask());
-			dstTaskGPUMappingInfo = findGPUMappingInfoByTaskName(channelDstPort.getTask());
+			srcTaskGPUSetupInfo = findGPUSetupInfoByTaskName(channelSrcPort.getTask());
+			dstTaskGPUSetupInfo = findGPUSetupInfoByTaskName(channelDstPort.getTask());
 			
 			// communication type (device information)
-			setChannelCommunicationType(channel, srcTaskMappingInfo, dstTaskMappingInfo,srcTaskGPUMappingInfo,dstTaskGPUMappingInfo);
+			setChannelCommunicationType(channel, srcTaskMappingInfo, dstTaskMappingInfo,srcTaskGPUSetupInfo,dstTaskGPUSetupInfo);
 			addChannelAndPortInfoToDevice(channel, srcTaskMappingInfo, dstTaskMappingInfo);
 			
 			this.channelList.add(channel);
