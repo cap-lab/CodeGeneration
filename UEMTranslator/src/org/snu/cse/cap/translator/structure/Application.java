@@ -295,7 +295,7 @@ public class Application {
 	
 						slave = findConnection(slaveType.getDevice(), slaveType.getConnection());
 						deviceConnection.putMasterToSlaveConnection(master, slaveType.getDevice(), slave);
-						deviceConnection.putSlaveToMasterConnection(slave, connectType.getMaster(), master);
+						deviceConnection.putSlaveToMasterConnection(slaveType.getDevice(), slave, master);
 					}
 				} catch (InvalidDeviceConnectionException e) {
 					// TODO Auto-generated catch block
@@ -377,24 +377,37 @@ public class Application {
 		return mappingInfo;
 	}
 	
-	private void setRemoteCommunicationType(Channel channel, String srcTaskDevice, String dstTaskDevice) throws InvalidDeviceConnectionException
+	private void setSourceRemoteCommunicationType(Channel channel, String srcTaskDevice, String dstTaskDevice) throws InvalidDeviceConnectionException
 	{
 		// TODO: only TCP communication is supported now
 		DeviceConnection srcTaskConnection = this.deviceConnectionList.get(srcTaskDevice);
+		DeviceConnection dstTaskConnection = this.deviceConnectionList.get(dstTaskDevice);
 		ConnectionPair connectionPair = null;
 		
-		connectionPair = srcTaskConnection.findOneConnectionToAnotherDevice(dstTaskDevice);
-		if(connectionPair == null)
-		{
+		if(srcTaskConnection != null) {// source is master
+			connectionPair = srcTaskConnection.findOneConnectionToAnotherDevice(dstTaskDevice);
+		}
+		else if(dstTaskConnection != null) {// destination is master
+			connectionPair = dstTaskConnection.findOneConnectionToAnotherDevice(srcTaskDevice);
+		}
+		else {
 			throw new InvalidDeviceConnectionException();
 		}
 		
-		if(connectionPair.getMasterConnection().getType() != ConnectionType.TCP)
-		{
+		if(connectionPair == null) {
+			throw new InvalidDeviceConnectionException();
+		}
+		
+		if(connectionPair.getMasterConnection().getType() != ConnectionType.TCP) {
 			throw new UnsupportedOperationException();
 		}
 		
-		channel.setCommunicationType(CommunicationType.TCP);
+		if(connectionPair.getMasterDeviceName().equals(srcTaskDevice) == true) {
+			channel.setCommunicationType(CommunicationType.TCP_SERVER);	
+		}
+		else {
+			channel.setCommunicationType(CommunicationType.TCP_CLIENT);
+		}
 	}
 	
 	// TODO: Only support CPU and GPU cases
@@ -450,7 +463,8 @@ public class Application {
 		// Two tasks are connected on different devices
 		if(srcTaskMappingInfo.getMappedDeviceName().equals(dstTaskMappingInfo.getMappedDeviceName()) == false)
 		{
-			setRemoteCommunicationType(channel, srcTaskMappingInfo.getMappedDeviceName(), dstTaskMappingInfo.getMappedDeviceName());			
+			// it only set channel communication type of source task
+			setSourceRemoteCommunicationType(channel, srcTaskMappingInfo.getMappedDeviceName(), dstTaskMappingInfo.getMappedDeviceName());
 		}
 		else // located at the same device
 		{	
@@ -529,11 +543,30 @@ public class Application {
 		}
 	}
 	
-	private void addChannelAndPortInfoToDevice(Channel channel, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo)
+	private CommunicationType getDstTaskCommunicationType(CommunicationType srcTaskCommunicationType)
+	{
+		CommunicationType dstTaskCommunicationType;
+		
+		switch(srcTaskCommunicationType)
+		{
+		case TCP_CLIENT:
+			dstTaskCommunicationType = CommunicationType.TCP_SERVER;
+			break;
+		case TCP_SERVER:
+			dstTaskCommunicationType = CommunicationType.TCP_CLIENT;
+			break;
+		default:
+			throw new UnsupportedOperationException();
+		}
+		
+		return dstTaskCommunicationType;
+	}
+	
+	private void addChannelAndPortInfoToDevice(Channel channel, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo) throws CloneNotSupportedException
 	{
 		Device srcDevice = this.deviceInfo.get(srcTaskMappingInfo.getMappedDeviceName());
 		Device dstDevice = this.deviceInfo.get(dstTaskMappingInfo.getMappedDeviceName());
-		
+				
 		// hierarchical put port information
 
 		// src and dst is same device
@@ -545,10 +578,13 @@ public class Application {
 		// if src and dst is different put same information to dst device
 		if(!srcTaskMappingInfo.getMappedDeviceName().equals(dstTaskMappingInfo.getMappedDeviceName()))
 		{
+			Channel channelInDevice = channel.clone();
 			putPortIntoDeviceHierarchically(dstDevice, channel.getInputPort(), PortDirection.INPUT);
 			putPortIntoDeviceHierarchically(dstDevice, channel.getOutputPort(), PortDirection.OUTPUT);
 			
-			dstDevice.getChannelList().add(channel);
+			channelInDevice.setCommunicationType(getDstTaskCommunicationType(channel.getCommunicationType()));
+			
+			dstDevice.getChannelList().add(channelInDevice);
 		}
 	}
 	
@@ -862,7 +898,7 @@ public class Application {
 		setIterationCount(taskGraphMap);
 	}
 	
-	public void makeChannelInformation(CICAlgorithmType algorithm_metadata) throws InvalidDataInMetadataFileException, InvalidDeviceConnectionException
+	public void makeChannelInformation(CICAlgorithmType algorithm_metadata) throws InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
 	{
 		algorithm_metadata.getChannels().getChannel();
 		int index = 0;

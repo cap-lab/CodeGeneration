@@ -35,7 +35,7 @@ public class UEMMetaDataModel {
     
     private Application application = null;
     
-    public UEMMetaDataModel(String uemXMLPath, String scheduleFileFolderPath) throws CICXMLException, InvalidDataInMetadataFileException, InvalidDeviceConnectionException
+    public UEMMetaDataModel(String uemXMLPath, String scheduleFileFolderPath) throws CICXMLException, InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
     {
     	parseXMLFile(uemXMLPath);
     	this.schedulePath = scheduleFileFolderPath;
@@ -89,7 +89,7 @@ public class UEMMetaDataModel {
         }
     }
     
-    private void makeApplicationDataModel() throws InvalidDataInMetadataFileException, InvalidDeviceConnectionException
+    private void makeApplicationDataModel() throws InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
     {
     	this.application = new Application();
     	

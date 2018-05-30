@@ -3,13 +3,13 @@ package org.snu.cse.cap.translator.structure.device.connection;
 public class SlaveToMasterConnection {
 	private Connection slave;
 	private Connection master;
-	private String masterDeviceName;
+	private String slaveDeviceName;
 	
-	public SlaveToMasterConnection(Connection slave, String masterDeviceName, Connection master)
+	public SlaveToMasterConnection(String slaveDeviceName, Connection slave, Connection master)
 	{
 		this.slave = slave;
 		this.master = master;
-		this.masterDeviceName = masterDeviceName;
+		this.slaveDeviceName = slaveDeviceName;
 	}
 
 	public Connection getSlave() {
@@ -20,7 +20,8 @@ public class SlaveToMasterConnection {
 		return master;
 	}
 
-	public String getMasterDeviceName() {
-		return masterDeviceName;
+	public String getSlaveDeviceName() {
+		return slaveDeviceName;
 	}
+
 }

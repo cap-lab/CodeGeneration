@@ -5,7 +5,7 @@ import java.util.HashMap;
 import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.structure.task.Task;
 
-public class Channel {
+public class Channel implements Cloneable {
 	private int index;
 	private CommunicationType communicationType;
 	private ChannelArrayType channelType;
@@ -23,6 +23,25 @@ public class Channel {
 		this.initialDataLen = initialDataLen;
 		this.nextChannelIndex = Constants.INVALID_ID_VALUE;
 		this.channelSampleSize = sampleSize;
+	}
+	
+	// Does not need to clone inputPort and outputPort  
+	public Channel clone() throws CloneNotSupportedException {
+		Channel channel;
+		
+		channel = (Channel) super.clone();
+		channel.index = this.index;
+		channel.communicationType = this.communicationType;
+		channel.channelType = this.channelType;
+		channel.size = this.size;
+		// Shallow copy for these two objects
+		channel.inputPort = this.inputPort;
+		channel.outputPort = this.outputPort;
+		channel.initialDataLen = this.initialDataLen;
+		channel.nextChannelIndex = this.nextChannelIndex;
+		channel.channelSampleSize = this.channelSampleSize;
+		
+		return channel;
 	}
 	
 	public int getIndex() {

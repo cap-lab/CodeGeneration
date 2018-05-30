@@ -31,7 +31,7 @@ public class DeviceConnection {
 		connection.putSlave(slave, slaveDeviceName);
 	}
 	
-	public void putSlaveToMasterConnection(Connection slave, String masterDeviceName, Connection master) throws InvalidDeviceConnectionException
+	public void putSlaveToMasterConnection(String slaveDeviceName, Connection slave, Connection master) throws InvalidDeviceConnectionException
 	{
 		SlaveToMasterConnection connection;
 		if(this.connectionToMasterMap.containsKey(slave.getName()))
@@ -40,7 +40,7 @@ public class DeviceConnection {
 		}
 		else
 		{
-			connection = new SlaveToMasterConnection(slave, masterDeviceName, master);
+			connection = new SlaveToMasterConnection(slaveDeviceName, slave, master);
 			
 			this.connectionToMasterMap.put(slave.getName(), connection);
 		}
@@ -67,18 +67,6 @@ public class DeviceConnection {
 						break;
 					}
 				}				
-			}
-		}
-		
-		if(connectionPair != null)
-		{
-			for(SlaveToMasterConnection connection: this.connectionToMasterMap.values())
-			{
-				if(connection.getMasterDeviceName().equals(deviceName) == true)
-				{
-					connectionPair = new ConnectionPair(deviceName, connection.getMaster(), this.deviceName, connection.getSlave());
-					break;
-				}
 			}
 		}
 		

@@ -163,6 +163,9 @@ public class CodeGenerator
 		} catch (InvalidDeviceConnectionException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (CloneNotSupportedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
     }
     
