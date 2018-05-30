@@ -26,6 +26,7 @@ import org.snu.cse.cap.translator.UnsupportedHardwareInformation;
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 import org.snu.cse.cap.translator.structure.ProgrammingLanguage;
 import org.snu.cse.cap.translator.structure.device.Device;
+import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
 import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.task.Task;
 
@@ -159,6 +160,9 @@ public class CodeGenerator
     	} catch (InvalidDataInMetadataFileException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (InvalidDeviceConnectionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
     }
     
@@ -183,7 +187,7 @@ public class CodeGenerator
 		// Create the root hash
 		Map<String, Object> uemDataRootHash = new HashMap<>();
 		String outputFilePath = topDirPath + File.separator + CodeOrganizer.KERNEL_DIR + File.separator;
-		if(device.getGPUSetupInfo().size() != 0){
+		if(device.getGpuSetupInfo().size() != 0){
 			outputFilePath += Constants.DEFAULT_UEM_DATA_CUDA;
 			
 		}
@@ -206,7 +210,7 @@ public class CodeGenerator
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_PORT_KEY_TO_INDEX, device.getPortKeyToIndex());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_EXECUTION_TIME, this.uemDatamodel.getApplication().getExecutionTime());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_LIBRARY_INFO, device.getLibraryMap());
-		if(device.getGPUSetupInfo().size() == 0)
+		if(device.getGpuSetupInfo().size() == 0)
 		{
 			uemDataRootHash.put(Constants.TEMPLATE_TAG_GPU_USED, false);
 		}
@@ -233,14 +237,14 @@ public class CodeGenerator
 	    		Map<String, Object> taskCodeRootHash = new HashMap<>();
 	    		
 	    		taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_INFO, task);
-				taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_GPU_MAPPING_INFO, device.getGPUSetupInfo().get(task.getName()));
+				taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_GPU_MAPPING_INFO, device.getGpuSetupInfo().get(task.getName()));
 	    		    		
 	    		for(int loop = 0 ; loop < task.getTaskFuncNum() ; loop++)
 	    		{
 	    			String outputFilePath = topDirPath + File.separator + CodeOrganizer.APPLICATION_DIR + File.separator + 
 	    									task.getName() +  Constants.TASK_NAME_FUNC_ID_SEPARATOR + loop;
 	    			
-	    			if(device.getGPUSetupInfo().size() == 0){
+	    			if(device.getGpuSetupInfo().size() == 0){
 	    				if(language == ProgrammingLanguage.CPP) {
 	    					outputFilePath += Constants.CPP_FILE_EXTENSION;
 	    				}
@@ -300,7 +304,7 @@ public class CodeGenerator
     
 	public boolean isMappedGPU(Device device)
 	{
-		if (device.getGPUSetupInfo().size() == 0)
+		if (device.getGpuSetupInfo().size() == 0)
 		{
 			return false;
 		}

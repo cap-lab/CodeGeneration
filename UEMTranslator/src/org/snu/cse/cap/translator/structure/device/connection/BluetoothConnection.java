@@ -1,4 +1,4 @@
-package org.snu.cse.cap.translator.structure.device;
+package org.snu.cse.cap.translator.structure.device.connection;
 
 public class BluetoothConnection extends Connection {
 	private String friendlyName;

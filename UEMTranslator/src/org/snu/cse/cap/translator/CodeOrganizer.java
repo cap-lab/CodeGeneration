@@ -167,7 +167,10 @@ public class CodeOrganizer {
 			peripheralKey = key + TranslatorProperties.PROPERTY_DELIMITER + peripheralName;
 			sourceFileString = translatorProperties.getProperty(peripheralKey);
 			
-			addSourceFileFromSourceString(peripheralName + MAKEFILE_PATH_SEPARATOR + sourceFileString, list);
+			if(sourceFileString != null)
+			{
+				addSourceFileFromSourceString(peripheralName + MAKEFILE_PATH_SEPARATOR + sourceFileString, list);	
+			}
 		}
 	}
 	

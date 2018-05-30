@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.snu.cse.cap.translator.structure.Application;
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
+import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
 
 import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICAlgorithmType;
@@ -34,7 +35,7 @@ public class UEMMetaDataModel {
     
     private Application application = null;
     
-    public UEMMetaDataModel(String uemXMLPath, String scheduleFileFolderPath) throws CICXMLException, InvalidDataInMetadataFileException
+    public UEMMetaDataModel(String uemXMLPath, String scheduleFileFolderPath) throws CICXMLException, InvalidDataInMetadataFileException, InvalidDeviceConnectionException
     {
     	parseXMLFile(uemXMLPath);
     	this.schedulePath = scheduleFileFolderPath;
@@ -88,7 +89,7 @@ public class UEMMetaDataModel {
         }
     }
     
-    private void makeApplicationDataModel() throws InvalidDataInMetadataFileException
+    private void makeApplicationDataModel() throws InvalidDataInMetadataFileException, InvalidDeviceConnectionException
     {
     	this.application = new Application();
     	

@@ -1,4 +1,4 @@
-package org.snu.cse.cap.translator.structure.device;
+package org.snu.cse.cap.translator.structure.device.connection;
 
 public enum ConnectionType {
 	TCP("tcp"),

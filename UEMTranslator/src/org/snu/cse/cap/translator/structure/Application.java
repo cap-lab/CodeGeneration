@@ -15,17 +15,19 @@ import org.snu.cse.cap.translator.structure.channel.LoopPortType;
 import org.snu.cse.cap.translator.structure.channel.Port;
 import org.snu.cse.cap.translator.structure.channel.PortDirection;
 import org.snu.cse.cap.translator.structure.channel.PortSampleRate;
-import org.snu.cse.cap.translator.structure.device.BluetoothConnection;
-import org.snu.cse.cap.translator.structure.device.Connection;
 import org.snu.cse.cap.translator.structure.device.Device;
 import org.snu.cse.cap.translator.structure.device.HWCategory;
 import org.snu.cse.cap.translator.structure.device.HWElementType;
 import org.snu.cse.cap.translator.structure.device.NoProcessorFoundException;
+import org.snu.cse.cap.translator.structure.device.Processor;
 import org.snu.cse.cap.translator.structure.device.ProcessorElementType;
-import org.snu.cse.cap.translator.structure.device.TCPConnection;
+import org.snu.cse.cap.translator.structure.device.connection.BluetoothConnection;
+import org.snu.cse.cap.translator.structure.device.connection.Connection;
+import org.snu.cse.cap.translator.structure.device.connection.ConnectionPair;
+import org.snu.cse.cap.translator.structure.device.connection.ConnectionType;
 import org.snu.cse.cap.translator.structure.device.connection.DeviceConnection;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
-import org.snu.cse.cap.translator.structure.gpu.TaskGPUSetupInfo;
+import org.snu.cse.cap.translator.structure.device.connection.TCPConnection;
 import org.snu.cse.cap.translator.structure.library.Argument;
 import org.snu.cse.cap.translator.structure.library.Function;
 import org.snu.cse.cap.translator.structure.library.Library;
@@ -55,12 +57,10 @@ import hopes.cic.xml.LibraryFunctionArgumentType;
 import hopes.cic.xml.LibraryFunctionType;
 import hopes.cic.xml.LibraryLibraryConnectionType;
 import hopes.cic.xml.LibraryType;
-import hopes.cic.xml.LoopType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.ModeType;
 import hopes.cic.xml.PortMapType;
 import hopes.cic.xml.TCPConnectionType;
-import hopes.cic.xml.TaskInstanceType;
 import hopes.cic.xml.TaskLibraryConnectionType;
 import hopes.cic.xml.TaskPortType;
 import hopes.cic.xml.TaskRateType;
@@ -68,7 +68,6 @@ import hopes.cic.xml.TaskType;
 import mapss.dif.csdf.sdf.SDFEdgeWeight;
 import mapss.dif.csdf.sdf.SDFGraph;
 import mapss.dif.csdf.sdf.SDFNodeWeight;
-import mapss.dif.csdf.sdf.sched.FlatStrategy;
 import mapss.dif.csdf.sdf.sched.MinBufferStrategy;
 import mapss.dif.csdf.sdf.sched.TwoNodeStrategy;
 import mocgraph.Edge;
@@ -295,8 +294,8 @@ public class Application {
 						Connection slave;
 	
 						slave = findConnection(slaveType.getDevice(), slaveType.getConnection());
-						deviceConnection.putMasterToSlaveConnection(master, slave);
-						deviceConnection.putSlaveToMasterConnection(slave, master);
+						deviceConnection.putMasterToSlaveConnection(master, slaveType.getDevice(), slave);
+						deviceConnection.putSlaveToMasterConnection(slave, connectType.getMaster(), master);
 					}
 				} catch (InvalidDeviceConnectionException e) {
 					// TODO Auto-generated catch block
@@ -378,77 +377,84 @@ public class Application {
 		return mappingInfo;
 	}
 	
-	private TaskGPUSetupInfo findGPUSetupInfoByTaskName(String taskName) throws InvalidDataInMetadataFileException
+	private void setRemoteCommunicationType(Channel channel, String srcTaskDevice, String dstTaskDevice) throws InvalidDeviceConnectionException
 	{
-		TaskGPUSetupInfo gpuSetupInfo = null;
+		// TODO: only TCP communication is supported now
+		DeviceConnection srcTaskConnection = this.deviceConnectionList.get(srcTaskDevice);
+		ConnectionPair connectionPair = null;
 		
-		for(Device device: this.deviceInfo.values())
+		connectionPair = srcTaskConnection.findOneConnectionToAnotherDevice(dstTaskDevice);
+		if(connectionPair == null)
 		{
-			// task is mapped in this device
-			if(device.getTaskMap().containsKey(taskName)) 
-			{
-				if(device.getGPUSetupInfo().containsKey(taskName))
-				{
-					gpuSetupInfo = device.getGPUSetupInfo().get(taskName);
-				}
-				else
-				{
-					// task is mapped in cpu processor
-				}
-				break;
-			}
+			throw new InvalidDeviceConnectionException();
 		}
 		
-		//Is it okay to return null?
-		return gpuSetupInfo;
-	}
-	
-	private void setChannelCommunicationType(Channel channel, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo, 
-											TaskGPUSetupInfo srcTaskGPUSetupInfo, TaskGPUSetupInfo dstTaskGPUSetupInfo) 
-	{
-		// Two tasks are connected on different devices
-		// TODO: multi device connection must be supported
-		if(srcTaskMappingInfo.getMappedDeviceName().equals(dstTaskMappingInfo.getMappedDeviceName()) == false)
+		if(connectionPair.getMasterConnection().getType() != ConnectionType.TCP)
 		{
 			throw new UnsupportedOperationException();
 		}
-		else // located at the same device
+		
+		channel.setCommunicationType(CommunicationType.TCP);
+	}
+	
+	// TODO: Only support CPU and GPU cases
+	private void setInDeviceCommunicationType(Channel channel,  MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo)
+	{
+		boolean srcCPU = false;
+		boolean dstCPU = false;
+		int srcProcId, dstProcId;
+		int srcProcLocalId, dstProcLocalId;
+		
+		srcProcId = srcTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId();
+		dstProcId = dstTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId();
+		srcProcLocalId = srcTaskMappingInfo.getMappedProcessorList().get(0).getProcessorLocalId();
+		dstProcLocalId = dstTaskMappingInfo.getMappedProcessorList().get(0).getProcessorLocalId();
+		
+		Device device = this.deviceInfo.get(srcTaskMappingInfo.getMappedDeviceName());
+		for(Processor processor : device.getProcessorList()) {
+			if(srcProcId == processor.getId()) {
+				srcCPU = processor.getIsCPU();
+			}
+			
+			if(dstProcId == processor.getId()) {
+				dstCPU = processor.getIsCPU();
+			}
+		}
+		
+		if(srcCPU == false && dstCPU == true) {
+			channel.setCommunicationType(CommunicationType.GPU_CPU);
+		}
+		else if(srcCPU == false && dstCPU == false) {
+			if(srcProcId == dstProcId && srcProcLocalId == dstProcLocalId) {
+				channel.setCommunicationType(CommunicationType.GPU_GPU);
+			}
+			else { 
+				channel.setCommunicationType(CommunicationType.GPU_GPU_DIFFERENT);
+			}
+		}
+		else if(dstCPU == true) { // && srcCPU == true
+			if(srcProcId == dstProcId) {
+				channel.setCommunicationType(CommunicationType.SHARED_MEMORY);
+			}
+			else {
+				throw new UnsupportedOperationException();
+			}
+		}
+		else { // dstCPU == true && srcCPU == true
+			channel.setCommunicationType(CommunicationType.CPU_GPU);
+		}		
+	}
+	
+	private void setChannelCommunicationType(Channel channel, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo) throws InvalidDeviceConnectionException 
+	{
+		// Two tasks are connected on different devices
+		if(srcTaskMappingInfo.getMappedDeviceName().equals(dstTaskMappingInfo.getMappedDeviceName()) == false)
 		{
-			// TODO: this part should handle heterogeneous computing devices, so processor name check is also needed
-			// currently only the first mapped processor is used for checking the both tasks are located at the same processor pool.
-			if(srcTaskGPUSetupInfo != null || dstTaskGPUSetupInfo != null)
-			{
-				if(srcTaskGPUSetupInfo != null && dstTaskGPUSetupInfo == null)
-				{
-					channel.setCommunicationType(CommunicationType.GPU_CPU);
-				}
-				else if(srcTaskGPUSetupInfo == null && dstTaskGPUSetupInfo != null)
-				{
-					channel.setCommunicationType(CommunicationType.CPU_GPU);
-				}
-				else
-				{
-					if (srcTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId() ==
-							dstTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId())
-					{
-						channel.setCommunicationType(CommunicationType.GPU_GPU);
-					} else {
-						channel.setCommunicationType(CommunicationType.GPU_GPU_DIFFERENT);
-					}
-				}
-			}
-			else
-			{
-				if (srcTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId() ==
-						dstTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId())
-				{
-					channel.setCommunicationType(CommunicationType.SHARED_MEMORY);
-				}
-				else
-				{
-					throw new UnsupportedOperationException();
-				}
-			}
+			setRemoteCommunicationType(channel, srcTaskMappingInfo.getMappedDeviceName(), dstTaskMappingInfo.getMappedDeviceName());			
+		}
+		else // located at the same device
+		{	
+			setInDeviceCommunicationType(channel,  srcTaskMappingInfo, dstTaskMappingInfo);
 		}
 	}
 		
@@ -856,7 +862,7 @@ public class Application {
 		setIterationCount(taskGraphMap);
 	}
 	
-	public void makeChannelInformation(CICAlgorithmType algorithm_metadata) throws InvalidDataInMetadataFileException
+	public void makeChannelInformation(CICAlgorithmType algorithm_metadata) throws InvalidDataInMetadataFileException, InvalidDeviceConnectionException
 	{
 		algorithm_metadata.getChannels().getChannel();
 		int index = 0;
@@ -873,8 +879,6 @@ public class Application {
 			ChannelPortType channelDstPort = channelMetadata.getDst().get(0);
 			MappingInfo srcTaskMappingInfo;
 			MappingInfo dstTaskMappingInfo;
-			TaskGPUSetupInfo srcTaskGPUSetupInfo;
-			TaskGPUSetupInfo dstTaskGPUSetupInfo;
 			
 			Port srcPort = this.portInfo.get(channelSrcPort.getTask() + Constants.NAME_SPLITER + channelSrcPort.getPort() + Constants.NAME_SPLITER + PortDirection.OUTPUT);
 			Port dstPort = this.portInfo.get(channelDstPort.getTask() + Constants.NAME_SPLITER + channelDstPort.getPort() + Constants.NAME_SPLITER + PortDirection.INPUT);
@@ -895,11 +899,8 @@ public class Application {
 			srcTaskMappingInfo = findMappingInfoByTaskName(channelSrcPort.getTask());
 			dstTaskMappingInfo = findMappingInfoByTaskName(channelDstPort.getTask());
 			
-			srcTaskGPUSetupInfo = findGPUSetupInfoByTaskName(channelSrcPort.getTask());
-			dstTaskGPUSetupInfo = findGPUSetupInfoByTaskName(channelDstPort.getTask());
-			
 			// communication type (device information)
-			setChannelCommunicationType(channel, srcTaskMappingInfo, dstTaskMappingInfo,srcTaskGPUSetupInfo,dstTaskGPUSetupInfo);
+			setChannelCommunicationType(channel, srcTaskMappingInfo, dstTaskMappingInfo);
 			addChannelAndPortInfoToDevice(channel, srcTaskMappingInfo, dstTaskMappingInfo);
 			
 			this.channelList.add(channel);

@@ -39,7 +39,7 @@ STimer g_stTimer_${task.name}[MAX_TIMER_SLOT_SIZE] = {
 // ##TASK_CODE_TEMPLATE::START
 <#list flat_task as task_name, task>
 	<#if !task.childTaskGraphName??>
-		<#if task.language=="C">
+		<#if task.language=="C" && gpu_used == false>
 #ifdef __cplusplus
 extern "C"
 {
@@ -50,7 +50,7 @@ void ${task.name}_Init${task_func_id}(int nTaskId);
 void ${task.name}_Go${task_func_id}(int nTaskId);
 void ${task.name}_Wrapup${task_func_id}();
 		</#list>
-		<#if task.language=="C">
+		<#if task.language=="C" && gpu_used == false>
 #ifdef __cplusplus
 }
 #endif 

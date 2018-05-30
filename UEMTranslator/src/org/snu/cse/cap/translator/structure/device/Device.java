@@ -13,6 +13,7 @@ import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.structure.ExecutionPolicy;
 import org.snu.cse.cap.translator.structure.channel.Channel;
 import org.snu.cse.cap.translator.structure.channel.Port;
+import org.snu.cse.cap.translator.structure.device.connection.Connection;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
 import org.snu.cse.cap.translator.structure.gpu.TaskGPUSetupInfo;
 import org.snu.cse.cap.translator.structure.library.Library;
@@ -64,7 +65,7 @@ public class Device {
 	private HashMap<String, Task> taskMap; // Task name : Task class
 	private HashMap<String, TaskGraph> taskGraphMap; // Task graph name : TaskGraph class
 	private HashMap<String, GeneralTaskMappingInfo> generalMappingInfo; // Task name : GeneralTaskMappingInfo class
-	private HashMap<String, TaskGPUSetupInfo> gpuSettingInfo; // Task name : TaskGPUMappingInfo class
+	private HashMap<String, TaskGPUSetupInfo> gpuSetupInfo; // Task name : TaskGPUMappingInfo class
 	private HashMap<String, CompositeTaskMappingInfo> staticScheduleMappingInfo; // Parent task Name : CompositeTaskMappingInfo class
 	private ArrayList<Port> portList;
 	private HashMap<String, Library> libraryMap;
@@ -84,7 +85,7 @@ public class Device {
 		this.taskMap = new HashMap<String, Task>();
 		this.taskGraphMap = new HashMap<String, TaskGraph>();
 		this.generalMappingInfo = new HashMap<String, GeneralTaskMappingInfo>();
-		this.gpuSettingInfo = new HashMap<String, TaskGPUSetupInfo>();
+		this.gpuSetupInfo = new HashMap<String, TaskGPUSetupInfo>();
 		this.staticScheduleMappingInfo = new HashMap<String, CompositeTaskMappingInfo>();
 		this.libraryMap = new HashMap<String, Library>();
 		this.portList = new ArrayList<Port>();
@@ -505,9 +506,9 @@ public class Device {
 					gpuSetupInfo.setThreadSizeHeight(mappedTask.getLocalWorkSize().getHeight());
 					gpuSetupInfo.setThreadSizeDepth(mappedTask.getLocalWorkSize().getDepth());
 					
-					if(this.gpuSettingInfo.containsKey(mappedTask.getName()) == false)
+					if(this.gpuSetupInfo.containsKey(mappedTask.getName()) == false)
 					{
-						this.gpuSettingInfo.put(mappedTask.getName(), gpuSetupInfo);				
+						this.gpuSetupInfo.put(mappedTask.getName(), gpuSetupInfo);				
 					}
 					else // if same task is already in the gpumappingInfo, ignore the later one
 					{
@@ -1031,10 +1032,6 @@ public class Device {
 		return generalMappingInfo;
 	}
 	
-	public HashMap<String, TaskGPUSetupInfo> getGPUSetupInfo() {
-		return gpuSettingInfo;
-	}
-
 	public HashMap<String, CompositeTaskMappingInfo> getStaticScheduleMappingInfo() {
 		return staticScheduleMappingInfo;
 	}
@@ -1057,5 +1054,9 @@ public class Device {
 
 	public HashMap<String, Integer> getPortKeyToIndex() {
 		return portKeyToIndex;
+	}
+
+	public HashMap<String, TaskGPUSetupInfo> getGpuSetupInfo() {
+		return gpuSetupInfo;
 	}
 }

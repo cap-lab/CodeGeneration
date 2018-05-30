@@ -1,29 +1,36 @@
 package org.snu.cse.cap.translator.structure.device.connection;
 
 import java.util.ArrayList;
-
-import org.snu.cse.cap.translator.structure.device.Connection;
+import java.util.HashMap;
 
 public class MasterToSlaveConnection {
 	private Connection master;
-	private ArrayList<Connection> slaveList;
+	HashMap<String, ArrayList<Connection>> slaveDeviceToConnectionMap; // key: slave device name
 	
 	public MasterToSlaveConnection(Connection master) {
 		this.master = master;
-		this.slaveList = new ArrayList<Connection>(); 
+		this.slaveDeviceToConnectionMap = new HashMap<String, ArrayList<Connection>>(); 
 	}
 	
-	public void putSlave(Connection slave)
+	public void putSlave(Connection slave, String slaveDeviceName)
 	{
-		this.slaveList.add(slave);
+		ArrayList<Connection> connectionList;
+		if(this.slaveDeviceToConnectionMap.containsKey(slaveDeviceName) == false)
+		{
+			connectionList = new ArrayList<Connection>();
+			this.slaveDeviceToConnectionMap.put(slaveDeviceName, connectionList);
+		}
+
+		connectionList = this.slaveDeviceToConnectionMap.get(slaveDeviceName);
+		connectionList.add(slave);
 	}
 
 	public Connection getMaster() {
 		return master;
 	}
 
-	public ArrayList<Connection> getSlaveList() {
-		return slaveList;
+	public HashMap<String, ArrayList<Connection>> getSlaveDeviceToConnectionMap() {
+		return slaveDeviceToConnectionMap;
 	}
 
 }
