@@ -403,10 +403,10 @@ public class Application {
 		}
 		
 		if(connectionPair.getMasterDeviceName().equals(srcTaskDevice) == true) {
-			channel.setCommunicationType(CommunicationType.TCP_SERVER);	
+			channel.setCommunicationType(CommunicationType.TCP_SERVER_WRITER);	
 		}
 		else {
-			channel.setCommunicationType(CommunicationType.TCP_CLIENT);
+			channel.setCommunicationType(CommunicationType.TCP_CLIENT_WRITER);
 		}
 	}
 	
@@ -549,11 +549,11 @@ public class Application {
 		
 		switch(srcTaskCommunicationType)
 		{
-		case TCP_CLIENT:
-			dstTaskCommunicationType = CommunicationType.TCP_SERVER;
+		case TCP_CLIENT_WRITER:
+			dstTaskCommunicationType = CommunicationType.TCP_SERVER_READER;
 			break;
-		case TCP_SERVER:
-			dstTaskCommunicationType = CommunicationType.TCP_CLIENT;
+		case TCP_SERVER_WRITER:
+			dstTaskCommunicationType = CommunicationType.TCP_CLIENT_READER;
 			break;
 		default:
 			throw new UnsupportedOperationException();

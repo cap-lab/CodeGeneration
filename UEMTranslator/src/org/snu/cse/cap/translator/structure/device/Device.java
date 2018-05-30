@@ -45,7 +45,6 @@ import hopes.cic.xml.CICScheduleTypeLoader;
 import hopes.cic.xml.GPUTaskType;
 import hopes.cic.xml.MappingDeviceType;
 import hopes.cic.xml.MappingGPUDeviceType;
-import hopes.cic.xml.MappingGPUProcessorIdType;
 import hopes.cic.xml.MappingProcessorIdType;
 import hopes.cic.xml.MappingTaskType;
 import hopes.cic.xml.ScheduleElementType;
