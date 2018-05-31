@@ -367,9 +367,17 @@ SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 		NULL, // Channel data start
 		NULL, // Channel data end
 			<#break>
-		<#case "TCP_CLIENT">
+		<#case "TCP_CLIENT_WRITER">
+		<#case "TCP_CLIENT_READER">
+		s_pChannel_${channel.index}_buffer, // Channel buffer pointer
+		s_pChannel_${channel.index}_buffer, // Channel data start
+		s_pChannel_${channel.index}_buffer, // Channel data end
 			<#break>
-		<#case "TCP_SERVER">
+		<#case "TCP_SERVER_WRITER">
+		<#case "TCP_SERVER_READER">
+		s_pChannel_${channel.index}_buffer, // Channel buffer pointer
+		s_pChannel_${channel.index}_buffer, // Channel data start
+		s_pChannel_${channel.index}_buffer, // Channel data end
 			<#break>
 	</#switch>
 		0, // Channel data length
@@ -416,9 +424,15 @@ SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 		&g_stDeviceToDeviceMemory, // Host memory access API
 		FALSE, // memory is statically allocated
 			<#break>
-		<#case "TCP_CLIENT">
+		<#case "TCP_CLIENT_WRITER">
+		<#case "TCP_CLIENT_READER">
+		&g_stHostMemory, // Host memory access API
+		TRUE, // memory is statically allocated
 			<#break>
-		<#case "TCP_SERVER">
+		<#case "TCP_SERVER_WRITER">
+		<#case "TCP_SERVER_READER">
+		&g_stHostMemory, // Host memory access API
+		TRUE, // memory is statically allocated
 			<#break>
 	</#switch>
 };
@@ -467,9 +481,13 @@ SChannel g_astChannels[] = {
 		<#case "GPU_GPU_DIFFERENT">
 		&g_stSharedMemoryChannel_${channel.index}, // specific shared memory channel structure pointer
 			<#break>
-		<#case "TCP_CLIENT">
+		<#case "TCP_CLIENT_WRITER">
+		<#case "TCP_CLIENT_READER">
+		NULL,
 			<#break>
-		<#case "TCP_SERVER">
+		<#case "TCP_SERVER_WRITER">
+		<#case "TCP_SERVER_READER">
+		NULL,
 			<#break>
 		</#switch>
 	},
