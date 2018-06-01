@@ -625,7 +625,7 @@ ${innerspace}	enModeState = UKModeTransition_GetModeState(nTaskId);
 ${innerspace}
 ${innerspace}	if(enModeState == MODE_STATE_TRANSITING)
 ${innerspace}	{
-${innerspace}		${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}(${flat_task[scheduleItem.taskName].id});//printf("${scheduleItem.taskName}_Go${scheduleItem.taskFuncId} called-- (Line: %d)\n", __LINE__);
+${innerspace}		${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}(${flat_task[scheduleItem.taskName].id});//UEM_DEBUG_PRINT("${scheduleItem.taskName}_Go${scheduleItem.taskFuncId} called-- (Line: %d)\n", __LINE__);
 ${innerspace}		result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
 ${innerspace}		if(result == ERR_UEM_NOERROR)
 ${innerspace}		{
@@ -639,7 +639,7 @@ ${innerspace}		}
 ${innerspace}	}
 ${innerspace}}
 		<#else>
-${innerspace}${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}(${flat_task[scheduleItem.taskName].id});//printf("${scheduleItem.taskName}_Go${scheduleItem.taskFuncId} called (Line: %d)\n", __LINE__);
+${innerspace}${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}(${flat_task[scheduleItem.taskName].id});//UEM_DEBUG_PRINT("${scheduleItem.taskName}_Go${scheduleItem.taskFuncId} called (Line: %d)\n", __LINE__);
 		</#if>
 		<#if compositeMappedProcessor.srcTaskMap[scheduleItem.taskName]??>
 ${innerspace}{

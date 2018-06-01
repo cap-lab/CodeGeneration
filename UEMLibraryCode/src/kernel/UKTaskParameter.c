@@ -26,14 +26,14 @@ static uem_result getTaskParamElement(EParameterType enType, char *pszParamName,
 	uem_string_struct stParamName;
 	uem_string_struct stTargetParamName;
 
-	result = UCString_New(&stParamName, pszParamName, UEMSTRING_MAX);
+	result = UCString_New(&stParamName, pszParamName, UEMSTRING_CONST);
 	ERRIFGOTO(result, _EXIT);
 
 	for(nLoop = 0; nLoop < pstTask->nTaskParamNum ; nLoop++)
 	{
 		if(enType == pstTask->astTaskParam[nLoop].enType)
 		{
-			result = UCString_New(&stTargetParamName, (char *) pstTask->astTaskParam[nLoop].pszParamName, UEMSTRING_MAX);
+			result = UCString_New(&stTargetParamName, (char *) pstTask->astTaskParam[nLoop].pszParamName, UEMSTRING_CONST);
 			ERRIFGOTO(result, _EXIT);
 
 			if(UCString_IsEqual(&stParamName, &stTargetParamName) == TRUE)

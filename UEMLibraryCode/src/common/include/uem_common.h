@@ -91,6 +91,18 @@ typedef enum _EUemResult {
 
 	ERR_UEM_CUDA_INVALID_MEMCPY_DIRECTION,	//cudaErrorInvalidMemcpyDirection
 	ERR_UEM_UNAVAILABLE_DATA,
+	ERR_UEM_NOT_SUPPORTED,
+	ERR_UEM_INVALID_SOCKET,
+	ERR_UEM_SOCKET_ERROR,
+	ERR_UEM_CONNECT_ERROR,
+	ERR_UEM_LISTEN_ERROR,
+	ERR_UEM_SELECT_ERROR,
+	ERR_UEM_NET_TIMEOUT,
+	ERR_UEM_ACCEPT_ERROR,
+
+	ERR_UEM_NET_SEND_ERROR,
+	ERR_UEM_NET_RECEIVE_ERROR,
+	ERR_UEM_BIND_ERROR,
 
 } uem_result;
 
@@ -105,6 +117,7 @@ typedef enum _EUemModuleId {
 	ID_UEM_THREAD_EVENT       = 2,
 	ID_UEM_DYNAMIC_LINKED_LIST= 3,
 	ID_UEM_STACK			  = 4,
+	ID_UEM_SOCKET			  = 5,
 
 	// UEM Kernel module
 	ID_UEM_KERNEL_MODULE = UEM_MODULE_KERNEL,
@@ -129,6 +142,20 @@ typedef enum _EUemModuleId {
 
 
 //#define _DEBUG
+#define DEBUG_PRINT
+
+
+#ifdef DEBUG_PRINT
+	#ifdef HAVE_PRINTF
+		#include <stdio.h>
+
+		#define UEM_DEBUG_PRINT(fmt,args...) printf(fmt, ## args )
+	#else
+		#define UEM_DEBUG_PRINT(fmt,args...)
+	#endif
+#else
+	#define UEM_DEBUG_PRINT(fmt,args...)
+#endif
 
 #ifdef _DEBUG
 
@@ -140,6 +167,7 @@ typedef enum _EUemModuleId {
 #define ERRASSIGNGOTO(res, err, label) {res=err; fprintf(stderr, "error! %08x (%s:%d)\n", res, __FILE__,__LINE__); goto label;}
 #define IFVARERRASSIGNGOTO(var, val, res, err, label) if((var)==(val)) {res=err;fprintf(stderr, "error! %08x (%s:%d)\n", res, __FILE__,__LINE__);goto label;}
 #else
+
 #define ERRIFGOTO(res, label) if(((res) & ERR_UEM_ERROR)!=ERR_UEM_NOERROR) {goto label;}
 #define ERRASSIGNGOTO(res, err, label) {res=err; goto label;}
 #define IFVARERRASSIGNGOTO(var, val, res, err, label) if((var)==(val)) {res=err;goto label;}

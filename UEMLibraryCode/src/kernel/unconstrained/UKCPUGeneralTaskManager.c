@@ -540,7 +540,7 @@ static uem_result traverseAndSetEventToTemporarySuspendedTask(STask *pstTask, vo
 		pszCurModeName = pstNewModeData->pstCallerTask->pstMTMParentTask->pstMTMInfo->astModeMap[pstNewModeData->nNewModeIndex].pszModeName;
 
 		bCurrentPortAvailable = UKChannel_IsPortRateAvailableTask(pstTask->nTaskId, pszCurModeName);
-		//printf("task: %s, available: %d, mode_name: %s\n", pstTask->pszTaskName, bCurrentPortAvailable, pszCurModeName);
+		//UEM_DEBUG_PRINT("task: %s, available: %d, mode_name: %s\n", pstTask->pszTaskName, bCurrentPortAvailable, pszCurModeName);
 
 		if(pstNewModeData->bModeChanged == TRUE)
 		{
@@ -549,7 +549,7 @@ static uem_result traverseAndSetEventToTemporarySuspendedTask(STask *pstTask, vo
 			if(UKChannel_IsPortRateAvailableTask(pstTask->nTaskId, pszOldModeName) == FALSE &&
 				bCurrentPortAvailable == TRUE)
 			{
-				//printf("new task: %s, previous_iteration: %d, new_iteration: %d\n", pstTask->pszTaskName, pstTask->nCurIteration, pstNewModeData->nNewStartIteration);
+				//UEM_DEBUG_PRINT("new task: %s, previous_iteration: %d, new_iteration: %d\n", pstTask->pszTaskName, pstTask->nCurIteration, pstNewModeData->nNewStartIteration);
 
 				pstTask->nCurIteration = pstNewModeData->nNewStartIteration;
 			}
@@ -803,7 +803,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 				nExecutionCount++;
 				result = UKTask_IncreaseRunCount(pstCurrentTask, &bTargetIterationReached);
 				if(result != ERR_UEM_NOERROR)
-					printf("%s (Proc: %d, func_id: %d, current iteration: %d, reached: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId, pstCurrentTask->nCurIteration, bTargetIterationReached);
+					UEM_DEBUG_PRINT("%s (Proc: %d, func_id: %d, current iteration: %d, reached: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId, pstCurrentTask->nCurIteration, bTargetIterationReached);
 				ERRIFGOTO(result, _EXIT);
 
 				if(bTargetIterationReached == TRUE)
@@ -840,7 +840,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 					}
 				}
 				fnGo(pstCurrentTask->nTaskId);
-				//printf("%s (stopping-driven, Proc: %d, func_id: %d, current iteration: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId, pstCurrentTask->nCurIteration);
+				//UEM_DEBUG_PRINT("%s (stopping-driven, Proc: %d, func_id: %d, current iteration: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId, pstCurrentTask->nCurIteration);
 				nExecutionCount++;
 				result = UKTask_IncreaseRunCount(pstCurrentTask, &bTargetIterationReached);
 				ERRIFGOTO(result, _EXIT);
@@ -870,12 +870,12 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
-	printf("pstCurrentTask out : %s (count: %d)\n", pstCurrentTask->pszTaskName, nExecutionCount);
+	UEM_DEBUG_PRINT("pstCurrentTask out : %s (count: %d)\n", pstCurrentTask->pszTaskName, nExecutionCount);
 //	{
 //		int nLoop = 0;
 //		for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
 //		{
-//			printf("g_astChannels[%d]: size: %d, dataLen: %d\n", nLoop, g_astChannels[nLoop].nBufSize, g_astChannels[nLoop].nDataLen);
+//			UEM_DEBUG_PRINT("g_astChannels[%d]: size: %d, dataLen: %d\n", nLoop, g_astChannels[nLoop].nBufSize, g_astChannels[nLoop].nDataLen);
 //		}
 //	}
 	return result;
@@ -1007,7 +1007,7 @@ static uem_result traverseAndCheckStoppingThread(IN int nOffset, IN void *pData,
 _EXIT:
 	if(result != ERR_UEM_NOERROR && pstStopCheck != NULL)
 	{
-		printf("Error is happened during checking stopping task.\n");
+		UEM_DEBUG_PRINT("Error is happened during checking stopping task.\n");
 		pstStopCheck->bAllStop = FALSE;
 	}
 	return result;
@@ -1320,11 +1320,11 @@ _EXIT:
 	{
 		if(pstGeneralTask->pstTask != NULL)
 		{
-			printf("Failed to destroy general task of [%s] (%d)\n", pstGeneralTask->pstTask->pszTaskName, pstTaskThread->bIsThreadFinished);
+			UEM_DEBUG_PRINT("Failed to destroy general task of [%s] (%d)\n", pstGeneralTask->pstTask->pszTaskName, pstTaskThread->bIsThreadFinished);
 		}
 		else
 		{
-			printf("Failed to destroy general task of whole task graph (%d)\n", pstTaskThread->bIsThreadFinished);
+			UEM_DEBUG_PRINT("Failed to destroy general task of whole task graph (%d)\n", pstTaskThread->bIsThreadFinished);
 		}
 	}
 	return result;
@@ -1383,7 +1383,7 @@ uem_result UKCPUGeneralTaskManager_DestroyThread(HCPUGeneralTaskManager hManager
 	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
 	if(result == ERR_UEM_NOT_FOUND)
 	{
-		printf("cannot find matching task: %s\n", pstTargetTask->pszTaskName);
+		UEM_DEBUG_PRINT("cannot find matching task: %s\n", pstTargetTask->pszTaskName);
 	}
 	ERRIFGOTO(result, _EXIT_LOCK);
 

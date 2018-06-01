@@ -107,7 +107,7 @@ static uem_result UKTask_GetTaskInTaskGraphByTaskName(STaskGraph *pstTaskGraph, 
 
 	for(nLoop = 0 ; nLoop < pstTaskGraph->nNumOfTasks ; nLoop++)
 	{
-		result = UCString_New(&stCurrentTaskName, (char *) pstTaskGraph->astTasks[nLoop].pszTaskName, UEMSTRING_MAX);
+		result = UCString_New(&stCurrentTaskName, (char *) pstTaskGraph->astTasks[nLoop].pszTaskName, UEMSTRING_CONST);
 		ERRIFGOTO(result, _EXIT);
 
 		if(UCString_IsEqual(&stCurrentTaskName, strTaskName) == TRUE)
@@ -138,7 +138,7 @@ uem_result UKTask_GetTaskByTaskNameAndCallerTask(STask *pstCallerTask, char *psz
 
 	if(pstCallerTask->pstParentGraph->pstParentTask != NULL)
 	{
-		result = UCString_New(&stTargetTaskName, aszCombinedTaskName, UEMSTRING_MAX);
+		result = UCString_New(&stTargetTaskName, aszCombinedTaskName, MAX_TASK_NAME_LEN);
 		ERRIFGOTO(result, _EXIT);
 
 		result = UCString_SetLow(&stTargetTaskName, pstCallerTask->pstParentGraph->pstParentTask->pszTaskName, UEMSTRING_MAX);
@@ -152,7 +152,7 @@ uem_result UKTask_GetTaskByTaskNameAndCallerTask(STask *pstCallerTask, char *psz
 	}
 	else // pstCallerTask->pstParentGraph->pstParentTask == NULL -> top-level graph
 	{
-		result = UCString_New(&stTargetTaskName, pszTaskName, UEMSTRING_MAX);
+		result = UCString_New(&stTargetTaskName, pszTaskName, UEMSTRING_CONST);
 		ERRIFGOTO(result, _EXIT);
 	}
 
@@ -358,13 +358,13 @@ uem_result UKTask_GetTaskFromTaskName(char *pszTaskName, STask **ppstTask)
 	IFVARERRASSIGNGOTO(pszTaskName, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
 
-	result = UCString_New(&stTargetTaskName, pszTaskName, UEMSTRING_MAX);
+	result = UCString_New(&stTargetTaskName, pszTaskName, UEMSTRING_CONST);
 	ERRIFGOTO(result, _EXIT);
 
 
 	for(nLoop = 0 ; nLoop <  g_nTaskIdToTaskNum ; nLoop++)
 	{
-		result = UCString_New(&stCurrentTaskName, g_astTaskIdToTask[nLoop].pszTaskName, UEMSTRING_MAX);
+		result = UCString_New(&stCurrentTaskName, (char *) g_astTaskIdToTask[nLoop].pszTaskName, UEMSTRING_CONST);
 		ERRIFGOTO(result, _EXIT);
 
 		if(UCString_IsEqual(&stCurrentTaskName, &stTargetTaskName) == TRUE)
@@ -487,7 +487,7 @@ uem_result UKTask_SetThroughputConstraint (IN int nCallerTaskId, IN char *pszTas
 	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UCString_New(&stValue, pszValue, UEMSTRING_MAX);
+	result = UCString_New(&stValue, pszValue, UEMSTRING_CONST);
 	ERRIFGOTO(result, _EXIT);
 
 	nValue = UCString_ToInteger(&stValue, 0, NULL);
@@ -551,7 +551,7 @@ static uem_result getTaskIterationIndex(STask *pstTask, int nCurrentIteration, i
 			ERRIFGOTO(result, _EXIT);
 		}
 
-		//printf("nCurModeIndex: pstTask: %s %d\n", pstTask->pszTaskName, nCurModeIndex);
+		//UEM_DEBUG_PRINT("nCurModeIndex: pstTask: %s %d\n", pstTask->pszTaskName, nCurModeIndex);
 
 		nModeId = pstTask->pstMTMInfo->astModeMap[nCurModeIndex].nModeId;
 
@@ -673,7 +673,7 @@ uem_result UKTask_CheckIterationRunCount(STask *pstTask, OUT uem_bool *pbTargetI
 
 	if(pstTask->nTargetIteration > 0 && pstTask->nCurIteration >= pstTask->nTargetIteration)
 	{
-		//printf("Task2: %s => nTargetIteration: %d, current: %d\n", pstTask->pszTaskName, pstTask->nTargetIteration, pstTask->nCurIteration);
+		//UEM_DEBUG_PRINT("Task2: %s => nTargetIteration: %d, current: %d\n", pstTask->pszTaskName, pstTask->nTargetIteration, pstTask->nCurIteration);
 		bTargetIterationReached = TRUE;
 	}
 
@@ -754,7 +754,7 @@ uem_result UKTask_IncreaseRunCount(STask *pstTask, OUT uem_bool *pbTargetIterati
 		nIndex = 0;
 	}
 
-	//printf("Task!!: %s => pstTask->astTaskIteration[%d].nRunInIteration: %d, nCurModeIndex: %d\n", pstTask->pszTaskName, nIndex, pstTask->astTaskIteration[nIndex].nRunInIteration, nCurModeIndex);
+	//UEM_DEBUG_PRINT("Task!!: %s => pstTask->astTaskIteration[%d].nRunInIteration: %d, nCurModeIndex: %d\n", pstTask->pszTaskName, nIndex, pstTask->astTaskIteration[nIndex].nRunInIteration, nCurModeIndex);
 
 	pstTask->nCurRunInIteration++;
 
@@ -764,7 +764,7 @@ uem_result UKTask_IncreaseRunCount(STask *pstTask, OUT uem_bool *pbTargetIterati
 		pstTask->nCurIteration++;
 		if(pstTask->nTargetIteration > 0 && pstTask->nCurIteration >= pstTask->nTargetIteration)
 		{
-			//printf("Task2: %s => nTargetIteration: %d, current: %d\n", pstTask->pszTaskName, pstTask->nTargetIteration, pstTask->nCurIteration);
+			//UEM_DEBUG_PRINT("Task2: %s => nTargetIteration: %d, current: %d\n", pstTask->pszTaskName, pstTask->nTargetIteration, pstTask->nCurIteration);
 			bTargetIterationReached = TRUE;
 		}
 	}

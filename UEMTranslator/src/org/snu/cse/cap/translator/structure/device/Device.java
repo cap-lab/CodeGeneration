@@ -64,7 +64,7 @@ public class Device {
 	private HashMap<String, Task> taskMap; // Task name : Task class
 	private HashMap<String, TaskGraph> taskGraphMap; // Task graph name : TaskGraph class
 	private HashMap<String, GeneralTaskMappingInfo> generalMappingInfo; // Task name : GeneralTaskMappingInfo class
-	private HashMap<String, TaskGPUSetupInfo> gpuSetupInfo; // Task name : TaskGPUMappingInfo class
+	private HashMap<String, TaskGPUSetupInfo> gpuSetupInfo; // Task name : TaskGPUSetupInfo class
 	private HashMap<String, CompositeTaskMappingInfo> staticScheduleMappingInfo; // Parent task Name : CompositeTaskMappingInfo class
 	private ArrayList<Port> portList;
 	private HashMap<String, Library> libraryMap;
@@ -121,6 +121,25 @@ public class Device {
 	
 	public String getName() {
 		return name;
+	}
+	
+	public boolean isGPUMapped()
+	{
+		if (this.gpuSetupInfo.size() == 0)
+		{
+			return false;
+		}
+		return true;
+	}
+	
+	
+	public boolean useCommunication()
+	{
+		if (this.connectionList.size() == 0)
+		{
+			return false;
+		}
+		return true;
 	}
 	
 	// recursive function

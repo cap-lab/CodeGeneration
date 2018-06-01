@@ -219,7 +219,7 @@ uem_result UKCPUTaskCommon_HandleTimeDrivenTask(STask *pstCurrentTask, FnUemTask
 	ERRIFGOTO(result, _EXIT);
 	if(llCurTime <= llNextTime) // time is not passed
 	{
-		//printf("pstCurrentTask (%s) time in: %I64d %I64d %I64d\n", pstCurrentTask->pszTaskName, llCurTime, llNextTime, llNextTime - llCurTime);
+		//UEM_DEBUG_PRINT("pstCurrentTask (%s) time in: %I64d %I64d %I64d\n", pstCurrentTask->pszTaskName, llCurTime, llNextTime, llNextTime - llCurTime);
 		if(nRunCount < nMaxRunCount) // run count is available
 		{
 			nRunCount++;

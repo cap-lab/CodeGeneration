@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Writer;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -305,22 +304,13 @@ public class CodeGenerator
 		}
     }
     
-	public boolean isMappedGPU(Device device)
-	{
-		if (device.getGpuSetupInfo().size() == 0)
-		{
-			return false;
-		}
-		return true;
-	}
-    
     public void generateCode()
     {
    		try {
 			for(Device device : uemDatamodel.getApplication().getDeviceInfo().values())
 			{
 				CodeOrganizer codeOrganizer = new CodeOrganizer(device.getArchitecture().toString(), 
-						device.getPlatform().toString(), device.getRuntime().toString(), isMappedGPU(device));
+						device.getPlatform().toString(), device.getRuntime().toString(), device.isGPUMapped(), device.useCommunication());
 				String topSrcDir = this.mOutputPath + File.separator + device.getName();
 				
 				codeOrganizer.fillSourceCodeListFromTaskAndLibraryMap(device.getTaskMap(), device.getLibraryMap());

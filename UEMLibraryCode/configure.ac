@@ -29,5 +29,7 @@ AC_CHECK_FUNCS(mingw_gettimeofday)
 # Checks for library functions.
 AC_CHECK_FUNCS([memset malloc realloc])
 
+AC_CHECK_FUNCS([printf])
+
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

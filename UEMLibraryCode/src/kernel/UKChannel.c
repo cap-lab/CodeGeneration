@@ -189,7 +189,7 @@ static uem_bool isPortTaskIdAndPortNameEqual(SPort *pstTopPort, uem_string strPo
 	{
 		if(pstPort->nTaskId == nTaskId)
 		{
-			result = UCString_New(&stStructPortName, pstTopPort->pszPortName, UEMSTRING_MAX);
+			result = UCString_New(&stStructPortName, (char *) pstTopPort->pszPortName, UEMSTRING_CONST);
 			ERRIFGOTO(result, _EXIT);
 
 			if(UCString_IsEqual(strPortName, &stStructPortName) == TRUE)
@@ -212,7 +212,7 @@ int UKChannel_GetChannelIdByTaskAndPortName(int nTaskId, char *szPortName)
 	int nIndex = INVALID_CHANNEL_ID;
 	uem_string_struct stArgPortName;
 
-	result = UCString_New(&stArgPortName, szPortName, UEMSTRING_MAX);
+	result = UCString_New(&stArgPortName, szPortName, UEMSTRING_CONST);
 	ERRIFGOTO(result, _EXIT);
 
 	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
@@ -491,7 +491,7 @@ uem_bool UKChannel_IsPortRateAvailableTask(int nTaskId, char *pszModeName)
 	uem_string_struct stPortModeName;
 	uem_result result;
 
-	result = UCString_New(&stModeName, pszModeName, UEMSTRING_MAX);
+	result = UCString_New(&stModeName, pszModeName, UEMSTRING_CONST);
 	ERRIFGOTO(result, _EXIT);
 
 	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
@@ -506,7 +506,7 @@ uem_bool UKChannel_IsPortRateAvailableTask(int nTaskId, char *pszModeName)
 
 			for(nInLoop = 0 ; nInLoop < g_astChannels[nLoop].stInputPort.nNumOfSampleRates; nInLoop++)
 			{
-				result = UCString_New(&stPortModeName, g_astChannels[nLoop].stInputPort.astSampleRates[nInLoop].pszModeName, UEMSTRING_MAX);
+				result = UCString_New(&stPortModeName, (char *) g_astChannels[nLoop].stInputPort.astSampleRates[nInLoop].pszModeName, UEMSTRING_CONST);
 				ERRIFGOTO(result, _EXIT);
 
 				if(UCString_IsEqual(&stModeName, &stPortModeName) == TRUE &&
