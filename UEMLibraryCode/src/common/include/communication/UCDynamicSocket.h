@@ -9,7 +9,6 @@
 #define SRC_COMMON_INCLUDE_UCDYNAMICSOCKET_H_
 
 #include <uem_common.h>
-#include <CAPString.h>
 
 #ifdef __cplusplus
 extern "C"

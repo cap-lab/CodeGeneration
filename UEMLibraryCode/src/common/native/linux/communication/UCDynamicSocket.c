@@ -12,7 +12,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-
 // this code is not run on Windows because I didn't call any WSAStartup or WSACleanup.
 // ifdefs are used for removing compile errors on mingw32 build
 
@@ -57,11 +56,9 @@ uem_result UCDynamicSocket_Create(IN SSocketInfo *pstSocketInfo, IN uem_bool bIs
     uem_result result = ERR_UEM_UNKNOWN;
     SUCSocket *pstSocket = NULL;
     uem_string_struct stInputPath;
-
+#ifdef ARGUMENT_CHECK
     IFVARERRASSIGNGOTO(pstSocketInfo, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
     IFVARERRASSIGNGOTO(phSocket, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-
-    //IFVARERRASSIGNGOTO(CAPString_Length(pstSocketInfo->strSocketPath), 0, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
     if(bIsServer != TRUE && bIsServer != FALSE)
     {
@@ -78,9 +75,12 @@ uem_result UCDynamicSocket_Create(IN SSocketInfo *pstSocketInfo, IN uem_bool bIs
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
 
-    result = UCString_New(&stInputPath, pstSocketInfo->pszSocketPath, UEMSTRING_CONST);
-    ERRIFGOTO(result, _EXIT);
-
+    if((bIsServer == FALSE && pstSocket->pszSocketPath == NULL) ||
+    	(bIsServer == TRUE && pstSocketInfo->enSocketType == SOCKET_TYPE_UDS && pstSocketInfo->pszSocketPath == NULL))
+    {
+    	ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+    }
+#endif
     pstSocket = (SUCSocket *) UC_malloc(sizeof(SUCSocket));
     ERRMEMGOTO(pstSocket, result, _EXIT);
 
@@ -91,16 +91,22 @@ uem_result UCDynamicSocket_Create(IN SSocketInfo *pstSocketInfo, IN uem_bool bIs
     pstSocket->nPort = pstSocketInfo->nPort;
     pstSocket->pszSocketPath = NULL;
 
-    if(UCString_Length(&stInputPath) > 0)
+    if(pstSocketInfo->pszSocketPath != NULL) // socket path is used
     {
-    	pstSocket->pszSocketPath = (char *) UC_malloc(sizeof((UCString_Length(&stInputPath)+1) * sizeof(char)));
-        ERRMEMGOTO(pstSocket->pszSocketPath, result, _EXIT);
-
-        result = UCString_New(&(pstSocket->stSocketPath), pstSocket->pszSocketPath, (UCString_Length(&stInputPath)+1) * sizeof(char));
+        result = UCString_New(&stInputPath, pstSocketInfo->pszSocketPath, UEMSTRING_CONST);
         ERRIFGOTO(result, _EXIT);
 
-        result = UCString_Set(&(pstSocket->stSocketPath), &stInputPath);
-        ERRIFGOTO(result, _EXIT);
+        if(UCString_Length(&stInputPath) > 0)
+        {
+        	pstSocket->pszSocketPath = (char *) UC_malloc(sizeof((UCString_Length(&stInputPath)+1) * sizeof(char)));
+            ERRMEMGOTO(pstSocket->pszSocketPath, result, _EXIT);
+
+            result = UCString_New(&(pstSocket->stSocketPath), pstSocket->pszSocketPath, (UCString_Length(&stInputPath)+1) * sizeof(char));
+            ERRIFGOTO(result, _EXIT);
+
+            result = UCString_Set(&(pstSocket->stSocketPath), &stInputPath);
+            ERRIFGOTO(result, _EXIT);
+        }
     }
 
     *phSocket = (HSocket) pstSocket;
@@ -118,14 +124,14 @@ uem_result UCDynamicSocket_Destroy(IN OUT HSocket *phSocket)
 {
     uem_result result = ERR_UEM_UNKNOWN;
     SUCSocket *pstSocket = NULL;
-
+#ifdef ARGUMENT_CHECK
     IFVARERRASSIGNGOTO(phSocket, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
     if(IS_VALID_HANDLE(*phSocket, ID_UEM_SOCKET) == FALSE)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
     }
-
+#endif
     pstSocket = (SUCSocket *) *phSocket;
 
     if(pstSocket->nSocketfd != SOCKET_FD_NOT_SET)
@@ -174,26 +180,29 @@ uem_result UCDynamicSocket_Bind(HSocket hServerSocket)
 {
     uem_result result = ERR_UEM_UNKNOWN;
     SUCSocket *pstSocket = NULL;
+#ifndef WIN32
     struct sockaddr_un stServerAddr;
-    struct sockaddr_in stTCPServerAddr;
     int nLen = 0;
+#endif
+    struct sockaddr_in stTCPServerAddr;
     int nRet = 0;
     struct linger stLinger;
-
+#ifdef ARGUMENT_CHECK
     if(IS_VALID_HANDLE(hServerSocket, ID_UEM_SOCKET) == FALSE)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
     }
-
+#endif
     pstSocket = (SUCSocket *) hServerSocket;
-
+#ifdef ARGUMENT_CHECK
     if(pstSocket->bIsServer == FALSE)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_SOCKET, _EXIT);
     }
-
+#endif
     switch(pstSocket->enSocketType)
     {
+#ifndef WIN32
     case SOCKET_TYPE_UDS:
         pstSocket->nSocketfd = socket(AF_UNIX, SOCK_STREAM, 0);
         if(pstSocket->nSocketfd < 0)
@@ -224,6 +233,7 @@ uem_result UCDynamicSocket_Bind(HSocket hServerSocket)
         }
 
        break;
+#endif
    case SOCKET_TYPE_TCP:
         pstSocket->nSocketfd = socket(AF_INET, SOCK_STREAM, 0);
         if(pstSocket->nSocketfd < 0)
@@ -268,19 +278,19 @@ uem_result UCDynamicSocket_Listen(HSocket hServerSocket)
     uem_result result = ERR_UEM_UNKNOWN;
     SUCSocket *pstSocket = NULL;
     int nRet = 0;
-
+#ifdef ARGUMENT_CHECK
     if(IS_VALID_HANDLE(hServerSocket, ID_UEM_SOCKET) == FALSE)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
     }
-
+#endif
     pstSocket = (SUCSocket *) hServerSocket;
-
+#ifdef ARGUMENT_CHECK
     if(pstSocket->bIsServer == FALSE)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_SOCKET, _EXIT);
     }
-
+#endif
     nRet = listen(pstSocket->nSocketfd, SOMAXCONN);
     if(nRet != 0)
     {
@@ -342,13 +352,14 @@ uem_result UCDynamicSocket_Accept(HSocket hServerSocket, IN int nTimeout, IN OUT
     SUCSocket *pstSocket = NULL;
     fd_set stReadSet;
     SUCSocket *pstCliSocket = NULL;
-    struct sockaddr_un stClientAddr;
 #ifndef WIN32
+    struct sockaddr_un stClientAddr;
     socklen_t nLen = 0;
 #else
+    struct sockaddr stClientAddr;
     int nLen = 0;
 #endif
-
+#ifdef ARGUMENT_CHECK
     if(IS_VALID_HANDLE(hServerSocket, ID_UEM_SOCKET) == FALSE)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
@@ -363,18 +374,18 @@ uem_result UCDynamicSocket_Accept(HSocket hServerSocket, IN int nTimeout, IN OUT
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
-
+#endif
     pstSocket = (SUCSocket *) hServerSocket;
     pstCliSocket = (SUCSocket *) hSocket;
-
+#ifdef ARGUMENT_CHECK
     if(pstSocket->bIsServer == FALSE)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_SOCKET, _EXIT);
     }
-
+#endif
     if(pstCliSocket->bIsServer == TRUE || pstCliSocket->nSocketfd > 0)
     {
-        dlp("fd : %d\n", pstCliSocket->nSocketfd);
+        UEM_DEBUG_PRINT("fd : %d\n", pstCliSocket->nSocketfd);
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_SOCKET, _EXIT);
     }
 
@@ -397,13 +408,16 @@ uem_result UCDynamicSocket_Connect(HSocket hClientSocket, IN int nTimeout)
 {
     uem_result result = ERR_UEM_UNKNOWN;
     SUCSocket *pstSocket = NULL;
+#ifndef WIN32
     struct sockaddr_un stClientAddr;
-    struct sockaddr_in stTCPClientAddr;
     int nLen = 0;
+#endif
+    struct sockaddr_in stTCPClientAddr;
+
     int nRet = 0;
     fd_set stReadSet;
     struct linger stLinger;
-
+#ifdef ARGUMENT_CHECK
     if(IS_VALID_HANDLE(hClientSocket, ID_UEM_SOCKET) == FALSE)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
@@ -413,16 +427,17 @@ uem_result UCDynamicSocket_Connect(HSocket hClientSocket, IN int nTimeout)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
-
+#endif
     pstSocket = (SUCSocket *) hClientSocket;
-
+#ifdef ARGUMENT_CHECK
     if(pstSocket->bIsServer == TRUE)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_SOCKET, _EXIT);
     }
-
+#endif
     switch(pstSocket->enSocketType)
     {
+#ifndef WIN32
     case SOCKET_TYPE_UDS:
         pstSocket->nSocketfd = socket(AF_UNIX, SOCK_STREAM, 0);
         if(pstSocket->nSocketfd < 0)
@@ -455,6 +470,7 @@ uem_result UCDynamicSocket_Connect(HSocket hClientSocket, IN int nTimeout)
         }
 
        break;
+#endif
    case SOCKET_TYPE_TCP:
         pstSocket->nSocketfd = socket(AF_INET, SOCK_STREAM, 0);
         if(pstSocket->nSocketfd < 0)
@@ -504,7 +520,7 @@ uem_result UCDynamicSocket_Send(HSocket hSocket, IN int nTimeout, IN char *pData
     SUCSocket *pstSocket = NULL;
     fd_set stWriteSet;
     int nDataSent = 0;
-
+#ifdef ARGUMENT_CHECK
     IFVARERRASSIGNGOTO(pData, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
     if(IS_VALID_HANDLE(hSocket, ID_UEM_SOCKET) == FALSE)
@@ -516,14 +532,14 @@ uem_result UCDynamicSocket_Send(HSocket hSocket, IN int nTimeout, IN char *pData
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
-
+#endif
     pstSocket = (SUCSocket *) hSocket;
-
+#ifdef ARGUMENT_CHECK
     if(pstSocket->bIsServer == TRUE)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_SOCKET, _EXIT);
     }
-
+#endif
     result = selectTimeout(pstSocket->nSocketfd, NULL, &stWriteSet, NULL, nTimeout);
     ERRIFGOTO(result, _EXIT);
 
@@ -550,7 +566,7 @@ uem_result UCDynamicSocket_Receive(HSocket hSocket, IN int nTimeout, IN OUT char
     SUCSocket *pstSocket = NULL;
     fd_set stReadSet;
     int nDataReceived = 0;
-
+#ifdef ARGUMENT_CHECK
     IFVARERRASSIGNGOTO(pBuffer, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
     if(IS_VALID_HANDLE(hSocket, ID_UEM_SOCKET) == FALSE)
@@ -562,14 +578,14 @@ uem_result UCDynamicSocket_Receive(HSocket hSocket, IN int nTimeout, IN OUT char
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
-
+#endif
     pstSocket = (SUCSocket *) hSocket;
-
+#ifdef ARGUMENT_CHECK
     if(pstSocket->bIsServer == TRUE)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_SOCKET, _EXIT);
     }
-
+#endif
     result = selectTimeout(pstSocket->nSocketfd, &stReadSet, NULL, NULL, nTimeout);
     ERRIFGOTO(result, _EXIT);
 
