@@ -19,9 +19,48 @@ extern "C"
 {
 #endif
 
+
+#define HANDSHAKE_DEVICE_KEY_INDEX (0)
+#define HANDSHAKE_CHANNELD_ID_INDEX (1)
+
+#define READ_QUEUE_CHANNEL_ID_INDEX (0)
+#define READ_QUEUE_CHUNK_INDEX_INDEX (1)
+#define READ_QUEUE_SIZE_TO_READ_INDEX (2)
+
+#define READ_BUFFER_CHANNEL_ID_INDEX (0)
+#define READ_BUFFER_CHUNK_INDEX_INDEX (1)
+#define READ_BUFFER_SIZE_TO_READ_INDEX (2)
+
+#define AVAILABLE_INDEX_CHANNEL_ID_INDEX (0)
+
+#define AVAILABLE_DATA_CHANNEL_ID_INDEX (0)
+#define AVAILABLE_DATA_CHUNK_INDEX_INDEX (1)
+
+
+#define RESULT_ERROR_CODE_INDEX (0)
+#define RESULT_BODY_SIZE_INDEX (1)
+#define RESULT_RETURN_VALUE_INDEX (1)
+
+typedef enum _EMessageType {
+	MESSAGE_TYPE_HANDSHAKE = 0,
+	MESSAGE_TYPE_READ_QUEUE = 1,
+	MESSAGE_TYPE_READ_BUFFER = 2,
+	MESSAGE_TYPE_AVAILABLE_INDEX = 3,
+	MESSAGE_TYPE_AVAILABLE_DATA = 4,
+	MESSAGE_TYPE_RESULT = 5,
+
+	MESSAGE_TYPE_NONE = -1,
+} EMessageType;
+
+typedef enum _EProtocolError {
+	ERR_UEMPROTOCOL_NOERROR = 0,
+	ERR_UEMPROTOCOL_ERROR = -1,
+} EProtocolError;
+
 typedef struct _SUEMProtocol *HUEMProtocol;
 
 uem_result UKUEMProtocol_Create(OUT HUEMProtocol *phProtocol);
+uem_result UKUEMProtocol_GetMessageParamNumByMessageType(EMessageType enMessageType, int *pnParamNum);
 uem_result UKUEMProtocol_SetSocket(HUEMProtocol hProtocol, HSocket hSocket);
 uem_result UKUEMProtocol_HandShake(HUEMProtocol hProtocol, unsigned int unDeviceKey, int nChannelId);
 uem_result UKUEMProtocol_SetReadQueueRequest(HUEMProtocol hProtocol, int nIndex, int nSizeToRead);
@@ -32,6 +71,7 @@ uem_result UKUEMProtocol_SetResultMessage(HUEMProtocol hProtocol, EProtocolError
 uem_result UKUEMProtocol_SetResultMessageWithBuffer(HUEMProtocol hProtocol, EProtocolError enErrorCode, int nDataSize, void *pData);
 uem_result UKUEMProtocol_Send(HUEMProtocol hProtocol);
 uem_result UKUEMProtocol_Receive(HUEMProtocol hProtocol);
+uem_result UKUEMProtocol_GetRequestFromReceivedData(HUEMProtocol hProtocol, OUT EMessageType *penMessageType, OUT int *pnParamNum, OUT int **ppanParam);
 uem_result UKUEMProtocol_GetResultFromReceivedData(HUEMProtocol hProtocol, OUT EProtocolError *penErrorCode, OUT int *pnReturnValue);
 uem_result UKUEMProtocol_GetBodyDataFromReceivedData(HUEMProtocol hProtocol, OUT int *pnBodySize, OUT void **ppBody);
 uem_result UKUEMProtocol_Destroy(IN OUT HUEMProtocol *phProtocol);

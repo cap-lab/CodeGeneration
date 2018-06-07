@@ -30,25 +30,6 @@
 #define MESSAGE_PACKET_SIZE (2)
 #define MESSAGE_PARAMETER_SIZE (4)
 
-#define RESULT_ERROR_CODE_INDEX (0)
-#define RESULT_BODY_SIZE_INDEX (1)
-#define RESULT_RETURN_VALUE_INDEX (1)
-
-
-typedef enum _EMessageType {
-	MESSAGE_TYPE_HANDSHAKE = 0,
-	MESSAGE_TYPE_READ_QUEUE = 1,
-	MESSAGE_TYPE_READ_BUFFER = 2,
-	MESSAGE_TYPE_AVAILABLE_INDEX = 3,
-	MESSAGE_TYPE_AVAILABLE_DATA = 4,
-	MESSAGE_TYPE_RESULT = 5,
-} EMessageType;
-
-typedef enum _EProtocolError {
-	ERR_UEMPROTOCOL_NOERROR = 0,
-	ERR_UEMPROTOCOL_ERROR = -1,
-} EProtocolError;
-
 typedef struct _SUEMProtocolData {
 	unsigned int unKey;
 	short sMessagePacket;
@@ -73,7 +54,7 @@ typedef struct _SUEMProtocol {
 } SUEMProtocol;
 
 
-static uem_result getMessageParamNumByMessageType(EMessageType enMessageType, int *pnParamNum)
+uem_result UKUEMProtocol_GetMessageParamNumByMessageType(EMessageType enMessageType, int *pnParamNum)
 {
 	uem_result result = ERR_UEM_NOERROR;
 	int nParamNum = 0;
@@ -344,7 +325,7 @@ static uem_result setBasicSendInfo(struct _SUEMProtocol *pstProtocol, EMessageTy
 	result = clearData(pstProtocol);
 	ERRIFGOTO(result, _EXIT);
 
-	result = getMessageParamNumByMessageType(enMessageType, &nParamNum);
+	result = UKUEMProtocol_GetMessageParamNumByMessageType(enMessageType, &nParamNum);
 	ERRIFGOTO(result, _EXIT);
 
 	pstProtocol->stDataToSend.unKey = pstProtocol->unKey;
@@ -362,7 +343,7 @@ uem_result UKUEMProtocol_HandShake(HUEMProtocol hProtocol, unsigned int unDevice
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _SUEMProtocol *pstProtocol = NULL;
-	int nRetValue;
+	int nRetValue = 0;
 	EProtocolError enErrorCode = ERR_UEMPROTOCOL_ERROR;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(hProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
@@ -398,7 +379,7 @@ uem_result UKUEMProtocol_HandShake(HUEMProtocol hProtocol, unsigned int unDevice
 		ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
 	}
 
-	pstProtocol->unKey = nRetValue;
+	pstProtocol->unKey = (unsigned int) nRetValue;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -654,7 +635,7 @@ static uem_result parseHeader(SUEMProtocolData *pstDataReceived, char *pHeader, 
 	bConverted = littleEndianCharToSystemShort(pHeader + nIndex, nHeaderLength - nIndex, &(pstDataReceived->sMessagePacket));
 	IFVARERRASSIGNGOTO(bConverted, FALSE, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 
-	result = getMessageParamNumByMessageType((EMessageType) pstDataReceived->sMessagePacket, &(pstDataReceived->nParamNum));
+	result = UKUEMProtocol_GetMessageParamNumByMessageType((EMessageType) pstDataReceived->sMessagePacket, &(pstDataReceived->nParamNum));
 	ERRIFGOTO(result, _EXIT);
 
 	nIndex += MESSAGE_PACKET_SIZE;
@@ -768,6 +749,37 @@ _EXIT:
 	return result;
 }
 
+uem_result UKUEMProtocol_GetRequestFromReceivedData(HUEMProtocol hProtocol, OUT EMessageType *penMessageType, OUT int *pnParamNum, OUT int **ppanParam)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	struct _SUEMProtocol *pstProtocol = NULL;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(hProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+	IFVARERRASSIGNGOTO(penMessageType, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+#endif
+	pstProtocol = hProtocol;
+
+	if(pstProtocol->bReceived == FALSE)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_NO_DATA, _EXIT);
+	}
+
+	*penMessageType = (EMessageType) pstProtocol->stReceivedData.sMessagePacket;
+
+	if(pnParamNum != NULL)
+	{
+		*pnParamNum = pstProtocol->stReceivedData.nParamNum;
+	}
+
+	if(ppanParam != NULL)
+	{
+		*ppanParam = pstProtocol->stReceivedData.anMessageParam;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
 
 uem_result UKUEMProtocol_GetResultFromReceivedData(HUEMProtocol hProtocol, OUT EProtocolError *penErrorCode, OUT int *pnReturnValue)
 {

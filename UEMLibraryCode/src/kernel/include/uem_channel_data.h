@@ -80,6 +80,26 @@ typedef struct _SSharedMemoryChannel {
 } SSharedMemoryChannel;
 
 
+// TCP_XXXX_WRITER
+// CLIENT_WRITER => connect and create thread
+// SERVER_WRITER => create thread
+typedef struct _SExternalCommunicationInfo {
+	int nChannelId;
+	ECommunicationType enType;
+	HSocket hSocket;
+	HUEMProtocol hProtocol;
+} SExternalCommunicationInfo;
+
+
+typedef struct _STCPSocketChannel {
+	STCPClientInfo *pstClientInfo; // if TCP is server, this value is NULL
+	SExternalCommunicationInfo *pstCommunicationInfo; // get and set
+	HThread hReceivingThread; // for WRITER channel
+	char *pBuffer; // temporary buffer for getting data from shared memory channel
+	HThreadMutex hMutex;
+	SSharedMemoryChannel *pstInternalChannel;
+} STCPSocketChannel;
+
 #ifdef __cplusplus
 }
 #endif
