@@ -973,6 +973,8 @@ uem_result UKChannelMemory_WriteToBuffer (SChannel *pstChannel, SSharedMemoryCha
 		*pnDataWritten = pstChannel->nBufSize;
 	}
 
+	pstSharedMemoryChannel->nDataLen = *pnDataWritten;
+
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
 	UCThreadMutex_Unlock(pstSharedMemoryChannel->hMutex);
