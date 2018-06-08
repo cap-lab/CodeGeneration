@@ -42,6 +42,90 @@ _EXIT:
 	return result;
 }
 
+static uem_result reallocTempBuffer(STCPSocketChannel *pstTCPChannel, int nTargetSize)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	if(pstTCPChannel->nBufLen < nTargetSize)
+	{
+		SAFEMEMFREE(pstTCPChannel->pBuffer);
+
+		pstTCPChannel->pBuffer = UC_malloc(nTargetSize);
+		ERRMEMGOTO(pstTCPChannel->pBuffer, result, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+
+static uem_result handleReadQueue(SChannel *pstChannel, int *panParam, int nParamNum)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STCPSocketChannel *pstTCPChannel = NULL;
+	int nDataToRead = 0;
+	int nChunkIndex = 0;
+	int nDataRead = 0;
+
+	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
+
+	nDataToRead = panParam[READ_QUEUE_SIZE_TO_READ_INDEX];
+	nChunkIndex = panParam[READ_QUEUE_CHUNK_INDEX_INDEX];
+
+	result = reallocTempBuffer(pstTCPChannel, nDataToRead);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKChannelMemory_ReadFromQueue(pstChannel, pstTCPChannel->pstInternalChannel, pstTCPChannel->pBuffer, nDataToRead, nChunkIndex, &nDataRead);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+
+static uem_result handleReadBuffer(SChannel *pstChannel, int *panParam, int nParamNum, HUEMProtocol hProtocol)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STCPSocketChannel *pstTCPChannel = NULL;
+	int nDataToRead = 0;
+	int nChunkIndex = 0;
+	int nDataRead = 0;
+
+	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
+
+	nDataToRead = panParam[READ_BUFFER_SIZE_TO_READ_INDEX];
+	nChunkIndex = panParam[READ_BUFFER_CHUNK_INDEX_INDEX];
+
+	result = reallocTempBuffer(pstTCPChannel, nDataToRead);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKChannelMemory_ReadFromBuffer(pstChannel, pstTCPChannel->pstInternalChannel, pstTCPChannel->pBuffer, nDataToRead, nChunkIndex, &nDataRead);
+	if(result == ERR_UEM_NOERROR)
+	{
+		result = UKUEMProtocol_SetResultMessageWithBuffer(hProtocol, ERR_UEMPROTOCOL_NOERROR, nDataRead, pstTCPChannel->pBuffer);
+	}
+	else
+	{
+		result = UKUEMProtocol_SetResultMessage(hProtocol, ERR_UEMPROTOCOL_INTERNAL, 0);
+	}
+	ERRIFGOTO(result, _EXIT);
+
+
+	//pstTCPChannel->pstCommunicationInfo->hProtocol
+
+	//pstTCPChannel->pBuffer;
+
+	//result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+
 static uem_result handleRequestFromReader(HUEMProtocol hProtocol, SChannel *pstChannel)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -49,6 +133,9 @@ static uem_result handleRequestFromReader(HUEMProtocol hProtocol, SChannel *pstC
 	int nParamNum = 0;
 	int *panParam = NULL;
 	STCPSocketChannel *pstTCPChannel = NULL;
+	int nDataToRead = 0;
+	int nChunkIndex = 0;
+	int nDataRead = 0;
 
 	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
 
@@ -58,12 +145,12 @@ static uem_result handleRequestFromReader(HUEMProtocol hProtocol, SChannel *pstC
 	switch(enMessageType)
 	{
 	case MESSAGE_TYPE_READ_QUEUE:
-
+		result = handleReadQueue(pstChannel, panParam, nParamNum, hProtocol);
+		ERRIFGOTO(result, _EXIT);
 		break;
 	case MESSAGE_TYPE_READ_BUFFER:
-		panParam[READ_BUFFER_CHUNK_INDEX_INDEX];
-		panParam[READ_BUFFER_SIZE_TO_READ_INDEX];
-		result = UKChannelMemory_ReadFromBuffer(pstChannel, pstTCPChannel->pstInternalChannel, pBuffer, nDataToRead, nChunkIndex, pnDataRead)
+		result = handleReadBuffer(pstChannel, panParam, nParamNum, hProtocol);
+		ERRIFGOTO(result, _EXIT);
 		break;
 	case MESSAGE_TYPE_AVAILABLE_INDEX:
 		break;
@@ -100,7 +187,8 @@ static void *channelReceiverHandlingThread(void *pData)
 		}
 		ERRIFGOTO(result, _EXIT);
 
-
+		result = handleRequestFromReader(hProtocol, pstChannel);
+		ERRIFGOTO(result, _EXIT);
 	}
 
 _EXIT:
@@ -191,6 +279,14 @@ uem_result UKTCPSocketChannel_Initialize(SChannel *pstChannel)
 
 	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
 
+	pstTCPChannel->pBuffer = NULL;
+	pstTCPChannel->nBufLen = 0;
+	pstTCPChannel->hReceivingThread = NULL;
+	//pstTCPChannel->pstCommunicationInfo->
+	//pstTCPChannel->pstClientInfo;
+	result = UCThreadMutex_Create(&(pstTCPChannel->hMutex));
+	ERRIFGOTO(result, _EXIT);
+
 	switch(pstChannel->enType)
 	{
 	case COMMUNICATION_TYPE_TCP_CLIENT_READER:
@@ -202,12 +298,17 @@ uem_result UKTCPSocketChannel_Initialize(SChannel *pstChannel)
 		// connect and create receive thread
 		result = connectToServer(pstTCPChannel);
 		ERRIFGOTO(result, _EXIT);
+
+		result = createReceiverThread(pstChannel);
+		ERRIFGOTO(result, _EXIT);
 		break;
 	case COMMUNICATION_TYPE_TCP_SERVER_READER:
 		// do nothing
 		break;
 	case COMMUNICATION_TYPE_TCP_SERVER_WRITER:
 		// create receive thread
+		result = createReceiverThread(pstChannel);
+		ERRIFGOTO(result, _EXIT);
 		break;
 	}
 	// pstTCPChannel->

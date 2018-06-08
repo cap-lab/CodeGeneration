@@ -55,6 +55,7 @@ typedef enum _EMessageType {
 typedef enum _EProtocolError {
 	ERR_UEMPROTOCOL_NOERROR = 0,
 	ERR_UEMPROTOCOL_ERROR = -1,
+	ERR_UEMPROTOCOL_INTERNAL = -2,
 } EProtocolError;
 
 typedef struct _SUEMProtocol *HUEMProtocol;

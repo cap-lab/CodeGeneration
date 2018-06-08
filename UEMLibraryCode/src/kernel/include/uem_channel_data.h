@@ -15,11 +15,11 @@
 #include <UCThreadEvent.h>
 #include <UCThread.h>
 
-#include <UCDynamicSocket.h>
+//#include <UCDynamicSocket.h>
 
 #include <uem_enum.h>
 
-#include <UKUEMProtocol.h>
+//#include <UKUEMProtocol.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -93,6 +93,7 @@ typedef struct _STCPClientInfo {
 	int nPort;
 } STCPClientInfo;
 
+/*
 // TCP_XXXX_WRITER
 // CLIENT_WRITER => connect and create thread
 // SERVER_WRITER => create thread
@@ -109,10 +110,11 @@ typedef struct _STCPSocketChannel {
 	SExternalCommunicationInfo *pstCommunicationInfo; // get and set
 	HThread hReceivingThread; // for WRITER channel
 	char *pBuffer; // temporary buffer for getting data from shared memory channel
+	int nBufLen; // temporary buffer length
 	HThreadMutex hMutex;
 	SSharedMemoryChannel *pstInternalChannel;
 } STCPSocketChannel;
-
+*/
 #ifdef __cplusplus
 }
 #endif
