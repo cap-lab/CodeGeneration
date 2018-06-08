@@ -226,7 +226,7 @@ public class CodeGenerator
 		uemDataTemplate.process(uemDataRootHash, out);
     }
     
-    private void generateTaskCode(Device device, String topDirPath, ProgrammingLanguage language) throws TemplateNotFoundException, MalformedTemplateNameException, 
+    private void generateTaskCode(Device device, String topDirPath) throws TemplateNotFoundException, MalformedTemplateNameException, 
     												freemarker.core.ParseException, IOException, TemplateException
     {
     	Template taskCodeTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_TASK_CODE);
@@ -247,7 +247,7 @@ public class CodeGenerator
 	    									task.getName() +  Constants.TASK_NAME_FUNC_ID_SEPARATOR + loop;
 	    			
 	    			if(device.getGpuSetupInfo().size() == 0){
-	    				if(language == ProgrammingLanguage.CPP) {
+	    				if(task.getLanguage() == ProgrammingLanguage.CPP) {
 	    					outputFilePath += Constants.CPP_FILE_EXTENSION;
 	    				}
 	    				else {
@@ -272,7 +272,7 @@ public class CodeGenerator
 		}
     }
     
-    private void generateLibraryCodes(Device device, String topDirPath, ProgrammingLanguage language) throws TemplateNotFoundException, MalformedTemplateNameException, 
+    private void generateLibraryCodes(Device device, String topDirPath) throws TemplateNotFoundException, MalformedTemplateNameException, 
     													freemarker.core.ParseException, IOException, TemplateException
     {
 		Template libraryCodeTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_LIBRARY_CODE);
@@ -287,7 +287,7 @@ public class CodeGenerator
 			// Create the root hash
 			Map<String, Object> libraryRootHash = new HashMap<>();
 			
-			if(language == ProgrammingLanguage.CPP) {
+			if(library.getLanguage() == ProgrammingLanguage.CPP) {
 				outputSourcePath += Constants.CPP_FILE_EXTENSION;
 			}
 			else {
@@ -322,8 +322,8 @@ public class CodeGenerator
 				
 				generateMakefile(codeOrganizer, topSrcDir);
 				generateUemDataCode(device, topSrcDir, codeOrganizer.getLanguage());
-				generateTaskCode(device, topSrcDir, codeOrganizer.getLanguage());
-				generateLibraryCodes(device, topSrcDir, codeOrganizer.getLanguage());
+				generateTaskCode(device, topSrcDir);
+				generateLibraryCodes(device, topSrcDir);
 			}			
 		} catch (TemplateNotFoundException e) {
 			// TODO Auto-generated catch block
