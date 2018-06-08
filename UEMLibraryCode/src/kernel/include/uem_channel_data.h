@@ -10,8 +10,16 @@
 
 #include <uem_common.h>
 
+
 #include <UCThreadMutex.h>
 #include <UCThreadEvent.h>
+#include <UCThread.h>
+
+#include <UCDynamicSocket.h>
+
+#include <uem_enum.h>
+
+#include <UKUEMProtocol.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -79,6 +87,11 @@ typedef struct _SSharedMemoryChannel {
 	uem_bool bStaticAllocation;
 } SSharedMemoryChannel;
 
+
+typedef struct _STCPClientInfo {
+	const char *pszIPAddress;
+	int nPort;
+} STCPClientInfo;
 
 // TCP_XXXX_WRITER
 // CLIENT_WRITER => connect and create thread

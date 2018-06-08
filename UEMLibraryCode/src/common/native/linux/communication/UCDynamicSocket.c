@@ -218,11 +218,11 @@ uem_result UCDynamicSocket_Bind(HSocket hServerSocket)
             ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
         }
 
-        bzero(&stServerAddr, sizeof(stServerAddr));
+        UC_memset(&stServerAddr, 0, sizeof(stServerAddr));
         stServerAddr.sun_family = AF_UNIX;
         nLen = MIN(MAX_SUN_PATH-1, CAPString_Length(&(pstSocket->stSocketPath)));
 
-        memcpy(stServerAddr.sun_path, pstSocket->pszSocketPath, nLen);
+        UC_memcpy(stServerAddr.sun_path, pstSocket->pszSocketPath, nLen);
         stServerAddr.sun_path[nLen] = '\0';
 
         nRet = bind(pstSocket->nSocketfd, (struct sockaddr *)&stServerAddr, sizeof(stServerAddr));
@@ -244,13 +244,13 @@ uem_result UCDynamicSocket_Bind(HSocket hServerSocket)
         stLinger.l_onoff = TRUE;
         stLinger.l_linger = 0;
         //nRet = setsockopt(pstSocket->nSocketfd, SOL_SOCKET, TCP_NODELAY, &stLinger, sizeof(stLinger));
-        nRet = setsockopt(pstSocket->nSocketfd, SOL_SOCKET, SO_LINGER, &stLinger, sizeof(stLinger));
+        nRet = setsockopt(pstSocket->nSocketfd, SOL_SOCKET, SO_LINGER, (void *)&stLinger, sizeof(stLinger));
         if(nRet != 0)
         {
             ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
         }
 
-        bzero(&stTCPServerAddr, sizeof(stTCPServerAddr));
+        UC_memset(&stTCPServerAddr, 0, sizeof(stTCPServerAddr));
         stTCPServerAddr.sin_family = AF_INET;
         stTCPServerAddr.sin_addr.s_addr = htonl(INADDR_ANY);
         stTCPServerAddr.sin_port = htons(pstSocket->nPort);
@@ -453,11 +453,11 @@ uem_result UCDynamicSocket_Connect(HSocket hClientSocket, IN int nTimeout)
             ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
         }
 
-        bzero(&stClientAddr, sizeof(stClientAddr));
+        UC_memset(&stClientAddr, 0, sizeof(stClientAddr));
         stClientAddr.sun_family = AF_UNIX;
         nLen = MIN(MAX_SUN_PATH-1, CAPString_Length(&(pstSocket->stSocketPath)));
 
-        memcpy(stClientAddr.sun_path, pstSocket->pszSocketPath, nLen);
+        UC_memcpy(stClientAddr.sun_path, pstSocket->pszSocketPath, nLen);
         stClientAddr.sun_path[nLen] = '\0';
 
         result = selectTimeout(pstSocket->nSocketfd, &stReadSet, NULL, NULL, nTimeout);
@@ -480,13 +480,13 @@ uem_result UCDynamicSocket_Connect(HSocket hClientSocket, IN int nTimeout)
 
         stLinger.l_onoff = TRUE;
         stLinger.l_linger = 0;
-        nRet = setsockopt(pstSocket->nSocketfd, SOL_SOCKET, SO_LINGER, &stLinger, sizeof(stLinger));
+        nRet = setsockopt(pstSocket->nSocketfd, SOL_SOCKET, SO_LINGER, (void *)&stLinger, sizeof(stLinger));
         if(nRet != 0)
         {
             ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
         }
 
-        bzero(&stTCPClientAddr, sizeof(stTCPClientAddr));
+        UC_memset(&stTCPClientAddr, 0, sizeof(stTCPClientAddr));
         stTCPClientAddr.sin_family = AF_INET;
         stTCPClientAddr.sin_addr.s_addr = inet_addr(pstSocket->pszSocketPath);
         stTCPClientAddr.sin_port = htons(pstSocket->nPort);

@@ -72,7 +72,7 @@ MAIN_CFLAGS=-I$(MAIN_DIR)/include
 
 API_CFLAGS=-I$(API_DIR)/include
 
-KERNEL_CFLAGS=-I$(KERNEL_DIR)/include -I$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/include 
+KERNEL_CFLAGS=-I$(KERNEL_DIR)/include -I$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/include -I$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/include/communication 
 
 TOP_CFLAGS=-I$(top_srcdir)
 
