@@ -188,7 +188,7 @@ public class CodeGenerator
     	Template uemDataTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_UEM_DATA);
 		// Create the root hash
 		Map<String, Object> uemDataRootHash = new HashMap<>();
-		String outputFilePath = topDirPath + File.separator + CodeOrganizer.KERNEL_DIR + File.separator;
+		String outputFilePath = topDirPath + File.separator + CodeOrganizer.KERNEL_GENERATED_DIR + File.separator;
 		if(device.getGpuSetupInfo().size() != 0){
 			outputFilePath += Constants.DEFAULT_UEM_DATA_CUDA;
 			

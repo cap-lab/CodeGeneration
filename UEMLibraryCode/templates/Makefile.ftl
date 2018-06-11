@@ -29,7 +29,7 @@ API_SOURCES=<#list build_info.apiSourceList as source_file><#if (source_file?ind
 
 
 KERNEL_DATA_SOURCES=<#list build_info.kernelDataSourceList as source_file><#if (source_file?index > 0)>
-	</#if>$(KERNEL_DIR)/${source_file}<#if (source_file?index < build_info.kernelDataSourceList?size - 1)>\</#if></#list>
+	</#if>$(KERNEL_DIR)/generated/${source_file}<#if (source_file?index < build_info.kernelDataSourceList?size - 1)>\</#if></#list>
 
 KERNEL_SOURCES=<#list build_info.kernelSourceList as source_file><#if (source_file?index > 0)>
 	</#if>$(KERNEL_DIR)/${source_file}<#if (source_file?index < build_info.kernelSourceList?size - 1)>\</#if></#list>

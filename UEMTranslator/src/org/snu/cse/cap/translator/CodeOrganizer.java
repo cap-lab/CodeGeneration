@@ -38,6 +38,7 @@ public class CodeOrganizer {
 	public static final String MAIN_DIR = "src" + File.separator + "main";
 	public static final String API_DIR = "src" + File.separator + "api";
 	public static final String KERNEL_DIR = "src" + File.separator + "kernel";
+	public static final String KERNEL_GENERATED_DIR = "src" + File.separator + "kernel" + File.separator + "generated";
 	public static final String COMMON_DIR = "src" + File.separator + "common";
 	public static final String APPLICATION_DIR = "src" + File.separator + "application";
 	

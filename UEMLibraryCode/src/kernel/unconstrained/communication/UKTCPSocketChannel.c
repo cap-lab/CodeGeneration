@@ -24,7 +24,7 @@
 
 
 #define CONNECT_TIMEOUT (3)
-#define CONNECT_RETRY_COUNT (5)
+#define CONNECT_RETRY_COUNT (100)
 #define SECOND_IN_MILLISECOND (1000)
 
 uem_result UKTCPSocketChannel_Clear(SChannel *pstChannel)
@@ -68,8 +68,16 @@ static uem_result handleReadQueue(SChannel *pstChannel, int *panParam, int nPara
 	int nDataToRead = 0;
 	int nChunkIndex = 0;
 	int nDataRead = 0;
+	int nChannelId = INVALID_CHANNEL_ID;
 
 	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
+
+	nChannelId = panParam[READ_QUEUE_CHANNEL_ID_INDEX];
+
+	if(pstChannel->nChannelIndex != nChannelId)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+	}
 
 	nDataToRead = panParam[READ_QUEUE_SIZE_TO_READ_INDEX];
 	nChunkIndex = panParam[READ_QUEUE_CHUNK_INDEX_INDEX];
@@ -94,8 +102,16 @@ static uem_result handleReadBuffer(SChannel *pstChannel, int *panParam, int nPar
 	int nDataToRead = 0;
 	int nChunkIndex = 0;
 	int nDataRead = 0;
+	int nChannelId = INVALID_CHANNEL_ID;
 
 	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
+
+	nChannelId = panParam[READ_BUFFER_CHANNEL_ID_INDEX];
+
+	if(pstChannel->nChannelIndex != nChannelId)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+	}
 
 	nDataToRead = panParam[READ_BUFFER_SIZE_TO_READ_INDEX];
 	nChunkIndex = panParam[READ_BUFFER_CHUNK_INDEX_INDEX];
@@ -104,26 +120,75 @@ static uem_result handleReadBuffer(SChannel *pstChannel, int *panParam, int nPar
 	ERRIFGOTO(result, _EXIT);
 
 	result = UKChannelMemory_ReadFromBuffer(pstChannel, pstTCPChannel->pstInternalChannel, pstTCPChannel->pBuffer, nDataToRead, nChunkIndex, &nDataRead);
-	if(result == ERR_UEM_NOERROR)
-	{
-		result = UKUEMProtocol_SetResultMessageWithBuffer(hProtocol, ERR_UEMPROTOCOL_NOERROR, nDataRead, pstTCPChannel->pBuffer);
-	}
-	else
-	{
-		result = UKUEMProtocol_SetResultMessage(hProtocol, ERR_UEMPROTOCOL_INTERNAL, 0);
-	}
 	ERRIFGOTO(result, _EXIT);
 
+	result = UKUEMProtocol_SetResultMessageWithBuffer(hProtocol, ERR_UEMPROTOCOL_NOERROR, nDataRead, pstTCPChannel->pBuffer);
+	ERRIFGOTO(result, _EXIT);
 
-	//pstTCPChannel->pstCommunicationInfo->hProtocol
-
-	//pstTCPChannel->pBuffer;
-
-	//result = ERR_UEM_NOERROR;
+	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
 }
 
+
+
+static uem_result handleAvailableIndex(SChannel *pstChannel, int *panParam, int nParamNum, HUEMProtocol hProtocol)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STCPSocketChannel *pstTCPChannel = NULL;
+	int nChunkIndex = 0;
+	int nChannelId = INVALID_CHANNEL_ID;
+
+	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
+
+	nChannelId = panParam[AVAILABLE_INDEX_CHANNEL_ID_INDEX];
+
+	if(pstChannel->nChannelIndex != nChannelId)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+	}
+
+	result = UKChannelMemory_GetAvailableChunk(pstChannel, pstTCPChannel->pstInternalChannel, pstTCPChannel->pBuffer, &nChunkIndex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKUEMProtocol_SetResultMessage(hProtocol, ERR_UEMPROTOCOL_NOERROR, nChunkIndex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result handleAvailableData(SChannel *pstChannel, int *panParam, int nParamNum, HUEMProtocol hProtocol)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STCPSocketChannel *pstTCPChannel = NULL;
+	int nChunkIndex = 0;
+	int nChannelId = INVALID_CHANNEL_ID;
+	int nDataNum = 0;
+
+	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
+
+	nChannelId = panParam[AVAILABLE_DATA_CHANNEL_ID_INDEX];
+
+	if(pstChannel->nChannelIndex != nChannelId)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+	}
+
+	nChunkIndex = panParam[AVAILABLE_DATA_CHUNK_INDEX_INDEX];
+
+	result = UKChannelMemory_GetNumOfAvailableData(pstChannel, pstTCPChannel->pstInternalChannel, nChunkIndex, &nDataNum);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKUEMProtocol_SetResultMessage(hProtocol, ERR_UEMPROTOCOL_NOERROR, nDataNum);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
 
 
 static uem_result handleRequestFromReader(HUEMProtocol hProtocol, SChannel *pstChannel)
@@ -153,10 +218,15 @@ static uem_result handleRequestFromReader(HUEMProtocol hProtocol, SChannel *pstC
 		ERRIFGOTO(result, _EXIT);
 		break;
 	case MESSAGE_TYPE_AVAILABLE_INDEX:
+		result = handleAvailableIndex(pstChannel, panParam, nParamNum, hProtocol);
+		ERRIFGOTO(result, _EXIT);
 		break;
 	case MESSAGE_TYPE_AVAILABLE_DATA:
+		result = handleAvailableData(pstChannel, panParam, nParamNum, hProtocol);
+		ERRIFGOTO(result, _EXIT);
 		break;
 	default:
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 		break;
 	}
 
@@ -178,7 +248,7 @@ static void *channelReceiverHandlingThread(void *pData)
 
 	hProtocol = pstTCPChannel->pstCommunicationInfo->hProtocol;
 
-	while(g_bSystemExit == FALSE)
+	while(pstTCPChannel->bChannelExit == FALSE)
 	{
 		result = UKUEMProtocol_Receive(hProtocol);
 		if(result == ERR_UEM_NET_TIMEOUT)
@@ -188,11 +258,18 @@ static void *channelReceiverHandlingThread(void *pData)
 		ERRIFGOTO(result, _EXIT);
 
 		result = handleRequestFromReader(hProtocol, pstChannel);
+		if(result != ERR_UEM_NOERROR)
+		{
+			result = UKUEMProtocol_SetResultMessage(hProtocol, ERR_UEMPROTOCOL_INTERNAL, 0);
+		}
+		ERRIFGOTO(result, _EXIT);
+
+		result = UKUEMProtocol_Send(hProtocol);
 		ERRIFGOTO(result, _EXIT);
 	}
 
 _EXIT:
-	if(result != ERR_UEM_NOERROR && g_bSystemExit == FALSE)
+	if(result != ERR_UEM_NOERROR && pstTCPChannel->bChannelExit == FALSE)
 	{
 		UEM_DEBUG_PRINT("channelReceiverHandlingThread is exited with error: %d\n", result);
 	}
@@ -215,6 +292,43 @@ _EXIT:
 	return result;
 }
 
+
+static uem_result destroyReceiverThread(SChannel *pstChannel)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STCPSocketChannel *pstTCPChannel = NULL;
+
+	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
+
+	result = UCThread_Destroy(&(pstTCPChannel->hReceivingThread), FALSE, 0);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static disconnectToServer(STCPSocketChannel *pstTCPChannel)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	if(pstTCPChannel->pstCommunicationInfo->hProtocol != NULL)
+	{
+		UKUEMProtocol_Destroy(&(pstTCPChannel->pstCommunicationInfo->hProtocol));
+	}
+
+	if(pstTCPChannel->pstCommunicationInfo->hSocket != NULL)
+	{
+		UCDynamicSocket_Destroy(&(pstTCPChannel->pstCommunicationInfo->hSocket));
+	}
+
+	result = ERR_UEM_NOERROR;
+
+	return result;
+}
+
+
 static uem_result connectToServer(STCPSocketChannel *pstTCPChannel)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -232,6 +346,11 @@ static uem_result connectToServer(STCPSocketChannel *pstTCPChannel)
 
 	while(nRetryCount < CONNECT_RETRY_COUNT)
 	{
+		if(pstTCPChannel->bChannelExit == FALSE)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT);
+		}
+
 		result = UCDynamicSocket_Connect(hSocket, CONNECT_TIMEOUT);
 		if(result == ERR_UEM_NET_TIMEOUT || result == ERR_UEM_CONNECT_ERROR)
 		{
@@ -299,6 +418,9 @@ uem_result UKTCPSocketChannel_Initialize(SChannel *pstChannel)
 		result = connectToServer(pstTCPChannel);
 		ERRIFGOTO(result, _EXIT);
 
+		result = UKChannelMemory_Initialize(pstChannel, pstTCPChannel->pstInternalChannel);
+		ERRIFGOTO(result, _EXIT);
+
 		result = createReceiverThread(pstChannel);
 		ERRIFGOTO(result, _EXIT);
 		break;
@@ -306,15 +428,46 @@ uem_result UKTCPSocketChannel_Initialize(SChannel *pstChannel)
 		// do nothing
 		break;
 	case COMMUNICATION_TYPE_TCP_SERVER_WRITER:
+		result = UKChannelMemory_Initialize(pstChannel, pstTCPChannel->pstInternalChannel);
+		ERRIFGOTO(result, _EXIT);
+
 		// create receive thread
 		result = createReceiverThread(pstChannel);
 		ERRIFGOTO(result, _EXIT);
 		break;
 	}
-	// pstTCPChannel->
 
-	result = UKChannelMemory_Initialize(pstChannel, pstTCPChannel->pstInternalChannel);
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+static uem_result sendAndCheckResult(STCPSocketChannel *pstTCPChannel, HUEMProtocol hProtocol, int *pnReturnValue)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	EProtocolError enErrorCode = ERR_UEMPROTOCOL_INTERNAL;
+
+	result = UKUEMProtocol_Send(hProtocol);
 	ERRIFGOTO(result, _EXIT);
+
+	do
+	{
+		if(pstTCPChannel->bChannelExit == TRUE)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT);
+		}
+		result = UKUEMProtocol_Receive(hProtocol);
+		ERRIFGOTO(result, _EXIT);
+	}while(result == ERR_UEM_NET_TIMEOUT);
+
+	result = UKUEMProtocol_GetResultFromReceivedData(hProtocol, &enErrorCode, pnReturnValue);
+	ERRIFGOTO(result, _EXIT);
+
+	if(enErrorCode != ERR_UEMPROTOCOL_NOERROR)
+	{
+		UEM_DEBUG_PRINT("Error is retrieved from TCP writer\n");
+		ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -326,11 +479,27 @@ uem_result UKTCPSocketChannel_ReadFromQueue(SChannel *pstChannel, IN OUT unsigne
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STCPSocketChannel *pstTCPChannel = NULL;
+	HUEMProtocol hProtocol = NULL;
+	int nDataRead = 0;
+	void *pBody = NULL;
 
 	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
 
-	result = UKChannelMemory_ReadFromQueue(pstChannel, pstTCPChannel->pstInternalChannel, pBuffer, nDataToRead, nChunkIndex, pnDataRead);
+	hProtocol = pstTCPChannel->pstCommunicationInfo->hProtocol;
+
+	result = UKUEMProtocol_SetReadQueueRequest(hProtocol, nChunkIndex, nDataToRead);
 	ERRIFGOTO(result, _EXIT);
+
+	result = sendAndCheckResult(pstTCPChannel, hProtocol, NULL);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKUEMProtocol_GetBodyDataFromReceivedData(hProtocol, &nDataRead, &pBody);
+	ERRIFGOTO(result, _EXIT);
+
+	// TODO: Using memory system is needed
+	UC_memcpy(pBuffer, pBody, nDataRead);
+
+	*pnDataRead = nDataRead;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -341,11 +510,27 @@ uem_result UKTCPSocketChannel_ReadFromBuffer(SChannel *pstChannel, IN OUT unsign
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STCPSocketChannel *pstTCPChannel = NULL;
+	HUEMProtocol hProtocol = NULL;
+	int nDataRead = 0;
+	void *pBody = NULL;
 
 	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
 
-	result = UKChannelMemory_ReadFromBuffer(pstChannel, pstTCPChannel->pstInternalChannel, pBuffer, nDataToRead, nChunkIndex, pnDataRead);
+	hProtocol = pstTCPChannel->pstCommunicationInfo->hProtocol;
+
+	result = UKUEMProtocol_SetReadBufferRequest(hProtocol, nChunkIndex, nDataToRead);
 	ERRIFGOTO(result, _EXIT);
+
+	result = sendAndCheckResult(hProtocol, NULL);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKUEMProtocol_GetBodyDataFromReceivedData(hProtocol, &nDataRead, &pBody);
+	ERRIFGOTO(result, _EXIT);
+
+	// TODO: Using memory system is needed
+	UC_memcpy(pBuffer, pBody, nDataRead);
+
+	*pnDataRead = nDataRead;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -353,6 +538,56 @@ _EXIT:
 }
 
 
+uem_result UKTCPSocketChannel_GetAvailableChunk (SChannel *pstChannel, OUT int *pnChunkIndex)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STCPSocketChannel *pstTCPChannel = NULL;
+	HUEMProtocol hProtocol = NULL;
+	int nAvailableIndex = 0;
+
+	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
+
+	hProtocol = pstTCPChannel->pstCommunicationInfo->hProtocol;
+
+	result = UKUEMProtocol_SetAvailableIndexRequest(hProtocol);
+	ERRIFGOTO(result, _EXIT);
+
+	result = sendAndCheckResult(hProtocol, &nAvailableIndex);
+	ERRIFGOTO(result, _EXIT);
+
+	*pnChunkIndex = nAvailableIndex;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+uem_result UKTCPSocketChannel_GetNumOfAvailableData (SChannel *pstChannel, IN int nChunkIndex, OUT int *pnDataNum)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STCPSocketChannel *pstTCPChannel = NULL;
+	HUEMProtocol hProtocol = NULL;
+	int nDataNum = 0;
+
+	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
+
+	hProtocol = pstTCPChannel->pstCommunicationInfo->hProtocol;
+
+	result = UKUEMProtocol_SetAvailableDataRequest(hProtocol, nChunkIndex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = sendAndCheckResult(hProtocol, &nDataNum);
+	ERRIFGOTO(result, _EXIT);
+
+	*pnDataNum = nDataNum;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+// same to shared memory channel write
 uem_result UKTCPSocketChannel_WriteToQueue (SChannel *pstChannel, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -369,6 +604,7 @@ _EXIT:
 }
 
 
+// same to shared memory channel write
 uem_result UKTCPSocketChannel_WriteToBuffer (SChannel *pstChannel, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -385,36 +621,6 @@ _EXIT:
 }
 
 
-uem_result UKTCPSocketChannel_GetAvailableChunk (SChannel *pstChannel, OUT int *pnChunkIndex)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	STCPSocketChannel *pstTCPChannel = NULL;
-
-	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
-
-	result = UKChannelMemory_GetAvailableChunk(pstChannel, pstTCPChannel->pstInternalChannel, pnChunkIndex);
-	ERRIFGOTO(result, _EXIT);
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-uem_result UKTCPSocketChannel_GetNumOfAvailableData (SChannel *pstChannel, IN int nChunkIndex, OUT int *pnDataNum)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	STCPSocketChannel *pstTCPChannel = NULL;
-
-	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
-
-	result = UKChannelMemory_GetNumOfAvailableData(pstChannel, pstTCPChannel->pstInternalChannel, nChunkIndex, pnDataNum);
-	ERRIFGOTO(result, _EXIT);
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
 uem_result UKTCPSocketChannel_SetExit(SChannel *pstChannel, int nExitFlag)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -422,8 +628,22 @@ uem_result UKTCPSocketChannel_SetExit(SChannel *pstChannel, int nExitFlag)
 
 	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
 
-	result = UKChannelMemory_SetExit(pstChannel, pstTCPChannel->pstInternalChannel, nExitFlag);
-	ERRIFGOTO(result, _EXIT);
+	pstTCPChannel->bChannelExit = TRUE;
+
+	switch(pstChannel->enType)
+	{
+	case COMMUNICATION_TYPE_TCP_CLIENT_READER:
+	case COMMUNICATION_TYPE_TCP_SERVER_READER:
+		// do nothing
+		break;
+	case COMMUNICATION_TYPE_TCP_SERVER_WRITER:
+	case COMMUNICATION_TYPE_TCP_CLIENT_WRITER:
+		result = UKChannelMemory_SetExit(pstChannel, pstTCPChannel->pstInternalChannel, nExitFlag);
+		ERRIFGOTO(result, _EXIT);
+		break;
+	default:
+		break;
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -438,8 +658,22 @@ uem_result UKTCPSocketChannel_ClearExit(SChannel *pstChannel, int nExitFlag)
 
 	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
 
-	result = UKChannelMemory_ClearExit(pstChannel, pstTCPChannel->pstInternalChannel, nExitFlag);
-	ERRIFGOTO(result, _EXIT);
+	pstTCPChannel->bChannelExit = FALSE;
+
+	switch(pstChannel->enType)
+	{
+	case COMMUNICATION_TYPE_TCP_CLIENT_READER:
+	case COMMUNICATION_TYPE_TCP_SERVER_READER:
+		// do nothing
+		break;
+	case COMMUNICATION_TYPE_TCP_SERVER_WRITER:
+	case COMMUNICATION_TYPE_TCP_CLIENT_WRITER:
+		result = UKChannelMemory_ClearExit(pstChannel, pstTCPChannel->pstInternalChannel, nExitFlag);
+		ERRIFGOTO(result, _EXIT);
+		break;
+	default:
+		break;
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -454,8 +688,38 @@ uem_result UKTCPSocketChannel_Finalize(SChannel *pstChannel)
 
 	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
 
-	result = UKChannelMemory_Finalize(pstChannel, pstTCPChannel->pstInternalChannel);
-	ERRIFGOTO(result, _EXIT);
+	//UKTCPSocketChannel_SetExit(pstChannel, EXIT_FLAG_READ | EXIT_FLAG_WRITE);
+
+	switch(pstChannel->enType)
+	{
+	case COMMUNICATION_TYPE_TCP_CLIENT_READER:
+		// disconnect
+		result = disconnectToServer(pstTCPChannel);
+		ERRIFGOTO(result, _EXIT);
+		break;
+	case COMMUNICATION_TYPE_TCP_CLIENT_WRITER:
+		// destroy receiver thread
+		result = destroyReceiverThread(pstChannel);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UKChannelMemory_Finalize(pstChannel, pstTCPChannel->pstInternalChannel);
+		ERRIFGOTO(result, _EXIT);
+
+		result = disconnectToServer(pstTCPChannel);
+		ERRIFGOTO(result, _EXIT);
+		break;
+	case COMMUNICATION_TYPE_TCP_SERVER_READER:
+		// do nothing
+		break;
+	case COMMUNICATION_TYPE_TCP_SERVER_WRITER:
+		// destroy receiver thread
+		result = destroyReceiverThread(pstChannel);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UKChannelMemory_Finalize(pstChannel, pstTCPChannel->pstInternalChannel);
+		ERRIFGOTO(result, _EXIT);
+		break;
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

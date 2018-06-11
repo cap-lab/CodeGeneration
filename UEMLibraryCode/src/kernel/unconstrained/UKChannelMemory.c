@@ -97,6 +97,8 @@ uem_result UKChannelMemory_Clear(SChannel *pstChannel, SSharedMemoryChannel *pst
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nLoop = 0;
 
+	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
 	// information clear
 	// pDataStart => clear (pBuffer)
 	// nDataLen => clear (0)
@@ -132,6 +134,8 @@ _EXIT:
 uem_result UKChannelMemory_Initialize(SChannel *pstChannel, SSharedMemoryChannel *pstSharedMemoryChannel)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+
+	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
 	// initialize buffer
 	// If not set, initialize those things, // pBuffer => is NULL => alloc
@@ -674,6 +678,8 @@ uem_result UKChannelMemory_ReadFromQueue(SChannel *pstChannel, SSharedMemoryChan
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
+	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
 	// array channel
 	if(pstChannel->enChannelType == CHANNEL_TYPE_INPUT_ARRAY || pstChannel->enChannelType == CHANNEL_TYPE_FULL_ARRAY)
 	{
@@ -695,6 +701,8 @@ uem_result UKChannelMemory_ReadFromBuffer(SChannel *pstChannel, SSharedMemoryCha
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SGenericMemoryAccess *pstMemoryAPI = NULL;
+
+	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
 	pstMemoryAPI = pstSharedMemoryChannel->pstMemoryAccessAPI;
 
@@ -927,6 +935,8 @@ uem_result UKChannelMemory_WriteToQueue (SChannel *pstChannel, SSharedMemoryChan
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
+	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
 	// array channel
 	if(pstChannel->enChannelType == CHANNEL_TYPE_OUTPUT_ARRAY || pstChannel->enChannelType == CHANNEL_TYPE_FULL_ARRAY)
 	{
@@ -949,6 +959,8 @@ uem_result UKChannelMemory_WriteToBuffer (SChannel *pstChannel, SSharedMemoryCha
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SGenericMemoryAccess *pstMemoryAPI = NULL;
+
+	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
 	pstMemoryAPI = pstSharedMemoryChannel->pstMemoryAccessAPI;
 
@@ -1090,6 +1102,8 @@ uem_result UKChannelMemory_GetAvailableChunk (SChannel *pstChannel, SSharedMemor
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
+	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
 	if(pstChannel->enChannelType == CHANNEL_TYPE_GENERAL || pstChannel->enChannelType == CHANNEL_TYPE_OUTPUT_ARRAY)
 	{
 		result = getAvailableChunkFromGeneralQueue(pstChannel, pstSharedMemoryChannel, pnChunkIndex);
@@ -1109,6 +1123,8 @@ _EXIT:
 uem_result UKChannelMemory_GetNumOfAvailableData (SChannel *pstChannel, SSharedMemoryChannel *pstSharedMemoryChannel, IN int nChunkIndex, OUT int *pnDataNum)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+
+	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
 	result = UCThreadMutex_Lock(pstSharedMemoryChannel->hMutex);
 	ERRIFGOTO(result, _EXIT);
@@ -1139,6 +1155,8 @@ _EXIT:
 uem_result UKChannelMemory_SetExit(SChannel *pstChannel, SSharedMemoryChannel *pstSharedMemoryChannel, int nExitFlag)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+
+	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
 	result = UCThreadMutex_Lock(pstSharedMemoryChannel->hMutex);
 	ERRIFGOTO(result, _EXIT);
@@ -1171,6 +1189,8 @@ uem_result UKChannelMemory_ClearExit(SChannel *pstChannel, SSharedMemoryChannel 
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
+	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
 	result = UCThreadMutex_Lock(pstSharedMemoryChannel->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
@@ -1196,6 +1216,8 @@ uem_result UKChannelMemory_Finalize(SChannel *pstChannel, SSharedMemoryChannel *
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
+	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
 	// ignore error
 	UCThreadMutex_Destroy(&(pstSharedMemoryChannel->hMutex));
 
@@ -1209,7 +1231,7 @@ uem_result UKChannelMemory_Finalize(SChannel *pstChannel, SSharedMemoryChannel *
 	}
 
 	result = ERR_UEM_NOERROR;
-
+_EXIT:
 	return result;
 }
 
