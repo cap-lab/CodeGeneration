@@ -265,10 +265,6 @@ static uem_result makeSendingData(SUEMProtocolData *pstProtocolData)
 	uem_result result = ERR_UEM_UNKNOWN;
 	short sHeaderLength = 0;
 	int nTotalDataSize = 0;
-	int nIndex = 0;
-	int nLeftBufferLen = 0;
-	uem_bool bConverted = FALSE;
-	int nLoop = 0;
 
 	sHeaderLength = sizeof(pstProtocolData->unKey) + sizeof(pstProtocolData->sMessagePacket) +
 					pstProtocolData->nParamNum * sizeof(int);
@@ -442,7 +438,6 @@ uem_result UKUEMProtocol_SetAvailableIndexRequest(HUEMProtocol hProtocol)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _SUEMProtocol *pstProtocol = NULL;
-	int nParamNum = 0;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(hProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
@@ -463,7 +458,6 @@ uem_result UKUEMProtocol_SetAvailableDataRequest(HUEMProtocol hProtocol, int nIn
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _SUEMProtocol *pstProtocol = NULL;
-	int nParamNum = 0;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(hProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
@@ -484,7 +478,6 @@ uem_result UKUEMProtocol_SetResultMessage(HUEMProtocol hProtocol, EProtocolError
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _SUEMProtocol *pstProtocol = NULL;
-	int nParamNum = 0;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(hProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
@@ -505,7 +498,6 @@ uem_result UKUEMProtocol_SetResultMessageWithBuffer(HUEMProtocol hProtocol, EPro
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _SUEMProtocol *pstProtocol = NULL;
-	int nParamNum = 0;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(hProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
@@ -550,7 +542,6 @@ uem_result UKUEMProtocol_Send(HUEMProtocol hProtocol)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _SUEMProtocol *pstProtocol = NULL;
-	int nSentSize = 0;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(hProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
@@ -627,7 +618,7 @@ static uem_result parseHeader(SUEMProtocolData *pstDataReceived, char *pHeader, 
 	int nIndex = 0;
 	int nLoop = 0;
 
-	bConverted = littleEndianCharToSystemInt(pHeader, nHeaderLength, &(pstDataReceived->unKey));
+	bConverted = littleEndianCharToSystemInt(pHeader, nHeaderLength, (int *) &(pstDataReceived->unKey));
 	IFVARERRASSIGNGOTO(bConverted, FALSE, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 
 	nIndex += HEADER_KEY_SIZE;
@@ -672,40 +663,35 @@ _EXIT:
 }
 
 
-static uem_result receiveBody(HSocket hSocket, SUEMProtocolData *pstDataReceived, EMessageType enSentMessageType)
+static uem_result receiveBody(HSocket hSocket, SUEMProtocolData *pstDataReceived)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	char abyHeader[PRE_HEADER_LENGTH+MAX_HEADER_LENGTH];
-	int nHeaderLength = 0;
 	int nBodySize;
 	int nReceivedSize = 0;
 	int nTotalReceivedSize = 0;
 
-	if(enSentMessageType == MESSAGE_TYPE_READ_BUFFER || enSentMessageType == MESSAGE_TYPE_READ_QUEUE)
+	nBodySize = pstDataReceived->anMessageParam[RESULT_BODY_SIZE_INDEX];
+
+	if(pstDataReceived->nBodyBufLen < nBodySize)
 	{
-		nBodySize = pstDataReceived->anMessageParam[RESULT_BODY_SIZE_INDEX];
+		SAFEMEMFREE(pstDataReceived->pBodyData);
 
-		if(pstDataReceived->nBodyBufLen < nBodySize)
-		{
-			SAFEMEMFREE(pstDataReceived->pBodyData);
+		pstDataReceived->pBodyData = UC_malloc(nBodySize);
+		ERRMEMGOTO(pstDataReceived->pBodyData, result, _EXIT);
 
-			pstDataReceived->pBodyData = UC_malloc(nBodySize);
-			ERRMEMGOTO(pstDataReceived->pBodyData, result, _EXIT);
-
-			pstDataReceived->nBodyBufLen = nBodySize;
-		}
-
-		while(nTotalReceivedSize < nBodySize)
-		{
-			result = UCDynamicSocket_Receive(hSocket, RECEIVE_TIMEOUT, pstDataReceived->pBodyData + nTotalReceivedSize,
-											nBodySize - nTotalReceivedSize, &nReceivedSize);
-			ERRIFGOTO(result, _EXIT);
-
-			nTotalReceivedSize += nReceivedSize;
-		}
-
-		pstDataReceived->nBodyLen = nBodySize;
+		pstDataReceived->nBodyBufLen = nBodySize;
 	}
+
+	while(nTotalReceivedSize < nBodySize)
+	{
+		result = UCDynamicSocket_Receive(hSocket, RECEIVE_TIMEOUT, pstDataReceived->pBodyData + nTotalReceivedSize,
+										nBodySize - nTotalReceivedSize, &nReceivedSize);
+		ERRIFGOTO(result, _EXIT);
+
+		nTotalReceivedSize += nReceivedSize;
+	}
+
+	pstDataReceived->nBodyLen = nBodySize;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

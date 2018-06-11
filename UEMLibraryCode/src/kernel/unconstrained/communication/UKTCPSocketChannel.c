@@ -34,8 +34,21 @@ uem_result UKTCPSocketChannel_Clear(SChannel *pstChannel)
 
 	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
 
-	result = UKChannelMemory_Clear(pstChannel, pstTCPChannel->pstInternalChannel);
-	ERRIFGOTO(result, _EXIT);
+	switch(pstChannel->enType)
+	{
+	case COMMUNICATION_TYPE_TCP_CLIENT_READER:
+	case COMMUNICATION_TYPE_TCP_SERVER_READER:
+		// do nothing
+		break;
+	case COMMUNICATION_TYPE_TCP_CLIENT_WRITER:
+	case COMMUNICATION_TYPE_TCP_SERVER_WRITER:
+		result = UKChannelMemory_Clear(pstChannel, pstTCPChannel->pstInternalChannel);
+		ERRIFGOTO(result, _EXIT);
+		break;
+	default:
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		break;
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -94,7 +107,6 @@ _EXIT:
 }
 
 
-
 static uem_result handleReadBuffer(SChannel *pstChannel, int *panParam, int nParamNum, HUEMProtocol hProtocol)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -129,7 +141,6 @@ static uem_result handleReadBuffer(SChannel *pstChannel, int *panParam, int nPar
 _EXIT:
 	return result;
 }
-
 
 
 static uem_result handleAvailableIndex(SChannel *pstChannel, int *panParam, int nParamNum, HUEMProtocol hProtocol)
@@ -435,6 +446,9 @@ uem_result UKTCPSocketChannel_Initialize(SChannel *pstChannel)
 		result = createReceiverThread(pstChannel);
 		ERRIFGOTO(result, _EXIT);
 		break;
+	default:
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		break;
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -642,6 +656,7 @@ uem_result UKTCPSocketChannel_SetExit(SChannel *pstChannel, int nExitFlag)
 		ERRIFGOTO(result, _EXIT);
 		break;
 	default:
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 		break;
 	}
 
@@ -672,6 +687,7 @@ uem_result UKTCPSocketChannel_ClearExit(SChannel *pstChannel, int nExitFlag)
 		ERRIFGOTO(result, _EXIT);
 		break;
 	default:
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 		break;
 	}
 
@@ -718,6 +734,9 @@ uem_result UKTCPSocketChannel_Finalize(SChannel *pstChannel)
 
 		result = UKChannelMemory_Finalize(pstChannel, pstTCPChannel->pstInternalChannel);
 		ERRIFGOTO(result, _EXIT);
+		break;
+	default:
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 		break;
 	}
 
