@@ -36,7 +36,7 @@ API_SOURCES=$(API_DIR)/UFControl_deprecated.c\
 	$(API_DIR)/UFTimer.c
 
 KERNEL_DATA_SOURCES=$(KERNEL_DIR)/generated/uem_data.c\
-					$(KERNEL_DIR)/generated/uem_communication_data.c
+					$(KERNEL_DIR)/generated/uem_channel_data.c
 
 KERNEL_SOURCES=$(KERNEL_DIR)/UKChannel.c\
 	$(KERNEL_DIR)/UKProcessor.c\

@@ -182,25 +182,11 @@ public class CodeGenerator
 		makefileTemplate.process(makefileRootHash, out);
     }
     
-    private void generateUemDataCode(Device device, String topDirPath, ProgrammingLanguage language) throws TemplateNotFoundException, MalformedTemplateNameException, 
-    													freemarker.core.ParseException, IOException, TemplateException
+    private void generateKernelDataCode(CodeOrganizer codeOrganizer, Device device, String topDirPath, ProgrammingLanguage language) throws TemplateNotFoundException, MalformedTemplateNameException, 
+	freemarker.core.ParseException, IOException, TemplateException
     {
-    	Template uemDataTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_UEM_DATA);
-		// Create the root hash
-		Map<String, Object> uemDataRootHash = new HashMap<>();
-		String outputFilePath = topDirPath + File.separator + CodeOrganizer.KERNEL_GENERATED_DIR + File.separator;
-		if(device.getGpuSetupInfo().size() != 0){
-			outputFilePath += Constants.DEFAULT_UEM_DATA_CUDA;
-			
-		}
-		else if(language == ProgrammingLanguage.CPP){
-			outputFilePath += Constants.DEFAULT_UEM_DATA_CPP;
-		}
-		else
-		{
-			outputFilePath += Constants.DEFAULT_UEM_DATA_C;
-		}
-		
+    	Map<String, Object> uemDataRootHash = new HashMap<>();
+    	
 		// Put UEM data model
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TASK_MAP, device.getTaskMap());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TASK_GRAPH, device.getTaskGraphMap());
@@ -212,19 +198,25 @@ public class CodeGenerator
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_PORT_KEY_TO_INDEX, device.getPortKeyToIndex());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_EXECUTION_TIME, this.uemDatamodel.getApplication().getExecutionTime());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_LIBRARY_INFO, device.getLibraryMap());
-		if(device.getGpuSetupInfo().size() == 0)
-		{
-			uemDataRootHash.put(Constants.TEMPLATE_TAG_GPU_USED, false);
-		}
-		else
-		{
-			uemDataRootHash.put(Constants.TEMPLATE_TAG_GPU_USED, true);
-		}
-		
-		
-		Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
-		uemDataTemplate.process(uemDataRootHash, out);
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_GPU_USED, device.isGPUMapped());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_COMMUNICATION_USED, device.useCommunication());	
+    	
+    	for(String outputFileName : codeOrganizer.getKernelDataSourceList())
+    	{
+    		Template uemDataTemplate;
+    		String templateFileName;
+    		String outputFilePath = topDirPath + File.separator + CodeOrganizer.KERNEL_GENERATED_DIR + File.separator;
+    		
+    		// remove file extension of the file name (removes last dot and the following chars ex. abc.x.c => abc.x)
+    		templateFileName = outputFileName.replaceFirst("[.][^.]+$", "")  + Constants.TEMPLATE_FILE_EXTENSION;
+    		uemDataTemplate = this.templateConfig.getTemplate(templateFileName);
+    		outputFilePath += outputFileName;
+    		
+    		Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
+    		uemDataTemplate.process(uemDataRootHash, out);
+    	}
     }
+
     
     private void generateTaskCode(Device device, String topDirPath) throws TemplateNotFoundException, MalformedTemplateNameException, 
     												freemarker.core.ParseException, IOException, TemplateException
@@ -246,7 +238,7 @@ public class CodeGenerator
 	    			String outputFilePath = topDirPath + File.separator + CodeOrganizer.APPLICATION_DIR + File.separator + 
 	    									task.getName() +  Constants.TASK_NAME_FUNC_ID_SEPARATOR + loop;
 	    			
-	    			if(device.getGpuSetupInfo().size() == 0){
+	    			if(device.isGPUMapped() == false){
 	    				if(task.getLanguage() == ProgrammingLanguage.CPP) {
 	    					outputFilePath += Constants.CPP_FILE_EXTENSION;
 	    				}
@@ -321,7 +313,7 @@ public class CodeGenerator
 				codeOrganizer.copyApplicationCodes(this.mOutputPath, topSrcDir);
 				
 				generateMakefile(codeOrganizer, topSrcDir);
-				generateUemDataCode(device, topSrcDir, codeOrganizer.getLanguage());
+				generateKernelDataCode(codeOrganizer, device, topSrcDir, codeOrganizer.getLanguage());
 				generateTaskCode(device, topSrcDir);
 				generateLibraryCodes(device, topSrcDir);
 			}			

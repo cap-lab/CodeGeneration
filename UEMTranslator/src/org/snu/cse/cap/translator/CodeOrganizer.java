@@ -190,7 +190,7 @@ public class CodeOrganizer {
 		
 		for(index = 0; index < fileList.size() ; index++) {
 			fileName = fileList.get(index);
-			if(fileName.contains(".") == false) { // set file extension
+			if(fileName.contains(Constants.FILE_EXTENSION_SEPARATOR) == false) { // set file extension
 				fileList.set(index, fileName + fileExtension);
 			}
 			else {
@@ -455,7 +455,10 @@ public class CodeOrganizer {
 			
 			@Override
 			public boolean accept(File paramFile) {
-				if(paramFile.getAbsolutePath().contains(srcDir + File.separator + APPLICATION_DIR))
+				// add File.separator after the directory path to copy directory itself and avoid internal files
+				if(paramFile.getAbsolutePath().contains(srcDir + File.separator + APPLICATION_DIR + File.separator))
+					return false;
+				else if(paramFile.getAbsolutePath().contains(srcDir + File.separator + KERNEL_GENERATED_DIR + File.separator))
 					return false;
 				// skip object/executable/temporary/log files
 				else if(paramFile.getName().endsWith(".o") || paramFile.getName().endsWith(".log") || paramFile.getName().endsWith("~") || 
