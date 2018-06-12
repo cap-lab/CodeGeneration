@@ -115,41 +115,47 @@ SAvailableChunk g_astAvailableInputChunk_channel_${channel.index}[] = {
 // ##AVAILABLE_CHUNK_LIST_TEMPLATE::END
 
 <#if communication_used == true>
+// ##TCP_CLIENT_GENERATION_TEMPLATE::START
+STCPClientInfo g_astTCPClientInfo[] = {
+	<#list tcp_client_list as client>
+	{
+		"${client.IP}",
+		${client.port?c},
+	},
+	</#list>
+};
+// ##TCP_CLIENT_GENERATION_TEMPLATE::END
+
+
 // ##TCP_SERVER_GENERATION_TEMPLATE::START
-STCPInfo g_astTCPInfo[] = {
+STCPServerInfo g_astTCPServerInfo[] = {
+	<#list tcp_server_list as server>
 	{
-		7942,
+		${server.port?c},
 		(HSocket) NULL,
 		(HThread) NULL,
 	},
-	{
-		7952,
-		(HSocket) NULL,
-		(HThread) NULL,
-	},
+	</#list>
 };
 // ##TCP_SERVER_GENERATION_TEMPLATE::END
 
 // ##TCP_COMMUNICATION_GENERATION_TEMPLATE::START
 SExternalCommunicationInfo g_astExternalCommunicationInfo[] = {
+<#list channel_list as channel>
+	<#switch channel.communicationType>
+		<#case "TCP_CLIENT_WRITER">
+		<#case "TCP_CLIENT_READER">
+		<#case "TCP_SERVER_WRITER">
+		<#case "TCP_SERVER_READER">
 	{
-		18,
-		COMMUNICATION_TYPE_TCP_SERVER_READER,
+		${channel.index},
+		COMMUNICATION_TYPE_${channel.communicationType},
 		(HSocket) NULL,
 		(HUEMProtocol) NULL,
 	},
-	{
-		19,
-		COMMUNICATION_TYPE_TCP_CLIENT_READER,
-		(HSocket) NULL,
-		(HUEMProtocol) NULL,
-	},
-	{
-		20,
-		COMMUNICATION_TYPE_TCP_SERVER_WRITER,
-		(HSocket) NULL,
-		(HUEMProtocol) NULL,
-	},
+			<#break>
+	</#switch>
+</#list>
 };
 // ##TCP_COMMUNICATION_GENERATION_TEMPLATE::END
 </#if>
@@ -195,34 +201,32 @@ SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 // ##SPECIFIC_CHANNEL_LIST_TEMPLATE::START
 <#list channel_list as channel>
 
+<#switch channel.communicationType>
+	<#case "SHARED_MEMORY">
+	<#case "TCP_SERVER_WRITER">
+	<#case "TCP_CLIENT_WRITER">
+	<#case "CPU_GPU">
+	<#case "GPU_CPU">
+	<#case "GPU_GPU">
+	<#case "GPU_GPU_DIFFERENT">
 SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
-	<#switch channel.communicationType>
-		<#case "SHARED_MEMORY">		 
+		<#switch channel.communicationType>
+			<#case "SHARED_MEMORY">
+			<#case "TCP_CLIENT_WRITER">
+			<#case "TCP_SERVER_WRITER">
 		s_pChannel_${channel.index}_buffer, // Channel buffer pointer
 		s_pChannel_${channel.index}_buffer, // Channel data start
 		s_pChannel_${channel.index}_buffer, // Channel data end
-			<#break>
-		<#case "CPU_GPU">
-		<#case "GPU_CPU">
-		<#case "GPU_GPU">
-		<#case "GPU_GPU_DIFFERENT">
+				<#break>
+			<#case "CPU_GPU">
+			<#case "GPU_CPU">
+			<#case "GPU_GPU">
+			<#case "GPU_GPU_DIFFERENT">
 		NULL, // Channel buffer pointer
 		NULL, // Channel data start
 		NULL, // Channel data end
-			<#break>
-		<#case "TCP_CLIENT_WRITER">
-		<#case "TCP_CLIENT_READER">
-		s_pChannel_${channel.index}_buffer, // Channel buffer pointer
-		s_pChannel_${channel.index}_buffer, // Channel data start
-		s_pChannel_${channel.index}_buffer, // Channel data end
-			<#break>
-		<#case "TCP_SERVER_WRITER">
-		<#case "TCP_SERVER_READER">
-		s_pChannel_${channel.index}_buffer, // Channel buffer pointer
-		s_pChannel_${channel.index}_buffer, // Channel data start
-		s_pChannel_${channel.index}_buffer, // Channel data end
-			<#break>
-	</#switch>
+				<#break>
+		</#switch>
 		0, // Channel data length
 		0, // Read reference count
 		0, // Write reference count
@@ -246,40 +250,66 @@ SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 		${channel.inputPort.maximumChunkNum}, // maximum input port chunk size for all port sample rate cases
 		(SAvailableChunk *) NULL, // Chunk list head
 		(SAvailableChunk *) NULL, // Chunk list tail
-	<#switch channel.communicationType>
-		<#case "SHARED_MEMORY">		 
+		<#switch channel.communicationType>
+			<#case "SHARED_MEMORY">
+			<#case "TCP_CLIENT_WRITER">
+			<#case "TCP_SERVER_WRITER">
 		&g_stHostMemory, // Host memory access API
 		TRUE, // memory is statically allocated
-			<#break>
-		<#case "CPU_GPU">		 
+				<#break>
+			<#case "CPU_GPU">
 		&g_stHostToDeviceMemory, // Host memory access API
 		FALSE, // memory is statically allocated
-			<#break>
-		<#case "GPU_CPU">		 
+				<#break>
+			<#case "GPU_CPU">
 		&g_stDeviceToHostMemory, // Host memory access API
 		FALSE, // memory is statically allocated
-			<#break>
-		<#case "GPU_GPU">		 
+				<#break>
+			<#case "GPU_GPU">
 		&g_stDeviceItSelfMemory, // Host memory access API
 		FALSE, // memory is statically allocated
-			<#break>
-		<#case "GPU_GPU_DIFFERENT">		 
+				<#break>
+			<#case "GPU_GPU_DIFFERENT">
 		&g_stDeviceToDeviceMemory, // Host memory access API
 		FALSE, // memory is statically allocated
-			<#break>
+				<#break>
+		</#switch>
+};
+		<#break>
+	</#switch>
+
+	<#switch channel.communicationType>
 		<#case "TCP_CLIENT_WRITER">
 		<#case "TCP_CLIENT_READER">
-		&g_stHostMemory, // Host memory access API
-		TRUE, // memory is statically allocated
-			<#break>
 		<#case "TCP_SERVER_WRITER">
 		<#case "TCP_SERVER_READER">
-		&g_stHostMemory, // Host memory access API
-		TRUE, // memory is statically allocated
-			<#break>
-	</#switch>
+STCPSocketChannel g_stTCPSocketChannel_${channel.index} = {
+		<#switch channel.communicationType>
+			<#case "TCP_CLIENT_WRITER">
+			<#case "TCP_CLIENT_READER">
+	(STCPClientInfo *) &g_astTCPClientInfo[${channel.tcpClientIndex}], // STCPClientInfo *pstClientInfo;
+				<#break>
+			<#default>
+	(STCPClientInfo *) NULL, // STCPClientInfo *pstClientInfo;
+		</#switch>
+		break; 
+	(SExternalCommunicationInfo *) NULL, // SExternalCommunicationInfo *pstCommunicationInfo;
+	(HThread) NULL, // HThread hReceivingThread;
+	NULL, // char *pBuffer;
+	0, // int nBufLen;
+	(HThreadMutex) NULL, // HThreadMutex hMutex;
+	FALSE, // uem_bool bChannelExit;
+		<#switch channel.communicationType>
+			<#case "TCP_CLIENT_WRITER">
+			<#case "TCP_SERVER_WRITER">
+	&g_stSharedMemoryChannel_${channel.index}, // SSharedMemoryChannel *pstInternalChannel;
+				<#break>
+			<#default>
+	(SSharedMemoryChannel *) NULL, // SSharedMemoryChannel *pstInternalChannel;
+		</#switch>
 };
-
+		<#break>
+	</#switch>
 </#list>
 // ##SPECIFIC_CHANNEL_LIST_TEMPLATE::END
 
@@ -326,11 +356,9 @@ SChannel g_astChannels[] = {
 			<#break>
 		<#case "TCP_CLIENT_WRITER">
 		<#case "TCP_CLIENT_READER">
-		NULL,
-			<#break>
 		<#case "TCP_SERVER_WRITER">
 		<#case "TCP_SERVER_READER">
-		NULL,
+		&g_stTCPSocketChannel_${channel.index}, // specific TCP socket channel structure pointer
 			<#break>
 	</#switch>
 	},
@@ -340,5 +368,9 @@ SChannel g_astChannels[] = {
 
 
 int g_nChannelNum = ARRAYLEN(g_astChannels);
-
-
+<#if (tcp_server_list?size > 0) >
+int g_nTCPServerInfoNum = ARRAYLEN(g_astTCPServerInfo);
+</#if>
+<#if communication_used == true>
+int g_nExternalCommunicationInfoNum = ARRAYLEN(g_astExternalCommunicationInfo);
+</#if>

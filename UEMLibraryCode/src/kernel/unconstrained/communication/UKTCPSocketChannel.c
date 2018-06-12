@@ -406,6 +406,7 @@ uem_result UKTCPSocketChannel_Initialize(SChannel *pstChannel)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STCPSocketChannel *pstTCPChannel = NULL;
+	int nLoop = 0;
 
 	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
 
@@ -416,6 +417,18 @@ uem_result UKTCPSocketChannel_Initialize(SChannel *pstChannel)
 	//pstTCPChannel->pstClientInfo;
 	result = UCThreadMutex_Create(&(pstTCPChannel->hMutex));
 	ERRIFGOTO(result, _EXIT);
+
+	if(pstTCPChannel->pstCommunicationInfo == NULL)
+	{
+		for(nLoop = 0 ; nLoop < g_nExternalCommunicationInfoNum; nLoop++)
+		{
+			if(g_astExternalCommunicationInfo[nLoop].nChannelId == pstChannel->nChannelIndex)
+			{
+				pstTCPChannel->pstCommunicationInfo = &g_astExternalCommunicationInfo[nLoop];
+				break;
+			}
+		}
+	}
 
 	switch(pstChannel->enType)
 	{

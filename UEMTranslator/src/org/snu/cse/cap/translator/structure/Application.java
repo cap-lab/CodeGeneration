@@ -562,7 +562,53 @@ public class Application {
 		return dstTaskCommunicationType;
 	}
 	
-	private void addChannelAndPortInfoToDevice(Channel channel, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo) throws CloneNotSupportedException
+	private void findAndSetTCPClientIndex(Channel channel, Device srcDevice, Device dstDevice) throws InvalidDeviceConnectionException
+	{
+		DeviceConnection srcTaskConnection = this.deviceConnectionList.get(srcDevice.getName());
+		DeviceConnection dstTaskConnection = this.deviceConnectionList.get(dstDevice.getName());
+		ConnectionPair connectionPair = null;
+		Device targetDevice;
+		TCPConnection connection;
+		int index = 0;
+		
+		if(channel.getCommunicationType() == CommunicationType.TCP_CLIENT_WRITER)
+		{
+			targetDevice = srcDevice;
+		}
+		else if(channel.getCommunicationType() == CommunicationType.TCP_CLIENT_READER)
+		{
+			targetDevice = dstDevice;
+		}
+		else {
+			throw new InvalidDeviceConnectionException();
+		}
+		
+		if(srcTaskConnection != null) {// source is master
+			connectionPair = srcTaskConnection.findOneConnectionToAnotherDevice(dstDevice.getName());
+		}
+		else if(dstTaskConnection != null) {// destination is master
+			connectionPair = dstTaskConnection.findOneConnectionToAnotherDevice(srcDevice.getName());
+		}
+		else {
+			throw new InvalidDeviceConnectionException();
+		}
+				
+		connection = (TCPConnection) connectionPair.getSlaveConnection();
+		
+		for(index = 0 ; index < targetDevice.getTcpClientList().size(); index++)
+		{
+			TCPConnection tcpConnection = targetDevice.getTcpClientList().get(index);
+			
+			if(tcpConnection.getIP().equals(connection.getIP()) == true && tcpConnection.getPort() == connection.getPort())
+			{
+				// same IP and port
+				channel.setTcpClientIndex(index);
+				break;
+			}
+		}
+	}
+	
+	private void addChannelAndPortInfoToDevice(Channel channel, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo) throws CloneNotSupportedException, InvalidDeviceConnectionException
 	{
 		Device srcDevice = this.deviceInfo.get(srcTaskMappingInfo.getMappedDeviceName());
 		Device dstDevice = this.deviceInfo.get(dstTaskMappingInfo.getMappedDeviceName());
@@ -573,16 +619,28 @@ public class Application {
 		putPortIntoDeviceHierarchically(srcDevice, channel.getInputPort(), PortDirection.INPUT);
 		putPortIntoDeviceHierarchically(srcDevice, channel.getOutputPort(), PortDirection.OUTPUT);
 		
+		
+		
+		if(channel.getCommunicationType() == CommunicationType.TCP_CLIENT_WRITER)
+		{
+			findAndSetTCPClientIndex(channel, srcDevice, dstDevice);
+		}
+		
 		srcDevice.getChannelList().add(channel);
 		
 		// if src and dst is different put same information to dst device
-		if(!srcTaskMappingInfo.getMappedDeviceName().equals(dstTaskMappingInfo.getMappedDeviceName()))
+		if(srcTaskMappingInfo.getMappedDeviceName().equals(dstTaskMappingInfo.getMappedDeviceName()) == false)
 		{
 			Channel channelInDevice = channel.clone();
 			putPortIntoDeviceHierarchically(dstDevice, channel.getInputPort(), PortDirection.INPUT);
 			putPortIntoDeviceHierarchically(dstDevice, channel.getOutputPort(), PortDirection.OUTPUT);
 			
 			channelInDevice.setCommunicationType(getDstTaskCommunicationType(channel.getCommunicationType()));
+			
+			if(channelInDevice.getCommunicationType() == CommunicationType.TCP_CLIENT_READER)
+			{				
+				findAndSetTCPClientIndex(channelInDevice, srcDevice, dstDevice);
+			}
 			
 			dstDevice.getChannelList().add(channelInDevice);
 		}
@@ -946,7 +1004,7 @@ public class Application {
 		// set source task of composite task which can be checked after setting channel information
 		for(Device device: this.deviceInfo.values())
 		{
-			device.setSrcTaskOfMTM();	
+			device.setSrcTaskOfMTM();
 		}
 		
 		makeSDFTaskIterationCount();

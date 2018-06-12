@@ -25,11 +25,11 @@ extern "C"
 {
 #endif
 
-typedef struct _STCPInfo {
+typedef struct _STCPServerInfo {
 	int nPort;
 	HSocket hServerSocket;
 	HThread hServerThread;
-} STCPInfo;
+} STCPServerInfo;
 
 typedef struct _STCPClientInfo {
 	const char *pszIPAddress;
@@ -59,9 +59,9 @@ typedef struct _STCPSocketChannel {
 } STCPSocketChannel;
 
 
-extern STCPInfo g_astTCPInfo[];
+extern STCPServerInfo g_astTCPServerInfo[];
 extern SExternalCommunicationInfo g_astExternalCommunicationInfo[];
-extern int g_nTCPInfoNum;
+extern int g_nTCPServerInfoNum;
 extern int g_nExternalCommunicationInfoNum;
 
 #ifdef __cplusplus

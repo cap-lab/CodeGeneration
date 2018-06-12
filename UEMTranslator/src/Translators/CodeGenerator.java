@@ -199,8 +199,10 @@ public class CodeGenerator
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_EXECUTION_TIME, this.uemDatamodel.getApplication().getExecutionTime());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_LIBRARY_INFO, device.getLibraryMap());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_GPU_USED, device.isGPUMapped());
-		uemDataRootHash.put(Constants.TEMPLATE_TAG_COMMUNICATION_USED, device.useCommunication());	
-    	
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_COMMUNICATION_USED, device.useCommunication());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_TCP_CLIENT_LIST, device.getTcpClientList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_TCP_SERVER_LIST, device.getTcpServerList());
+		
     	for(String outputFileName : codeOrganizer.getKernelDataSourceList())
     	{
     		Template uemDataTemplate;

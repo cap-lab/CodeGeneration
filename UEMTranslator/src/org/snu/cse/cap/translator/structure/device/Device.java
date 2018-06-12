@@ -14,7 +14,9 @@ import org.snu.cse.cap.translator.structure.ExecutionPolicy;
 import org.snu.cse.cap.translator.structure.channel.Channel;
 import org.snu.cse.cap.translator.structure.channel.Port;
 import org.snu.cse.cap.translator.structure.device.connection.Connection;
+import org.snu.cse.cap.translator.structure.device.connection.ConnectionType;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
+import org.snu.cse.cap.translator.structure.device.connection.TCPConnection;
 import org.snu.cse.cap.translator.structure.gpu.TaskGPUSetupInfo;
 import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.library.LibraryConnection;
@@ -69,6 +71,8 @@ public class Device {
 	private ArrayList<Port> portList;
 	private HashMap<String, Library> libraryMap;
 	private HashMap<String, Integer> portKeyToIndex;  //Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
+	private ArrayList<TCPConnection> tcpServerList;
+	private ArrayList<TCPConnection> tcpClientList;
 	
 	public Device(String name, String architecture, String platform, String runtime) 
 	{
@@ -78,7 +82,6 @@ public class Device {
 		this.runtime = RuntimeType.fromValue(runtime);
 		this.processorList = new ArrayList<Processor>();
 		this.connectionList = new HashMap<String, Connection>();
-		
 	
 		this.channelList = new ArrayList<Channel>();
 		this.taskMap = new HashMap<String, Task>();
@@ -89,6 +92,8 @@ public class Device {
 		this.libraryMap = new HashMap<String, Library>();
 		this.portList = new ArrayList<Port>();
 		this.portKeyToIndex = new HashMap<String, Integer>();
+		this.tcpServerList = new ArrayList<TCPConnection>();
+		this.tcpClientList = new ArrayList<TCPConnection>();
 	}
 	
 	private class TaskFuncIdChecker 
@@ -992,6 +997,18 @@ public class Device {
 	public void putConnection(Connection connection) 
 	{
 		this.connectionList.put(connection.getName(), connection);
+		
+		if(connection.getType() == ConnectionType.TCP)
+		{
+			if(connection.getRole().equalsIgnoreCase(TCPConnection.ROLE_SERVER) == true)
+			{
+				this.tcpServerList.add((TCPConnection) connection);
+			}
+			else
+			{
+				this.tcpClientList.add((TCPConnection) connection);	
+			}
+		}
 	}
 	
 	public Connection getConnection(String connectionName) throws InvalidDeviceConnectionException 
@@ -1076,5 +1093,17 @@ public class Device {
 
 	public HashMap<String, TaskGPUSetupInfo> getGpuSetupInfo() {
 		return gpuSetupInfo;
+	}
+
+	public HashMap<String, Connection> getConnectionList() {
+		return connectionList;
+	}
+
+	public ArrayList<TCPConnection> getTcpServerList() {
+		return tcpServerList;
+	}
+
+	public ArrayList<TCPConnection> getTcpClientList() {
+		return tcpClientList;
 	}
 }

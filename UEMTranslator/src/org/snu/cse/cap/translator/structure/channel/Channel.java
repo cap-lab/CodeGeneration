@@ -15,6 +15,7 @@ public class Channel implements Cloneable {
 	private int initialDataLen;
 	private int nextChannelIndex;
 	private int channelSampleSize;
+	private int tcpClientIndex;
 	
 	public Channel(int index, int size, int initialDataLen, int sampleSize) {
 		this.size = size;
@@ -23,6 +24,7 @@ public class Channel implements Cloneable {
 		this.initialDataLen = initialDataLen;
 		this.nextChannelIndex = Constants.INVALID_ID_VALUE;
 		this.channelSampleSize = sampleSize;
+		this.tcpClientIndex = Constants.INVALID_ID_VALUE;
 	}
 	
 	// Does not need to clone inputPort and outputPort  
@@ -40,6 +42,7 @@ public class Channel implements Cloneable {
 		channel.initialDataLen = this.initialDataLen;
 		channel.nextChannelIndex = this.nextChannelIndex;
 		channel.channelSampleSize = this.channelSampleSize;
+		channel.tcpClientIndex = this.tcpClientIndex;
 		
 		return channel;
 	}
@@ -134,5 +137,13 @@ public class Channel implements Cloneable {
 
 	public int getChannelSampleSize() {
 		return channelSampleSize;
+	}
+
+	public int getTcpClientIndex() {
+		return tcpClientIndex;
+	}
+
+	public void setTcpClientIndex(int tcpClientIndex) {
+		this.tcpClientIndex = tcpClientIndex;
 	}
 }

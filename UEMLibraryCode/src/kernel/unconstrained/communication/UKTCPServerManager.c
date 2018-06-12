@@ -108,7 +108,7 @@ _EXIT:
 
 static void *tcpServerThread(void *pData)
 {
-	STCPInfo *pstInfo = (STCPInfo *) pData;
+	STCPServerInfo *pstInfo = (STCPServerInfo *) pData;
 	HSocket hClientSocket = NULL;
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSocketInfo stSocketInfo;
@@ -158,28 +158,28 @@ uem_result UKTCPServerManager_Initialize()
 	int nLoop = 0;
 	SSocketInfo stSocketInfo;
 
-	for(nLoop = 0 ; nLoop < g_nTCPInfoNum ; nLoop++)
+	for(nLoop = 0 ; nLoop < g_nTCPServerInfoNum ; nLoop++)
 	{
 		stSocketInfo.enSocketType = SOCKET_TYPE_TCP;
-		stSocketInfo.nPort = g_astTCPInfo[nLoop].nPort;
+		stSocketInfo.nPort = g_astTCPServerInfo[nLoop].nPort;
 		stSocketInfo.pszSocketPath = NULL;
 
-		result = UCDynamicSocket_Create(&stSocketInfo, TRUE, &(g_astTCPInfo[nLoop].hServerSocket));
+		result = UCDynamicSocket_Create(&stSocketInfo, TRUE, &(g_astTCPServerInfo[nLoop].hServerSocket));
 		ERRIFGOTO(result, _EXIT);
 	}
 
-	for(nLoop = 0 ; nLoop < g_nTCPInfoNum ; nLoop++)
+	for(nLoop = 0 ; nLoop < g_nTCPServerInfoNum ; nLoop++)
 	{
-		result = UCDynamicSocket_Bind(g_astTCPInfo[nLoop].hServerSocket);
+		result = UCDynamicSocket_Bind(g_astTCPServerInfo[nLoop].hServerSocket);
 		ERRIFGOTO(result, _EXIT);
 
-		result = UCDynamicSocket_Listen(g_astTCPInfo[nLoop].hServerSocket);
+		result = UCDynamicSocket_Listen(g_astTCPServerInfo[nLoop].hServerSocket);
 		ERRIFGOTO(result, _EXIT);
 	}
 
-	for(nLoop = 0 ; nLoop < g_nTCPInfoNum ; nLoop++)
+	for(nLoop = 0 ; nLoop < g_nTCPServerInfoNum ; nLoop++)
 	{
-		result = UCThread_Create(tcpServerThread, &g_astTCPInfo[nLoop], &(g_astTCPInfo[nLoop].hServerThread));
+		result = UCThread_Create(tcpServerThread, &g_astTCPServerInfo[nLoop], &(g_astTCPServerInfo[nLoop].hServerThread));
 		ERRIFGOTO(result, _EXIT);
 	}
 
@@ -194,15 +194,15 @@ uem_result UKTCPServerManager_Finalize()
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nLoop = 0;
 
-	for(nLoop = 0 ; nLoop < g_nTCPInfoNum ; nLoop++)
+	for(nLoop = 0 ; nLoop < g_nTCPServerInfoNum ; nLoop++)
 	{
-		result = UCThread_Destroy(&(g_astTCPInfo[nLoop].hServerThread), FALSE, SERVER_THREAD_DESTROY_TIMEOUT);
+		result = UCThread_Destroy(&(g_astTCPServerInfo[nLoop].hServerThread), FALSE, SERVER_THREAD_DESTROY_TIMEOUT);
 		ERRIFGOTO(result, _EXIT);
 	}
 
-	for(nLoop = 0 ; nLoop < g_nTCPInfoNum ; nLoop++)
+	for(nLoop = 0 ; nLoop < g_nTCPServerInfoNum ; nLoop++)
 	{
-		result = UCDynamicSocket_Destroy(&(g_astTCPInfo[nLoop].hServerSocket));
+		result = UCDynamicSocket_Destroy(&(g_astTCPServerInfo[nLoop].hServerSocket));
 		ERRIFGOTO(result, _EXIT);
 	}
 

@@ -55,6 +55,8 @@ public class Constants {
 	
 	public static final String TEMPLATE_TAG_GPU_USED = "gpu_used";
 	public static final String TEMPLATE_TAG_COMMUNICATION_USED = "communication_used";
+	public static final String TEMPLATE_TAG_TCP_SERVER_LIST = "tcp_server_list";
+	public static final String TEMPLATE_TAG_TCP_CLIENT_LIST = "tcp_client_list";
 	
 	// tags for Makefile.ftl
 	public static final String TEMPLATE_TAG_BUILD_INFO = "build_info";
