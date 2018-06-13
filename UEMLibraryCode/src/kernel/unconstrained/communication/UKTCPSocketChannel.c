@@ -12,6 +12,7 @@
 
 #include <uem_common.h>
 
+#include <UCTime.h>
 #include <UCBasic.h>
 #include <UCThreadMutex.h>
 
@@ -21,6 +22,8 @@
 #include <UKTask.h>
 
 #include <UKUEMProtocol.h>
+
+#include <uem_tcp_data.h>
 
 
 #define CONNECT_TIMEOUT (3)
@@ -74,7 +77,7 @@ _EXIT:
 
 
 
-static uem_result handleReadQueue(SChannel *pstChannel, int *panParam, int nParamNum)
+static uem_result handleReadQueue(SChannel *pstChannel, int *panParam, int nParamNum, HUEMProtocol hProtocol)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STCPSocketChannel *pstTCPChannel = NULL;
@@ -98,7 +101,10 @@ static uem_result handleReadQueue(SChannel *pstChannel, int *panParam, int nPara
 	result = reallocTempBuffer(pstTCPChannel, nDataToRead);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UKChannelMemory_ReadFromQueue(pstChannel, pstTCPChannel->pstInternalChannel, pstTCPChannel->pBuffer, nDataToRead, nChunkIndex, &nDataRead);
+	result = UKChannelMemory_ReadFromQueue(pstChannel, pstTCPChannel->pstInternalChannel, (unsigned char *)pstTCPChannel->pBuffer, nDataToRead, nChunkIndex, &nDataRead);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKUEMProtocol_SetResultMessageWithBuffer(hProtocol, ERR_UEMPROTOCOL_NOERROR, nDataRead, pstTCPChannel->pBuffer);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -131,7 +137,7 @@ static uem_result handleReadBuffer(SChannel *pstChannel, int *panParam, int nPar
 	result = reallocTempBuffer(pstTCPChannel, nDataToRead);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UKChannelMemory_ReadFromBuffer(pstChannel, pstTCPChannel->pstInternalChannel, pstTCPChannel->pBuffer, nDataToRead, nChunkIndex, &nDataRead);
+	result = UKChannelMemory_ReadFromBuffer(pstChannel, pstTCPChannel->pstInternalChannel, (unsigned char *)pstTCPChannel->pBuffer, nDataToRead, nChunkIndex, &nDataRead);
 	ERRIFGOTO(result, _EXIT);
 
 	result = UKUEMProtocol_SetResultMessageWithBuffer(hProtocol, ERR_UEMPROTOCOL_NOERROR, nDataRead, pstTCPChannel->pBuffer);
@@ -159,7 +165,7 @@ static uem_result handleAvailableIndex(SChannel *pstChannel, int *panParam, int 
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 	}
 
-	result = UKChannelMemory_GetAvailableChunk(pstChannel, pstTCPChannel->pstInternalChannel, pstTCPChannel->pBuffer, &nChunkIndex);
+	result = UKChannelMemory_GetAvailableChunk(pstChannel, pstTCPChannel->pstInternalChannel, &nChunkIndex);
 	ERRIFGOTO(result, _EXIT);
 
 	result = UKUEMProtocol_SetResultMessage(hProtocol, ERR_UEMPROTOCOL_NOERROR, nChunkIndex);
@@ -208,12 +214,6 @@ static uem_result handleRequestFromReader(HUEMProtocol hProtocol, SChannel *pstC
 	EMessageType enMessageType = MESSAGE_TYPE_NONE;
 	int nParamNum = 0;
 	int *panParam = NULL;
-	STCPSocketChannel *pstTCPChannel = NULL;
-	int nDataToRead = 0;
-	int nChunkIndex = 0;
-	int nDataRead = 0;
-
-	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
 
 	result = UKUEMProtocol_GetRequestFromReceivedData(hProtocol, &enMessageType, &nParamNum, &panParam);
 	ERRIFGOTO(result, _EXIT);
@@ -320,7 +320,7 @@ _EXIT:
 }
 
 
-static disconnectToServer(STCPSocketChannel *pstTCPChannel)
+static uem_result disconnectToServer(STCPSocketChannel *pstTCPChannel)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
@@ -350,7 +350,7 @@ static uem_result connectToServer(STCPSocketChannel *pstTCPChannel)
 
 	stSocketInfo.enSocketType = SOCKET_TYPE_TCP;
 	stSocketInfo.nPort = pstTCPChannel->pstClientInfo->nPort;
-	stSocketInfo.pszSocketPath = pstTCPChannel->pstClientInfo->pszIPAddress;
+	stSocketInfo.pszSocketPath = (char *) pstTCPChannel->pstClientInfo->pszIPAddress;
 
 	result = UCDynamicSocket_Create(&stSocketInfo, FALSE, &hSocket);
 	ERRIFGOTO(result, _EXIT);
@@ -548,7 +548,7 @@ uem_result UKTCPSocketChannel_ReadFromBuffer(SChannel *pstChannel, IN OUT unsign
 	result = UKUEMProtocol_SetReadBufferRequest(hProtocol, nChunkIndex, nDataToRead);
 	ERRIFGOTO(result, _EXIT);
 
-	result = sendAndCheckResult(hProtocol, NULL);
+	result = sendAndCheckResult(pstTCPChannel, hProtocol, NULL);
 	ERRIFGOTO(result, _EXIT);
 
 	result = UKUEMProtocol_GetBodyDataFromReceivedData(hProtocol, &nDataRead, &pBody);
@@ -579,7 +579,7 @@ uem_result UKTCPSocketChannel_GetAvailableChunk (SChannel *pstChannel, OUT int *
 	result = UKUEMProtocol_SetAvailableIndexRequest(hProtocol);
 	ERRIFGOTO(result, _EXIT);
 
-	result = sendAndCheckResult(hProtocol, &nAvailableIndex);
+	result = sendAndCheckResult(pstTCPChannel, hProtocol, &nAvailableIndex);
 	ERRIFGOTO(result, _EXIT);
 
 	*pnChunkIndex = nAvailableIndex;
@@ -603,7 +603,7 @@ uem_result UKTCPSocketChannel_GetNumOfAvailableData (SChannel *pstChannel, IN in
 	result = UKUEMProtocol_SetAvailableDataRequest(hProtocol, nChunkIndex);
 	ERRIFGOTO(result, _EXIT);
 
-	result = sendAndCheckResult(hProtocol, &nDataNum);
+	result = sendAndCheckResult(pstTCPChannel, hProtocol, &nDataNum);
 	ERRIFGOTO(result, _EXIT);
 
 	*pnDataNum = nDataNum;

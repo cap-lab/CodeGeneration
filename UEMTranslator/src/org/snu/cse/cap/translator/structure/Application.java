@@ -599,9 +599,9 @@ public class Application {
 		{
 			TCPConnection tcpConnection = targetDevice.getTcpClientList().get(index);
 			
-			if(tcpConnection.getIP().equals(connection.getIP()) == true && tcpConnection.getPort() == connection.getPort())
+			if(tcpConnection.getName().equals(connection.getName()) == true)
 			{
-				// same IP and port
+				// same connection name
 				channel.setTcpClientIndex(index);
 				break;
 			}
@@ -618,8 +618,6 @@ public class Application {
 		// src and dst is same device
 		putPortIntoDeviceHierarchically(srcDevice, channel.getInputPort(), PortDirection.INPUT);
 		putPortIntoDeviceHierarchically(srcDevice, channel.getOutputPort(), PortDirection.OUTPUT);
-		
-		
 		
 		if(channel.getCommunicationType() == CommunicationType.TCP_CLIENT_WRITER)
 		{

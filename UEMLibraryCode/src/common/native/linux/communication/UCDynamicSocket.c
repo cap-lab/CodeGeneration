@@ -220,7 +220,7 @@ uem_result UCDynamicSocket_Bind(HSocket hServerSocket)
 
         UC_memset(&stServerAddr, 0, sizeof(stServerAddr));
         stServerAddr.sun_family = AF_UNIX;
-        nLen = MIN(MAX_SUN_PATH-1, CAPString_Length(&(pstSocket->stSocketPath)));
+        nLen = MIN(MAX_SUN_PATH-1, UCString_Length(&(pstSocket->stSocketPath)));
 
         UC_memcpy(stServerAddr.sun_path, pstSocket->pszSocketPath, nLen);
         stServerAddr.sun_path[nLen] = '\0';
@@ -455,7 +455,7 @@ uem_result UCDynamicSocket_Connect(HSocket hClientSocket, IN int nTimeout)
 
         UC_memset(&stClientAddr, 0, sizeof(stClientAddr));
         stClientAddr.sun_family = AF_UNIX;
-        nLen = MIN(MAX_SUN_PATH-1, CAPString_Length(&(pstSocket->stSocketPath)));
+        nLen = MIN(MAX_SUN_PATH-1, UCString_Length(&(pstSocket->stSocketPath)));
 
         UC_memcpy(stClientAddr.sun_path, pstSocket->pszSocketPath, nLen);
         stClientAddr.sun_path[nLen] = '\0';

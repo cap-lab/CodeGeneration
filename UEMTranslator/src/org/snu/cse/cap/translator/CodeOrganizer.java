@@ -152,7 +152,7 @@ public class CodeOrganizer {
 	}
 	
 	
-	private void addSourceFileFromSourceString(String sourceFileString, ArrayList<String> list)
+	private void addSourceFileFromSourceString(String prefix, String sourceFileString, ArrayList<String> list)
 	{
 		if(sourceFileString != null && sourceFileString.length() > 0)
 		{
@@ -160,7 +160,7 @@ public class CodeOrganizer {
 			
 			for(String sourceFile : sourceFileList)
 			{
-				list.add(sourceFile);
+				list.add(prefix + sourceFile);
 			}
 		}
 	}
@@ -169,7 +169,7 @@ public class CodeOrganizer {
 		String sourceFileString = translatorProperties.getProperty(key);
 		String peripheralKey;
 		
-		addSourceFileFromSourceString(sourceFileString, list);
+		addSourceFileFromSourceString("", sourceFileString, list);
 				
 		for(String peripheralName: this.usedPeripheralList)
 		{
@@ -178,7 +178,7 @@ public class CodeOrganizer {
 			
 			if(sourceFileString != null)
 			{
-				addSourceFileFromSourceString(peripheralName + MAKEFILE_PATH_SEPARATOR + sourceFileString, list);	
+				addSourceFileFromSourceString(peripheralName + MAKEFILE_PATH_SEPARATOR, sourceFileString, list);	
 			}
 		}
 	}

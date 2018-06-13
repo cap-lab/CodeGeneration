@@ -292,7 +292,6 @@ STCPSocketChannel g_stTCPSocketChannel_${channel.index} = {
 			<#default>
 	(STCPClientInfo *) NULL, // STCPClientInfo *pstClientInfo;
 		</#switch>
-		break; 
 	(SExternalCommunicationInfo *) NULL, // SExternalCommunicationInfo *pstCommunicationInfo;
 	(HThread) NULL, // HThread hReceivingThread;
 	NULL, // char *pBuffer;
@@ -368,9 +367,11 @@ SChannel g_astChannels[] = {
 
 
 int g_nChannelNum = ARRAYLEN(g_astChannels);
+<#if communication_used == true>
 <#if (tcp_server_list?size > 0) >
 int g_nTCPServerInfoNum = ARRAYLEN(g_astTCPServerInfo);
+<#else>
+int g_nTCPServerInfoNum = 0;
 </#if>
-<#if communication_used == true>
 int g_nExternalCommunicationInfoNum = ARRAYLEN(g_astExternalCommunicationInfo);
 </#if>
