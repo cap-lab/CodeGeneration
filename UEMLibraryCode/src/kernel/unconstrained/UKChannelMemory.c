@@ -56,13 +56,18 @@ static uem_result setChunkNumAndLen(SPort *pstPort, SChunkInfo *pstChunkInfo)
 	else
 	{
 		result = UKTask_GetTaskFromTaskId(pstPort->nTaskId, &pstCurTask);
+		if(result == ERR_UEM_NO_DATA)
+		{
+			result = ERR_UEM_NOERROR;
+		}
 		ERRIFGOTO(result, _EXIT);
 
-		if(pstCurTask->pstLoopInfo == NULL) // general task
+		// If the task id cannot be obtained by "UKTask_GetTaskFromTaskId",
+		// it means the information is missing because of remote communication, so set as a general task information
+		if(pstCurTask == NULL || pstCurTask->pstLoopInfo == NULL) // general task
 		{
 			pstChunkInfo->nChunkNum = 1;
 			pstChunkInfo->nChunkLen = nOuterMostSampleRate * pstPort->nSampleSize;
-
 		}
 		else if(pstCurTask->pstLoopInfo->enType == LOOP_TYPE_DATA &&
 			pstPort->astSampleRates[nCurrentSampleRateIndex].nMaxAvailableDataNum == 1)

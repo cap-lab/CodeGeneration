@@ -84,6 +84,82 @@ typedef struct _SSharedMemoryChannel {
 } SSharedMemoryChannel;
 
 
+typedef struct _SPortSampleRate {
+	const char *pszModeName; // Except MTM, all mode name becomes "Default"
+	int nSampleRate; // sample rate (for general task, nSampleRate and nTotalSampleRate are same)
+	int nMaxAvailableDataNum; // for broadcast loop
+} SPortSampleRate;
+
+typedef struct _SPort SPort;
+
+// nBufSize /  (nTotalSampleRate *nSampleSize) => number of loop queue?
+
+typedef struct _SPort {
+	int nTaskId;
+	const char *pszPortName;
+	EPortSampleRateType enSampleRateType;
+	SPortSampleRate *astSampleRates; // If the task is MTM, multiple sample rates can be existed.
+	int nNumOfSampleRates;
+	int nCurrentSampleRateIndex;
+	int nSampleSize;
+	EPortType enPortType;
+	SPort *pstSubGraphPort;
+} SPort;
+
+
+/*
+typedef struct _SPortMap {
+	int nTaskId;
+	char *pszPortName;
+	int nChildTaskId;
+	char *pszChildTaskPortName;
+	EPortDirection enPortDirection;
+	EPortMapType enPortMapType;
+} SPortMap;
+*/
+
+typedef struct _SChannel {
+	int nChannelIndex;
+	int nNextChannelIndex;
+	ECommunicationType enType;
+	EChannelType enChannelType;
+	int nBufSize;
+	SPort stInputPort;
+	SPort stOutputPort;
+	int nInitialDataLen;
+	void *pChannelStruct;
+} SChannel;
+
+
+typedef uem_result (*FnChannelAPIInitialize)();
+typedef uem_result (*FnChannelAPIFinalize)();
+typedef uem_result (*FnChannelInitialize)(SChannel *pstChannel);
+typedef uem_result (*FnChannelReadFromQueue)(SChannel *pstChannel, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead);
+typedef uem_result (*FnChannelReadFromBuffer)(SChannel *pstChannel, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead);
+typedef uem_result (*FnChannelWriteToBuffer)(SChannel *pstChannel, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten);
+typedef uem_result (*FnChannelWriteToQueue)(SChannel *pstChannel, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten);
+typedef uem_result (*FnChannelGetAvailableChunk)(SChannel *pstChannel, OUT int *pnChunkIndex);
+typedef uem_result (*FnChannelGetNumOfAvailableData)(SChannel *pstChannel, IN int nChunkIndex, OUT int *pnDataNum);
+typedef uem_result (*FnChannelClear)(SChannel *pstChannel);
+typedef uem_result (*FnChannelSetExit)(SChannel *pstChannel, int nExitFlag);
+typedef uem_result (*FnChannelClearExit)(SChannel *pstChannel, int nExitFlag);
+typedef uem_result (*FnChannelFinalize)(SChannel *pstChannel);
+
+typedef struct _SChannelAPI {
+	FnChannelInitialize fnInitialize;
+	FnChannelReadFromQueue fnReadFromQueue;
+	FnChannelReadFromBuffer fnReadFromBuffer;
+	FnChannelWriteToQueue fnWriteToQueue;
+	FnChannelWriteToBuffer fnWriteToBuffer;
+	FnChannelGetAvailableChunk fnGetAvailableChunk;
+	FnChannelGetNumOfAvailableData fnGetNumOfAvailableData;
+	FnChannelClear fnClear;
+	FnChannelSetExit fnSetExit;
+	FnChannelClearExit fnClearExit;
+	FnChannelFinalize fnFinalize;
+	FnChannelAPIInitialize fnAPIInitialize;
+	FnChannelAPIFinalize fnAPIFinalize;
+} SChannelAPI;
 
 
 #ifdef __cplusplus

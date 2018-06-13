@@ -29,6 +29,7 @@
 #define HEADER_KEY_SIZE (4)
 #define MESSAGE_PACKET_SIZE (2)
 #define MESSAGE_PARAMETER_SIZE (4)
+#define HANDSHAKE_RETRY_COUNT (3)
 
 typedef struct _SUEMProtocolData {
 	unsigned int unKey;
@@ -82,7 +83,7 @@ _EXIT:
 
 inline static uem_bool intToLittleEndianChar(int nValue, char *pBuffer, int nBufferLen)
 {
-    if(nBufferLen < sizeof(int) && sizeof(int) != sizeof(long))
+    if(nBufferLen < sizeof(int))
     {
         return FALSE;
     }
@@ -120,7 +121,7 @@ inline static uem_bool shortToLittleEndianChar(short sValue, char *pBuffer, int 
 
 inline static uem_bool littleEndianCharToSystemInt(char *pBuffer, int nBufferLen, int *pnValue)
 {
-    if(nBufferLen < sizeof(int) && sizeof(int) != sizeof(long))
+    if(nBufferLen < sizeof(int))
     {
         return FALSE;
     }
@@ -340,6 +341,7 @@ uem_result UKUEMProtocol_HandShake(HUEMProtocol hProtocol, unsigned int unDevice
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _SUEMProtocol *pstProtocol = NULL;
 	int nRetValue = 0;
+	int nRetryCount = 0;
 	EProtocolError enErrorCode = ERR_UEMPROTOCOL_ERROR;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(hProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
@@ -361,10 +363,18 @@ uem_result UKUEMProtocol_HandShake(HUEMProtocol hProtocol, unsigned int unDevice
 	result = UKUEMProtocol_Send(hProtocol);
 	ERRIFGOTO(result, _EXIT);
 
-	while(result == ERR_UEM_NET_TIMEOUT)
+	do
 	{
 		result = UKUEMProtocol_Receive(hProtocol);
-	}
+		if(result == ERR_UEM_NET_TIMEOUT)
+		{
+			nRetryCount++;
+			if(nRetryCount >= HANDSHAKE_RETRY_COUNT)
+			{
+				ERRASSIGNGOTO(result, ERR_UEM_CONNECT_ERROR, _EXIT);
+			}
+		}
+	} while(result == ERR_UEM_NET_TIMEOUT);
 	ERRIFGOTO(result, _EXIT);
 
 	result = UKUEMProtocol_GetResultFromReceivedData(hProtocol, &enErrorCode, &nRetValue);
@@ -604,6 +614,8 @@ static uem_result receiveHeader(HSocket hSocket, char *pHeaderBuffer, int nBuffe
 
 		nTotalDataReceived += nDataReceived;
 	}
+
+	*pnHeaderLength = (int) sHeaderLength;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

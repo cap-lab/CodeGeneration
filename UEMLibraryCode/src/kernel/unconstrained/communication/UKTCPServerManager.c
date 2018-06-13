@@ -146,7 +146,7 @@ _EXIT:
 	}
 	if(result != ERR_UEM_NOERROR && g_bSystemExit == FALSE)
 	{
-		UEM_DEBUG_PRINT("tcpServerThread is exited with error: %d\n", result);
+		UEM_DEBUG_PRINT("tcpServerThread is exited with error: %08x\n", result);
 	}
 	return NULL;
 }

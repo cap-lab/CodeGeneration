@@ -160,59 +160,12 @@ typedef struct _STask {
 } STask;
 
 
-typedef struct _SPortSampleRate {
-	const char *pszModeName; // Except MTM, all mode name becomes "Default"
-	int nSampleRate; // sample rate (for general task, nSampleRate and nTotalSampleRate are same)
-	int nMaxAvailableDataNum; // for broadcast loop
-} SPortSampleRate;
-
-
 typedef struct _SLibrary {
 	char *pszLibraryName;
 	FnUemLibraryInit fnInit;
 	FnUemLibraryWrapup fnWrapup;
 } SLibrary;
 
-
-typedef struct _SPort SPort;
-
-// nBufSize /  (nTotalSampleRate *nSampleSize) => number of loop queue?
-
-typedef struct _SPort {
-	int nTaskId;
-	const char *pszPortName;
-	EPortSampleRateType enSampleRateType;
-	SPortSampleRate *astSampleRates; // If the task is MTM, multiple sample rates can be existed.
-	int nNumOfSampleRates;
-	int nCurrentSampleRateIndex;
-	int nSampleSize;
-	EPortType enPortType;
-	SPort *pstSubGraphPort;
-} SPort;
-
-
-/*
-typedef struct _SPortMap {
-	int nTaskId;
-	char *pszPortName;
-	int nChildTaskId;
-	char *pszChildTaskPortName;
-	EPortDirection enPortDirection;
-	EPortMapType enPortMapType;
-} SPortMap;
-*/
-
-typedef struct _SChannel {
-	int nChannelIndex;
-	int nNextChannelIndex;
-	ECommunicationType enType;
-	EChannelType enChannelType;
-	int nBufSize;
-	SPort stInputPort;
-	SPort stOutputPort;
-	int nInitialDataLen;
-	void *pChannelStruct;
-} SChannel;
 
 typedef struct _STaskIdToTaskMap {
 	int nTaskId;
@@ -245,23 +198,19 @@ typedef struct _SProcessor {
 } SProcessor;
 
 typedef uem_result (*FnAddOnModuleInitialize)();
-typedef uem_result (*FnAddOnModuleRun)();
 typedef uem_result (*FnAddOnModuleFinalize)();
 
 typedef uem_result (*FnPeripheralInitialize)();
-typedef uem_result (*FnPeripheralRun)();
 typedef uem_result (*FnPeripheralFinalize)();
 
 typedef struct _SAddOnModule {
 	FnAddOnModuleInitialize fnInitialize;
-	FnAddOnModuleRun fnRun;
 	FnAddOnModuleFinalize fnFinalize;
 } SAddOnModule;
 
 
 typedef struct _SPeripheral {
 	FnPeripheralInitialize fnInitialize;
-	FnPeripheralRun fnRun;
 	FnPeripheralFinalize fnFinalize;
 } SPeripheral;
 
@@ -295,6 +244,9 @@ extern SExecutionTime g_stExecutionTime;
 
 extern SChannel g_astChannels[];
 extern int g_nChannelNum;
+
+extern SChannelAPI *g_astChannelAPIList[];
+extern int g_nChannelAPINum;
 
 extern STask g_astTasks_top[];
 extern int g_nNumOfTasks_top;

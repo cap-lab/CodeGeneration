@@ -11,11 +11,15 @@
 </#if>
 
 #include <UKHostMemorySystem.h>
+#include <UKSharedMemoryChannel.h>
+#include <UKChannel.h>
 
 #include <uem_data.h>
 
 <#if communication_used == true>
 #include <UKUEMProtocol.h>
+#include <UKTCPServerManager.h>
+#include <UKTCPSocketChannel.h>
 
 #include <uem_tcp_data.h>
 </#if>
@@ -366,7 +370,108 @@ SChannel g_astChannels[] = {
 // ##CHANNEL_LIST_TEMPLATE::END
 
 
+SChannelAPI g_stSharedMemoryChannel = {
+	UKSharedMemoryChannel_Initialize, // fnInitialize
+	UKSharedMemoryChannel_ReadFromQueue, // fnReadFromQueue
+	UKSharedMemoryChannel_ReadFromBuffer, // fnReadFromBuffer
+	UKSharedMemoryChannel_WriteToQueue, // fnWriteToQueue
+	UKSharedMemoryChannel_WriteToBuffer, // fnWriteToBuffer
+	UKSharedMemoryChannel_GetAvailableChunk, // fnGetAvailableChunk
+	UKSharedMemoryChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
+	UKSharedMemoryChannel_Clear, // fnClear
+	UKSharedMemoryChannel_SetExit,
+	UKSharedMemoryChannel_ClearExit,
+	UKSharedMemoryChannel_Finalize, // fnFinalize
+	NULL,
+	NULL,
+};
+
+<#if communication_used == true>
+SChannelAPI g_stTCPSocketChannelWriter = {
+	UKTCPSocketChannel_Initialize, // fnInitialize
+	NULL, // fnReadFromQueue
+	NULL, // fnReadFromBuffer
+	UKTCPSocketChannel_WriteToQueue, // fnWriteToQueue
+	UKTCPSocketChannel_WriteToBuffer, // fnWriteToBuffer
+	NULL, // fnGetAvailableChunk
+	NULL, // fnGetNumOfAvailableData
+	UKTCPSocketChannel_Clear, // fnClear
+	UKTCPSocketChannel_SetExit,
+	UKTCPSocketChannel_ClearExit,
+	UKTCPSocketChannel_Finalize, // fnFinalize
+	UKTCPServerManager_Initialize,
+	UKTCPServerManager_Finalize,
+};
+
+
+SChannelAPI g_stTCPSocketChannelReader = {
+	UKTCPSocketChannel_Initialize, // fnInitialize
+	UKTCPSocketChannel_ReadFromQueue, // fnReadFromQueue
+	UKTCPSocketChannel_ReadFromBuffer, // fnReadFromBuffer
+	NULL, // fnWriteToQueue
+	NULL, // fnWriteToBuffer
+	UKTCPSocketChannel_GetAvailableChunk, // fnGetAvailableChunk
+	UKTCPSocketChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
+	UKTCPSocketChannel_Clear, // fnClear
+	UKTCPSocketChannel_SetExit,
+	UKTCPSocketChannel_ClearExit,
+	UKTCPSocketChannel_Finalize, // fnFinalize
+	NULL,
+	NULL,
+};
+</#if>
+
+
+SChannelAPI *g_astChannelAPIList[] = {
+		&g_stSharedMemoryChannel,
+<#if communication_used == true>
+		&g_stTCPSocketChannelWriter,
+		&g_stTCPSocketChannelReader,
+</#if>
+};
+
+
+uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType enType, OUT SChannelAPI **ppstChannelAPI)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	switch(enType)
+	{
+	case COMMUNICATION_TYPE_SHARED_MEMORY:
+	case COMMUNICATION_TYPE_CPU_GPU:
+	case COMMUNICATION_TYPE_GPU_CPU:
+	case COMMUNICATION_TYPE_GPU_GPU:
+	case COMMUNICATION_TYPE_GPU_GPU_DIFFERENT:
+		*ppstChannelAPI = &g_stSharedMemoryChannel;
+		break;
+	case COMMUNICATION_TYPE_TCP_SERVER_READER:
+	case COMMUNICATION_TYPE_TCP_CLIENT_READER:
+<#if communication_used == true>
+		*ppstChannelAPI = &g_stTCPSocketChannelReader;
+<#else>
+		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED_YET, _EXIT)
+</#if>
+		break;
+	case COMMUNICATION_TYPE_TCP_SERVER_WRITER:
+	case COMMUNICATION_TYPE_TCP_CLIENT_WRITER:
+<#if communication_used == true>
+		*ppstChannelAPI = &g_stTCPSocketChannelWriter;
+<#else>
+		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED_YET, _EXIT)
+</#if>
+		break;
+	default:
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT)
+		break;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 int g_nChannelNum = ARRAYLEN(g_astChannels);
+int g_nChannelAPINum = ARRAYLEN(g_astChannelAPIList);
 <#if communication_used == true>
 <#if (tcp_server_list?size > 0) >
 int g_nTCPServerInfoNum = ARRAYLEN(g_astTCPServerInfo);
@@ -375,3 +480,8 @@ int g_nTCPServerInfoNum = 0;
 </#if>
 int g_nExternalCommunicationInfoNum = ARRAYLEN(g_astExternalCommunicationInfo);
 </#if>
+
+
+
+
+

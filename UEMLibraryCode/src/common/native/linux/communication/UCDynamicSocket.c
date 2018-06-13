@@ -75,8 +75,7 @@ uem_result UCDynamicSocket_Create(IN SSocketInfo *pstSocketInfo, IN uem_bool bIs
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
 
-    if((bIsServer == FALSE && pstSocket->pszSocketPath == NULL) ||
-    	(bIsServer == TRUE && pstSocketInfo->enSocketType == SOCKET_TYPE_UDS && pstSocketInfo->pszSocketPath == NULL))
+    if(bIsServer == TRUE && pstSocketInfo->enSocketType == SOCKET_TYPE_UDS && pstSocketInfo->pszSocketPath == NULL)
     {
     	ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }

@@ -11,6 +11,7 @@
 
 
 #include <stdio.h>
+#include <signal.h>
 
 #include <uem_common.h>
 
@@ -234,15 +235,21 @@ _EXIT:
 
 int main(int argc, char *argv[])
 {
+	uem_result result;
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
 
+#ifndef WIN32
+	signal(SIGPIPE, SIG_IGN);
+#endif
 
 	printf("Program start\n");
 
 	// Channel initialization
+	//UKModule_Initialize();
 	UKLibrary_Initialize();
-	UKChannel_Initialize();
+	result = UKChannel_Initialize();
+	ERRIFGOTO(result, _EXIT);
 
 	// Execute tasks
 	executeTasks();
@@ -251,6 +258,8 @@ int main(int argc, char *argv[])
 	UKChannel_Finalize();
 	UKLibrary_Finalize();
 
+	//UKModule_Finalize();
+_EXIT:
 	fflush(stdout);
 	printf("Program end\n");
 

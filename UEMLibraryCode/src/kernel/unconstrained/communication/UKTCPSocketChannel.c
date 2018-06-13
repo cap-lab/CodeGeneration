@@ -282,7 +282,7 @@ static void *channelReceiverHandlingThread(void *pData)
 _EXIT:
 	if(result != ERR_UEM_NOERROR && pstTCPChannel->bChannelExit == FALSE)
 	{
-		UEM_DEBUG_PRINT("channelReceiverHandlingThread is exited with error: %d\n", result);
+		UEM_DEBUG_PRINT("channelReceiverHandlingThread is exited with error: %08x\n", result);
 	}
 	return NULL;
 }
@@ -357,7 +357,7 @@ static uem_result connectToServer(STCPSocketChannel *pstTCPChannel)
 
 	while(nRetryCount < CONNECT_RETRY_COUNT)
 	{
-		if(pstTCPChannel->bChannelExit == FALSE)
+		if(pstTCPChannel->bChannelExit == TRUE)
 		{
 			ERRASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT);
 		}
@@ -370,6 +370,7 @@ static uem_result connectToServer(STCPSocketChannel *pstTCPChannel)
 			continue;
 		}
 		ERRIFGOTO(result, _EXIT);
+		break;
 	}
 
 	result = UKUEMProtocol_Create(&hProtocol);
@@ -449,11 +450,21 @@ uem_result UKTCPSocketChannel_Initialize(SChannel *pstChannel)
 		ERRIFGOTO(result, _EXIT);
 		break;
 	case COMMUNICATION_TYPE_TCP_SERVER_READER:
-		// do nothing
+		// wait until the connection is established
+		while(pstTCPChannel->pstCommunicationInfo->hProtocol == NULL)
+		{
+			UCTime_Sleep(10);
+		}
 		break;
 	case COMMUNICATION_TYPE_TCP_SERVER_WRITER:
 		result = UKChannelMemory_Initialize(pstChannel, pstTCPChannel->pstInternalChannel);
 		ERRIFGOTO(result, _EXIT);
+
+		// wait until the connection is established
+		while(pstTCPChannel->pstCommunicationInfo->hProtocol == NULL)
+		{
+			UCTime_Sleep(10);
+		}
 
 		// create receive thread
 		result = createReceiverThread(pstChannel);
