@@ -67,6 +67,9 @@ static uem_result handleHandshakeFromClient(HSocket hClientSocket)
 
 	if(bFound == TRUE)
 	{
+		result = UKUEMProtocol_SetChannelId(hProtocol, nChannelId);
+		ERRIFGOTO(result, _EXIT);
+
 		// correct case
 		g_astExternalCommunicationInfo[nLoop].hSocket = hClientSocket;
 		g_astExternalCommunicationInfo[nLoop].hProtocol = hProtocol;

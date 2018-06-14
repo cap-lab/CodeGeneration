@@ -72,6 +72,7 @@ uem_result UKUEMProtocol_SetResultMessage(HUEMProtocol hProtocol, EProtocolError
 uem_result UKUEMProtocol_SetResultMessageWithBuffer(HUEMProtocol hProtocol, EProtocolError enErrorCode, int nDataSize, void *pData);
 uem_result UKUEMProtocol_Send(HUEMProtocol hProtocol);
 uem_result UKUEMProtocol_Receive(HUEMProtocol hProtocol);
+uem_result UKUEMProtocol_SetChannelId(HUEMProtocol hProtocol, int nChannelId);
 uem_result UKUEMProtocol_GetRequestFromReceivedData(HUEMProtocol hProtocol, OUT EMessageType *penMessageType, OUT int *pnParamNum, OUT int **ppanParam);
 uem_result UKUEMProtocol_GetResultFromReceivedData(HUEMProtocol hProtocol, OUT EProtocolError *penErrorCode, OUT int *pnReturnValue);
 uem_result UKUEMProtocol_GetBodyDataFromReceivedData(HUEMProtocol hProtocol, OUT int *pnBodySize, OUT void **ppBody);

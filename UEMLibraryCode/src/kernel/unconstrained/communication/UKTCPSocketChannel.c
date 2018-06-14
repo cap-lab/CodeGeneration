@@ -495,8 +495,13 @@ static uem_result sendAndCheckResult(STCPSocketChannel *pstTCPChannel, HUEMProto
 			ERRASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT);
 		}
 		result = UKUEMProtocol_Receive(hProtocol);
+		if(result == ERR_UEM_NET_TIMEOUT)
+		{
+			continue;
+		}
 		ERRIFGOTO(result, _EXIT);
 	}while(result == ERR_UEM_NET_TIMEOUT);
+
 
 	result = UKUEMProtocol_GetResultFromReceivedData(hProtocol, &enErrorCode, pnReturnValue);
 	ERRIFGOTO(result, _EXIT);

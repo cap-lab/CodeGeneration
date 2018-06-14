@@ -387,6 +387,10 @@ uem_result UKUEMProtocol_HandShake(HUEMProtocol hProtocol, unsigned int unDevice
 
 	pstProtocol->unKey = (unsigned int) nRetValue;
 
+	// This function is called because send-receive order can be changed depending on writer-reader role
+	result = clearData(pstProtocol);
+	ERRIFGOTO(result, _EXIT);
+
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
@@ -409,9 +413,9 @@ uem_result UKUEMProtocol_SetReadQueueRequest(HUEMProtocol hProtocol, int nIndex,
 	result = setBasicSendInfo(pstProtocol, MESSAGE_TYPE_READ_QUEUE);
 	ERRIFGOTO(result, _EXIT);
 
-	pstProtocol->stDataToSend.anMessageParam[0] = pstProtocol->nChannelId;
-	pstProtocol->stDataToSend.anMessageParam[1] = nIndex;
-	pstProtocol->stDataToSend.anMessageParam[2] = nSizeToRead;
+	pstProtocol->stDataToSend.anMessageParam[READ_QUEUE_CHANNEL_ID_INDEX] = pstProtocol->nChannelId;
+	pstProtocol->stDataToSend.anMessageParam[READ_QUEUE_CHUNK_INDEX_INDEX] = nIndex;
+	pstProtocol->stDataToSend.anMessageParam[READ_QUEUE_SIZE_TO_READ_INDEX] = nSizeToRead;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -434,9 +438,9 @@ uem_result UKUEMProtocol_SetReadBufferRequest(HUEMProtocol hProtocol, int nIndex
 	result = setBasicSendInfo(pstProtocol, MESSAGE_TYPE_READ_BUFFER);
 	ERRIFGOTO(result, _EXIT);
 
-	pstProtocol->stDataToSend.anMessageParam[0] = pstProtocol->nChannelId;
-	pstProtocol->stDataToSend.anMessageParam[1] = nIndex;
-	pstProtocol->stDataToSend.anMessageParam[2] = nSizeToRead;
+	pstProtocol->stDataToSend.anMessageParam[READ_BUFFER_CHANNEL_ID_INDEX] = pstProtocol->nChannelId;
+	pstProtocol->stDataToSend.anMessageParam[READ_BUFFER_CHUNK_INDEX_INDEX] = nIndex;
+	pstProtocol->stDataToSend.anMessageParam[READ_BUFFER_SIZE_TO_READ_INDEX] = nSizeToRead;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -456,7 +460,7 @@ uem_result UKUEMProtocol_SetAvailableIndexRequest(HUEMProtocol hProtocol)
 	result = setBasicSendInfo(pstProtocol, MESSAGE_TYPE_AVAILABLE_INDEX);
 	ERRIFGOTO(result, _EXIT);
 
-	pstProtocol->stDataToSend.anMessageParam[0] = pstProtocol->nChannelId;
+	pstProtocol->stDataToSend.anMessageParam[AVAILABLE_INDEX_CHANNEL_ID_INDEX] = pstProtocol->nChannelId;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -476,8 +480,8 @@ uem_result UKUEMProtocol_SetAvailableDataRequest(HUEMProtocol hProtocol, int nIn
 	result = setBasicSendInfo(pstProtocol, MESSAGE_TYPE_AVAILABLE_DATA);
 	ERRIFGOTO(result, _EXIT);
 
-	pstProtocol->stDataToSend.anMessageParam[0] = pstProtocol->nChannelId;
-	pstProtocol->stDataToSend.anMessageParam[1] = nIndex;
+	pstProtocol->stDataToSend.anMessageParam[AVAILABLE_DATA_CHANNEL_ID_INDEX] = pstProtocol->nChannelId;
+	pstProtocol->stDataToSend.anMessageParam[AVAILABLE_DATA_CHUNK_INDEX_INDEX] = nIndex;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -496,8 +500,8 @@ uem_result UKUEMProtocol_SetResultMessage(HUEMProtocol hProtocol, EProtocolError
 	result = setBasicSendInfo(pstProtocol, MESSAGE_TYPE_RESULT);
 	ERRIFGOTO(result, _EXIT);
 
-	pstProtocol->stDataToSend.anMessageParam[0] = (int) enErrorCode;
-	pstProtocol->stDataToSend.anMessageParam[1] = nReturnValue;
+	pstProtocol->stDataToSend.anMessageParam[RESULT_ERROR_CODE_INDEX] = (int) enErrorCode;
+	pstProtocol->stDataToSend.anMessageParam[RESULT_RETURN_VALUE_INDEX] = nReturnValue;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -516,8 +520,8 @@ uem_result UKUEMProtocol_SetResultMessageWithBuffer(HUEMProtocol hProtocol, EPro
 	result = setBasicSendInfo(pstProtocol, MESSAGE_TYPE_RESULT);
 	ERRIFGOTO(result, _EXIT);
 
-	pstProtocol->stDataToSend.anMessageParam[0] = (int) enErrorCode;
-	pstProtocol->stDataToSend.anMessageParam[1] = nDataSize;
+	pstProtocol->stDataToSend.anMessageParam[RESULT_ERROR_CODE_INDEX] = (int) enErrorCode;
+	pstProtocol->stDataToSend.anMessageParam[RESULT_BODY_SIZE_INDEX] = nDataSize;
 	pstProtocol->stDataToSend.pBodyData = pData;
 	pstProtocol->stDataToSend.nBodyLen = nDataSize;
 
@@ -567,6 +571,8 @@ uem_result UKUEMProtocol_Send(HUEMProtocol hProtocol)
 
 	result = sendData(pstProtocol->hSocket, &(pstProtocol->stDataToSend));
 	ERRIFGOTO(result, _EXIT);
+
+	//UEM_DEBUG_PRINT("pstProtocol send: %d\n", pstProtocol->stDataToSend.sMessagePacket);
 
 	pstProtocol->bSent = TRUE;
 
@@ -724,7 +730,7 @@ uem_result UKUEMProtocol_Receive(HUEMProtocol hProtocol)
 
 	if(pstProtocol->bReceived == TRUE)
 	{
-		ERRASSIGNGOTO(result, ERR_UEM_ALREADY_DONE, _EXIT);
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 	}
 
 	result = receiveData(pstProtocol->hSocket, &(pstProtocol->stReceivedData));
@@ -740,12 +746,36 @@ uem_result UKUEMProtocol_Receive(HUEMProtocol hProtocol)
 		ERRIFGOTO(result, _EXIT);
 	}
 
+	//UEM_DEBUG_PRINT("pstProtocol receive: %d\n", pstProtocol->stReceivedData.sMessagePacket);
+
 	pstProtocol->bReceived = TRUE;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
 }
+
+
+uem_result UKUEMProtocol_SetChannelId(HUEMProtocol hProtocol, int nChannelId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	struct _SUEMProtocol *pstProtocol = NULL;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(hProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+	if(nChannelId < 0)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+#endif
+	pstProtocol = hProtocol;
+
+	pstProtocol->nChannelId = nChannelId;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 
 uem_result UKUEMProtocol_GetRequestFromReceivedData(HUEMProtocol hProtocol, OUT EMessageType *penMessageType, OUT int *pnParamNum, OUT int **ppanParam)
 {
