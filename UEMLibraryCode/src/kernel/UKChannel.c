@@ -154,7 +154,7 @@ int UKChannel_GetChannelIdByTaskAndPortName(int nTaskId, char *szPortName)
 		if(isPortTaskIdAndPortNameEqual(&(g_astChannels[nLoop].stInputPort), &stArgPortName, nTaskId) == TRUE ||
 			isPortTaskIdAndPortNameEqual(&(g_astChannels[nLoop].stOutputPort), &stArgPortName, nTaskId) == TRUE)
 		{
-			nIndex = nLoop;
+			nIndex = g_astChannels[nLoop].nChannelIndex;
 			break;
 		}
 	}
