@@ -29,7 +29,9 @@ public class Constants {
 	public static final String NAME_SPLITER = "/";
 	
 	public static final String DEFAULT_PROPERTIES_FILE_NAME = "translator.properties";
+	public static final String DEFAULT_MODULE_XML_FILE_NAME = "module.xml";
 	public static final String DEFAULT_PROPERTIES_FILE_PATH = ".." + File.separator + "UEMTranslator" + File.separator + "config" + File.separator + DEFAULT_PROPERTIES_FILE_NAME;
+	public static final String DEFAULT_MODULE_XML_PATH = ".." + File.separator + "UEMTranslator" + File.separator + "config" + File.separator + DEFAULT_MODULE_XML_FILE_NAME;
 	public static final String DEFAULT_TEMPLATE_DIR = "templates";
 	public static final String DEFAULT_TRANSLATED_CODE_TEMPLATE_DIR = ".." + File.separator + "UEMLibraryCode";
 	public static final String DEFAULT_MAKEFILE_AM = "Makefile.am";
@@ -57,6 +59,7 @@ public class Constants {
 	public static final String TEMPLATE_TAG_COMMUNICATION_USED = "communication_used";
 	public static final String TEMPLATE_TAG_TCP_SERVER_LIST = "tcp_server_list";
 	public static final String TEMPLATE_TAG_TCP_CLIENT_LIST = "tcp_client_list";
+	public static final String TEMPLATE_TAG_MODULE_LIST = "module_list";
 	
 	// tags for Makefile.ftl
 	public static final String TEMPLATE_TAG_BUILD_INFO = "build_info";

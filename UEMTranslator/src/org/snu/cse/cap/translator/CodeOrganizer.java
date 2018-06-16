@@ -12,6 +12,7 @@ import static java.nio.file.StandardCopyOption.*;
 
 import org.snu.cse.cap.translator.structure.ProgrammingLanguage;
 import org.snu.cse.cap.translator.structure.library.Library;
+import org.snu.cse.cap.translator.structure.module.Module;
 import org.snu.cse.cap.translator.structure.task.Task;
 
 public class CodeOrganizer {
@@ -27,6 +28,7 @@ public class CodeOrganizer {
 	private ArrayList<String> kernelSourceList;
 	private ArrayList<String> kernelDeviceSourceList;
 	private ArrayList<String> kernelDataSourceList;
+	private ArrayList<String> moduleSourceList;
 	private HashSet<String> extraSourceCodeSet;
 	private String cflags;
 	private String ldflags;
@@ -41,6 +43,7 @@ public class CodeOrganizer {
 	public static final String KERNEL_GENERATED_DIR = "src" + File.separator + "kernel" + File.separator + "generated";
 	public static final String COMMON_DIR = "src" + File.separator + "common";
 	public static final String APPLICATION_DIR = "src" + File.separator + "application";
+	public static final String MODULE_DIR = "src" + File.separator + "module";
 	
 	public static final String GPU = "gpu";
 	public static final String COMMUNICATION = "communication";
@@ -59,6 +62,7 @@ public class CodeOrganizer {
 		this.taskSourceCodeList = new ArrayList<String>();
 		this.kernelDataSourceList = new ArrayList<String>();
 		this.extraSourceCodeSet = new HashSet<String>();
+		this.moduleSourceList = new ArrayList<String>();
 		
 		this.cflags = "";
 		this.ldflags = "";
@@ -421,6 +425,19 @@ public class CodeOrganizer {
 		fillSourceCodeListFromLibraryMap(libraryMap);
 	}
 	
+	public void fillSourceCodeAndFlagsFromModules(ArrayList<Module> moduleList)
+	{
+		for(Module module : moduleList)
+		{
+			this.moduleSourceList.addAll(module.getSourceList());
+			this.cflags = this.cflags + " " + module.getCflags();
+			this.ldflags = this.ldflags + " " + module.getLdflags();
+			
+			this.cflags = this.cflags.trim();
+			this.ldflags = this.ldflags.trim();
+		}
+	}
+	
 	public void copyApplicationCodes(String srcDir, String outputDir) throws IOException
 	{
 		File source = new File(srcDir);
@@ -557,6 +574,10 @@ public class CodeOrganizer {
 
 	public ArrayList<String> getKernelDataSourceList() {
 		return kernelDataSourceList;
+	}
+
+	public ArrayList<String> getModuleSourceList() {
+		return moduleSourceList;
 	}
 }
 

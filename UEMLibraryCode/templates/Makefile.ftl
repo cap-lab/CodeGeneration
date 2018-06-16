@@ -5,6 +5,7 @@ APPLICATION_DIR=src/application
 API_DIR=src/api
 KERNEL_DIR=src/kernel
 COMMON_DIR=src/common
+MODULE_DIR=src/module
 PLATFORM_DIR=${build_info.platformDir}
 DEVICE_RESTRICTION=${build_info.deviceRestriction}
 
@@ -39,8 +40,11 @@ KERNEL_DEVICE_SOURCES=<#list build_info.kernelDeviceSourceList as source_file><#
 
 COMMON_SOURCES=<#list build_info.commonSourceList as source_file><#if (source_file?index > 0)>
 	</#if>$(COMMON_DIR)/$(PLATFORM_DIR)/${source_file}<#if (source_file?index < build_info.commonSourceList?size - 1)>\</#if></#list>
-	
-proc_SOURCES=$(MAIN_SOURCES) $(APPLICATION_SOURCES) $(EXTRA_SOURCES) $(API_SOURCES) $(KERNEL_DATA_SOURCES) $(KERNEL_SOURCES) $(KERNEL_DEVICE_SOURCES) $(COMMON_SOURCES)
+
+MODULE_SOURCES=<#list build_info.moduleSourceList as source_file><#if (source_file?index > 0)>
+	</#if>$(MODULE_DIR)/${source_file}<#if (source_file?index < build_info.moduleSourceList?size - 1)>\</#if></#list>
+			
+proc_SOURCES=$(MAIN_SOURCES) $(APPLICATION_SOURCES) $(EXTRA_SOURCES) $(API_SOURCES) $(KERNEL_DATA_SOURCES) $(KERNEL_SOURCES) $(KERNEL_DEVICE_SOURCES) $(COMMON_SOURCES) $(MODULE_SOURCES)
 			 
 
 MAIN_CFLAGS=-I$(MAIN_DIR)/include
@@ -53,7 +57,9 @@ TOP_CFLAGS=-I$(top_srcdir)
 
 COMMON_CFLAGS=-I$(COMMON_DIR)/include <#list build_info.usedPeripheralList as peripheralName>-I$(COMMON_DIR)/include/${peripheralName}</#list>
 
-CFLAGS_LIST=$(TOP_CFLAGS) $(MAIN_CFLAGS) $(API_CFLAGS) $(KERNEL_CFLAGS) $(COMMON_CFLAGS)
+MODULE_CFLAGS=-I$(MODULE_DIR)/include
+
+CFLAGS_LIST=$(TOP_CFLAGS) $(MAIN_CFLAGS) $(API_CFLAGS) $(KERNEL_CFLAGS) $(COMMON_CFLAGS) $(MODULE_CFLAGS)
 
 <#if build_info.isMappedGPU == true> 
 proc_CFLAGS= $(CFLAGS_LIST) $(SYSTEM_CFLAGS)

@@ -33,6 +33,7 @@ import org.snu.cse.cap.translator.structure.mapping.ScheduleItem;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleItemType;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleLoop;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleTask;
+import org.snu.cse.cap.translator.structure.module.Module;
 import org.snu.cse.cap.translator.structure.task.Task;
 import org.snu.cse.cap.translator.structure.task.TaskMode;
 import org.snu.cse.cap.translator.structure.task.TaskModeTransition;
@@ -70,6 +71,9 @@ public class Device {
 	private HashMap<String, CompositeTaskMappingInfo> staticScheduleMappingInfo; // Parent task Name : CompositeTaskMappingInfo class
 	private ArrayList<Port> portList;
 	private HashMap<String, Library> libraryMap;
+	
+	private ArrayList<Module> moduleList;
+	
 	private HashMap<String, Integer> portKeyToIndex;  //Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
 	private ArrayList<TCPConnection> tcpServerList;
 	private ArrayList<TCPConnection> tcpClientList;
@@ -91,9 +95,13 @@ public class Device {
 		this.staticScheduleMappingInfo = new HashMap<String, CompositeTaskMappingInfo>();
 		this.libraryMap = new HashMap<String, Library>();
 		this.portList = new ArrayList<Port>();
+		
+		this.moduleList = new ArrayList<Module>();
+		
 		this.portKeyToIndex = new HashMap<String, Integer>();
 		this.tcpServerList = new ArrayList<TCPConnection>();
 		this.tcpClientList = new ArrayList<TCPConnection>();
+		
 	}
 	
 	private class TaskFuncIdChecker 
@@ -1105,5 +1113,9 @@ public class Device {
 
 	public ArrayList<TCPConnection> getTcpClientList() {
 		return tcpClientList;
+	}
+
+	public ArrayList<Module> getModuleList() {
+		return moduleList;
 	}
 }

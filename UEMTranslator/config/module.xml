@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CIC_Module xmlns="http://peace.snu.ac.kr/CICXMLSchema">
+	<module name="ev3dev-c" cflags="-I/usr/local/include" ldflags="-lev3dev-c" 
+		initializer="Module_ev3dev_Initialize" finalizer="Module_ev3dev_Finalize">
+		<sources>
+			<file name="Module_ev3dev.c" />
+		</sources>
+		<headers>
+			<file name="Module_ev3dev.h" />
+		</headers>
+	</module>
+</CIC_Module>

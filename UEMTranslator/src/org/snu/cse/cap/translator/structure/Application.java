@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.ExecutionTime;
@@ -34,6 +35,7 @@ import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.library.LibraryConnection;
 import org.snu.cse.cap.translator.structure.mapping.InvalidScheduleFileNameException;
 import org.snu.cse.cap.translator.structure.mapping.MappingInfo;
+import org.snu.cse.cap.translator.structure.module.Module;
 import org.snu.cse.cap.translator.structure.task.Task;
 import org.snu.cse.cap.translator.structure.task.TaskLoopType;
 import org.snu.cse.cap.translator.structure.task.TaskMode;
@@ -59,6 +61,7 @@ import hopes.cic.xml.LibraryLibraryConnectionType;
 import hopes.cic.xml.LibraryType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.ModeType;
+import hopes.cic.xml.ModuleType;
 import hopes.cic.xml.PortMapType;
 import hopes.cic.xml.TCPConnectionType;
 import hopes.cic.xml.TaskLibraryConnectionType;
@@ -304,8 +307,21 @@ public class Application {
 			}
 		}
 	}
+	
+	private void insertDeviceModules(Device device, List<ModuleType> moduleList, HashMap<String, Module> moduleMap)
+	{
+		for(ModuleType moduleType: moduleList)
+		{
+			Module module = moduleMap.get(moduleType.getName());
+			
+			if(module != null)
+			{
+				device.getModuleList().add(module);	
+			}
+		}
+	}
 
-	public void makeDeviceInformation(CICArchitectureType architecture_metadata)
+	public void makeDeviceInformation(CICArchitectureType architecture_metadata, HashMap<String, Module> moduleMap)
 	{	
 		makeHardwareElementInformation(architecture_metadata);
 		int id = 0;
@@ -332,6 +348,8 @@ public class Application {
 				{
 					putConnectionsOnDevice(device, device_metadata.getConnections());
 				}
+				
+				insertDeviceModules(device, device_metadata.getModules().getModule(), moduleMap);
 
 				this.deviceInfo.put(device_metadata.getName(), device);
 			}

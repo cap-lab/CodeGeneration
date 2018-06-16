@@ -202,6 +202,7 @@ public class CodeGenerator
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_COMMUNICATION_USED, device.useCommunication());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TCP_CLIENT_LIST, device.getTcpClientList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TCP_SERVER_LIST, device.getTcpServerList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_MODULE_LIST, device.getModuleList());
 		
     	for(String outputFileName : codeOrganizer.getKernelDataSourceList())
     	{
@@ -309,6 +310,7 @@ public class CodeGenerator
 				
 				codeOrganizer.fillSourceCodeListFromTaskAndLibraryMap(device.getTaskMap(), device.getLibraryMap());
 				codeOrganizer.extraInfoFromTaskAndLibraryMap(device.getTaskMap(), device.getLibraryMap());
+				codeOrganizer.fillSourceCodeAndFlagsFromModules(device.getModuleList());
 				codeOrganizer.extractDataFromProperties(this.translatorProperties);
 				
 				codeOrganizer.copyFilesFromLibraryCodeTemplate(this.libraryCodeTemplateDir, topSrcDir);

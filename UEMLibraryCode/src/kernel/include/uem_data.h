@@ -200,20 +200,10 @@ typedef struct _SProcessor {
 typedef uem_result (*FnAddOnModuleInitialize)();
 typedef uem_result (*FnAddOnModuleFinalize)();
 
-typedef uem_result (*FnPeripheralInitialize)();
-typedef uem_result (*FnPeripheralFinalize)();
-
 typedef struct _SAddOnModule {
 	FnAddOnModuleInitialize fnInitialize;
 	FnAddOnModuleFinalize fnFinalize;
 } SAddOnModule;
-
-
-typedef struct _SPeripheral {
-	FnPeripheralInitialize fnInitialize;
-	FnPeripheralFinalize fnFinalize;
-} SPeripheral;
-
 
 typedef struct _SMappedGeneralTaskInfo {
 	ETaskType enType;

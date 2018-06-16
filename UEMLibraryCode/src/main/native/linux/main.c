@@ -26,6 +26,7 @@
 #include <UKProcessor.h>
 #include <UKLibrary.h>
 #include <UKTime.h>
+#include <UKModule.h>
 
 // not static which is used globally
 HCPUTaskManager g_hCPUTaskManager = NULL;
@@ -245,9 +246,13 @@ int main(int argc, char *argv[])
 
 	printf("Program start\n");
 
-	// Channel initialization
-	//UKModule_Initialize();
+	// module initialization
+	result = UKModule_Initialize();
+	ERRIFGOTO(result, _EXIT);
+
 	UKLibrary_Initialize();
+
+	// Channel initialization
 	result = UKChannel_Initialize();
 	ERRIFGOTO(result, _EXIT);
 
@@ -258,8 +263,12 @@ int main(int argc, char *argv[])
 	UKChannel_Finalize();
 	UKLibrary_Finalize();
 
-	//UKModule_Finalize();
+	UKModule_Finalize();
 _EXIT:
+	if(result != ERR_UEM_NOERROR)
+	{
+		printf("Error is occurred during execution: %d\n", result);
+	}
 	fflush(stdout);
 	printf("Program end\n");
 
