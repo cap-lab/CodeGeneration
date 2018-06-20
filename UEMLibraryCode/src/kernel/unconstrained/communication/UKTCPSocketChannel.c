@@ -733,7 +733,7 @@ uem_result UKTCPSocketChannel_Finalize(SChannel *pstChannel)
 
 	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
 
-	//UKTCPSocketChannel_SetExit(pstChannel, EXIT_FLAG_READ | EXIT_FLAG_WRITE);
+	UKTCPSocketChannel_SetExit(pstChannel, EXIT_FLAG_READ | EXIT_FLAG_WRITE);
 
 	switch(pstChannel->enType)
 	{
