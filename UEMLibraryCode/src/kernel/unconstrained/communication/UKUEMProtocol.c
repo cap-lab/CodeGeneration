@@ -357,9 +357,6 @@ uem_result UKUEMProtocol_HandShake(HUEMProtocol hProtocol, unsigned int unDevice
 	pstProtocol->stDataToSend.anMessageParam[0] = unDeviceKey;
 	pstProtocol->stDataToSend.anMessageParam[1] = nChannelId;
 
-	result = makeSendingData(&(pstProtocol->stDataToSend));
-	ERRIFGOTO(result, _EXIT);
-
 	result = UKUEMProtocol_Send(hProtocol);
 	ERRIFGOTO(result, _EXIT);
 
