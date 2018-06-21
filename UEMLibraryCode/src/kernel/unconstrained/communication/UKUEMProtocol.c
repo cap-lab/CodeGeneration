@@ -128,8 +128,8 @@ inline static uem_bool littleEndianCharToSystemInt(char *pBuffer, int nBufferLen
 #ifdef WORDS_BIGENDIAN
     *pnValue =  pBuffer[0];
     *pnValue = *pnValue | ((int) pBuffer[1] << 8);
-    *pnValue = *pnValue | ((int) pBuffer[1] << 16);
-    *pnValue = *pnValue | ((int) pBuffer[1] << 24);
+    *pnValue = *pnValue | ((int) pBuffer[2] << 16);
+    *pnValue = *pnValue | ((int) pBuffer[3] << 24);
 #else
     int *pnDst;
     pnDst = (int *) pBuffer;
