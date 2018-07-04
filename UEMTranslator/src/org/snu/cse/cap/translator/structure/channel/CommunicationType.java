@@ -6,8 +6,4 @@ public enum CommunicationType {
 	TCP_SERVER_WRITER,
 	TCP_CLIENT_WRITER,
 	TCP_SERVER_READER,	
-	CPU_GPU,
-	GPU_CPU,
-	GPU_GPU,
-	GPU_GPU_DIFFERENT,
 }

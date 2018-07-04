@@ -12,6 +12,7 @@ import org.snu.cse.cap.translator.ExecutionTime;
 import org.snu.cse.cap.translator.structure.channel.Channel;
 import org.snu.cse.cap.translator.structure.channel.ChannelArrayType;
 import org.snu.cse.cap.translator.structure.channel.CommunicationType;
+import org.snu.cse.cap.translator.structure.channel.InMemoryAccessType;
 import org.snu.cse.cap.translator.structure.channel.LoopPortType;
 import org.snu.cse.cap.translator.structure.channel.Port;
 import org.snu.cse.cap.translator.structure.channel.PortDirection;
@@ -428,8 +429,39 @@ public class Application {
 		}
 	}
 	
+	private void setInMemoryAccessTypeOfRemoteChannel(Channel channel, MappingInfo taskMappingInfo, boolean isSrcTask)
+	{
+		int procId;
+		boolean isCPU = false;
+		
+		Device device = this.deviceInfo.get(taskMappingInfo.getMappedDeviceName());
+		procId = taskMappingInfo.getMappedProcessorList().get(0).getProcessorId();
+		
+		for(Processor processor : device.getProcessorList()) {
+			if(procId == processor.getId()) {
+				isCPU = processor.getIsCPU();
+				break;
+			}
+		}
+		
+		if(isCPU == false) {
+			if(isSrcTask == true)
+			{
+				channel.setAccessType(InMemoryAccessType.GPU_CPU);	
+			}
+			else // isSrcTask == false
+			{
+				channel.setAccessType(InMemoryAccessType.CPU_GPU);	
+			}
+		}
+		else
+		{
+			channel.setAccessType(InMemoryAccessType.CPU_ONLY);
+		}
+	}
+	
 	// TODO: Only support CPU and GPU cases
-	private void setInDeviceCommunicationType(Channel channel,  MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo)
+	private void setInDeviceCommunicationType(Channel channel, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo)
 	{
 		boolean srcCPU = false;
 		boolean dstCPU = false;
@@ -452,27 +484,29 @@ public class Application {
 			}
 		}
 		
+		channel.setCommunicationType(CommunicationType.SHARED_MEMORY);
+		
 		if(srcCPU == false && dstCPU == true) {
-			channel.setCommunicationType(CommunicationType.GPU_CPU);
+			channel.setAccessType(InMemoryAccessType.GPU_CPU);                                     
 		}
 		else if(srcCPU == false && dstCPU == false) {
 			if(srcProcId == dstProcId && srcProcLocalId == dstProcLocalId) {
-				channel.setCommunicationType(CommunicationType.GPU_GPU);
+				channel.setAccessType(InMemoryAccessType.GPU_GPU);
 			}
 			else { 
-				channel.setCommunicationType(CommunicationType.GPU_GPU_DIFFERENT);
+				channel.setAccessType(InMemoryAccessType.GPU_GPU_DIFFERENT);
 			}
 		}
 		else if(dstCPU == true) { // && srcCPU == true
 			if(srcProcId == dstProcId) {
-				channel.setCommunicationType(CommunicationType.SHARED_MEMORY);
-			}
+				channel.setAccessType(InMemoryAccessType.CPU_ONLY);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               			}
 			else {
 				throw new UnsupportedOperationException();
 			}
 		}
 		else { // dstCPU == true && srcCPU == true
-			channel.setCommunicationType(CommunicationType.CPU_GPU);
+			channel.setAccessType(InMemoryAccessType.CPU_GPU);
 		}		
 	}
 	
@@ -483,6 +517,7 @@ public class Application {
 		{
 			// it only set channel communication type of source task
 			setSourceRemoteCommunicationType(channel, srcTaskMappingInfo.getMappedDeviceName(), dstTaskMappingInfo.getMappedDeviceName());
+			setInMemoryAccessTypeOfRemoteChannel(channel, srcTaskMappingInfo, true);
 		}
 		else // located at the same device
 		{	
@@ -650,8 +685,9 @@ public class Application {
 			Channel channelInDevice = channel.clone();
 			putPortIntoDeviceHierarchically(dstDevice, channel.getInputPort(), PortDirection.INPUT);
 			putPortIntoDeviceHierarchically(dstDevice, channel.getOutputPort(), PortDirection.OUTPUT);
-			
+						
 			channelInDevice.setCommunicationType(getDstTaskCommunicationType(channel.getCommunicationType()));
+			setInMemoryAccessTypeOfRemoteChannel(channelInDevice, dstTaskMappingInfo, false);
 			
 			if(channelInDevice.getCommunicationType() == CommunicationType.TCP_CLIENT_READER)
 			{				

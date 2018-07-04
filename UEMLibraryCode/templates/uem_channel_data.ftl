@@ -209,21 +209,16 @@ SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 	<#case "SHARED_MEMORY">
 	<#case "TCP_SERVER_WRITER">
 	<#case "TCP_CLIENT_WRITER">
-	<#case "CPU_GPU">
-	<#case "GPU_CPU">
-	<#case "GPU_GPU">
-	<#case "GPU_GPU_DIFFERENT">
 SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
-		<#switch channel.communicationType>
-			<#case "SHARED_MEMORY">
-			<#case "TCP_CLIENT_WRITER">
-			<#case "TCP_SERVER_WRITER">
+		ACCESS_TYPE_${channel.accessType},
+		<#switch channel.accessType>
+			<#case "CPU_ONLY">
+			<#case "CPU_GPU">
+			<#case "GPU_CPU">
 		s_pChannel_${channel.index}_buffer, // Channel buffer pointer
 		s_pChannel_${channel.index}_buffer, // Channel data start
 		s_pChannel_${channel.index}_buffer, // Channel data end
 				<#break>
-			<#case "CPU_GPU">
-			<#case "GPU_CPU">
 			<#case "GPU_GPU">
 			<#case "GPU_GPU_DIFFERENT">
 		NULL, // Channel buffer pointer
@@ -254,20 +249,18 @@ SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 		${channel.inputPort.maximumChunkNum}, // maximum input port chunk size for all port sample rate cases
 		(SAvailableChunk *) NULL, // Chunk list head
 		(SAvailableChunk *) NULL, // Chunk list tail
-		<#switch channel.communicationType>
-			<#case "SHARED_MEMORY">
-			<#case "TCP_CLIENT_WRITER">
-			<#case "TCP_SERVER_WRITER">
+		<#switch channel.accessType>
+			<#case "CPU_ONLY">
 		&g_stHostMemory, // Host memory access API
 		TRUE, // memory is statically allocated
 				<#break>
 			<#case "CPU_GPU">
 		&g_stHostToDeviceMemory, // Host memory access API
-		FALSE, // memory is statically allocated
+		TRUE, // memory is statically allocated
 				<#break>
 			<#case "GPU_CPU">
 		&g_stDeviceToHostMemory, // Host memory access API
-		FALSE, // memory is statically allocated
+		TRUE, // memory is statically allocated
 				<#break>
 			<#case "GPU_GPU">
 		&g_stDeviceItSelfMemory, // Host memory access API
@@ -306,9 +299,22 @@ STCPSocketChannel g_stTCPSocketChannel_${channel.index} = {
 			<#case "TCP_CLIENT_WRITER">
 			<#case "TCP_SERVER_WRITER">
 	&g_stSharedMemoryChannel_${channel.index}, // SSharedMemoryChannel *pstInternalChannel;
+	(SGenericMemoryAccess *) NULL, // SGenericMemoryAccess *pstReaderAccess - READER-part channel memory access API
 				<#break>
-			<#default>
+			<#case "TCP_CLIENT_READER">
+			<#case "TCP_SERVER_READER">
 	(SSharedMemoryChannel *) NULL, // SSharedMemoryChannel *pstInternalChannel;
+				<#switch channel.accessType>
+					<#case "CPU_ONLY">
+	&g_stHostMemory, // SGenericMemoryAccess *pstReaderAccess - READER-part channel memory access API
+						<#break>
+					<#case "CPU_GPU">
+	&g_stHostToDeviceMemory, // SGenericMemoryAccess *pstReaderAccess - READER-part channel memory access API
+						<#break>
+					<#default>
+	error (cannot generate other access type)
+				</#switch>
+				<#break>
 		</#switch>
 };
 		<#break>
@@ -351,10 +357,6 @@ SChannel g_astChannels[] = {
 		${channel.initialDataLen?c}, // Initial data length
 	<#switch channel.communicationType>
 		<#case "SHARED_MEMORY">
-		<#case "CPU_GPU">
-		<#case "GPU_CPU">
-		<#case "GPU_GPU">
-		<#case "GPU_GPU_DIFFERENT">
 		&g_stSharedMemoryChannel_${channel.index}, // specific shared memory channel structure pointer
 			<#break>
 		<#case "TCP_CLIENT_WRITER">
@@ -437,10 +439,6 @@ uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType
 	switch(enType)
 	{
 	case COMMUNICATION_TYPE_SHARED_MEMORY:
-	case COMMUNICATION_TYPE_CPU_GPU:
-	case COMMUNICATION_TYPE_GPU_CPU:
-	case COMMUNICATION_TYPE_GPU_GPU:
-	case COMMUNICATION_TYPE_GPU_GPU_DIFFERENT:
 		*ppstChannelAPI = &g_stSharedMemoryChannel;
 		break;
 	case COMMUNICATION_TYPE_TCP_SERVER_READER:

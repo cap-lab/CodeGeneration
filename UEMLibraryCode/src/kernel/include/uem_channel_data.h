@@ -23,6 +23,14 @@ extern "C"
 #endif
 
 
+typedef enum _ESharedMemoryAccessType {
+	ACCESS_TYPE_CPU_ONLY,
+	ACCESS_TYPE_CPU_GPU,
+	ACCESS_TYPE_GPU_CPU,
+	ACCESS_TYPE_GPU_GPU,
+	ACCESS_TYPE_GPU_GPU_DIFFERENT,
+} ESharedMemoryAccessType;
+
 typedef struct _SChunk {
 	void *pChunkStart; // fixed
 	void *pDataStart; // vary
@@ -60,6 +68,7 @@ typedef struct _SGenericMemoryAccess {
 } SGenericMemoryAccess;
 
 typedef struct _SSharedMemoryChannel {
+	ESharedMemoryAccessType enAccessType;
 	void *pBuffer;
 	void *pDataStart;
 	void *pDataEnd;

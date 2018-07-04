@@ -48,14 +48,15 @@ typedef struct _SExternalCommunicationInfo {
 
 
 typedef struct _STCPSocketChannel {
-	STCPClientInfo *pstClientInfo; // if TCP is server, this value is NULL
+	STCPClientInfo *pstClientInfo; // if TCP is server, this value is NULL (for CLIENT)
 	SExternalCommunicationInfo *pstCommunicationInfo; // get and set
 	HThread hReceivingThread; // for WRITER channel
-	char *pBuffer; // temporary buffer for getting data from shared memory channel
-	int nBufLen; // temporary buffer length
+	char *pBuffer; // temporary buffer for getting data from shared memory channel (for WRITER)
+	int nBufLen; // temporary buffer length (for WRITER)
 	HThreadMutex hMutex;
 	uem_bool bChannelExit;
 	SSharedMemoryChannel *pstInternalChannel;
+	SGenericMemoryAccess *pstReaderAccess; // for READER channel
 } STCPSocketChannel;
 
 

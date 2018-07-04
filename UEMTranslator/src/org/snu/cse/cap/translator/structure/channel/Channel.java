@@ -8,6 +8,7 @@ import org.snu.cse.cap.translator.structure.task.Task;
 public class Channel implements Cloneable {
 	private int index;
 	private CommunicationType communicationType;
+	private InMemoryAccessType accessType;
 	private ChannelArrayType channelType;
 	private int size;
 	private Port inputPort; // the most outer port is set here
@@ -34,15 +35,18 @@ public class Channel implements Cloneable {
 		channel = (Channel) super.clone();
 		channel.index = this.index;
 		channel.communicationType = this.communicationType;
+		channel.accessType = this.accessType;
 		channel.channelType = this.channelType;
 		channel.size = this.size;
-		// Shallow copy for these two objects
-		channel.inputPort = this.inputPort;
-		channel.outputPort = this.outputPort;
+		
 		channel.initialDataLen = this.initialDataLen;
 		channel.nextChannelIndex = this.nextChannelIndex;
 		channel.channelSampleSize = this.channelSampleSize;
 		channel.tcpClientIndex = this.tcpClientIndex;
+		
+		// Shallow copy for these two objects
+		channel.inputPort = this.inputPort;
+		channel.outputPort = this.outputPort;
 		
 		return channel;
 	}
@@ -145,5 +149,13 @@ public class Channel implements Cloneable {
 
 	public void setTcpClientIndex(int tcpClientIndex) {
 		this.tcpClientIndex = tcpClientIndex;
+	}
+
+	public InMemoryAccessType getAccessType() {
+		return accessType;
+	}
+
+	public void setAccessType(InMemoryAccessType accessType) {
+		this.accessType = accessType;
 	}
 }

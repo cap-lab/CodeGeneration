@@ -522,30 +522,25 @@ public class Device {
 	{
 		for(GPUTaskType mappedTask: gpusetup_metadata.getTasks().getTask())
 		{
-			for(MappingGPUDeviceType device: mappedTask.getDevice())
+			if(this.taskMap.containsKey(mappedTask.getName()) == true && checkTaskIsIncludedInCompositeTask(mappedTask.getName(), globalTaskMap) == false)
 			{
-				if(device.getName().equals(this.name) &&
-					checkTaskIsIncludedInCompositeTask(mappedTask.getName(), globalTaskMap) == false)
-				{					
-					TaskGPUSetupInfo gpuSetupInfo = new TaskGPUSetupInfo(mappedTask.getName(), getTaskType(mappedTask.getName()), mappedTask.getClustering(), mappedTask.getPipelining(), mappedTask.getMaxStream().intValue());
-					
-					gpuSetupInfo.setBlockSizeWidth(mappedTask.getGlobalWorkSize().getWidth());
-					gpuSetupInfo.setBlockSizeHeight(mappedTask.getGlobalWorkSize().getHeight());
-					gpuSetupInfo.setBlockSizeDepth(mappedTask.getGlobalWorkSize().getDepth());
+				TaskGPUSetupInfo gpuSetupInfo = new TaskGPUSetupInfo(mappedTask.getName(), getTaskType(mappedTask.getName()), mappedTask.getClustering(), mappedTask.getPipelining(), mappedTask.getMaxStream().intValue());
+				
+				gpuSetupInfo.setBlockSizeWidth(mappedTask.getGlobalWorkSize().getWidth());
+				gpuSetupInfo.setBlockSizeHeight(mappedTask.getGlobalWorkSize().getHeight());
+				gpuSetupInfo.setBlockSizeDepth(mappedTask.getGlobalWorkSize().getDepth());
 
-					gpuSetupInfo.setThreadSizeWidth(mappedTask.getLocalWorkSize().getWidth());
-					gpuSetupInfo.setThreadSizeHeight(mappedTask.getLocalWorkSize().getHeight());
-					gpuSetupInfo.setThreadSizeDepth(mappedTask.getLocalWorkSize().getDepth());
-					
-					if(this.gpuSetupInfo.containsKey(mappedTask.getName()) == false)
-					{
-						this.gpuSetupInfo.put(mappedTask.getName(), gpuSetupInfo);				
-					}
-					else // if same task is already in the gpumappingInfo, ignore the later one
-					{
-						// ignore the mapping (because the duplicated key means it already registered 
-					}
-					break;
+				gpuSetupInfo.setThreadSizeWidth(mappedTask.getLocalWorkSize().getWidth());
+				gpuSetupInfo.setThreadSizeHeight(mappedTask.getLocalWorkSize().getHeight());
+				gpuSetupInfo.setThreadSizeDepth(mappedTask.getLocalWorkSize().getDepth());
+				
+				if(this.gpuSetupInfo.containsKey(mappedTask.getName()) == false)
+				{
+					this.gpuSetupInfo.put(mappedTask.getName(), gpuSetupInfo);				
+				}
+				else // if same task is already in the gpumappingInfo, ignore the later one
+				{
+					// ignore the mapping (because the duplicated key means it already registered 
 				}
 			}
 		}		
