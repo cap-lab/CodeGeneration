@@ -11,6 +11,7 @@
 
 
 #include <stdio.h>
+#include <signal.h>
 
 #include <uem_common.h>
 
@@ -25,6 +26,7 @@
 #include <UKProcessor.h>
 #include <UKLibrary.h>
 #include <UKTime.h>
+#include <UKModule.h>
 
 // not static which is used globally
 HCPUTaskManager g_hCPUTaskManager = NULL;
@@ -234,15 +236,25 @@ _EXIT:
 
 int main(int argc, char *argv[])
 {
+	uem_result result;
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
 
+#ifndef WIN32
+	signal(SIGPIPE, SIG_IGN);
+#endif
 
 	printf("Program start\n");
 
-	// Channel initialization
+	// module initialization
+	result = UKModule_Initialize();
+	ERRIFGOTO(result, _EXIT);
+
 	UKLibrary_Initialize();
-	UKChannel_Initialize();
+
+	// Channel initialization
+	result = UKChannel_Initialize();
+	ERRIFGOTO(result, _EXIT);
 
 	// Execute tasks
 	executeTasks();
@@ -251,6 +263,12 @@ int main(int argc, char *argv[])
 	UKChannel_Finalize();
 	UKLibrary_Finalize();
 
+	UKModule_Finalize();
+_EXIT:
+	if(result != ERR_UEM_NOERROR)
+	{
+		printf("Error is occurred during execution: %d\n", result);
+	}
 	fflush(stdout);
 	printf("Program end\n");
 

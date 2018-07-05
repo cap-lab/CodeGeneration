@@ -1,8 +1,11 @@
-package org.snu.cse.cap.translator.structure.device;
+package org.snu.cse.cap.translator.structure.device.connection;
 
 public class TCPConnection extends Connection {
 	private String IP;
 	private int port;
+	
+	public static final String ROLE_SERVER = "server";
+	public static final String ROLE_CLIENT = "client";
 	
 	public TCPConnection(String name, String role, String IP, int port) 
 	{

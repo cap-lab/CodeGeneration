@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Writer;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -24,7 +23,9 @@ import org.snu.cse.cap.translator.TranslatorProperties;
 import org.snu.cse.cap.translator.UEMMetaDataModel;
 import org.snu.cse.cap.translator.UnsupportedHardwareInformation;
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
+import org.snu.cse.cap.translator.structure.ProgrammingLanguage;
 import org.snu.cse.cap.translator.structure.device.Device;
+import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
 import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.task.Task;
 
@@ -158,6 +159,12 @@ public class CodeGenerator
     	} catch (InvalidDataInMetadataFileException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (InvalidDeviceConnectionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CloneNotSupportedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
     }
     
@@ -175,20 +182,11 @@ public class CodeGenerator
 		makefileTemplate.process(makefileRootHash, out);
     }
     
-    private void generateUemDataCode(Device device, String topDirPath) throws TemplateNotFoundException, MalformedTemplateNameException, 
-    													freemarker.core.ParseException, IOException, TemplateException
+    private void generateKernelDataCode(CodeOrganizer codeOrganizer, Device device, String topDirPath, ProgrammingLanguage language) throws TemplateNotFoundException, MalformedTemplateNameException, 
+	freemarker.core.ParseException, IOException, TemplateException
     {
-    	Template uemDataTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_UEM_DATA);
-		// Create the root hash
-		Map<String, Object> uemDataRootHash = new HashMap<>();
-		String outputFilePath = topDirPath + File.separator + CodeOrganizer.KERNEL_DIR + File.separator;
-		if(device.getGPUMappingInfo().size() == 0){
-			outputFilePath += Constants.DEFAULT_UEM_DATA_C;
-		}
-		else{
-			outputFilePath += Constants.DEFAULT_UEM_DATA_CUDA;
-		}
-		
+    	Map<String, Object> uemDataRootHash = new HashMap<>();
+    	
 		// Put UEM data model
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TASK_MAP, device.getTaskMap());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TASK_GRAPH, device.getTaskGraphMap());
@@ -200,19 +198,28 @@ public class CodeGenerator
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_PORT_KEY_TO_INDEX, device.getPortKeyToIndex());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_EXECUTION_TIME, this.uemDatamodel.getApplication().getExecutionTime());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_LIBRARY_INFO, device.getLibraryMap());
-		if(device.getGPUMappingInfo().size() == 0)
-		{
-			uemDataRootHash.put(Constants.TEMPLATE_TAG_GPU_USED, false);
-		}
-		else
-		{
-			uemDataRootHash.put(Constants.TEMPLATE_TAG_GPU_USED, true);
-		}
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_GPU_USED, device.isGPUMapped());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_COMMUNICATION_USED, device.useCommunication());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_TCP_CLIENT_LIST, device.getTcpClientList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_TCP_SERVER_LIST, device.getTcpServerList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_MODULE_LIST, device.getModuleList());
 		
-		
-		Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
-		uemDataTemplate.process(uemDataRootHash, out);
+    	for(String outputFileName : codeOrganizer.getKernelDataSourceList())
+    	{
+    		Template uemDataTemplate;
+    		String templateFileName;
+    		String outputFilePath = topDirPath + File.separator + CodeOrganizer.KERNEL_GENERATED_DIR + File.separator;
+    		
+    		// remove file extension of the file name (removes last dot and the following chars ex. abc.x.c => abc.x)
+    		templateFileName = outputFileName.replaceFirst("[.][^.]+$", "")  + Constants.TEMPLATE_FILE_EXTENSION;
+    		uemDataTemplate = this.templateConfig.getTemplate(templateFileName);
+    		outputFilePath += outputFileName;
+    		
+    		Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
+    		uemDataTemplate.process(uemDataRootHash, out);
+    	}
     }
+
     
     private void generateTaskCode(Device device, String topDirPath) throws TemplateNotFoundException, MalformedTemplateNameException, 
     												freemarker.core.ParseException, IOException, TemplateException
@@ -227,15 +234,20 @@ public class CodeGenerator
 	    		Map<String, Object> taskCodeRootHash = new HashMap<>();
 	    		
 	    		taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_INFO, task);
-				taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_GPU_MAPPING_INFO, device.getGPUMappingInfo().get(task.getName()));
+				taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_GPU_MAPPING_INFO, device.getGpuSetupInfo().get(task.getName()));
 	    		    		
 	    		for(int loop = 0 ; loop < task.getTaskFuncNum() ; loop++)
 	    		{
 	    			String outputFilePath = topDirPath + File.separator + CodeOrganizer.APPLICATION_DIR + File.separator + 
 	    									task.getName() +  Constants.TASK_NAME_FUNC_ID_SEPARATOR + loop;
 	    			
-	    			if(device.getGPUMappingInfo().size() == 0){
-	    				outputFilePath += Constants.C_FILE_EXTENSION;
+	    			if(device.isGPUMapped() == false){
+	    				if(task.getLanguage() == ProgrammingLanguage.CPP) {
+	    					outputFilePath += Constants.CPP_FILE_EXTENSION;
+	    				}
+	    				else {
+	    					outputFilePath += Constants.C_FILE_EXTENSION;	
+	    				}
 	    			}
 	    			else{
 	    				outputFilePath += Constants.CUDA_FILE_EXTENSION;
@@ -264,11 +276,18 @@ public class CodeGenerator
 		for(Library library : device.getLibraryMap().values())
 		{
 			String outputSourcePath = topDirPath + File.separator + CodeOrganizer.APPLICATION_DIR + File.separator + 
-										library.getName() + Constants.C_FILE_EXTENSION;
+										library.getName();
 			String outputHeaderPath = topDirPath + File.separator + CodeOrganizer.APPLICATION_DIR + File.separator + 
 										library.getHeader();
 			// Create the root hash
 			Map<String, Object> libraryRootHash = new HashMap<>();
+			
+			if(library.getLanguage() == ProgrammingLanguage.CPP) {
+				outputSourcePath += Constants.CPP_FILE_EXTENSION;
+			}
+			else {
+				outputSourcePath += Constants.C_FILE_EXTENSION;	
+			}
 			
 			libraryRootHash.put(Constants.TEMPLATE_TAG_LIB_INFO, library);
 						
@@ -280,33 +299,25 @@ public class CodeGenerator
 		}
     }
     
-	public boolean isMappedGPU(Device device)
-	{
-		if (device.getGPUMappingInfo().size() == 0)
-		{
-			return false;
-		}
-		return true;
-	}
-    
     public void generateCode()
     {
    		try {
 			for(Device device : uemDatamodel.getApplication().getDeviceInfo().values())
 			{
 				CodeOrganizer codeOrganizer = new CodeOrganizer(device.getArchitecture().toString(), 
-						device.getPlatform().toString(), device.getRuntime().toString(), isMappedGPU(device));
+						device.getPlatform().toString(), device.getRuntime().toString(), device.isGPUMapped(), device.useCommunication());
 				String topSrcDir = this.mOutputPath + File.separator + device.getName();
 				
-				codeOrganizer.extractDataFromProperties(this.translatorProperties);
+				codeOrganizer.fillSourceCodeListFromTaskAndLibraryMap(device.getTaskMap(), device.getLibraryMap());
 				codeOrganizer.extraInfoFromTaskAndLibraryMap(device.getTaskMap(), device.getLibraryMap());
-				codeOrganizer.fillSourceCodeListFromTaskMap(device.getTaskMap());
-				codeOrganizer.fillSourceCodeListFromLibraryMap(device.getLibraryMap());
+				codeOrganizer.fillSourceCodeAndFlagsFromModules(device.getModuleList());
+				codeOrganizer.extractDataFromProperties(this.translatorProperties);
+				
 				codeOrganizer.copyFilesFromLibraryCodeTemplate(this.libraryCodeTemplateDir, topSrcDir);
 				codeOrganizer.copyApplicationCodes(this.mOutputPath, topSrcDir);
 				
 				generateMakefile(codeOrganizer, topSrcDir);
-				generateUemDataCode(device, topSrcDir);
+				generateKernelDataCode(codeOrganizer, device, topSrcDir, codeOrganizer.getLanguage());
 				generateTaskCode(device, topSrcDir);
 				generateLibraryCodes(device, topSrcDir);
 			}			

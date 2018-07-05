@@ -34,7 +34,7 @@ static int findIndexByIteration(SModeTransitionMachine *pstModeTransition, int n
 
 	for(nLoop = nHistoryEnd; nCheckNum < pstModeTransition->nCurHistoryLen ; nLoop--)
 	{
-		//printf("pstModeTransition->astModeTransition[%d]: mode: %d, iteration: %d, nCurrentIteration: %d\n", nLoop, pstModeTransition->astModeTransition[nLoop].nModeIndex, pstModeTransition->astModeTransition[nLoop].nIteration, nCurrentIteration);
+		//UEM_DEBUG_PRINT("pstModeTransition->astModeTransition[%d]: mode: %d, iteration: %d, nCurrentIteration: %d\n", nLoop, pstModeTransition->astModeTransition[nLoop].nModeIndex, pstModeTransition->astModeTransition[nLoop].nIteration, nCurrentIteration);
 		if(pstModeTransition->astModeTransition[nLoop].nIteration <= nCurrentIteration)
 		{
 			nIndex = nLoop;
@@ -67,8 +67,8 @@ uem_result UKModeTransition_GetCurrentModeIndexByIteration(SModeTransitionMachin
 
 	if(nIndex == INVALID_ARRAY_INDEX && nCurrentIteration != 0)
 	{
-		printf("aaa nHistoryEnd: %d, pstModeTransition->nCurHistoryStartIndex: %d\n", nHistoryEnd, pstModeTransition->nCurHistoryStartIndex);
-		printf("aaa nCurrentIteration: %d\n", nCurrentIteration);
+		UEM_DEBUG_PRINT("aaa nHistoryEnd: %d, pstModeTransition->nCurHistoryStartIndex: %d\n", nHistoryEnd, pstModeTransition->nCurHistoryStartIndex);
+		UEM_DEBUG_PRINT("aaa nCurrentIteration: %d\n", nCurrentIteration);
 		UEMASSIGNGOTO(result, ERR_UEM_NOT_FOUND, _EXIT);
 	}
 	else if(nIndex == INVALID_ARRAY_INDEX && nCurrentIteration == 0)
@@ -96,8 +96,8 @@ uem_result UKModeTransition_GetNextModeStartIndexByIteration(SModeTransitionMach
 
 	if(nIndex == INVALID_ARRAY_INDEX && nCurrentIteration != 0)
 	{
-		printf("aaa nHistoryEnd: %d, pstModeTransition->nCurHistoryStartIndex: %d\n", nHistoryEnd, pstModeTransition->nCurHistoryStartIndex);
-		printf("aaa nCurrentIteration: %d\n", nCurrentIteration);
+		UEM_DEBUG_PRINT("aaa nHistoryEnd: %d, pstModeTransition->nCurHistoryStartIndex: %d\n", nHistoryEnd, pstModeTransition->nCurHistoryStartIndex);
+		UEM_DEBUG_PRINT("aaa nCurrentIteration: %d\n", nCurrentIteration);
 		UEMASSIGNGOTO(result, ERR_UEM_NOT_FOUND, _EXIT);
 	}
 	else if(nIndex == nHistoryEnd)
@@ -210,12 +210,12 @@ int UKModeTransition_GetVariableIndexByName(SModeTransitionMachine *pstModeTrans
 	uem_string_struct strTargetVariableName;
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UCString_New(&strVariableName, pszVariableName, UEMSTRING_MAX);
+	result = UCString_New(&strVariableName, pszVariableName, UEMSTRING_CONST);
 	ERRIFGOTO(result, _EXIT);
 
 	for(nLoop = 0 ; nLoop < nVariableLen ; nLoop++)
 	{
-		result = UCString_New(&strTargetVariableName, pstModeTransition->astVarIntMap[nLoop].pszVariableName, UEMSTRING_MAX);
+		result = UCString_New(&strTargetVariableName, pstModeTransition->astVarIntMap[nLoop].pszVariableName, UEMSTRING_CONST);
 		ERRIFGOTO(result, _EXIT);
 
 		if(UCString_IsEqual(&strTargetVariableName, &strVariableName) == TRUE)
@@ -347,12 +347,12 @@ uem_result UKModeTransition_SetModeIntegerParameter (IN int nCallerTaskId, IN ch
 
 	nLen = pstTask->pstMTMInfo->nNumOfIntVariables;
 
-	result = UCString_New(&strTargetParamName, pszParamName, UEMSTRING_MAX);
+	result = UCString_New(&strTargetParamName, pszParamName, UEMSTRING_CONST);
 	ERRIFGOTO(result, _EXIT);
 
 	for(nLoop = 0 ; nLoop < nLen; nLoop++)
 	{
-		result = UCString_New(&strParamName, pstTask->pstMTMInfo->astVarIntMap[nLoop].pszVariableName, UEMSTRING_MAX);
+		result = UCString_New(&strParamName, pstTask->pstMTMInfo->astVarIntMap[nLoop].pszVariableName, UEMSTRING_CONST);
 		ERRIFGOTO(result, _EXIT);
 
 		if(UCString_IsEqual(&strTargetParamName, &strParamName) == TRUE)

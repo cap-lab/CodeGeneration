@@ -13,7 +13,11 @@ import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.structure.ExecutionPolicy;
 import org.snu.cse.cap.translator.structure.channel.Channel;
 import org.snu.cse.cap.translator.structure.channel.Port;
+import org.snu.cse.cap.translator.structure.device.connection.Connection;
+import org.snu.cse.cap.translator.structure.device.connection.ConnectionType;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
+import org.snu.cse.cap.translator.structure.device.connection.TCPConnection;
+import org.snu.cse.cap.translator.structure.gpu.TaskGPUSetupInfo;
 import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.library.LibraryConnection;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskMappedProcessor;
@@ -29,7 +33,7 @@ import org.snu.cse.cap.translator.structure.mapping.ScheduleItem;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleItemType;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleLoop;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleTask;
-import org.snu.cse.cap.translator.structure.mapping.TaskGPUMappingInfo;
+import org.snu.cse.cap.translator.structure.module.Module;
 import org.snu.cse.cap.translator.structure.task.Task;
 import org.snu.cse.cap.translator.structure.task.TaskMode;
 import org.snu.cse.cap.translator.structure.task.TaskModeTransition;
@@ -44,7 +48,6 @@ import hopes.cic.xml.CICScheduleTypeLoader;
 import hopes.cic.xml.GPUTaskType;
 import hopes.cic.xml.MappingDeviceType;
 import hopes.cic.xml.MappingGPUDeviceType;
-import hopes.cic.xml.MappingGPUProcessorIdType;
 import hopes.cic.xml.MappingProcessorIdType;
 import hopes.cic.xml.MappingTaskType;
 import hopes.cic.xml.ScheduleElementType;
@@ -64,11 +67,16 @@ public class Device {
 	private HashMap<String, Task> taskMap; // Task name : Task class
 	private HashMap<String, TaskGraph> taskGraphMap; // Task graph name : TaskGraph class
 	private HashMap<String, GeneralTaskMappingInfo> generalMappingInfo; // Task name : GeneralTaskMappingInfo class
-	private HashMap<String, TaskGPUMappingInfo> gpuMappingInfo; // Task name : TaskGPUMappingInfo class
+	private HashMap<String, TaskGPUSetupInfo> gpuSetupInfo; // Task name : TaskGPUSetupInfo class
 	private HashMap<String, CompositeTaskMappingInfo> staticScheduleMappingInfo; // Parent task Name : CompositeTaskMappingInfo class
 	private ArrayList<Port> portList;
 	private HashMap<String, Library> libraryMap;
+	
+	private ArrayList<Module> moduleList;
+	
 	private HashMap<String, Integer> portKeyToIndex;  //Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
+	private ArrayList<TCPConnection> tcpServerList;
+	private ArrayList<TCPConnection> tcpClientList;
 	
 	public Device(String name, String architecture, String platform, String runtime) 
 	{
@@ -78,17 +86,22 @@ public class Device {
 		this.runtime = RuntimeType.fromValue(runtime);
 		this.processorList = new ArrayList<Processor>();
 		this.connectionList = new HashMap<String, Connection>();
-		
 	
 		this.channelList = new ArrayList<Channel>();
 		this.taskMap = new HashMap<String, Task>();
 		this.taskGraphMap = new HashMap<String, TaskGraph>();
 		this.generalMappingInfo = new HashMap<String, GeneralTaskMappingInfo>();
-		this.gpuMappingInfo = new HashMap<String, TaskGPUMappingInfo>();
+		this.gpuSetupInfo = new HashMap<String, TaskGPUSetupInfo>();
 		this.staticScheduleMappingInfo = new HashMap<String, CompositeTaskMappingInfo>();
 		this.libraryMap = new HashMap<String, Library>();
 		this.portList = new ArrayList<Port>();
+		
+		this.moduleList = new ArrayList<Module>();
+		
 		this.portKeyToIndex = new HashMap<String, Integer>();
+		this.tcpServerList = new ArrayList<TCPConnection>();
+		this.tcpClientList = new ArrayList<TCPConnection>();
+		
 	}
 	
 	private class TaskFuncIdChecker 
@@ -121,6 +134,25 @@ public class Device {
 	
 	public String getName() {
 		return name;
+	}
+	
+	public boolean isGPUMapped()
+	{
+		if (this.gpuSetupInfo.size() == 0)
+		{
+			return false;
+		}
+		return true;
+	}
+	
+	
+	public boolean useCommunication()
+	{
+		if (this.connectionList.size() == 0)
+		{
+			return false;
+		}
+		return true;
 	}
 	
 	// recursive function
@@ -486,41 +518,29 @@ public class Device {
 		}
 	}
 	
-	private void setTaskGPUMappingInfo(CICGPUSetupType gpusetup_metadata, HashMap<String, Task> globalTaskMap) throws InvalidDataInMetadataFileException, NoProcessorFoundException
+	private void setupGPUInfoPerTask(CICGPUSetupType gpusetup_metadata, HashMap<String, Task> globalTaskMap) throws InvalidDataInMetadataFileException, NoProcessorFoundException
 	{
 		for(GPUTaskType mappedTask: gpusetup_metadata.getTasks().getTask())
 		{
-			for(MappingGPUDeviceType device: mappedTask.getDevice())
+			if(this.taskMap.containsKey(mappedTask.getName()) == true && checkTaskIsIncludedInCompositeTask(mappedTask.getName(), globalTaskMap) == false)
 			{
-				if(device.getName().equals(this.name) &&
-					checkTaskIsIncludedInCompositeTask(mappedTask.getName(), globalTaskMap) == false)
-				{					
-					TaskGPUMappingInfo gpumappingInfo = new TaskGPUMappingInfo(mappedTask.getName(), getTaskType(mappedTask.getName()), mappedTask.getClustering(), mappedTask.getPipelining(), mappedTask.getMaxStream().intValue());
-					
-					gpumappingInfo.setBlockSizeWidth(mappedTask.getGlobalWorkSize().getWidth());
-					gpumappingInfo.setBlockSizeHeight(mappedTask.getGlobalWorkSize().getHeight());
-					gpumappingInfo.setBlockSizeDepth(mappedTask.getGlobalWorkSize().getDepth());
+				TaskGPUSetupInfo gpuSetupInfo = new TaskGPUSetupInfo(mappedTask.getName(), getTaskType(mappedTask.getName()), mappedTask.getClustering(), mappedTask.getPipelining(), mappedTask.getMaxStream().intValue());
+				
+				gpuSetupInfo.setBlockSizeWidth(mappedTask.getGlobalWorkSize().getWidth());
+				gpuSetupInfo.setBlockSizeHeight(mappedTask.getGlobalWorkSize().getHeight());
+				gpuSetupInfo.setBlockSizeDepth(mappedTask.getGlobalWorkSize().getDepth());
 
-					gpumappingInfo.setThreadSizeWidth(mappedTask.getLocalWorkSize().getWidth());
-					gpumappingInfo.setThreadSizeHeight(mappedTask.getLocalWorkSize().getHeight());
-					gpumappingInfo.setThreadSizeDepth(mappedTask.getLocalWorkSize().getDepth());
-					
-					gpumappingInfo.setMappedDeviceName(device.getName());
-					
-					for(MappingGPUProcessorIdType proc: device.getProcessor())
-					{
-						MappedProcessor processor = new MappedProcessor(getProcessorIdByName(proc.getPool()), 0);
-						gpumappingInfo.putProcessor(processor);
-					}
-					if(this.gpuMappingInfo.containsKey(mappedTask.getName()) == false)
-					{
-						this.gpuMappingInfo.put(mappedTask.getName(), gpumappingInfo);				
-					}
-					else // if same task is already in the gpumappingInfo, ignore the later one
-					{
-						// ignore the mapping (because the duplicated key means it already registered 
-					}
-					break;
+				gpuSetupInfo.setThreadSizeWidth(mappedTask.getLocalWorkSize().getWidth());
+				gpuSetupInfo.setThreadSizeHeight(mappedTask.getLocalWorkSize().getHeight());
+				gpuSetupInfo.setThreadSizeDepth(mappedTask.getLocalWorkSize().getDepth());
+				
+				if(this.gpuSetupInfo.containsKey(mappedTask.getName()) == false)
+				{
+					this.gpuSetupInfo.put(mappedTask.getName(), gpuSetupInfo);				
+				}
+				else // if same task is already in the gpumappingInfo, ignore the later one
+				{
+					// ignore the mapping (because the duplicated key means it already registered 
 				}
 			}
 		}		
@@ -893,7 +913,7 @@ public class Device {
 		}
 		
 		if(gpusetup_metadata != null){
-			setTaskGPUMappingInfo(gpusetup_metadata,globalTaskMap);
+			setupGPUInfoPerTask(gpusetup_metadata,globalTaskMap);
 		}
 		// set top-level task graph property which is located at CICAlgorithm element's property attribute
 		TaskGraph taskGraph = this.taskGraphMap.get(Constants.TOP_TASKGRAPH_NAME);
@@ -980,6 +1000,18 @@ public class Device {
 	public void putConnection(Connection connection) 
 	{
 		this.connectionList.put(connection.getName(), connection);
+		
+		if(connection.getType() == ConnectionType.TCP)
+		{
+			if(connection.getRole().equalsIgnoreCase(TCPConnection.ROLE_SERVER) == true)
+			{
+				this.tcpServerList.add((TCPConnection) connection);
+			}
+			else
+			{
+				this.tcpClientList.add((TCPConnection) connection);	
+			}
+		}
 	}
 	
 	public Connection getConnection(String connectionName) throws InvalidDeviceConnectionException 
@@ -1038,10 +1070,6 @@ public class Device {
 		return generalMappingInfo;
 	}
 	
-	public HashMap<String, TaskGPUMappingInfo> getGPUMappingInfo() {
-		return gpuMappingInfo;
-	}
-
 	public HashMap<String, CompositeTaskMappingInfo> getStaticScheduleMappingInfo() {
 		return staticScheduleMappingInfo;
 	}
@@ -1064,5 +1092,25 @@ public class Device {
 
 	public HashMap<String, Integer> getPortKeyToIndex() {
 		return portKeyToIndex;
+	}
+
+	public HashMap<String, TaskGPUSetupInfo> getGpuSetupInfo() {
+		return gpuSetupInfo;
+	}
+
+	public HashMap<String, Connection> getConnectionList() {
+		return connectionList;
+	}
+
+	public ArrayList<TCPConnection> getTcpServerList() {
+		return tcpServerList;
+	}
+
+	public ArrayList<TCPConnection> getTcpClientList() {
+		return tcpClientList;
+	}
+
+	public ArrayList<Module> getModuleList() {
+		return moduleList;
 	}
 }

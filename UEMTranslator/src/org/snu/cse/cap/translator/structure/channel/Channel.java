@@ -5,9 +5,10 @@ import java.util.HashMap;
 import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.structure.task.Task;
 
-public class Channel {
+public class Channel implements Cloneable {
 	private int index;
 	private CommunicationType communicationType;
+	private InMemoryAccessType accessType;
 	private ChannelArrayType channelType;
 	private int size;
 	private Port inputPort; // the most outer port is set here
@@ -15,6 +16,7 @@ public class Channel {
 	private int initialDataLen;
 	private int nextChannelIndex;
 	private int channelSampleSize;
+	private int tcpClientIndex;
 	
 	public Channel(int index, int size, int initialDataLen, int sampleSize) {
 		this.size = size;
@@ -23,6 +25,30 @@ public class Channel {
 		this.initialDataLen = initialDataLen;
 		this.nextChannelIndex = Constants.INVALID_ID_VALUE;
 		this.channelSampleSize = sampleSize;
+		this.tcpClientIndex = Constants.INVALID_ID_VALUE;
+	}
+	
+	// Does not need to clone inputPort and outputPort  
+	public Channel clone() throws CloneNotSupportedException {
+		Channel channel;
+		
+		channel = (Channel) super.clone();
+		channel.index = this.index;
+		channel.communicationType = this.communicationType;
+		channel.accessType = this.accessType;
+		channel.channelType = this.channelType;
+		channel.size = this.size;
+		
+		channel.initialDataLen = this.initialDataLen;
+		channel.nextChannelIndex = this.nextChannelIndex;
+		channel.channelSampleSize = this.channelSampleSize;
+		channel.tcpClientIndex = this.tcpClientIndex;
+		
+		// Shallow copy for these two objects
+		channel.inputPort = this.inputPort;
+		channel.outputPort = this.outputPort;
+		
+		return channel;
 	}
 	
 	public int getIndex() {
@@ -115,5 +141,21 @@ public class Channel {
 
 	public int getChannelSampleSize() {
 		return channelSampleSize;
+	}
+
+	public int getTcpClientIndex() {
+		return tcpClientIndex;
+	}
+
+	public void setTcpClientIndex(int tcpClientIndex) {
+		this.tcpClientIndex = tcpClientIndex;
+	}
+
+	public InMemoryAccessType getAccessType() {
+		return accessType;
+	}
+
+	public void setAccessType(InMemoryAccessType accessType) {
+		this.accessType = accessType;
 	}
 }

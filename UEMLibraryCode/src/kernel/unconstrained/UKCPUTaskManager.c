@@ -936,7 +936,7 @@ uem_result UKCPUTaskManager_StoppingTask(HCPUTaskManager hCPUTaskManager, int nT
 				if(nMaxIteration < pstTask->pstSubGraph->astTasks[nLoop].nCurIteration)
 				{
 					nMaxIteration = pstTask->pstSubGraph->astTasks[nLoop].nCurIteration;
-					printf("Max iteration: %d, task name: %s\n", nMaxIteration, pstTask->pstSubGraph->astTasks[nLoop].pszTaskName);
+					UEM_DEBUG_PRINT("Max iteration: %d, task name: %s\n", nMaxIteration, pstTask->pstSubGraph->astTasks[nLoop].pszTaskName);
 				}
 			}
 

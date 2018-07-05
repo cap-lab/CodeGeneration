@@ -1,9 +1,12 @@
 package org.snu.cse.cap.translator;
 
 import java.io.File;
+import java.util.HashMap;
 
 import org.snu.cse.cap.translator.structure.Application;
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
+import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
+import org.snu.cse.cap.translator.structure.module.Module;
 
 import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICAlgorithmType;
@@ -16,8 +19,12 @@ import hopes.cic.xml.CICControlType;
 import hopes.cic.xml.CICControlTypeLoader;
 import hopes.cic.xml.CICMappingType;
 import hopes.cic.xml.CICMappingTypeLoader;
+import hopes.cic.xml.CICModuleType;
+import hopes.cic.xml.CICModuleTypeLoader;
 import hopes.cic.xml.CICProfileType;
 import hopes.cic.xml.CICProfileTypeLoader;
+import hopes.cic.xml.FileSourceType;
+import hopes.cic.xml.SoftwareModuleType;
 import hopes.cic.xml.CICGPUSetupType;
 import hopes.cic.xml.CICGPUSetupTypeLoader;
 
@@ -30,26 +37,31 @@ public class UEMMetaDataModel {
     private CICProfileType profileMetadata = null;
     private CICGPUSetupType gpusetupMetadata = null;
     private String schedulePath = null;
+    private HashMap<String, Module> moduleMap;
     //private CICScheduleType mSchedule = null;
     
     private Application application = null;
     
-    public UEMMetaDataModel(String uemXMLPath, String scheduleFileFolderPath) throws CICXMLException, InvalidDataInMetadataFileException
+    public UEMMetaDataModel(String uemXMLPath, String scheduleFileFolderPath) throws CICXMLException, InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
     {
-    	parseXMLFile(uemXMLPath);
+    	this.moduleMap = new HashMap<String, Module>();
     	this.schedulePath = scheduleFileFolderPath;
+    	parseXMLFile(uemXMLPath);
     	makeApplicationDataModel();
     }
 	
     private void parseXMLFile(String uemXMLPath) throws CICXMLException
     {
+    	CICModuleType moduleMetadata;
+    	
         CICAlgorithmTypeLoader algorithmLoader = new CICAlgorithmTypeLoader();
         CICArchitectureTypeLoader architectureLoader = new CICArchitectureTypeLoader();
         CICMappingTypeLoader mappingLoader = new CICMappingTypeLoader();
         CICConfigurationTypeLoader configurationLoader = new CICConfigurationTypeLoader();
         CICControlTypeLoader controlLoader = new CICControlTypeLoader();
         CICProfileTypeLoader profileLoader = new CICProfileTypeLoader();
-        CICGPUSetupTypeLoader gpusetupLoader = new CICGPUSetupTypeLoader();
+        CICGPUSetupTypeLoader gpusetupLoader = new CICGPUSetupTypeLoader();    
+        CICModuleTypeLoader moduleLoader = new CICModuleTypeLoader();
         
         try {
         	// Mandatory XML Files
@@ -81,6 +93,12 @@ public class UEMMetaDataModel {
         	{
         		gpusetupMetadata = gpusetupLoader.loadResource(uemXMLPath + Constants.UEMXML_GPUSETUP_PREFIX);
         	}
+        	
+        	if(new File(Constants.DEFAULT_MODULE_XML_PATH).isFile() == true) 
+        	{
+        		moduleMetadata = moduleLoader.loadResource(Constants.DEFAULT_MODULE_XML_PATH);
+        		insertSupportedModuleInfo(moduleMetadata);
+        	}
         }
         catch(CICXMLException e) {
         	System.out.println("XML Parse Error: " + e.getMessage());
@@ -88,11 +106,32 @@ public class UEMMetaDataModel {
         }
     }
     
-    private void makeApplicationDataModel() throws InvalidDataInMetadataFileException
+    private void insertSupportedModuleInfo(CICModuleType moduleMetadata)
+    {
+    	for (SoftwareModuleType moduleXML : moduleMetadata.getModule())
+    	{
+    		Module module = new Module(moduleXML.getName(), moduleXML.getCflags(), moduleXML.getLdflags(), 
+    									moduleXML.getInitializer(), moduleXML.getFinalizer());
+    		
+    		for(FileSourceType sourceFileName : moduleXML.getSources().getFile())
+    		{
+    			module.putSourceFile(sourceFileName.getName());
+    		}
+    		
+    		for(FileSourceType headerFileName : moduleXML.getHeaders().getFile())
+    		{
+    			module.putHeaderFile(headerFileName.getName());
+    		}
+    		
+    		this.moduleMap.put(moduleXML.getName(), module);
+    	}
+    }
+    
+    private void makeApplicationDataModel() throws InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
     {
     	this.application = new Application();
     	
-    	this.application.makeDeviceInformation(architectureMetadata);
+    	this.application.makeDeviceInformation(architectureMetadata, this.moduleMap);
     	
     	this.application.makeTaskInformation(algorithmMetadata);
     	this.application.makeMappingAndTaskInformationPerDevices(mappingMetadata, profileMetadata, configurationMetadata, this.schedulePath, gpusetupMetadata);

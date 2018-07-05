@@ -124,6 +124,7 @@
 	<xs:attribute name="ParentTask" type="xs:string" use="required" />
     <xs:attribute name="isHardwareDependent" type="YesNoType" use="optional" />
     <xs:attribute name="subGraphProperty" type="NameType" use="optional" />
+    <xs:attribute name="language" type="LanguageType" use="optional" />
   </xs:complexType>
 
   <xs:complexType name="TaskDataParallelType">
@@ -206,6 +207,7 @@
     <xs:attribute name="cflags" type="xs:string" use="optional" />
     <xs:attribute name="ldflags" type="xs:string" use="optional" />
     <xs:attribute name="isHardwareDependent" type="YesNoType" use="optional" />
+    <xs:attribute name="language" type="LanguageType" use="optional" />
   </xs:complexType>
 
 
@@ -419,10 +421,17 @@
     </xs:restriction>
   </xs:simpleType>
   
-    <xs:simpleType name="TaskGraphPropertyType">
+  <xs:simpleType name="TaskGraphPropertyType">
     <xs:restriction base="xs:string">
       <xs:enumeration value="ProcessNetwork" />
       <xs:enumeration value="DataFlow" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="LanguageType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="C" />
+      <xs:enumeration value="C++" />
     </xs:restriction>
   </xs:simpleType>
 

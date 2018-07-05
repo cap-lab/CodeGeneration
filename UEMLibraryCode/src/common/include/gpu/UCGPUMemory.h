@@ -39,8 +39,6 @@ uem_result UCGPUMemory_Free(void *pMemory);
 uem_result UCGPUMemory_FreeHost(void *pMemory);
 uem_result UCGPUMemory_Memcpy(void *pDest, const void *pSrc, int nSize, EMemcpyKind flags);
 
-#define SAFEMEMFREE(mem) if((mem) != NULL){UC_free((mem));mem=NULL;}
-
 #ifdef __cplusplus
 }
 #endif

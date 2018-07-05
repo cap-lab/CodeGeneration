@@ -13,6 +13,7 @@
 #include <UCThreadMutex.h>
 #include <UCThreadEvent.h>
 
+#include <uem_enum.h>
 #include <uem_channel_data.h>
 
 #ifdef __cplusplus
@@ -31,90 +32,6 @@ extern "C"
 #define MAPPING_NOT_SPECIFIED (-1)
 #define CHUNK_NUM_NOT_INITIALIZED (-1)
 #define INVALID_ARRAY_INDEX (-1)
-
-typedef enum _EParameterType {
-	PARAMETER_TYPE_DOUBLE,
-	PARAMETER_TYPE_INT,
-} EParameterType;
-
-typedef enum _ETaskType {
-	TASK_TYPE_COMPUTATIONAL,
-	TASK_TYPE_CONTROL,
-	TASK_TYPE_LOOP,
-	TASK_TYPE_COMPOSITE,
-} ETaskType;
-
-typedef enum _ERunCondition {
-	RUN_CONDITION_DATA_DRIVEN,
-	RUN_CONDITION_TIME_DRIVEN,
-	RUN_CONDITION_CONTROL_DRIVEN,
-} ERunCondition;
-
-typedef enum _EPortType {
-	PORT_TYPE_QUEUE,
-	PORT_TYPE_BUFFER,
-} EPortType;
-
-typedef enum _EPortMapType {
-	PORTMAP_TYPE_DISTRIBUTING,
-	PORTMAP_TYPE_BROADCASTING,
-} EPortMapType;
-
-typedef enum _ETimeMetric {
-	TIME_METRIC_CYCLE,
-	TIME_METRIC_COUNT,
-	TIME_METRIC_MICROSEC,
-	TIME_METRIC_MILLISEC,
-	TIME_METRIC_SEC,
-	TIME_METRIC_MINUTE,
-	TIME_METRIC_HOUR,
-} ETimeMetric;
-
-
-typedef enum _EPortDirection {
-	PORT_DIRECTION_OUTPUT,
-	PORT_DIRECTION_INPUT,
-} EPortDirection;
-
-typedef enum _EPortSampleRateType {
-	PORT_SAMPLE_RATE_FIXED,
-	PORT_SAMPLE_RATE_VARIABLE,
-	PORT_SAMPLE_RATE_MULTIPLE,
-} EPortSampleRateType;
-
-
-typedef enum _ECommunicationType {
-	COMMUNICATION_TYPE_SHARED_MEMORY,
-	COMMUNICATION_TYPE_TCP_SERVER,
-	COMMUNICATION_TYPE_TCP_CLIENT,
-	COMMUNICATION_TYPE_CPU_GPU,
-	COMMUNICATION_TYPE_GPU_CPU,
-	COMMUNICATION_TYPE_GPU_GPU,
-	COMMUNICATION_TYPE_GPU_GPU_DIFFERENT,
-} ECommunicationType;
-
-typedef enum _EChannelType {
-	CHANNEL_TYPE_GENERAL,
-	CHANNEL_TYPE_INPUT_ARRAY,
-	CHANNEL_TYPE_OUTPUT_ARRAY,
-	CHANNEL_TYPE_FULL_ARRAY,
-} EChannelType;
-
-typedef enum _ELoopType {
-	LOOP_TYPE_CONVERGENT,
-	LOOP_TYPE_DATA,
-} ELoopType;
-
-typedef enum _ETaskGraphType {
-	GRAPH_TYPE_PROCESS_NETWORK,
-	GRAPH_TYPE_DATAFLOW,
-} ETaskGraphType;
-
-
-typedef enum _EModeState {
-	MODE_STATE_NORMAL,
-	MODE_STATE_TRANSITING,
-} EModeState;
 
 
 typedef void (*FnUemTaskInit)(int nTaskId);
@@ -243,13 +160,6 @@ typedef struct _STask {
 } STask;
 
 
-typedef struct _SPortSampleRate {
-	char *pszModeName; // Except MTM, all mode name becomes "Default"
-	int nSampleRate; // sample rate (for general task, nSampleRate and nTotalSampleRate are same)
-	int nMaxAvailableDataNum; // for broadcast loop
-} SPortSampleRate;
-
-
 typedef struct _SLibrary {
 	char *pszLibraryName;
 	FnUemLibraryInit fnInit;
@@ -257,49 +167,9 @@ typedef struct _SLibrary {
 } SLibrary;
 
 
-typedef struct _SPort SPort;
-
-// nBufSize /  (nTotalSampleRate *nSampleSize) => number of loop queue?
-
-typedef struct _SPort {
-	int nTaskId;
-	char *pszPortName;
-	EPortSampleRateType enSampleRateType;
-	SPortSampleRate *astSampleRates; // If the task is MTM, multiple sample rates can be existed.
-	int nNumOfSampleRates;
-	int nCurrentSampleRateIndex;
-	int nSampleSize;
-	EPortType enPortType;
-	SPort *pstSubGraphPort;
-} SPort;
-
-
-/*
-typedef struct _SPortMap {
-	int nTaskId;
-	char *pszPortName;
-	int nChildTaskId;
-	char *pszChildTaskPortName;
-	EPortDirection enPortDirection;
-	EPortMapType enPortMapType;
-} SPortMap;
-*/
-
-typedef struct _SChannel {
-	int nChannelIndex;
-	int nNextChannelIndex;
-	ECommunicationType enType;
-	EChannelType enChannelType;
-	int nBufSize;
-	SPort stInputPort;
-	SPort stOutputPort;
-	int nInitialDataLen;
-	void *pChannelStruct;
-} SChannel;
-
 typedef struct _STaskIdToTaskMap {
 	int nTaskId;
-	char *pszTaskName;
+	const char *pszTaskName;
 	STask *pstTask;
 } STaskIdToTaskMap;
 
@@ -323,9 +193,17 @@ typedef struct _SScheduledTasks {
 typedef struct _SProcessor {
 	int nProcessorId;
 	uem_bool bIsCPU;
-	char *pszProcessorName;
+	const char *pszProcessorName;
 	int nPoolSize;
 } SProcessor;
+
+typedef uem_result (*FnAddOnModuleInitialize)();
+typedef uem_result (*FnAddOnModuleFinalize)();
+
+typedef struct _SAddOnModule {
+	FnAddOnModuleInitialize fnInitialize;
+	FnAddOnModuleFinalize fnFinalize;
+} SAddOnModule;
 
 typedef struct _SMappedGeneralTaskInfo {
 	ETaskType enType;
@@ -356,6 +234,9 @@ extern SExecutionTime g_stExecutionTime;
 
 extern SChannel g_astChannels[];
 extern int g_nChannelNum;
+
+extern SChannelAPI *g_astChannelAPIList[];
+extern int g_nChannelAPINum;
 
 extern STask g_astTasks_top[];
 extern int g_nNumOfTasks_top;

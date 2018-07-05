@@ -8,9 +8,9 @@ import java.util.List;
 import javax.management.modelmbean.InvalidTargetObjectTypeException;
 
 import org.snu.cse.cap.translator.Constants;
+import org.snu.cse.cap.translator.structure.ProgrammingLanguage;
 import org.snu.cse.cap.translator.structure.library.Library;
 
-import hopes.cic.xml.LibraryMasterPortType;
 import hopes.cic.xml.LoopStructureType;
 import hopes.cic.xml.MTMConditionType;
 import hopes.cic.xml.MTMModeType;
@@ -68,6 +68,8 @@ public class Task {
 	private HashMap<String, Library> masterPortToLibraryMap;
 	private HashSet<String> extraHeaderSet;
 	private HashSet<String> extraSourceSet;
+	private ProgrammingLanguage language;
+	private String fileExtension;
 	private String cFlags;
 	private String ldFlags;
 	private String taskGraphProperty;
@@ -101,6 +103,7 @@ public class Task {
 		setModeTransition(xmlTaskData.getMtm(), xmlTaskData.getHasMTM());
 		setExtraHeaderSet(xmlTaskData.getExtraHeader());
 		setExtraSourceSet(xmlTaskData.getExtraSource());
+		setLanguageAndFileExtension(xmlTaskData.getLanguage());
 		
 		if(xmlTaskData.getLdflags() != null)
 		{
@@ -110,6 +113,20 @@ public class Task {
 		if(xmlTaskData.getCflags() != null)
 		{
 			this.cFlags = xmlTaskData.getCflags();
+		}
+	}
+	
+	private void setLanguageAndFileExtension(String language)
+	{
+		if(language.equals(ProgrammingLanguage.CPP.toString()))
+		{
+			this.fileExtension = Constants.CPP_FILE_EXTENSION;
+			this.language = ProgrammingLanguage.CPP;
+		}
+		else
+		{
+			this.fileExtension = Constants.C_FILE_EXTENSION;
+			this.language = ProgrammingLanguage.C;
 		}
 	}
 	
@@ -398,5 +415,13 @@ public class Task {
 
 	public String getcFlags() {
 		return cFlags;
+	}
+
+	public String getFileExtension() {
+		return fileExtension;
+	}
+
+	public ProgrammingLanguage getLanguage() {
+		return language;
 	}
 }

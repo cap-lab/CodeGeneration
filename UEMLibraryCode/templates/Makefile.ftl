@@ -5,12 +5,13 @@ APPLICATION_DIR=src/application
 API_DIR=src/api
 KERNEL_DIR=src/kernel
 COMMON_DIR=src/common
+MODULE_DIR=src/module
 PLATFORM_DIR=${build_info.platformDir}
 DEVICE_RESTRICTION=${build_info.deviceRestriction}
 
 SYSTEM_CFLAGS=${build_info.cflags}
 
-SYSTEM_LDADD=${build_info.ldadd}
+SYSTEM_LDFLAG_LIST=${build_info.ldflags}
 
 
 bin_PROGRAMS=proc
@@ -27,11 +28,9 @@ EXTRA_SOURCES=<#if build_info.extraSourceCodeSet??><#list build_info.extraSource
 API_SOURCES=<#list build_info.apiSourceList as source_file><#if (source_file?index > 0)>
 	</#if>$(API_DIR)/${source_file}<#if (source_file?index < build_info.apiSourceList?size - 1)>\</#if></#list>
 
-<#if build_info.isMappedGPU == true>
-KERNEL_DATA_SOURCES=$(KERNEL_DIR)/uem_data.cu
-<#else>
-KERNEL_DATA_SOURCES=$(KERNEL_DIR)/uem_data.c
-</#if>
+
+KERNEL_DATA_SOURCES=<#list build_info.kernelDataSourceList as source_file><#if (source_file?index > 0)>
+	</#if>$(KERNEL_DIR)/generated/${source_file}<#if (source_file?index < build_info.kernelDataSourceList?size - 1)>\</#if></#list>
 
 KERNEL_SOURCES=<#list build_info.kernelSourceList as source_file><#if (source_file?index > 0)>
 	</#if>$(KERNEL_DIR)/${source_file}<#if (source_file?index < build_info.kernelSourceList?size - 1)>\</#if></#list>
@@ -41,37 +40,45 @@ KERNEL_DEVICE_SOURCES=<#list build_info.kernelDeviceSourceList as source_file><#
 
 COMMON_SOURCES=<#list build_info.commonSourceList as source_file><#if (source_file?index > 0)>
 	</#if>$(COMMON_DIR)/$(PLATFORM_DIR)/${source_file}<#if (source_file?index < build_info.commonSourceList?size - 1)>\</#if></#list>
-	
-proc_SOURCES=$(MAIN_SOURCES) $(APPLICATION_SOURCES) $(EXTRA_SOURCES) $(API_SOURCES) $(KERNEL_DATA_SOURCES) $(KERNEL_SOURCES) $(KERNEL_DEVICE_SOURCES) $(COMMON_SOURCES)
+
+MODULE_SOURCES=<#list build_info.moduleSourceList as source_file><#if (source_file?index > 0)>
+	</#if>$(MODULE_DIR)/${source_file}<#if (source_file?index < build_info.moduleSourceList?size - 1)>\</#if></#list>
+			
+proc_SOURCES=$(MAIN_SOURCES) $(APPLICATION_SOURCES) $(EXTRA_SOURCES) $(API_SOURCES) $(KERNEL_DATA_SOURCES) $(KERNEL_SOURCES) $(KERNEL_DEVICE_SOURCES) $(COMMON_SOURCES) $(MODULE_SOURCES)
 			 
 
 MAIN_CFLAGS=-I$(MAIN_DIR)/include
 
 API_CFLAGS=-I$(API_DIR)/include
 
-KERNEL_CFLAGS=-I$(KERNEL_DIR)/include -I$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/include <#list build_info.usedPeripheralList as peripheralName>-I$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/include/${peripheralName}</#list>
+KERNEL_CFLAGS=-I$(KERNEL_DIR)/include -I$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/include <#list build_info.usedPeripheralList as peripheralName>-I$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/include/${peripheralName} </#list>
 
 TOP_CFLAGS=-I$(top_srcdir)
 
-COMMON_CFLAGS=-I$(COMMON_DIR)/include <#list build_info.usedPeripheralList as peripheralName>-I$(COMMON_DIR)/include/${peripheralName}</#list>
+COMMON_CFLAGS=-I$(COMMON_DIR)/include <#list build_info.usedPeripheralList as peripheralName>-I$(COMMON_DIR)/include/${peripheralName} </#list>
 
-<#if build_info.isMappedGPU == true>
-CFLAGS_LIST=$(TOP_CFLAGS) $(MAIN_CFLAGS) $(API_CFLAGS) $(KERNEL_CFLAGS) $(COMMON_CFLAGS)
- 
+MODULE_CFLAGS=-I$(MODULE_DIR)/include
+
+CFLAGS_LIST=$(TOP_CFLAGS) $(MAIN_CFLAGS) $(API_CFLAGS) $(KERNEL_CFLAGS) $(COMMON_CFLAGS) $(MODULE_CFLAGS)
+
+<#if build_info.isMappedGPU == true> 
 proc_CFLAGS= $(CFLAGS_LIST) $(SYSTEM_CFLAGS)
 <#else>
-proc_CFLAGS=-Wall $(TOP_CFLAGS) $(MAIN_CFLAGS) $(API_CFLAGS) $(KERNEL_CFLAGS) $(COMMON_CFLAGS) $(SYSTEM_CFLAGS)
+proc_CFLAGS=-Wall $(CFLAGS_LIST) $(SYSTEM_CFLAGS)
+	<#if build_info.language=="C++">
+proc_CXXFLAGS=-Wall $(CFLAGS_LIST) $(SYSTEM_CFLAGS)
+	</#if>
 </#if>
 
-MAIN_LDADD=
+MAIN_LDFLAG_LIST=
 
-API_LDADD=
+API_LDFLAG_LIST=
 
-KERNEL_LDADD=
+KERNEL_LDFLAG_LIST=
 
-COMMON_LDADD=$(SYSTEM_LDADD)
+COMMON_LDFLAG_LIST=$(SYSTEM_LDFLAG_LIST)
 
-proc_LDADD=$(MAIN_LDADD) $(API_LDADD) $(KERNEL_LDADD) $(COMMON_LDADD)
+proc_LDFLAGS=$(MAIN_LDFLAG_LIST) $(API_LDFLAG_LIST) $(KERNEL_LDFLAG_LIST) $(COMMON_LDFLAG_LIST)
 
 <#if build_info.isMappedGPU == true>
 .cu.o: 

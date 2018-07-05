@@ -672,12 +672,12 @@ static uem_result traverseAndCheckDifferentModeIsAllSuspended(IN int nOffset, IN
 
 	if(pstTaskThread->enTaskState != TASK_STATE_SUSPEND && pstTaskThread->enTaskState != TASK_STATE_STOP)
 	{
-		//printf("not end task: %p (%d), mode: %d, proc: %d\n", pstTaskThread, pstTaskThread->enTaskState, pstTaskThread->nModeId, pstTaskThread->nProcId);
+		//UEM_DEBUG_PRINT("not end task: %p (%d), mode: %d, proc: %d\n", pstTaskThread, pstTaskThread->enTaskState, pstTaskThread->nModeId, pstTaskThread->nProcId);
 		pstUserData->bAllSuspended = FALSE;
 	}
 	else
 	{
-		//printf("end task: %p (%d), mode: %d, proc: %d\n", pstTaskThread, pstTaskThread->enTaskState, pstTaskThread->nModeId, pstTaskThread->nProcId);
+		//UEM_DEBUG_PRINT("end task: %p (%d), mode: %d, proc: %d\n", pstTaskThread, pstTaskThread->enTaskState, pstTaskThread->nModeId, pstTaskThread->nProcId);
 	}
 
 	return ERR_UEM_NOERROR;
@@ -716,7 +716,7 @@ static uem_result handleCompositeTaskModeTransition(SCompositeTaskThread *pstTas
 			result = UCDynamicLinkedList_Traverse(pstTask->hThreadList, traverseAndSetEventToTemporarySuspendedTask, &stNewModeData);
 			ERRIFGOTO(result, _EXIT);
 		}
-		//printf("mode state: MODE_STATE_TRANSITING to MODE_STATE_NORMAL\n");
+		//UEM_DEBUG_PRINT("mode state: MODE_STATE_TRANSITING to MODE_STATE_NORMAL\n");
 	}
 	else
 	{
@@ -748,7 +748,7 @@ static uem_result handleCompositeTaskModeTransition(SCompositeTaskThread *pstTas
 				ERRIFGOTO(result, _EXIT);
 			}
 
-			//printf("mode state: MODE_STATE_NORMAL to MODE_STATE_TRANSITING\n");
+			//UEM_DEBUG_PRINT("mode state: MODE_STATE_NORMAL to MODE_STATE_TRANSITING\n");
 		}
 	}
 
@@ -829,7 +829,7 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 
 	if(pstCompositeTask->pstParentTask != NULL)
 	{
-		printf("Composite task initial state : %s (Proc: %d, Mode: %d, State: %d)\n", pstCompositeTask->pstParentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nModeId, pstTaskThread->enTaskState);
+		UEM_DEBUG_PRINT("Composite task initial state : %s (Proc: %d, Mode: %d, State: %d)\n", pstCompositeTask->pstParentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nModeId, pstTaskThread->enTaskState);
 	}
 
 	while(pstTaskThread->enTaskState != TASK_STATE_STOP)
@@ -864,7 +864,7 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 				pstTaskThread->nIteration++;
 				if(pstCompositeTask->pstParentTask != NULL)
 				{
-					printf("Composite task (control driven) : %s\n", pstCompositeTask->pstParentTask->pszTaskName);
+					UEM_DEBUG_PRINT("Composite task (control driven) : %s\n", pstCompositeTask->pstParentTask->pszTaskName);
 				}
 				UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
 				break;
@@ -933,7 +933,7 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 _EXIT:
 	if(pstCompositeTask->pstParentTask != NULL)
 	{
-		printf("Composite task out : %s, %d (%d), mode: %d\n", pstCompositeTask->pstParentTask->pszTaskName, pstTaskThread->nIteration, pstTaskThread->bHasSourceTask, pstTaskThread->nModeId);
+		UEM_DEBUG_PRINT("Composite task out : %s, %d (%d), mode: %d\n", pstCompositeTask->pstParentTask->pszTaskName, pstTaskThread->nIteration, pstTaskThread->bHasSourceTask, pstTaskThread->nModeId);
 	}
 	return result;
 }
@@ -1427,7 +1427,7 @@ static uem_result traverseAndCheckStoppingThread(IN int nOffset, IN void *pData,
 _EXIT:
 	if(result != ERR_UEM_NOERROR && pstStopCheck != NULL)
 	{
-		printf("Error is happened during checking stopping task.\n");
+		UEM_DEBUG_PRINT("Error is happened during checking stopping task.\n");
 		pstStopCheck->bAllStop = FALSE;
 	}
 	return result;
@@ -1545,11 +1545,11 @@ _EXIT:
 	{
 		if(pstCompositeTask->pstParentTask != NULL)
 		{
-			printf("Failed to destroy composite task of %s (%d)\n", pstCompositeTask->pstParentTask->pszTaskName, pstTaskThread->bIsThreadFinished);
+			UEM_DEBUG_PRINT("Failed to destroy composite task of %s (%d)\n", pstCompositeTask->pstParentTask->pszTaskName, pstTaskThread->bIsThreadFinished);
 		}
 		else
 		{
-			printf("Failed to destroy composite task of whole task graph (%d)\n", pstTaskThread->bIsThreadFinished);
+			UEM_DEBUG_PRINT("Failed to destroy composite task of whole task graph (%d)\n", pstTaskThread->bIsThreadFinished);
 		}
 	}
 	return result;

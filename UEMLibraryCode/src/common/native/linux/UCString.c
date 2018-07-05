@@ -2,7 +2,7 @@
  * UCString.c
  *
  *  Created on: 2017. 12. 24.
- *      Author: jej
+ *	  Author: jej
  */
 
 #ifdef HAVE_CONFIG_H
@@ -34,196 +34,235 @@ uem_result UCString_New(uem_string strToSet, char *pBuffer, int nBufLen)
 #endif
 	pstStr = strToSet;
 
-    pstStr->nBufferLen = nBufLen;
-    pstStr->nStringLen = 0;
-    pstStr->pszStr = pBuffer;
+	pstStr->nBufferLen = nBufLen;
+	pstStr->nStringLen = 0;
+	pstStr->pszStr = pBuffer;
 
-    for(nLoop = 0 ; nLoop < nBufLen ; nLoop++)
-    {
-    	if(pBuffer[nLoop] == '\0')
+	for(nLoop = 0 ; nLoop < nBufLen ; nLoop++)
+	{
+		if(pBuffer[nLoop] == '\0')
 		{
+			if(nBufLen == UEMSTRING_CONST)
+			{
+				pstStr->nBufferLen = nLoop + 1;
+			}
 			break;
 		}
-    }
+	}
 
-    pstStr->nStringLen = nLoop;
+	pstStr->nStringLen = nLoop;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
 }
 
-uem_result UCString_SetLow(uem_string strDst, const char *pszSrc, int nSrcBufLen)
+
+uem_result UCString_Set(uem_string strDst, uem_string strSrc)
 {
-    uem_result result = ERR_UEM_UNKNOWN;
-    int nSrcRealLen = 0;
-    int nLoop = 0;
-    uem_string_struct *pstStrDst = NULL;
+	uem_result result = ERR_UEM_UNKNOWN;
+	uem_string_struct *pstStrSrc = NULL;
+
 #ifdef ARGUMENT_CHECK
-    IFVARERRASSIGNGOTO(strDst, NULL, result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	IFVARERRASSIGNGOTO(strSrc, NULL, result, ERR_UEM_INVALID_HANDLE, _EXIT);
 #endif
-    pstStrDst = strDst;
 
-    if(nSrcBufLen <= 0 || pszSrc == NULL)
-    {
-        // length is 0
-        if(pstStrDst->pszStr != NULL)
-        {
-            pstStrDst->pszStr[0] = '\0';
-            pstStrDst->nStringLen = 0;
-        }
-        else
-        {
-            pstStrDst->nStringLen = 0;
-        }
-        result = ERR_UEM_NOERROR;
-    }
-    else
-    {
-        for(nLoop = 0; nLoop < nSrcBufLen ; nLoop++)
-        {
-            if(pszSrc[nLoop] == '\0')
-            {
-                break;
-            }
-        }
+	pstStrSrc = strSrc;
 
-        nSrcRealLen = nLoop;
-
-        // truncate the string
-        if(nSrcRealLen >= pstStrDst->nBufferLen)
-        {
-        	nSrcRealLen = pstStrDst->nBufferLen;
-        	result = ERR_UEM_TRUNCATED;
-        }
-        else // there is enough space to copy a source string
-        {
-        	result = ERR_UEM_NOERROR;
-        }
-
-        // copy string
-        UC_memcpy(pstStrDst->pszStr, pszSrc, nSrcRealLen*sizeof(UEMSTRING_CHARTYPE));
-        pstStrDst->pszStr[nSrcRealLen] = '\0';
-        pstStrDst->nStringLen = nSrcRealLen;
-    }
+	result = UCString_SetLow(strDst, pstStrSrc->pszStr, pstStrSrc->nStringLen);
 
 _EXIT:
-    return result;
+	return result;
+}
+
+
+uem_result UCString_SetLow(uem_string strDst, const char *pszSrc, int nSrcBufLen)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nSrcRealLen = 0;
+	int nLoop = 0;
+	uem_string_struct *pstStrDst = NULL;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(strDst, NULL, result, ERR_UEM_INVALID_HANDLE, _EXIT);
+#endif
+	pstStrDst = strDst;
+
+	if(nSrcBufLen <= 0 || pszSrc == NULL)
+	{
+		// length is 0
+		if(pstStrDst->pszStr != NULL)
+		{
+			pstStrDst->pszStr[0] = '\0';
+			pstStrDst->nStringLen = 0;
+		}
+		else
+		{
+			pstStrDst->nStringLen = 0;
+		}
+		result = ERR_UEM_NOERROR;
+	}
+	else
+	{
+		for(nLoop = 0; nLoop < nSrcBufLen ; nLoop++)
+		{
+			if(pszSrc[nLoop] == '\0')
+			{
+				break;
+			}
+		}
+
+		nSrcRealLen = nLoop;
+
+		// truncate the string
+		if(nSrcRealLen >= pstStrDst->nBufferLen)
+		{
+			nSrcRealLen = pstStrDst->nBufferLen;
+			result = ERR_UEM_TRUNCATED;
+		}
+		else // there is enough space to copy a source string
+		{
+			result = ERR_UEM_NOERROR;
+		}
+
+		// copy string
+		UC_memcpy(pstStrDst->pszStr, pszSrc, nSrcRealLen*sizeof(UEMSTRING_CHARTYPE));
+		pstStrDst->pszStr[nSrcRealLen] = '\0';
+		pstStrDst->nStringLen = nSrcRealLen;
+	}
+
+_EXIT:
+	return result;
 }
 
 uem_bool UCString_IsEqual(uem_string strCompare1, uem_string strCompare2)
 {
-    uem_bool bEqual = FALSE;
-    uem_string_struct *pstCompare1 = NULL;
-    uem_string_struct *pstCompare2 = NULL;
+	uem_bool bEqual = FALSE;
+	uem_string_struct *pstCompare1 = NULL;
+	uem_string_struct *pstCompare2 = NULL;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(strCompare1, NULL, bEqual, FALSE, _EXIT);
+	IFVARERRASSIGNGOTO(strCompare2, NULL, bEqual, FALSE, _EXIT);
+#endif
+	pstCompare1 = (uem_string_struct *) strCompare1;
+	pstCompare2 = (uem_string_struct *) strCompare2;
 
-    IFVARERRASSIGNGOTO(strCompare1, NULL, bEqual, FALSE, _EXIT);
-    IFVARERRASSIGNGOTO(strCompare2, NULL, bEqual, FALSE, _EXIT);
+	if(pstCompare1->nStringLen != pstCompare2->nStringLen)
+	{
+		UEMASSIGNGOTO(bEqual, FALSE, _EXIT);
+	}
 
-    pstCompare1 = (uem_string_struct *) strCompare1;
-    pstCompare2 = (uem_string_struct *) strCompare2;
-
-    if(pstCompare1->nStringLen != pstCompare2->nStringLen)
-    {
-        UEMASSIGNGOTO(bEqual, FALSE, _EXIT);
-    }
-
-    if(UC_memcmp(pstCompare1->pszStr, pstCompare2->pszStr, pstCompare1->nStringLen*sizeof(UEMSTRING_CHARTYPE)) == 0)
-    {
-        bEqual = TRUE;
-    }
-    else
-    {
-        bEqual = FALSE;
-    }
+	if(UC_memcmp(pstCompare1->pszStr, pstCompare2->pszStr, pstCompare1->nStringLen*sizeof(UEMSTRING_CHARTYPE)) == 0)
+	{
+		bEqual = TRUE;
+	}
+	else
+	{
+		bEqual = FALSE;
+	}
 _EXIT:
-    return bEqual;
+	return bEqual;
 }
 
 int UCString_ToInteger(uem_string strTarget, int nIndex, OUT int *pnEndIndex)
 {
-    uem_result result = ERR_UEM_UNKNOWN;
-    uem_string_struct *pstStr = NULL;
-    char *pTail = NULL;
-    int nValue = 0;
+	uem_result result = ERR_UEM_UNKNOWN;
+	uem_string_struct *pstStr = NULL;
+	char *pTail = NULL;
+	int nValue = 0;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(strTarget, NULL, result, ERR_UEM_INVALID_HANDLE, _EXIT);
+#endif
+	pstStr = (uem_string_struct *) strTarget;
 
-    IFVARERRASSIGNGOTO(strTarget, NULL, result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	nValue = (int) strtol(pstStr->pszStr + nIndex, &pTail, 10);
+	if(nValue == 0 && pstStr->pszStr + nIndex == pTail)
+	{
+		// not converted
+		ERRASSIGNGOTO(result, ERR_UEM_CONVERSION_ERROR, _EXIT);
+	}
 
-    pstStr = (uem_string_struct *) strTarget;
+	if(pnEndIndex != NULL)
+	{
+		*pnEndIndex = pTail - (pstStr->pszStr + nIndex);
+	}
 
-    nValue = (int) strtol(pstStr->pszStr + nIndex, &pTail, 10);
-    if(nValue == 0 && pstStr->pszStr + nIndex == pTail)
-    {
-        // not converted
-        ERRASSIGNGOTO(result, ERR_UEM_CONVERSION_ERROR, _EXIT);
-    }
-
-    if(pnEndIndex != NULL)
-    {
-        *pnEndIndex = pTail - (pstStr->pszStr + nIndex);
-    }
-
-    result = ERR_UEM_NOERROR;
+	result = ERR_UEM_NOERROR;
 _EXIT:
-    if(result != ERR_UEM_NOERROR && pnEndIndex != NULL)
-    {
-        *pnEndIndex = 0;
-        nValue = 0;
-    }
-    return nValue;
+	if(result != ERR_UEM_NOERROR && pnEndIndex != NULL)
+	{
+		*pnEndIndex = 0;
+		nValue = 0;
+	}
+	return nValue;
 }
 
 uem_result UCString_AppendLow(uem_string strDst, char *pszSrc, int nSrcBufLen)
 {
-    uem_result result = ERR_UEM_UNKNOWN;
-    uem_string_struct *pstStrDst = NULL;
-    int nSrcRealLen = 0;
-    int nLoop = 0;
-    int nNewStringLen = 0;
+	uem_result result = ERR_UEM_UNKNOWN;
+	uem_string_struct *pstStrDst = NULL;
+	int nSrcRealLen = 0;
+	int nLoop = 0;
+	int nNewStringLen = 0;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(strDst, NULL, result, ERR_UEM_INVALID_HANDLE, _EXIT);
+#endif
+	pstStrDst = (uem_string_struct *) strDst;
 
-    IFVARERRASSIGNGOTO(strDst, NULL, result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	if(nSrcBufLen <= 0 || pszSrc == NULL)
+	{
+		// do nothing
+		result = ERR_UEM_NOERROR;
+	}
+	else
+	{
+		for(nLoop = 0; nLoop < nSrcBufLen ; nLoop++)
+		{
+			if(pszSrc[nLoop] == '\0')
+			{
+				break;
+			}
+		}
 
-    pstStrDst = (uem_string_struct *) strDst;
+		nSrcRealLen = nLoop;
+		nNewStringLen = pstStrDst->nStringLen + nSrcRealLen;
 
-    if(nSrcBufLen <= 0 || pszSrc == NULL)
-    {
-        // do nothing
-    	result = ERR_UEM_NOERROR;
-    }
-    else
-    {
-        for(nLoop = 0; nLoop < nSrcBufLen ; nLoop++)
-        {
-            if(pszSrc[nLoop] == '\0')
-            {
-                break;
-            }
-        }
+		// truncate string
+		if(nNewStringLen >= pstStrDst->nBufferLen)
+		{
+			nSrcRealLen = pstStrDst->nBufferLen - pstStrDst->nStringLen - 1;
+			nNewStringLen = pstStrDst->nStringLen + nSrcRealLen;
+			result = ERR_UEM_TRUNCATED;
+		}
+		else // there is enough space to append source string
+		{
+			// do nothing
+			result = ERR_UEM_NOERROR;
+		}
 
-        nSrcRealLen = nLoop;
-        nNewStringLen = pstStrDst->nStringLen + nSrcRealLen;
-
-        // truncate string
-        if(nNewStringLen >= pstStrDst->nBufferLen)
-        {
-        	nSrcRealLen = pstStrDst->nBufferLen - pstStrDst->nStringLen - 1;
-        	nNewStringLen = pstStrDst->nStringLen + nSrcRealLen;
-        	result = ERR_UEM_TRUNCATED;
-        }
-        else // there is enough space to append source string
-        {
-            // do nothing
-        	result = ERR_UEM_NOERROR;
-        }
-
-        // copy string
-        UC_memcpy(pstStrDst->pszStr + pstStrDst->nStringLen, pszSrc, nSrcRealLen*sizeof(UEMSTRING_CHARTYPE));
-        pstStrDst->pszStr[nNewStringLen] = '\0';
-        pstStrDst->nStringLen = nNewStringLen;
-    }
+		// copy string
+		UC_memcpy(pstStrDst->pszStr + pstStrDst->nStringLen, pszSrc, nSrcRealLen*sizeof(UEMSTRING_CHARTYPE));
+		pstStrDst->pszStr[nNewStringLen] = '\0';
+		pstStrDst->nStringLen = nNewStringLen;
+	}
 _EXIT:
-    return result;
+	return result;
 }
 
+int UCString_Length(uem_string strTarget)
+{
+	int nLen = 0;
+	uem_string_struct *pstTarget = NULL;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(strTarget, NULL, nLen, 0, _EXIT);
+#endif
+	if(strTarget == NULL)
+		return 0;
+
+	pstTarget = (uem_string_struct *) strTarget;
+
+	nLen = pstTarget->nStringLen;
+_EXIT:
+	return nLen;
+}
 
 

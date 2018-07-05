@@ -50,6 +50,7 @@
     <xs:sequence>
       <xs:element name="elements" type="ArchitectureElementListType" minOccurs="1" maxOccurs="1" />
 	  <xs:element name="connections" type="DeviceConnectionListType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="modules" type="ModuleListType" minOccurs="0" maxOccurs="1" />
 	</xs:sequence>
 	<xs:attribute name="name" type="NameType" use="required" />
 	<xs:attribute name="architecture" type="NameType" use="required" />
@@ -77,6 +78,16 @@
 	<xs:attribute name="friendlyName" type="xs:string" use="optional" />
 	<xs:attribute name="MAC" type="xs:string" use="required" />
   </xs:complexType>  
+  
+  <xs:complexType name="ModuleListType">
+    <xs:sequence>
+      <xs:element name="module" type="ModuleType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ModuleType">
+ 	<xs:attribute name="name" type="NameType" use="required" />
+  </xs:complexType>
 
   <!-- Type definitions for architecture element types -->
   <xs:complexType name="ArchitectureElementTypeType">
@@ -94,7 +105,7 @@
     <xs:attribute name="archiType" type="xs:string" use="optional" />
     <xs:attribute name="activePower" type="xs:nonNegativeInteger" use="optional" />
     <xs:attribute name="sleepPower" type="xs:nonNegativeInteger" use="optional" />
-    <!-- Power consumtion in mW -->
+    <!-- Power consumption in mW -->
     <xs:attribute name="nMasterPorts" type="xs:nonNegativeInteger" use="optional" />
     <xs:attribute name="nInterruptPorts" type="xs:nonNegativeInteger" use="optional" />
     <!-- Device Memory Size in Byte -->

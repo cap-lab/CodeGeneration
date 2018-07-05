@@ -92,10 +92,10 @@ static uem_result destroyPosixThread(SUCThread *pstThread, uem_bool bDetach, int
 			{
 				if(pthread_cancel(pstThread->hNativeThread) != 0) {
 					pthread_kill(pstThread->hNativeThread, SIGKILL);
-					printf("Thread is forcedly terminated.\n");
+					UEM_DEBUG_PRINT("Thread is forcedly terminated.\n");
 					ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
 				}
-				printf("Thread cancellation request is delivered.\n");
+				UEM_DEBUG_PRINT("Thread cancellation request is delivered.\n");
 				result = ERR_UEM_NOERROR;
 			}
 			ERRIFGOTO(result, _EXIT);
@@ -161,16 +161,16 @@ static uem_result destroyWindowsThread(SUCThread *pstThread, uem_bool bDetach, i
 			switch(dwErrorCode)
 			{
 			case WAIT_TIMEOUT:
-				printf("Thread wait timeout.\n");
+				UEM_DEBUG_PRINT("Thread wait timeout.\n");
 				if(TerminateThread(pstThread->hNativeThread, 0) == 0)
 				{
 					ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
 				}
-				printf("Thread is forcedly terminated.\n");
+				UEM_DEBUG_PRINT("Thread is forcedly terminated.\n");
 				break;
 			case WAIT_ABANDONED:
 			case WAIT_FAILED:
-				printf("Fail to wait thread termination.\n");
+				UEM_DEBUG_PRINT("Fail to wait thread termination.\n");
 				ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
 				break;
 			default:

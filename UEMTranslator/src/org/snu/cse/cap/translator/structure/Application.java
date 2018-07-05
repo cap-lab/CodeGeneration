@@ -5,33 +5,38 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.ExecutionTime;
 import org.snu.cse.cap.translator.structure.channel.Channel;
 import org.snu.cse.cap.translator.structure.channel.ChannelArrayType;
 import org.snu.cse.cap.translator.structure.channel.CommunicationType;
+import org.snu.cse.cap.translator.structure.channel.InMemoryAccessType;
 import org.snu.cse.cap.translator.structure.channel.LoopPortType;
 import org.snu.cse.cap.translator.structure.channel.Port;
 import org.snu.cse.cap.translator.structure.channel.PortDirection;
 import org.snu.cse.cap.translator.structure.channel.PortSampleRate;
-import org.snu.cse.cap.translator.structure.device.BluetoothConnection;
-import org.snu.cse.cap.translator.structure.device.Connection;
 import org.snu.cse.cap.translator.structure.device.Device;
 import org.snu.cse.cap.translator.structure.device.HWCategory;
 import org.snu.cse.cap.translator.structure.device.HWElementType;
 import org.snu.cse.cap.translator.structure.device.NoProcessorFoundException;
+import org.snu.cse.cap.translator.structure.device.Processor;
 import org.snu.cse.cap.translator.structure.device.ProcessorElementType;
-import org.snu.cse.cap.translator.structure.device.TCPConnection;
+import org.snu.cse.cap.translator.structure.device.connection.BluetoothConnection;
+import org.snu.cse.cap.translator.structure.device.connection.Connection;
+import org.snu.cse.cap.translator.structure.device.connection.ConnectionPair;
+import org.snu.cse.cap.translator.structure.device.connection.ConnectionType;
 import org.snu.cse.cap.translator.structure.device.connection.DeviceConnection;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
+import org.snu.cse.cap.translator.structure.device.connection.TCPConnection;
 import org.snu.cse.cap.translator.structure.library.Argument;
 import org.snu.cse.cap.translator.structure.library.Function;
 import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.library.LibraryConnection;
 import org.snu.cse.cap.translator.structure.mapping.InvalidScheduleFileNameException;
 import org.snu.cse.cap.translator.structure.mapping.MappingInfo;
-import org.snu.cse.cap.translator.structure.mapping.TaskGPUMappingInfo;
+import org.snu.cse.cap.translator.structure.module.Module;
 import org.snu.cse.cap.translator.structure.task.Task;
 import org.snu.cse.cap.translator.structure.task.TaskLoopType;
 import org.snu.cse.cap.translator.structure.task.TaskMode;
@@ -55,12 +60,11 @@ import hopes.cic.xml.LibraryFunctionArgumentType;
 import hopes.cic.xml.LibraryFunctionType;
 import hopes.cic.xml.LibraryLibraryConnectionType;
 import hopes.cic.xml.LibraryType;
-import hopes.cic.xml.LoopType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.ModeType;
+import hopes.cic.xml.ModuleType;
 import hopes.cic.xml.PortMapType;
 import hopes.cic.xml.TCPConnectionType;
-import hopes.cic.xml.TaskInstanceType;
 import hopes.cic.xml.TaskLibraryConnectionType;
 import hopes.cic.xml.TaskPortType;
 import hopes.cic.xml.TaskRateType;
@@ -68,7 +72,6 @@ import hopes.cic.xml.TaskType;
 import mapss.dif.csdf.sdf.SDFEdgeWeight;
 import mapss.dif.csdf.sdf.SDFGraph;
 import mapss.dif.csdf.sdf.SDFNodeWeight;
-import mapss.dif.csdf.sdf.sched.FlatStrategy;
 import mapss.dif.csdf.sdf.sched.MinBufferStrategy;
 import mapss.dif.csdf.sdf.sched.TwoNodeStrategy;
 import mocgraph.Edge;
@@ -295,8 +298,8 @@ public class Application {
 						Connection slave;
 	
 						slave = findConnection(slaveType.getDevice(), slaveType.getConnection());
-						deviceConnection.putMasterToSlaveConnection(master, slave);
-						deviceConnection.putSlaveToMasterConnection(slave, master);
+						deviceConnection.putMasterToSlaveConnection(master, slaveType.getDevice(), slave);
+						deviceConnection.putSlaveToMasterConnection(slaveType.getDevice(), slave, master);
 					}
 				} catch (InvalidDeviceConnectionException e) {
 					// TODO Auto-generated catch block
@@ -305,8 +308,21 @@ public class Application {
 			}
 		}
 	}
+	
+	private void insertDeviceModules(Device device, List<ModuleType> moduleList, HashMap<String, Module> moduleMap)
+	{
+		for(ModuleType moduleType: moduleList)
+		{
+			Module module = moduleMap.get(moduleType.getName());
+			
+			if(module != null)
+			{
+				device.getModuleList().add(module);	
+			}
+		}
+	}
 
-	public void makeDeviceInformation(CICArchitectureType architecture_metadata)
+	public void makeDeviceInformation(CICArchitectureType architecture_metadata, HashMap<String, Module> moduleMap)
 	{	
 		makeHardwareElementInformation(architecture_metadata);
 		int id = 0;
@@ -333,6 +349,8 @@ public class Application {
 				{
 					putConnectionsOnDevice(device, device_metadata.getConnections());
 				}
+				
+				insertDeviceModules(device, device_metadata.getModules().getModule(), moduleMap);
 
 				this.deviceInfo.put(device_metadata.getName(), device);
 			}
@@ -378,77 +396,132 @@ public class Application {
 		return mappingInfo;
 	}
 	
-	private TaskGPUMappingInfo findGPUMappingInfoByTaskName(String taskName) throws InvalidDataInMetadataFileException
+	private void setSourceRemoteCommunicationType(Channel channel, String srcTaskDevice, String dstTaskDevice) throws InvalidDeviceConnectionException
 	{
-		Task task;
-		TaskGPUMappingInfo gpumappingInfo = null;
+		// TODO: only TCP communication is supported now
+		DeviceConnection srcTaskConnection = this.deviceConnectionList.get(srcTaskDevice);
+		DeviceConnection dstTaskConnection = this.deviceConnectionList.get(dstTaskDevice);
+		ConnectionPair connectionPair = null;
 		
-		for(Device device: this.deviceInfo.values())
-		{
-			// task is mapped in this device
-			if(device.getTaskMap().containsKey(taskName)) 
-			{
-				if(device.getGPUMappingInfo().containsKey(taskName))
-				{
-					gpumappingInfo = device.getGPUMappingInfo().get(taskName);
-				}
-				else
-				{
-					// task is mapped in cpu processor
-				}
+		if(srcTaskConnection != null) {// source is master
+			connectionPair = srcTaskConnection.findOneConnectionToAnotherDevice(dstTaskDevice);
+		}
+		else if(dstTaskConnection != null) {// destination is master
+			connectionPair = dstTaskConnection.findOneConnectionToAnotherDevice(srcTaskDevice);
+		}
+		else {
+			throw new InvalidDeviceConnectionException();
+		}
+		
+		if(connectionPair == null) {
+			throw new InvalidDeviceConnectionException();
+		}
+		
+		if(connectionPair.getMasterConnection().getType() != ConnectionType.TCP) {
+			throw new UnsupportedOperationException();
+		}
+		
+		if(connectionPair.getMasterDeviceName().equals(srcTaskDevice) == true) {
+			channel.setCommunicationType(CommunicationType.TCP_SERVER_WRITER);	
+		}
+		else {
+			channel.setCommunicationType(CommunicationType.TCP_CLIENT_WRITER);
+		}
+	}
+	
+	private void setInMemoryAccessTypeOfRemoteChannel(Channel channel, MappingInfo taskMappingInfo, boolean isSrcTask)
+	{
+		int procId;
+		boolean isCPU = false;
+		
+		Device device = this.deviceInfo.get(taskMappingInfo.getMappedDeviceName());
+		procId = taskMappingInfo.getMappedProcessorList().get(0).getProcessorId();
+		
+		for(Processor processor : device.getProcessorList()) {
+			if(procId == processor.getId()) {
+				isCPU = processor.getIsCPU();
 				break;
 			}
 		}
 		
-		//Is it okay to return null?
-		return gpumappingInfo;
+		if(isCPU == false) {
+			if(isSrcTask == true)
+			{
+				channel.setAccessType(InMemoryAccessType.GPU_CPU);	
+			}
+			else // isSrcTask == false
+			{
+				channel.setAccessType(InMemoryAccessType.CPU_GPU);	
+			}
+		}
+		else
+		{
+			channel.setAccessType(InMemoryAccessType.CPU_ONLY);
+		}
 	}
 	
-	private void setChannelCommunicationType(Channel channel, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo,TaskGPUMappingInfo srcTaskGPUMappingInfo,TaskGPUMappingInfo dstTaskGPUMappingInfo) 
+	// TODO: Only support CPU and GPU cases
+	private void setInDeviceCommunicationType(Channel channel, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo)
+	{
+		boolean srcCPU = false;
+		boolean dstCPU = false;
+		int srcProcId, dstProcId;
+		int srcProcLocalId, dstProcLocalId;
+		
+		srcProcId = srcTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId();
+		dstProcId = dstTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId();
+		srcProcLocalId = srcTaskMappingInfo.getMappedProcessorList().get(0).getProcessorLocalId();
+		dstProcLocalId = dstTaskMappingInfo.getMappedProcessorList().get(0).getProcessorLocalId();
+		
+		Device device = this.deviceInfo.get(srcTaskMappingInfo.getMappedDeviceName());
+		for(Processor processor : device.getProcessorList()) {
+			if(srcProcId == processor.getId()) {
+				srcCPU = processor.getIsCPU();
+			}
+			
+			if(dstProcId == processor.getId()) {
+				dstCPU = processor.getIsCPU();
+			}
+		}
+		
+		channel.setCommunicationType(CommunicationType.SHARED_MEMORY);
+		
+		if(srcCPU == false && dstCPU == true) {
+			channel.setAccessType(InMemoryAccessType.GPU_CPU);                                     
+		}
+		else if(srcCPU == false && dstCPU == false) {
+			if(srcProcId == dstProcId && srcProcLocalId == dstProcLocalId) {
+				channel.setAccessType(InMemoryAccessType.GPU_GPU);
+			}
+			else { 
+				channel.setAccessType(InMemoryAccessType.GPU_GPU_DIFFERENT);
+			}
+		}
+		else if(dstCPU == true) { // && srcCPU == true
+			if(srcProcId == dstProcId) {
+				channel.setAccessType(InMemoryAccessType.CPU_ONLY);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               			}
+			else {
+				throw new UnsupportedOperationException();
+			}
+		}
+		else { // dstCPU == true && srcCPU == true
+			channel.setAccessType(InMemoryAccessType.CPU_GPU);
+		}		
+	}
+	
+	private void setChannelCommunicationType(Channel channel, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo) throws InvalidDeviceConnectionException 
 	{
 		// Two tasks are connected on different devices
-		// TODO: multi device connection must be supported
 		if(srcTaskMappingInfo.getMappedDeviceName().equals(dstTaskMappingInfo.getMappedDeviceName()) == false)
 		{
-			throw new UnsupportedOperationException();
+			// it only set channel communication type of source task
+			setSourceRemoteCommunicationType(channel, srcTaskMappingInfo.getMappedDeviceName(), dstTaskMappingInfo.getMappedDeviceName());
+			setInMemoryAccessTypeOfRemoteChannel(channel, srcTaskMappingInfo, true);
 		}
 		else // located at the same device
-		{
-			// TODO: this part should handle heterogeneous computing devices, so processor name check is also needed
-			// currently only the first mapped processor is used for checking the both tasks are located at the same processor pool.
-			if(srcTaskGPUMappingInfo != null || dstTaskGPUMappingInfo != null)
-			{
-				if(srcTaskGPUMappingInfo != null && dstTaskGPUMappingInfo == null)
-				{
-					channel.setCommunicationType(CommunicationType.GPU_CPU);
-				}
-				else if(srcTaskGPUMappingInfo == null && dstTaskGPUMappingInfo != null)
-				{
-					channel.setCommunicationType(CommunicationType.CPU_GPU);
-				}
-				else
-				{
-					if (srcTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId() ==
-							dstTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId())
-					{
-						channel.setCommunicationType(CommunicationType.GPU_GPU);
-					} else {
-						channel.setCommunicationType(CommunicationType.GPU_GPU_DIFFERENT);
-					}
-				}
-			}
-			else
-			{
-				if (srcTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId() ==
-						dstTaskMappingInfo.getMappedProcessorList().get(0).getProcessorId())
-				{
-					channel.setCommunicationType(CommunicationType.SHARED_MEMORY);
-				}
-				else
-				{
-					throw new UnsupportedOperationException();
-				}
-			}
+		{	
+			setInDeviceCommunicationType(channel,  srcTaskMappingInfo, dstTaskMappingInfo);
 		}
 	}
 		
@@ -523,26 +596,105 @@ public class Application {
 		}
 	}
 	
-	private void addChannelAndPortInfoToDevice(Channel channel, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo)
+	private CommunicationType getDstTaskCommunicationType(CommunicationType srcTaskCommunicationType)
+	{
+		CommunicationType dstTaskCommunicationType;
+		
+		switch(srcTaskCommunicationType)
+		{
+		case TCP_CLIENT_WRITER:
+			dstTaskCommunicationType = CommunicationType.TCP_SERVER_READER;
+			break;
+		case TCP_SERVER_WRITER:
+			dstTaskCommunicationType = CommunicationType.TCP_CLIENT_READER;
+			break;
+		default:
+			throw new UnsupportedOperationException();
+		}
+		
+		return dstTaskCommunicationType;
+	}
+	
+	private void findAndSetTCPClientIndex(Channel channel, Device srcDevice, Device dstDevice) throws InvalidDeviceConnectionException
+	{
+		DeviceConnection srcTaskConnection = this.deviceConnectionList.get(srcDevice.getName());
+		DeviceConnection dstTaskConnection = this.deviceConnectionList.get(dstDevice.getName());
+		ConnectionPair connectionPair = null;
+		Device targetDevice;
+		TCPConnection connection;
+		int index = 0;
+		
+		if(channel.getCommunicationType() == CommunicationType.TCP_CLIENT_WRITER)
+		{
+			targetDevice = srcDevice;
+		}
+		else if(channel.getCommunicationType() == CommunicationType.TCP_CLIENT_READER)
+		{
+			targetDevice = dstDevice;
+		}
+		else {
+			throw new InvalidDeviceConnectionException();
+		}
+		
+		if(srcTaskConnection != null) {// source is master
+			connectionPair = srcTaskConnection.findOneConnectionToAnotherDevice(dstDevice.getName());
+		}
+		else if(dstTaskConnection != null) {// destination is master
+			connectionPair = dstTaskConnection.findOneConnectionToAnotherDevice(srcDevice.getName());
+		}
+		else {
+			throw new InvalidDeviceConnectionException();
+		}
+				
+		connection = (TCPConnection) connectionPair.getSlaveConnection();
+		
+		for(index = 0 ; index < targetDevice.getTcpClientList().size(); index++)
+		{
+			TCPConnection tcpConnection = targetDevice.getTcpClientList().get(index);
+			
+			if(tcpConnection.getName().equals(connection.getName()) == true)
+			{
+				// same connection name
+				channel.setTcpClientIndex(index);
+				break;
+			}
+		}
+	}
+	
+	private void addChannelAndPortInfoToDevice(Channel channel, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo) throws CloneNotSupportedException, InvalidDeviceConnectionException
 	{
 		Device srcDevice = this.deviceInfo.get(srcTaskMappingInfo.getMappedDeviceName());
 		Device dstDevice = this.deviceInfo.get(dstTaskMappingInfo.getMappedDeviceName());
-		
+				
 		// hierarchical put port information
 
 		// src and dst is same device
 		putPortIntoDeviceHierarchically(srcDevice, channel.getInputPort(), PortDirection.INPUT);
 		putPortIntoDeviceHierarchically(srcDevice, channel.getOutputPort(), PortDirection.OUTPUT);
 		
+		if(channel.getCommunicationType() == CommunicationType.TCP_CLIENT_WRITER)
+		{
+			findAndSetTCPClientIndex(channel, srcDevice, dstDevice);
+		}
+		
 		srcDevice.getChannelList().add(channel);
 		
 		// if src and dst is different put same information to dst device
-		if(!srcTaskMappingInfo.getMappedDeviceName().equals(dstTaskMappingInfo.getMappedDeviceName()))
+		if(srcTaskMappingInfo.getMappedDeviceName().equals(dstTaskMappingInfo.getMappedDeviceName()) == false)
 		{
+			Channel channelInDevice = channel.clone();
 			putPortIntoDeviceHierarchically(dstDevice, channel.getInputPort(), PortDirection.INPUT);
 			putPortIntoDeviceHierarchically(dstDevice, channel.getOutputPort(), PortDirection.OUTPUT);
+						
+			channelInDevice.setCommunicationType(getDstTaskCommunicationType(channel.getCommunicationType()));
+			setInMemoryAccessTypeOfRemoteChannel(channelInDevice, dstTaskMappingInfo, false);
 			
-			dstDevice.getChannelList().add(channel);
+			if(channelInDevice.getCommunicationType() == CommunicationType.TCP_CLIENT_READER)
+			{				
+				findAndSetTCPClientIndex(channelInDevice, srcDevice, dstDevice);
+			}
+			
+			dstDevice.getChannelList().add(channelInDevice);
 		}
 	}
 	
@@ -856,7 +1008,7 @@ public class Application {
 		setIterationCount(taskGraphMap);
 	}
 	
-	public void makeChannelInformation(CICAlgorithmType algorithm_metadata) throws InvalidDataInMetadataFileException
+	public void makeChannelInformation(CICAlgorithmType algorithm_metadata) throws InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
 	{
 		algorithm_metadata.getChannels().getChannel();
 		int index = 0;
@@ -873,8 +1025,6 @@ public class Application {
 			ChannelPortType channelDstPort = channelMetadata.getDst().get(0);
 			MappingInfo srcTaskMappingInfo;
 			MappingInfo dstTaskMappingInfo;
-			TaskGPUMappingInfo srcTaskGPUMappingInfo;
-			TaskGPUMappingInfo dstTaskGPUMappingInfo;
 			
 			Port srcPort = this.portInfo.get(channelSrcPort.getTask() + Constants.NAME_SPLITER + channelSrcPort.getPort() + Constants.NAME_SPLITER + PortDirection.OUTPUT);
 			Port dstPort = this.portInfo.get(channelDstPort.getTask() + Constants.NAME_SPLITER + channelDstPort.getPort() + Constants.NAME_SPLITER + PortDirection.INPUT);
@@ -895,11 +1045,8 @@ public class Application {
 			srcTaskMappingInfo = findMappingInfoByTaskName(channelSrcPort.getTask());
 			dstTaskMappingInfo = findMappingInfoByTaskName(channelDstPort.getTask());
 			
-			srcTaskGPUMappingInfo = findGPUMappingInfoByTaskName(channelSrcPort.getTask());
-			dstTaskGPUMappingInfo = findGPUMappingInfoByTaskName(channelDstPort.getTask());
-			
 			// communication type (device information)
-			setChannelCommunicationType(channel, srcTaskMappingInfo, dstTaskMappingInfo,srcTaskGPUMappingInfo,dstTaskGPUMappingInfo);
+			setChannelCommunicationType(channel, srcTaskMappingInfo, dstTaskMappingInfo);
 			addChannelAndPortInfoToDevice(channel, srcTaskMappingInfo, dstTaskMappingInfo);
 			
 			this.channelList.add(channel);
@@ -909,7 +1056,7 @@ public class Application {
 		// set source task of composite task which can be checked after setting channel information
 		for(Device device: this.deviceInfo.values())
 		{
-			device.setSrcTaskOfMTM();	
+			device.setSrcTaskOfMTM();
 		}
 		
 		makeSDFTaskIterationCount();
@@ -997,6 +1144,7 @@ public class Application {
 				setLibraryFunction(library, libraryType);
 				library.setExtraHeaderSet(libraryType.getExtraHeader());
 				library.setExtraSourceSet(libraryType.getExtraSource());
+				library.setLanguageAndFileExtension(libraryType.getLanguage());
 				
 				if(libraryType.getCflags() != null)
 				{

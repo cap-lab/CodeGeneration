@@ -10,8 +10,9 @@ import java.util.HashSet;
 import java.util.Properties;
 import static java.nio.file.StandardCopyOption.*;
 
-import org.snu.cse.cap.translator.structure.device.Device;
+import org.snu.cse.cap.translator.structure.ProgrammingLanguage;
 import org.snu.cse.cap.translator.structure.library.Library;
+import org.snu.cse.cap.translator.structure.module.Module;
 import org.snu.cse.cap.translator.structure.task.Task;
 
 public class CodeOrganizer {
@@ -26,23 +27,30 @@ public class CodeOrganizer {
 	private ArrayList<String> mainSourceList;
 	private ArrayList<String> kernelSourceList;
 	private ArrayList<String> kernelDeviceSourceList;
+	private ArrayList<String> kernelDataSourceList;
+	private ArrayList<String> moduleSourceList;
 	private HashSet<String> extraSourceCodeSet;
 	private String cflags;
-	private String ldadd;
+	private String ldflags;
 	private boolean isMappedGPU;
+	private boolean useCommunication;
 	private HashSet<String> usedPeripheralList;
+	private ProgrammingLanguage language;
 	
 	public static final String MAIN_DIR = "src" + File.separator + "main";
 	public static final String API_DIR = "src" + File.separator + "api";
 	public static final String KERNEL_DIR = "src" + File.separator + "kernel";
+	public static final String KERNEL_GENERATED_DIR = "src" + File.separator + "kernel" + File.separator + "generated";
 	public static final String COMMON_DIR = "src" + File.separator + "common";
 	public static final String APPLICATION_DIR = "src" + File.separator + "application";
+	public static final String MODULE_DIR = "src" + File.separator + "module";
 	
 	public static final String GPU = "gpu";
+	public static final String COMMUNICATION = "communication";
 	
 	public static final String MAKEFILE_PATH_SEPARATOR = "/";
 	
-	public CodeOrganizer(String architecture, String platform, String runtime, boolean isMappedGPU) {
+	public CodeOrganizer(String architecture, String platform, String runtime, boolean isMappedGPU, boolean useCommunication) {
 		this.architecture = architecture;
 		this.platform = platform;
 		this.runtime = runtime;
@@ -52,15 +60,25 @@ public class CodeOrganizer {
 		this.kernelSourceList = new ArrayList<String>();
 		this.kernelDeviceSourceList = new ArrayList<String>();
 		this.taskSourceCodeList = new ArrayList<String>();
+		this.kernelDataSourceList = new ArrayList<String>();
 		this.extraSourceCodeSet = new HashSet<String>();
+		this.moduleSourceList = new ArrayList<String>();
+		
 		this.cflags = "";
-		this.ldadd = "";
+		this.ldflags = "";
 		this.isMappedGPU = isMappedGPU;
+		this.useCommunication = useCommunication;
 		this.usedPeripheralList = new HashSet<String>();
+		this.language = ProgrammingLanguage.C;
 		
 		if(this.isMappedGPU == true)
 		{
 			this.usedPeripheralList.add(GPU);
+		}
+		
+		if(this.useCommunication == true)
+		{
+			this.usedPeripheralList.add(COMMUNICATION);
 		}
 	}
 	
@@ -138,7 +156,7 @@ public class CodeOrganizer {
 	}
 	
 	
-	private void addSourceFileFromSourceString(String sourceFileString, ArrayList<String> list)
+	private void addSourceFileFromSourceString(String prefix, String sourceFileString, ArrayList<String> list)
 	{
 		if(sourceFileString != null && sourceFileString.length() > 0)
 		{
@@ -146,7 +164,7 @@ public class CodeOrganizer {
 			
 			for(String sourceFile : sourceFileList)
 			{
-				list.add(sourceFile);
+				list.add(prefix + sourceFile);
 			}
 		}
 	}
@@ -155,15 +173,57 @@ public class CodeOrganizer {
 		String sourceFileString = translatorProperties.getProperty(key);
 		String peripheralKey;
 		
-		addSourceFileFromSourceString(sourceFileString, list);
+		addSourceFileFromSourceString("", sourceFileString, list);
 				
 		for(String peripheralName: this.usedPeripheralList)
 		{
 			peripheralKey = key + TranslatorProperties.PROPERTY_DELIMITER + peripheralName;
 			sourceFileString = translatorProperties.getProperty(peripheralKey);
 			
-			addSourceFileFromSourceString(peripheralName + MAKEFILE_PATH_SEPARATOR + sourceFileString, list);
+			if(sourceFileString != null)
+			{
+				addSourceFileFromSourceString(peripheralName + MAKEFILE_PATH_SEPARATOR, sourceFileString, list);	
+			}
 		}
+	}
+	
+	private void setMissingExtension(ArrayList<String> fileList, String fileExtension)
+	{
+		int index = 0;
+		String fileName;
+		
+		for(index = 0; index < fileList.size() ; index++) {
+			fileName = fileList.get(index);
+			if(fileName.contains(Constants.FILE_EXTENSION_SEPARATOR) == false) { // set file extension
+				fileList.set(index, fileName + fileExtension);
+			}
+			else {
+				// skip file extension which is already determined				
+			}
+		}
+	}
+	
+	private void setGenerateKernelData(Properties translatorProperties)
+	{
+		String propertyKey;
+		String fileExtension;
+		
+		propertyKey = TranslatorProperties.PROPERTIES_GENERATED_KERNEL_DATA_FILE;
+		makeSourceFileList(propertyKey, translatorProperties, this.kernelDataSourceList);
+		
+		if(this.isMappedGPU == true) {
+			fileExtension = Constants.CUDA_FILE_EXTENSION; 
+		}
+		else {
+			if(this.language == ProgrammingLanguage.CPP) {
+				fileExtension = Constants.CPP_FILE_EXTENSION;
+			}
+			else {
+				fileExtension = Constants.C_FILE_EXTENSION;
+			}
+		}
+		
+		setMissingExtension(this.kernelDataSourceList, fileExtension);
 	}
 	
 	private void makeAllSourceFileList(Properties translatorProperties)
@@ -192,6 +252,34 @@ public class CodeOrganizer {
 		{
 			this.deviceRestriction = TranslatorProperties.PROPERTY_VALUE_CONSTRAINED;
 		}
+		
+		setGenerateKernelData(translatorProperties);
+	}
+	
+	private String getFlagsFromProperties(String propertyKey, Properties translatorProperties)
+	{
+		String peripheralKey;
+		String architectureKey;
+		String flag = "";
+		
+		if(translatorProperties.getProperty(propertyKey) != null) {
+			flag = translatorProperties.getProperty(propertyKey);
+		}
+		
+		architectureKey = propertyKey + TranslatorProperties.PROPERTY_DELIMITER + this.architecture;
+		if(translatorProperties.getProperty(architectureKey) != null) {
+			flag = flag + " " + translatorProperties.getProperty(architectureKey);
+		}
+		
+		for(String peripheralName: this.usedPeripheralList)
+		{
+			peripheralKey = propertyKey + TranslatorProperties.PROPERTY_DELIMITER + peripheralName;
+			if(translatorProperties.getProperty(peripheralKey) != null) {
+				flag = flag + " " + translatorProperties.getProperty(peripheralKey);
+			}	
+		}
+		
+		return flag;
 	}
 	
 	public void extractDataFromProperties(Properties translatorProperties) throws UnsupportedHardwareInformation
@@ -199,7 +287,7 @@ public class CodeOrganizer {
 		String[] architectureList = translatorProperties.getProperty(TranslatorProperties.PROPERTIES_ARCHITECTURE_LIST).split(TranslatorProperties.PROPERTY_VALUE_DELIMITER);
 		String[] platformList = translatorProperties.getProperty(TranslatorProperties.PROPERTIES_PLATFORM_LIST).split(TranslatorProperties.PROPERTY_VALUE_DELIMITER);
 		String[] runtimeList = translatorProperties.getProperty(TranslatorProperties.PROPERTIES_RUNTIME_LIST).split(TranslatorProperties.PROPERTY_VALUE_DELIMITER);
-		String[] peripheralList = translatorProperties.getProperty(TranslatorProperties.PROPERTIES_PERIPHERAL_PROCESSOR_LIST).split(TranslatorProperties.PROPERTY_VALUE_DELIMITER);
+		String[] peripheralList = translatorProperties.getProperty(TranslatorProperties.PROPERTIES_PERIPHERAL_LIST).split(TranslatorProperties.PROPERTY_VALUE_DELIMITER);
 		String propertyKey;
 		
 		if(isArchitectureAvailable(architectureList) == false || isPlatformAvailable(platformList) == false || 
@@ -211,28 +299,13 @@ public class CodeOrganizer {
 		makeAllSourceFileList(translatorProperties);
 		
 		propertyKey = TranslatorProperties.PROPERTIES_CFLAGS + TranslatorProperties.PROPERTY_DELIMITER + this.platform;
-		if(translatorProperties.getProperty(propertyKey) != null)
-		{
-			this.cflags = translatorProperties.getProperty(propertyKey);
-		}
-		propertyKey = TranslatorProperties.PROPERTIES_CFLAGS + TranslatorProperties.PROPERTY_DELIMITER + this.platform + 
-					TranslatorProperties.PROPERTY_DELIMITER + this.architecture;
-		if(translatorProperties.getProperty(propertyKey) != null)
-		{
-			this.cflags = this.cflags + " " + translatorProperties.getProperty(propertyKey);
-		}
+		this.cflags = this.cflags + " " + getFlagsFromProperties(propertyKey, translatorProperties);
 		
 		propertyKey = TranslatorProperties.PROPERTIES_LDADD + TranslatorProperties.PROPERTY_DELIMITER + this.platform;
-		if(translatorProperties.getProperty(propertyKey) != null)
-		{
-			this.ldadd = translatorProperties.getProperty(propertyKey);
-		}
-		propertyKey = TranslatorProperties.PROPERTIES_LDADD + TranslatorProperties.PROPERTY_DELIMITER + this.platform + 
-					TranslatorProperties.PROPERTY_DELIMITER + this.architecture;
-		if(translatorProperties.getProperty(propertyKey) != null)
-		{
-			this.ldadd = this.ldadd + " " + translatorProperties.getProperty(propertyKey);
-		}
+		this.ldflags = this.ldflags + " " + getFlagsFromProperties(propertyKey, translatorProperties);
+		
+		this.cflags = this.cflags.trim();
+		this.ldflags = this.ldflags.trim();
 		
 		this.platformDir = this.runtime + MAKEFILE_PATH_SEPARATOR + this.platform;
 	}
@@ -258,7 +331,7 @@ public class CodeOrganizer {
 		
 		for(String ldAdd: ldAddSet)
 		{
-			this.ldadd = this.ldadd + " " + ldAdd;
+			this.ldflags = this.ldflags + " " + ldAdd;
 		}
 	}
 	
@@ -293,17 +366,33 @@ public class CodeOrganizer {
 		addCFlags(taskMap, libraryMap);
 	}
 	
-	public void fillSourceCodeListFromTaskMap(HashMap<String, Task> taskMap)
+	private void setExtraSources(HashSet<String> extraSourceSet)
+	{
+		for(String extraSource : extraSourceSet)
+		{
+			this.extraSourceCodeSet.add(extraSource);
+			if(extraSource.endsWith(Constants.CPP_FILE_EXTENSION) == true)
+			{
+				this.language = ProgrammingLanguage.CPP;
+			}
+		}
+	}
+	
+	private void fillSourceCodeListFromTaskMap(HashMap<String, Task> taskMap)
 	{
 		for(Task task : taskMap.values())
 		{
 			if(task.getChildTaskGraphName() == null)
 			{
 				for(int i = 0 ; i < task.getTaskFuncNum() ; i++)
-				{					
+				{
+					if(task.getLanguage() == ProgrammingLanguage.CPP)
+					{
+						this.language = ProgrammingLanguage.CPP;
+					}
+					
 					if(isMappedGPU == false){
-
-						this.taskSourceCodeList.add(task.getName() + Constants.TASK_NAME_FUNC_ID_SEPARATOR + i + Constants.C_FILE_EXTENSION);
+						this.taskSourceCodeList.add(task.getName() + Constants.TASK_NAME_FUNC_ID_SEPARATOR + i + task.getFileExtension());
 	    			}
 	    			else{
 						this.taskSourceCodeList.add(task.getName() + Constants.TASK_NAME_FUNC_ID_SEPARATOR + i + Constants.CUDA_FILE_EXTENSION);
@@ -311,23 +400,41 @@ public class CodeOrganizer {
 				}
 			}
 			
-			for(String extraSource : task.getExtraSourceSet())
-			{
-				this.extraSourceCodeSet.add(extraSource);
-			}
+			setExtraSources(task.getExtraSourceSet());
 		}
 	}
 	
-	public void fillSourceCodeListFromLibraryMap(HashMap<String, Library> libraryMap)
+	private void fillSourceCodeListFromLibraryMap(HashMap<String, Library> libraryMap)
 	{
 		for(Library library : libraryMap.values())
 		{
-			this.taskSourceCodeList.add(library.getName() + Constants.C_FILE_EXTENSION);
-			
-			for(String extraSource : library.getExtraSourceSet())
+			if(library.getLanguage() == ProgrammingLanguage.CPP)
 			{
-				this.extraSourceCodeSet.add(extraSource);
+				this.language = ProgrammingLanguage.CPP;
 			}
+			
+			this.taskSourceCodeList.add(library.getName() + library.getFileExtension());
+			
+			setExtraSources(library.getExtraSourceSet());
+		}
+	}
+	
+	public void fillSourceCodeListFromTaskAndLibraryMap(HashMap<String, Task> taskMap, HashMap<String, Library> libraryMap)
+	{
+		fillSourceCodeListFromTaskMap(taskMap);
+		fillSourceCodeListFromLibraryMap(libraryMap);
+	}
+	
+	public void fillSourceCodeAndFlagsFromModules(ArrayList<Module> moduleList)
+	{
+		for(Module module : moduleList)
+		{
+			this.moduleSourceList.addAll(module.getSourceList());
+			this.cflags = this.cflags + " " + module.getCflags();
+			this.ldflags = this.ldflags + " " + module.getLdflags();
+			
+			this.cflags = this.cflags.trim();
+			this.ldflags = this.ldflags.trim();
 		}
 	}
 	
@@ -343,6 +450,8 @@ public class CodeOrganizer {
 				if(paramFile.isFile() == true && 
 					(paramFile.getName().endsWith(Constants.CIC_FILE_EXTENSION) || 
 					paramFile.getName().endsWith(Constants.CICL_FILE_EXTENSION) || 
+					paramFile.getName().endsWith(Constants.C_FILE_EXTENSION) ||
+					paramFile.getName().endsWith(Constants.CPP_FILE_EXTENSION) ||
 						(paramFile.getName().endsWith(Constants.HEADER_FILE_EXTENSION) && 
 						!paramFile.getName().endsWith(Constants.CIC_HEADER_FILE_EXTENSION))
 					))
@@ -363,7 +472,10 @@ public class CodeOrganizer {
 			
 			@Override
 			public boolean accept(File paramFile) {
-				if(paramFile.getAbsolutePath().contains(srcDir + File.separator + APPLICATION_DIR))
+				// add File.separator after the directory path to copy directory itself and avoid internal files
+				if(paramFile.getAbsolutePath().contains(srcDir + File.separator + APPLICATION_DIR + File.separator))
+					return false;
+				else if(paramFile.getAbsolutePath().contains(srcDir + File.separator + KERNEL_GENERATED_DIR + File.separator))
 					return false;
 				// skip object/executable/temporary/log files
 				else if(paramFile.getName().endsWith(".o") || paramFile.getName().endsWith(".log") || paramFile.getName().endsWith("~") || 
@@ -436,8 +548,8 @@ public class CodeOrganizer {
 		return cflags;
 	}
 
-	public String getLdadd() {
-		return ldadd;
+	public String getLdflags() {
+		return ldflags;
 	}
 
 	public ArrayList<String> getTaskSourceCodeList() {
@@ -454,6 +566,18 @@ public class CodeOrganizer {
 
 	public HashSet<String> getUsedPeripheralList() {
 		return usedPeripheralList;
+	}
+
+	public ProgrammingLanguage getLanguage() {
+		return language;
+	}
+
+	public ArrayList<String> getKernelDataSourceList() {
+		return kernelDataSourceList;
+	}
+
+	public ArrayList<String> getModuleSourceList() {
+		return moduleSourceList;
 	}
 }
 

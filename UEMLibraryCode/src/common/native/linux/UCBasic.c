@@ -71,3 +71,13 @@ int UC_memcmp(void *pCompare1, void *pCompare2, int nSize)
 }
 
 
+void *UC_memset(void *pDest, int nContents, int nSize)
+{
+	void *pMemory = NULL;
+
+	pMemory = memset(pDest, nContents, nSize);
+
+	return pMemory;
+}
+
+

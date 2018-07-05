@@ -29,19 +29,19 @@ public class Constants {
 	public static final String NAME_SPLITER = "/";
 	
 	public static final String DEFAULT_PROPERTIES_FILE_NAME = "translator.properties";
+	public static final String DEFAULT_MODULE_XML_FILE_NAME = "module.xml";
 	public static final String DEFAULT_PROPERTIES_FILE_PATH = ".." + File.separator + "UEMTranslator" + File.separator + "config" + File.separator + DEFAULT_PROPERTIES_FILE_NAME;
+	public static final String DEFAULT_MODULE_XML_PATH = ".." + File.separator + "UEMTranslator" + File.separator + "config" + File.separator + DEFAULT_MODULE_XML_FILE_NAME;
 	public static final String DEFAULT_TEMPLATE_DIR = "templates";
-	public static final String DEFAULT_TRANSLATED_CODE_TEMPLATE_DIR = ".." + File.separator + "UEMTranslatedCodeTemplate";
-	public static final String DEFAULT_UEM_DATA_C = "uem_data.c";
-	public static final String DEFAULT_UEM_DATA_CUDA = "uem_data.cu";
+	public static final String DEFAULT_TRANSLATED_CODE_TEMPLATE_DIR = ".." + File.separator + "UEMLibraryCode";
 	public static final String DEFAULT_MAKEFILE_AM = "Makefile.am";
 	
 	// template files
-	public static final String TEMPLATE_FILE_UEM_DATA = "uem_data.ftl";
 	public static final String TEMPLATE_FILE_TASK_CODE = "task_code.ftl";
 	public static final String TEMPLATE_FILE_MAKEFILE = "Makefile.ftl";
 	public static final String TEMPLATE_FILE_LIBRARY_CODE = "library_code.ftl";
 	public static final String TEMPLATE_FILE_LIBRARY_HEADER = "library_header.ftl";
+	public static final String TEMPLATE_FILE_EXTENSION = ".ftl";
 	
 	// tags for uem_data.ftl
 	public static final String TEMPLATE_TAG_TASK_MAP = "flat_task";
@@ -56,6 +56,10 @@ public class Constants {
 	public static final String TEMPLATE_TAG_LIBRARY_INFO = "library_info";
 	
 	public static final String TEMPLATE_TAG_GPU_USED = "gpu_used";
+	public static final String TEMPLATE_TAG_COMMUNICATION_USED = "communication_used";
+	public static final String TEMPLATE_TAG_TCP_SERVER_LIST = "tcp_server_list";
+	public static final String TEMPLATE_TAG_TCP_CLIENT_LIST = "tcp_client_list";
+	public static final String TEMPLATE_TAG_MODULE_LIST = "module_list";
 	
 	// tags for Makefile.ftl
 	public static final String TEMPLATE_TAG_BUILD_INFO = "build_info";
@@ -84,4 +88,6 @@ public class Constants {
 	public static final String DEFAULT_MODE_NAME = "Default";
 	
 	public static final String FLAG_SEPARATOR = " ";
+	
+	public static final String FILE_EXTENSION_SEPARATOR = ".";
 }
