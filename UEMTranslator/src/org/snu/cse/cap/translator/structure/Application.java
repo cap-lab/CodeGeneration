@@ -350,7 +350,10 @@ public class Application {
 					putConnectionsOnDevice(device, device_metadata.getConnections());
 				}
 				
-				insertDeviceModules(device, device_metadata.getModules().getModule(), moduleMap);
+				if(device_metadata.getModules() != null)
+				{
+					insertDeviceModules(device, device_metadata.getModules().getModule(), moduleMap);	
+				}
 
 				this.deviceInfo.put(device_metadata.getName(), device);
 			}
