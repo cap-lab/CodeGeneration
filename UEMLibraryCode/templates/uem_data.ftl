@@ -83,7 +83,7 @@ void l_${libraryName}_wrapup();
 	<#if task.loopStruct??>
 SLoopInfo g_stLoopStruct_${task.name} = {
 	LOOP_TYPE_${task.loopStruct.loopType},
-	${task.loopStruct.loopCount},
+	${task.loopStruct.loopCount?c},
 	${task.loopStruct.designatedTaskId},
 };
 

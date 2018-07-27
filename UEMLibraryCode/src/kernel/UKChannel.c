@@ -123,7 +123,7 @@ static uem_bool isPortTaskIdAndPortNameEqual(SPort *pstTopPort, uem_string strPo
 	{
 		if(pstPort->nTaskId == nTaskId)
 		{
-			result = UCString_New(&stStructPortName, (char *) pstTopPort->pszPortName, UEMSTRING_CONST);
+			result = UCString_New(&stStructPortName, (char *) pstPort->pszPortName, UEMSTRING_CONST);
 			ERRIFGOTO(result, _EXIT);
 
 			if(UCString_IsEqual(strPortName, &stStructPortName) == TRUE)

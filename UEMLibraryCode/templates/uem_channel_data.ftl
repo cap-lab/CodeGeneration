@@ -112,7 +112,7 @@ SPort g_astPortInfo[] = {
 <#list channel_list as channel>
 SAvailableChunk g_astAvailableInputChunk_channel_${channel.index}[] = {
 <#list 0..(channel.inputPort.maximumChunkNum-1) as chunk_id>
-	{ ${chunk_id}, 0, (SAvailableChunk *) NULL, (SAvailableChunk *) NULL, },
+	{ ${chunk_id?c}, 0, (SAvailableChunk *) NULL, (SAvailableChunk *) NULL, },
 </#list>
 };
 </#list>
@@ -246,7 +246,7 @@ SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 		}, // Output chunk information
 		CHUNK_NUM_NOT_INITIALIZED, // Written output chunk number
 		g_astAvailableInputChunk_channel_${channel.index}, // Available chunk list
-		${channel.inputPort.maximumChunkNum}, // maximum input port chunk size for all port sample rate cases
+		${channel.inputPort.maximumChunkNum?c}, // maximum input port chunk size for all port sample rate cases
 		(SAvailableChunk *) NULL, // Chunk list head
 		(SAvailableChunk *) NULL, // Chunk list tail
 		<#switch channel.accessType>
