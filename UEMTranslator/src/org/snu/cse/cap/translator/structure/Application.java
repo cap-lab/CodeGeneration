@@ -880,22 +880,6 @@ public class Application {
 		return graph;
 	}
 	
-	private int getCurrentTaskLoopCount(Task task) {
-		int loopCount = 1;
-		
-		while(task != null)
-		{
-			if(task.getLoopStruct() != null)
-			{
-				loopCount = loopCount * task.getLoopStruct().getLoopCount();
-			}
-			
-			task = this.taskMap.get(task.getParentTaskGraphName());
-		}
-		
-		return loopCount;
-	}
-	
 	private void handleScheduleElement(SDFGraph graph, mocgraph.sched.Schedule schedule, int modeId)
 	{
 		Task task;
@@ -919,8 +903,12 @@ public class Application {
 				{
 					taskRep = firing.getIterationCount();
 				}
-
-				task.getIterationCountList().put(modeId+"", taskRep * getCurrentTaskLoopCount(task));
+				
+				if(task.getLoopStruct() != null)
+				{
+					taskRep = taskRep * task.getLoopStruct().getLoopCount();
+				}
+				task.getIterationCountList().put(modeId+"", taskRep);
 			}
 		}
 	}

@@ -639,6 +639,7 @@ uem_result UKTask_SetAllTargetIteration(int nTargetIteration)
 	int nLoop = 0;
 	STask *pstTask = NULL;
 	STask *pstTopParentTask = NULL;
+	int nCurTargetIteration = 0;
 
 #ifdef ARGUMENT_CHECK
 	if(nTargetIteration < 0) {
@@ -647,13 +648,18 @@ uem_result UKTask_SetAllTargetIteration(int nTargetIteration)
 #endif
 	for(nLoop = 0 ; nLoop < g_nTaskIdToTaskNum ; nLoop++)
 	{
+		nCurTargetIteration = nTargetIteration;
 		pstTask = g_astTaskIdToTask[nLoop].pstTask;
 		pstTopParentTask = pstTask;
 		while(pstTopParentTask->pstParentGraph->pstParentTask != NULL)
 		{
+			if(pstTopParentTask->pstParentGraph->pstParentTask->pstLoopInfo != NULL)
+			{
+				nCurTargetIteration = nCurTargetIteration * pstTopParentTask->pstParentGraph->pstParentTask->pstLoopInfo->nLoopCount;
+			}
 			pstTopParentTask = pstTopParentTask->pstParentGraph->pstParentTask;
 		}
-		result = UKTask_SetTargetIteration(pstTask, nTargetIteration, pstTopParentTask->nTaskId);
+		result = UKTask_SetTargetIteration(pstTask, nCurTargetIteration, pstTopParentTask->nTaskId);
 		ERRIFGOTO(result, _EXIT);
 	}
 

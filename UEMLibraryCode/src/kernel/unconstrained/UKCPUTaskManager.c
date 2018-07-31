@@ -539,10 +539,22 @@ static uem_result setMaximumTaskIteration(STask *pstTask, void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SMaxIterationSetCallback *pstIterationSet = NULL;
+	int nCurMaxIteration = 0;
+	STask *pstParentTask = NULL;
 
 	pstIterationSet = (SMaxIterationSetCallback *) pUserData;
 
-	result = UKTask_SetTargetIteration(pstTask, pstIterationSet->nMaxIteration, pstIterationSet->nBaseTaskId);
+	nCurMaxIteration = pstIterationSet->nMaxIteration;
+	pstParentTask = pstTask;
+	while(pstParentTask->pstParentGraph->pstParentTask != NULL)
+	{
+		if(pstParentTask->pstParentGraph->pstParentTask->pstLoopInfo != NULL) {
+			nCurMaxIteration = nCurMaxIteration * pstParentTask->pstParentGraph->pstParentTask->pstLoopInfo->nLoopCount;
+		}
+		pstParentTask = pstParentTask->pstParentGraph->pstParentTask;
+	}
+
+	result = UKTask_SetTargetIteration(pstTask, nCurMaxIteration, pstIterationSet->nBaseTaskId);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;

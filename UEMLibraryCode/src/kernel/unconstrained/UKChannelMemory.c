@@ -903,6 +903,7 @@ static uem_result writeToArrayQueue(SChannel *pstChannel, SSharedMemoryChannel *
 			pNewEnd = pstSharedMemoryChannel->pBuffer + nSegmentLen;
 		}
 		pstSharedMemoryChannel->nDataLen += nExpectedProduceSize;
+		pstSharedMemoryChannel->pDataEnd = pNewEnd;
 	}
 
 	nCurrentReadSampleRateIndex = pstChannel->stInputPort.nCurrentSampleRateIndex;
