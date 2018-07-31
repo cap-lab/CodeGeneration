@@ -85,7 +85,8 @@ typedef struct _SSharedMemoryChannel {
 	int nWrittenOutputChunkNum;
 
 	SAvailableChunk *astAvailableInputChunkList; // size
-	int nMaxChunkNum; // maximum chunk size for all port sample rate cases
+	int nOutputMaxChunkNum; // maximum chunk size for all port sample rate cases (output port)
+	int nMaxChunkNum; // maximum chunk size for all port sample rate cases (input port)
 	SAvailableChunk *pstAvailableInputChunkHead;
 	SAvailableChunk *pstAvailableInputChunkTail;
 	SGenericMemoryAccess *pstMemoryAccessAPI;

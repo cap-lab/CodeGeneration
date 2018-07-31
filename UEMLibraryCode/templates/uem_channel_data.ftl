@@ -45,29 +45,8 @@ char s_pChannel_${channel.index}_buffer[CHANNEL_${channel.index}_SIZE];
 
 // ##CHUNK_DEFINITION_TEMPLATE::START
 <#list channel_list as channel>
-SChunk g_astChunk_channel_${channel.index}_out[] = {
-<#list 0..(channel.outputPort.maximumChunkNum-1) as chunk_id>
-	{
-		s_pChannel_${channel.index}_buffer, // Chunk start pointer
-		s_pChannel_${channel.index}_buffer, // Data start pointer
-		s_pChannel_${channel.index}_buffer, // Data end pointer
-		0, // Written data length
-		0, // Available data number;
-	},
-</#list>
-};
-
-SChunk g_astChunk_channel_${channel.index}_in[] = {
-<#list 0..(channel.inputPort.maximumChunkNum-1) as chunk_id>
-	{
-		s_pChannel_${channel.index}_buffer, // Chunk start pointer
-		s_pChannel_${channel.index}_buffer, // Data start pointer
-		s_pChannel_${channel.index}_buffer, // Data end pointer
-		0, // Written data length
-		0, // Available data number;
-	},
-</#list>
-};
+SChunk g_astChunk_channel_${channel.index}_out[${channel.outputPort.maximumChunkNum}];
+SChunk g_astChunk_channel_${channel.index}_in[${channel.inputPort.maximumChunkNum}];
 
 </#list>
 // ##CHUNK_DEFINITION_TEMPLATE::END
@@ -110,10 +89,7 @@ SPort g_astPortInfo[] = {
 
 // ##AVAILABLE_CHUNK_LIST_TEMPLATE::START
 <#list channel_list as channel>
-SAvailableChunk g_astAvailableInputChunk_channel_${channel.index}[] = {
-<#list 0..(channel.inputPort.maximumChunkNum-1) as chunk_id>
-	{ ${chunk_id?c}, 0, (SAvailableChunk *) NULL, (SAvailableChunk *) NULL, },
-</#list>
+SAvailableChunk g_astAvailableInputChunk_channel_${channel.index}[${channel.inputPort.maximumChunkNum}];
 };
 </#list>
 // ##AVAILABLE_CHUNK_LIST_TEMPLATE::END
@@ -246,7 +222,8 @@ SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 		}, // Output chunk information
 		CHUNK_NUM_NOT_INITIALIZED, // Written output chunk number
 		g_astAvailableInputChunk_channel_${channel.index}, // Available chunk list
-		${channel.inputPort.maximumChunkNum?c}, // maximum input port chunk size for all port sample rate cases
+		${channel.outputPort.maximumChunkNum?c}, // maximum chunk size for all port sample rate cases (output port)
+		${channel.inputPort.maximumChunkNum?c}, // maximum input port chunk size for all port sample rate cases (input port)
 		(SAvailableChunk *) NULL, // Chunk list head
 		(SAvailableChunk *) NULL, // Chunk list tail
 		<#switch channel.accessType>

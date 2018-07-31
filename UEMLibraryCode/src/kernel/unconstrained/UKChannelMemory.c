@@ -139,6 +139,7 @@ _EXIT:
 uem_result UKChannelMemory_Initialize(SChannel *pstChannel, SSharedMemoryChannel *pstSharedMemoryChannel)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop = 0 ;
 
 	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
@@ -159,6 +160,29 @@ uem_result UKChannelMemory_Initialize(SChannel *pstChannel, SSharedMemoryChannel
 	ERRIFGOTO(result, _EXIT);
 	result = UCThreadEvent_Create(&(pstSharedMemoryChannel->hWriteEvent));
 	ERRIFGOTO(result, _EXIT);
+
+	for(nLoop = 0 ; nLoop < pstSharedMemoryChannel->nOutputMaxChunkNum ; nLoop++)
+	{
+		pstSharedMemoryChannel->stOutputPortChunk.astChunk[nLoop].pChunkStart = NULL;
+		pstSharedMemoryChannel->stOutputPortChunk.astChunk[nLoop].pDataStart = NULL;
+		pstSharedMemoryChannel->stOutputPortChunk.astChunk[nLoop].pDataEnd = NULL;
+		pstSharedMemoryChannel->stOutputPortChunk.astChunk[nLoop].nAvailableDataNum = 0;
+		pstSharedMemoryChannel->stOutputPortChunk.astChunk[nLoop].nChunkDataLen = 0;
+	}
+
+	for(nLoop = 0 ; nLoop < pstSharedMemoryChannel->nMaxChunkNum ; nLoop++)
+	{
+		pstSharedMemoryChannel->stInputPortChunk.astChunk[nLoop].pChunkStart = NULL;
+		pstSharedMemoryChannel->stInputPortChunk.astChunk[nLoop].pDataStart = NULL;
+		pstSharedMemoryChannel->stInputPortChunk.astChunk[nLoop].pDataEnd = NULL;
+		pstSharedMemoryChannel->stInputPortChunk.astChunk[nLoop].nAvailableDataNum = 0;
+		pstSharedMemoryChannel->stInputPortChunk.astChunk[nLoop].nChunkDataLen = 0;
+
+		pstSharedMemoryChannel->astAvailableInputChunkList[nLoop].nChunkIndex = nLoop;
+		pstSharedMemoryChannel->astAvailableInputChunkList[nLoop].nSampleNum = 0;
+		pstSharedMemoryChannel->astAvailableInputChunkList[nLoop].pstNext = NULL;
+		pstSharedMemoryChannel->astAvailableInputChunkList[nLoop].pstPrev = NULL;
+	}
 
 	result = UKChannelMemory_Clear(pstChannel, pstSharedMemoryChannel);
 	ERRIFGOTO(result, _EXIT);
