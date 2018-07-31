@@ -45,8 +45,8 @@ char s_pChannel_${channel.index}_buffer[CHANNEL_${channel.index}_SIZE];
 
 // ##CHUNK_DEFINITION_TEMPLATE::START
 <#list channel_list as channel>
-SChunk g_astChunk_channel_${channel.index}_out[${channel.outputPort.maximumChunkNum}];
-SChunk g_astChunk_channel_${channel.index}_in[${channel.inputPort.maximumChunkNum}];
+SChunk g_astChunk_channel_${channel.index}_out[${channel.outputPort.maximumChunkNum?c}];
+SChunk g_astChunk_channel_${channel.index}_in[${channel.inputPort.maximumChunkNum?c}];
 
 </#list>
 // ##CHUNK_DEFINITION_TEMPLATE::END
@@ -89,8 +89,8 @@ SPort g_astPortInfo[] = {
 
 // ##AVAILABLE_CHUNK_LIST_TEMPLATE::START
 <#list channel_list as channel>
-SAvailableChunk g_astAvailableInputChunk_channel_${channel.index}[${channel.inputPort.maximumChunkNum}];
-};
+SAvailableChunk g_astAvailableInputChunk_channel_${channel.index}[${channel.inputPort.maximumChunkNum?c}];
+
 </#list>
 // ##AVAILABLE_CHUNK_LIST_TEMPLATE::END
 
