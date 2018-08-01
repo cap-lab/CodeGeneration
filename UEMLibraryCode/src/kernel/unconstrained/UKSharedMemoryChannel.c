@@ -206,6 +206,22 @@ _EXIT:
 }
 
 
+uem_result UKSharedMemoryChannel_FillInitialData(SChannel *pstChannel)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SSharedMemoryChannel *pstSharedMemoryChannel = NULL;
+
+	pstSharedMemoryChannel = (SSharedMemoryChannel *) pstChannel->pChannelStruct;
+
+	result = UKChannelMemory_FillInitialData(pstChannel, pstSharedMemoryChannel);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 uem_result UKSharedMemoryChannel_Finalize(SChannel *pstChannel)
 {
 	uem_result result = ERR_UEM_UNKNOWN;

@@ -143,6 +143,7 @@ SExternalCommunicationInfo g_astExternalCommunicationInfo[] = {
 SGenericMemoryAccess g_stHostMemory = {
 	UKHostMemorySystem_CreateMemory,
 	UKHostMemorySystem_CopyToMemory,
+	UKHostMemorySystem_CopyInMemory,
 	UKHostMemorySystem_CopyFromMemory,
 	UKHostMemorySystem_DestroyMemory,
 };
@@ -151,6 +152,7 @@ SGenericMemoryAccess g_stHostMemory = {
 SGenericMemoryAccess g_stHostToDeviceMemory = {
 	UKHostMemorySystem_CreateMemory,
 	UKHostMemorySystem_CopyToMemory,
+	UKHostMemorySystem_CopyInMemory,
 	UKGPUMemorySystem_CopyHostToDeviceMemory,
 	UKHostMemorySystem_DestroyMemory,
 };
@@ -158,6 +160,7 @@ SGenericMemoryAccess g_stHostToDeviceMemory = {
 SGenericMemoryAccess g_stDeviceToHostMemory = {
 	UKHostMemorySystem_CreateMemory,
 	UKGPUMemorySystem_CopyDeviceToHostMemory,
+	UKHostMemorySystem_CopyInMemory,
 	UKHostMemorySystem_CopyFromMemory,
 	UKHostMemorySystem_DestroyMemory,
 };
@@ -166,12 +169,14 @@ SGenericMemoryAccess g_stDeviceItSelfMemory = {
 	UKGPUMemorySystem_CreateMemory,
 	UKGPUMemorySystem_CopyDeviceToDeviceMemory,
 	UKGPUMemorySystem_CopyDeviceToDeviceMemory,
+	UKGPUMemorySystem_CopyDeviceToDeviceMemory,
 	UKGPUMemorySystem_DestroyMemory,
 };
 
 SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 	UKGPUMemorySystem_CreateHostAllocMemory,
 	UKGPUMemorySystem_CopyDeviceToHostMemory,
+	UKHostMemorySystem_CopyInMemory, // host alloc memory can use host memcpy function
 	UKGPUMemorySystem_CopyHostToDeviceMemory,
 	UKGPUMemorySystem_DestroyHostAllocMemory,
 };
@@ -248,6 +253,7 @@ SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 		FALSE, // memory is statically allocated
 				<#break>
 		</#switch>
+		<#if (channel.initialDataLen > 0)>FALSE<#else>TRUE</#if>, // initial data is updated
 };
 		<#break>
 	</#switch>
@@ -360,6 +366,7 @@ SChannelAPI g_stSharedMemoryChannel = {
 	UKSharedMemoryChannel_Clear, // fnClear
 	UKSharedMemoryChannel_SetExit,
 	UKSharedMemoryChannel_ClearExit,
+	UKSharedMemoryChannel_FillInitialData,
 	UKSharedMemoryChannel_Finalize, // fnFinalize
 	NULL,
 	NULL,
@@ -377,6 +384,7 @@ SChannelAPI g_stTCPSocketChannelWriter = {
 	UKTCPSocketChannel_Clear, // fnClear
 	UKTCPSocketChannel_SetExit,
 	UKTCPSocketChannel_ClearExit,
+	UKTCPSocketChannel_FillInitialData,
 	UKTCPSocketChannel_Finalize, // fnFinalize
 	UKTCPServerManager_Initialize,
 	UKTCPServerManager_Finalize,
@@ -394,6 +402,7 @@ SChannelAPI g_stTCPSocketChannelReader = {
 	UKTCPSocketChannel_Clear, // fnClear
 	UKTCPSocketChannel_SetExit,
 	UKTCPSocketChannel_ClearExit,
+	NULL,
 	UKTCPSocketChannel_Finalize, // fnFinalize
 	NULL,
 	NULL,

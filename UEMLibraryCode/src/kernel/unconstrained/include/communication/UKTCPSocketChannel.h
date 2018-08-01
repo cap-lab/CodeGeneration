@@ -30,6 +30,7 @@ uem_result UKTCPSocketChannel_WriteToQueue (SChannel *pstChannel, IN unsigned ch
 uem_result UKTCPSocketChannel_WriteToBuffer (SChannel *pstChannel, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten);
 uem_result UKTCPSocketChannel_SetExit(SChannel *pstChannel, int nExitFlag);
 uem_result UKTCPSocketChannel_ClearExit(SChannel *pstChannel, int nExitFlag);
+uem_result UKTCPSocketChannel_FillInitialData(SChannel *pstChannel);
 uem_result UKTCPSocketChannel_Finalize(SChannel *pstChannel);
 
 #ifdef __cplusplus

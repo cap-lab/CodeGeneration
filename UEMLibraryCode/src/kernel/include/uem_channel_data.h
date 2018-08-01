@@ -56,14 +56,14 @@ typedef struct _SAvailableChunk {
 } SAvailableChunk;
 
 typedef uem_result (*FnCreateMemory)(int nSize, OUT void **ppMemory);
-typedef uem_result (*FnCopyToMemory)(IN void *pMemory, IN void *pSource, int nCopySize);
-typedef uem_result (*FnCopyFromMemory)(IN void *pDestination, IN void *pMemory, int nCopySize);
+typedef uem_result (*FnCopyMemory)(IN void *pDest, IN void *pSource, int nCopySize);
 typedef uem_result (*FnDestroyMemory)(IN OUT void **ppMemory);
 
 typedef struct _SGenericMemoryAccess {
 	FnCreateMemory fnCreateMemory;
-	FnCopyToMemory fnCopyToMemory;
-	FnCopyFromMemory fnCopyFromMemory;
+	FnCopyMemory fnCopyToMemory;
+	FnCopyMemory fnCopyInMemory;
+	FnCopyMemory fnCopyFromMemory;
 	FnDestroyMemory fnDestroyMemory;
 } SGenericMemoryAccess;
 
@@ -91,6 +91,7 @@ typedef struct _SSharedMemoryChannel {
 	SAvailableChunk *pstAvailableInputChunkTail;
 	SGenericMemoryAccess *pstMemoryAccessAPI;
 	uem_bool bStaticAllocation;
+	uem_bool bInitialDataUpdated;
 } SSharedMemoryChannel;
 
 
@@ -153,6 +154,7 @@ typedef uem_result (*FnChannelGetNumOfAvailableData)(SChannel *pstChannel, IN in
 typedef uem_result (*FnChannelClear)(SChannel *pstChannel);
 typedef uem_result (*FnChannelSetExit)(SChannel *pstChannel, int nExitFlag);
 typedef uem_result (*FnChannelClearExit)(SChannel *pstChannel, int nExitFlag);
+typedef uem_result (*FnChannelFillInitialData)(SChannel *pstChannel);
 typedef uem_result (*FnChannelFinalize)(SChannel *pstChannel);
 
 typedef struct _SChannelAPI {
@@ -166,6 +168,7 @@ typedef struct _SChannelAPI {
 	FnChannelClear fnClear;
 	FnChannelSetExit fnSetExit;
 	FnChannelClearExit fnClearExit;
+	FnChannelFillInitialData fnFillInitialData;
 	FnChannelFinalize fnFinalize;
 	FnChannelAPIInitialize fnAPIInitialize;
 	FnChannelAPIFinalize fnAPIFinalize;

@@ -1228,13 +1228,17 @@ _EXIT:
 static uem_result callInitFunction(STask *pstLeafTask, void *pUserData)
 {
 	int nLoop = 0;
+	uem_result result = ERR_UEM_UNKNOWN;
 
 	for(nLoop = 0; nLoop < pstLeafTask->nTaskFunctionSetNum ; nLoop++)
 	{
 		pstLeafTask->astTaskFunctions[nLoop].fnInit(pstLeafTask->nTaskId);
-	}
 
-	return ERR_UEM_NOERROR;
+		result = UKChannel_FillInitialDataBySourceTaskId(pstLeafTask->nTaskId);
+		ERRIFGOTO(result, _EXIT);
+	}
+_EXIT:
+	return result;
 }
 
 

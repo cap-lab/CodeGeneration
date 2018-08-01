@@ -27,6 +27,7 @@ uem_result UKSharedMemoryChannel_GetNumOfAvailableData (SChannel *pstChannel, IN
 uem_result UKSharedMemoryChannel_Clear(SChannel *pstChannel);
 uem_result UKSharedMemoryChannel_SetExit(SChannel *pstChannel, int nExitFlag);
 uem_result UKSharedMemoryChannel_ClearExit(SChannel *pstChannel, int nExitFlag);
+uem_result UKSharedMemoryChannel_FillInitialData(SChannel *pstChannel);
 uem_result UKSharedMemoryChannel_Finalize(SChannel *pstChannel);
 
 #ifdef __cplusplus

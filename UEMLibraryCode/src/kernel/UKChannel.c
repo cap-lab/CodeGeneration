@@ -29,31 +29,6 @@
 uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType enType, OUT SChannelAPI **ppstChannelAPI);
 
 
-static uem_result fillInitialData(SChannel *pstChannel, SChannelAPI *pstChannelAPI)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	int nBuffer = 0; // 4-byte buffer
-	int nTotalDataToWrite = pstChannel->nInitialDataLen;
-	int nDataWritten = 0;
-	int nTotalDataWritten = 0;
-
-	if(pstChannel->nInitialDataLen > pstChannel->nBufSize)
-	{
-		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
-	}
-
-	while(nTotalDataWritten < nTotalDataToWrite)
-	{
-		result = pstChannelAPI->fnWriteToQueue(pstChannel, (unsigned char *) &nBuffer, MIN(nTotalDataToWrite - nTotalDataWritten, sizeof(int)), 0, &nDataWritten);
-		ERRIFGOTO(result, _EXIT);
-		nTotalDataWritten += nDataWritten;
-	}
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
 uem_result UKChannel_Initialize()
 {
 	uem_result result = ERR_UEM_NOERROR;
@@ -78,15 +53,6 @@ uem_result UKChannel_Initialize()
 		{
 			result = pstChannelAPI->fnInitialize(&(g_astChannels[nLoop]));
 			ERRIFGOTO(result, _EXIT);
-		}
-
-		if(g_astChannels[nLoop].nInitialDataLen > 0)
-		{
-			if(pstChannelAPI->fnWriteToQueue != NULL)
-			{
-				result = fillInitialData(&(g_astChannels[nLoop]), pstChannelAPI);
-				ERRIFGOTO(result, _EXIT);
-			}
 		}
 	}
 _EXIT:
@@ -347,12 +313,6 @@ uem_result UKChannel_Clear(IN int nChannelId)
 
 	result = pstChannelAPI->fnClear(&g_astChannels[nIndex]);
 	ERRIFGOTO(result, _EXIT);
-
-	if(g_astChannels[nIndex].nInitialDataLen > 0)
-	{
-		result = fillInitialData(&(g_astChannels[nIndex]), pstChannelAPI);
-		ERRIFGOTO(result, _EXIT);
-	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -629,12 +589,6 @@ uem_result UKChannel_ClearChannelInSubgraph(int nParentTaskId)
 
 			result = pstChannelAPI->fnClear(&(g_astChannels[nLoop]));
 			ERRIFGOTO(result, _EXIT);
-
-			if(g_astChannels[nLoop].nInitialDataLen > 0)
-			{
-				result = fillInitialData(&(g_astChannels[nLoop]), pstChannelAPI);
-				ERRIFGOTO(result, _EXIT);
-			}
 		}
 		else
 		{
@@ -642,6 +596,31 @@ uem_result UKChannel_ClearChannelInSubgraph(int nParentTaskId)
 		}
 
 	}
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+uem_result UKChannel_FillInitialDataBySourceTaskId(int nTaskId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop = 0;
+	SChannelAPI *pstChannelAPI = NULL;
+
+	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
+	{
+		result = ChannelAPI_GetAPIStructureFromCommunicationType(g_astChannels[nLoop].enType, &pstChannelAPI);
+		if(result == ERR_UEM_NOERROR && pstChannelAPI->fnFillInitialData != NULL)
+		{
+			if(matchTaskIdInPort(&(g_astChannels[nLoop].stOutputPort), nTaskId) == TRUE)
+			{
+				result = pstChannelAPI->fnFillInitialData(&(g_astChannels[nLoop]));
+				ERRIFGOTO(result, _EXIT);
+			}
+		}
+	}
+
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;

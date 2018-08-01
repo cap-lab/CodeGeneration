@@ -900,6 +900,9 @@ static void *taskThreadRoutine(void *pData)
 
 	pstCurrentTask->astTaskFunctions[nIndex].fnInit(pstCurrentTask->nTaskId);
 
+	result = UKChannel_FillInitialDataBySourceTaskId(pstCurrentTask->nTaskId);
+	ERRIFGOTO(result, _EXIT);
+
 	result = handleTaskMainRoutine(pstGeneralTask, pstTaskThread, pstCurrentTask->astTaskFunctions[nIndex].fnGo);
 	ERRIFGOTO(result, _EXIT);
 

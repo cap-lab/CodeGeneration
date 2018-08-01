@@ -37,6 +37,14 @@ uem_result UKHostMemorySystem_CopyToMemory(IN void *pMemory, IN void *pSource, i
 }
 
 
+uem_result UKHostMemorySystem_CopyInMemory(IN void *pInMemoryDst, IN void *pInMemorySrc, int nCopySize)
+{
+	UC_memcpy(pInMemoryDst, pInMemorySrc, nCopySize);
+
+	return ERR_UEM_NOERROR;
+}
+
+
 uem_result UKHostMemorySystem_CopyFromMemory(IN void *pDestination, IN void *pMemory, int nCopySize)
 {
 	UC_memcpy(pDestination, pMemory, nCopySize);

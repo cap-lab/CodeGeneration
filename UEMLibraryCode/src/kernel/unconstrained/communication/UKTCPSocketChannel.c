@@ -647,6 +647,22 @@ _EXIT:
 }
 
 
+uem_result UKTCPSocketChannel_FillInitialData(SChannel *pstChannel)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STCPSocketChannel *pstTCPChannel = NULL;
+
+	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
+
+	result = UKChannelMemory_FillInitialData(pstChannel, pstTCPChannel->pstInternalChannel);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 // same to shared memory channel write
 uem_result UKTCPSocketChannel_WriteToBuffer (SChannel *pstChannel, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten)
 {
