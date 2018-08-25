@@ -1,0 +1,5 @@
+*.sh	eol=lf
+*.mk	eol=lf
+*.ac	eol=lf
+*.am	eol=lf
+
