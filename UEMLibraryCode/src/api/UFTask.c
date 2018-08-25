@@ -11,7 +11,10 @@
 
 #include <uem_common.h>
 
+#ifndef API_LITE
 #include <UKModeTransition.h>
+#endif
+
 #include <UKTaskParameter.h>
 #include <UKTask.h>
 
@@ -69,19 +72,6 @@ _EXIT:
 }
 
 
-uem_result UFTask_SetThroughput (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszValue, IN char *pszUnit)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-
-	result = UKTask_SetThroughputConstraint (nCallerTaskId, pszTaskName, pszValue, pszUnit);
-	ERRIFGOTO(result, _EXIT);
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-
 uem_result UFTask_GetState (IN int nCallerTaskId, IN char *pszTaskName, OUT ETaskState *penTaskState)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -105,6 +95,19 @@ uem_result UFTask_GetState (IN int nCallerTaskId, IN char *pszTaskName, OUT ETas
 		*penTaskState = STATE_STOP;
 		break;
 	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+#ifndef API_LITE
+uem_result UFTask_SetThroughput (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszValue, IN char *pszUnit)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	result = UKTask_SetThroughputConstraint (nCallerTaskId, pszTaskName, pszValue, pszUnit);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -149,6 +152,6 @@ uem_result UFTask_UpdateMode (IN int nCallerTaskId, IN char *pszTaskName)
 _EXIT:
 	return result;
 }
-
+#endif
 
 

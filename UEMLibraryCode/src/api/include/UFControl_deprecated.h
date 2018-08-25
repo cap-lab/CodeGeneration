@@ -16,9 +16,12 @@ extern "C"
 void SYS_REQ_END_TASK(int nCallerTaskId, char *pszTaskName);
 void SYS_REQ_RUN_TASK(int nCallerTaskId, char *pszTaskName);
 void SYS_REQ_STOP_TASK(int nCallerTaskId, char *pszTaskName);
+void SYS_REQ_CALL_TASK(int nCallerTaskId, char *pszTaskName);
+
+#ifndef API_LITE
 void SYS_REQ_SUSPEND_TASK(int nCallerTaskId, char *pszTaskName);
 void SYS_REQ_RESUME_TASK(int nCallerTaskId, char *pszTaskName);
-void SYS_REQ_CALL_TASK(int nCallerTaskId, char *pszTaskName);
+#endif
 
 #ifdef __cplusplus
 }

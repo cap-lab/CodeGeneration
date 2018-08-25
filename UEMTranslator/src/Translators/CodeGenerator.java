@@ -171,7 +171,7 @@ public class CodeGenerator
     private void generateMakefile(CodeOrganizer codeOrganizer, String topDirPath) throws TemplateNotFoundException, MalformedTemplateNameException, 
     																freemarker.core.ParseException, IOException, TemplateException
     {
-    	Template makefileTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_MAKEFILE);
+    	Template makefileTemplate = this.templateConfig.getTemplate(codeOrganizer.getPlatform() + File.separator + Constants.TEMPLATE_FILE_MAKEFILE);
 		// Create the root hash
 		Map<String, Object> makefileRootHash = new HashMap<>();
 		String outputFilePath = topDirPath + File.separator + Constants.DEFAULT_MAKEFILE_AM;
@@ -212,7 +212,7 @@ public class CodeGenerator
     		
     		// remove file extension of the file name (removes last dot and the following chars ex. abc.x.c => abc.x)
     		templateFileName = outputFileName.replaceFirst("[.][^.]+$", "")  + Constants.TEMPLATE_FILE_EXTENSION;
-    		uemDataTemplate = this.templateConfig.getTemplate(templateFileName);
+    		uemDataTemplate = this.templateConfig.getTemplate(codeOrganizer.getPlatform() + File.separator + templateFileName);
     		outputFilePath += outputFileName;
     		
     		Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));

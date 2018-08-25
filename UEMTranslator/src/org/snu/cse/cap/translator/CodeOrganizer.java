@@ -44,6 +44,8 @@ public class CodeOrganizer {
 	public static final String COMMON_DIR = "src" + File.separator + "common";
 	public static final String APPLICATION_DIR = "src" + File.separator + "application";
 	public static final String MODULE_DIR = "src" + File.separator + "module";
+	public static final String TEMPLATES_DIR = "templates";
+	public static final String BUILDSCRIPTS_DIR = "buildscripts";
 	
 	public static final String GPU = "gpu";
 	public static final String COMMUNICATION = "communication";
@@ -187,6 +189,23 @@ public class CodeOrganizer {
 		}
 	}
 	
+	// API source file is treated differently because it is not target-dependent and no peripheral is used in API layer
+	private void makeAPISourceFileList(String key, Properties translatorProperties, ArrayList<String> list)
+	{
+		String sourceFileString = translatorProperties.getProperty(key);
+		String platformKey;
+		
+		addSourceFileFromSourceString("", sourceFileString, list);
+		
+		platformKey = key + TranslatorProperties.PROPERTY_DELIMITER + this.platform;
+		sourceFileString = translatorProperties.getProperty(platformKey);
+		
+		if(sourceFileString != null)
+		{
+			addSourceFileFromSourceString("", sourceFileString, list);	
+		}
+	}
+	
 	private void setMissingExtension(ArrayList<String> fileList, String fileExtension)
 	{
 		int index = 0;
@@ -230,8 +249,8 @@ public class CodeOrganizer {
 	{
 		String propertyKey;
 		
-		propertyKey = TranslatorProperties.PROPERTIES_API_SOURCE_FILE + TranslatorProperties.PROPERTY_DELIMITER + this.platform;
-		makeSourceFileList(propertyKey, translatorProperties, this.apiSourceList);
+		propertyKey = TranslatorProperties.PROPERTIES_API_SOURCE_FILE;
+		makeAPISourceFileList(propertyKey, translatorProperties, this.apiSourceList);
 		
 		propertyKey = TranslatorProperties.PROPERTIES_COMMON_SOURCE_FILE + TranslatorProperties.PROPERTY_DELIMITER + this.platform;
 		makeSourceFileList(propertyKey, translatorProperties, this.commonSourceList);
@@ -474,6 +493,10 @@ public class CodeOrganizer {
 			public boolean accept(File paramFile) {
 				// add File.separator after the directory path to copy directory itself and avoid internal files
 				if(paramFile.getAbsolutePath().contains(srcDir + File.separator + APPLICATION_DIR + File.separator))
+					return false;
+				else if(paramFile.getAbsolutePath().contains(srcDir + File.separator + TEMPLATES_DIR))
+					return false;
+				else if(paramFile.getAbsolutePath().contains(srcDir + File.separator + BUILDSCRIPTS_DIR))
 					return false;
 				else if(paramFile.getAbsolutePath().contains(srcDir + File.separator + KERNEL_GENERATED_DIR + File.separator))
 					return false;
