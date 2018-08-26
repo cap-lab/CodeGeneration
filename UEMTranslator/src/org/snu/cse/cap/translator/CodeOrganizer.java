@@ -51,6 +51,7 @@ public class CodeOrganizer {
 	public static final String COMMUNICATION = "communication";
 	
 	public static final String MAKEFILE_PATH_SEPARATOR = "/";
+	public static final String STRING_ALL = "*";
 	
 	public CodeOrganizer(String architecture, String platform, String runtime, boolean isMappedGPU, boolean useCommunication) {
 		this.architecture = architecture;
@@ -157,6 +158,18 @@ public class CodeOrganizer {
 		return isAvailable;
 	}
 	
+	private void makeHashSetFromString(String prefix, String sourceFileString, HashSet<String> set)
+	{
+		if(sourceFileString != null && sourceFileString.length() > 0)
+		{
+			String[] sourceFileList = sourceFileString.split(TranslatorProperties.PROPERTY_VALUE_DELIMITER);
+			
+			for(String sourceFile : sourceFileList)
+			{
+				set.add(prefix + sourceFile);
+			}
+		}
+	}
 	
 	private void addSourceFileFromSourceString(String prefix, String sourceFileString, ArrayList<String> list)
 	{
@@ -481,6 +494,50 @@ public class CodeOrganizer {
 		};
 		
 		copyAllFiles(output, source, filter);
+	}
+	
+	public void copyBuildFiles(Properties translatorProperties, String templateDir, String outputDir) throws IOException, UnsupportedHardwareInformation
+	{
+		File buildScriptDir = new File(templateDir + File.separator + BUILDSCRIPTS_DIR + File.separator + this.platform);
+		File output = new File(outputDir);
+		FileFilter filter = null;
+		HashSet<String> copySet = new HashSet<String>();	
+		String targetFileList;
+		String propertyKey = TranslatorProperties.PROPERTIES_BUILDSCRIPT_FILE + TranslatorProperties.PROPERTY_DELIMITER + this.platform;
+		
+		targetFileList = translatorProperties.getProperty(propertyKey);
+		if(targetFileList == null) {
+			throw new UnsupportedHardwareInformation("build info is not available for target: " + this.platform);
+		}
+		
+		if(targetFileList.equals(STRING_ALL) == false) { // if STRING_ALL is true, copy all files in buildScriptDir
+			makeHashSetFromString(buildScriptDir.getCanonicalPath() + File.separator, targetFileList, copySet);
+			filter = new FileFilter() {
+				@Override
+				public boolean accept(File paramFile) {
+					String fullPath;
+					try {
+						fullPath = paramFile.getCanonicalPath();
+						
+						for(String validPath : copySet) {
+							if(fullPath.equals(validPath) == true) {
+								return true;
+							} // copy all the things in the directory
+							else if(fullPath.startsWith(validPath + File.separator) == true) {
+								return true;
+							}
+						}
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					return false;
+				}
+			};
+		}
+		
+		copyAllFiles(output, buildScriptDir, filter);
 	}
 	
 	public void copyFilesFromLibraryCodeTemplate(String srcDir, String outputDir) throws IOException

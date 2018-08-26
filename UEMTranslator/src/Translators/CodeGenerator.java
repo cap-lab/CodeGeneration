@@ -314,6 +314,7 @@ public class CodeGenerator
 				codeOrganizer.extractDataFromProperties(this.translatorProperties);
 				
 				codeOrganizer.copyFilesFromLibraryCodeTemplate(this.libraryCodeTemplateDir, topSrcDir);
+				codeOrganizer.copyBuildFiles(this.translatorProperties, this.libraryCodeTemplateDir, topSrcDir);
 				codeOrganizer.copyApplicationCodes(this.mOutputPath, topSrcDir);
 				
 				generateMakefile(codeOrganizer, topSrcDir);
