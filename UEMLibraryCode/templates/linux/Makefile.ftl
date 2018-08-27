@@ -39,7 +39,7 @@ KERNEL_DEVICE_SOURCES=<#list build_info.kernelDeviceSourceList as source_file><#
 	</#if>$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/${source_file}<#if (source_file?index < build_info.kernelDeviceSourceList?size - 1)>\</#if></#list>
 
 COMMON_SOURCES=<#list build_info.commonSourceList as source_file><#if (source_file?index > 0)>
-	</#if>$(COMMON_DIR)/$(PLATFORM_DIR)/${source_file}<#if (source_file?index < build_info.commonSourceList?size - 1)>\</#if></#list>
+	</#if>$(COMMON_DIR)/${source_file}<#if (source_file?index < build_info.commonSourceList?size - 1)>\</#if></#list>
 
 MODULE_SOURCES=<#list build_info.moduleSourceList as source_file><#if (source_file?index > 0)>
 	</#if>$(MODULE_DIR)/${source_file}<#if (source_file?index < build_info.moduleSourceList?size - 1)>\</#if></#list>
@@ -55,7 +55,7 @@ KERNEL_CFLAGS=-I$(KERNEL_DIR)/include -I$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/incl
 
 TOP_CFLAGS=-I$(top_srcdir)
 
-COMMON_CFLAGS=-I$(COMMON_DIR)/include <#list build_info.usedPeripheralList as peripheralName>-I$(COMMON_DIR)/include/${peripheralName} </#list>
+COMMON_CFLAGS=-I$(COMMON_DIR)/include -I$(COMMON_DIR)/$(DEVICE_RESTRICTION)/include <#list build_info.usedPeripheralList as peripheralName>-I$(COMMON_DIR)/include/${peripheralName} -I$(COMMON_DIR)/$(DEVICE_RESTRICTION)/include/${peripheralName}</#list>
 
 MODULE_CFLAGS=-I$(MODULE_DIR)/include
 

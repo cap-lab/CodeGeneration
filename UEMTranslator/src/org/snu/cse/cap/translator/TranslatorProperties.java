@@ -12,6 +12,7 @@ public class TranslatorProperties {
 	public static final String PROPERTIES_MAIN_SOURCE_FILE = "main_source_file";
 	public static final String PROPERTIES_KERNEL_SOURCE_FILE = "kernel_source_file";
 	public static final String PROPERTIES_UNCONSTRAINED_SOURCE_FILE = "unconstrained_source_file";
+	public static final String PROPERTIES_CONSTRAINED_SOURCE_FILE = "constrained_source_file";
 	public static final String PROPERTIES_PERIPHERAL_LIST = "peripheral_list";
 	public static final String PROPERTIES_GENERATED_KERNEL_DATA_FILE = "generated_kernel_data_file";
 	public static final String PROPERTIES_BUILDSCRIPT_FILE = "buildscript_file";

@@ -52,6 +52,8 @@ public class CodeOrganizer {
 	
 	public static final String MAKEFILE_PATH_SEPARATOR = "/";
 	public static final String STRING_ALL = "*";
+	public static final String DEVICE_RESTRICTION_DIR_VARIABLE="$(DEVICE_RESTRICTION)";
+	public static final String PLATFORM_DIR_VARIABLE="$(PLATFORM_DIR)";
 	
 	public CodeOrganizer(String architecture, String platform, String runtime, boolean isMappedGPU, boolean useCommunication) {
 		this.architecture = architecture;
@@ -184,11 +186,11 @@ public class CodeOrganizer {
 		}
 	}
 	
-	private void makeSourceFileList(String key, Properties translatorProperties, ArrayList<String> list) {
+	private void makeSourceFileList(String key, String prefix, Properties translatorProperties, ArrayList<String> list) {
 		String sourceFileString = translatorProperties.getProperty(key);
 		String peripheralKey;
 		
-		addSourceFileFromSourceString("", sourceFileString, list);
+		addSourceFileFromSourceString(prefix, sourceFileString, list);
 				
 		for(String peripheralName: this.usedPeripheralList)
 		{
@@ -197,9 +199,28 @@ public class CodeOrganizer {
 			
 			if(sourceFileString != null)
 			{
-				addSourceFileFromSourceString(peripheralName + MAKEFILE_PATH_SEPARATOR, sourceFileString, list);	
+				addSourceFileFromSourceString(prefix + peripheralName + MAKEFILE_PATH_SEPARATOR, sourceFileString, list);	
 			}
 		}
+	}
+	
+	private void makeCommonSourceFileList(String key, Properties translatorProperties, ArrayList<String> list)
+	{
+		String sourceFileString = translatorProperties.getProperty(key);
+		String subKey;
+		
+		// common_source_file
+		addSourceFileFromSourceString("", sourceFileString, list);
+		
+		// common_source_file.[device_restriction]
+		subKey = key +  TranslatorProperties.PROPERTY_DELIMITER + this.deviceRestriction;
+		sourceFileString = translatorProperties.getProperty(subKey);
+		addSourceFileFromSourceString(DEVICE_RESTRICTION_DIR_VARIABLE + MAKEFILE_PATH_SEPARATOR, sourceFileString, list);
+		
+		// common_source_file.[device_restriction].[platform]
+		subKey = subKey +  TranslatorProperties.PROPERTY_DELIMITER + this.platform; 
+		makeSourceFileList(subKey, DEVICE_RESTRICTION_DIR_VARIABLE + MAKEFILE_PATH_SEPARATOR + PLATFORM_DIR_VARIABLE + MAKEFILE_PATH_SEPARATOR, 
+							translatorProperties, list);		
 	}
 	
 	// API source file is treated differently because it is not target-dependent and no peripheral is used in API layer
@@ -241,7 +262,7 @@ public class CodeOrganizer {
 		String fileExtension;
 		
 		propertyKey = TranslatorProperties.PROPERTIES_GENERATED_KERNEL_DATA_FILE;
-		makeSourceFileList(propertyKey, translatorProperties, this.kernelDataSourceList);
+		makeSourceFileList(propertyKey, "", translatorProperties, this.kernelDataSourceList);
 		
 		if(this.isMappedGPU == true) {
 			fileExtension = Constants.CUDA_FILE_EXTENSION; 
@@ -265,25 +286,26 @@ public class CodeOrganizer {
 		propertyKey = TranslatorProperties.PROPERTIES_API_SOURCE_FILE;
 		makeAPISourceFileList(propertyKey, translatorProperties, this.apiSourceList);
 		
-		propertyKey = TranslatorProperties.PROPERTIES_COMMON_SOURCE_FILE + TranslatorProperties.PROPERTY_DELIMITER + this.platform;
-		makeSourceFileList(propertyKey, translatorProperties, this.commonSourceList);
-		
 		propertyKey = TranslatorProperties.PROPERTIES_KERNEL_SOURCE_FILE + TranslatorProperties.PROPERTY_DELIMITER + this.platform;
-		makeSourceFileList(propertyKey, translatorProperties, this.kernelSourceList);
+		makeSourceFileList(propertyKey, "", translatorProperties, this.kernelSourceList);
 		
 		propertyKey = TranslatorProperties.PROPERTIES_MAIN_SOURCE_FILE + TranslatorProperties.PROPERTY_DELIMITER + this.platform;
-		makeSourceFileList(propertyKey, translatorProperties, this.mainSourceList);
+		makeSourceFileList(propertyKey, "", translatorProperties, this.mainSourceList);
 		
 		propertyKey = TranslatorProperties.PROPERTIES_PLATFORM_RESTRICTION + TranslatorProperties.PROPERTY_DELIMITER + this.platform;
 		if(translatorProperties.getProperty(propertyKey).equals(TranslatorProperties.PROPERTY_VALUE_UNCONSTRAINED) == true)
 		{
 			this.deviceRestriction = TranslatorProperties.PROPERTY_VALUE_UNCONSTRAINED;
-			makeSourceFileList(TranslatorProperties.PROPERTIES_UNCONSTRAINED_SOURCE_FILE, translatorProperties, this.kernelDeviceSourceList);
+			makeSourceFileList(TranslatorProperties.PROPERTIES_UNCONSTRAINED_SOURCE_FILE, "", translatorProperties, this.kernelDeviceSourceList);
 		}
 		else
 		{
 			this.deviceRestriction = TranslatorProperties.PROPERTY_VALUE_CONSTRAINED;
+			makeSourceFileList(TranslatorProperties.PROPERTIES_CONSTRAINED_SOURCE_FILE, "", translatorProperties, this.kernelDeviceSourceList);
 		}
+		
+		propertyKey = TranslatorProperties.PROPERTIES_COMMON_SOURCE_FILE;
+		makeCommonSourceFileList(propertyKey, translatorProperties, this.commonSourceList);
 		
 		setGenerateKernelData(translatorProperties);
 	}
