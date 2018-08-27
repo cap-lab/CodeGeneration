@@ -54,7 +54,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKTask_GetIntegerParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, OUT int *pnParamVal)
+uem_result UKTaskParameter_GetInteger (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, OUT int *pnParamVal)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
@@ -88,7 +88,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKTask_SetIntegerParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, IN int nParamVal)
+uem_result UKTaskParameter_SetInteger (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, IN int nParamVal)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
@@ -123,7 +123,7 @@ _EXIT:
 }
 
 
-uem_result UKTask_GetFloatParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, OUT double *pdbParamVal)
+uem_result UKTaskParameter_GetFloat (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, OUT double *pdbParamVal)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
@@ -158,7 +158,7 @@ _EXIT:
 }
 
 
-uem_result UKTask_SetFloatParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, IN double dbParamVal)
+uem_result UKTaskParameter_SetFloat (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, IN double dbParamVal)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;

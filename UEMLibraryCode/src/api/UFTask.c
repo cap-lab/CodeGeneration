@@ -24,7 +24,7 @@ uem_result UFTask_GetIntegerParameter (IN int nCallerTaskId, IN char *pszTaskNam
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKTask_GetIntegerParameter(nCallerTaskId, pszTaskName, pszParamName, pnParamVal);
+	result = UKTaskParameter_GetInteger(nCallerTaskId, pszTaskName, pszParamName, pnParamVal);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -37,7 +37,7 @@ uem_result UFTask_SetIntegerParameter (IN int nCallerTaskId, IN char *pszTaskNam
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKTask_SetIntegerParameter(nCallerTaskId, pszTaskName, pszParamName, nParamVal);
+	result = UKTaskParameter_SetInteger(nCallerTaskId, pszTaskName, pszParamName, nParamVal);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -50,7 +50,7 @@ uem_result UFTask_GetFloatParameter (IN int nCallerTaskId, IN char *pszTaskName,
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKTask_GetFloatParameter(nCallerTaskId, pszTaskName, pszParamName, pdbParamVal);
+	result = UKTaskParameter_GetFloat(nCallerTaskId, pszTaskName, pszParamName, pdbParamVal);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -63,7 +63,7 @@ uem_result UFTask_SetFloatParameter (IN int nCallerTaskId, IN char *pszTaskName,
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKTask_SetFloatParameter(nCallerTaskId, pszTaskName, pszParamName, dbParamVal);
+	result = UKTaskParameter_SetFloat(nCallerTaskId, pszTaskName, pszParamName, dbParamVal);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
