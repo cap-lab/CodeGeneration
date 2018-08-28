@@ -286,7 +286,7 @@ public class CodeOrganizer {
 		propertyKey = TranslatorProperties.PROPERTIES_API_SOURCE_FILE;
 		makeAPISourceFileList(propertyKey, translatorProperties, this.apiSourceList);
 		
-		propertyKey = TranslatorProperties.PROPERTIES_KERNEL_SOURCE_FILE + TranslatorProperties.PROPERTY_DELIMITER + this.platform;
+		propertyKey = TranslatorProperties.PROPERTIES_KERNEL_SOURCE_FILE;
 		makeSourceFileList(propertyKey, "", translatorProperties, this.kernelSourceList);
 		
 		propertyKey = TranslatorProperties.PROPERTIES_MAIN_SOURCE_FILE + TranslatorProperties.PROPERTY_DELIMITER + this.platform;

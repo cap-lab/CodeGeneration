@@ -20,8 +20,9 @@
 
 #include <uem_data.h>
 
-#include <UKChannel.h>
-#include <UKTask.h>
+#include <UKTask_internal.h>
+
+#include <UKChannel_internal.h>
 #include <UKModeTransition.h>
 #include <UKCPUTaskManager.h>
 #include <UKCPUCompositeTaskManager.h>
