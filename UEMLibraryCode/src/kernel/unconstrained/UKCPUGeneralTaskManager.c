@@ -21,7 +21,7 @@
 
 #include <UKCPUTaskCommon.h>
 #include <UKTime.h>
-#include <UKChannel.h>
+#include <UKChannel_internal.h>
 #include <UKModeTransition.h>
 
 #include <UKCPUGeneralTaskManager.h>

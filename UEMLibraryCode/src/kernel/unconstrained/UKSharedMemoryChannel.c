@@ -17,7 +17,7 @@
 #include <uem_data.h>
 
 #include <UKChannelMemory.h>
-#include <UKTask.h>
+#include <UKTask_internal.h>
 
 static uem_bool isLocatedInsideLoopTask(SPort *pstPort)
 {

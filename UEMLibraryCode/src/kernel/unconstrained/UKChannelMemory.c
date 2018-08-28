@@ -24,7 +24,7 @@
 
 #include <uem_data.h>
 
-#include <UKTask.h>
+#include <UKTask_internal.h>
 
 
 static uem_result setChunkNumAndLen(SPort *pstPort, SChunkInfo *pstChunkInfo)

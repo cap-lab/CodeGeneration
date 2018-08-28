@@ -15,7 +15,7 @@
 
 #include <uem_data.h>
 
-#include <UKTask.h>
+#include <UKTask_internal.h>
 
 
 static int findIndexByIteration(SModeTransitionMachine *pstModeTransition, int nCurrentIteration, OUT int *pnHistoryEnd)

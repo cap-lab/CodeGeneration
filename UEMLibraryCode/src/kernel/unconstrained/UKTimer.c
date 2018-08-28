@@ -16,7 +16,7 @@
 #include <UCBasic.h>
 #include <UCTime.h>
 
-#include <UKTask.h>
+#include <UKTask_internal.h>
 
 #define TIMER_UNIT_SEC "S"
 #define TIMER_UNIT_MILLSEC "MS"
