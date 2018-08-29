@@ -10,8 +10,6 @@
 
 #include <uem_common.h>
 
-#include <uem_data.h>
-
 #ifdef __cplusplus
 extern "C"
 {

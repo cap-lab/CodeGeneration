@@ -11,8 +11,6 @@
 
 #include <uem_common.h>
 
-#include <UKCPUTaskManager.h>
-
 #include <UFTask_deprecated.h>
 #include <UFTask.h>
 

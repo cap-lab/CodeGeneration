@@ -43,7 +43,17 @@ extern "C"
     #define MAX(a, b) ((a) > (b) ? (a): (b))
 #endif
 
-
+#define INVALID_TASK_ID (-1)
+#define INVALID_SCHEDULE_ID (-1)
+#define INVALID_MODE_ID (-1)
+#define INVALID_CHANNEL_ID (-1)
+#define INVALID_CHUNK_INDEX (-1)
+#define INVALID_TIMER_SLOT_ID (-1)
+#define INVALID_TIME_VALUE (-1)
+#define VARIABLE_SAMPLE_RATE (-1)
+#define MAPPING_NOT_SPECIFIED (-1)
+#define CHUNK_NUM_NOT_INITIALIZED (-1)
+#define INVALID_ARRAY_INDEX (-1)
 
 #define UEM_RESULT_CATEGORY_INFO  0x10000000
 #define UEM_RESULT_CATEGORY_ERROR 0x20000000

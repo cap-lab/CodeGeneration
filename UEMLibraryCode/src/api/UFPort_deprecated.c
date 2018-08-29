@@ -12,8 +12,6 @@
 
 #include <uem_common.h>
 
-#include <uem_data.h>
-
 #include <UFPort.h>
 
 
