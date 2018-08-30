@@ -18,7 +18,7 @@
 #include <UFTimer.h>
 
 
-// not used
+#ifndef API_LITE
 uem_result UFTimer_GetCurrentTime (IN int nCallerTaskId, OUT long long *pllCurTime)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -30,7 +30,7 @@ uem_result UFTimer_GetCurrentTime (IN int nCallerTaskId, OUT long long *pllCurTi
 _EXIT:
 	return result;
 }
-
+#endif
 
 uem_result UFTimer_SetAlarm (IN int nCallerTaskId, IN int nTimeValue, IN char *pszTimeUnit, OUT int *pnTimerId)
 {

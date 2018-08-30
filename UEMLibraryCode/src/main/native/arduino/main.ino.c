@@ -12,6 +12,9 @@
 
 static int a;
 
+#include <uem_data.h>
+#include <uem_channel_data.h>
+
 void setup() {
     a = 0;
 }

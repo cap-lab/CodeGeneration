@@ -14,20 +14,13 @@
 #include <UCThreadEvent.h>
 
 #include <uem_enum.h>
+#include <uem_callbacks.h>
 #include <uem_channel_data.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-typedef void (*FnUemTaskInit)(int nTaskId);
-typedef void (*FnUemTaskGo)(int nTaskId);
-typedef void (*FnUemTaskWrapup)();
-
-typedef void (*FnUemLibraryInit)();
-typedef void (*FnUemLibraryWrapup)();
-
 
 typedef struct _SModeTransitionMachine SModeTransitionMachine;
 
