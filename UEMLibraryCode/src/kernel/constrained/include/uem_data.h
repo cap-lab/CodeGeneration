@@ -107,6 +107,8 @@ extern int g_nLibraryInfoNum;
 
 extern int g_nTimerSlotNum;
 
+extern SScheduledTasks g_astScheduledTaskList;
+
 #ifdef __cplusplus
 }
 #endif
