@@ -17,6 +17,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.snu.cse.cap.translator.BuildType;
 import org.snu.cse.cap.translator.CodeOrganizer;
 import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.TranslatorProperties;
@@ -174,8 +175,21 @@ public class CodeGenerator
     	Template makefileTemplate = this.templateConfig.getTemplate(codeOrganizer.getPlatform() + File.separator + Constants.TEMPLATE_FILE_MAKEFILE);
 		// Create the root hash
 		Map<String, Object> makefileRootHash = new HashMap<>();
-		String outputFilePath = topDirPath + File.separator + Constants.DEFAULT_MAKEFILE_AM;
+		String outputFilePath = topDirPath + File.separator;
 		
+		switch(codeOrganizer.getBuildType())
+		{
+		case AUTOMAKE:
+			outputFilePath += Constants.DEFAULT_MAKEFILE_AM;
+			break;
+		case MAKEFILE:
+			outputFilePath += Constants.DEFAULT_MAKEFILE;
+			break;
+		default:
+			//TODO: must be error
+			break;
+		}
+	
 		makefileRootHash.put(Constants.TEMPLATE_TAG_BUILD_INFO, codeOrganizer);
 
 		Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
@@ -312,6 +326,7 @@ public class CodeGenerator
 				codeOrganizer.extraInfoFromTaskAndLibraryMap(device.getTaskMap(), device.getLibraryMap());
 				codeOrganizer.fillSourceCodeAndFlagsFromModules(device.getModuleList());
 				codeOrganizer.extractDataFromProperties(this.translatorProperties);
+				codeOrganizer.setBuildType(translatorProperties);
 				
 				codeOrganizer.copyFilesFromLibraryCodeTemplate(this.libraryCodeTemplateDir, topSrcDir);
 				codeOrganizer.copyBuildFiles(this.translatorProperties, this.libraryCodeTemplateDir, topSrcDir);

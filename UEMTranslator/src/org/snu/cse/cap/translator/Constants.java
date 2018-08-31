@@ -35,6 +35,7 @@ public class Constants {
 	public static final String DEFAULT_TEMPLATE_DIR = "templates";
 	public static final String DEFAULT_TRANSLATED_CODE_TEMPLATE_DIR = ".." + File.separator + "UEMLibraryCode";
 	public static final String DEFAULT_MAKEFILE_AM = "Makefile.am";
+	public static final String DEFAULT_MAKEFILE = "Makefile";
 	
 	// template files
 	public static final String TEMPLATE_FILE_TASK_CODE = "task_code.ftl";

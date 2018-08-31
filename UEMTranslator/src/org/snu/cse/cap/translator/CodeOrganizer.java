@@ -36,7 +36,8 @@ public class CodeOrganizer {
 	private boolean useCommunication;
 	private HashSet<String> usedPeripheralList;
 	private ProgrammingLanguage language;
-	
+	private BuildType buildType;
+
 	public static final String MAIN_DIR = "src" + File.separator + "main";
 	public static final String API_DIR = "src" + File.separator + "api";
 	public static final String KERNEL_DIR = "src" + File.separator + "kernel";
@@ -75,6 +76,7 @@ public class CodeOrganizer {
 		this.useCommunication = useCommunication;
 		this.usedPeripheralList = new HashSet<String>();
 		this.language = ProgrammingLanguage.C;
+		this.buildType = BuildType.AUTOMAKE;
 		
 		if(this.isMappedGPU == true)
 		{
@@ -680,6 +682,20 @@ public class CodeOrganizer {
 
 	public ArrayList<String> getModuleSourceList() {
 		return moduleSourceList;
+	}
+	
+	public BuildType getBuildType() {
+		return buildType;
+	}
+
+	public void setBuildType(Properties translatorProperties) {
+		String propertyKey = TranslatorProperties.PROPERTIES_BUILDSCRIPT_TYPE + TranslatorProperties.PROPERTY_DELIMITER + this.platform;
+		String value;
+		value = translatorProperties.getProperty(propertyKey);
+		if(value != null)
+		{
+			this.buildType = BuildType.fromValue(value);
+		}
 	}
 }
 
