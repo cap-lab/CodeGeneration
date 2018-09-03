@@ -6,6 +6,10 @@
 
 #include <uem_common.h>
 
+#include <uem_enum.h>
+
+#include <uem_channel_data.h>
+
 // ##CHANNEL_SIZE_DEFINITION_TEMPLATE::START
 <#list channel_list as channel>
 #define CHANNEL_${channel.index}_SIZE (${channel.size?c})

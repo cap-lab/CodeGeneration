@@ -114,9 +114,8 @@ STask g_astTasks_${task_graph.name}[] = {
 			<#if !task.childTaskGraphName??>${task.name}_Init${task_func_id}<#else>NULL</#if>, // Task init function
 			<#if !task.childTaskGraphName??>${task.name}_Go${task_func_id}<#else>NULL</#if>, // Task go function
 			<#if !task.childTaskGraphName??>${task.name}_Wrapup${task_func_id}<#else>NULL</#if>, // Task wrapup function
-		} // Task function array
+		}, // Task function array
 		RUN_CONDITION_${task.runCondition}, // Run condition
-		1, // Run rate
 		${task.period?c}, // Period
 		TIME_METRIC_${task.periodMetric}, // Period metric
 		<#if task.childTaskGraphName??>&g_stGraph_${task.childTaskGraphName}<#else>(STaskGraph *) NULL</#if>, // Subgraph
@@ -249,22 +248,6 @@ void ${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${comp
 	</#list>
 </#list>
 // ##SCHEDULED_COMPOSITE_TASK_FUNCTION_IMPLEMENTATION::END
-
-// ##SCHEDULED_COMPOSITE_TASKS_TEMPLATE::START
-<#list schedule_info as task_name, scheduled_task>
-	<#list scheduled_task.mappedProcessorList as compositeMappedProcessor>
-SScheduleList g_astScheduleList_${scheduled_task.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}[] = {
-		<#list compositeMappedProcessor.compositeTaskScheduleList as task_schedule>
-	{
-		${scheduled_task.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}_${task_schedule.throughputConstraint?c}_Go, // Composite GO function
-		${task_schedule.throughputConstraint?c}, // Throughput constraint
-		<#if task_schedule.hasSourceTask == true>TRUE<#else>FALSE</#if>,
-	},
-		</#list>
-};
-	</#list>
-</#list>
-// ##SCHEDULED_COMPOSITE_TASKS_TEMPLATE::END
 
 
 SScheduledTasks g_astScheduledTaskList[] = {

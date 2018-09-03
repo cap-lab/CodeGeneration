@@ -10,16 +10,27 @@
 #include <config.h>
 #endif
 
-static int a;
+#include <Arduino.h>
+
+#include <uem_common.h>
+
+#include <UCPrint.h>
 
 #include <uem_data.h>
 #include <uem_channel_data.h>
 
+static int a;
+
 void setup() {
     a = 0;
+	Serial.begin(9600);
+	Serial.println("merong");
 }
 
 void loop() {
     a++;
-
+    UEM_DEBUG_PRINT("test %d\n", a);
+	delay(2000);
 }
+
+

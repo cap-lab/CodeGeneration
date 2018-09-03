@@ -150,16 +150,23 @@ typedef enum _EUemModuleId {
 #define EXIT_FLAG_READ 	(0x1)
 #define EXIT_FLAG_WRITE (0x2)
 
+#ifdef __cplusplus
+}
+#endif
 
 //#define _DEBUG
 #define DEBUG_PRINT
 
 
 #ifdef DEBUG_PRINT
-	#ifdef HAVE_PRINTF
+	#if defined(HAVE_PRINTF)
 		#include <stdio.h>
 
 		#define UEM_DEBUG_PRINT(fmt,args...) printf(fmt, ## args )
+	#elif defined(ARDUINO)
+		#include <UCPrint.h>
+
+		#define UEM_DEBUG_PRINT(fmt,args...) UCPrint_format(fmt, ## args )
 	#else
 		#define UEM_DEBUG_PRINT(fmt,args...)
 	#endif
@@ -168,28 +175,39 @@ typedef enum _EUemModuleId {
 #endif
 
 #ifdef _DEBUG
+	#if defined(HAVE_PRINTF)
+		#include <unistd.h>
+		#include <stdio.h>
+		#include <errno.h>
 
-#include <unistd.h>
-#include <stdio.h>
-#include <errno.h>
+		#define ERRIFGOTO(res, label) if(((res) & ERR_UEM_ERROR)!=ERR_UEM_NOERROR) {fprintf(stderr, "error! %08x (%s:%d)\n", res, __FILE__,__LINE__);goto label;}
+		#define ERRASSIGNGOTO(res, err, label) {res=err; fprintf(stderr, "error! %08x (%s:%d)\n", res, __FILE__,__LINE__); goto label;}
+		#define IFVARERRASSIGNGOTO(var, val, res, err, label) if((var)==(val)) {res=err;fprintf(stderr, "error! %08x (%s:%d)\n", res, __FILE__,__LINE__);goto label;}
+		#define ERRMEMGOTO(var, res, label) if((var)==NULL) {res=ERR_UEM_OUT_OF_MEMORY;fprintf(stderr, "memory error! %08x (%s:%d)\n", res, __FILE__,__LINE__);goto label;}
+	#elif defined(ARDUINO)
+		#include <UCPrint.h>
 
-#define ERRIFGOTO(res, label) if(((res) & ERR_UEM_ERROR)!=ERR_UEM_NOERROR) {fprintf(stderr, "error! %08x (%s:%d)\n", res, __FILE__,__LINE__);goto label;}
-#define ERRASSIGNGOTO(res, err, label) {res=err; fprintf(stderr, "error! %08x (%s:%d)\n", res, __FILE__,__LINE__); goto label;}
-#define IFVARERRASSIGNGOTO(var, val, res, err, label) if((var)==(val)) {res=err;fprintf(stderr, "error! %08x (%s:%d)\n", res, __FILE__,__LINE__);goto label;}
+		#define ERRIFGOTO(res, label) if(((res) & ERR_UEM_ERROR)!=ERR_UEM_NOERROR) {UCPrint_format("error! %08x (%s:%d)\n", res, __FILE__,__LINE__);goto label;}
+		#define ERRASSIGNGOTO(res, err, label) {res=err; UCPrint_format("error! %08x (%s:%d)\n", res, __FILE__,__LINE__); goto label;}
+		#define IFVARERRASSIGNGOTO(var, val, res, err, label) if((var)==(val)) {res=err;UCPrint_format("error! %08x (%s:%d)\n", res, __FILE__,__LINE__);goto label;}
+		#define ERRMEMGOTO(var, res, label) if((var)==NULL) {res=ERR_UEM_OUT_OF_MEMORY;UCPrint_format("memory error! %08x (%s:%d)\n", res, __FILE__,__LINE__);goto label;}
+	#else
+		#define ERRIFGOTO(res, label) if(((res) & ERR_UEM_ERROR)!=ERR_UEM_NOERROR) {goto label;}
+		#define ERRASSIGNGOTO(res, err, label) {res=err; goto label;}
+		#define IFVARERRASSIGNGOTO(var, val, res, err, label) if((var)==(val)) {res=err;goto label;}
+		#define ERRMEMGOTO(var, res, label) if((var)==NULL) {res=ERR_UEM_OUT_OF_MEMORY;goto label;}
+	#endif
 #else
 
 #define ERRIFGOTO(res, label) if(((res) & ERR_UEM_ERROR)!=ERR_UEM_NOERROR) {goto label;}
 #define ERRASSIGNGOTO(res, err, label) {res=err; goto label;}
 #define IFVARERRASSIGNGOTO(var, val, res, err, label) if((var)==(val)) {res=err;goto label;}
-
+#define ERRMEMGOTO(var, res, label) if((var)==NULL) {res=ERR_UEM_OUT_OF_MEMORY;goto label;}
 #endif
 
 #define UEMASSIGNGOTO(res, err, label) {res=err; goto label;}
-#define ERRMEMGOTO(var, res, label) if((var)==NULL) {res=ERR_UEM_OUT_OF_MEMORY;goto label;}
 
 
-#ifdef __cplusplus
-}
-#endif
+
 
 #endif /* SRC_COMMON_INCLUDE_UEM_COMMON_H_ */

@@ -13,38 +13,85 @@ SYSTEM_CFLAGS=${build_info.cflags}
 
 SYSTEM_LDFLAG_LIST=${build_info.ldflags}
 
+<#assign printed=false />
+MAIN_C_SOURCES=<#list build_info.mainSourceList as source_file><#if source_file?ends_with(".c") ><#if (printed == true)>
+	</#if><#assign printed=true />$(MAIN_DIR)/$(PLATFORM_DIR)/${source_file}<#if (source_file?index < build_info.mainSourceList?size - 1)>\</#if></#if></#list>
 
-MAIN_SOURCES=<#list build_info.mainSourceList as source_file><#if (source_file?index > 0)>
-	</#if>$(MAIN_DIR)/$(PLATFORM_DIR)/${source_file}<#if (source_file?index < build_info.mainSourceList?size - 1)>\</#if></#list>
+<#assign printed=false />
+MAIN_CPP_SOURCES=<#list build_info.mainSourceList as source_file><#if source_file?ends_with(".cpp") ><#if (printed == true)>
+	</#if><#assign printed=true />$(MAIN_DIR)/$(PLATFORM_DIR)/${source_file}<#if (source_file?index < build_info.mainSourceList?size - 1)>\</#if></#if></#list>
 
-APPLICATION_SOURCES=<#list build_info.taskSourceCodeList as source_file><#if (source_file?index > 0)>
-	</#if>$(APPLICATION_DIR)/${source_file}<#if (source_file?index < build_info.taskSourceCodeList?size - 1)>\</#if></#list>
+<#assign printed=false />
+APPLICATION_C_SOURCES=<#list build_info.taskSourceCodeList as source_file><#if source_file?ends_with(".c") ><#if (printed == true)>
+	</#if><#assign printed=true />$(APPLICATION_DIR)/${source_file}<#if (source_file?index < build_info.taskSourceCodeList?size - 1)>\</#if></#if></#list>
 
-EXTRA_SOURCES=<#if build_info.extraSourceCodeSet??><#list build_info.extraSourceCodeSet as source_file><#if (source_file?index > 0)>
-	</#if>$(APPLICATION_DIR)/${source_file}<#if (source_file?index < build_info.extraSourceCodeSet?size - 1)>\</#if></#list></#if>
+<#assign printed=false />
+APPLICATION_CPP_SOURCES=<#list build_info.taskSourceCodeList as source_file><#if source_file?ends_with(".cpp") ><#if (printed == true)>
+	</#if><#assign printed=true />$(APPLICATION_DIR)/${source_file}<#if (source_file?index < build_info.taskSourceCodeList?size - 1)>\</#if></#if></#list>
 
-API_SOURCES=<#list build_info.apiSourceList as source_file><#if (source_file?index > 0)>
-	</#if>$(API_DIR)/${source_file}<#if (source_file?index < build_info.apiSourceList?size - 1)>\</#if></#list>
+<#assign printed=false />
+EXTRA_C_SOURCES=<#if build_info.extraSourceCodeSet??><#list build_info.extraSourceCodeSet as source_file><#if source_file?ends_with(".c") ><#if (printed == true)>
+	</#if><#assign printed=true />$(APPLICATION_DIR)/${source_file}<#if (source_file?index < build_info.extraSourceCodeSet?size - 1)>\</#if></#if></#list></#if>
 
+<#assign printed=false />
+EXTRA_CPP_SOURCES=<#if build_info.extraSourceCodeSet??><#list build_info.extraSourceCodeSet as source_file><#if source_file?ends_with(".cpp") ><#if (printed == true)>
+	</#if><#assign printed=true />$(APPLICATION_DIR)/${source_file}<#if (source_file?index < build_info.extraSourceCodeSet?size - 1)>\</#if></#if></#list></#if>
+			
+<#assign printed=false />
+API_C_SOURCES=<#list build_info.apiSourceList as source_file><#if source_file?ends_with(".c") ><#if (printed == true)>
+	</#if><#assign printed=true />$(API_DIR)/${source_file}<#if (source_file?index < build_info.apiSourceList?size - 1)>\</#if></#if></#list>
 
-KERNEL_DATA_SOURCES=<#list build_info.kernelDataSourceList as source_file><#if (source_file?index > 0)>
-	</#if>$(KERNEL_DIR)/generated/${source_file}<#if (source_file?index < build_info.kernelDataSourceList?size - 1)>\</#if></#list>
+<#assign printed=false />
+API_CPP_SOURCES=<#list build_info.apiSourceList as source_file><#if source_file?ends_with(".cpp") ><#if (printed == true)>
+	</#if><#assign printed=true />$(API_DIR)/${source_file}<#if (source_file?index < build_info.apiSourceList?size - 1)>\</#if></#if></#list>
 
-KERNEL_SOURCES=<#list build_info.kernelSourceList as source_file><#if (source_file?index > 0)>
-	</#if>$(KERNEL_DIR)/${source_file}<#if (source_file?index < build_info.kernelSourceList?size - 1)>\</#if></#list>
-			   
-KERNEL_DEVICE_SOURCES=<#list build_info.kernelDeviceSourceList as source_file><#if (source_file?index > 0)>
-	</#if>$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/${source_file}<#if (source_file?index < build_info.kernelDeviceSourceList?size - 1)>\</#if></#list>
+<#assign printed=false />
+KERNEL_DATA_C_SOURCES=<#list build_info.kernelDataSourceList as source_file><#if source_file?ends_with(".c") ><#if (printed == true)>
+	</#if><#assign printed=true />$(KERNEL_DIR)/generated/${source_file}<#if (source_file?index < build_info.kernelDataSourceList?size - 1)>\</#if></#if></#list>
+	
+<#assign printed=false />
+KERNEL_DATA_CPP_SOURCES=<#list build_info.kernelDataSourceList as source_file><#if source_file?ends_with(".cpp") ><#if (printed == true)>
+	</#if><#assign printed=true />$(KERNEL_DIR)/generated/${source_file}<#if (source_file?index < build_info.kernelDataSourceList?size - 1)>\</#if></#if></#list>
+		
+<#assign printed=false />
+KERNEL_C_SOURCES=<#list build_info.kernelSourceList as source_file><#if source_file?ends_with(".c") ><#if (printed == true)>
+	</#if><#assign printed=true />$(KERNEL_DIR)/${source_file}<#if (source_file?index < build_info.kernelSourceList?size - 1)>\</#if></#if></#list>
+	
+<#assign printed=false />
+KERNEL_CPP_SOURCES=<#list build_info.kernelSourceList as source_file><#if source_file?ends_with(".cpp") ><#if (printed == true)>
+	</#if><#assign printed=true />$(KERNEL_DIR)/${source_file}<#if (source_file?index < build_info.kernelSourceList?size - 1)>\</#if></#if></#list>
 
-COMMON_SOURCES=<#list build_info.commonSourceList as source_file><#if (source_file?index > 0)>
-	</#if>$(COMMON_DIR)/${source_file}<#if (source_file?index < build_info.commonSourceList?size - 1)>\</#if></#list>
+<#assign printed=false />
+KERNEL_DEVICE_C_SOURCES=<#list build_info.kernelDeviceSourceList as source_file><#if source_file?ends_with(".c") ><#if (printed == true)>
+	</#if><#assign printed=true />$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/${source_file}<#if (source_file?index < build_info.kernelDeviceSourceList?size - 1)>\</#if></#if></#list>
 
-MODULE_SOURCES=<#list build_info.moduleSourceList as source_file><#if (source_file?index > 0)>
-	</#if>$(MODULE_DIR)/${source_file}<#if (source_file?index < build_info.moduleSourceList?size - 1)>\</#if></#list>
+<#assign printed=false />
+KERNEL_DEVICE_CPP_SOURCES=<#list build_info.kernelDeviceSourceList as source_file><#if source_file?ends_with(".cpp") ><#if (printed == true)>
+	</#if><#assign printed=true />$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/${source_file}<#if (source_file?index < build_info.kernelDeviceSourceList?size - 1)>\</#if></#if></#list>
 
-LOCAL_C_SRCS=$(MAIN_SOURCES) $(API_SOURCES)
+<#assign printed=false />
+COMMON_C_SOURCES=<#list build_info.commonSourceList as source_file><#if source_file?ends_with(".c") ><#if (printed == true)>
+	</#if><#assign printed=true />$(COMMON_DIR)/${source_file}<#if (source_file?index < build_info.commonSourceList?size - 1)>\</#if></#if></#list>
 
-#LOCAL_CPP_SRCS=$(MAIN_DIR)/$(PLATFORM_DIR)/main.ino.c			
+<#assign printed=false />
+COMMON_CPP_SOURCES=<#list build_info.commonSourceList as source_file><#if source_file?ends_with(".cpp") ><#if (printed == true)>
+	</#if><#assign printed=true />$(COMMON_DIR)/${source_file}<#if (source_file?index < build_info.commonSourceList?size - 1)>\</#if></#if></#list>
+
+<#assign printed=false />
+MODULE_C_SOURCES=<#list build_info.moduleSourceList as source_file><#if source_file?ends_with(".c") ><#if (printed == true)>
+	</#if><#assign printed=true />$(MODULE_DIR)/${source_file}<#if (source_file?index < build_info.moduleSourceList?size - 1)>\</#if></#if></#list>
+
+<#assign printed=false />
+MODULE_CPP_SOURCES=<#list build_info.moduleSourceList as source_file><#if source_file?ends_with(".cpp") ><#if (printed == true)>
+	</#if><#assign printed=true />$(MODULE_DIR)/${source_file}<#if (source_file?index < build_info.moduleSourceList?size - 1)>\</#if></#if></#list>
+
+LOCAL_C_SRCS=$(MAIN_C_SOURCES) $(APPLICATION_C_SOURCES) $(EXTRA_C_SOURCES) $(API_C_SOURCES)\
+	$(KERNEL_DATA_C_SOURCES) $(KERNEL_C_SOURCES) $(KERNEL_DEVICE_C_SOURCES)\
+	$(COMMON_C_SOURCES) $(MODULE_C_SOURCES)
+
+LOCAL_CPP_SRCS=$(MAIN_CPP_SOURCES) $(APPLICATION_CPP_SOURCES) $(EXTRA_CPP_SOURCES) $(API_CPP_SOURCES)\
+	$(KERNEL_DATA_CPP_SOURCES) $(KERNEL_CPP_SOURCES) $(KERNEL_DEVICE_CPP_SOURCES)\
+	$(COMMON_CPP_SOURCES) $(MODULE_CPP_SOURCES)
 			
 #proc_SOURCES=$(MAIN_SOURCES) $(APPLICATION_SOURCES) $(EXTRA_SOURCES) $(API_SOURCES) $(KERNEL_DATA_SOURCES) $(KERNEL_SOURCES) $(KERNEL_DEVICE_SOURCES) $(COMMON_SOURCES) $(MODULE_SOURCES)
 			 
@@ -64,9 +111,7 @@ MODULE_CFLAGS=-I$(MODULE_DIR)/include
 CFLAGS_LIST=$(TOP_CFLAGS) $(MAIN_CFLAGS) $(API_CFLAGS) $(KERNEL_CFLAGS) $(COMMON_CFLAGS) $(MODULE_CFLAGS)
 
 CFLAGS=-Wall $(CFLAGS_LIST) $(SYSTEM_CFLAGS)
-<#if build_info.language=="C++">
 CXXFLAGS=-Wall $(CFLAGS_LIST) $(SYSTEM_CFLAGS)
-</#if>
 
 
 MAIN_LDFLAG_LIST=
