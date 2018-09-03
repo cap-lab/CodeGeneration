@@ -13,12 +13,12 @@ extern "C"
 {
 #endif
 
-void *UC_malloc(int nSize);
-void *UC_calloc(int nNumOfElements, int nSize);
-void *UC_realloc(void *pMem, int nSize);
-void UC_free(void *pMem);
+void *UCAlloc_malloc(int nSize);
+void *UCAlloc_calloc(int nNumOfElements, int nSize);
+void *UCAlloc_realloc(void *pMem, int nSize);
+void UCAlloc_free(void *pMem);
 
-#define SAFEMEMFREE(mem) if((mem) != NULL){UC_free((mem));mem=NULL;}
+#define SAFEMEMFREE(mem) if((mem) != NULL){UCAlloc_free((mem));mem=NULL;}
 
 #ifdef __cplusplus
 }

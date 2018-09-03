@@ -18,6 +18,7 @@
 #include <pthread.h>
 
 #include <UCBasic.h>
+#include <UCAlloc.h>
 #include <UCThreadEvent.h>
 
 #include "UCThreadEvent_data.h"

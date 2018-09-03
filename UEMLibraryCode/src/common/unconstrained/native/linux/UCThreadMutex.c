@@ -13,6 +13,7 @@
 #include <pthread.h>
 
 #include <UCBasic.h>
+#include <UCAlloc.h>
 
 #include <UCThreadMutex.h>
 

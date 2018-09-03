@@ -20,8 +20,6 @@ void *UC_memcpy(void *pDest, const void *pSrc, int nSize);
 int UC_memcmp(void *pCompare1, void *pCompare2, int nSize);
 void *UC_memset(void *pDest, int nContents, int nSize);
 
-#define SAFEMEMFREE(mem) if((mem) != NULL){UC_free((mem));mem=NULL;}
-
 #ifdef __cplusplus
 }
 #endif

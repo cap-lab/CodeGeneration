@@ -21,7 +21,7 @@
 #endif
 
 #include <UCBasic.h>
-
+#include <UCAlloc.h>
 #include <UCThread.h>
 #include <UCThreadEvent.h>
 
