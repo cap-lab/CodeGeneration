@@ -80,7 +80,7 @@ uem_result UCDynamicSocket_Create(IN SSocketInfo *pstSocketInfo, IN uem_bool bIs
     	ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
 #endif
-    pstSocket = (SUCSocket *) UC_malloc(sizeof(SUCSocket));
+    pstSocket = (SUCSocket *) UCAlloc_malloc(sizeof(SUCSocket));
     ERRMEMGOTO(pstSocket, result, _EXIT);
 
     pstSocket->enID = ID_UEM_SOCKET;
@@ -97,7 +97,7 @@ uem_result UCDynamicSocket_Create(IN SSocketInfo *pstSocketInfo, IN uem_bool bIs
 
         if(UCString_Length(&stInputPath) > 0)
         {
-        	pstSocket->pszSocketPath = (char *) UC_malloc(sizeof((UCString_Length(&stInputPath)+1) * sizeof(char)));
+        	pstSocket->pszSocketPath = (char *) UCAlloc_malloc(sizeof((UCString_Length(&stInputPath)+1) * sizeof(char)));
             ERRMEMGOTO(pstSocket->pszSocketPath, result, _EXIT);
 
             result = UCString_New(&(pstSocket->stSocketPath), pstSocket->pszSocketPath, (UCString_Length(&stInputPath)+1) * sizeof(char));

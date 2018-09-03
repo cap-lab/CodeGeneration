@@ -8,17 +8,14 @@
 #ifndef SRC_COMMON_INCLUDE_UCBASIC_H_
 #define SRC_COMMON_INCLUDE_UCBASIC_H_
 
-#include "uem_common.h"
+#include <uem_common.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-void *UC_malloc(int nSize);
-void *UC_calloc(int nNumOfElements, int nSize);
-void *UC_realloc(void *pMem, int nSize);
-void UC_free(void *pMem);
+
 void *UC_memcpy(void *pDest, const void *pSrc, int nSize);
 int UC_memcmp(void *pCompare1, void *pCompare2, int nSize);
 void *UC_memset(void *pDest, int nContents, int nSize);

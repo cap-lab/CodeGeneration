@@ -12,6 +12,7 @@
 #include <uem_common.h>
 
 #include <UCBasic.h>
+#include <UCAlloc.h>
 #include <UCDynamicSocket.h>
 
 #include <UKUEMProtocol.h>
@@ -164,7 +165,7 @@ uem_result UKUEMProtocol_Create(OUT HUEMProtocol *phProtocol)
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(phProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
-	pstProtocol = UC_malloc(sizeof(struct _SUEMProtocol));
+	pstProtocol = UCAlloc_malloc(sizeof(struct _SUEMProtocol));
 	ERRMEMGOTO(pstProtocol, result, _EXIT);
 
 	pstProtocol->hSocket = NULL;
@@ -281,7 +282,7 @@ static uem_result makeSendingData(SUEMProtocolData *pstProtocolData)
 	{
 		SAFEMEMFREE(pstProtocolData->pFullMessage);
 
-		pstProtocolData->pFullMessage = UC_malloc(nTotalDataSize);
+		pstProtocolData->pFullMessage = UCAlloc_malloc(nTotalDataSize);
 		ERRMEMGOTO(pstProtocolData->pFullMessage, result, _EXIT);
 
 		pstProtocolData->nFullMessageBufLen = nTotalDataSize;
@@ -691,7 +692,7 @@ static uem_result receiveBody(HSocket hSocket, SUEMProtocolData *pstDataReceived
 	{
 		SAFEMEMFREE(pstDataReceived->pBodyData);
 
-		pstDataReceived->pBodyData = UC_malloc(nBodySize);
+		pstDataReceived->pBodyData = UCAlloc_malloc(nBodySize);
 		ERRMEMGOTO(pstDataReceived->pBodyData, result, _EXIT);
 
 		pstDataReceived->nBodyBufLen = nBodySize;

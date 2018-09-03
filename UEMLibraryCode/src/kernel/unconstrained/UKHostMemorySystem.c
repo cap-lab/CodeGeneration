@@ -12,7 +12,7 @@
 #include <uem_common.h>
 
 #include <UCBasic.h>
-
+#include <UCAlloc.h>
 
 uem_result UKHostMemorySystem_CreateMemory(int nSize, OUT void **ppMemory)
 {
@@ -20,7 +20,7 @@ uem_result UKHostMemorySystem_CreateMemory(int nSize, OUT void **ppMemory)
 
 	IFVARERRASSIGNGOTO(ppMemory , NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	*ppMemory = UC_malloc(nSize);
+	*ppMemory = UCAlloc_malloc(nSize);
 	ERRMEMGOTO(*ppMemory, result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -60,7 +60,7 @@ uem_result UKHostMemorySystem_DestroyMemory(IN OUT void **ppMemory)
 	IFVARERRASSIGNGOTO(ppMemory , NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 	IFVARERRASSIGNGOTO(*ppMemory , NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	UC_free(*ppMemory);
+	UCAlloc_free(*ppMemory);
 
 	*ppMemory = NULL;
 

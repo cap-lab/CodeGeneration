@@ -13,6 +13,7 @@
 
 
 #include <UCBasic.h>
+#include <UCAlloc.h>
 
 #include <UCDynamicLinkedList.h>
 
@@ -40,7 +41,7 @@ uem_result UCDynamicLinkedList_Create(OUT HLinkedList *phLinkedList)
 #ifdef ARGUMENT_CHECK
     IFVARERRASSIGNGOTO(phLinkedList, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
-    pstLinkedList = (SUCLinkedList *) UC_malloc(sizeof(SUCLinkedList));
+    pstLinkedList = (SUCLinkedList *) UCAlloc_malloc(sizeof(SUCLinkedList));
     ERRMEMGOTO(pstLinkedList, result, _EXIT);
 
     pstLinkedList->enId = ID_UEM_DYNAMIC_LINKED_LIST;
@@ -92,7 +93,7 @@ uem_result UCDynamicLinkedList_Add(HLinkedList hLinkedList, IN ELinkedListOffset
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
 #endif
-    pstNewNode = (SNode *) UC_malloc(sizeof(SNode));
+    pstNewNode = (SNode *) UCAlloc_malloc(sizeof(SNode));
     ERRMEMGOTO(pstNewNode, result, _EXIT);
 
     if (pstLinkedList->nLinkSize == 0) { /* If a linked list is empty */

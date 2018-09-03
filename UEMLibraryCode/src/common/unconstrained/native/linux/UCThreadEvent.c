@@ -30,7 +30,7 @@ uem_result UCThreadEvent_Create(HThreadEvent *phEvent)
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(phEvent, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
-	pstEvent = (SThreadEvent *) UC_malloc(sizeof(SThreadEvent));
+	pstEvent = (SThreadEvent *) UCAlloc_malloc(sizeof(SThreadEvent));
 	ERRMEMGOTO(pstEvent, result, _EXIT);
 
 	pstEvent->enId = ID_UEM_THREAD_EVENT;

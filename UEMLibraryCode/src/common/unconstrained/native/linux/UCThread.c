@@ -205,7 +205,7 @@ uem_result UCThread_Create(FnNativeThread fnThreadRoutine, void *pUserData, OUT 
 	IFVARERRASSIGNGOTO(phThread, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 	IFVARERRASSIGNGOTO(fnThreadRoutine, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
-	pstThread = (SUCThread *) UC_malloc(sizeof(SUCThread));
+	pstThread = (SUCThread *) UCAlloc_malloc(sizeof(SUCThread));
 	ERRMEMGOTO(pstThread, result, _EXIT);
 
 	pstThread->enId = ID_UEM_THREAD;

@@ -10,6 +10,8 @@
 #include <uem_enum.h>
 #include <uem_callbacks.h>
 
+#include <uem_channel_data.h>
+
 #ifndef SRC_KERNEL_CONSTRAINED_INCLUDE_UEM_DATA_H_
 #define SRC_KERNEL_CONSTRAINED_INCLUDE_UEM_DATA_H_
 
@@ -93,6 +95,12 @@ typedef struct _SScheduledTasks {
 	STask *pstParentTask;
 	FnUemTaskGo fnCompositeGo;
 } SScheduledTasks;
+
+extern SChannel g_astChannels[];
+extern int g_nChannelNum;
+
+extern SChannelAPI *g_astChannelAPIList[];
+extern int g_nChannelAPINum;
 
 extern STask g_astTasks_top[];
 extern int g_nNumOfTasks_top;

@@ -13,6 +13,7 @@
 #include <uem_common.h>
 
 #include <UCBasic.h>
+#include <UCAlloc.h>
 
 #include <UCDynamicLinkedList.h>
 #include <UCDynamicStack.h>
@@ -49,7 +50,7 @@ uem_result UCDynamicStack_Create(OUT HStack *phStack)
 #ifdef ARGUMENT_CHECK
     IFVARERRASSIGNGOTO(phStack, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
-    pstStack = (SUCDynamicStack * ) UC_malloc(sizeof(SUCDynamicStack));
+    pstStack = (SUCDynamicStack * ) UCAlloc_malloc(sizeof(SUCDynamicStack));
     ERRMEMGOTO(pstStack, result, _EXIT);
 
     pstStack->enId = ID_UEM_STACK;

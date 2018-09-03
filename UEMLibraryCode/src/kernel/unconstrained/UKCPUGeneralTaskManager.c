@@ -12,6 +12,7 @@
 #include <uem_common.h>
 
 #include <UCBasic.h>
+#include <UCAlloc.h>
 #include <UCThreadMutex.h>
 #include <UCThread.h>
 #include <UCDynamicLinkedList.h>
@@ -111,7 +112,7 @@ uem_result UKCPUGeneralTaskManager_Create(IN OUT HCPUGeneralTaskManager *phManag
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(phManager, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
-	pstManager = UC_malloc(sizeof(SCPUGeneralTaskManager));
+	pstManager = UCAlloc_malloc(sizeof(SCPUGeneralTaskManager));
 	ERRMEMGOTO(pstManager, result, _EXIT);
 
 	pstManager->enId = ID_UEM_CPU_GENERAL_TASK_MANAGER;
@@ -304,7 +305,7 @@ static uem_result createGeneralTaskStruct(HCPUGeneralTaskManager hCPUTaskManager
 	uem_result result = ERR_UEM_UNKNOWN;
 	SGeneralTask *pstGeneralTask = NULL;
 
-	pstGeneralTask = UC_malloc(sizeof(SGeneralTask));
+	pstGeneralTask = UCAlloc_malloc(sizeof(SGeneralTask));
 	ERRMEMGOTO(pstGeneralTask, result, _EXIT);
 
 	pstGeneralTask->hMutex = NULL;
@@ -359,7 +360,7 @@ static uem_result createGeneralTaskThreadStructs(SMappedGeneralTaskInfo *pstMapp
 	uem_result result = ERR_UEM_UNKNOWN;
 	SGeneralTaskThread *pstGeneralTaskThread = NULL;
 
-	pstGeneralTaskThread = UC_malloc(sizeof(SGeneralTaskThread));
+	pstGeneralTaskThread = UCAlloc_malloc(sizeof(SGeneralTaskThread));
 	ERRMEMGOTO(pstGeneralTaskThread, result, _EXIT);
 
 	pstGeneralTaskThread->nProcId = pstMappedInfo->nLocalId;
@@ -948,7 +949,7 @@ static uem_result createGeneralTaskThread(IN int nOffset, IN void *pData, IN voi
 	}
 	ERRIFGOTO(result, _EXIT);
 
-	pstTaskThreadData = UC_malloc(sizeof(struct _SGeneralTaskThreadData));
+	pstTaskThreadData = UCAlloc_malloc(sizeof(struct _SGeneralTaskThreadData));
 	ERRMEMGOTO(pstTaskThreadData, result, _EXIT);
 
 	pstTaskThreadData->pstGeneralTask = pstCreateData->pstGeneralTask;

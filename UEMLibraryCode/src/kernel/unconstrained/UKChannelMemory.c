@@ -20,6 +20,7 @@
 #include <uem_common.h>
 
 #include <UCBasic.h>
+#include <UCAlloc.h>
 #include <UCThreadMutex.h>
 
 #include <uem_data.h>

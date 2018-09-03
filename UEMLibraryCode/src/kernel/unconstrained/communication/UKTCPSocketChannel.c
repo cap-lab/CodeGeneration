@@ -14,6 +14,7 @@
 
 #include <UCTime.h>
 #include <UCBasic.h>
+#include <UCAlloc.h>
 #include <UCThreadMutex.h>
 
 #include <uem_data.h>
@@ -66,7 +67,7 @@ static uem_result reallocTempBuffer(STCPSocketChannel *pstTCPChannel, int nTarge
 	{
 		SAFEMEMFREE(pstTCPChannel->pBuffer);
 
-		pstTCPChannel->pBuffer = UC_malloc(nTargetSize);
+		pstTCPChannel->pBuffer = UCAlloc_malloc(nTargetSize);
 		ERRMEMGOTO(pstTCPChannel->pBuffer, result, _EXIT);
 	}
 

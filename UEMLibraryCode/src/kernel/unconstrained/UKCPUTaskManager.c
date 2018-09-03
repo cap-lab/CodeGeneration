@@ -11,6 +11,7 @@
 #include <uem_common.h>
 
 #include <UCBasic.h>
+#include <UCAlloc.h>
 #include <UCDynamicLinkedList.h>
 #include <UCThreadMutex.h>
 #include <UCThreadEvent.h>
@@ -60,7 +61,7 @@ uem_result UKCPUTaskManager_Create(OUT HCPUTaskManager *phCPUTaskManager)
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(phCPUTaskManager, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
-	pstManager = UC_malloc(sizeof(SCPUTaskManager));
+	pstManager = UCAlloc_malloc(sizeof(SCPUTaskManager));
 	ERRMEMGOTO(pstManager, result, _EXIT);
 
 	pstManager->enId = ID_UEM_CPU_TASK_MANAGER;

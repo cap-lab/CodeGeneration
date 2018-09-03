@@ -27,7 +27,7 @@ uem_result UCThreadMutex_Create(HThreadMutex *phMutex)
 	IFVARERRASSIGNGOTO(phMutex, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
 
-	pstMutex = (SThreadMutex *) UC_malloc(sizeof(SThreadMutex));
+	pstMutex = (SThreadMutex *) UCAlloc_malloc(sizeof(SThreadMutex));
 	ERRMEMGOTO(pstMutex, result, _EXIT);
 
 	pstMutex->enId = ID_UEM_THREAD_MUTEX;

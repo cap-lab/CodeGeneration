@@ -96,6 +96,6 @@ SChannel g_astChannels[] = {
 };
 // ##CHANNEL_LIST_TEMPLATE::END
 
-
+int g_nChannelNum = ARRAYLEN(g_astChannels);
 
 
