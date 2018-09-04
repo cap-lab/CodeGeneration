@@ -9,6 +9,8 @@
 #include <config.h>
 #endif
 
+#include <stdlib.h>
+
 #include <uem_common.h>
 
 void *UCAlloc_malloc(int nSize)

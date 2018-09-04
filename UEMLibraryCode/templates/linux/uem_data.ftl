@@ -16,7 +16,7 @@ SExecutionTime g_stExecutionTime = { ${execution_time.value?c}, TIME_METRIC_${ex
 #define MAX_TIMER_SLOT_SIZE (${timerSlotSize})
 
 
-
+// ##TIMER_CODE_TEMPLATE::START
 <#list flat_task as task_name, task>
 	<#if task.type == "CONTROL">
 STimer g_stTimer_${task.name}[MAX_TIMER_SLOT_SIZE] = {
@@ -32,6 +32,7 @@ STimer g_stTimer_${task.name}[MAX_TIMER_SLOT_SIZE] = {
 
 	</#if>
 </#list>
+// ##TIMER_CODE_TEMPLATE::END
 
 // ##TASK_CODE_TEMPLATE::START
 <#list flat_task as task_name, task>

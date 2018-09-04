@@ -186,27 +186,27 @@ SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 // ##SPECIFIC_CHANNEL_LIST_TEMPLATE::START
 <#list channel_list as channel>
 
-<#switch channel.communicationType>
-	<#case "SHARED_MEMORY">
-	<#case "TCP_SERVER_WRITER">
-	<#case "TCP_CLIENT_WRITER">
+	<#switch channel.communicationType>
+		<#case "SHARED_MEMORY">
+		<#case "TCP_SERVER_WRITER">
+		<#case "TCP_CLIENT_WRITER">
 SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 		ACCESS_TYPE_${channel.accessType},
-		<#switch channel.accessType>
-			<#case "CPU_ONLY">
-			<#case "CPU_GPU">
-			<#case "GPU_CPU">
+			<#switch channel.accessType>
+				<#case "CPU_ONLY">
+				<#case "CPU_GPU">
+				<#case "GPU_CPU">
 		s_pChannel_${channel.index}_buffer, // Channel buffer pointer
 		s_pChannel_${channel.index}_buffer, // Channel data start
 		s_pChannel_${channel.index}_buffer, // Channel data end
-				<#break>
-			<#case "GPU_GPU">
-			<#case "GPU_GPU_DIFFERENT">
+					<#break>
+				<#case "GPU_GPU">
+				<#case "GPU_GPU_DIFFERENT">
 		NULL, // Channel buffer pointer
 		NULL, // Channel data start
 		NULL, // Channel data end
-				<#break>
-		</#switch>
+					<#break>
+			</#switch>
 		0, // Channel data length
 		0, // Read reference count
 		0, // Write reference count
@@ -231,29 +231,30 @@ SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 		${channel.inputPort.maximumChunkNum?c}, // maximum input port chunk size for all port sample rate cases (input port)
 		(SAvailableChunk *) NULL, // Chunk list head
 		(SAvailableChunk *) NULL, // Chunk list tail
-		<#switch channel.accessType>
-			<#case "CPU_ONLY">
+			<#switch channel.accessType>
+				<#case "CPU_ONLY">
 		&g_stHostMemory, // Host memory access API
 		TRUE, // memory is statically allocated
-				<#break>
-			<#case "CPU_GPU">
+					<#break>
+				<#case "CPU_GPU">
 		&g_stHostToDeviceMemory, // Host memory access API
 		TRUE, // memory is statically allocated
-				<#break>
-			<#case "GPU_CPU">
+					<#break>
+				<#case "GPU_CPU">
 		&g_stDeviceToHostMemory, // Host memory access API
 		TRUE, // memory is statically allocated
-				<#break>
-			<#case "GPU_GPU">
+					<#break>
+				<#case "GPU_GPU">
 		&g_stDeviceItSelfMemory, // Host memory access API
 		FALSE, // memory is statically allocated
-				<#break>
-			<#case "GPU_GPU_DIFFERENT">
+					<#break>
+				<#case "GPU_GPU_DIFFERENT">
 		&g_stDeviceToDeviceMemory, // Host memory access API
 		FALSE, // memory is statically allocated
-				<#break>
-		</#switch>
-		<#if (channel.initialDataLen > 0)>FALSE<#else>TRUE</#if>, // initial data is updated
+					<#break>
+			</#switch>
+			
+			<#if (channel.initialDataLen > 0)>FALSE<#else>TRUE</#if>, // initial data is updated
 };
 		<#break>
 	</#switch>
@@ -300,7 +301,7 @@ STCPSocketChannel g_stTCPSocketChannel_${channel.index} = {
 				<#break>
 		</#switch>
 };
-		<#break>
+			<#break>
 	</#switch>
 </#list>
 // ##SPECIFIC_CHANNEL_LIST_TEMPLATE::END
