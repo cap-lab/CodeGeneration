@@ -17,7 +17,6 @@ extern "C"
 {
 #endif
 
-uem_result UKChannel_Clear(IN int nChannelId);
 uem_bool UKChannel_IsTaskSourceTask(int nTaskId);
 uem_bool UKChannel_IsPortRateAvailableTask(int nTaskId, char *pszModeName);
 uem_result UKChannel_SetExit();

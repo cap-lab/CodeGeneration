@@ -5,14 +5,6 @@
  *      Author: jej
  */
 
-
-/*
- * UKSharedMemoryChannel.c
- *
- *  Created on: 2017. 11. 9.
- *      Author: jej
- */
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

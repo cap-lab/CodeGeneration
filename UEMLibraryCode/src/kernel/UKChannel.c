@@ -97,6 +97,32 @@ static int getChannelIndexById(int nChannelId)
 }
 
 
+uem_result UKChannel_Clear(IN int nChannelId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nIndex = 0;
+	SChannelAPI *pstChannelAPI = NULL;
+
+	nIndex = getChannelIndexById(nChannelId);
+	IFVARERRASSIGNGOTO(nIndex, INVALID_CHANNEL_ID, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	result = ChannelAPI_GetAPIStructureFromCommunicationType(g_astChannels[nIndex].enType, &pstChannelAPI);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstChannelAPI->fnClear == NULL)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
+
+	result = pstChannelAPI->fnClear(&g_astChannels[nIndex]);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 int UKChannel_GetChannelIdByTaskAndPortName(int nTaskId, char *szPortName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;

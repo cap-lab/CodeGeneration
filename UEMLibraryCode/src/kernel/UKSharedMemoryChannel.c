@@ -11,45 +11,9 @@
 
 #include <uem_common.h>
 
-#include <UCBasic.h>
-#include <UCAlloc.h>
-#include <UCThreadMutex.h>
-
 #include <uem_data.h>
 
 #include <UKChannelMemory.h>
-#include <UKTask_internal.h>
-
-static uem_bool isLocatedInsideLoopTask(SPort *pstPort)
-{
-	uem_bool bInLoopTask = FALSE;
-	SPort *pstCurrentPort = NULL;
-	STask *pstTask = NULL;
-	uem_result result = ERR_UEM_UNKNOWN;
-
-	pstCurrentPort = pstPort;
-	while(pstCurrentPort != NULL)
-	{
-		result = UKTask_GetTaskFromTaskId(pstCurrentPort->nTaskId, &pstTask);
-		ERRIFGOTO(result, _EXIT);
-
-		while(pstTask != NULL)
-		{
-			if(pstTask->pstLoopInfo != NULL)
-			{
-				bInLoopTask = TRUE;
-				break;
-			}
-			pstTask = pstTask->pstParentGraph->pstParentTask;
-		}
-
-		pstCurrentPort = pstCurrentPort->pstSubGraphPort;
-	}
-
-_EXIT:
-	return bInLoopTask;
-}
-
 
 uem_result UKSharedMemoryChannel_Clear(SChannel *pstChannel)
 {
