@@ -27,6 +27,7 @@ public class Constants {
 	public static final int INVALID_VALUE = -1;
 	
 	public static final String NAME_SPLITER = "/";
+	public static final String TEMPLATE_PATH_SEPARATOR = "/";
 	
 	public static final String DEFAULT_PROPERTIES_FILE_NAME = "translator.properties";
 	public static final String DEFAULT_MODULE_XML_FILE_NAME = "module.xml";

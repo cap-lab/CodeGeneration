@@ -172,7 +172,7 @@ public class CodeGenerator
     private void generateMakefile(CodeOrganizer codeOrganizer, String topDirPath) throws TemplateNotFoundException, MalformedTemplateNameException, 
     																freemarker.core.ParseException, IOException, TemplateException
     {
-    	Template makefileTemplate = this.templateConfig.getTemplate(codeOrganizer.getPlatform() + File.separator + Constants.TEMPLATE_FILE_MAKEFILE);
+    	Template makefileTemplate = this.templateConfig.getTemplate(codeOrganizer.getPlatform() + Constants.TEMPLATE_PATH_SEPARATOR + Constants.TEMPLATE_FILE_MAKEFILE);
 		// Create the root hash
 		Map<String, Object> makefileRootHash = new HashMap<>();
 		String outputFilePath = topDirPath + File.separator;
@@ -226,7 +226,7 @@ public class CodeGenerator
     		
     		// remove file extension of the file name (removes last dot and the following chars ex. abc.x.c => abc.x)
     		templateFileName = outputFileName.replaceFirst("[.][^.]+$", "")  + Constants.TEMPLATE_FILE_EXTENSION;
-    		uemDataTemplate = this.templateConfig.getTemplate(codeOrganizer.getPlatform() + File.separator + templateFileName);
+    		uemDataTemplate = this.templateConfig.getTemplate(codeOrganizer.getPlatform() + Constants.TEMPLATE_PATH_SEPARATOR + templateFileName);
     		outputFilePath += outputFileName;
     		
     		Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
@@ -340,24 +340,31 @@ public class CodeGenerator
 		} catch (TemplateNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.exit(-1);
 		} catch (MalformedTemplateNameException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.exit(-1);
 		} catch (freemarker.core.ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.exit(-1);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.exit(-1);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.exit(-1);
 		} catch (TemplateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.exit(-1);
 		} catch (UnsupportedHardwareInformation e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.exit(-1);
 		}
     }
 
