@@ -12,19 +12,15 @@
 
 #include <uem_common.h>
 
-#include <UCBasic.h>
-#include <UCAlloc.h>
 #include <UCString.h>
 
 #include <uem_data.h>
-#include <UKTask_internal.h>
+#include <uem_channel_data.h>
 
-#include <UKChannel.h>
+#include <UKTask_internal.h>
 
 
 #define DEFAUT_INITIAL_BUF_SIZE (4)
-
-
 
 
 uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType enType, OUT SChannelAPI **ppstChannelAPI);

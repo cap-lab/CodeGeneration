@@ -81,6 +81,9 @@ typedef struct _SChannelAPI {
 	FnChannelAPIFinalize fnAPIFinalize;
 } SChannelAPI;
 
+extern SChannelAPI *g_astChannelAPIList[];
+extern int g_nChannelAPINum;
+
 extern SChannel g_astChannels[];
 extern int g_nChannelNum;
 

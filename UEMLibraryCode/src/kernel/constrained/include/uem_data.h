@@ -94,8 +94,6 @@ typedef struct _SScheduledTasks {
 	FnUemTaskGo fnCompositeGo;
 } SScheduledTasks;
 
-extern SChannelAPI *g_astChannelAPIList[];
-extern int g_nChannelAPINum;
 
 extern STask g_astTasks_top[];
 extern int g_nNumOfTasks_top;

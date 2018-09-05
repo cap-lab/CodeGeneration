@@ -177,6 +177,9 @@ typedef struct _SChannelAPI {
 extern SChannel g_astChannels[];
 extern int g_nChannelNum;
 
+extern SChannelAPI *g_astChannelAPIList[];
+extern int g_nChannelAPINum;
+
 #ifdef __cplusplus
 }
 #endif

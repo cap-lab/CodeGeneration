@@ -16,48 +16,7 @@
 
 #include <UKSharedMemoryChannel.h>
 
-SChannelAPI g_stSharedMemoryChannel = {
-	UKSharedMemoryChannel_Initialize, // fnInitialize
-	UKSharedMemoryChannel_ReadFromQueue, // fnReadFromQueue
-	UKSharedMemoryChannel_ReadFromBuffer, // fnReadFromBuffer
-	UKSharedMemoryChannel_WriteToQueue, // fnWriteToQueue
-	UKSharedMemoryChannel_WriteToBuffer, // fnWriteToBuffer
-	UKSharedMemoryChannel_GetAvailableChunk, // fnGetAvailableChunk
-	UKSharedMemoryChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
-	UKSharedMemoryChannel_Clear, // fnClear
-	UKSharedMemoryChannel_SetExit,
-	UKSharedMemoryChannel_ClearExit,
-	UKSharedMemoryChannel_FillInitialData,
-	UKSharedMemoryChannel_Finalize, // fnFinalize
-	NULL,
-	NULL,
-};
-
-SChannelAPI *g_astChannelAPIList[] = {
-		&g_stSharedMemoryChannel,
-};
-
-
-
-uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType enType, OUT SChannelAPI **ppstChannelAPI)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	switch(enType)
-	{
-	case COMMUNICATION_TYPE_SHARED_MEMORY:
-		*ppstChannelAPI = &g_stSharedMemoryChannel;
-		break;
-	default:
-		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT)
-		break;
-	}
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-int g_nChannelAPINum = ARRAYLEN(g_astChannelAPIList);
+uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType enType, OUT SChannelAPI **ppstChannelAPI);
 
 uem_result UKChannel_Initialize()
 {
