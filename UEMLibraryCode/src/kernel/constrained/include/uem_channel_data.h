@@ -10,6 +10,8 @@
 
 #include <uem_common.h>
 
+#include <uem_enum.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -78,6 +80,9 @@ typedef struct _SChannelAPI {
 	FnChannelAPIInitialize fnAPIInitialize;
 	FnChannelAPIFinalize fnAPIFinalize;
 } SChannelAPI;
+
+extern SChannel g_astChannels[];
+extern int g_nChannelNum;
 
 
 #ifdef __cplusplus

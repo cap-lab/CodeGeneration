@@ -174,6 +174,8 @@ typedef struct _SChannelAPI {
 	FnChannelAPIFinalize fnAPIFinalize;
 } SChannelAPI;
 
+extern SChannel g_astChannels[];
+extern int g_nChannelNum;
 
 #ifdef __cplusplus
 }

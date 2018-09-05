@@ -95,6 +95,10 @@ typedef enum _EModeState {
 	MODE_STATE_TRANSITING,
 } EModeState;
 
+typedef struct _STask STask;
+typedef struct _SChannel SChannel;
+
+
 #ifdef __cplusplus
 }
 #endif

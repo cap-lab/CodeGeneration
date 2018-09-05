@@ -20,8 +20,6 @@ extern "C"
 {
 #endif
 
-typedef struct _STask STask;
-
 typedef struct _STaskFunctions {
 	FnUemTaskInit fnInit;
 	FnUemTaskGo fnGo;
@@ -95,9 +93,6 @@ typedef struct _SScheduledTasks {
 	STask *pstParentTask;
 	FnUemTaskGo fnCompositeGo;
 } SScheduledTasks;
-
-extern SChannel g_astChannels[];
-extern int g_nChannelNum;
 
 extern SChannelAPI *g_astChannelAPIList[];
 extern int g_nChannelAPINum;

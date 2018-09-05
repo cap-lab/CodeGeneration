@@ -26,8 +26,6 @@ typedef struct _SModeTransitionMachine SModeTransitionMachine;
 
 typedef uem_bool (*FnTaskModeTranstion)(SModeTransitionMachine *pstModeTransition);
 
-typedef struct _STask STask;
-
 typedef struct _SModeMap {
 	int nModeId;
 	char *pszModeName;
@@ -211,9 +209,6 @@ typedef struct _SExecutionTime {
 } SExecutionTime;
 
 extern SExecutionTime g_stExecutionTime;
-
-extern SChannel g_astChannels[];
-extern int g_nChannelNum;
 
 extern SChannelAPI *g_astChannelAPIList[];
 extern int g_nChannelAPINum;
