@@ -6,6 +6,7 @@
 
 #include <uem_data.h>
 
+#include <UKTaskScheduler.h>
 
 <#assign timerSlotSize=3 />
 #define MAX_TIMER_SLOT_SIZE (${timerSlotSize})
@@ -98,6 +99,50 @@ SScheduledTasks g_astScheduledTaskList[] = {
 	</#list>
 </#list>
 };
+
+// Target general task: control task
+SGeneralTaskRuntimeInfo g_astControlTaskRuntimeInfo[] = {
+<#list flat_task as task_name, task>
+	<#if task.staticScheduled == false && !task.childTaskGraphName?? && task.runCondition == "CONTROL_DRIVEN">
+	{	&g_astTasks_${task.parentTaskGraphName}[${task.inGraphIndex}], // task structure pointer
+		0, // next run time
+		1, // remained run count inside millisec
+		TRUE,	// running
+	},
+	</#if>
+</#list>
+};
+
+
+// Target general task: not control driven, not static scheduled, no child task, not control task
+SGeneralTaskRuntimeInfo g_astGeneralTaskRuntimeInfo[] = {
+<#list flat_task as task_name, task>
+	<#if task.staticScheduled == false && !task.childTaskGraphName?? && task.runCondition != "CONTROL_DRIVEN">
+	{	&g_astTasks_${task.parentTaskGraphName}[${task.inGraphIndex}], // task structure pointer
+		0, // next run time
+		1, // remained run count inside millisec
+		TRUE,	// running
+	},
+	</#if>
+</#list>
+};
+
+SCompositeTaskRuntimeInfo g_astCompositeTaskRuntimeInfo[] = {
+<#list schedule_info as task_name, mapped_schedule>
+	<#list mapped_schedule.mappedProcessorList as compositeMappedProcessor>
+	{ &g_astScheduledTaskList[${compositeMappedProcessor?index}], // composite task schedule pointer
+	  0, // next run time
+	  1, // run count inside millisec
+	  TRUE, // running
+	},
+	</#list>
+</#list>
+};
+
+int g_nControlTaskNum = ARRAYLEN(g_astControlTaskRuntimeInfo);
+int g_nGeneralTaskNum = ARRAYLEN(g_astGeneralTaskRuntimeInfo);
+int g_nCompositeTaskNum = ARRAYLEN(g_astCompositeTaskRuntimeInfo);
+
 
 int g_nNumOfTasks_top = ARRAYLEN(g_astTasks_top);
 int g_nTaskIdToTaskNum = ARRAYLEN(g_astTaskIdToTask);

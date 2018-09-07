@@ -567,11 +567,18 @@ public class Device {
 		for(MappingInfo mappingInfo : this.staticScheduleMappingInfo.values())
 		{
 			CompositeTaskMappingInfo compositeMappingInfo = (CompositeTaskMappingInfo) mappingInfo;
+			
 			task = this.taskMap.get(compositeMappingInfo.getParentTaskName());
 			if(task != null)
 			{
 				task.setStaticScheduled(true);
 				taskGraph = this.taskGraphMap.get(task.getChildTaskGraphName());
+				recursiveSetSubgraphTaskToStaticScheduled(taskGraph);
+			}
+			else if(compositeMappingInfo.getParentTaskName().equals(Constants.TOP_TASKGRAPH_NAME))
+			{
+				// full graph is data flow
+				taskGraph = this.taskGraphMap.get(compositeMappingInfo.getParentTaskName());
 				recursiveSetSubgraphTaskToStaticScheduled(taskGraph);
 			}
 		}

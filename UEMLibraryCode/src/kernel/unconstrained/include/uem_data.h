@@ -5,8 +5,8 @@
  *      Author: jej
  */
 
-#ifndef SRC_API_INCLUDE_UEM_DATA_H_
-#define SRC_API_INCLUDE_UEM_DATA_H_
+#ifndef SRC_KERNEL_UNCONSTRAINED_INCLUDE_UEM_DATA_H_
+#define SRC_KERNEL_UNCONSTRAINED_INCLUDE_UEM_DATA_H_
 
 #include <uem_common.h>
 
@@ -235,4 +235,4 @@ extern uem_bool g_bSystemExit;
 #endif
 
 
-#endif /* SRC_API_INCLUDE_UEM_DATA_H_ */
+#endif /* SRC_KERNEL_UNCONSTRAINED_INCLUDE_UEM_DATA_H_ */

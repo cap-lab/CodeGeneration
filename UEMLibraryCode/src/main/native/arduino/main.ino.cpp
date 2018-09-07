@@ -20,28 +20,39 @@
 #include <uem_channel_data.h>
 
 #include <UKChannel.h>
+#include <UKTaskScheduler.h>
 
 static int a;
 
 void setup() {
-	int nLoop = 0;
+	uem_result result;
     a = 0;
 	Serial.begin(9600);
 	UKChannel_Initialize();
-
-	for(nLoop = 0 ; nLoop < 4;nLoop++)
+	result = UKTaskScheduler_Init();
+	if(result != ERR_UEM_NOERROR)
 	{
-		g_astTaskIdToTask[nLoop].pstTask->stTaskFunctions.fnInit(g_astTaskIdToTask[nLoop].pstTask->nTaskId);
+		while(true) {
+			Serial.println("error on initializing task scheduler");
+			delay(2000);
+		}
 	}
 }
 
 void loop() {
+	uem_result result;
     a++;
-    //UEM_DEBUG_PRINT("test %d\n", a);
 	//Serial.print("test ");
 	//Serial.print(a);
 	//Serial.println();
-    g_astScheduledTaskList[0].fnCompositeGo(-1);
+    result = UKTaskScheduler_Run();
+	if(result != ERR_UEM_NOERROR)
+	{
+		while(true) {
+			Serial.println("error on running task scheduler");
+			delay(2000);
+		}
+	}
 	delay(2000);
 }
 
