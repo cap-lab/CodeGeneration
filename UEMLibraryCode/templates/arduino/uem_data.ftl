@@ -103,11 +103,11 @@ SScheduledTasks g_astScheduledTaskList[] = {
 // Target general task: control task
 SGeneralTaskRuntimeInfo g_astControlTaskRuntimeInfo[] = {
 <#list flat_task as task_name, task>
-	<#if task.staticScheduled == false && !task.childTaskGraphName?? && task.runCondition == "CONTROL_DRIVEN">
+	<#if task.staticScheduled == false && !task.childTaskGraphName?? && task.type == "CONTROL">
 	{	&g_astTasks_${task.parentTaskGraphName}[${task.inGraphIndex}], // task structure pointer
 		0, // next run time
 		1, // remained run count inside millisec
-		TRUE,	// running
+		<#if task.runCondition != "CONTROL_DRIVEN">TRUE<#else>FALSE</#if>,	// running
 	},
 	</#if>
 </#list>
@@ -117,11 +117,11 @@ SGeneralTaskRuntimeInfo g_astControlTaskRuntimeInfo[] = {
 // Target general task: not control driven, not static scheduled, no child task, not control task
 SGeneralTaskRuntimeInfo g_astGeneralTaskRuntimeInfo[] = {
 <#list flat_task as task_name, task>
-	<#if task.staticScheduled == false && !task.childTaskGraphName?? && task.runCondition != "CONTROL_DRIVEN">
+	<#if task.staticScheduled == false && !task.childTaskGraphName?? && task.type != "CONTROL">
 	{	&g_astTasks_${task.parentTaskGraphName}[${task.inGraphIndex}], // task structure pointer
 		0, // next run time
 		1, // remained run count inside millisec
-		TRUE,	// running
+		<#if task.runCondition != "CONTROL_DRIVEN">TRUE<#else>FALSE</#if>,	// running
 	},
 	</#if>
 </#list>

@@ -215,6 +215,11 @@ static uem_result runGeneralTasks(int nTaskNum, SGeneralTaskRuntimeInfo astRunti
 				result = handleTimeDrivenTask(&(astRuntimeInfo[nLoop]));
 				ERRIFGOTO(result, _EXIT);
 			}
+			else
+			{
+				//UEM_DEBUG_PRINT("general task: running: %s\n", pstTask->pszTaskName);
+				pstTask->stTaskFunctions.fnGo(pstTask->nTaskId);
+			}
 		}
 	}
 	result = ERR_UEM_NOERROR;
@@ -233,7 +238,6 @@ static uem_result runCompositeTasks(int nTaskNum, SCompositeTaskRuntimeInfo astR
 	{
 		if(astRuntimeInfo[nLoop].bRunning == TRUE)
 		{
-			UEM_DEBUG_PRINT("composite task: running\n");
 			if(astRuntimeInfo[nLoop].pstCompositeTaskSchedule->pstParentTask != NULL)
 			{
 				nTaskId = astRuntimeInfo[nLoop].pstCompositeTaskSchedule->pstParentTask->nTaskId;

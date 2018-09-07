@@ -23,6 +23,7 @@ uem_result UFPort_WriteToQueue (IN int nChannelId, IN unsigned char *pBuffer, IN
 uem_result UFPort_WriteToBuffer (IN int nChannelId, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten);
 uem_result UFPort_GetNumOfAvailableData (IN int nChannelId, IN int nChunkIndex, OUT int *pnDataNum);
 uem_result UFPort_GetAvailableIndex (IN int nChannelId, OUT int *pnChunkIndex);
+int UFPort_GetChannelSize(IN int nChannelId);
 
 #ifdef __cplusplus
 }

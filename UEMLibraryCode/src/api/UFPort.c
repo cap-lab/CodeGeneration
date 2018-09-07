@@ -150,3 +150,17 @@ _EXIT:
 }
 
 
+int UFPort_GetChannelSize(IN int nChannelId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nChannelSize = 0;
+
+	result = UKChannel_GetChannelSize(nChannelId, &nChannelSize);
+	ERRIFGOTO(result, _EXIT);
+
+	// if the error occurs, it will return 0
+_EXIT:
+	return nChannelSize;
+}
+
+

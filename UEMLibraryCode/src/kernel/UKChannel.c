@@ -337,6 +337,23 @@ _EXIT:
 	return result;
 }
 
+uem_result UKChannel_GetChannelSize(IN int nChannelId, OUT int *pnChannelSize)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nIndex = 0;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(pnChannelSize, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+#endif
+	nIndex = getChannelIndexById(nChannelId);
+	IFVARERRASSIGNGOTO(nIndex, INVALID_CHANNEL_ID, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	*pnChannelSize = g_astChannels[nIndex].nBufSize;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 
 uem_result UKChannel_Finalize()
 {
