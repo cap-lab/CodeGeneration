@@ -114,7 +114,7 @@ SGeneralTaskRuntimeInfo g_astControlTaskRuntimeInfo[] = {
 };
 
 
-// Target general task: not control driven, not static scheduled, no child task, not control task
+// Target general task: not static scheduled, no child task, not control task
 SGeneralTaskRuntimeInfo g_astGeneralTaskRuntimeInfo[] = {
 <#list flat_task as task_name, task>
 	<#if task.staticScheduled == false && !task.childTaskGraphName?? && task.type != "CONTROL">

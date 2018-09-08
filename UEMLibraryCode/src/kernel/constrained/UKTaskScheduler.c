@@ -11,12 +11,16 @@
 
 #include <uem_common.h>
 
+#include <uem_enum.h>
 #include <uem_data.h>
 
 #include <UCTime.h>
 
 #include <UKTime.h>
+#include <UKTask.h>
+#include <UKChannel.h>
 #include <UKTaskScheduler.h>
+
 
 #define MAX_STACK_INDEX (10)
 
@@ -25,6 +29,9 @@
 
 //extern int g_nGeneralTaskNum;
 //extern int g_nCompositeTaskNum;
+
+typedef uem_result (*FnCompositeTaskFindCallback)(SCompositeTaskRuntimeInfo *pstRuntimeInfo, void *pUserData);
+typedef uem_result (*FnGeneralTaskFindCallback)(SGeneralTaskRuntimeInfo *pstRuntimeInfo, void *pUserData);
 
 static void initializeGeneralTasks(int nTaskNum, SGeneralTaskRuntimeInfo astRuntimeInfo[])
 {
@@ -219,6 +226,10 @@ static uem_result runGeneralTasks(int nTaskNum, SGeneralTaskRuntimeInfo astRunti
 			{
 				//UEM_DEBUG_PRINT("general task: running: %s\n", pstTask->pszTaskName);
 				pstTask->stTaskFunctions.fnGo(pstTask->nTaskId);
+				if(pstTask->enRunCondition == RUN_CONDITION_CONTROL_DRIVEN) // run once on control-driven task
+				{
+					astRuntimeInfo[nLoop].bRunning = FALSE;
+				}
 			}
 		}
 	}
@@ -233,6 +244,7 @@ static uem_result runCompositeTasks(int nTaskNum, SCompositeTaskRuntimeInfo astR
 	uem_result result = ERR_UEM_NOERROR;
 	int nLoop = 0;
 	int nTaskId = 0;
+	STask *pstParentTask = NULL;
 
 	for(nLoop = 0 ; nLoop < nTaskNum ; nLoop++)
 	{
@@ -240,7 +252,14 @@ static uem_result runCompositeTasks(int nTaskNum, SCompositeTaskRuntimeInfo astR
 		{
 			if(astRuntimeInfo[nLoop].pstCompositeTaskSchedule->pstParentTask != NULL)
 			{
-				nTaskId = astRuntimeInfo[nLoop].pstCompositeTaskSchedule->pstParentTask->nTaskId;
+				pstParentTask = astRuntimeInfo[nLoop].pstCompositeTaskSchedule->pstParentTask;
+				nTaskId = pstParentTask->nTaskId;
+
+				if(pstParentTask->enRunCondition == RUN_CONDITION_CONTROL_DRIVEN)
+				{
+					// set FALSE to run once
+					astRuntimeInfo[nLoop].bRunning = FALSE;
+				}
 			}
 			else
 			{
@@ -269,5 +288,300 @@ uem_result UKTaskScheduler_Run()
 _EXIT:
 	return result;
 }
+
+
+static uem_result findSingleTask(STask *pstTargetTask, FnGeneralTaskFindCallback fnCallback, void *pUserData, int nTaskNum, SGeneralTaskRuntimeInfo astRuntimeInfo[])
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask *pstTask = NULL;
+	int nLoop = 0;
+	uem_bool bFound = FALSE;
+
+	for(nLoop = 0 ; nLoop < nTaskNum ; nLoop++)
+	{
+		pstTask = astRuntimeInfo[nLoop].pstTask;
+		if(pstTargetTask->nTaskId == pstTask->nTaskId)
+		{
+			result = fnCallback(&(astRuntimeInfo[nLoop]), pUserData);
+			ERRIFGOTO(result, _EXIT);
+			bFound = TRUE;
+			break;
+		}
+	}
+
+	if(bFound == FALSE)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_NOT_FOUND, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result setRunningInCompositeTask(SCompositeTaskRuntimeInfo *pstRuntimeInfo, void *pUserData)
+{
+	pstRuntimeInfo->bRunning = TRUE;
+
+	return ERR_UEM_NOERROR;
+}
+
+static uem_result setRunningInGeneralTask(SGeneralTaskRuntimeInfo *pstRuntimeInfo, void *pUserData)
+{
+	pstRuntimeInfo->bRunning = TRUE;
+
+	return ERR_UEM_NOERROR;
+}
+
+static uem_result setStopInCompositeTask(SCompositeTaskRuntimeInfo *pstRuntimeInfo, void *pUserData)
+{
+	pstRuntimeInfo->bRunning = FALSE;
+
+	return ERR_UEM_NOERROR;
+}
+
+static uem_result setStopInGeneralTask(SGeneralTaskRuntimeInfo *pstRuntimeInfo, void *pUserData)
+{
+	pstRuntimeInfo->bRunning = FALSE;
+
+	return ERR_UEM_NOERROR;
+}
+
+
+static uem_result getStateInCompositeTask(SCompositeTaskRuntimeInfo *pstRuntimeInfo, void *pUserData)
+{
+	int *pnRunning;
+	pnRunning = (int *) pUserData;
+
+	if(pstRuntimeInfo->bRunning == TRUE)
+	{
+		*pnRunning = *pnRunning + 1;
+	}
+
+	return ERR_UEM_NOERROR;
+}
+
+static uem_result getStateInGeneralTask(SGeneralTaskRuntimeInfo *pstRuntimeInfo, void *pUserData)
+{
+	int *pnRunning;
+	pnRunning = (int *) pUserData;
+
+	if(pstRuntimeInfo->bRunning == TRUE)
+	{
+		*pnRunning = *pnRunning + 1;
+	}
+
+	return ERR_UEM_NOERROR;
+}
+
+
+static uem_result findCompositeTask(STask *pstTargetTask, FnCompositeTaskFindCallback fnCallback, void *pUserData, int nTaskNum, SCompositeTaskRuntimeInfo astRuntimeInfo[])
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask *pstTask = NULL;
+	int nLoop = 0;
+	uem_bool bFound = FALSE;
+
+	for(nLoop = 0 ; nLoop < nTaskNum ; nLoop++)
+	{
+		pstTask = astRuntimeInfo[nLoop].pstCompositeTaskSchedule->pstParentTask;
+		if(pstTargetTask->nTaskId == pstTask->nTaskId)
+		{
+			result = fnCallback(&(astRuntimeInfo[nLoop]), pUserData);
+			ERRIFGOTO(result, _EXIT);
+			bFound = TRUE;
+			break;
+		}
+	}
+
+	if(bFound == FALSE)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_NOT_FOUND, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+static uem_bool containsParentTask(STask *pstTask, int nParentTaskId)
+{
+	uem_bool bFound = FALSE;
+	STask *pstCurrentTask = NULL;
+
+	pstCurrentTask = pstTask;
+	while(pstCurrentTask != NULL)
+	{
+		if(pstCurrentTask->nTaskId == nParentTaskId)
+		{
+			bFound = TRUE;
+			break;
+		}
+		pstCurrentTask = pstCurrentTask->pstParentGraph->pstParentTask;
+	}
+
+	return bFound;
+}
+
+static uem_result findHierarchicalTask(STask *pstTargetParentTask, FnGeneralTaskFindCallback fnCallback, void *pUserData, int nTaskNum, SGeneralTaskRuntimeInfo astRuntimeInfo[])
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask *pstTask = NULL;
+	int nLoop = 0;
+	uem_bool bFound = FALSE;
+
+	for(nLoop = 0 ; nLoop < nTaskNum ; nLoop++)
+	{
+		pstTask = astRuntimeInfo[nLoop].pstTask;
+		if(containsParentTask(pstTask, pstTargetParentTask->nTaskId) == TRUE)
+		{
+			result = fnCallback(&(astRuntimeInfo[nLoop]), pUserData);
+			ERRIFGOTO(result, _EXIT);
+			bFound = TRUE;
+		}
+	}
+
+	if(bFound == FALSE)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_NOT_FOUND, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+static uem_result applyToGeneralTasks(STask *pstTask, FnGeneralTaskFindCallback fnCallback, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	if(pstTask->pstSubGraph != NULL) // a group of general tasks
+	{
+		// task with subgraph which is not SDF cannot be controlled
+		if(pstTask->pstSubGraph->enType == GRAPH_TYPE_PROCESS_NETWORK)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		}
+		else
+		{
+			result = findHierarchicalTask(pstTask, fnCallback, pUserData, g_nControlTaskNum, g_astControlTaskRuntimeInfo);
+			if(result == ERR_UEM_NOT_FOUND)
+			{
+				// don't care because control task is rarely controlled by control task
+				result = ERR_UEM_NOERROR;
+			}
+			ERRIFGOTO(result, _EXIT);
+
+			// find subgraph general task
+			result = findHierarchicalTask(pstTask, fnCallback, pUserData, g_nGeneralTaskNum, g_astGeneralTaskRuntimeInfo);
+			ERRIFGOTO(result, _EXIT);
+		}
+	}
+	else // general task
+	{
+		result = findSingleTask(pstTask, fnCallback, pUserData, g_nGeneralTaskNum, g_astGeneralTaskRuntimeInfo);
+		if(result == ERR_UEM_NOT_FOUND)
+		{
+			result = findSingleTask(pstTask, fnCallback, pUserData, g_nControlTaskNum, g_astControlTaskRuntimeInfo);
+		}
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+uem_result UKTaskScheduler_RunTask(STask *pstTask)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	if(pstTask->pstSubGraph != NULL)
+	{
+		result = UKChannel_ClearChannelInSubgraph(pstTask->nTaskId);
+		ERRIFGOTO(result, _EXIT);
+	}
+	// else is single task, so there is no subgraph
+
+	if(pstTask->bStaticScheduled == TRUE && pstTask->pstSubGraph != NULL) // target task is composite task
+	{
+
+		result = findCompositeTask(pstTask, setRunningInCompositeTask, NULL, g_nCompositeTaskNum, g_astCompositeTaskRuntimeInfo);
+	}
+	else // general task
+	{
+		result = applyToGeneralTasks(pstTask, setRunningInGeneralTask, NULL);
+	}
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+uem_result UKTaskScheduler_StopTask(STask *pstTask)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	if(pstTask->bStaticScheduled == TRUE && pstTask->pstSubGraph != NULL)
+	{
+		// find composite task
+		result = findCompositeTask(pstTask, setStopInCompositeTask, NULL, g_nCompositeTaskNum, g_astCompositeTaskRuntimeInfo);
+	}
+	else // general task
+	{
+		result = applyToGeneralTasks(pstTask, setStopInGeneralTask, NULL);
+	}
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+uem_result UKTaskScheduler_StoppingTask(STask *pstTask)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	// constrained device does not support stopping task (work as same to stop task)
+	result = UKTaskScheduler_StopTask(pstTask);
+
+	return result;
+}
+
+// it only retrieves INTERNAL_STATE_RUN/INTERNAL_STATE_STOP for constrained devices
+uem_result UKTaskScheduler_GetTaskState(STask *pstTask, EInternalTaskState *penTaskState)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nRunning = 0;
+
+	if(pstTask->bStaticScheduled == TRUE && pstTask->pstSubGraph != NULL)
+	{
+		// find composite task
+		result = findCompositeTask(pstTask, getStateInCompositeTask, &nRunning, g_nCompositeTaskNum, g_astCompositeTaskRuntimeInfo);
+	}
+	else // general task
+	{
+		result = applyToGeneralTasks(pstTask, getStateInGeneralTask, &nRunning);
+	}
+	ERRIFGOTO(result, _EXIT);
+
+	if(nRunning > 0)
+	{
+		*penTaskState = INTERNAL_STATE_RUN;
+	}
+	else
+	{
+		*penTaskState = INTERNAL_STATE_STOP;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 
 

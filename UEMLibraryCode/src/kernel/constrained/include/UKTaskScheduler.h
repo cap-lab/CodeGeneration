@@ -12,6 +12,8 @@
 
 #include <uem_data.h>
 
+#include <UKTask.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -45,6 +47,11 @@ extern int g_nCompositeTaskNum;
 
 uem_result UKTaskScheduler_Init();
 uem_result UKTaskScheduler_Run();
+
+uem_result UKTaskScheduler_RunTask(STask *pstTask);
+uem_result UKTaskScheduler_StopTask(STask *pstTask);
+uem_result UKTaskScheduler_StoppingTask(STask *pstTask);
+uem_result UKTaskScheduler_GetTaskState(STask *pstTask, EInternalTaskState *penTaskState);
 
 #ifdef __cplusplus
 }

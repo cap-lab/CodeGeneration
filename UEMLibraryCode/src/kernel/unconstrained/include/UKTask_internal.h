@@ -9,6 +9,7 @@
 #define SRC_KERNEL_UNCONSTRAINED_INCLUDE_UKTASK_INTERNAL_H_
 
 #include <uem_common.h>
+#include <uem_enum.h>
 
 #include <uem_data.h>
 
@@ -20,7 +21,6 @@ extern "C"
 typedef uem_result (*FnTaskTraverse)(STask *pstTask, void *pUserData);
 
 uem_result UKTask_GetTaskByTaskNameAndCallerTask(STask *pstCallerTask, char *pszTaskName, OUT STask **ppstTask);
-uem_bool UKTask_isParentTask(int nTaskId, int nParentTaskId);
 uem_result UKTask_GetTaskFromTaskName(char *szTaskName, STask **ppstTask);
 uem_result UKTask_GetTaskFromTaskId(int nTaskId, STask **ppstTask);
 uem_result UKTask_TraverseAllTasks(FnTaskTraverse fnCallback, void *pUserData);

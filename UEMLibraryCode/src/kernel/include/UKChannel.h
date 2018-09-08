@@ -27,6 +27,9 @@ uem_result UKChannel_Clear(IN int nChannelId);
 uem_result UKChannel_GetChannelSize(IN int nChannelId, OUT int *pnChannelSize);
 uem_result UKChannel_Finalize();
 
+// used inside kernel layer
+uem_result UKChannel_ClearChannelInSubgraph(int nParentTaskId);
+
 
 #ifdef __cplusplus
 }
