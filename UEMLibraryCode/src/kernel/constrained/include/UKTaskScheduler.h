@@ -21,7 +21,7 @@ extern "C"
 
 typedef struct _SGeneralTaskRuntimeInfo {
 	STask *pstTask;
-	unsigned long ulNextTime;
+	uem_time tNextTime;
 	int nRunCount;
 	uem_bool bRunning;
 } SGeneralTaskRuntimeInfo;
@@ -29,7 +29,7 @@ typedef struct _SGeneralTaskRuntimeInfo {
 
 typedef struct _SCompositeTaskRuntimeInfo {
 	SScheduledTasks *pstCompositeTaskSchedule;
-	unsigned long ulNextTime;
+	uem_time tNextTime;
 	int nRunCount;
 	uem_bool bRunning;
 } SCompositeTaskRuntimeInfo;

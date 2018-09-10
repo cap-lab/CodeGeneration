@@ -18,8 +18,8 @@ extern "C"
 {
 #endif
 
-uem_result UKTime_GetNextTimeByPeriod(unsigned long ulPrevTime, int nPeriod, ETimeMetric enPeriodMetric,
-											OUT unsigned long *pulNextTime, OUT int *pnNextMaxRunCount);
+uem_result UKTime_GetNextTimeByPeriod(uem_time tPrevTime, int nPeriod, ETimeMetric enPeriodMetric,
+											OUT uem_time *ptNextTime, OUT int *pnNextMaxRunCount);
 
 #ifdef __cplusplus
 }

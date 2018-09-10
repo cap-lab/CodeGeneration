@@ -131,7 +131,7 @@ static void setBaseTimeOfGeneralTasks(unsigned long ulBaseTime, int nTaskNum, SG
 	int nLoop = 0;
 	for(nLoop = 0 ; nLoop < nTaskNum ; nLoop++)
 	{
-		astRuntimeInfo[nLoop].ulNextTime = ulBaseTime;
+		astRuntimeInfo[nLoop].tNextTime = ulBaseTime;
 	}
 }
 
@@ -140,7 +140,7 @@ static void setBaseTimeOfCompositeTasks(unsigned long ulBaseTime, int nTaskNum, 
 	int nLoop = 0;
 	for(nLoop = 0 ; nLoop < nTaskNum ; nLoop++)
 	{
-		astRuntimeInfo[nLoop].ulNextTime = ulBaseTime;
+		astRuntimeInfo[nLoop].tNextTime = ulBaseTime;
 	}
 }
 
@@ -168,16 +168,16 @@ _EXIT:
 static uem_result handleTimeDrivenTask(SGeneralTaskRuntimeInfo *pstRunTimeInfo)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	unsigned long ulPrevTime;
+	uem_time tPrevTime;
 	int nNextRunCount = 0;
-	unsigned long ulCurTime;
+	uem_time tCurTime;
 	STask *pstTask = NULL;
 
-	result = UCTime_GetCurTickInMilliSeconds(&ulCurTime);
+	result = UCTime_GetCurTickInMilliSeconds(&tCurTime);
 	ERRIFGOTO(result, _EXIT);
 
 	pstTask = pstRunTimeInfo->pstTask;
-	if(ulCurTime <= pstRunTimeInfo->ulNextTime)
+	if(tCurTime <= pstRunTimeInfo->tNextTime)
 	{
 		if(pstRunTimeInfo->nRunCount > 0)
 		{
@@ -191,9 +191,9 @@ static uem_result handleTimeDrivenTask(SGeneralTaskRuntimeInfo *pstRunTimeInfo)
 	}
 	else // ulCurTime > g_astGeneralTaskRuntimeInfo[nLoop].ulNextTime
 	{
-		ulPrevTime = pstRunTimeInfo->ulNextTime;
-		result = UKTime_GetNextTimeByPeriod(ulPrevTime, pstTask->nPeriod, pstTask->enPeriodMetric,
-						&(pstRunTimeInfo->ulNextTime), &nNextRunCount);
+		tPrevTime = pstRunTimeInfo->tNextTime;
+		result = UKTime_GetNextTimeByPeriod(tPrevTime, pstTask->nPeriod, pstTask->enPeriodMetric,
+						&(pstRunTimeInfo->tNextTime), &nNextRunCount);
 		ERRIFGOTO(result, _EXIT);
 
 		pstRunTimeInfo->nRunCount = nNextRunCount;
@@ -322,16 +322,32 @@ _EXIT:
 
 static uem_result setRunningInCompositeTask(SCompositeTaskRuntimeInfo *pstRuntimeInfo, void *pUserData)
 {
-	pstRuntimeInfo->bRunning = TRUE;
+	uem_time tCurTime;
+	uem_result result = ERR_UEM_UNKNOWN;
 
-	return ERR_UEM_NOERROR;
+	result = UCTime_GetCurTickInMilliSeconds(&tCurTime);
+	ERRIFGOTO(result, _EXIT);
+
+	pstRuntimeInfo->bRunning = TRUE;
+	pstRuntimeInfo->tNextTime = tCurTime;
+	pstRuntimeInfo->nRunCount = 1;
+_EXIT:
+	return result;
 }
 
 static uem_result setRunningInGeneralTask(SGeneralTaskRuntimeInfo *pstRuntimeInfo, void *pUserData)
 {
-	pstRuntimeInfo->bRunning = TRUE;
+	uem_time tCurTime;
+	uem_result result = ERR_UEM_UNKNOWN;
 
-	return ERR_UEM_NOERROR;
+	result = UCTime_GetCurTickInMilliSeconds(&tCurTime);
+	ERRIFGOTO(result, _EXIT);
+
+	pstRuntimeInfo->bRunning = TRUE;
+	pstRuntimeInfo->tNextTime = tCurTime;
+	pstRuntimeInfo->nRunCount = 1;
+_EXIT:
+	return result;
 }
 
 static uem_result setStopInCompositeTask(SCompositeTaskRuntimeInfo *pstRuntimeInfo, void *pUserData)
