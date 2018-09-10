@@ -34,10 +34,6 @@ typedef struct _STask {
 	STaskParameter *astTaskParam;
 	int nTaskParamNum;
 	uem_bool bStaticScheduled;
-	int nTaskIteration;
-	int nCurRunInIteration;
-	int nCurIteration;
-	int nTargetIteration;
 	STimer *astTimer;
 } STask;
 

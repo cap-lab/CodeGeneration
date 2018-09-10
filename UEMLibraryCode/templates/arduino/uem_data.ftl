@@ -52,10 +52,6 @@ STask g_astTasks_${task_graph.name}[] = {
 		<#if (task.taskParamList?size > 0)>g_astTaskParameter_${task.name}<#else>(STaskParameter *) NULL</#if>, // Task parameter information
 		${task.taskParamList?size}, // Task parameter number
 		<#if task.staticScheduled == true>TRUE<#else>FALSE</#if>, // Statically scheduled or not
-		${task.iterationCountList["0"]}, // Task iteration count (only used when the parent task graph is data flow)
-		0, // current run count in iteration
-		0, // current iteration
-		0, // target iteration (this variable is used for calling delayed stop task)
 		<#if task.type == "CONTROL">g_stTimer_${task.name}<#else>(STimer *) NULL</#if>, // Timer slot (used by control task)
 	},
 	</#list>
