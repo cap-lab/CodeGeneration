@@ -38,6 +38,18 @@ typedef struct _STaskGraph {
 	STask *pstParentTask;
 } STaskGraph;
 
+typedef union _UParamValue {
+	int nParam;
+	double fParam;
+} UParamValue;
+
+typedef struct _STaskParameter {
+	int nParamId;
+	EParameterType enType;
+	const char *pszParamName;
+	UParamValue uParamValue;
+} STaskParameter;
+
 
 #ifdef __cplusplus
 }

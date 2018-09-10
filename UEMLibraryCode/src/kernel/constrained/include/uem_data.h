@@ -21,18 +21,6 @@ extern "C"
 {
 #endif
 
-typedef union _UParamValue {
-	int nParam;
-	float fParam;
-} UParamValue;
-
-typedef struct _STaskParameter {
-	int nParamId;
-	EParameterType enType;
-	const char *pszParamName;
-	UParamValue uParamValue;
-} STaskParameter;
-
 typedef struct _STask {
 	int nTaskId;
 	const char *pszTaskName;

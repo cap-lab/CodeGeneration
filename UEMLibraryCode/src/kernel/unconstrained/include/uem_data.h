@@ -71,18 +71,6 @@ typedef struct _SLoopInfo {
 	int nDesignatedTaskId;
 } SLoopInfo;
 
-typedef union _UParamValue {
-	int nParam;
-	double dbParam;
-} UParamValue;
-
-typedef struct _STaskParameter {
-	int nParamId;
-	EParameterType enType;
-	const char *pszParamName;
-	UParamValue uParamValue;
-} STaskParameter;
-
 typedef struct _STaskIteration {
 	int nModeId;
 	int nRunInIteration;
