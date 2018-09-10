@@ -14,16 +14,16 @@
 #include <uem_common.h>
 
 // Function name is same but argument type is different compared to unconstrained target UCTime_GetCurTickInMilliSeconds
-uem_result UCTime_GetCurTickInMilliSeconds(unsigned long *pulTime)
+uem_result UCTime_GetCurTickInMilliSeconds(uem_time *ptTime)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	unsigned long ulMiiliSec = 0;
+	uem_time tMiiliSec = 0;
 #ifdef ARGUMENT_CHECK
-    IFVARERRASSIGNGOTO(pulTime, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+    IFVARERRASSIGNGOTO(ptTime, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
-	ulMiiliSec = millis();
+    tMiiliSec = millis();
 
-	*pulTime = ulMiiliSec;
+	*ptTime = tMiiliSec;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

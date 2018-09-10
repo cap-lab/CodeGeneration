@@ -17,15 +17,15 @@
 
 #include <UCTime.h>
 
-uem_result UCTime_GetCurTimeInMilliSeconds(long long *pllTime)
+uem_result UCTime_GetCurTimeInMilliSeconds(uem_time *ptTime)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-    long long llTime = 0;
+    uem_time tTime = 0;
     struct timeval stTime;
     int nRet = 0;
 
 #ifdef ARGUMENT_CHECK
-    IFVARERRASSIGNGOTO(pllTime, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+    IFVARERRASSIGNGOTO(ptTime, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
 
 #ifdef HAVE_MINGW_GETTIMEOFDAY
@@ -38,9 +38,9 @@ uem_result UCTime_GetCurTimeInMilliSeconds(long long *pllTime)
         ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT)
     }
 
-    llTime = (((long long) stTime.tv_sec) * 1000) + (stTime.tv_usec / 1000);
+    tTime = (((long long) stTime.tv_sec) * 1000) + (stTime.tv_usec / 1000);
 
-    *pllTime = llTime;
+    *ptTime = tTime;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -48,14 +48,14 @@ _EXIT:
 }
 
 
-uem_result UCTime_GetCurTickInMilliSeconds(long long *pllTime)
+uem_result UCTime_GetCurTickInMilliSeconds(uem_time *ptTime)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-    long long llTime = 0;
+    long long tTime = 0;
     struct timespec stTime;
     int nRet = 0;
 #ifdef ARGUMENT_CHECK
-    IFVARERRASSIGNGOTO(pllTime, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+    IFVARERRASSIGNGOTO(ptTime, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
 
     nRet = clock_gettime(CLOCK_MONOTONIC, &stTime);
@@ -64,9 +64,9 @@ uem_result UCTime_GetCurTickInMilliSeconds(long long *pllTime)
         ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT)
     }
 
-    llTime = (((long long) stTime.tv_sec) * 1000) + (stTime.tv_nsec / 1000000);
+    tTime = (((long long) stTime.tv_sec) * 1000) + (stTime.tv_nsec / 1000000);
 
-    *pllTime = llTime;
+    *ptTime = tTime;
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;

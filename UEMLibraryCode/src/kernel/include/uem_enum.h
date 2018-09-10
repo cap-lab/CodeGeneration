@@ -8,6 +8,8 @@
 #ifndef SRC_KERNEL_INCLUDE_UEM_ENUM_H_
 #define SRC_KERNEL_INCLUDE_UEM_ENUM_H_
 
+#include <uem_common.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -95,8 +97,6 @@ typedef enum _EModeState {
 	MODE_STATE_TRANSITING,
 } EModeState;
 
-typedef struct _STask STask;
-typedef struct _SChannel SChannel;
 
 
 #ifdef __cplusplus

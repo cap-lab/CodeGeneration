@@ -49,14 +49,19 @@ extern "C"
 #define INVALID_CHANNEL_ID (-1)
 #define INVALID_CHUNK_INDEX (-1)
 #define INVALID_TIMER_SLOT_ID (-1)
-#define INVALID_TIME_VALUE (-1)
+#define INVALID_TIME_VALUE (0)
 #define VARIABLE_SAMPLE_RATE (-1)
 #define MAPPING_NOT_SPECIFIED (-1)
 #define CHUNK_NUM_NOT_INITIALIZED (-1)
 #define INVALID_ARRAY_INDEX (-1)
 
+#ifdef ARDUINO
+#define UEM_RESULT_CATEGORY_INFO  0x1000
+#define UEM_RESULT_CATEGORY_ERROR 0x2000
+#else
 #define UEM_RESULT_CATEGORY_INFO  0x10000000
 #define UEM_RESULT_CATEGORY_ERROR 0x20000000
+#endif
 
 #define UEM_MODULE_KERNEL 0x10000000
 
@@ -121,6 +126,11 @@ typedef enum _EUemResult {
 typedef int uem_bool;
 typedef int uem_size;
 
+#ifdef ARDUINO
+	typedef unsigned long uem_time;
+#else
+	typedef long long uem_time;
+#endif
 
 typedef enum _EUemModuleId {
 	// UEM Common module

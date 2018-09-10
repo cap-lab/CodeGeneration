@@ -16,6 +16,7 @@
 #include <uem_enum.h>
 #include <uem_callbacks.h>
 #include <uem_channel_data.h>
+#include <uem_common_struct.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -70,14 +71,6 @@ typedef struct _SLoopInfo {
 	int nDesignatedTaskId;
 } SLoopInfo;
 
-typedef struct _STaskGraph {
-	ETaskGraphType enType;
-	STask *astTasks;
-	int nNumOfTasks;
-	STask *pstParentTask;
-} STaskGraph;
-
-
 typedef union _UParamValue {
 	int nParam;
 	double dbParam;
@@ -90,24 +83,10 @@ typedef struct _STaskParameter {
 	UParamValue uParamValue;
 } STaskParameter;
 
-typedef struct _STaskFunctions {
-	FnUemTaskInit fnInit;
-	FnUemTaskGo fnGo;
-	FnUemTaskWrapup fnWrapup;
-} STaskFunctions;
-
 typedef struct _STaskIteration {
 	int nModeId;
 	int nRunInIteration;
 } STaskIteration;
-
-
-typedef struct _STimer {
-	int nSlotId;
-	int nTimeInMilliSec;
-	uem_bool bAlarmChecked;
-	long long llAlarmTime;
-} STimer;
 
 
 typedef struct _STask {

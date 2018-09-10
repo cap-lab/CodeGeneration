@@ -15,7 +15,7 @@ extern "C"
 {
 #endif
 
-uem_result UCTime_GetCurTickInMilliSeconds(unsigned long *pulTime);
+uem_result UCTime_GetCurTickInMilliSeconds(uem_time *ptTime);
 
 #ifdef __cplusplus
 }

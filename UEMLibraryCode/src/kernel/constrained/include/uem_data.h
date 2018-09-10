@@ -10,6 +10,7 @@
 #include <uem_enum.h>
 #include <uem_callbacks.h>
 
+#include <uem_common_struct.h>
 #include <uem_channel_data.h>
 
 #ifndef SRC_KERNEL_CONSTRAINED_INCLUDE_UEM_DATA_H_
@@ -19,19 +20,6 @@
 extern "C"
 {
 #endif
-
-typedef struct _STaskFunctions {
-	FnUemTaskInit fnInit;
-	FnUemTaskGo fnGo;
-	FnUemTaskWrapup fnWrapup;
-} STaskFunctions;
-
-typedef struct _STaskGraph {
-	ETaskGraphType enType;
-	STask *astTasks;
-	int nNumOfTasks;
-	STask *pstParentTask;
-} STaskGraph;
 
 typedef union _UParamValue {
 	int nParam;
@@ -44,15 +32,6 @@ typedef struct _STaskParameter {
 	const char *pszParamName;
 	UParamValue uParamValue;
 } STaskParameter;
-
-
-typedef struct _STimer {
-	int nSlotId;
-	int nTimeInMilliSec;
-	uem_bool bAlarmChecked;
-	long lAlarmTime;
-} STimer;
-
 
 typedef struct _STask {
 	int nTaskId;
