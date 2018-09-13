@@ -60,7 +60,8 @@ static void callAllInitFunctions()
 	}
 }
 
-static void callHierarchicalInitFunctions(STask *pstParentTask)
+
+static void callHierarchicalInitOrWrapupFunctions(STask *pstParentTask, uem_bool bCallInit)
 {
 	STask *pstTask;
 	STaskGraph *pstTaskGraph;
@@ -99,12 +100,21 @@ static void callHierarchicalInitFunctions(STask *pstParentTask)
 			nStackIndex = anStackIndex[nCurStackIndex];
 			// call init function
 			pstTask = &(pstTaskGraph->astTasks[nStackIndex]);
-			pstTask->stTaskFunctions.fnInit(pstTask->nTaskId);
+			if(bCallInit == TRUE)
+			{
+				pstTask->stTaskFunctions.fnInit(pstTask->nTaskId);
+			}
+			else
+			{
+				pstTask->stTaskFunctions.fnWrapup();
+			}
 
 			anStackIndex[nCurStackIndex]++;
 		}
 	}
 }
+
+
 
 static void initializeCompositeTasks(int nTaskNum, SCompositeTaskRuntimeInfo astRuntimeInfo[])
 {
@@ -121,7 +131,7 @@ static void initializeCompositeTasks(int nTaskNum, SCompositeTaskRuntimeInfo ast
 		}
 		else
 		{
-			callHierarchicalInitFunctions(pstParentTask);
+			callHierarchicalInitOrWrapupFunctions(pstParentTask, TRUE);
 		}
 	}
 }
@@ -228,6 +238,7 @@ static uem_result runGeneralTasks(int nTaskNum, SGeneralTaskRuntimeInfo astRunti
 				pstTask->stTaskFunctions.fnGo(pstTask->nTaskId);
 				if(pstTask->enRunCondition == RUN_CONDITION_CONTROL_DRIVEN) // run once on control-driven task
 				{
+					astRuntimeInfo->pstTask->stTaskFunctions.fnWrapup();
 					astRuntimeInfo[nLoop].bRunning = FALSE;
 				}
 			}
@@ -258,6 +269,7 @@ static uem_result runCompositeTasks(int nTaskNum, SCompositeTaskRuntimeInfo astR
 				if(pstParentTask->enRunCondition == RUN_CONDITION_CONTROL_DRIVEN)
 				{
 					// set FALSE to run once
+					callHierarchicalInitOrWrapupFunctions(pstParentTask, FALSE);
 					astRuntimeInfo[nLoop].bRunning = FALSE;
 				}
 			}
@@ -331,6 +343,8 @@ static uem_result setRunningInCompositeTask(SCompositeTaskRuntimeInfo *pstRuntim
 	pstRuntimeInfo->bRunning = TRUE;
 	pstRuntimeInfo->tNextTime = tCurTime;
 	pstRuntimeInfo->nRunCount = 1;
+
+	callHierarchicalInitOrWrapupFunctions(pstRuntimeInfo->pstCompositeTaskSchedule->pstParentTask, TRUE);
 _EXIT:
 	return result;
 }
@@ -346,6 +360,8 @@ static uem_result setRunningInGeneralTask(SGeneralTaskRuntimeInfo *pstRuntimeInf
 	pstRuntimeInfo->bRunning = TRUE;
 	pstRuntimeInfo->tNextTime = tCurTime;
 	pstRuntimeInfo->nRunCount = 1;
+
+	pstRuntimeInfo->pstTask->stTaskFunctions.fnInit(pstRuntimeInfo->pstTask->nTaskId);
 _EXIT:
 	return result;
 }
@@ -353,6 +369,7 @@ _EXIT:
 static uem_result setStopInCompositeTask(SCompositeTaskRuntimeInfo *pstRuntimeInfo, void *pUserData)
 {
 	pstRuntimeInfo->bRunning = FALSE;
+	callHierarchicalInitOrWrapupFunctions(pstRuntimeInfo->pstCompositeTaskSchedule->pstParentTask, FALSE);
 
 	return ERR_UEM_NOERROR;
 }
@@ -360,6 +377,7 @@ static uem_result setStopInCompositeTask(SCompositeTaskRuntimeInfo *pstRuntimeIn
 static uem_result setStopInGeneralTask(SGeneralTaskRuntimeInfo *pstRuntimeInfo, void *pUserData)
 {
 	pstRuntimeInfo->bRunning = FALSE;
+	pstRuntimeInfo->pstTask->stTaskFunctions.fnWrapup();
 
 	return ERR_UEM_NOERROR;
 }

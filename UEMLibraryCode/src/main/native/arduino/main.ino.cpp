@@ -53,7 +53,7 @@ void loop() {
 			delay(2000);
 		}
 	}
-	delay(10);
+	//delay(10);
 }
 
 

@@ -248,17 +248,19 @@ uem_result UKChannelMemory_WriteToBuffer (SChannel *pstChannel, SSharedMemoryCha
 	{
 		if (nDataToWrite > 0)
 		{
-			UC_memcpy(pstSharedMemoryChannel->pDataStart, pBuffer, nDataToWrite);
+			UC_memcpy(pstSharedMemoryChannel->pBuffer, pBuffer, nDataToWrite);
 		}
 
 		*pnDataWritten = nDataToWrite;
 	}
 	else // pstChannel->nBufSize < nDataToWrite
 	{
-		UC_memcpy(pstSharedMemoryChannel->pDataStart, pBuffer, pstChannel->nBufSize);
+		UC_memcpy(pstSharedMemoryChannel->pBuffer, pBuffer, pstChannel->nBufSize);
 
 		*pnDataWritten = pstChannel->nBufSize;
 	}
+
+	pstSharedMemoryChannel->pDataStart = pstSharedMemoryChannel->pBuffer;
 
 	pstSharedMemoryChannel->nDataLen = *pnDataWritten;
 
