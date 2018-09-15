@@ -316,28 +316,8 @@ SChannel g_astChannels[] = {
 		COMMUNICATION_TYPE_${channel.communicationType}, // Channel communication type
 		CHANNEL_TYPE_${channel.channelType}, // Channel type
 		CHANNEL_${channel.index}_SIZE, // Channel size
-		{
-			${channel.inputPort.taskId}, // Task ID
-			"${channel.inputPort.portName}", // Port name
-			PORT_SAMPLE_RATE_${channel.inputPort.portSampleRateType}, // Port sample rate type
-			g_astPortSampleRate_${channel.inputPort.taskName}_${channel.inputPort.portName}, // Array of sample rate list
-			${channel.inputPort.portSampleRateList?size}, // Array element number of sample rate list
-			0, //Selected sample rate index
-			${channel.inputPort.sampleSize?c}, // Sample size
-			PORT_TYPE_${channel.inputPort.portType}, // Port type
-			<#if channel.inputPort.subgraphPort??>&g_astPortInfo[${port_key_to_index[channel.inputPort.subgraphPort.portKey]}]<#else>(SPort *) NULL</#if>, // Pointer to Subgraph port
-		}, // Input port information
-		{
-			${channel.outputPort.taskId}, // Task ID
-			"${channel.outputPort.portName}", // Port name
-			PORT_SAMPLE_RATE_${channel.outputPort.portSampleRateType}, // Port sample rate type
-			g_astPortSampleRate_${channel.outputPort.taskName}_${channel.outputPort.portName}, // Array of sample rate list
-			${channel.outputPort.portSampleRateList?size}, // Array element number of sample rate list
-			0, //Selected sample rate index
-			${channel.outputPort.sampleSize?c}, // Sample size
-			PORT_TYPE_${channel.outputPort.portType}, // Port type
-			<#if channel.outputPort.subgraphPort??>&g_astPortInfo[${port_key_to_index[channel.outputPort.subgraphPort.portKey]}]<#else>(SPort *) NULL</#if>, // Pointer to Subgraph port
-		}, // Output port information
+		&(g_astPortInfo[${channel.inputPortIndex}]), // Outer-most input port information
+		&(g_astPortInfo[${channel.outputPortIndex}]), // Outer-most output port information
 		${channel.initialDataLen?c}, // Initial data length
 	<#switch channel.communicationType>
 		<#case "SHARED_MEMORY">

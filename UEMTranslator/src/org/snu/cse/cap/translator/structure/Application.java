@@ -1046,7 +1046,6 @@ public class Application {
 			// input/output port (port information)
 			channel.setOutputPort(srcPort.getMostUpperPortInfo());
 			channel.setInputPort(dstPort.getMostUpperPortInfo());
-					
 			// maximum chunk number
 			channel.setMaximumChunkNum(this.taskMap);
 			
@@ -1061,10 +1060,13 @@ public class Application {
 			index++;
 		}
 		
-		// set source task of composite task which can be checked after setting channel information
+		
 		for(Device device: this.deviceInfo.values())
 		{
+			// set source task of composite task which can be checked after setting channel information
 			device.setSrcTaskOfMTM();
+			// set channel input/output port index after setting channel information 
+			device.setChannelPortIndex();
 		}
 		
 		makeSDFTaskIterationCount();

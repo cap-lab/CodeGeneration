@@ -135,8 +135,8 @@ typedef struct _SChannel {
 	ECommunicationType enType;
 	EChannelType enChannelType;
 	int nBufSize;
-	SPort stInputPort;
-	SPort stOutputPort;
+	SPort *pstInputPort;
+	SPort *pstOutputPort;
 	int nInitialDataLen;
 	void *pChannelStruct;
 } SChannel;

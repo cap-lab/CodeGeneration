@@ -560,6 +560,14 @@ public class Device {
 		}
 	}
 	
+	public void setChannelPortIndex()
+	{
+		for(Channel channel : this.channelList)
+		{
+			channel.setPortIndexByPortList(this.portList);	
+		}
+	}
+	
 	private void setTaskExtraInformationFromMappingInfo()
 	{
 		Task task;

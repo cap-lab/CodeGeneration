@@ -136,8 +136,8 @@ int UKChannel_GetChannelIdByTaskAndPortName(int nTaskId, char *szPortName)
 
 	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
 	{
-		if(isPortTaskIdAndPortNameEqual(&(g_astChannels[nLoop].stInputPort), &stArgPortName, nTaskId) == TRUE ||
-			isPortTaskIdAndPortNameEqual(&(g_astChannels[nLoop].stOutputPort), &stArgPortName, nTaskId) == TRUE)
+		if(isPortTaskIdAndPortNameEqual(g_astChannels[nLoop].pstInputPort, &stArgPortName, nTaskId) == TRUE ||
+			isPortTaskIdAndPortNameEqual(g_astChannels[nLoop].pstOutputPort, &stArgPortName, nTaskId) == TRUE)
 		{
 			nIndex = g_astChannels[nLoop].nChannelIndex;
 			break;
@@ -423,8 +423,8 @@ uem_result UKChannel_ClearChannelInSubgraph(int nParentTaskId)
 			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 		}
 
-		if(matchIsSubgraphPort(&(g_astChannels[nLoop].stInputPort), nParentTaskId) == TRUE &&
-			matchIsSubgraphPort(&(g_astChannels[nLoop].stOutputPort), nParentTaskId) == TRUE)
+		if(matchIsSubgraphPort(g_astChannels[nLoop].pstInputPort, nParentTaskId) == TRUE &&
+			matchIsSubgraphPort(g_astChannels[nLoop].pstOutputPort, nParentTaskId) == TRUE)
 		{ // this channel is located in subgraph
 
 			result = pstChannelAPI->fnClear(&(g_astChannels[nLoop]));

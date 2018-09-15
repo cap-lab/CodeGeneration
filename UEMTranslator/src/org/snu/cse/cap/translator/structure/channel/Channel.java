@@ -1,5 +1,6 @@
 package org.snu.cse.cap.translator.structure.channel;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.snu.cse.cap.translator.Constants;
@@ -12,7 +13,9 @@ public class Channel implements Cloneable {
 	private ChannelArrayType channelType;
 	private int size;
 	private Port inputPort; // the most outer port is set here
+	private int  inputPortIndex; // port index used in channel data generation
 	private Port outputPort; // the most outer port is set here
+	private int  outputPortIndex; // port index used in channel data generation
 	private int initialDataLen;
 	private int nextChannelIndex;
 	private int channelSampleSize;
@@ -26,6 +29,8 @@ public class Channel implements Cloneable {
 		this.nextChannelIndex = Constants.INVALID_ID_VALUE;
 		this.channelSampleSize = sampleSize;
 		this.tcpClientIndex = Constants.INVALID_ID_VALUE;
+		this.inputPortIndex = Constants.INVALID_VALUE;
+		this.outputPortIndex = Constants.INVALID_VALUE;
 	}
 	
 	// Does not need to clone inputPort and outputPort  
@@ -89,7 +94,7 @@ public class Channel implements Cloneable {
 
 	public Port getOutputPort() {
 		return outputPort;
-	} 
+	}
 
 	public void setInputPort(Port inputPort) {
 		this.inputPort = inputPort;
@@ -113,6 +118,40 @@ public class Channel implements Cloneable {
 		*/
 	}
 	
+	public void setPortIndexByPortList(ArrayList<Port> portList)
+	{
+		int index = 0;
+		int listSize = portList.size();
+		Port port;
+		for(index = 0; index < listSize ; index++)
+		{
+			if(this.inputPortIndex != Constants.INVALID_VALUE && this.outputPortIndex != Constants.INVALID_VALUE)
+			{
+				break;
+			}
+			
+			port = portList.get(index);
+			if(port.getTaskId() == this.inputPort.getTaskId() && 
+					port.getPortName().equals(this.inputPort.getPortName()) == true)
+			{
+				this.inputPortIndex = index;
+			}				
+			else if(port.getTaskId() == this.outputPort.getTaskId() && 
+					port.getPortName().equals(this.outputPort.getPortName()) == true)
+			{
+				this.outputPortIndex = index;
+			}
+		}
+	}
+	
+	public int getInputPortIndex() {
+		return inputPortIndex;
+	}
+
+	public int getOutputPortIndex() {
+		return outputPortIndex;
+	}
+
 	public void setMaximumChunkNum(HashMap<String, Task> taskMap)
 	{
 		this.inputPort.setMaximumParallelNumber(taskMap);
