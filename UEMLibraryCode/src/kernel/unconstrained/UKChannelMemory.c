@@ -581,8 +581,8 @@ static uem_result readFromArrayQueue(SChannel *pstChannel, SSharedMemoryChannel 
 				int nCurrentSampleRateIndex = 0;
 				int nExpectedConsumeSize = 0;
 
-				nCurrentSampleRateIndex = pstChannel->pstInputPort.nCurrentSampleRateIndex;
-				nExpectedConsumeSize = pstChannel->pstInputPort.astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->pstInputPort.nSampleSize;
+				nCurrentSampleRateIndex = pstChannel->pstInputPort->nCurrentSampleRateIndex;
+				nExpectedConsumeSize = pstChannel->pstInputPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->pstInputPort->nSampleSize;
 
 				if(nExpectedConsumeSize <= pstSharedMemoryChannel->nDataLen)
 				{
@@ -789,8 +789,8 @@ static uem_result writeToGeneralQueue(SChannel *pstChannel, SSharedMemoryChannel
 
 	if(pstChannel->enChannelType == CHANNEL_TYPE_INPUT_ARRAY && pstSharedMemoryChannel->pstAvailableInputChunkHead == NULL)
 	{
-		nCurrentSampleRateIndex = pstChannel->pstInputPort.nCurrentSampleRateIndex;
-		nExpectedConsumeSize = pstChannel->pstInputPort.astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->pstInputPort.nSampleSize;
+		nCurrentSampleRateIndex = pstChannel->pstInputPort->nCurrentSampleRateIndex;
+		nExpectedConsumeSize = pstChannel->pstInputPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->pstInputPort->nSampleSize;
 
 		if(nExpectedConsumeSize <= pstSharedMemoryChannel->nDataLen)
 		{
@@ -868,8 +868,8 @@ static uem_result writeToArrayQueue(SChannel *pstChannel, SSharedMemoryChannel *
 
 	pstSharedMemoryChannel->nWriteReferenceCount++;
 
-	nCurrentSampleRateIndex = pstChannel->pstOutputPort.nCurrentSampleRateIndex;
-	nExpectedProduceSize = pstChannel->pstOutputPort.astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->pstOutputPort.nSampleSize;
+	nCurrentSampleRateIndex = pstChannel->pstOutputPort->nCurrentSampleRateIndex;
+	nExpectedProduceSize = pstChannel->pstOutputPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->pstOutputPort->nSampleSize;
 
 	// TODO: Error check out exit logic needed
 	while(pstSharedMemoryChannel->nDataLen + nExpectedProduceSize > pstChannel->nBufSize || // nBuffer is full or
@@ -922,8 +922,8 @@ static uem_result writeToArrayQueue(SChannel *pstChannel, SSharedMemoryChannel *
 		pstSharedMemoryChannel->pDataEnd = pNewEnd;
 	}
 
-	nCurrentReadSampleRateIndex = pstChannel->pstInputPort.nCurrentSampleRateIndex;
-	nExpectedConsumeSize = pstChannel->pstInputPort.astSampleRates[nCurrentReadSampleRateIndex].nSampleRate * pstChannel->pstInputPort.nSampleSize;
+	nCurrentReadSampleRateIndex = pstChannel->pstInputPort->nCurrentSampleRateIndex;
+	nExpectedConsumeSize = pstChannel->pstInputPort->astSampleRates[nCurrentReadSampleRateIndex].nSampleRate * pstChannel->pstInputPort->nSampleSize;
 
 	if(pstChannel->enChannelType == CHANNEL_TYPE_FULL_ARRAY && nExpectedConsumeSize <= pstSharedMemoryChannel->nDataLen)
 	{
@@ -1252,8 +1252,8 @@ static uem_result fillInitialData(SChannel *pstChannel, SSharedMemoryChannel *ps
 
 	if(pstChannel->enChannelType == CHANNEL_TYPE_INPUT_ARRAY && pstSharedMemoryChannel->pstAvailableInputChunkHead == NULL)
 	{
-		nCurrentSampleRateIndex = pstChannel->pstInputPort.nCurrentSampleRateIndex;
-		nExpectedConsumeSize = pstChannel->pstInputPort.astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->pstInputPort.nSampleSize;
+		nCurrentSampleRateIndex = pstChannel->pstInputPort->nCurrentSampleRateIndex;
+		nExpectedConsumeSize = pstChannel->pstInputPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->pstInputPort->nSampleSize;
 
 		if(nExpectedConsumeSize <= pstSharedMemoryChannel->nDataLen)
 		{

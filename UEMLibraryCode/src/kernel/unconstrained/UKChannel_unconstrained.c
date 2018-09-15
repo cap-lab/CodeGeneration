@@ -107,21 +107,21 @@ uem_bool UKChannel_IsPortRateAvailableTask(int nTaskId, char *pszModeName)
 
 	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
 	{
-		if(matchTaskIdInPort(g_astChannels[nLoop]->pstInputPort, nTaskId) == TRUE)
+		if(matchTaskIdInPort(g_astChannels[nLoop].pstInputPort, nTaskId) == TRUE)
 		{
-			if(g_astChannels[nLoop]->pstInputPort.nNumOfSampleRates == 1)
+			if(g_astChannels[nLoop].pstInputPort->nNumOfSampleRates == 1)
 			{
 				bAvailable = TRUE;
 				break;
 			}
 
-			for(nInLoop = 0 ; nInLoop < g_astChannels[nLoop]->pstInputPort.nNumOfSampleRates; nInLoop++)
+			for(nInLoop = 0 ; nInLoop < g_astChannels[nLoop].pstInputPort->nNumOfSampleRates; nInLoop++)
 			{
-				result = UCString_New(&stPortModeName, (char *) g_astChannels[nLoop]->pstInputPort.astSampleRates[nInLoop].pszModeName, UEMSTRING_CONST);
+				result = UCString_New(&stPortModeName, (char *) g_astChannels[nLoop].pstInputPort->astSampleRates[nInLoop].pszModeName, UEMSTRING_CONST);
 				ERRIFGOTO(result, _EXIT);
 
 				if(UCString_IsEqual(&stModeName, &stPortModeName) == TRUE &&
-					g_astChannels[nLoop]->pstInputPort.astSampleRates[nInLoop].nSampleRate > 0)
+					g_astChannels[nLoop].pstInputPort->astSampleRates[nInLoop].nSampleRate > 0)
 				{
 					bAvailable = TRUE;
 					break;
@@ -147,7 +147,7 @@ uem_bool UKChannel_IsTaskSourceTask(int nTaskId)
 
 	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
 	{
-		if(matchTaskIdInPort(g_astChannels[nLoop]->pstInputPort, nTaskId) == TRUE)
+		if(matchTaskIdInPort(g_astChannels[nLoop].pstInputPort, nTaskId) == TRUE)
 		{
 			bIsLocatedInSameTaskGraph = isChannelLocatedInSameTaskGraph(&(g_astChannels[nLoop]));
 
@@ -176,11 +176,11 @@ uem_result UKChannel_SetExitByTaskId(int nTaskId)
 		{
 			if(pstChannelAPI->fnSetExit != NULL)
 			{
-				if(matchTaskIdInPort(g_astChannels[nLoop]->pstInputPort, nTaskId) == TRUE)
+				if(matchTaskIdInPort(g_astChannels[nLoop].pstInputPort, nTaskId) == TRUE)
 				{
 					pstChannelAPI->fnSetExit(&(g_astChannels[nLoop]), EXIT_FLAG_READ);
 				}
-				else if(matchTaskIdInPort(g_astChannels[nLoop]->pstOutputPort, nTaskId) == TRUE)
+				else if(matchTaskIdInPort(g_astChannels[nLoop].pstOutputPort, nTaskId) == TRUE)
 				{
 					pstChannelAPI->fnSetExit(&(g_astChannels[nLoop]), EXIT_FLAG_WRITE);
 				}
@@ -209,11 +209,11 @@ uem_result UKChannel_ClearExitByTaskId(int nTaskId)
 		{
 			if(pstChannelAPI->fnClearExit != NULL)
 			{
-				if(matchTaskIdInPort(g_astChannels[nLoop]->pstInputPort, nTaskId) == TRUE)
+				if(matchTaskIdInPort(g_astChannels[nLoop].pstInputPort, nTaskId) == TRUE)
 				{
 					pstChannelAPI->fnClearExit(&(g_astChannels[nLoop]), EXIT_FLAG_READ);
 				}
-				else if(matchTaskIdInPort(g_astChannels[nLoop]->pstOutputPort, nTaskId) == TRUE)
+				else if(matchTaskIdInPort(g_astChannels[nLoop].pstOutputPort, nTaskId) == TRUE)
 				{
 					pstChannelAPI->fnClearExit(&(g_astChannels[nLoop]), EXIT_FLAG_WRITE);
 				}
@@ -240,7 +240,7 @@ uem_result UKChannel_FillInitialDataBySourceTaskId(int nTaskId)
 		result = ChannelAPI_GetAPIStructureFromCommunicationType(g_astChannels[nLoop].enType, &pstChannelAPI);
 		if(result == ERR_UEM_NOERROR && pstChannelAPI->fnFillInitialData != NULL)
 		{
-			if(matchTaskIdInPort(g_astChannels[nLoop]->pstOutputPort, nTaskId) == TRUE)
+			if(matchTaskIdInPort(g_astChannels[nLoop].pstOutputPort, nTaskId) == TRUE)
 			{
 				result = pstChannelAPI->fnFillInitialData(&(g_astChannels[nLoop]));
 				ERRIFGOTO(result, _EXIT);
