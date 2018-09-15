@@ -22,10 +22,9 @@ typedef struct _SPort SPort;
 typedef struct _SPort {
 	int nTaskId;
 	const char *pszPortName;
-	EPortSampleRateType enSampleRateType;
-	int nSampleRate;
-	int nSampleSize;
-	EPortType enPortType;
+	//EPortSampleRateType enSampleRateType;
+	//int nSampleRate;
+	//int nSampleSize;
 	SPort *pstSubGraphPort;
 } SPort;
 
@@ -41,7 +40,6 @@ typedef struct _SChannel {
 	int nChannelIndex;
 	int nNextChannelIndex;
 	ECommunicationType enType;
-	EChannelType enChannelType;
 	int nBufSize;
 	SPort *pstInputPort;
 	SPort *pstOutputPort;

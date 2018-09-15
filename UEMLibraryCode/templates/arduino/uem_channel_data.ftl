@@ -31,10 +31,10 @@ SPort g_astPortInfo[] = {
 	{
 		${port.taskId}, // Task ID
 		"${port.portName}", // Port name
-		PORT_SAMPLE_RATE_${port.portSampleRateType}, // Port sample rate type
-		${port.portSampleRateList[0].sampleRate?c}, // Port sample rate (for fixed type)
-		${port.sampleSize?c}, // Sample size
-		PORT_TYPE_${port.portType}, // Port type
+		//PORT_SAMPLE_RATE_${port.portSampleRateType}, // Port sample rate type
+		//${port.portSampleRateList[0].sampleRate?c}, // Port sample rate (for fixed type)
+		//${port.sampleSize?c}, // Sample size
+		//PORT_TYPE_${port.portType}, // Port type
 		<#if port.subgraphPort??>&g_astPortInfo[${port_key_to_index[port.subgraphPort.portKey]}]<#else>(SPort *) NULL</#if>, // Pointer to Subgraph port
 	}, // Port information
 </#list>
@@ -67,7 +67,7 @@ SChannel g_astChannels[] = {
 		${channel.index}, // Channel ID
 		${channel.nextChannelIndex}, // Next channel index (which is used for single port is connecting to multiple channels)
 		COMMUNICATION_TYPE_${channel.communicationType}, // Channel communication type
-		CHANNEL_TYPE_${channel.channelType}, // Channel type
+		//CHANNEL_TYPE_${channel.channelType}, // Channel type (not used in constrained device)
 		CHANNEL_${channel.index}_SIZE, // Channel size
 		&(g_astPortInfo[${channel.inputPortIndex}]), // Outer-most input port information
 		&(g_astPortInfo[${channel.outputPortIndex}]), // Outer-most output port information

@@ -126,9 +126,11 @@ static uem_result copyAndMovePointerToRoundedQueue(SChannel *pstChannel, SShared
 }
 
 
-static uem_result readFromGeneralQueue(SChannel *pstChannel, SSharedMemoryChannel *pstSharedMemoryChannel, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead)
+uem_result UKChannelMemory_ReadFromQueue(SChannel *pstChannel, SSharedMemoryChannel *pstSharedMemoryChannel, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+
+	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
 	if(pstSharedMemoryChannel->nDataLen < nDataToRead || pstSharedMemoryChannel->bInitialDataUpdated == FALSE)
 	{
@@ -140,30 +142,6 @@ static uem_result readFromGeneralQueue(SChannel *pstChannel, SSharedMemoryChanne
 
 	*pnDataRead = nDataToRead;
 
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-
-uem_result UKChannelMemory_ReadFromQueue(SChannel *pstChannel, SSharedMemoryChannel *pstSharedMemoryChannel, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-
-	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-
-	// array channel
-	if(pstChannel->enChannelType == CHANNEL_TYPE_INPUT_ARRAY || pstChannel->enChannelType == CHANNEL_TYPE_FULL_ARRAY)
-	{
-		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT);
-	}
-	else // general channel
-	{
-		result = readFromGeneralQueue(pstChannel, pstSharedMemoryChannel, pBuffer, nDataToRead, nChunkIndex, pnDataRead);
-		ERRIFGOTO(result, _EXIT);
-	}
-
-	// to preserve, ERR_UEM_SUSPEND, do not set ERR_UEM_NOERROR here
 _EXIT:
 	return result;
 }
@@ -195,9 +173,11 @@ _EXIT:
 	return result;
 }
 
-static uem_result writeToGeneralQueue(SChannel *pstChannel, SSharedMemoryChannel *pstSharedMemoryChannel, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten)
+uem_result UKChannelMemory_WriteToQueue (SChannel *pstChannel, SSharedMemoryChannel *pstSharedMemoryChannel, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+
+	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
 	if(pstSharedMemoryChannel->nDataLen + nDataToWrite > pstChannel->nBufSize)
 	{
@@ -208,31 +188,6 @@ static uem_result writeToGeneralQueue(SChannel *pstChannel, SSharedMemoryChannel
 	ERRIFGOTO(result, _EXIT);
 
 	*pnDataWritten = nDataToWrite;
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-
-uem_result UKChannelMemory_WriteToQueue (SChannel *pstChannel, SSharedMemoryChannel *pstSharedMemoryChannel, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-
-	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-
-	// array channel
-	if(pstChannel->enChannelType == CHANNEL_TYPE_OUTPUT_ARRAY || pstChannel->enChannelType == CHANNEL_TYPE_FULL_ARRAY)
-	{
-		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT);
-	}
-	else
-	{
-		result = writeToGeneralQueue(pstChannel, pstSharedMemoryChannel, pBuffer, nDataToWrite, nChunkIndex, pnDataWritten);
-		ERRIFGOTO(result, _EXIT);
-	}
-
-	// to preserve, ERR_UEM_SUSPEND, do not set ERR_UEM_NOERROR here
 _EXIT:
 	return result;
 }
@@ -270,12 +225,13 @@ _EXIT:
 }
 
 
-static uem_result getAvailableChunkFromGeneralQueue(SChannel *pstChannel, SSharedMemoryChannel *pstSharedMemoryChannel, OUT int *pnChunkIndex)
+uem_result UKChannelMemory_GetAvailableChunk (SChannel *pstChannel, SSharedMemoryChannel *pstSharedMemoryChannel, OUT int *pnChunkIndex)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	int nDataToRead = 0;
 
-	if(pstSharedMemoryChannel->nDataLen < nDataToRead || pstSharedMemoryChannel->bInitialDataUpdated == FALSE)
+	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	if(pstSharedMemoryChannel->nDataLen <= 0 || pstSharedMemoryChannel->bInitialDataUpdated == FALSE)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_READ_BLOCK, _EXIT);
 	}
@@ -288,42 +244,13 @@ _EXIT:
 	return result;
 }
 
-
-uem_result UKChannelMemory_GetAvailableChunk (SChannel *pstChannel, SSharedMemoryChannel *pstSharedMemoryChannel, OUT int *pnChunkIndex)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-
-	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-
-	if(pstChannel->enChannelType == CHANNEL_TYPE_GENERAL || pstChannel->enChannelType == CHANNEL_TYPE_OUTPUT_ARRAY)
-	{
-		result = getAvailableChunkFromGeneralQueue(pstChannel, pstSharedMemoryChannel, pnChunkIndex);
-		ERRIFGOTO(result, _EXIT);
-	}
-	else
-	{
-		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT);
-	}
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
 uem_result UKChannelMemory_GetNumOfAvailableData (SChannel *pstChannel, SSharedMemoryChannel *pstSharedMemoryChannel, IN int nChunkIndex, OUT int *pnDataNum)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
 	IFVARERRASSIGNGOTO(pstSharedMemoryChannel, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	if(pstChannel->enChannelType == CHANNEL_TYPE_GENERAL || pstChannel->enChannelType == CHANNEL_TYPE_OUTPUT_ARRAY)
-	{
-		*pnDataNum = pstSharedMemoryChannel->nDataLen;
-	}
-	else // if( pstChannel->enChannelType == CHANNEL_TYPE_INPUT_ARRAY || pstChannel->enChannelType == CHANNEL_TYPE_FULL_ARRAY)
-	{
-		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT);
-	}
+	*pnDataNum = pstSharedMemoryChannel->nDataLen;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

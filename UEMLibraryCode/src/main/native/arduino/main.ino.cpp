@@ -22,11 +22,8 @@
 #include <UKChannel.h>
 #include <UKTaskScheduler.h>
 
-static int a;
-
 void setup() {
 	uem_result result;
-    a = 0;
 	Serial.begin(9600);
 	UKChannel_Initialize();
 	result = UKTaskScheduler_Init();
@@ -41,7 +38,6 @@ void setup() {
 
 void loop() {
 	uem_result result;
-    a++;
 	//Serial.print("test ");
 	//Serial.print(a);
 	//Serial.println();
@@ -53,7 +49,6 @@ void loop() {
 			delay(2000);
 		}
 	}
-	//delay(10);
 }
 
 

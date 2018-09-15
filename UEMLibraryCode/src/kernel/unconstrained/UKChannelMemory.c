@@ -1078,7 +1078,6 @@ _EXIT:
 static uem_result getAvailableChunkFromGeneralQueue(SChannel *pstChannel, SSharedMemoryChannel *pstSharedMemoryChannel, OUT int *pnChunkIndex)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	int nDataToRead = 0;
 
 	result = UCThreadMutex_Lock(pstSharedMemoryChannel->hMutex);
 	ERRIFGOTO(result, _EXIT);
@@ -1086,7 +1085,7 @@ static uem_result getAvailableChunkFromGeneralQueue(SChannel *pstChannel, SShare
 	pstSharedMemoryChannel->nReadReferenceCount++;
 
 	// wait until the data is arrived
-	while(pstSharedMemoryChannel->nDataLen < nDataToRead || pstSharedMemoryChannel->bInitialDataUpdated == FALSE)
+	while(pstSharedMemoryChannel->nDataLen <= 0 || pstSharedMemoryChannel->bInitialDataUpdated == FALSE)
 	{
 		if(pstSharedMemoryChannel->bReadExit == TRUE)
 		{
