@@ -35,7 +35,7 @@ uem_result UKTask_GetTaskFromTaskName(char *pszTaskName, STask **ppstTask)
 
 	for(nLoop = 0 ; nLoop <  g_nTaskIdToTaskNum ; nLoop++)
 	{
-		result = UCString_New(&stCurrentTaskName, (char *) g_astTaskIdToTask[nLoop].pszTaskName, UEMSTRING_CONST);
+		result = UCString_New(&stCurrentTaskName, (char *) g_astTaskIdToTask[nLoop].pstTask->pszTaskName, UEMSTRING_CONST);
 		ERRIFGOTO(result, _EXIT);
 
 		if(UCString_IsEqual(&stCurrentTaskName, &stTargetTaskName) == TRUE)
@@ -142,7 +142,7 @@ uem_result UKTask_GetTaskFromTaskId(int nTaskId, STask **ppstTask)
 
 	for(nLoop = 0 ; nLoop <  g_nTaskIdToTaskNum ; nLoop++)
 	{
-		if(nTaskId == g_astTaskIdToTask[nLoop].nTaskId)
+		if(nTaskId == g_astTaskIdToTask[nLoop].pstTask->nTaskId)
 		{
 			*ppstTask = g_astTaskIdToTask[nLoop].pstTask;
 			break;

@@ -46,8 +46,6 @@ typedef struct _SLibrary {
 
 
 typedef struct _STaskIdToTaskMap {
-	int nTaskId;
-	const char *pszTaskName;
 	STask *pstTask;
 } STaskIdToTaskMap;
 

@@ -77,9 +77,7 @@ STaskGraph g_stGraph_${task_graph_element.name} = {
 // ##TASK_ID_TO_TASK_MAP_TEMPLATE::START
 STaskIdToTaskMap g_astTaskIdToTask[] = {
 <#list flat_task as task_name, task>
-	{ 	${task.id}, // Task ID
-		"${task.name}", // Task name
-		&g_astTasks_${task.parentTaskGraphName}[${task.inGraphIndex}], // Task structure pointer
+	{ 	&g_astTasks_${task.parentTaskGraphName}[${task.inGraphIndex}], // Task structure pointer
 	},
 </#list>
 };
