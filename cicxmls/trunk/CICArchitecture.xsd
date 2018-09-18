@@ -101,6 +101,8 @@
     <xs:attribute name="OS" type="xs:string" use="optional" />
     <xs:attribute name="scheduler" type="ArchitectureSchedulerType" use="optional" />
     <xs:attribute name="clock" type="xs:nonNegativeInteger" use="optional" />
+    <!-- Relative cost -->
+    <xs:attribute name="relativeCost" type="xs:decimal" use="optional" />
     <!-- Clock frequency in MHz -->
     <xs:attribute name="archiType" type="xs:string" use="optional" />
     <xs:attribute name="activePower" type="xs:nonNegativeInteger" use="optional" />
