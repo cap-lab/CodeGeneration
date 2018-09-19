@@ -40,7 +40,7 @@ typedef struct _STaskGraph {
 
 typedef union _UParamValue {
 	int nParam;
-	double fParam;
+	double dbParam;
 } UParamValue;
 
 typedef struct _STaskParameter {

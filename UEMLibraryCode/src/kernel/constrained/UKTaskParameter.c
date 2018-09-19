@@ -130,7 +130,7 @@ uem_result UKTaskParameter_GetFloat (IN int nCallerTaskId, IN char *pszTaskName,
 	result = getTaskParamElement(PARAMETER_TYPE_DOUBLE, pszParamName, pstTask, &pstParam);
 	ERRIFGOTO(result, _EXIT);
 
-	*pdbParamVal = pstParam->uParamValue.fParam;
+	*pdbParamVal = pstParam->uParamValue.dbParam;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -159,7 +159,7 @@ uem_result UKTaskParameter_SetFloat (IN int nCallerTaskId, IN char *pszTaskName,
 	result = getTaskParamElement(PARAMETER_TYPE_DOUBLE, pszParamName, pstTask, &pstParam);
 	ERRIFGOTO(result, _EXIT);
 
-	pstParam->uParamValue.fParam = dbParamVal;
+	pstParam->uParamValue.dbParam = dbParamVal;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
