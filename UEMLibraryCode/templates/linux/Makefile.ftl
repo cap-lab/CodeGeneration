@@ -1,4 +1,8 @@
 
+<#list envVarList as envVar>
+${envVar.name}+=${envVar.value}
+</#list>
+
 MAIN_DIR=src/main
 
 APPLICATION_DIR=src/application

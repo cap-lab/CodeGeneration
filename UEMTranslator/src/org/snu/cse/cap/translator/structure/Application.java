@@ -18,6 +18,7 @@ import org.snu.cse.cap.translator.structure.channel.Port;
 import org.snu.cse.cap.translator.structure.channel.PortDirection;
 import org.snu.cse.cap.translator.structure.channel.PortSampleRate;
 import org.snu.cse.cap.translator.structure.device.Device;
+import org.snu.cse.cap.translator.structure.device.EnvironmentVariable;
 import org.snu.cse.cap.translator.structure.device.HWCategory;
 import org.snu.cse.cap.translator.structure.device.HWElementType;
 import org.snu.cse.cap.translator.structure.device.NoProcessorFoundException;
@@ -56,6 +57,7 @@ import hopes.cic.xml.CICProfileType;
 import hopes.cic.xml.ChannelPortType;
 import hopes.cic.xml.ChannelType;
 import hopes.cic.xml.DeviceConnectionListType;
+import hopes.cic.xml.EnvironmentVariableType;
 import hopes.cic.xml.LibraryFunctionArgumentType;
 import hopes.cic.xml.LibraryFunctionType;
 import hopes.cic.xml.LibraryLibraryConnectionType;
@@ -321,6 +323,16 @@ public class Application {
 			}
 		}
 	}
+	
+	private void insertEnvironmentVariables(Device device, List<EnvironmentVariableType> envVarList)
+	{
+		for(EnvironmentVariableType envVar: envVarList)
+		{
+			EnvironmentVariable evnVar = new EnvironmentVariable(envVar.getName(), envVar.getValue());
+			
+			device.getEnvironmentVariableList().add(evnVar);	
+		}
+	}
 
 	public void makeDeviceInformation(CICArchitectureType architecture_metadata, HashMap<String, Module> moduleMap)
 	{	
@@ -353,6 +365,11 @@ public class Application {
 				if(device_metadata.getModules() != null)
 				{
 					insertDeviceModules(device, device_metadata.getModules().getModule(), moduleMap);	
+				}
+				
+				if(device_metadata.getEnvrionmentVariables() != null)
+				{
+					insertEnvironmentVariables(device, device_metadata.getEnvrionmentVariables().getVariable());
 				}
 
 				this.deviceInfo.put(device_metadata.getName(), device);

@@ -73,6 +73,7 @@ public class Device {
 	private HashMap<String, Library> libraryMap;
 	
 	private ArrayList<Module> moduleList;
+	private ArrayList<EnvironmentVariable> environmentVariableList;
 	
 	private HashMap<String, Integer> portKeyToIndex;  //Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
 	private ArrayList<TCPConnection> tcpServerList;
@@ -85,6 +86,7 @@ public class Device {
 		this.platform = SoftwarePlatformType.fromValue(platform);
 		this.runtime = RuntimeType.fromValue(runtime);
 		this.processorList = new ArrayList<Processor>();
+		this.environmentVariableList = new ArrayList<EnvironmentVariable>();
 		this.connectionList = new HashMap<String, Connection>();
 	
 		this.channelList = new ArrayList<Channel>();
@@ -101,7 +103,6 @@ public class Device {
 		this.portKeyToIndex = new HashMap<String, Integer>();
 		this.tcpServerList = new ArrayList<TCPConnection>();
 		this.tcpClientList = new ArrayList<TCPConnection>();
-		
 	}
 	
 	private class TaskFuncIdChecker 
@@ -1127,5 +1128,9 @@ public class Device {
 
 	public ArrayList<Module> getModuleList() {
 		return moduleList;
+	}
+
+	public ArrayList<EnvironmentVariable> getEnvironmentVariableList() {
+		return environmentVariableList;
 	}
 }
