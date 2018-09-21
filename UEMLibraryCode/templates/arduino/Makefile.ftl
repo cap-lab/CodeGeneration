@@ -1,5 +1,5 @@
 
-<#list envVarList as envVar>
+<#list env_var_info as envVar>
 ${envVar.name}+=${envVar.value}
 </#list>
 
