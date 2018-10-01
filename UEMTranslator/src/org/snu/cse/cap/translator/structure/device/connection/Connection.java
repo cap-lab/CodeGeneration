@@ -1,19 +1,19 @@
 package org.snu.cse.cap.translator.structure.device.connection;
 
+import hopes.cic.xml.NetworkType;
+
 public abstract class Connection {
-	protected ConnectionType type;
+	protected NetworkType network;
+	protected ProtocolType protocol;
 	protected String name;
 	protected String role;
 	
-	public Connection(String name, String role, ConnectionType type) 
+	public Connection(String name, String role, NetworkType network, ProtocolType protocol) 
 	{
 		this.name = name;
 		this.role = role;
-		this.type = type;
-	}
-	
-	public ConnectionType getType() {
-		return type;
+		this.network = network;
+		this.protocol = protocol;
 	}
 	
 	public String getName() {
@@ -24,9 +24,6 @@ public abstract class Connection {
 		return role;
 	}
 	
-	public void setType(ConnectionType connectionType) {
-		this.type = connectionType;
-	}
 	
 	public void setName(String name) {
 		this.name = name;
@@ -34,5 +31,13 @@ public abstract class Connection {
 	
 	public void setRole(String role) {
 		this.role = role;
+	}
+
+	public NetworkType getNetwork() {
+		return network;
+	}
+
+	public ProtocolType getProtocol() {
+		return protocol;
 	}
 }

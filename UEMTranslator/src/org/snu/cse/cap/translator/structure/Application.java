@@ -24,13 +24,15 @@ import org.snu.cse.cap.translator.structure.device.HWElementType;
 import org.snu.cse.cap.translator.structure.device.NoProcessorFoundException;
 import org.snu.cse.cap.translator.structure.device.Processor;
 import org.snu.cse.cap.translator.structure.device.ProcessorElementType;
-import org.snu.cse.cap.translator.structure.device.connection.BluetoothConnection;
 import org.snu.cse.cap.translator.structure.device.connection.Connection;
 import org.snu.cse.cap.translator.structure.device.connection.ConnectionPair;
-import org.snu.cse.cap.translator.structure.device.connection.ConnectionType;
+import org.snu.cse.cap.translator.structure.device.connection.ConstrainedSerialConnection;
 import org.snu.cse.cap.translator.structure.device.connection.DeviceConnection;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
+import org.snu.cse.cap.translator.structure.device.connection.ProtocolType;
+import org.snu.cse.cap.translator.structure.device.connection.SerialConnection;
 import org.snu.cse.cap.translator.structure.device.connection.TCPConnection;
+import org.snu.cse.cap.translator.structure.device.connection.UnconstrainedSerialConnection;
 import org.snu.cse.cap.translator.structure.library.Argument;
 import org.snu.cse.cap.translator.structure.library.Function;
 import org.snu.cse.cap.translator.structure.library.Library;
@@ -47,7 +49,6 @@ import hopes.cic.xml.ArchitectureConnectionSlaveType;
 import hopes.cic.xml.ArchitectureDeviceType;
 import hopes.cic.xml.ArchitectureElementType;
 import hopes.cic.xml.ArchitectureElementTypeType;
-import hopes.cic.xml.BluetoothConnectionType;
 import hopes.cic.xml.CICAlgorithmType;
 import hopes.cic.xml.CICArchitectureType;
 import hopes.cic.xml.CICConfigurationType;
@@ -66,6 +67,7 @@ import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.ModeType;
 import hopes.cic.xml.ModuleType;
 import hopes.cic.xml.PortMapType;
+import hopes.cic.xml.SerialConnectionType;
 import hopes.cic.xml.TCPConnectionType;
 import hopes.cic.xml.TaskLibraryConnectionType;
 import hopes.cic.xml.TaskPortType;
@@ -242,12 +244,28 @@ public class Application {
 	
 	private void putConnectionsOnDevice(Device device, DeviceConnectionListType connectionList)
 	{
-		if(connectionList.getBluetoothConnection() != null)
+		if(connectionList.getSerialConnection() != null)
 		{
-			for(BluetoothConnectionType connectionType: connectionList.getBluetoothConnection())
+			for(SerialConnectionType connectionType: connectionList.getSerialConnection())
 			{
-				BluetoothConnection connection = new BluetoothConnection(connectionType.getName(), connectionType.getRole().toString(), 
-						connectionType.getFriendlyName(), connectionType.getMAC());
+				SerialConnection connection;
+				switch(device.getPlatform())
+				{
+				case LINUX:
+				case WINDOWS:
+					connection = new UnconstrainedSerialConnection(connectionType.getName(), connectionType.getRole().toString(), 
+																connectionType.getNetwork(), connectionType.getPortAddress());
+					break;
+				case ARDUINO:
+					connection = new ConstrainedSerialConnection(connectionType.getName(), connectionType.getRole().toString(), 
+																connectionType.getNetwork(), 
+																connectionType.getBoardTXPinNumber().intValue(), 
+																connectionType.getBoardRXPinNumber().intValue());
+					break;
+				default:
+					throw new IllegalArgumentException();
+				}
+				
 				device.putConnection(connection);
 			}
 		}
@@ -437,7 +455,7 @@ public class Application {
 			throw new InvalidDeviceConnectionException();
 		}
 		
-		if(connectionPair.getMasterConnection().getType() != ConnectionType.TCP) {
+		if(connectionPair.getMasterConnection().getProtocol() != ProtocolType.TCP) {
 			throw new UnsupportedOperationException();
 		}
 		

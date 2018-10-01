@@ -14,8 +14,8 @@ import org.snu.cse.cap.translator.structure.ExecutionPolicy;
 import org.snu.cse.cap.translator.structure.channel.Channel;
 import org.snu.cse.cap.translator.structure.channel.Port;
 import org.snu.cse.cap.translator.structure.device.connection.Connection;
-import org.snu.cse.cap.translator.structure.device.connection.ConnectionType;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
+import org.snu.cse.cap.translator.structure.device.connection.ProtocolType;
 import org.snu.cse.cap.translator.structure.device.connection.TCPConnection;
 import org.snu.cse.cap.translator.structure.gpu.TaskGPUSetupInfo;
 import org.snu.cse.cap.translator.structure.library.Library;
@@ -47,7 +47,6 @@ import hopes.cic.xml.CICScheduleType;
 import hopes.cic.xml.CICScheduleTypeLoader;
 import hopes.cic.xml.GPUTaskType;
 import hopes.cic.xml.MappingDeviceType;
-import hopes.cic.xml.MappingGPUDeviceType;
 import hopes.cic.xml.MappingProcessorIdType;
 import hopes.cic.xml.MappingTaskType;
 import hopes.cic.xml.ScheduleElementType;
@@ -1017,7 +1016,7 @@ public class Device {
 	{
 		this.connectionList.put(connection.getName(), connection);
 		
-		if(connection.getType() == ConnectionType.TCP)
+		if(connection.getProtocol() == ProtocolType.TCP)
 		{
 			if(connection.getRole().equalsIgnoreCase(TCPConnection.ROLE_SERVER) == true)
 			{

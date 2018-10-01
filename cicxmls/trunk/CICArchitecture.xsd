@@ -62,32 +62,21 @@
   <xs:complexType name="DeviceConnectionListType">
     <xs:sequence>
       <xs:element name="TCPConnection" type="TCPConnectionType" minOccurs="0" maxOccurs="unbounded" />
-	  <xs:element name="BluetoothConnection" type="BluetoothConnectionType" minOccurs="0" maxOccurs="unbounded" />
 	  <xs:element name="SerialConnection" type="SerialConnectionType" minOccurs="0" maxOccurs="unbounded" />
 	</xs:sequence>
   </xs:complexType>
 
   <xs:complexType name="TCPConnectionType">
 	<xs:attribute name="name" type="NameType" use="required" />
-	<xs:attribute name="network" type="NetworkType" use="required" />
+	<xs:attribute name="network" type="NetworkType" use="optional" />
 	<xs:attribute name="role" type="TCPRoleType" use="required" />
 	<xs:attribute name="ip" type="xs:string" use="optional" />
 	<xs:attribute name="port" type="xs:nonNegativeInteger" use="required" />
   </xs:complexType>
-
-  <xs:complexType name="BluetoothConnectionType">
-	<xs:attribute name="name" type="NameType" use="required" />
-	<xs:attribute name="network" type="NetworkType" use="required" />
-	<xs:attribute name="role" type="BluetoothRoleType" use="required" />
-	<xs:attribute name="friendlyName" type="xs:string" use="optional" />
-	<xs:attribute name="MAC" type="xs:string" use="required" />
-	<xs:attribute name="boardTXPinNumber" type="xs:nonNegativeInteger" use="optional" />
-	<xs:attribute name="boardRXPinNumber" type="xs:nonNegativeInteger" use="optional" />
-  </xs:complexType>
   
   <xs:complexType name="SerialConnectionType">
 	<xs:attribute name="name" type="NameType" use="required" />
-	<xs:attribute name="network" type="NetworkType" use="required" />
+	<xs:attribute name="network" type="NetworkType" use="optional" />
 	<xs:attribute name="role" type="MasterSlaveRoleType" use="required" />
 	<xs:attribute name="boardTXPinNumber" type="xs:nonNegativeInteger" use="optional" />
 	<xs:attribute name="boardRXPinNumber" type="xs:nonNegativeInteger" use="optional" />
