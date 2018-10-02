@@ -21,9 +21,9 @@ SExecutionTime g_stExecutionTime = { ${execution_time.value?c}, TIME_METRIC_${ex
 <#list flat_task as task_name, task>
 	<#if task.loopStruct??>
 SLoopInfo g_stLoopStruct_${task.name} = {
-	LOOP_TYPE_${task.loopStruct.loopType},
-	${task.loopStruct.loopCount?c},
-	${task.loopStruct.designatedTaskId},
+	LOOP_TYPE_${task.loopStruct.loopType}, // loop Type
+	${task.loopStruct.loopCount?c}, // loop count
+	${task.loopStruct.designatedTaskId}, // designated task id
 };
 
 	</#if>
@@ -146,6 +146,20 @@ STaskFunctions g_ast_${task.name}_functions[] = {
 </#list>
 // ##TASK_FUNCTION_LIST::END
 
+// ##TASK_THREAD_CONTEXT_LIST::START
+<#list flat_task as task_name, task>
+STaskThreadContext g_ast_${task.name}_thread_context[] = {
+	<#if !task.childTaskGraphName??>
+		<#list 0..(task.taskFuncNum-1) as task_func_id>
+	{
+		0
+	},
+		</#list>
+	</#if>
+};
+
+</#list>
+// ##TASK_THREAD_CONTEXT_LIST::END
 
 // ##TASK_ITERATION_TEMPLATE::START
 <#list flat_task as task_name, task>
@@ -170,6 +184,7 @@ STask g_astTasks_${task_graph.name}[] = {
 		"${task.name}", // Task name
 		TASK_TYPE_${task.type}, // Task Type
 		g_ast_${task.name}_functions, // Task function array
+		g_ast_${task.name}_thread_context, // Task thread context
 		${task.taskFuncNum}, // Task function array number
 		RUN_CONDITION_${task.runCondition}, // Run condition
 		1, // Run rate
@@ -259,7 +274,7 @@ SScheduleList g_astScheduleList_${scheduled_task.parentTaskName}_${compositeMapp
 SScheduledTasks g_astScheduledTaskList[] = {
 <#list schedule_info as task_name, mapped_schedule>
 	<#list mapped_schedule.mappedProcessorList as compositeMappedProcessor>
-	{	<#if mapped_schedule.parentTaskId == -1>NULL<#else>&g_astTasks_${flat_task[task_name].parentTaskGraphName}[${flat_task[task_name].inGraphIndex}]</#if>, // Parent Task ID
+	{	<#if mapped_schedule.parentTaskId == -1>(STask *) NULL<#else>&g_astTasks_${flat_task[task_name].parentTaskGraphName}[${flat_task[task_name].inGraphIndex}]</#if>, // Parent Task Structure
 		${compositeMappedProcessor.modeId}, // Mode transition mode ID
 		g_astScheduleList_${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}, // schedule list per throughput constraint
 		${compositeMappedProcessor.compositeTaskScheduleList?size}, // The number of schedules in the schedule list
@@ -300,7 +315,7 @@ SMappedCompositeTaskInfo g_astCompositeTaskMappingInfo[] = {
 
 
 SMappedTaskInfo g_stMappingInfo = {
-	<#if (mapping_info?size > 0)>g_astGeneralTaskMappingInfo<#else>NULL</#if>, // general task array
+	<#if (mapping_info?size > 0)>g_astGeneralTaskMappingInfo<#else>(SMappedGeneralTaskInfo *)NULL</#if>, // general task array
 	<#if (mapping_info?size > 0)>ARRAYLEN(g_astGeneralTaskMappingInfo)<#else>0</#if>, // size of general task array
 	<#if (schedule_info?size > 0)>g_astCompositeTaskMappingInfo<#else>(SMappedCompositeTaskInfo *) NULL</#if>, // composite task array
 	<#if (schedule_info?size > 0)>ARRAYLEN(g_astCompositeTaskMappingInfo)<#else>0</#if>, // size of composite task array

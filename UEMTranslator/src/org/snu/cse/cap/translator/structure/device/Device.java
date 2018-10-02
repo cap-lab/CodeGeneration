@@ -522,7 +522,7 @@ public class Device {
 	{
 		for(GPUTaskType mappedTask: gpusetup_metadata.getTasks().getTask())
 		{
-			if(this.taskMap.containsKey(mappedTask.getName()) == true && checkTaskIsIncludedInCompositeTask(mappedTask.getName(), globalTaskMap) == false)
+			if(this.taskMap.containsKey(mappedTask.getName()) == true /*&& checkTaskIsIncludedInCompositeTask(mappedTask.getName(), globalTaskMap) == false*/)
 			{
 				TaskGPUSetupInfo gpuSetupInfo = new TaskGPUSetupInfo(mappedTask.getName(), getTaskType(mappedTask.getName()), mappedTask.getClustering(), mappedTask.getPipelining(), mappedTask.getMaxStream().intValue());
 				

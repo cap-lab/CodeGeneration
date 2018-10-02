@@ -56,6 +56,7 @@ public class Constants {
 	public static final String TEMPLATE_TAG_PORT_KEY_TO_INDEX = "port_key_to_index";
 	public static final String TEMPLATE_TAG_EXECUTION_TIME = "execution_time";
 	public static final String TEMPLATE_TAG_LIBRARY_INFO = "library_info";
+	public static final String TEMPLATE_TAG_DEVICE_CONSTRAINED_INFO = "device_constrained_info";
 	
 	public static final String TEMPLATE_TAG_GPU_USED = "gpu_used";
 	public static final String TEMPLATE_TAG_COMMUNICATION_USED = "communication_used";

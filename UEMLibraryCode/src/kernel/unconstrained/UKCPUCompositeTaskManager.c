@@ -1231,9 +1231,9 @@ static uem_result callInitFunction(STask *pstLeafTask, void *pUserData)
 	int nLoop = 0;
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	for(nLoop = 0; nLoop < pstLeafTask->nTaskFunctionSetNum ; nLoop++)
+	for(nLoop = 0; nLoop < pstLeafTask->nTaskThreadSetNum ; nLoop++)
 	{
-		pstLeafTask->astTaskFunctions[nLoop].fnInit(pstLeafTask->nTaskId);
+		pstLeafTask->astTaskThreadFunctions[nLoop].fnInit(pstLeafTask->nTaskId);
 
 		result = UKChannel_FillInitialDataBySourceTaskId(pstLeafTask->nTaskId);
 		ERRIFGOTO(result, _EXIT);
@@ -1247,9 +1247,9 @@ static uem_result callWrapupFunction(STask *pstLeafTask, void *pUserData)
 {
 	int nLoop = 0;
 
-	for(nLoop = 0; nLoop < pstLeafTask->nTaskFunctionSetNum ; nLoop++)
+	for(nLoop = 0; nLoop < pstLeafTask->nTaskThreadSetNum ; nLoop++)
 	{
-		pstLeafTask->astTaskFunctions[nLoop].fnWrapup();
+		pstLeafTask->astTaskThreadFunctions[nLoop].fnWrapup();
 	}
 
 	return ERR_UEM_NOERROR;

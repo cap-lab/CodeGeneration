@@ -219,6 +219,7 @@ public class CodeGenerator
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TCP_CLIENT_LIST, device.getTcpClientList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TCP_SERVER_LIST, device.getTcpServerList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_MODULE_LIST, device.getModuleList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_DEVICE_CONSTRAINED_INFO, codeOrganizer.getDeviceRestriction());
 		
     	for(String outputFileName : codeOrganizer.getKernelDataSourceList())
     	{

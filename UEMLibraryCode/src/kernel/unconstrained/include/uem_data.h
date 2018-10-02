@@ -65,11 +65,28 @@ typedef struct _SModeTransitionMachine {
 	int nCurrentIteration;
 } SModeTransitionMachine;
 
+
+#define LOOP_HISTORY_ARRAY_SIZE (1000)
+
+typedef struct _SLoopIterationHistory{
+	int nPrevIteration;
+	int nNextIteration;
+} SLoopIterationHistory;
+
 typedef struct _SLoopInfo {
 	ELoopType enType;
 	int nLoopCount;
 	int nDesignatedTaskId;
+	uem_bool bDesignatedTaskState;
+	int nCurrentIteration;
+	SLoopIterationHistory astLoopIteration[LOOP_HISTORY_ARRAY_SIZE];
+	int nCurHistoryStartIndex;
+	int nCurHistoryLen;
 } SLoopInfo;
+
+typedef struct _STaskThreadContext {
+	int nCurRunIndex; // the run count of the task which is responsible by the current thread
+} STaskThreadContext;
 
 typedef struct _STaskIteration {
 	int nModeId;
@@ -81,8 +98,9 @@ typedef struct _STask {
 	int nTaskId;
 	const char *pszTaskName;
 	ETaskType enType;
-	STaskFunctions *astTaskFunctions;
-	int nTaskFunctionSetNum;
+	STaskFunctions *astTaskThreadFunctions;
+	STaskThreadContext *astThreadContext;
+	int nTaskThreadSetNum;
 	ERunCondition enRunCondition;
 	int nRunRate;
 	int nPeriod;

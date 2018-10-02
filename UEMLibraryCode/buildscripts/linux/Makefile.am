@@ -34,7 +34,8 @@ API_SOURCES=$(API_DIR)/UFControl_deprecated.c\
 	$(API_DIR)/UFTask_deprecated.c\
 	$(API_DIR)/UFTask.c\
 	$(API_DIR)/UFTimer_deprecated.c\
-	$(API_DIR)/UFTimer.c
+	$(API_DIR)/UFTimer.c\
+	$(API_DIR)/UFLoop.c
 
 KERNEL_DATA_SOURCES=$(KERNEL_DIR)/generated/uem_data.c\
 					$(KERNEL_DIR)/generated/uem_channel_data.c\
@@ -59,7 +60,8 @@ KERNEL_DEVICE_SOURCES=$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKCPUTaskManager.c\
 	$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKHostMemorySystem.c\
 	$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/communication/UKUEMProtocol.c\
 	$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/communication/UKTCPSocketChannel.c\
-	$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/communication/UKTCPServerManager.c
+	$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/communication/UKTCPServerManager.c\
+	$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/UKLoop.c
 
 COMMON_SOURCES=$(COMMON_DIR)/$(PLATFORM_DIR)/UCThread.c\
 	$(COMMON_DIR)/$(PLATFORM_DIR)/UCDynamicLinkedList.c\
