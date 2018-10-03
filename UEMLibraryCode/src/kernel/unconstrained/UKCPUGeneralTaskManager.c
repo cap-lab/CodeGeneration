@@ -581,7 +581,7 @@ _EXIT:
 }
 
 
-static uem_result traverseAndSetEventToTemporarySuspendedTask(STask *pstTask, void *pUserData)
+static uem_result traverseAndSetEventToTemporarySuspendedMTMTask(STask *pstTask, void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _SModeTransitionSetEventCheck *pstNewModeData = NULL;
@@ -770,7 +770,7 @@ static uem_result handleTaskModeTransition(SGeneralTaskThread *pstTaskThread, SG
 		stNewModeData.pstCallerTask = pstGeneralTask;
 		stNewModeData.nNewStartIteration = pstGeneralTask->pstTask->nCurIteration-1;
 
-		result = UKCPUTaskCommon_TraverseSubGraphTasks(pstMTMTask, traverseAndSetEventToTemporarySuspendedTask, &stNewModeData);
+		result = UKCPUTaskCommon_TraverseSubGraphTasks(pstMTMTask, traverseAndSetEventToTemporarySuspendedMTMTask, &stNewModeData);
 		ERRIFGOTO(result, _EXIT_LOCK);
 
 		pstMTMTask->pstMTMInfo->nCurrentIteration = pstGeneralTask->pstTask->nCurIteration;
@@ -867,7 +867,6 @@ _EXIT:
 
 static uem_result setLoopTaskCurrentIteration(STask *pstTask, void *pUserData)
 {
-	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstParentTask = NULL;
 	SLoopInfo *pstLoopInfo = NULL;
 	int nSavedIteration = 1;
@@ -910,9 +909,7 @@ static uem_result setLoopTaskCurrentIteration(STask *pstTask, void *pUserData)
 		pstParentTask = pstParentTask->pstParentGraph->pstParentTask;
 	}
 
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
+	return ERR_UEM_NOERROR;
 }
 
 static uem_result updateLoopIterationHistory(SGeneralTask *pstGeneralTask)
@@ -1080,9 +1077,8 @@ _EXIT:
 	return result;
 }
 
-static uem_result setTaskThreadIteration(SGeneralTask *pstGeneralTask, SGeneralTaskThread *pstTaskThread)
+static void setTaskThreadIteration(SGeneralTask *pstGeneralTask, SGeneralTaskThread *pstTaskThread)
 {
-	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstCurrentTask = NULL;
 	int nIndex = 0;
 
@@ -1090,10 +1086,6 @@ static uem_result setTaskThreadIteration(SGeneralTask *pstGeneralTask, SGeneralT
 	pstCurrentTask = pstGeneralTask->pstTask;
 
 	pstCurrentTask->astThreadContext[nIndex].nCurRunIndex = pstCurrentTask->nCurIteration;
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
 }
 
 static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTaskThread *pstTaskThread, FnUemTaskGo fnGo)
@@ -1148,8 +1140,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			}
 			if(bFunctionCalled == TRUE)
 			{
-				result = setTaskThreadIteration(pstGeneralTask, pstTaskThread);
-				ERRIFGOTO(result, _EXIT);
+				setTaskThreadIteration(pstGeneralTask, pstTaskThread);
 				nExecutionCount++;
 				result = UKTask_IncreaseRunCount(pstCurrentTask, &bTargetIterationReached);
 				if(result != ERR_UEM_NOERROR)
@@ -1191,8 +1182,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 				}
 				fnGo(pstCurrentTask->nTaskId);
 				//UEM_DEBUG_PRINT("%s (stopping-driven, Proc: %d, func_id: %d, current iteration: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId, pstCurrentTask->nCurIteration);
-				result = setTaskThreadIteration(pstGeneralTask, pstTaskThread);
-				ERRIFGOTO(result, _EXIT);
+				setTaskThreadIteration(pstGeneralTask, pstTaskThread);
 				nExecutionCount++;
 				result = UKTask_IncreaseRunCount(pstCurrentTask, &bTargetIterationReached);
 				ERRIFGOTO(result, _EXIT);
