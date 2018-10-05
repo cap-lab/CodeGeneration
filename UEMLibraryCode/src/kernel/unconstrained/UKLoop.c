@@ -22,7 +22,6 @@
 static uem_result getParentLoopTaskByCallerTask(STask *pstCallerTask, OUT STask **ppstTask)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	STask *pstTask = NULL;
 	STask *pstParentTask = NULL;
 
 	pstParentTask = pstCallerTask;
@@ -55,7 +54,6 @@ uem_result UKLoop_GetLoopTaskIteration(IN int nCallerTaskId, IN int nTaskThreadI
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
 	STask *pstCallerTask = NULL;
-	int nIndex = 0;
 
 	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
 	ERRIFGOTO(result, _EXIT);

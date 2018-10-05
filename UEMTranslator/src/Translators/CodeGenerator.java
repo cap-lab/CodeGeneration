@@ -322,7 +322,7 @@ public class CodeGenerator
 			for(Device device : uemDatamodel.getApplication().getDeviceInfo().values())
 			{
 				CodeOrganizer codeOrganizer = new CodeOrganizer(device.getArchitecture().toString(), 
-						device.getPlatform().toString(), device.getRuntime().toString(), device.isGPUMapped(), device.useCommunication());
+						device.getPlatform().toString(), device.getRuntime().toString(), device.isGPUMapped(), device.getRequiredCommunicationSet());
 				String topSrcDir = this.mOutputPath + File.separator + device.getName();
 				
 				codeOrganizer.fillSourceCodeListFromTaskAndLibraryMap(device.getTaskMap(), device.getLibraryMap());

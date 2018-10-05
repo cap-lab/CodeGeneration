@@ -106,6 +106,10 @@ SChannelAPI *g_astChannelAPIList[] = {
 };
 
 
+uem_result ChannelAPI_SetSocketAPIs()
+{
+	return ERR_UEM_NOERROR;
+}
 
 uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType enType, OUT SChannelAPI **ppstChannelAPI)
 {

@@ -11,8 +11,11 @@
 
 #include <sys/un.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include <uem_common.h>
+
+#include <UCBasic.h>
 
 #include <UCDynamicSocket.h>
 
@@ -64,6 +67,28 @@ _EXIT:
 	return result;
 }
 
+uem_result UCUnixDomainSocket_Accept(HSocket hServerSocket, HSocket hClientSocket)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SUCSocket *pstServerSocket = NULL;
+	SUCSocket *pstClientSocket = NULL;
+    struct sockaddr_un stClientAddr;
+    socklen_t nLen = 0;
+
+	pstServerSocket = (SUCSocket *) hServerSocket;
+	pstClientSocket = (SUCSocket *) hClientSocket;
+
+	pstClientSocket->nSocketfd = accept(pstServerSocket->nSocketfd, (struct sockaddr *) &stClientAddr, &nLen);
+    if(pstClientSocket->nSocketfd < 0)
+    {
+        ERRASSIGNGOTO(result, ERR_UEM_ACCEPT_ERROR, _EXIT);
+    }
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 uem_result UCUnixDomainSocket_Connect(HSocket hSocket, IN int nTimeout)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -71,7 +96,7 @@ uem_result UCUnixDomainSocket_Connect(HSocket hSocket, IN int nTimeout)
     struct sockaddr_un stClientAddr;
     int nLen = 0;
     int nRet = 0;
-    fd_set stReadSet;
+    //fd_set stReadSet;
     struct linger stLinger;
 
 	pstSocket = (SUCSocket *) hSocket;
@@ -98,8 +123,8 @@ uem_result UCUnixDomainSocket_Connect(HSocket hSocket, IN int nTimeout)
     stClientAddr.sun_path[nLen] = '\0';
 
     // TODO: please check this
-    result = selectTimeout(pstSocket->nSocketfd, &stReadSet, NULL, NULL, nTimeout);
-    ERRIFGOTO(result, _EXIT);
+    //result = selectTimeout(pstSocket->nSocketfd, &stReadSet, NULL, NULL, nTimeout);
+    //ERRIFGOTO(result, _EXIT);
 
     nRet = connect(pstSocket->nSocketfd, (struct sockaddr *)&stClientAddr, sizeof(stClientAddr));
     if(nRet != 0)
@@ -112,22 +137,8 @@ _EXIT:
 	return result;
 }
 
-// do nothing
-uem_result UCUnixDomainSocket_Create(HSocket hSocket, SSocketInfo *pstSocketInfo, uem_bool bIsServer)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	SUCSocket *pstSocket = NULL;
-
-	pstSocket = (SUCSocket *) hSocket;
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
 uem_result UCUnixDomainSocket_Destroy(HSocket hSocket)
 {
-	uem_result result = ERR_UEM_UNKNOWN;
 	SUCSocket *pstSocket = NULL;
 
 	pstSocket = (SUCSocket *) hSocket;
@@ -137,8 +148,6 @@ uem_result UCUnixDomainSocket_Destroy(HSocket hSocket)
 		unlink(pstSocket->pszSocketPath);
 	}
 
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
+	return ERR_UEM_NOERROR;
 }
 

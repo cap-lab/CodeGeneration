@@ -11,7 +11,9 @@
 
 #include <uem_common.h>
 
-//#include <UCTime.h>
+#ifndef API_LITE
+#include <UCTime.h>
+#endif
 
 #include <UKTimer.h>
 

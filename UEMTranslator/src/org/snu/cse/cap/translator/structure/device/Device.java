@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
@@ -49,6 +50,7 @@ import hopes.cic.xml.GPUTaskType;
 import hopes.cic.xml.MappingDeviceType;
 import hopes.cic.xml.MappingProcessorIdType;
 import hopes.cic.xml.MappingTaskType;
+import hopes.cic.xml.NetworkType;
 import hopes.cic.xml.ScheduleElementType;
 import hopes.cic.xml.ScheduleGroupType;
 import hopes.cic.xml.TaskGroupForScheduleType;
@@ -1010,6 +1012,33 @@ public class Device {
 		Processor processor = new Processor(id, name, type, poolSize);
 			
 		this.processorList.add(processor);
+	}
+	
+	public HashSet<DeviceCommunicationType> getRequiredCommunicationSet()
+	{
+		HashSet<DeviceCommunicationType> communicationSet = new HashSet<DeviceCommunicationType>();
+		
+		for(Connection connection : this.connectionList.values())
+		{
+			if(connection.getProtocol().equals(ProtocolType.TCP))
+			{
+				communicationSet.add(DeviceCommunicationType.TCP);
+			}
+			else if(connection.getNetwork().equals(NetworkType.BLUETOOTH))
+			{
+				communicationSet.add(DeviceCommunicationType.BLUETOOTH);
+			}
+			else if(connection.getProtocol().equals(ProtocolType.SERIAL))
+			{
+				communicationSet.add(DeviceCommunicationType.SERIAL);
+			}
+			else
+			{
+				throw new IllegalArgumentException();
+			}
+		}
+		
+		return communicationSet;
 	}
 	
 	public void putConnection(Connection connection) 

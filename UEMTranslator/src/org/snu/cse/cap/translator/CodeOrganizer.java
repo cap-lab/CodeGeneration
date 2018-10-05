@@ -11,6 +11,7 @@ import java.util.Properties;
 import static java.nio.file.StandardCopyOption.*;
 
 import org.snu.cse.cap.translator.structure.ProgrammingLanguage;
+import org.snu.cse.cap.translator.structure.device.DeviceCommunicationType;
 import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.module.Module;
 import org.snu.cse.cap.translator.structure.task.Task;
@@ -35,6 +36,7 @@ public class CodeOrganizer {
 	private boolean isMappedGPU;
 	private boolean useCommunication;
 	private HashSet<String> usedPeripheralList;
+	private HashSet<DeviceCommunicationType> usedCommunicationSet;
 	private ProgrammingLanguage language;
 	private BuildType buildType;
 
@@ -56,7 +58,7 @@ public class CodeOrganizer {
 	public static final String DEVICE_RESTRICTION_DIR_VARIABLE="$(DEVICE_RESTRICTION)";
 	public static final String PLATFORM_DIR_VARIABLE="$(PLATFORM_DIR)";
 	
-	public CodeOrganizer(String architecture, String platform, String runtime, boolean isMappedGPU, boolean useCommunication) {
+	public CodeOrganizer(String architecture, String platform, String runtime, boolean isMappedGPU, HashSet<DeviceCommunicationType> usedCommunicationSet) {
 		this.architecture = architecture;
 		this.platform = platform;
 		this.runtime = runtime;
@@ -73,7 +75,22 @@ public class CodeOrganizer {
 		this.cflags = "";
 		this.ldflags = "";
 		this.isMappedGPU = isMappedGPU;
-		this.useCommunication = useCommunication;
+		if(usedCommunicationSet.size() > 0)
+		{
+			this.useCommunication = true;	
+		}
+		else
+		{
+			this.useCommunication = false;
+		}
+		
+		this.usedCommunicationSet = new HashSet<DeviceCommunicationType>();
+		
+		for (DeviceCommunicationType communicationType: usedCommunicationSet)
+		{
+			this.usedCommunicationSet.add(communicationType);
+		}
+		
 		this.usedPeripheralList = new HashSet<String>();
 		this.language = ProgrammingLanguage.C;
 		this.buildType = BuildType.AUTOMAKE;
@@ -137,24 +154,57 @@ public class CodeOrganizer {
 		return isAvailable;
 	}
 	
-	private boolean isPeripheralAvailable(String[] peripheralList) {
+	private boolean isCommunicationAvailable(Properties translatorProperties)
+	{
+		boolean isAvailable = true;
+		String propertyKey = COMMUNICATION + TranslatorProperties.PROPERTY_DELIMITER + 
+								TranslatorProperties.PROPERTIES_PERIPHERAL_SUBTYPE;
+		String[] peripheralSubTypeList;
+		String peripheralSubTypeString = translatorProperties.getProperty(propertyKey);
+		
+		if(peripheralSubTypeString == null)
+		{
+			return true;
+		}
+		
+		peripheralSubTypeList = peripheralSubTypeString.split(TranslatorProperties.PROPERTY_VALUE_DELIMITER);
+		
+		for(DeviceCommunicationType commuinicationType: this.usedCommunicationSet) {
+			isAvailable = false;
+			for(String subType : peripheralSubTypeList) {
+				if(subType.equals(commuinicationType.toString())) {
+					isAvailable = true;
+					break;
+				}
+			}
+			
+			if(isAvailable == false) {
+				break;
+			}
+		}
+
+		return isAvailable;
+	}
+	
+	private boolean isPeripheralAvailable(String[] peripheralList, Properties translatorProperties) {
 		
 		boolean isAvailable = true;
 		
-		for(String peripheralUsed: this.usedPeripheralList)
-		{
+		for(String peripheralUsed: this.usedPeripheralList) {
 			isAvailable = false;
-			for(String peripheralName: peripheralList)
-			{
-				if(peripheralName.equals(peripheralUsed))
-				{
-					isAvailable = true;
+			for(String peripheralName: peripheralList) {
+				if(peripheralName.equals(peripheralUsed)) {
+					if(peripheralName.equals(COMMUNICATION)) {
+						isAvailable = isCommunicationAvailable(translatorProperties);
+					}
+					else {
+						isAvailable = true;						
+					}
 					break;
-				}		
+				}
 			}
 			
-			if(isAvailable == false)
-			{
+			if(isAvailable == false) {
 				break;
 			}
 		}
@@ -187,8 +237,26 @@ public class CodeOrganizer {
 			}
 		}
 	}
+
+	private void addCommunicationSourceFileFromSourceString(String prefix, String key, 
+																Properties translatorProperties, ArrayList<String> list)
+	{
+		String sourceFileKey;
+		String sourceFileString;
+		for(DeviceCommunicationType communicationType: this.usedCommunicationSet)
+		{
+			sourceFileKey = key + TranslatorProperties.PROPERTY_DELIMITER + communicationType.toString();
+			sourceFileString = translatorProperties.getProperty(sourceFileKey);
+			
+			if(sourceFileString != null)
+			{
+				addSourceFileFromSourceString(prefix + communicationType.toString() + MAKEFILE_PATH_SEPARATOR, sourceFileString, list);
+			}
+		}
+	}
 	
-	private void makeSourceFileList(String key, String prefix, Properties translatorProperties, ArrayList<String> list) {
+	private void makeSourceFileList(String key, String prefix, Properties translatorProperties, ArrayList<String> list) 
+	{
 		String sourceFileString = translatorProperties.getProperty(key);
 		String peripheralKey;
 		
@@ -201,7 +269,12 @@ public class CodeOrganizer {
 			
 			if(sourceFileString != null)
 			{
-				addSourceFileFromSourceString(prefix + peripheralName + MAKEFILE_PATH_SEPARATOR, sourceFileString, list);	
+				addSourceFileFromSourceString(prefix + peripheralName + MAKEFILE_PATH_SEPARATOR, sourceFileString, list);
+				if(peripheralName.equals(COMMUNICATION))
+				{
+					addCommunicationSourceFileFromSourceString(prefix + peripheralName + MAKEFILE_PATH_SEPARATOR, 
+																	peripheralKey, translatorProperties, list);
+				}
 			}
 		}
 	}
@@ -222,7 +295,7 @@ public class CodeOrganizer {
 		// common_source_file.[device_restriction].[platform]
 		subKey = subKey +  TranslatorProperties.PROPERTY_DELIMITER + this.platform; 
 		makeSourceFileList(subKey, DEVICE_RESTRICTION_DIR_VARIABLE + MAKEFILE_PATH_SEPARATOR + PLATFORM_DIR_VARIABLE + MAKEFILE_PATH_SEPARATOR, 
-							translatorProperties, list);		
+							translatorProperties, list);
 	}
 	
 	// API source file is treated differently because it is not target-dependent and no peripheral is used in API layer
@@ -316,6 +389,7 @@ public class CodeOrganizer {
 	{
 		String peripheralKey;
 		String architectureKey;
+		String communicationKey;
 		String flag = "";
 		
 		if(translatorProperties.getProperty(propertyKey) != null) {
@@ -332,7 +406,18 @@ public class CodeOrganizer {
 			peripheralKey = propertyKey + TranslatorProperties.PROPERTY_DELIMITER + peripheralName;
 			if(translatorProperties.getProperty(peripheralKey) != null) {
 				flag = flag + " " + translatorProperties.getProperty(peripheralKey);
-			}	
+			}
+			
+			if(peripheralName.equals(COMMUNICATION))
+			{
+				for(DeviceCommunicationType communicationType : this.usedCommunicationSet)
+				{
+					communicationKey = peripheralKey + TranslatorProperties.PROPERTY_DELIMITER + communicationType.toString();
+					if(translatorProperties.getProperty(communicationKey) != null) {
+						flag = flag + " " + translatorProperties.getProperty(communicationKey);
+					}
+				}
+			}
 		}
 		
 		return flag;
@@ -347,7 +432,7 @@ public class CodeOrganizer {
 		String propertyKey;
 		
 		if(isArchitectureAvailable(architectureList) == false || isPlatformAvailable(platformList) == false || 
-				isRuntimeAvailable(runtimeList) == false || isPeripheralAvailable(peripheralList) == false)
+				isRuntimeAvailable(runtimeList) == false || isPeripheralAvailable(peripheralList, translatorProperties) == false)
 		{
 			throw new UnsupportedHardwareInformation();
 		}

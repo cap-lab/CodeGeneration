@@ -11,7 +11,10 @@
 
 #include <uem_common.h>
 
+#include <UKLoop.h>
+
 #include <UFLoop.h>
+
 
 uem_result UFLoop_GetIteration(IN int nCallerTaskId, IN int nTaskThreadId, OUT int *pnTaskIteration)
 {

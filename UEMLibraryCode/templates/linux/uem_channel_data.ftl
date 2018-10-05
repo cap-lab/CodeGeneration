@@ -8,6 +8,9 @@
 
 <#if communication_used == true>
 #include <UCDynamicSocket.h>
+	<#if used_communication_list?seq_contains("tcp")>
+#include <UCTCPSocket.h>
+	</#if>
 </#if>
 
 #include <UKHostMemorySystem.h>
@@ -18,12 +21,14 @@
 
 <#if communication_used == true>
 #include <UKUEMProtocol.h>
+
+	<#if used_communication_list?seq_contains("tcp")>
 #include <UKTCPServerManager.h>
 #include <UKTCPSocketChannel.h>
 
 #include <uem_tcp_data.h>
+	</#if>
 </#if>
-
 <#if gpu_used == true>
 #include <UKGPUMemorySystem.h>
 </#if>
@@ -94,7 +99,7 @@ SAvailableChunk g_astAvailableInputChunk_channel_${channel.index}[${channel.inpu
 </#list>
 // ##AVAILABLE_CHUNK_LIST_TEMPLATE::END
 
-<#if communication_used == true>
+<#if used_communication_list?seq_contains("tcp")>
 // ##TCP_CLIENT_GENERATION_TEMPLATE::START
 STCPClientInfo g_astTCPClientInfo[] = {
 	<#list tcp_client_list as client>
@@ -121,21 +126,21 @@ STCPServerInfo g_astTCPServerInfo[] = {
 
 // ##TCP_COMMUNICATION_GENERATION_TEMPLATE::START
 SExternalCommunicationInfo g_astExternalCommunicationInfo[] = {
-<#list channel_list as channel>
-	<#switch channel.communicationType>
-		<#case "TCP_CLIENT_WRITER">
-		<#case "TCP_CLIENT_READER">
-		<#case "TCP_SERVER_WRITER">
-		<#case "TCP_SERVER_READER">
+	<#list channel_list as channel>
+		<#switch channel.communicationType>
+			<#case "TCP_CLIENT_WRITER">
+			<#case "TCP_CLIENT_READER">
+			<#case "TCP_SERVER_WRITER">
+			<#case "TCP_SERVER_READER">
 	{
 		${channel.index},
 		COMMUNICATION_TYPE_${channel.communicationType},
 		(HSocket) NULL,
 		(HUEMProtocol) NULL,
 	},
-			<#break>
-	</#switch>
-</#list>
+				<#break>
+		</#switch>
+	</#list>
 };
 // ##TCP_COMMUNICATION_GENERATION_TEMPLATE::END
 </#if>
@@ -353,7 +358,7 @@ SChannelAPI g_stSharedMemoryChannel = {
 	NULL,
 };
 
-<#if communication_used == true>
+<#if used_communication_list?seq_contains("tcp")>
 SChannelAPI g_stTCPSocketChannelWriter = {
 	UKTCPSocketChannel_Initialize, // fnInitialize
 	NULL, // fnReadFromQueue
@@ -393,12 +398,65 @@ SChannelAPI g_stTCPSocketChannelReader = {
 
 SChannelAPI *g_astChannelAPIList[] = {
 		&g_stSharedMemoryChannel,
-<#if communication_used == true>
+<#if used_communication_list?seq_contains("tcp")>
 		&g_stTCPSocketChannelWriter,
 		&g_stTCPSocketChannelReader,
 </#if>
 };
 
+<#if used_communication_list?seq_contains("bluetooth")>
+SSocketAPI stBluetoothAPI = {
+	NULL,
+	NULL,
+	UCBluetoothSocket_Connect,
+	NULL,
+	NULL,
+};
+</#if>
+
+<#if used_communication_list?seq_contains("tcp")>
+SSocketAPI stTCPAPI = {
+	UCTCPSocket_Bind,
+	UCTCPSocket_Accept,
+	UCTCPSocket_Connect,
+	NULL,
+	NULL,
+};		
+</#if>
+
+
+/*
+SSocketAPI stUnixDomainSocketAPI = {
+	UCUnixDomainSocket_Bind,
+	UCUnixDomainSocket_Accept,
+	UCUnixDomainSocket_Connect,
+	NULL,
+	UCUnixDomainSocket_Destroy,
+};
+*/
+
+<#assign printed=false />
+uem_result ChannelAPI_SetSocketAPIs()
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+<#if used_communication_list?seq_contains("bluetooth")>
+	result = UCDynamicSocket_SetAPIList(SOCKET_TYPE_BLUETOOTH, &stBluetoothAPI);
+	ERRIFGOTO(result, _EXIT);
+	<#assign printed=true />
+</#if>
+<#if used_communication_list?seq_contains("tcp")>
+	result = UCDynamicSocket_SetAPIList(SOCKET_TYPE_TCP, &stTCPAPI);
+	ERRIFGOTO(result, _EXIT);
+	<#assign printed=true />
+</#if>
+
+	result = ERR_UEM_NOERROR;
+<#if (printed == true)>
+_EXIT:
+</#if>
+	return result;
+}
 
 uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType enType, OUT SChannelAPI **ppstChannelAPI)
 {
@@ -410,7 +468,7 @@ uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType
 		break;
 	case COMMUNICATION_TYPE_TCP_SERVER_READER:
 	case COMMUNICATION_TYPE_TCP_CLIENT_READER:
-<#if communication_used == true>
+<#if used_communication_list?seq_contains("tcp")>
 		*ppstChannelAPI = &g_stTCPSocketChannelReader;
 <#else>
 		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED_YET, _EXIT)
@@ -418,7 +476,7 @@ uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType
 		break;
 	case COMMUNICATION_TYPE_TCP_SERVER_WRITER:
 	case COMMUNICATION_TYPE_TCP_CLIENT_WRITER:
-<#if communication_used == true>
+<#if used_communication_list?seq_contains("tcp")>
 		*ppstChannelAPI = &g_stTCPSocketChannelWriter;
 <#else>
 		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED_YET, _EXIT)
@@ -438,15 +496,13 @@ _EXIT:
 int g_nChannelNum = ARRAYLEN(g_astChannels);
 int g_nChannelAPINum = ARRAYLEN(g_astChannelAPIList);
 <#if communication_used == true>
-<#if (tcp_server_list?size > 0) >
+	<#if (tcp_server_list?size > 0) >
 int g_nTCPServerInfoNum = ARRAYLEN(g_astTCPServerInfo);
-<#else>
+	<#else>
 int g_nTCPServerInfoNum = 0;
-</#if>
+	</#if>
 int g_nExternalCommunicationInfoNum = ARRAYLEN(g_astExternalCommunicationInfo);
 </#if>
-
-
 
 
 

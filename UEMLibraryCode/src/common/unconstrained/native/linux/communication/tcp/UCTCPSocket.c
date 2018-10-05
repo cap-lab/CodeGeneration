@@ -12,11 +12,14 @@
 #ifndef WIN32
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #else
 #include <winsock.h>
 #endif
 
 #include <uem_common.h>
+
+#include <UCBasic.h>
 
 #include <UCDynamicSocket.h>
 
@@ -62,13 +65,40 @@ _EXIT:
 	return result;
 }
 
+uem_result UCTCPSocket_Accept(HSocket hServerSocket, HSocket hClientSocket)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SUCSocket *pstServerSocket = NULL;
+	SUCSocket *pstClientSocket = NULL;
+#ifndef WIN32
+    struct sockaddr_in stClientAddr;
+    socklen_t nLen = 0;
+#else
+    struct sockaddr stClientAddr;
+    int nLen = 0;
+#endif
+	pstServerSocket = (SUCSocket *) hServerSocket;
+	pstClientSocket = (SUCSocket *) hClientSocket;
+
+	pstClientSocket->nSocketfd = accept(pstServerSocket->nSocketfd, (struct sockaddr *) &stClientAddr, &nLen);
+    if(pstClientSocket->nSocketfd < 0)
+    {
+        ERRASSIGNGOTO(result, ERR_UEM_ACCEPT_ERROR, _EXIT);
+    }
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 uem_result UCTCPSocket_Connect(HSocket hSocket, IN int nTimeout)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SUCSocket *pstSocket = NULL;
     struct sockaddr_in stTCPClientAddr;
     int nRet = 0;
-    fd_set stReadSet;
+    //fd_set stReadSet;
     struct linger stLinger;
 
 	pstSocket = (SUCSocket *) hSocket;
@@ -92,8 +122,9 @@ uem_result UCTCPSocket_Connect(HSocket hSocket, IN int nTimeout)
     stTCPClientAddr.sin_addr.s_addr = inet_addr(pstSocket->pszSocketPath);
     stTCPClientAddr.sin_port = htons(pstSocket->nPort);
 
-    result = selectTimeout(pstSocket->nSocketfd, &stReadSet, NULL, NULL, nTimeout);
-    ERRIFGOTO(result, _EXIT);
+    // TODO: please check this
+    //result = selectTimeout(pstSocket->nSocketfd, &stReadSet, NULL, NULL, nTimeout);
+    //ERRIFGOTO(result, _EXIT);
 
     nRet = connect(pstSocket->nSocketfd, (struct sockaddr *)&stTCPClientAddr, sizeof(stTCPClientAddr));
     if(nRet != 0)
@@ -106,28 +137,4 @@ _EXIT:
 	return result;
 }
 
-// do nothing
-uem_result UCTCPSocket_Create(HSocket hSocket, SSocketInfo *pstSocketInfo, uem_bool bIsServer)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	SUCSocket *pstSocket = NULL;
 
-	pstSocket = (SUCSocket *) hSocket;
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-// do nothing
-uem_result UCTCPSocket_Destroy(HSocket hSocket)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	SUCSocket *pstSocket = NULL;
-
-	pstSocket = (SUCSocket *) hSocket;
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}

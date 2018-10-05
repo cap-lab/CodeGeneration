@@ -17,6 +17,7 @@ public class TranslatorProperties {
 	public static final String PROPERTIES_GENERATED_KERNEL_DATA_FILE = "generated_kernel_data_file";
 	public static final String PROPERTIES_BUILDSCRIPT_FILE = "buildscript_file";
 	public static final String PROPERTIES_BUILDSCRIPT_TYPE= "buildscript_type";
+	public static final String PROPERTIES_PERIPHERAL_SUBTYPE= "type";
 	
 	public static final String PROPERTIES_CFLAGS = "CFLAGS";
 	public static final String PROPERTIES_LDADD = "LDADD";

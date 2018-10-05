@@ -9,53 +9,100 @@
 #include <config.h>
 #endif
 
-#include <sys/types.h>
-#include <sys/stat.h>
 
 // this code is not run on Windows because I didn't call any WSAStartup or WSACleanup.
 // ifdefs are used for removing compile errors on mingw32 build
 
 #ifndef WIN32
-#include <sys/socket.h>
-#include <sys/un.h>
 #include <unistd.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
-#include <arpa/inet.h>
+#include <sys/socket.h>
 #else
 #include <winsock.h>
 #endif
 
-
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-
 #include <UCBasic.h>
+#include <UCAlloc.h>
 #include <UCString.h>
 #include <UCDynamicSocket.h>
 
-typedef struct _SUCSocket
-{
-	EUemModuleId enID;
-    int nSocketfd;
-    ESocketType enSocketType;
-    uem_string_struct stSocketPath;
-    char *pszSocketPath;
-    int nPort;
-    uem_bool bIsServer;
-} SUCSocket;
+typedef struct _SSocketAPIList {
+    SSocketAPI *pstTCPAPI;
+    SSocketAPI *pstUnixDomainSocketAPI;
+    SSocketAPI *pstBluetoothAPI;
+} SSocketAPIList;
+
+static SSocketAPIList s_stSocketAPIs = {
+    NULL,
+    NULL,
+    NULL,
+};
 
 #define SOCKET_FD_NOT_SET (-1)
-#define MAX_SUN_PATH (107)
 
-#define MAX_SOCKET_PATH (MAX_SUN_PATH+1)
+static uem_result  getSocketAPIByType(ESocketType enSocketType, SSocketAPI **ppstSocketAPI)
+{
+    uem_result result = ERR_UEM_UNKNOWN;
+    SSocketAPI *pstSocketAPI = NULL;
+
+    switch(enSocketType)
+    {
+    case SOCKET_TYPE_TCP:
+        pstSocketAPI = s_stSocketAPIs.pstTCPAPI;
+        break;
+    case SOCKET_TYPE_UDS:
+        pstSocketAPI = s_stSocketAPIs.pstUnixDomainSocketAPI;
+        break;
+    case SOCKET_TYPE_BLUETOOTH:
+        pstSocketAPI = s_stSocketAPIs.pstBluetoothAPI;
+        break;
+    default:
+        ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT);
+        break;
+    }
+
+    if(pstSocketAPI == NULL)
+    {
+        ERRASSIGNGOTO(result, ERR_UEM_NOT_FOUND, _EXIT);
+    }
+
+    *ppstSocketAPI = pstSocketAPI;
+
+    result = ERR_UEM_NOERROR;
+_EXIT:
+    return result;
+}
+
+static uem_result setSocketPath(SUCSocket *pstSocket, char *pszSocketPath)
+{
+    uem_result result = ERR_UEM_UNKNOWN;
+    uem_string_struct stInputPath;
+
+    result = UCString_New(&stInputPath, pszSocketPath, UEMSTRING_CONST);
+    ERRIFGOTO(result, _EXIT);
+
+    if(UCString_Length(&stInputPath) > 0)
+    {
+        pstSocket->pszSocketPath = (char *) UCAlloc_malloc(sizeof((UCString_Length(&stInputPath)+1) * sizeof(char)));
+        ERRMEMGOTO(pstSocket->pszSocketPath, result, _EXIT);
+
+        result = UCString_New(&(pstSocket->stSocketPath), pstSocket->pszSocketPath, (UCString_Length(&stInputPath)+1) * sizeof(char));
+        ERRIFGOTO(result, _EXIT);
+
+        result = UCString_Set(&(pstSocket->stSocketPath), &stInputPath);
+        ERRIFGOTO(result, _EXIT);
+    }
+
+    result = ERR_UEM_NOERROR;
+_EXIT:
+    return result;
+}
+
 
 uem_result UCDynamicSocket_Create(IN SSocketInfo *pstSocketInfo, IN uem_bool bIsServer, OUT HSocket *phSocket)
 {
     uem_result result = ERR_UEM_UNKNOWN;
     SUCSocket *pstSocket = NULL;
-    uem_string_struct stInputPath;
+    SSocketAPI *pstSocketAPI = NULL;
 #ifdef ARGUMENT_CHECK
     IFVARERRASSIGNGOTO(pstSocketInfo, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
     IFVARERRASSIGNGOTO(phSocket, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
@@ -65,11 +112,6 @@ uem_result UCDynamicSocket_Create(IN SSocketInfo *pstSocketInfo, IN uem_bool bIs
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
 
-    if(pstSocketInfo->enSocketType != SOCKET_TYPE_UDS && pstSocketInfo->enSocketType != SOCKET_TYPE_TCP)
-    {
-        ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT);
-    }
-
     if(pstSocketInfo->enSocketType == SOCKET_TYPE_TCP && pstSocketInfo->nPort <= 0)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
@@ -77,9 +119,17 @@ uem_result UCDynamicSocket_Create(IN SSocketInfo *pstSocketInfo, IN uem_bool bIs
 
     if(bIsServer == TRUE && pstSocketInfo->enSocketType == SOCKET_TYPE_UDS && pstSocketInfo->pszSocketPath == NULL)
     {
-    	ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+        ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+    }
+
+    if(pstSocketInfo->enSocketType == SOCKET_TYPE_BLUETOOTH && pstSocketInfo->pszSocketPath == NULL)
+    {
+        ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
 #endif
+    result = getSocketAPIByType(pstSocketInfo->enSocketType, &pstSocketAPI);
+    ERRIFGOTO(result, _EXIT);
+
     pstSocket = (SUCSocket *) UCAlloc_malloc(sizeof(SUCSocket));
     ERRMEMGOTO(pstSocket, result, _EXIT);
 
@@ -92,20 +142,14 @@ uem_result UCDynamicSocket_Create(IN SSocketInfo *pstSocketInfo, IN uem_bool bIs
 
     if(pstSocketInfo->pszSocketPath != NULL) // socket path is used
     {
-        result = UCString_New(&stInputPath, pstSocketInfo->pszSocketPath, UEMSTRING_CONST);
+        result = setSocketPath(pstSocket, pstSocketInfo->pszSocketPath);
         ERRIFGOTO(result, _EXIT);
+    }
 
-        if(UCString_Length(&stInputPath) > 0)
-        {
-        	pstSocket->pszSocketPath = (char *) UCAlloc_malloc(sizeof((UCString_Length(&stInputPath)+1) * sizeof(char)));
-            ERRMEMGOTO(pstSocket->pszSocketPath, result, _EXIT);
-
-            result = UCString_New(&(pstSocket->stSocketPath), pstSocket->pszSocketPath, (UCString_Length(&stInputPath)+1) * sizeof(char));
-            ERRIFGOTO(result, _EXIT);
-
-            result = UCString_Set(&(pstSocket->stSocketPath), &stInputPath);
-            ERRIFGOTO(result, _EXIT);
-        }
+    if(pstSocketAPI->fnCreate != NULL)
+    {
+        result = pstSocketAPI->fnCreate((HSocket)pstSocket, pstSocketInfo, bIsServer);
+        ERRIFGOTO(result, _EXIT);
     }
 
     *phSocket = (HSocket) pstSocket;
@@ -123,6 +167,7 @@ uem_result UCDynamicSocket_Destroy(IN OUT HSocket *phSocket)
 {
     uem_result result = ERR_UEM_UNKNOWN;
     SUCSocket *pstSocket = NULL;
+    SSocketAPI *pstSocketAPI = NULL;
 #ifdef ARGUMENT_CHECK
     IFVARERRASSIGNGOTO(phSocket, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
@@ -133,14 +178,16 @@ uem_result UCDynamicSocket_Destroy(IN OUT HSocket *phSocket)
 #endif
     pstSocket = (SUCSocket *) *phSocket;
 
+    result = getSocketAPIByType(pstSocket->enSocketType, &pstSocketAPI);
+    ERRIFGOTO(result, _EXIT);
+
     if(pstSocket->nSocketfd != SOCKET_FD_NOT_SET)
     {
         close(pstSocket->nSocketfd);
-		if(pstSocket->bIsServer == TRUE && pstSocket->pszSocketPath != NULL &&
-			pstSocket->enSocketType == SOCKET_TYPE_UDS)
-		{
-            unlink(pstSocket->pszSocketPath);
-		}
+        if(pstSocketAPI->fnDestroy != NULL)
+        {
+        	pstSocketAPI->fnDestroy((HSocket) pstSocket);
+        }
     }
 
     SAFEMEMFREE(pstSocket->pszSocketPath);
@@ -179,13 +226,7 @@ uem_result UCDynamicSocket_Bind(HSocket hServerSocket)
 {
     uem_result result = ERR_UEM_UNKNOWN;
     SUCSocket *pstSocket = NULL;
-#ifndef WIN32
-    struct sockaddr_un stServerAddr;
-    int nLen = 0;
-#endif
-    struct sockaddr_in stTCPServerAddr;
-    int nRet = 0;
-    struct linger stLinger;
+    SSocketAPI *pstSocketAPI = NULL;
 #ifdef ARGUMENT_CHECK
     if(IS_VALID_HANDLE(hServerSocket, ID_UEM_SOCKET) == FALSE)
     {
@@ -199,71 +240,14 @@ uem_result UCDynamicSocket_Bind(HSocket hServerSocket)
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_SOCKET, _EXIT);
     }
 #endif
-    switch(pstSocket->enSocketType)
+
+    result = getSocketAPIByType(pstSocket->enSocketType, &pstSocketAPI);
+    ERRIFGOTO(result, _EXIT);
+
+    if(pstSocketAPI->fnBind != NULL)
     {
-#ifndef WIN32
-    case SOCKET_TYPE_UDS:
-        pstSocket->nSocketfd = socket(AF_UNIX, SOCK_STREAM, 0);
-        if(pstSocket->nSocketfd < 0)
-        {
-            ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
-        }
-
-        stLinger.l_onoff = TRUE;
-        stLinger.l_linger = 0;
-        nRet = setsockopt(pstSocket->nSocketfd, SOL_SOCKET, SO_LINGER, &stLinger, sizeof(stLinger));
-        if(nRet != 0)
-        {
-            ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
-        }
-
-        UC_memset(&stServerAddr, 0, sizeof(stServerAddr));
-        stServerAddr.sun_family = AF_UNIX;
-        nLen = MIN(MAX_SUN_PATH-1, UCString_Length(&(pstSocket->stSocketPath)));
-
-        UC_memcpy(stServerAddr.sun_path, pstSocket->pszSocketPath, nLen);
-        stServerAddr.sun_path[nLen] = '\0';
-
-        nRet = bind(pstSocket->nSocketfd, (struct sockaddr *)&stServerAddr, sizeof(stServerAddr));
-        if(nRet != 0)
-        {
-        	UEM_DEBUG_PRINT("bind errno: %d, %s\n", errno, strerror(errno));
-            ERRASSIGNGOTO(result, ERR_UEM_BIND_ERROR, _EXIT);
-        }
-
-       break;
-#endif
-   case SOCKET_TYPE_TCP:
-        pstSocket->nSocketfd = socket(AF_INET, SOCK_STREAM, 0);
-        if(pstSocket->nSocketfd < 0)
-         {
-            ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
-         }
-
-        stLinger.l_onoff = TRUE;
-        stLinger.l_linger = 0;
-        //nRet = setsockopt(pstSocket->nSocketfd, SOL_SOCKET, TCP_NODELAY, &stLinger, sizeof(stLinger));
-        nRet = setsockopt(pstSocket->nSocketfd, SOL_SOCKET, SO_LINGER, (void *)&stLinger, sizeof(stLinger));
-        if(nRet != 0)
-        {
-            ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
-        }
-
-        UC_memset(&stTCPServerAddr, 0, sizeof(stTCPServerAddr));
-        stTCPServerAddr.sin_family = AF_INET;
-        stTCPServerAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-        stTCPServerAddr.sin_port = htons(pstSocket->nPort);
-
-        nRet = bind(pstSocket->nSocketfd, (struct sockaddr *)&stTCPServerAddr, sizeof(stTCPServerAddr));
-        if(nRet != 0)
-         {
-        	UEM_DEBUG_PRINT("bind errno: %d, %s\n", errno, strerror(errno));
-            ERRASSIGNGOTO(result, ERR_UEM_CONNECT_ERROR, _EXIT);
-         }
-        break;
-    default:
-        ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
-        break;
+    	result = pstSocketAPI->fnBind(hServerSocket);
+    	ERRIFGOTO(result, _EXIT);
     }
 
     result = ERR_UEM_NOERROR;
@@ -288,6 +272,11 @@ uem_result UCDynamicSocket_Listen(HSocket hServerSocket)
     if(pstSocket->bIsServer == FALSE)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_SOCKET, _EXIT);
+    }
+
+    if(pstSocket->enSocketType == SOCKET_TYPE_BLUETOOTH)
+    {
+        ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT);
     }
 #endif
     nRet = listen(pstSocket->nSocketfd, SOMAXCONN);
@@ -351,13 +340,7 @@ uem_result UCDynamicSocket_Accept(HSocket hServerSocket, IN int nTimeout, IN OUT
     SUCSocket *pstSocket = NULL;
     fd_set stReadSet;
     SUCSocket *pstCliSocket = NULL;
-#ifndef WIN32
-    struct sockaddr_un stClientAddr;
-    socklen_t nLen = 0;
-#else
-    struct sockaddr stClientAddr;
-    int nLen = 0;
-#endif
+    SSocketAPI *pstSocketAPI = NULL;
 #ifdef ARGUMENT_CHECK
     if(IS_VALID_HANDLE(hServerSocket, ID_UEM_SOCKET) == FALSE)
     {
@@ -381,6 +364,11 @@ uem_result UCDynamicSocket_Accept(HSocket hServerSocket, IN int nTimeout, IN OUT
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_SOCKET, _EXIT);
     }
+
+    if(pstSocket->enSocketType == SOCKET_TYPE_BLUETOOTH)
+    {
+        ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT);
+    }
 #endif
     if(pstCliSocket->bIsServer == TRUE || pstCliSocket->nSocketfd > 0)
     {
@@ -388,13 +376,16 @@ uem_result UCDynamicSocket_Accept(HSocket hServerSocket, IN int nTimeout, IN OUT
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_SOCKET, _EXIT);
     }
 
-    result = selectTimeout(pstSocket->nSocketfd, &stReadSet, NULL, NULL, nTimeout);
+    result = getSocketAPIByType(pstSocket->enSocketType, &pstSocketAPI);
     ERRIFGOTO(result, _EXIT);
 
-    pstCliSocket->nSocketfd = accept(pstSocket->nSocketfd, (struct sockaddr *) &stClientAddr, &nLen);
-    if(pstCliSocket->nSocketfd < 0)
+    if(pstSocketAPI->fnAccept != NULL)
     {
-        ERRASSIGNGOTO(result, ERR_UEM_ACCEPT_ERROR, _EXIT);
+        result = selectTimeout(pstSocket->nSocketfd, &stReadSet, NULL, NULL, nTimeout);
+        ERRIFGOTO(result, _EXIT);
+
+    	result = pstSocketAPI->fnAccept(hServerSocket, hSocket);
+    	ERRIFGOTO(result, _EXIT);
     }
 
     result = ERR_UEM_NOERROR;
@@ -407,15 +398,7 @@ uem_result UCDynamicSocket_Connect(HSocket hClientSocket, IN int nTimeout)
 {
     uem_result result = ERR_UEM_UNKNOWN;
     SUCSocket *pstSocket = NULL;
-#ifndef WIN32
-    struct sockaddr_un stClientAddr;
-    int nLen = 0;
-#endif
-    struct sockaddr_in stTCPClientAddr;
-
-    int nRet = 0;
-    fd_set stReadSet;
-    struct linger stLinger;
+    SSocketAPI *pstSocketAPI = NULL;
 #ifdef ARGUMENT_CHECK
     if(IS_VALID_HANDLE(hClientSocket, ID_UEM_SOCKET) == FALSE)
     {
@@ -434,76 +417,14 @@ uem_result UCDynamicSocket_Connect(HSocket hClientSocket, IN int nTimeout)
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_SOCKET, _EXIT);
     }
 #endif
-    switch(pstSocket->enSocketType)
+
+    result = getSocketAPIByType(pstSocket->enSocketType, &pstSocketAPI);
+    ERRIFGOTO(result, _EXIT);
+
+    if(pstSocketAPI->fnConnect != NULL)
     {
-#ifndef WIN32
-    case SOCKET_TYPE_UDS:
-        pstSocket->nSocketfd = socket(AF_UNIX, SOCK_STREAM, 0);
-        if(pstSocket->nSocketfd < 0)
-         {
-            ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
-         }
-
-        stLinger.l_onoff = TRUE;
-        stLinger.l_linger = 0;
-        nRet = setsockopt(pstSocket->nSocketfd, SOL_SOCKET, SO_LINGER, &stLinger, sizeof(stLinger));
-        if(nRet != 0)
-        {
-            ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
-        }
-
-        UC_memset(&stClientAddr, 0, sizeof(stClientAddr));
-        stClientAddr.sun_family = AF_UNIX;
-        nLen = MIN(MAX_SUN_PATH-1, UCString_Length(&(pstSocket->stSocketPath)));
-
-        UC_memcpy(stClientAddr.sun_path, pstSocket->pszSocketPath, nLen);
-        stClientAddr.sun_path[nLen] = '\0';
-
-        result = selectTimeout(pstSocket->nSocketfd, &stReadSet, NULL, NULL, nTimeout);
-        ERRIFGOTO(result, _EXIT);
-
-        nRet = connect(pstSocket->nSocketfd, (struct sockaddr *)&stClientAddr, sizeof(stClientAddr));
-        if(nRet != 0)
-        {
-            ERRASSIGNGOTO(result, ERR_UEM_CONNECT_ERROR, _EXIT);
-        }
-
-       break;
-#endif
-   case SOCKET_TYPE_TCP:
-        pstSocket->nSocketfd = socket(AF_INET, SOCK_STREAM, 0);
-        if(pstSocket->nSocketfd < 0)
-        {
-            ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
-        }
-
-        stLinger.l_onoff = TRUE;
-        stLinger.l_linger = 0;
-        nRet = setsockopt(pstSocket->nSocketfd, SOL_SOCKET, SO_LINGER, (void *)&stLinger, sizeof(stLinger));
-        if(nRet != 0)
-        {
-            ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
-        }
-
-        UC_memset(&stTCPClientAddr, 0, sizeof(stTCPClientAddr));
-        stTCPClientAddr.sin_family = AF_INET;
-        stTCPClientAddr.sin_addr.s_addr = inet_addr(pstSocket->pszSocketPath);
-        stTCPClientAddr.sin_port = htons(pstSocket->nPort);
-
-        result = selectTimeout(pstSocket->nSocketfd, &stReadSet, NULL, NULL, nTimeout);
-        ERRIFGOTO(result, _EXIT);
-
-        nRet = connect(pstSocket->nSocketfd, (struct sockaddr *)&stTCPClientAddr, sizeof(stTCPClientAddr));
-        if(nRet != 0)
-        {
-            ERRASSIGNGOTO(result, ERR_UEM_CONNECT_ERROR, _EXIT);
-        }
-
-       break;
-
-    default:
-        ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
-        break;
+    	result = pstSocketAPI->fnConnect(hClientSocket, nTimeout);
+    	ERRIFGOTO(result, _EXIT);
     }
 
     result = ERR_UEM_NOERROR;
@@ -604,4 +525,34 @@ uem_result UCDynamicSocket_Receive(HSocket hSocket, IN int nTimeout, IN OUT char
 _EXIT:
     return result;
 }
+
+
+uem_result UCDynamicSocket_SetAPIList(ESocketType enSocketType, SSocketAPI *pstSocketAPIList)
+{
+    uem_result result = ERR_UEM_UNKNOWN;
+#ifdef ARGUMENT_CHECK
+    IFVARERRASSIGNGOTO(pstSocketAPIList, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+#endif
+    switch(enSocketType)
+    {
+    case SOCKET_TYPE_TCP:
+        s_stSocketAPIs.pstTCPAPI = pstSocketAPIList;
+        break;
+    case SOCKET_TYPE_UDS:
+        s_stSocketAPIs.pstUnixDomainSocketAPI = pstSocketAPIList;
+        break;
+    case SOCKET_TYPE_BLUETOOTH:
+        s_stSocketAPIs.pstBluetoothAPI = pstSocketAPIList;
+        break;
+    default:
+        ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+        break;
+    }
+
+    result = ERR_UEM_NOERROR;
+_EXIT:
+    return result;
+}
+
+
 
