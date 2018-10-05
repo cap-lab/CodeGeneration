@@ -57,7 +57,7 @@ uem_result UCTCPSocket_Bind(HSocket hSocket)
    if(nRet != 0)
    {
 	   UEM_DEBUG_PRINT("bind errno: %d, %s\n", errno, strerror(errno));
-	   ERRASSIGNGOTO(result, ERR_UEM_CONNECT_ERROR, _EXIT);
+	   ERRASSIGNGOTO(result, ERR_UEM_BIND_ERROR, _EXIT);
    }
 
 	result = ERR_UEM_NOERROR;
@@ -91,14 +91,13 @@ _EXIT:
 	return result;
 }
 
-
+// TODO: nTimeout must be implemented
 uem_result UCTCPSocket_Connect(HSocket hSocket, IN int nTimeout)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SUCSocket *pstSocket = NULL;
     struct sockaddr_in stTCPClientAddr;
     int nRet = 0;
-    //fd_set stReadSet;
     struct linger stLinger;
 
 	pstSocket = (SUCSocket *) hSocket;
@@ -121,10 +120,6 @@ uem_result UCTCPSocket_Connect(HSocket hSocket, IN int nTimeout)
     stTCPClientAddr.sin_family = AF_INET;
     stTCPClientAddr.sin_addr.s_addr = inet_addr(pstSocket->pszSocketPath);
     stTCPClientAddr.sin_port = htons(pstSocket->nPort);
-
-    // TODO: please check this
-    //result = selectTimeout(pstSocket->nSocketfd, &stReadSet, NULL, NULL, nTimeout);
-    //ERRIFGOTO(result, _EXIT);
 
     nRet = connect(pstSocket->nSocketfd, (struct sockaddr *)&stTCPClientAddr, sizeof(stTCPClientAddr));
     if(nRet != 0)

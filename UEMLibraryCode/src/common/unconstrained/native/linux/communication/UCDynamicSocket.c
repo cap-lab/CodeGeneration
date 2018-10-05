@@ -261,6 +261,7 @@ uem_result UCDynamicSocket_Listen(HSocket hServerSocket)
     uem_result result = ERR_UEM_UNKNOWN;
     SUCSocket *pstSocket = NULL;
     int nRet = 0;
+    int nMaxAllowConnections = 0;
 #ifdef ARGUMENT_CHECK
     if(IS_VALID_HANDLE(hServerSocket, ID_UEM_SOCKET) == FALSE)
     {
@@ -279,7 +280,16 @@ uem_result UCDynamicSocket_Listen(HSocket hServerSocket)
         ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT);
     }
 #endif
-    nRet = listen(pstSocket->nSocketfd, SOMAXCONN);
+    switch(pstSocket->enSocketType)
+    {
+    case SOCKET_TYPE_BLUETOOTH:
+    	nMaxAllowConnections = 1;
+    	break;
+    default:
+    	nMaxAllowConnections = SOMAXCONN;
+    	break;
+    }
+    nRet = listen(pstSocket->nSocketfd, nMaxAllowConnections);
     if(nRet != 0)
     {
         ERRASSIGNGOTO(result, ERR_UEM_LISTEN_ERROR, _EXIT);

@@ -89,6 +89,7 @@ _EXIT:
 	return result;
 }
 
+// TODO: nTimeout must be implemented
 uem_result UCUnixDomainSocket_Connect(HSocket hSocket, IN int nTimeout)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -96,7 +97,6 @@ uem_result UCUnixDomainSocket_Connect(HSocket hSocket, IN int nTimeout)
     struct sockaddr_un stClientAddr;
     int nLen = 0;
     int nRet = 0;
-    //fd_set stReadSet;
     struct linger stLinger;
 
 	pstSocket = (SUCSocket *) hSocket;
@@ -121,10 +121,6 @@ uem_result UCUnixDomainSocket_Connect(HSocket hSocket, IN int nTimeout)
 
     UC_memcpy(stClientAddr.sun_path, pstSocket->pszSocketPath, nLen);
     stClientAddr.sun_path[nLen] = '\0';
-
-    // TODO: please check this
-    //result = selectTimeout(pstSocket->nSocketfd, &stReadSet, NULL, NULL, nTimeout);
-    //ERRIFGOTO(result, _EXIT);
 
     nRet = connect(pstSocket->nSocketfd, (struct sockaddr *)&stClientAddr, sizeof(stClientAddr));
     if(nRet != 0)
