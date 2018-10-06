@@ -17,7 +17,12 @@
 
 #include <UCThreadMutex.h>
 
-#include "UCThreadMutex_data.h"
+typedef struct _SThreadMutex {
+	EUemModuleId enId;
+	uem_bool bInMutex;
+	uem_bool bIsStatic;
+    pthread_mutex_t hMutex;
+} SThreadMutex;
 
 uem_result UCThreadMutex_Create(HThreadMutex *phMutex)
 {

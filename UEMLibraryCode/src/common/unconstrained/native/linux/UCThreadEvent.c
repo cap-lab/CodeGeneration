@@ -21,7 +21,13 @@
 #include <UCAlloc.h>
 #include <UCThreadEvent.h>
 
-#include "UCThreadEvent_data.h"
+typedef struct _SThreadEvent {
+	EUemModuleId enId;
+	uem_bool bIsSet;
+	uem_bool bIsStatic;
+	pthread_mutex_t hMutex;
+	pthread_cond_t hCond;
+} SThreadEvent;
 
 uem_result UCThreadEvent_Create(HThreadEvent *phEvent)
 {

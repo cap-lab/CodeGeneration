@@ -14,6 +14,7 @@
 #include <UCBasic.h>
 #include <UCAlloc.h>
 #include <UCDynamicSocket.h>
+#include <UCEndian.h>
 
 #include <UKUEMProtocol.h>
 
@@ -82,81 +83,6 @@ _EXIT:
 	return result;
 }
 
-inline static uem_bool intToLittleEndianChar(int nValue, char *pBuffer, int nBufferLen)
-{
-    if(nBufferLen < sizeof(int))
-    {
-        return FALSE;
-    }
-#ifdef WORDS_BIGENDIAN
-    pBuffer[0] = nValue & 0xFF;
-    pBuffer[1] = (nValue >> 8) & 0xFF;
-    pBuffer[2] = (nValue >> 16) & 0xFF;
-    pBuffer[3] = (nValue >> 24) & 0xFF;
-#else
-    int *pnDst;
-    pnDst = (int *) pBuffer;
-    *pnDst = nValue;
-#endif
-    return TRUE;
-}
-
-inline static uem_bool shortToLittleEndianChar(short sValue, char *pBuffer, int nBufferLen)
-{
-    if(nBufferLen < sizeof(short))
-    {
-        return FALSE;
-    }
-#ifdef WORDS_BIGENDIAN
-    pBuffer[0] = sValue & 0xFF;
-    pBuffer[1] = (sValue >> 8) & 0xFF;
-#else
-    short *psDst;
-    psDst = (short *) pBuffer;
-    *psDst = sValue;
-#endif
-
-    return TRUE;
-}
-
-
-inline static uem_bool littleEndianCharToSystemInt(char *pBuffer, int nBufferLen, int *pnValue)
-{
-    if(nBufferLen < sizeof(int))
-    {
-        return FALSE;
-    }
-#ifdef WORDS_BIGENDIAN
-    *pnValue =  pBuffer[0];
-    *pnValue = *pnValue | ((int) pBuffer[1] << 8);
-    *pnValue = *pnValue | ((int) pBuffer[2] << 16);
-    *pnValue = *pnValue | ((int) pBuffer[3] << 24);
-#else
-    int *pnDst;
-    pnDst = (int *) pBuffer;
-    *pnValue = *pnDst;
-#endif
-    return TRUE;
-}
-
-inline static uem_bool littleEndianCharToSystemShort(char *pBuffer, int nBufferLen, short *psValue)
-{
-    if(nBufferLen < sizeof(short))
-    {
-        return FALSE;
-    }
-#ifdef WORDS_BIGENDIAN
-    *psValue =  pBuffer[0];
-    *psValue = *psValue | ((short) pBuffer[1] << 8);
-#else
-    short *psDst;
-    psDst = (short *) pBuffer;
-    *psValue = *psDst;
-#endif
-    return TRUE;
-}
-
-
 
 uem_result UKUEMProtocol_Create(OUT HUEMProtocol *phProtocol)
 {
@@ -219,19 +145,19 @@ static uem_result makeFullMessage(SUEMProtocolData *pstProtocolData, short sHead
 	nIndex = 0;
 	nLeftBufferLen = pstProtocolData->nFullMessageBufLen;
 
-	bConverted = shortToLittleEndianChar(sHeaderLength, pstProtocolData->pFullMessage + nIndex, nLeftBufferLen);
+	bConverted = UCEndian_SystemShortToLittleEndianChar(sHeaderLength, pstProtocolData->pFullMessage + nIndex, nLeftBufferLen);
 	IFVARERRASSIGNGOTO(bConverted, FALSE, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 
 	nIndex += PRE_HEADER_LENGTH;
 	nLeftBufferLen -= PRE_HEADER_LENGTH;
 
-	bConverted = intToLittleEndianChar(pstProtocolData->unKey, pstProtocolData->pFullMessage + nIndex, nLeftBufferLen);
+	bConverted = UCEndian_SystemIntToLittleEndianChar(pstProtocolData->unKey, pstProtocolData->pFullMessage + nIndex, nLeftBufferLen);
 	IFVARERRASSIGNGOTO(bConverted, FALSE, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 
 	nIndex += HEADER_KEY_SIZE;
 	nLeftBufferLen -= HEADER_KEY_SIZE;
 
-	bConverted = shortToLittleEndianChar(pstProtocolData->sMessagePacket, pstProtocolData->pFullMessage + nIndex, nLeftBufferLen);
+	bConverted = UCEndian_SystemShortToLittleEndianChar(pstProtocolData->sMessagePacket, pstProtocolData->pFullMessage + nIndex, nLeftBufferLen);
 	IFVARERRASSIGNGOTO(bConverted, FALSE, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 
 	nIndex += MESSAGE_PACKET_SIZE;
@@ -239,7 +165,7 @@ static uem_result makeFullMessage(SUEMProtocolData *pstProtocolData, short sHead
 
 	for(nLoop = 0 ; nLoop < pstProtocolData->nParamNum; nLoop++)
 	{
-		bConverted = intToLittleEndianChar(pstProtocolData->anMessageParam[nLoop], pstProtocolData->pFullMessage + nIndex, nLeftBufferLen);
+		bConverted = UCEndian_SystemIntToLittleEndianChar(pstProtocolData->anMessageParam[nLoop], pstProtocolData->pFullMessage + nIndex, nLeftBufferLen);
 		IFVARERRASSIGNGOTO(bConverted, FALSE, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 
 		nIndex += MESSAGE_PARAMETER_SIZE;
@@ -598,7 +524,7 @@ static uem_result receiveHeader(HSocket hSocket, char *pHeaderBuffer, int nBuffe
 		nTotalDataReceived += nDataReceived;
 	}
 
-	bConverted = littleEndianCharToSystemShort(pHeaderBuffer, PRE_HEADER_LENGTH, &sHeaderLength);
+	bConverted = UCEndian_LittleEndianCharToSystemShort(pHeaderBuffer, PRE_HEADER_LENGTH, &sHeaderLength);
 	IFVARERRASSIGNGOTO(bConverted, FALSE, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 
 	if(sHeaderLength < MIN_HEADER_LENGTH || sHeaderLength > MAX_HEADER_LENGTH)
@@ -634,12 +560,12 @@ static uem_result parseHeader(SUEMProtocolData *pstDataReceived, char *pHeader, 
 	int nIndex = 0;
 	int nLoop = 0;
 
-	bConverted = littleEndianCharToSystemInt(pHeader, nHeaderLength, (int *) &(pstDataReceived->unKey));
+	bConverted = UCEndian_LittleEndianCharToSystemInt(pHeader, nHeaderLength, (int *) &(pstDataReceived->unKey));
 	IFVARERRASSIGNGOTO(bConverted, FALSE, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 
 	nIndex += HEADER_KEY_SIZE;
 
-	bConverted = littleEndianCharToSystemShort(pHeader + nIndex, nHeaderLength - nIndex, &(pstDataReceived->sMessagePacket));
+	bConverted = UCEndian_LittleEndianCharToSystemShort(pHeader + nIndex, nHeaderLength - nIndex, &(pstDataReceived->sMessagePacket));
 	IFVARERRASSIGNGOTO(bConverted, FALSE, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 
 	result = UKUEMProtocol_GetMessageParamNumByMessageType((EMessageType) pstDataReceived->sMessagePacket, &(pstDataReceived->nParamNum));
@@ -649,7 +575,7 @@ static uem_result parseHeader(SUEMProtocolData *pstDataReceived, char *pHeader, 
 
 	for(nLoop = 0 ; nLoop < pstDataReceived->nParamNum ; nLoop++)
 	{
-		bConverted = littleEndianCharToSystemInt(pHeader + nIndex, nHeaderLength - nIndex, &(pstDataReceived->anMessageParam[nLoop]));
+		bConverted = UCEndian_LittleEndianCharToSystemInt(pHeader + nIndex, nHeaderLength - nIndex, &(pstDataReceived->anMessageParam[nLoop]));
 		IFVARERRASSIGNGOTO(bConverted, FALSE, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 
 		nIndex += MESSAGE_PARAMETER_SIZE;

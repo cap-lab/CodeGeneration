@@ -14,6 +14,8 @@
 
 #include <uem_data.h>
 
+#include <uem_protocol_data.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -40,23 +42,6 @@ extern "C"
 #define RESULT_ERROR_CODE_INDEX (0)
 #define RESULT_BODY_SIZE_INDEX (1)
 #define RESULT_RETURN_VALUE_INDEX (1)
-
-typedef enum _EMessageType {
-	MESSAGE_TYPE_HANDSHAKE = 0,
-	MESSAGE_TYPE_READ_QUEUE = 1,
-	MESSAGE_TYPE_READ_BUFFER = 2,
-	MESSAGE_TYPE_AVAILABLE_INDEX = 3,
-	MESSAGE_TYPE_AVAILABLE_DATA = 4,
-	MESSAGE_TYPE_RESULT = 5,
-
-	MESSAGE_TYPE_NONE = -1,
-} EMessageType;
-
-typedef enum _EProtocolError {
-	ERR_UEMPROTOCOL_NOERROR = 0,
-	ERR_UEMPROTOCOL_ERROR = -1,
-	ERR_UEMPROTOCOL_INTERNAL = -2,
-} EProtocolError;
 
 typedef struct _SUEMProtocol *HUEMProtocol;
 
