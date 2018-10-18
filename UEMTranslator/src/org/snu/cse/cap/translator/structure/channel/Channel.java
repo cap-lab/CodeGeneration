@@ -19,7 +19,7 @@ public class Channel implements Cloneable {
 	private int initialDataLen;
 	private int nextChannelIndex;
 	private int channelSampleSize;
-	private int tcpClientIndex;
+	private int socketInfoIndex;
 	
 	public Channel(int index, int size, int initialDataLen, int sampleSize) {
 		this.size = size;
@@ -28,7 +28,7 @@ public class Channel implements Cloneable {
 		this.initialDataLen = initialDataLen;
 		this.nextChannelIndex = Constants.INVALID_ID_VALUE;
 		this.channelSampleSize = sampleSize;
-		this.tcpClientIndex = Constants.INVALID_ID_VALUE;
+		this.socketInfoIndex = Constants.INVALID_ID_VALUE;
 		this.inputPortIndex = Constants.INVALID_VALUE;
 		this.outputPortIndex = Constants.INVALID_VALUE;
 	}
@@ -47,7 +47,7 @@ public class Channel implements Cloneable {
 		channel.initialDataLen = this.initialDataLen;
 		channel.nextChannelIndex = this.nextChannelIndex;
 		channel.channelSampleSize = this.channelSampleSize;
-		channel.tcpClientIndex = this.tcpClientIndex;
+		channel.socketInfoIndex = this.socketInfoIndex;
 		
 		// Shallow copy for these two objects
 		channel.inputPort = this.inputPort;
@@ -182,12 +182,12 @@ public class Channel implements Cloneable {
 		return channelSampleSize;
 	}
 
-	public int getTcpClientIndex() {
-		return tcpClientIndex;
+	public int getSocketInfoIndex() {
+		return socketInfoIndex;
 	}
 
-	public void setTcpClientIndex(int tcpClientIndex) {
-		this.tcpClientIndex = tcpClientIndex;
+	public void setSocketInfoIndex(int socketInfoIndex) {
+		this.socketInfoIndex = socketInfoIndex;
 	}
 
 	public InMemoryAccessType getAccessType() {

@@ -57,12 +57,17 @@ public class Constants {
 	public static final String TEMPLATE_TAG_EXECUTION_TIME = "execution_time";
 	public static final String TEMPLATE_TAG_LIBRARY_INFO = "library_info";
 	public static final String TEMPLATE_TAG_DEVICE_CONSTRAINED_INFO = "device_constrained_info";
+	public static final String TEMPLATE_TAG_USED_COMMUNICATION_LIST = "used_communication_list";
 	
 	public static final String TEMPLATE_TAG_GPU_USED = "gpu_used";
 	public static final String TEMPLATE_TAG_COMMUNICATION_USED = "communication_used";
 	public static final String TEMPLATE_TAG_TCP_SERVER_LIST = "tcp_server_list";
 	public static final String TEMPLATE_TAG_TCP_CLIENT_LIST = "tcp_client_list";
 	public static final String TEMPLATE_TAG_MODULE_LIST = "module_list";
+	public static final String TEMPLATE_TAG_BLUETOOTH_MASTER_LIST = "bluetooth_master_list";
+	public static final String TEMPLATE_TAG_BLUETOOTH_SLAVE_LIST = "bluetooth_slave_list";
+	public static final String TEMPLATE_TAG_SERIAL_MASTER_LIST = "serial_master_list";
+	public static final String TEMPLATE_TAG_SERIAL_SLAVE_LIST = "serial_slave_list";
 	
 	// tags for Makefile.ftl
 	public static final String TEMPLATE_TAG_BUILD_INFO = "build_info";

@@ -454,16 +454,48 @@ public class Application {
 		if(connectionPair == null) {
 			throw new InvalidDeviceConnectionException();
 		}
-		
-		if(connectionPair.getMasterConnection().getProtocol() != ProtocolType.TCP) {
+			
+		switch(connectionPair.getMasterConnection().getProtocol())
+		{
+		case SERIAL:
+			switch(connectionPair.getMasterConnection().getNetwork())
+			{
+			case BLUETOOTH:
+				if(connectionPair.getMasterDeviceName().equals(srcTaskDevice) == true) {
+
+					channel.setCommunicationType(CommunicationType.BLUETOOTH_MASTER_WRITER);	
+				}
+				else {
+					channel.setCommunicationType(CommunicationType.BLUETOOTH_SLAVE_WRITER);
+				}
+				break;
+			case USB:
+			case WIRE:
+				if(connectionPair.getMasterDeviceName().equals(srcTaskDevice) == true) {
+
+					channel.setCommunicationType(CommunicationType.SERIAL_MASTER_WRITER);	
+				}
+				else {
+					channel.setCommunicationType(CommunicationType.SERIAL_SLAVE_WRITER);
+				}
+				break;
+			case ETHERNET_WI_FI:
+				break;
+			default:
+				throw new UnsupportedOperationException();				
+			}
+			break;
+		case TCP:
+			if(connectionPair.getMasterDeviceName().equals(srcTaskDevice) == true) {
+
+				channel.setCommunicationType(CommunicationType.TCP_SERVER_WRITER);	
+			}
+			else {
+				channel.setCommunicationType(CommunicationType.TCP_CLIENT_WRITER);
+			}
+			break;
+		default:
 			throw new UnsupportedOperationException();
-		}
-		
-		if(connectionPair.getMasterDeviceName().equals(srcTaskDevice) == true) {
-			channel.setCommunicationType(CommunicationType.TCP_SERVER_WRITER);	
-		}
-		else {
-			channel.setCommunicationType(CommunicationType.TCP_CLIENT_WRITER);
 		}
 	}
 	
@@ -646,6 +678,18 @@ public class Application {
 		case TCP_SERVER_WRITER:
 			dstTaskCommunicationType = CommunicationType.TCP_CLIENT_READER;
 			break;
+		case BLUETOOTH_SLAVE_WRITER:
+			dstTaskCommunicationType = CommunicationType.BLUETOOTH_MASTER_READER;
+			break;
+		case BLUETOOTH_MASTER_WRITER:
+			dstTaskCommunicationType = CommunicationType.BLUETOOTH_SLAVE_READER;
+			break;
+		case SERIAL_SLAVE_WRITER:
+			dstTaskCommunicationType = CommunicationType.SERIAL_MASTER_READER;
+			break;
+		case SERIAL_MASTER_WRITER:
+			dstTaskCommunicationType = CommunicationType.SERIAL_SLAVE_READER;
+			break;
 		default:
 			throw new UnsupportedOperationException();
 		}
@@ -653,25 +697,150 @@ public class Application {
 		return dstTaskCommunicationType;
 	}
 	
-	private void findAndSetTCPClientIndex(Channel channel, Device srcDevice, Device dstDevice) throws InvalidDeviceConnectionException
+	private void setSocketIndexFromTCPConnection(Channel channel, Device targetDevice, ConnectionPair connectionPair)
+	{
+		int index = 0;
+		Connection connection = null;
+		
+		connection = (TCPConnection) connectionPair.getSlaveConnection();
+		
+		for(index = 0 ; index < targetDevice.getTcpClientList().size(); index++)
+		{
+			TCPConnection tcpConnection = targetDevice.getTcpClientList().get(index);
+			
+			if(tcpConnection.getName().equals(connection.getName()) == true)
+			{
+				// same connection name
+				channel.setSocketInfoIndex(index);
+				break;
+			}
+		}
+	}
+	
+	private void setSocketIndexFromConstrainedSerialConnection(Channel channel, Device targetDevice, ConnectionPair connectionPair) throws InvalidDeviceConnectionException
+	{
+		int index = 0;
+		ConstrainedSerialConnection connection = null;
+		ArrayList<ConstrainedSerialConnection> connectionList = null;
+		
+		switch(channel.getCommunicationType())
+		{
+		case BLUETOOTH_SLAVE_WRITER:
+		case BLUETOOTH_SLAVE_READER:
+		case SERIAL_SLAVE_WRITER:
+		case SERIAL_SLAVE_READER:
+			connectionList = targetDevice.getSerialConstrainedSlaveList();
+			connection = (ConstrainedSerialConnection) connectionPair.getSlaveConnection();
+			break;
+		case BLUETOOTH_MASTER_READER:
+		case BLUETOOTH_MASTER_WRITER:
+		case SERIAL_MASTER_READER:
+		case SERIAL_MASTER_WRITER:
+		case TCP_SERVER_READER:
+		case TCP_SERVER_WRITER:
+		case TCP_CLIENT_WRITER:
+		case TCP_CLIENT_READER:
+		case SHARED_MEMORY:			
+		default:
+			throw new InvalidDeviceConnectionException();	
+		}
+		
+		connection.incrementChannelAccessNum();
+			
+		for(index = 0 ; index < connectionList.size(); index++)
+		{
+			ConstrainedSerialConnection serialConnection = connectionList.get(index);
+			
+			if(serialConnection.getName().equals(connection.getName()) == true)
+			{
+				// same connection name
+				channel.setSocketInfoIndex(index);
+				break;
+			}
+		}
+	}
+	
+	private void setSocketIndexFromUnconstrainedSerialConnection(Channel channel, Device targetDevice, ConnectionPair connectionPair) throws InvalidDeviceConnectionException
+	{
+		int index = 0;
+		UnconstrainedSerialConnection connection = null;
+		ArrayList<UnconstrainedSerialConnection> connectionList = null;
+		
+		switch(channel.getCommunicationType())
+		{
+		case BLUETOOTH_MASTER_READER:
+		case BLUETOOTH_MASTER_WRITER:
+			connectionList = targetDevice.getBluetoothMasterList();
+			connection = (UnconstrainedSerialConnection) connectionPair.getMasterConnection();
+			break;
+		case SERIAL_MASTER_READER:
+		case SERIAL_MASTER_WRITER:
+			connectionList = targetDevice.getSerialMasterList();
+			connection = (UnconstrainedSerialConnection) connectionPair.getMasterConnection();
+			break;
+		case BLUETOOTH_SLAVE_WRITER:
+		case BLUETOOTH_SLAVE_READER:
+			connectionList = targetDevice.getBluetoothUnconstrainedSlaveList();
+			connection = (UnconstrainedSerialConnection) connectionPair.getSlaveConnection();
+			break;
+		case SERIAL_SLAVE_WRITER:
+		case SERIAL_SLAVE_READER:
+			connectionList = targetDevice.getSerialUnconstrainedSlaveList();
+			connection = (UnconstrainedSerialConnection) connectionPair.getSlaveConnection();
+			break;
+		case TCP_SERVER_READER:
+		case TCP_SERVER_WRITER:
+		case TCP_CLIENT_WRITER:
+		case TCP_CLIENT_READER:
+		case SHARED_MEMORY:			
+		default:
+			throw new InvalidDeviceConnectionException();	
+		}
+		
+		connection.incrementChannelAccessNum();
+		
+		for(index = 0 ; index < connectionList.size(); index++)
+		{
+			UnconstrainedSerialConnection serialConnection = connectionList.get(index);
+			
+			if(serialConnection.getName().equals(connection.getName()) == true)
+			{
+				// same connection name
+				channel.setSocketInfoIndex(index);
+				break;
+			}
+		}
+	}
+	
+	private void findAndSetSocketInfoIndex(Channel channel, Device srcDevice, Device dstDevice) throws InvalidDeviceConnectionException
 	{
 		DeviceConnection srcTaskConnection = this.deviceConnectionList.get(srcDevice.getName());
 		DeviceConnection dstTaskConnection = this.deviceConnectionList.get(dstDevice.getName());
 		ConnectionPair connectionPair = null;
 		Device targetDevice;
-		TCPConnection connection;
-		int index = 0;
-		
-		if(channel.getCommunicationType() == CommunicationType.TCP_CLIENT_WRITER)
+
+		switch(channel.getCommunicationType())
 		{
-			targetDevice = srcDevice;
-		}
-		else if(channel.getCommunicationType() == CommunicationType.TCP_CLIENT_READER)
-		{
+		case BLUETOOTH_MASTER_READER:
+		case BLUETOOTH_SLAVE_READER:
+		case SERIAL_MASTER_READER:
+		case SERIAL_SLAVE_READER:
+		case TCP_CLIENT_READER:
 			targetDevice = dstDevice;
-		}
-		else {
-			throw new InvalidDeviceConnectionException();
+			break;
+		case BLUETOOTH_MASTER_WRITER:
+		case BLUETOOTH_SLAVE_WRITER:
+		case SERIAL_MASTER_WRITER:
+		case SERIAL_SLAVE_WRITER:
+		case TCP_CLIENT_WRITER:
+			targetDevice = srcDevice;
+			break;
+		case TCP_SERVER_READER:
+		case TCP_SERVER_WRITER:
+		case SHARED_MEMORY:
+			return; // do nothing with other channel type
+		default:
+			throw new InvalidDeviceConnectionException();	
 		}
 		
 		if(srcTaskConnection != null) {// source is master
@@ -683,19 +852,25 @@ public class Application {
 		else {
 			throw new InvalidDeviceConnectionException();
 		}
-				
-		connection = (TCPConnection) connectionPair.getSlaveConnection();
 		
-		for(index = 0 ; index < targetDevice.getTcpClientList().size(); index++)
+		switch(targetDevice.getPlatform())
 		{
-			TCPConnection tcpConnection = targetDevice.getTcpClientList().get(index);
-			
-			if(tcpConnection.getName().equals(connection.getName()) == true)
-			{
-				// same connection name
-				channel.setTcpClientIndex(index);
-				break;
+		case ARDUINO:
+			setSocketIndexFromConstrainedSerialConnection(channel, targetDevice, connectionPair);	
+			break;
+		case LINUX:
+			if(connectionPair.getMasterConnection().getProtocol() == ProtocolType.TCP) {
+				setSocketIndexFromTCPConnection(channel, targetDevice, connectionPair);	
 			}
+			else {
+				setSocketIndexFromUnconstrainedSerialConnection(channel, targetDevice, connectionPair);				
+			}
+			break;
+		case UCOS3:
+		case WINDOWS:
+		default:
+			break;
+		
 		}
 	}
 	
@@ -710,14 +885,11 @@ public class Application {
 		putPortIntoDeviceHierarchically(srcDevice, channel.getInputPort(), PortDirection.INPUT);
 		putPortIntoDeviceHierarchically(srcDevice, channel.getOutputPort(), PortDirection.OUTPUT);
 		
-		if(channel.getCommunicationType() == CommunicationType.TCP_CLIENT_WRITER)
-		{
-			findAndSetTCPClientIndex(channel, srcDevice, dstDevice);
-		}
+		findAndSetSocketInfoIndex(channel, srcDevice, dstDevice);
 		
 		srcDevice.getChannelList().add(channel);
 		
-		// if src and dst is different put same information to dst device
+		// if src and dst are different put same information to dst device
 		if(srcTaskMappingInfo.getMappedDeviceName().equals(dstTaskMappingInfo.getMappedDeviceName()) == false)
 		{
 			Channel channelInDevice = channel.clone();
@@ -727,11 +899,8 @@ public class Application {
 			channelInDevice.setCommunicationType(getDstTaskCommunicationType(channel.getCommunicationType()));
 			setInMemoryAccessTypeOfRemoteChannel(channelInDevice, dstTaskMappingInfo, false);
 			
-			if(channelInDevice.getCommunicationType() == CommunicationType.TCP_CLIENT_READER)
-			{				
-				findAndSetTCPClientIndex(channelInDevice, srcDevice, dstDevice);
-			}
-			
+			findAndSetSocketInfoIndex(channelInDevice, srcDevice, dstDevice);
+						
 			dstDevice.getChannelList().add(channelInDevice);
 		}
 	}

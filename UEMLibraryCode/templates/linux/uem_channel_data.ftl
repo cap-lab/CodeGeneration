@@ -8,8 +8,12 @@
 
 <#if communication_used == true>
 #include <UCDynamicSocket.h>
+#include <UCFixedSizeQueue.h>
 	<#if used_communication_list?seq_contains("tcp")>
 #include <UCTCPSocket.h>
+	</#if>
+	<#if used_communication_list?seq_contains("bluetooth")>
+#include <UCBluetoothSocket.h>
 	</#if>
 </#if>
 
@@ -27,6 +31,13 @@
 #include <UKTCPSocketChannel.h>
 
 #include <uem_tcp_data.h>
+	</#if>
+	
+	<#if used_communication_list?seq_contains("bluetooth")>
+#include <UKBluetoothModule.h>
+#include <UKBluetoothChannel.h>
+
+#include <uem_bluetooth_data.h>
 	</#if>
 </#if>
 <#if gpu_used == true>
@@ -145,6 +156,69 @@ SExternalCommunicationInfo g_astExternalCommunicationInfo[] = {
 // ##TCP_COMMUNICATION_GENERATION_TEMPLATE::END
 </#if>
 
+<#if used_communication_list?seq_contains("bluetooth")>
+SBluetoothInfo g_astBluetoothMasterInfo[] = {
+	<#list bluetooth_master_list as master>
+	{
+		"${master.portAddress}", // target mac address
+		NULL, // socket handle
+		NULL, // thread handle
+		NULL, // connector handle
+		${master.channelAccessNum}, // max channel access number
+		NULL, // Serial communication manager handle
+		FALSE, // initialized or not
+	},
+	</#list>
+};
+
+SBluetoothInfo g_astBluetoothSlaveInfo[] = {
+	<#list bluetooth_slave_list as slave>
+	{
+		"${slave.portAddress}", // slave mac address
+		NULL, // socket handle
+		NULL, // thread handle
+		NULL, // connector handle
+		${slave.channelAccessNum}, // max channel access number
+		NULL, // Serial communication manager handle
+		FALSE, // initialized or not
+	},
+	</#list>
+};
+
+</#if>
+
+<#if used_communication_list?seq_contains("serial")>
+SSerialInfo g_astSerialMasterInfo[] = {
+	<#list serial_master_list as master>
+	{
+		"${master.portAddress}", // serial port path
+		NULL, // thread handle
+		NULL, // connector handle
+		${master.channelAccessNum}, // max channel access number
+		NULL, // Serial communication manager handle	
+		FALSE, // initialized or not
+	},
+	</#list>
+};
+
+
+SSerialInfo g_astSerialSlaveInfo[] = {
+	<#list serial_slave_list as slave>
+	{
+		"${slave.portAddress}", // serial port path
+		NULL, // thread handle
+		NULL, // connector handle
+		${slave.channelAccessNum}, // max channel access number
+		NULL, // Serial communication manager handle	
+		FALSE, // initialized or not
+	},
+	</#list>
+};
+
+
+</#if>
+
+
 SGenericMemoryAccess g_stHostMemory = {
 	UKHostMemorySystem_CreateMemory,
 	UKHostMemorySystem_CopyToMemory,
@@ -195,71 +269,77 @@ SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 		<#case "SHARED_MEMORY">
 		<#case "TCP_SERVER_WRITER">
 		<#case "TCP_CLIENT_WRITER">
+		<#case "BLUETOOTH_MASTER_WRITER">
+		<#case "BLUETOOTH_SLAVE_WRITER">
+		<#case "SERIAL_SLAVE_WRITER">
 SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
-		ACCESS_TYPE_${channel.accessType},
+	ACCESS_TYPE_${channel.accessType},
 			<#switch channel.accessType>
 				<#case "CPU_ONLY">
 				<#case "CPU_GPU">
 				<#case "GPU_CPU">
-		s_pChannel_${channel.index}_buffer, // Channel buffer pointer
-		s_pChannel_${channel.index}_buffer, // Channel data start
-		s_pChannel_${channel.index}_buffer, // Channel data end
+	s_pChannel_${channel.index}_buffer, // Channel buffer pointer
+	s_pChannel_${channel.index}_buffer, // Channel data start
+	s_pChannel_${channel.index}_buffer, // Channel data end
 					<#break>
 				<#case "GPU_GPU">
 				<#case "GPU_GPU_DIFFERENT">
-		NULL, // Channel buffer pointer
-		NULL, // Channel data start
-		NULL, // Channel data end
+	NULL, // Channel buffer pointer
+	NULL, // Channel data start
+	NULL, // Channel data end
 					<#break>
 			</#switch>
-		0, // Channel data length
-		0, // Read reference count
-		0, // Write reference count
-		FALSE, // Read exit setting
-		FALSE, // Write exit setting
-		(HThreadMutex) NULL, // Mutex
-		(HThreadEvent) NULL, // Read available notice event
-		(HThreadEvent) NULL, // Write available notice event
-		{
-			g_astChunk_channel_${channel.index}_in, // Array of chunk
-			1, // Chunk number
-			1, // Chunk size
-		}, // Input chunk information
-		{
-			g_astChunk_channel_${channel.index}_out, // Array of chunk
-			1, // Chunk number
-			1, // Chunk size
-		}, // Output chunk information
-		CHUNK_NUM_NOT_INITIALIZED, // Written output chunk number
-		g_astAvailableInputChunk_channel_${channel.index}, // Available chunk list
-		${channel.outputPort.maximumChunkNum?c}, // maximum chunk size for all port sample rate cases (output port)
-		${channel.inputPort.maximumChunkNum?c}, // maximum input port chunk size for all port sample rate cases (input port)
-		(SAvailableChunk *) NULL, // Chunk list head
-		(SAvailableChunk *) NULL, // Chunk list tail
+	0, // Channel data length
+	0, // Read reference count
+	0, // Write reference count
+	FALSE, // Read exit setting
+	FALSE, // Write exit setting
+	(HThreadMutex) NULL, // Mutex
+	(HThreadEvent) NULL, // Read available notice event
+	(HThreadEvent) NULL, // Write available notice event
+	{
+		g_astChunk_channel_${channel.index}_in, // Array of chunk
+		1, // Chunk number
+		1, // Chunk size
+	}, // Input chunk information
+	{
+		g_astChunk_channel_${channel.index}_out, // Array of chunk
+		1, // Chunk number
+		1, // Chunk size
+	}, // Output chunk information
+	CHUNK_NUM_NOT_INITIALIZED, // Written output chunk number
+	g_astAvailableInputChunk_channel_${channel.index}, // Available chunk list
+	${channel.outputPort.maximumChunkNum?c}, // maximum chunk size for all port sample rate cases (output port)
+	${channel.inputPort.maximumChunkNum?c}, // maximum input port chunk size for all port sample rate cases (input port)
+	(SAvailableChunk *) NULL, // Chunk list head
+	(SAvailableChunk *) NULL, // Chunk list tail
 			<#switch channel.accessType>
 				<#case "CPU_ONLY">
-		&g_stHostMemory, // Host memory access API
-		TRUE, // memory is statically allocated
+	&g_stHostMemory, // Host memory access API
+	TRUE, // memory is statically allocated
 					<#break>
 				<#case "CPU_GPU">
-		&g_stHostToDeviceMemory, // Host memory access API
-		TRUE, // memory is statically allocated
+	&g_stHostToDeviceMemory, // Host memory access API
+	TRUE, // memory is statically allocated
 					<#break>
 				<#case "GPU_CPU">
-		&g_stDeviceToHostMemory, // Host memory access API
-		TRUE, // memory is statically allocated
+	&g_stDeviceToHostMemory, // Host memory access API
+	TRUE, // memory is statically allocated
 					<#break>
 				<#case "GPU_GPU">
-		&g_stDeviceItSelfMemory, // Host memory access API
-		FALSE, // memory is statically allocated
+	&g_stDeviceItSelfMemory, // Host memory access API
+	FALSE, // memory is statically allocated
 					<#break>
 				<#case "GPU_GPU_DIFFERENT">
-		&g_stDeviceToDeviceMemory, // Host memory access API
-		FALSE, // memory is statically allocated
+	&g_stDeviceToDeviceMemory, // Host memory access API
+	FALSE, // memory is statically allocated
 					<#break>
 			</#switch>
-			
-			<#if (channel.initialDataLen > 0)>FALSE<#else>TRUE</#if>, // initial data is updated
+			<#if (channel.initialDataLen > 0)>
+	FALSE, // initial data is updated
+			<#else>
+	TRUE, // initial data is updated
+			</#if>
 };
 		<#break>
 	</#switch>
@@ -273,7 +353,7 @@ STCPSocketChannel g_stTCPSocketChannel_${channel.index} = {
 		<#switch channel.communicationType>
 			<#case "TCP_CLIENT_WRITER">
 			<#case "TCP_CLIENT_READER">
-	(STCPClientInfo *) &g_astTCPClientInfo[${channel.tcpClientIndex}], // STCPClientInfo *pstClientInfo;
+	(STCPClientInfo *) &g_astTCPClientInfo[${channel.socketInfoIndex}], // STCPClientInfo *pstClientInfo;
 				<#break>
 			<#default>
 	(STCPClientInfo *) NULL, // STCPClientInfo *pstClientInfo;
@@ -308,6 +388,75 @@ STCPSocketChannel g_stTCPSocketChannel_${channel.index} = {
 };
 			<#break>
 	</#switch>
+	
+	<#switch channel.communicationType>
+		<#case "BLUETOOTH_MASTER_WRITER">
+		<#case "BLUETOOTH_SLAVE_WRITER">
+		<#case "SERIAL_MASTER_WRITER">
+		<#case "SERIAL_SLAVE_WRITER">
+		
+SSerialWriterChannel g_stSerialWriterChannel_${channel.index} = {
+		<#switch channel.communicationType>
+			<#case "BLUETOOTH_MASTER_WRITER">
+	(void *) &g_astBluetoothMasterInfo[${channel.socketInfoIndex}],
+				<#break>
+			<#case "BLUETOOTH_SLAVE_WRITER">
+	(void *) &g_astBluetoothSlaveInfo[${channel.socketInfoIndex}],
+				<#break>
+			<#case "SERIAL_MASTER_WRITER">
+	(void *) &g_astSerialMasterInfo[${channel.socketInfoIndex}],			
+				<#break>
+			<#case "SERIAL_SLAVE_WRITER">
+	(void *) &g_astSerialSlaveInfo[${channel.socketInfoIndex}],			
+				<#break>
+		</#switch>
+	(HFixedSizeQueue) NULL,
+	NULL,
+	NULL,
+	0,
+	NULL,
+	FALSE,
+	&g_stSharedMemoryChannel_${channel.index},	
+};
+			<#break>
+	</#switch>
+
+	
+	<#switch channel.communicationType>
+		<#case "BLUETOOTH_MASTER_READER">
+		<#case "BLUETOOTH_SLAVE_READER">
+		<#case "SERIAL_MASTER_READER">
+		<#case "SERIAL_SLAVE_READER">
+SSerialReaderChannel g_stSerialReaderChannel_${channel.index} = {
+			<#switch channel.communicationType>
+				<#case "BLUETOOTH_MASTER_READER">
+	(void *) &g_astBluetoothMasterInfo[${channel.socketInfoIndex}],
+					<#break>
+				<#case "BLUETOOTH_SLAVE_READER">
+	(void *) &g_astBluetoothSlaveInfo[${channel.socketInfoIndex}],
+					<#break>
+				<#case "SERIAL_MASTER_READER">
+	(void *) &g_astSerialMasterInfo[${channel.socketInfoIndex}],
+					<#break>
+				<#case "SERIAL_SLAVE_READER">
+	(void *) &g_astSerialSlaveInfo[${channel.socketInfoIndex}],
+					<#break>
+			</#switch>
+	(HFixedSizeQueue) NULL, // response queue
+	NULL, // mutex variable
+	FALSE, // channel exit flag
+			<#switch channel.accessType>
+				<#case "CPU_ONLY">
+	&g_stHostMemory, // SGenericMemoryAccess *pstReaderAccess - READER-part channel memory access API
+					<#break>
+				<#case "CPU_GPU">
+	&g_stHostToDeviceMemory, // SGenericMemoryAccess *pstReaderAccess - READER-part channel memory access API
+					<#break>
+			</#switch>
+};
+			<#break>
+	</#switch>
+
 </#list>
 // ##SPECIFIC_CHANNEL_LIST_TEMPLATE::END
 
@@ -333,6 +482,18 @@ SChannel g_astChannels[] = {
 		<#case "TCP_SERVER_WRITER">
 		<#case "TCP_SERVER_READER">
 		&g_stTCPSocketChannel_${channel.index}, // specific TCP socket channel structure pointer
+			<#break>
+		<#case "BLUETOOTH_MASTER_WRITER">
+		<#case "BLUETOOTH_SLAVE_WRITER">
+		<#case "SERIAL_MASTER_WRITER">
+		<#case "SERIAL_SLAVE_WRITER">
+			&g_stSerialWriterChannel_${channel.index}, // specific bluetooth/serial channel structure pointer
+			<#break>
+		<#case "BLUETOOTH_MASTER_READER">
+		<#case "BLUETOOTH_SLAVE_READER">
+		<#case "SERIAL_MASTER_READER">
+		<#case "SERIAL_SLAVE_READER">
+			&g_stSerialReaderChannel_${channel.index}, // specific bluetooth/serial channel structure pointer
 			<#break>
 	</#switch>
 	},
@@ -396,18 +557,61 @@ SChannelAPI g_stTCPSocketChannelReader = {
 </#if>
 
 
+<#if used_communication_list?seq_contains("bluetooth")>
+SChannelAPI g_stBluetoothChannelWriter = {
+	UKBluetoothChannel_Initialize, // fnInitialize
+	NULL, // fnReadFromQueue
+	NULL, // fnReadFromBuffer
+	UKBluetoothChannel_WriteToQueue, // fnWriteToQueue
+	UKBluetoothChannel_WriteToBuffer, // fnWriteToBuffer
+	NULL, // fnGetAvailableChunk
+	NULL, // fnGetNumOfAvailableData
+	UKBluetoothChannel_Clear, // fnClear
+	UKBluetoothChannel_SetExit,
+	UKBluetoothChannel_ClearExit,
+	UKBluetoothChannel_FillInitialData,
+	UKBluetoothChannel_Finalize, // fnFinalize
+	UKBluetoothModule_Initialize,
+	UKBluetoothModule_Finalize,
+};
+
+
+SChannelAPI g_stBluetoothChannelReader = {
+	UKBluetoothChannel_Initialize, // fnInitialize
+	UKBluetoothChannel_ReadFromQueue, // fnReadFromQueue
+	UKBluetoothChannel_ReadFromBuffer, // fnReadFromBuffer
+	NULL, // fnWriteToQueue
+	NULL, // fnWriteToBuffer
+	UKBluetoothChannel_GetAvailableChunk, // fnGetAvailableChunk
+	UKBluetoothChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
+	UKBluetoothChannel_Clear, // fnClear
+	UKBluetoothChannel_SetExit,
+	UKBluetoothChannel_ClearExit,
+	NULL,
+	UKBluetoothChannel_Finalize, // fnFinalize
+	NULL,
+	NULL,
+};
+</#if>
+
+
+
 SChannelAPI *g_astChannelAPIList[] = {
-		&g_stSharedMemoryChannel,
+	&g_stSharedMemoryChannel,
 <#if used_communication_list?seq_contains("tcp")>
-		&g_stTCPSocketChannelWriter,
-		&g_stTCPSocketChannelReader,
+	&g_stTCPSocketChannelWriter,
+	&g_stTCPSocketChannelReader,
+</#if>
+<#if used_communication_list?seq_contains("bluetooth")>
+	&g_stBluetoothChannelWriter,
+	&g_stBluetoothChannelReader,
 </#if>
 };
 
 <#if used_communication_list?seq_contains("bluetooth")>
 SSocketAPI stBluetoothAPI = {
-	NULL,
-	NULL,
+	UCBluetoothSocket_Bind,
+	UCBluetoothSocket_Accept,
 	UCBluetoothSocket_Connect,
 	NULL,
 	NULL,
@@ -479,7 +683,24 @@ uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType
 <#if used_communication_list?seq_contains("tcp")>
 		*ppstChannelAPI = &g_stTCPSocketChannelWriter;
 <#else>
-		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED_YET, _EXIT)
+		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT)
+</#if>
+		break;
+		
+	case COMMUNICATION_TYPE_BLUETOOTH_MASTER_WRITER:
+	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_WRITER:
+<#if used_communication_list?seq_contains("bluetooth")>
+		*ppstChannelAPI = &g_stBluetoothChannelWriter;	
+<#else>
+		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT)
+</#if>
+		break;
+	case COMMUNICATION_TYPE_BLUETOOTH_MASTER_READER:
+	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_READER:
+<#if used_communication_list?seq_contains("bluetooth")>
+		*ppstChannelAPI = &g_stBluetoothChannelReader;	
+<#else>
+		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT)
 </#if>
 		break;
 	default:
@@ -496,12 +717,39 @@ _EXIT:
 int g_nChannelNum = ARRAYLEN(g_astChannels);
 int g_nChannelAPINum = ARRAYLEN(g_astChannelAPIList);
 <#if communication_used == true>
+	<#if used_communication_list?seq_contains("tcp")>
+int g_nExternalCommunicationInfoNum = ARRAYLEN(g_astExternalCommunicationInfo);
+	</#if>
+
 	<#if (tcp_server_list?size > 0) >
 int g_nTCPServerInfoNum = ARRAYLEN(g_astTCPServerInfo);
 	<#else>
 int g_nTCPServerInfoNum = 0;
 	</#if>
-int g_nExternalCommunicationInfoNum = ARRAYLEN(g_astExternalCommunicationInfo);
+	
+	<#if (bluetooth_master_list?size > 0) >
+int g_nBluetoothMasterNum = ARRAYLEN(g_astBluetoothMasterInfo);	
+	<#else>
+int g_nBluetoothMasterNum = 0;
+	</#if>
+
+	<#if (bluetooth_slave_list?size > 0) >
+int g_nBluetoothSlaveNum = ARRAYLEN(g_astBluetoothSlaveInfo);	
+	<#else>
+int g_nBluetoothSlaveNum = 0;
+	</#if>
+
+	<#if (serial_master_list?size > 0) >
+int g_nSerialMasterInfoNum = ARRAYLEN(g_astSerialMasterInfo);	
+	<#else>
+int g_nSerialMasterInfoNum = 0;
+	</#if>
+			
+	<#if (serial_slave_list?size > 0) >
+int g_nSerialSlaveInfoNum = ARRAYLEN(g_astSerialSlaveInfo);	
+	<#else>
+int g_nSerialSlaveInfoNum = 0;
+	</#if>				
 </#if>
 
 

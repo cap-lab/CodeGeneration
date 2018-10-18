@@ -9,6 +9,8 @@
 #include <config.h>
 #endif
 
+#include <fcntl.h>
+#include <errno.h>
 #include <sys/socket.h>
 
 #include <bluetooth/bluetooth.h>
@@ -114,12 +116,26 @@ uem_result UCBluetoothSocket_Connect(HSocket hSocket, IN int nTimeout)
     stClientAddr.rc_family = AF_BLUETOOTH;
     stClientAddr.rc_channel = 1;
 
-    str2ba( pstSocket->pszSocketPath, &stClientAddr.rc_bdaddr );
+    nRet = str2ba( pstSocket->pszSocketPath, &stClientAddr.rc_bdaddr );
+    if(nRet != 0)
+    {
+    	ERRASSIGNGOTO(result, ERR_UEM_CONVERSION_ERROR, _EXIT);
+    }
+
+    nRet = fcntl(pstSocket->nSocketfd, F_SETFL, O_NONBLOCK);
+    if(nRet != 0)
+    {
+    	ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
+    }
 
     nRet = connect(pstSocket->nSocketfd, (struct sockaddr *)&stClientAddr, sizeof(stClientAddr));
     if(nRet != 0)
     {
-        ERRASSIGNGOTO(result, ERR_UEM_CONNECT_ERROR, _EXIT);
+    	if(errno == EINPROGRESS)
+    	{
+    		UEMASSIGNGOTO(result, ERR_UEM_IN_PROGRESS, _EXIT);
+    	}
+    	ERRASSIGNGOTO(result, ERR_UEM_CONNECT_ERROR, _EXIT);
     }
 
 	result = ERR_UEM_NOERROR;

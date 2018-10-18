@@ -15,9 +15,8 @@
 #include <UCBasic.h>
 #include <UCAlloc.h>
 #include <UCEndian.h>
-#include <UCDynamicSocket.h>
 
-
+#include <UKConnector.h>
 #include <UKUEMLiteProtocol.h>
 
 #define MAX_MESSAGE_PARAMETER (4)
@@ -26,13 +25,15 @@
 #define SEND_TIMEOUT (3)
 #define RECEIVE_TIMEOUT (3)
 
-#define MAX_HEADER_LENGTH (7)
-#define MIN_HEADER_LENGTH (1)
-
 #define PRE_HEADER_LENGTH (1)
 #define MESSAGE_PACKET_SIZE (1)
 #define MESSAGE_PARAMETER_SIZE (2)
 #define HANDSHAKE_RETRY_COUNT (3)
+
+#define MAX_HEADER_LENGTH (MESSAGE_PACKET_SIZE + (MESSAGE_PARAMETER_SIZE * MAX_MESSAGE_PARAMETER))
+#define MIN_HEADER_LENGTH MESSAGE_PACKET_SIZE
+
+#define MAX_ALLOWED_DATA (32767)
 
 
 typedef struct _SUEMLiteProtocolData {
@@ -52,16 +53,24 @@ typedef struct _SUEMLiteProtocolData {
 typedef struct _SUEMLiteProtocol {
 	uem_bool bDataHandled;
 	SUEMLiteProtocolData stData;
-	HSocket hSocket;
+	HConnector hConnector;
 	int unKey;
 } SUEMLiteProtocol;
 
-uem_result UKUEMLiteProtocol_SetSocket(HUEMLiteProtocol hProtocol, HSocket hSocket)
+uem_result UKUEMLiteProtocol_SetConnector(HUEMLiteProtocol hProtocol, HConnector hConnector)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	struct _SUEMLiteProtocol *pstProtocol = NULL;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(hProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+	IFVARERRASSIGNGOTO(hConnector, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+#endif
+	pstProtocol = hProtocol;
+
+	pstProtocol->hConnector = hConnector;
 
 	result = ERR_UEM_NOERROR;
-
+_EXIT:
 	return result;
 }
 
@@ -77,7 +86,7 @@ uem_result UKUEMLiteProtocol_Create(OUT HUEMLiteProtocol *phProtocol)
 	pstProtocol = UCAlloc_malloc(sizeof(struct _SUEMLiteProtocol));
 	ERRMEMGOTO(pstProtocol, result, _EXIT);
 
-	pstProtocol->hSocket = NULL;
+	pstProtocol->hConnector = NULL;
 	pstProtocol->bDataHandled = FALSE;
 	pstProtocol->unKey = 0;
 
@@ -298,7 +307,7 @@ uem_result UKUEMLiteProtocol_SetResultMessageWithBuffer(HUEMLiteProtocol hProtoc
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(hProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	if(nDataSize >= sizeof(short))
+	if(nDataSize >= MAX_ALLOWED_DATA)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
 	}
@@ -406,7 +415,7 @@ _EXIT:
 
 
 // TODO: this is for only socket (for serial communication, we need to find a way to access)
-static uem_result sendData(HSocket hSocket, SUEMLiteProtocolData *pstDataToSend)
+static uem_result sendData(HConnector hConnector, SUEMLiteProtocolData *pstDataToSend)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nSentSize = 0;
@@ -415,7 +424,7 @@ static uem_result sendData(HSocket hSocket, SUEMLiteProtocolData *pstDataToSend)
 
 	while(nSizeToSend > 0)
 	{
-		result = UCDynamicSocket_Send(hSocket, SEND_TIMEOUT, pstDataToSend->pFullMessage + nTotalSizeSent, nSizeToSend, &nSentSize);
+		result = UKConnector_Send(hConnector, SEND_TIMEOUT, pstDataToSend->pFullMessage + nTotalSizeSent, nSizeToSend, &nSentSize);
 		ERRIFGOTO(result, _EXIT);
 
 		nSizeToSend -= nSentSize;
@@ -445,7 +454,7 @@ uem_result UKUEMLiteProtocol_Send(HUEMLiteProtocol hProtocol)
 	result = makeSendingData(&(pstProtocol->stData));
 	ERRIFGOTO(result, _EXIT);
 
-	result = sendData(pstProtocol->hSocket, &(pstProtocol->stData));
+	result = sendData(pstProtocol->hConnector, &(pstProtocol->stData));
 	ERRIFGOTO(result, _EXIT);
 
 	//UEM_DEBUG_PRINT("pstProtocol send: %d\n", pstProtocol->stDataToSend.sMessagePacket);
@@ -458,7 +467,7 @@ _EXIT:
 }
 
 
-static uem_result receiveHeader(HSocket hSocket, char *pHeaderBuffer, int nBufferLen, OUT int *pnHeaderLength)
+static uem_result receiveHeader(HConnector hConnector, char *pHeaderBuffer, int nBufferLen, OUT int *pnHeaderLength)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nDataReceived = 0;
@@ -469,7 +478,7 @@ static uem_result receiveHeader(HSocket hSocket, char *pHeaderBuffer, int nBuffe
 
 	while(nTotalDataReceived < nDataToRead)
 	{
-		result = UCDynamicSocket_Receive(hSocket, RECEIVE_TIMEOUT, pHeaderBuffer+nTotalDataReceived, nDataToRead - nTotalDataReceived, &nDataReceived);
+		result = UKConnector_Receive(hConnector, RECEIVE_TIMEOUT, pHeaderBuffer+nTotalDataReceived, nDataToRead - nTotalDataReceived, &nDataReceived);
 		ERRIFGOTO(result, _EXIT);
 
 		nTotalDataReceived += nDataReceived;
@@ -489,7 +498,7 @@ static uem_result receiveHeader(HSocket hSocket, char *pHeaderBuffer, int nBuffe
 
 	while(nTotalDataReceived < nDataToRead)
 	{
-		result = UCDynamicSocket_Receive(hSocket, RECEIVE_TIMEOUT, pHeaderBuffer + nIndex + nTotalDataReceived, nDataToRead - nTotalDataReceived, &nDataReceived);
+		result = UKConnector_Receive(hConnector, RECEIVE_TIMEOUT, pHeaderBuffer + nIndex + nTotalDataReceived, nDataToRead - nTotalDataReceived, &nDataReceived);
 		ERRIFGOTO(result, _EXIT);
 
 		nTotalDataReceived += nDataReceived;
@@ -530,13 +539,13 @@ _EXIT:
 }
 
 
-static uem_result receiveData(HSocket hSocket, SUEMLiteProtocolData *pstDataReceived)
+static uem_result receiveData(HConnector hConnector, SUEMLiteProtocolData *pstDataReceived)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	char abyHeader[PRE_HEADER_LENGTH+MAX_HEADER_LENGTH];
 	int nHeaderLength = 0;
 
-	result = receiveHeader(hSocket, abyHeader, PRE_HEADER_LENGTH+MAX_HEADER_LENGTH, &nHeaderLength);
+	result = receiveHeader(hConnector, abyHeader, PRE_HEADER_LENGTH+MAX_HEADER_LENGTH, &nHeaderLength);
 	ERRIFGOTO(result, _EXIT);
 
 	result = parseHeader(pstDataReceived, abyHeader+PRE_HEADER_LENGTH, nHeaderLength);
@@ -548,7 +557,7 @@ _EXIT:
 }
 
 
-static uem_result receiveBody(HSocket hSocket, SUEMLiteProtocolData *pstDataReceived)
+static uem_result receiveBody(HConnector hConnector, SUEMLiteProtocolData *pstDataReceived)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nBodySize;
@@ -571,7 +580,7 @@ static uem_result receiveBody(HSocket hSocket, SUEMLiteProtocolData *pstDataRece
 
 	while(nTotalReceivedSize < nBodySize)
 	{
-		result = UCDynamicSocket_Receive(hSocket, RECEIVE_TIMEOUT, pstDataReceived->pBodyData + nTotalReceivedSize,
+		result = UKConnector_Receive(hConnector, RECEIVE_TIMEOUT, pstDataReceived->pBodyData + nTotalReceivedSize,
 										nBodySize - nTotalReceivedSize, &nReceivedSize);
 		ERRIFGOTO(result, _EXIT);
 
@@ -585,6 +594,52 @@ _EXIT:
 	return result;
 }
 
+
+
+uem_result UKUEMLiteProtocol_HandShake(HUEMLiteProtocol hProtocol, HUEMLiteProtocol hReceiveProtocol, unsigned int unDeviceKey)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nRetryCount = 0;
+	EMessageType enMessageType;
+	short *pasParam = NULL;
+	int nParamNum = 0;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(hProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+	IFVARERRASSIGNGOTO(hReceiveProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+#endif
+
+	result = UKUEMLiteProtocol_SetHandShakeRequest(hProtocol, unDeviceKey);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKUEMLiteProtocol_Send(hProtocol);
+	ERRIFGOTO(result, _EXIT);
+
+	do {
+		result = UKUEMLiteProtocol_Receive(hReceiveProtocol);
+		if(result == ERR_UEM_NET_TIMEOUT)
+		{
+			nRetryCount++;
+			if(nRetryCount >= HANDSHAKE_RETRY_COUNT)
+			{
+				ERRASSIGNGOTO(result, ERR_UEM_CONNECT_ERROR, _EXIT);
+			}
+		}
+
+	}while(result == ERR_UEM_NET_TIMEOUT);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKUEMLiteProtocol_GetHeaderFromReceivedData(hReceiveProtocol, NULL, &enMessageType, &nParamNum, &pasParam);
+	ERRIFGOTO(result, _EXIT);
+
+	if(enMessageType != MESSAGE_TYPE_RESULT || MESSAGE_TYPE_HANDSHAKE != (EMessageType) pasParam[RESULT_REQUEST_PACKET_INDEX])
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
 
 
 uem_result UKUEMLiteProtocol_Receive(HUEMLiteProtocol hProtocol)
@@ -603,7 +658,7 @@ uem_result UKUEMLiteProtocol_Receive(HUEMLiteProtocol hProtocol)
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 	}
 
-	result = receiveData(pstProtocol->hSocket, &(pstProtocol->stData));
+	result = receiveData(pstProtocol->hConnector, &(pstProtocol->stData));
 	ERRIFGOTO(result, _EXIT);
 
 	enSentMessageType = (EMessageType) pstProtocol->stData.asMessageParam[RESULT_REQUEST_PACKET_INDEX];
@@ -612,7 +667,7 @@ uem_result UKUEMLiteProtocol_Receive(HUEMLiteProtocol hProtocol)
 	if(enReceivedMessageType == MESSAGE_TYPE_RESULT &&
 		(enSentMessageType == MESSAGE_TYPE_READ_QUEUE || enSentMessageType == MESSAGE_TYPE_READ_BUFFER))
 	{
-		result = receiveBody(pstProtocol->hSocket, &(pstProtocol->stData));
+		result = receiveBody(pstProtocol->hConnector, &(pstProtocol->stData));
 		ERRIFGOTO(result, _EXIT);
 	}
 
@@ -649,6 +704,39 @@ _EXIT:
 }
 
 
+static uem_result getChannelIdFromReceivedHeader(EMessageType enMessageType, short asMessageParam[], int nParamNum, OUT int *pnChannelId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	switch(enMessageType)
+	{
+	case MESSAGE_TYPE_HANDSHAKE:
+		*pnChannelId = 0; // not using channel ID
+		break;
+	case MESSAGE_TYPE_READ_QUEUE:
+		*pnChannelId = asMessageParam[READ_QUEUE_CHANNEL_ID_INDEX];
+		break;
+	case MESSAGE_TYPE_READ_BUFFER:
+		*pnChannelId = asMessageParam[READ_BUFFER_CHANNEL_ID_INDEX];
+		break;
+	case MESSAGE_TYPE_AVAILABLE_DATA:
+		*pnChannelId = asMessageParam[AVAILABLE_DATA_CHANNEL_ID_INDEX];
+		break;
+	case MESSAGE_TYPE_RESULT:
+		*pnChannelId = asMessageParam[RESULT_CHANNEL_ID_INDEX];
+		break;
+	case MESSAGE_TYPE_AVAILABLE_INDEX:
+	default:
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		break;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 uem_result UKUEMLiteProtocol_GetHeaderFromReceivedData(HUEMLiteProtocol hProtocol, OUT int *pnChannelId, OUT EMessageType *penMessageType, OUT int *pnParamNum, OUT short **ppanParam)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -666,6 +754,12 @@ uem_result UKUEMLiteProtocol_GetHeaderFromReceivedData(HUEMLiteProtocol hProtoco
 
 	*penMessageType = (EMessageType) pstProtocol->stData.byMessagePacket;
 
+	if(pnChannelId != NULL)
+	{
+		result = getChannelIdFromReceivedHeader(*penMessageType, pstProtocol->stData.asMessageParam, pstProtocol->stData.nParamNum, pnChannelId);
+		ERRIFGOTO(result, _EXIT);
+	}
+
 	if(pnParamNum != NULL)
 	{
 		*pnParamNum = pstProtocol->stData.nParamNum;
@@ -675,6 +769,8 @@ uem_result UKUEMLiteProtocol_GetHeaderFromReceivedData(HUEMLiteProtocol hProtoco
 	{
 		*ppanParam = pstProtocol->stData.asMessageParam;
 	}
+
+	pstProtocol->bDataHandled = FALSE;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -691,11 +787,6 @@ uem_result UKUEMLiteProtocol_GetBodyDataFromReceivedData(HUEMLiteProtocol hProto
 #endif
 	pstProtocol = hProtocol;
 
-	if(pstProtocol->bDataHandled == FALSE)
-	{
-		ERRASSIGNGOTO(result, ERR_UEM_NO_DATA, _EXIT);
-	}
-
 	if(pnBodySize != NULL)
 	{
 		*pnBodySize = pstProtocol->stData.sBodyLen;
@@ -705,6 +796,8 @@ uem_result UKUEMLiteProtocol_GetBodyDataFromReceivedData(HUEMLiteProtocol hProto
 	{
 		*ppBody = pstProtocol->stData.pBodyData;
 	}
+
+	pstProtocol->bDataHandled = FALSE;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

@@ -69,6 +69,8 @@ static uem_result reallocTempBuffer(STCPSocketChannel *pstTCPChannel, int nTarge
 
 		pstTCPChannel->pBuffer = UCAlloc_malloc(nTargetSize);
 		ERRMEMGOTO(pstTCPChannel->pBuffer, result, _EXIT);
+
+		pstTCPChannel->nBufLen = nTargetSize;
 	}
 
 	result = ERR_UEM_NOERROR;

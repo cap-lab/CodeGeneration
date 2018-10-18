@@ -10,9 +10,9 @@
 
 #include <uem_common.h>
 
-#include <UCDynamicSocket.h>
-
 #include <uem_protocol_data.h>
+
+#include <UKConnector.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -42,8 +42,8 @@ typedef struct _SUEMLiteProtocol *HUEMLiteProtocol;
 
 uem_result UKUEMLiteProtocol_Create(OUT HUEMLiteProtocol *phProtocol);
 uem_result UKUEMLiteProtocol_GetMessageParamNumByMessageType(EMessageType enMessageType, int *pnParamNum);
-uem_result UKUEMLiteProtocol_SetSocket(HUEMLiteProtocol hProtocol, HSocket hSocket);
-uem_result UKUEMLiteProtocol_HandShake(HUEMLiteProtocol hProtocol, unsigned int unDeviceKey, int nChannelId);
+uem_result UKUEMLiteProtocol_SetConnector(HUEMLiteProtocol hProtocol, HConnector hConnector);
+uem_result UKUEMLiteProtocol_HandShake(HUEMLiteProtocol hProtocol, HUEMLiteProtocol hReceiveProtocol, unsigned int unDeviceKey);
 uem_result UKUEMLiteProtocol_SetReadQueueRequest(HUEMLiteProtocol hProtocol, int nChannelId, int nSizeToRead);
 uem_result UKUEMLiteProtocol_SetReadBufferRequest(HUEMLiteProtocol hProtocol, int nChannelId, int nSizeToRead);
 uem_result UKUEMLiteProtocol_SetAvailableDataRequest(HUEMLiteProtocol hProtocol, int nChannelId);

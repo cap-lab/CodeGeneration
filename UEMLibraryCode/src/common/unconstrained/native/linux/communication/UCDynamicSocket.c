@@ -82,7 +82,7 @@ static uem_result setSocketPath(SUCSocket *pstSocket, char *pszSocketPath)
 
     if(UCString_Length(&stInputPath) > 0)
     {
-        pstSocket->pszSocketPath = (char *) UCAlloc_malloc(sizeof((UCString_Length(&stInputPath)+1) * sizeof(char)));
+        pstSocket->pszSocketPath = (char *) UCAlloc_calloc(UCString_Length(&stInputPath)+1, sizeof(char));
         ERRMEMGOTO(pstSocket->pszSocketPath, result, _EXIT);
 
         result = UCString_New(&(pstSocket->stSocketPath), pstSocket->pszSocketPath, (UCString_Length(&stInputPath)+1) * sizeof(char));
@@ -122,7 +122,7 @@ uem_result UCDynamicSocket_Create(IN SSocketInfo *pstSocketInfo, IN uem_bool bIs
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
 
-    if(pstSocketInfo->enSocketType == SOCKET_TYPE_BLUETOOTH && pstSocketInfo->pszSocketPath == NULL)
+    if(pstSocketInfo->enSocketType == SOCKET_TYPE_BLUETOOTH && pstSocketInfo->pszSocketPath == NULL && bIsServer == TRUE)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
@@ -274,11 +274,6 @@ uem_result UCDynamicSocket_Listen(HSocket hServerSocket)
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_SOCKET, _EXIT);
     }
-
-    if(pstSocket->enSocketType == SOCKET_TYPE_BLUETOOTH)
-    {
-        ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT);
-    }
 #endif
     switch(pstSocket->enSocketType)
     {
@@ -374,11 +369,6 @@ uem_result UCDynamicSocket_Accept(HSocket hServerSocket, IN int nTimeout, IN OUT
     {
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_SOCKET, _EXIT);
     }
-
-    if(pstSocket->enSocketType == SOCKET_TYPE_BLUETOOTH)
-    {
-        ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT);
-    }
 #endif
     if(pstCliSocket->bIsServer == TRUE || pstCliSocket->nSocketfd > 0)
     {
@@ -409,6 +399,12 @@ uem_result UCDynamicSocket_Connect(HSocket hClientSocket, IN int nTimeout)
     uem_result result = ERR_UEM_UNKNOWN;
     SUCSocket *pstSocket = NULL;
     SSocketAPI *pstSocketAPI = NULL;
+    fd_set stWriteSet;
+#ifndef WIN32
+    int nRet = 0;
+    int nSocketError;
+    socklen_t nLen = sizeof(int);
+#endif
 #ifdef ARGUMENT_CHECK
     if(IS_VALID_HANDLE(hClientSocket, ID_UEM_SOCKET) == FALSE)
     {
@@ -435,6 +431,19 @@ uem_result UCDynamicSocket_Connect(HSocket hClientSocket, IN int nTimeout)
     {
     	result = pstSocketAPI->fnConnect(hClientSocket, nTimeout);
     	ERRIFGOTO(result, _EXIT);
+
+    	if(result == ERR_UEM_IN_PROGRESS)
+    	{
+    		result = selectTimeout(pstSocket->nSocketfd, NULL, &stWriteSet, NULL, nTimeout);
+    		ERRIFGOTO(result, _EXIT);
+#ifndef WIN32
+           nRet = getsockopt(pstSocket->nSocketfd, SOL_SOCKET, SO_ERROR, &nSocketError, &nLen);
+           if(nRet != 0 || nSocketError != 0)
+            {
+            	ERRASSIGNGOTO(result, ERR_UEM_CONNECT_ERROR, _EXIT);
+            }
+#endif
+    	}
     }
 
     result = ERR_UEM_NOERROR;

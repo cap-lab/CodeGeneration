@@ -27,6 +27,7 @@ import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 import org.snu.cse.cap.translator.structure.ProgrammingLanguage;
 import org.snu.cse.cap.translator.structure.device.Device;
 import org.snu.cse.cap.translator.structure.device.EnvironmentVariable;
+import org.snu.cse.cap.translator.structure.device.SoftwarePlatformType;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
 import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.task.Task;
@@ -218,8 +219,21 @@ public class CodeGenerator
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_COMMUNICATION_USED, device.useCommunication());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TCP_CLIENT_LIST, device.getTcpClientList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TCP_SERVER_LIST, device.getTcpServerList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_BLUETOOTH_MASTER_LIST, device.getBluetoothMasterList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_BLUETOOTH_SLAVE_LIST, device.getBluetoothUnconstrainedSlaveList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_MASTER_LIST, device.getSerialMasterList());
+		if(device.getPlatform() == SoftwarePlatformType.ARDUINO)
+		{
+			uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_SLAVE_LIST, device.getSerialConstrainedSlaveList());	
+		}
+		else if(device.getPlatform() == SoftwarePlatformType.LINUX)
+		{
+			uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_SLAVE_LIST, device.getSerialUnconstrainedSlaveList());
+		}
+		
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_MODULE_LIST, device.getModuleList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_DEVICE_CONSTRAINED_INFO, codeOrganizer.getDeviceRestriction());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_USED_COMMUNICATION_LIST, codeOrganizer.getUsedCommunicationSet());
 		
     	for(String outputFileName : codeOrganizer.getKernelDataSourceList())
     	{

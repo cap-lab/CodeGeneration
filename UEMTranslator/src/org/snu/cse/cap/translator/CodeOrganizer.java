@@ -37,6 +37,7 @@ public class CodeOrganizer {
 	private boolean useCommunication;
 	private HashSet<String> usedPeripheralList;
 	private HashSet<DeviceCommunicationType> usedCommunicationSet;
+
 	private ProgrammingLanguage language;
 	private BuildType buildType;
 
@@ -782,5 +783,10 @@ public class CodeOrganizer {
 			this.buildType = BuildType.fromValue(value);
 		}
 	}
+	
+	public HashSet<DeviceCommunicationType> getUsedCommunicationSet() {
+		return usedCommunicationSet;
+	}
+	
 }
 
