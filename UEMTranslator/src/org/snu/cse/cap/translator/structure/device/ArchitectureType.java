@@ -5,6 +5,8 @@ public enum ArchitectureType {
 	X86_64("x86_64"),
 	ARM("arm"),
 	ARM64("arm64"),
+	AVR("avr"),
+	SAMD("samd"),
 	GENERIC("generic"),
 	;
 	
