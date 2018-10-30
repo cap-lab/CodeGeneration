@@ -19,19 +19,7 @@
 #include <UKConnector.h>
 #include <UKUEMLiteProtocol.h>
 
-#define MAX_MESSAGE_PARAMETER (4)
-
-#define HANDSHAKE_TIMEOUT (3)
-#define SEND_TIMEOUT (3)
-#define RECEIVE_TIMEOUT (3)
-
-#define PRE_HEADER_LENGTH (1)
-#define MESSAGE_PACKET_SIZE (1)
-#define MESSAGE_PARAMETER_SIZE (2)
-#define HANDSHAKE_RETRY_COUNT (3)
-
-#define MAX_HEADER_LENGTH (MESSAGE_PACKET_SIZE + (MESSAGE_PARAMETER_SIZE * MAX_MESSAGE_PARAMETER))
-#define MIN_HEADER_LENGTH MESSAGE_PACKET_SIZE
+#include <uem_lite_protocol_data.h>
 
 #define MAX_ALLOWED_DATA (32767)
 
@@ -56,6 +44,36 @@ typedef struct _SUEMLiteProtocol {
 	HConnector hConnector;
 	int unKey;
 } SUEMLiteProtocol;
+
+
+static uem_result getMessageParamNumByMessageType(EMessageType enMessageType, int *pnParamNum)
+{
+	uem_result result = ERR_UEM_NOERROR;
+	int nParamNum = 0;
+	switch(enMessageType)
+	{
+	case MESSAGE_TYPE_HANDSHAKE:
+	case MESSAGE_TYPE_AVAILABLE_DATA:
+		nParamNum = 1;
+		break;
+	case MESSAGE_TYPE_READ_QUEUE:
+	case MESSAGE_TYPE_READ_BUFFER:
+		nParamNum = 2;
+		break;
+	case MESSAGE_TYPE_RESULT:
+		nParamNum = 4;
+		break;
+	case MESSAGE_TYPE_AVAILABLE_INDEX:
+	default:
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+		break;
+	}
+
+	*pnParamNum = nParamNum;
+_EXIT:
+	return result;
+}
+
 
 uem_result UKUEMLiteProtocol_SetConnector(HUEMLiteProtocol hProtocol, HConnector hConnector)
 {
@@ -114,35 +132,6 @@ _EXIT:
 }
 
 
-uem_result UKUEMLiteProtocol_GetMessageParamNumByMessageType(EMessageType enMessageType, int *pnParamNum)
-{
-	uem_result result = ERR_UEM_NOERROR;
-	int nParamNum = 0;
-	switch(enMessageType)
-	{
-	case MESSAGE_TYPE_HANDSHAKE:
-	case MESSAGE_TYPE_AVAILABLE_DATA:
-		nParamNum = 1;
-		break;
-	case MESSAGE_TYPE_READ_QUEUE:
-	case MESSAGE_TYPE_READ_BUFFER:
-		nParamNum = 2;
-		break;
-	case MESSAGE_TYPE_RESULT:
-		nParamNum = 4;
-		break;
-	case MESSAGE_TYPE_AVAILABLE_INDEX:
-	default:
-		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
-		break;
-	}
-
-	*pnParamNum = nParamNum;
-_EXIT:
-	return result;
-}
-
-
 static uem_result clearData(struct _SUEMLiteProtocol *pstProtocol)
 {
 	int nLoop = 0;
@@ -169,7 +158,7 @@ static uem_result setBasicSendInfo(struct _SUEMLiteProtocol *pstProtocol, EMessa
 	result = clearData(pstProtocol);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UKUEMLiteProtocol_GetMessageParamNumByMessageType(enMessageType, &nParamNum);
+	result = getMessageParamNumByMessageType(enMessageType, &nParamNum);
 	ERRIFGOTO(result, _EXIT);
 
 	pstProtocol->stData.unKey = pstProtocol->unKey;
@@ -300,7 +289,7 @@ _EXIT:
 }
 
 
-uem_result UKUEMLiteProtocol_SetResultMessageWithBuffer(HUEMLiteProtocol hProtocol, EMessageType enRequestType, int nChannelId, EProtocolError enErrorCode, int nDataSize, void *pData)
+uem_result UKUEMLiteProtocol_SetResultMessageHeaderUsingBuffer(HUEMLiteProtocol hProtocol, EMessageType enRequestType, int nChannelId, EProtocolError enErrorCode, int nDataSize, void *pData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _SUEMLiteProtocol *pstProtocol = NULL;
@@ -313,8 +302,6 @@ uem_result UKUEMLiteProtocol_SetResultMessageWithBuffer(HUEMLiteProtocol hProtoc
 	}
 #endif
 	pstProtocol = hProtocol;
-
-	pstProtocol->stData.nChannelId = nChannelId;
 
 	result = setBasicSendInfo(pstProtocol, MESSAGE_TYPE_RESULT);
 	ERRIFGOTO(result, _EXIT);
@@ -520,7 +507,7 @@ static uem_result parseHeader(SUEMLiteProtocolData *pstDataReceived, char *pHead
 
 	pstDataReceived->byMessagePacket = pHeader[nIndex];
 
-	result = UKUEMLiteProtocol_GetMessageParamNumByMessageType((EMessageType) pstDataReceived->byMessagePacket, &(pstDataReceived->nParamNum));
+	result = getMessageParamNumByMessageType((EMessageType) pstDataReceived->byMessagePacket, &(pstDataReceived->nParamNum));
 	ERRIFGOTO(result, _EXIT);
 
 	nIndex += MESSAGE_PACKET_SIZE;
@@ -680,30 +667,6 @@ _EXIT:
 }
 
 
-uem_result UKUEMLiteProtocol_GetMessageTypeFromData(HUEMLiteProtocol hProtocol, OUT EMessageType *penMessageType)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	struct _SUEMLiteProtocol *pstProtocol = NULL;
-
-#ifdef ARGUMENT_CHECK
-	IFVARERRASSIGNGOTO(hProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-	IFVARERRASSIGNGOTO(penMessageType, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-#endif
-	pstProtocol = hProtocol;
-
-	if(pstProtocol->bDataHandled == FALSE)
-	{
-		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
-	}
-
-	*penMessageType = (EMessageType) pstProtocol->stData.byMessagePacket;
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-
 static uem_result getChannelIdFromReceivedHeader(EMessageType enMessageType, short asMessageParam[], int nParamNum, OUT int *pnChannelId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -737,7 +700,7 @@ _EXIT:
 }
 
 
-uem_result UKUEMLiteProtocol_GetHeaderFromReceivedData(HUEMLiteProtocol hProtocol, OUT int *pnChannelId, OUT EMessageType *penMessageType, OUT int *pnParamNum, OUT short **ppanParam)
+uem_result UKUEMLiteProtocol_GetHeaderFromReceivedData(HUEMLiteProtocol hProtocol, OUT int *pnChannelId, OUT EMessageType *penMessageType, OUT int *pnParamNum, OUT short **ppasParam)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _SUEMLiteProtocol *pstProtocol = NULL;
@@ -765,9 +728,9 @@ uem_result UKUEMLiteProtocol_GetHeaderFromReceivedData(HUEMLiteProtocol hProtoco
 		*pnParamNum = pstProtocol->stData.nParamNum;
 	}
 
-	if(ppanParam != NULL)
+	if(ppasParam != NULL)
 	{
-		*ppanParam = pstProtocol->stData.asMessageParam;
+		*ppasParam = pstProtocol->stData.asMessageParam;
 	}
 
 	pstProtocol->bDataHandled = FALSE;

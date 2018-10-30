@@ -18,7 +18,7 @@
 #include <uem_bluetooth_data.h>
 #include <uem_data.h>
 
-#define CONNECT_TIMEOUT (3)
+#define CONNECT_TIMEOUT (5)
 #define DESTROY_TIMEOUT (3000)
 
 #define CONNECT_RETRY_COUNT (100)

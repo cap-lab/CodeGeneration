@@ -502,35 +502,52 @@ uem_result UKBluetoothChannel_GetNumOfAvailableData (SChannel *pstChannel, IN in
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSerialReaderChannel *pstSerialReaderChannel = NULL;
+	SSerialWriterChannel *pstWriterChannel = NULL;
 	SBluetoothInfo *pstBluetoothInfo = NULL;
 	SCommunicationQueueItem stItem;
 	SCommunicationQueueItem stResponseItem;
 	int nElementSize = 0;
 
-	pstSerialReaderChannel = (SSerialReaderChannel *) pstChannel->pChannelStruct;
-	pstBluetoothInfo = (SBluetoothInfo *) pstSerialReaderChannel->pConnectionInfo;
-
-	stItem.enMessageType = MESSAGE_TYPE_AVAILABLE_DATA;
-	stItem.nChannelId = pstChannel->nChannelIndex;
-	stItem.uDetailItem.stRequest.nRequestDataSize = 0; // not used
-
-	result = UKSerialCommunicationManager_PutItemToSend(pstBluetoothInfo->hManager, &stItem);
-	ERRIFGOTO(result, _EXIT);
-
-	// blocking happened here
-	do {
-		result = UCFixedSizeQueue_GetItem(pstSerialReaderChannel->hResponseQueue, &stResponseItem, &nElementSize);
-	}while(result == ERR_UEM_TIME_EXPIRED && pstSerialReaderChannel->bChannelExit == FALSE);
-	ERRIFGOTO(result, _EXIT);
-
-	if(stResponseItem.enMessageType != MESSAGE_TYPE_RESULT ||
-		stResponseItem.nChannelId != pstChannel->nChannelIndex ||
-		stResponseItem.uDetailItem.stResponse.enRequestMessageType != MESSAGE_TYPE_AVAILABLE_DATA)
+	switch(pstChannel->enType)
 	{
-		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
-	}
+	case COMMUNICATION_TYPE_BLUETOOTH_MASTER_READER:
+	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_READER:
+		pstSerialReaderChannel = (SSerialReaderChannel *) pstChannel->pChannelStruct;
+		pstBluetoothInfo = (SBluetoothInfo *) pstSerialReaderChannel->pConnectionInfo;
 
-	*pnDataNum = stResponseItem.uDetailItem.stResponse.nReturnValue;
+		stItem.enMessageType = MESSAGE_TYPE_AVAILABLE_DATA;
+		stItem.nChannelId = pstChannel->nChannelIndex;
+		stItem.uDetailItem.stRequest.nRequestDataSize = 0; // not used
+
+		result = UKSerialCommunicationManager_PutItemToSend(pstBluetoothInfo->hManager, &stItem);
+		ERRIFGOTO(result, _EXIT);
+
+		// blocking happened here
+		do {
+			result = UCFixedSizeQueue_GetItem(pstSerialReaderChannel->hResponseQueue, &stResponseItem, &nElementSize);
+		}while(result == ERR_UEM_TIME_EXPIRED && pstSerialReaderChannel->bChannelExit == FALSE);
+		ERRIFGOTO(result, _EXIT);
+
+		if(stResponseItem.enMessageType != MESSAGE_TYPE_RESULT ||
+			stResponseItem.nChannelId != pstChannel->nChannelIndex ||
+			stResponseItem.uDetailItem.stResponse.enRequestMessageType != MESSAGE_TYPE_AVAILABLE_DATA)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		}
+
+		*pnDataNum = stResponseItem.uDetailItem.stResponse.nReturnValue;
+		break;
+	case COMMUNICATION_TYPE_BLUETOOTH_MASTER_WRITER:
+	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_WRITER:
+		pstWriterChannel = (SSerialWriterChannel *) pstChannel->pChannelStruct;
+
+		result = UKChannelMemory_GetNumOfAvailableData(pstChannel, pstWriterChannel->pstInternalChannel, nChunkIndex, pnDataNum);
+		ERRIFGOTO(result, _EXIT);
+		break;
+	default:
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		break;
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

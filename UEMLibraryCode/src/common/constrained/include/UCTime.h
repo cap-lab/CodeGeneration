@@ -16,6 +16,7 @@ extern "C"
 #endif
 
 uem_result UCTime_GetCurTickInMilliSeconds(uem_time *ptTime);
+uem_result UCTime_Sleep(int nMillisec);
 
 #ifdef __cplusplus
 }

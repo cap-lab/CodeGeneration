@@ -1,6 +1,6 @@
 
 <#list env_var_info as envVar>
-${envVar.name}+=${envVar.value}
+${envVar.name}=${envVar.value}
 </#list>
 
 MAIN_DIR=src/main

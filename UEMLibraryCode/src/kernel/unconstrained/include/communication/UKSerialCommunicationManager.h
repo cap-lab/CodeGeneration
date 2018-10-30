@@ -10,9 +10,8 @@
 
 #include <uem_common.h>
 
-#include <uem_protocol_data.h>
-
 #include <UKConnector.h>
+#include <uem_protocol_data.h>
 
 #ifdef __cplusplus
 extern "C"

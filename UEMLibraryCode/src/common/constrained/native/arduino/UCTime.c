@@ -29,3 +29,16 @@ uem_result UCTime_GetCurTickInMilliSeconds(uem_time *ptTime)
 _EXIT:
 	return result;
 }
+
+
+uem_result UCTime_Sleep(int nMillisec)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	delay((unsigned long) nMillisec);
+
+	result = ERR_UEM_NOERROR;
+
+	return result;
+}
+

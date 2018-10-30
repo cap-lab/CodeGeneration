@@ -214,9 +214,9 @@ static uem_result handleReceivedMessage(SSerialCommunicationManager *pstManager)
 	int nChannelId;
 	EMessageType enMessageType;
 	int nParamNum;
-	short *pastParam = NULL;
+	short *pasParam = NULL;
 
-	result = UKUEMLiteProtocol_GetHeaderFromReceivedData(pstManager->hReceiveData, &nChannelId, &enMessageType, &nParamNum, &pastParam);
+	result = UKUEMLiteProtocol_GetHeaderFromReceivedData(pstManager->hReceiveData, &nChannelId, &enMessageType, &nParamNum, &pasParam);
 	ERRIFGOTO(result, _EXIT);
 
 	switch(enMessageType)
@@ -224,11 +224,11 @@ static uem_result handleReceivedMessage(SSerialCommunicationManager *pstManager)
 	case MESSAGE_TYPE_READ_QUEUE:
 	case MESSAGE_TYPE_READ_BUFFER:
 	case MESSAGE_TYPE_AVAILABLE_DATA:
-		result = passRequestItemToChannel(pstManager, nChannelId, enMessageType, nParamNum, pastParam);
+		result = passRequestItemToChannel(pstManager, nChannelId, enMessageType, nParamNum, pasParam);
 		ERRIFGOTO(result, _EXIT);
 		break;
 	case MESSAGE_TYPE_RESULT:
-		result = passResultItemToChannel(pstManager, nChannelId, enMessageType, nParamNum, pastParam);
+		result = passResultItemToChannel(pstManager, nChannelId, enMessageType, nParamNum, pasParam);
 		ERRIFGOTO(result, _EXIT);
 		break;
 	case MESSAGE_TYPE_HANDSHAKE:
@@ -420,7 +420,7 @@ static uem_result setResultMessage(SSerialCommunicationManager *pstManager, int 
 	{
 	case MESSAGE_TYPE_READ_QUEUE:
 	case MESSAGE_TYPE_READ_BUFFER:
-		result = UKUEMLiteProtocol_SetResultMessageWithBuffer(pstManager->hSendData,
+		result = UKUEMLiteProtocol_SetResultMessageHeaderUsingBuffer(pstManager->hSendData,
 														pstResponseItem->enRequestMessageType, nChannelId,
 														ERR_UEMPROTOCOL_NOERROR, pstResponseItem->nDataSize,
 														pstResponseItem->pData);

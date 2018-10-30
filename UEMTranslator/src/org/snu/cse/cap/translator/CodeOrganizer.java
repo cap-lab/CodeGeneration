@@ -12,6 +12,7 @@ import static java.nio.file.StandardCopyOption.*;
 
 import org.snu.cse.cap.translator.structure.ProgrammingLanguage;
 import org.snu.cse.cap.translator.structure.device.DeviceCommunicationType;
+import org.snu.cse.cap.translator.structure.device.SoftwarePlatformType;
 import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.module.Module;
 import org.snu.cse.cap.translator.structure.task.Task;
@@ -344,7 +345,7 @@ public class CodeOrganizer {
 			fileExtension = Constants.CUDA_FILE_EXTENSION; 
 		}
 		else {
-			if(this.language == ProgrammingLanguage.CPP) {
+			if(this.language == ProgrammingLanguage.CPP || SoftwarePlatformType.fromValue(this.platform) == SoftwarePlatformType.ARDUINO) {
 				fileExtension = Constants.CPP_FILE_EXTENSION;
 			}
 			else {

@@ -16,7 +16,8 @@
 
 inline uem_bool UCEndian_SystemIntToLittleEndianChar(int nValue, char *pBuffer, int nBufferLen)
 {
-    if(nBufferLen < sizeof(int))
+	// TODO: need to fix it with config.h about sizeof(int) == sizeof(short)
+    if(nBufferLen < sizeof(int) || sizeof(int) == sizeof(short))
     {
         return FALSE;
     }
@@ -54,7 +55,8 @@ inline uem_bool UCEndian_SystemShortToLittleEndianChar(short sValue, char *pBuff
 
 inline uem_bool UCEndian_LittleEndianCharToSystemInt(char *pBuffer, int nBufferLen, int *pnValue)
 {
-    if(nBufferLen < sizeof(int))
+	// TODO: need to fix it with config.h about sizeof(int) == sizeof(short)
+    if(nBufferLen < sizeof(int) || sizeof(int) == sizeof(short))
     {
         return FALSE;
     }
