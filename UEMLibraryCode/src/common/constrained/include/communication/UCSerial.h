@@ -17,7 +17,11 @@ extern "C"
 {
 #endif
 
-#define DEFAULT_BAUD_RATE (38400)
+
+#ifndef DEFAULT_BAUD_RATE
+	#define DEFAULT_BAUD_RATE (38400)
+#endif
+
 
 typedef struct _SSerialHandle *HSerial;
 
