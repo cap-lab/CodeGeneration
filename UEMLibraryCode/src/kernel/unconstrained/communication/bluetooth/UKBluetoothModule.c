@@ -18,7 +18,7 @@
 #include <uem_bluetooth_data.h>
 #include <uem_data.h>
 
-#define CONNECT_TIMEOUT (5)
+#define CONNECT_TIMEOUT (7)
 #define DESTROY_TIMEOUT (3000)
 
 #define CONNECT_RETRY_COUNT (100)
@@ -122,11 +122,15 @@ static void *bluetoothMasterHandlingThread(void *pData)
 		}
 
 		result = UCDynamicSocket_Connect(pstBluetoothInfo->hSocket, CONNECT_TIMEOUT);
-		if(result == ERR_UEM_NET_TIMEOUT || result == ERR_UEM_CONNECT_ERROR)
+		if(result == ERR_UEM_CONNECT_ERROR)
 		{
 			nRetryCount++;
 			UCTime_Sleep(CONNECT_TIMEOUT*SECOND_IN_MILLISECOND);
 			continue;
+		}
+		else if(result == ERR_UEM_NET_TIMEOUT)
+		{
+			UEM_DEBUG_PRINT("Timeout] Connection takes more than %d seconds.\n", CONNECT_TIMEOUT);
 		}
 		ERRIFGOTO(result, _EXIT);
 		break;

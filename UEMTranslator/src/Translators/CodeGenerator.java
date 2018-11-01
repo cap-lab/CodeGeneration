@@ -194,6 +194,7 @@ public class CodeGenerator
 	
 		makefileRootHash.put(Constants.TEMPLATE_TAG_BUILD_INFO, codeOrganizer);
 		makefileRootHash.put(Constants.TEMPLATE_TAG_ENVIRONMENT_VARIABLE_INFO, envVarList);
+		makefileRootHash.put(Constants.TEMPLATE_TAG_USED_COMMUNICATION_LIST, codeOrganizer.getUsedCommunicationSet());
 
 		Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
 		makefileTemplate.process(makefileRootHash, out);
