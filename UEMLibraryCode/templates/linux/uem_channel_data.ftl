@@ -639,6 +639,11 @@ SSocketAPI stUnixDomainSocketAPI = {
 };
 */
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 <#assign printed=false />
 uem_result ChannelAPI_SetSocketAPIs()
 {
@@ -713,6 +718,9 @@ _EXIT:
 	return result;
 }
 
+#ifdef __cplusplus
+}
+#endif
 
 int g_nChannelNum = ARRAYLEN(g_astChannels);
 int g_nChannelAPINum = ARRAYLEN(g_astChannelAPIList);
