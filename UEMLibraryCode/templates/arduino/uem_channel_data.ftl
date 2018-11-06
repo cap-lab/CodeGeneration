@@ -48,10 +48,6 @@ SPort g_astPortInfo[] = {
 	{
 		${port.taskId}, // Task ID
 		"${port.portName}", // Port name
-		//PORT_SAMPLE_RATE_${port.portSampleRateType}, // Port sample rate type
-		//${port.portSampleRateList[0].sampleRate?c}, // Port sample rate (for fixed type)
-		//${port.sampleSize?c}, // Sample size
-		//PORT_TYPE_${port.portType}, // Port type
 		<#if port.subgraphPort??>&g_astPortInfo[${port_key_to_index[port.subgraphPort.portKey]}]<#else>(SPort *) NULL</#if>, // Pointer to Subgraph port
 	}, // Port information
 </#list>
