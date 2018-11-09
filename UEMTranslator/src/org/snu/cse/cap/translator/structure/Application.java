@@ -617,7 +617,7 @@ public class Application {
 		boolean isDstDataLoop = false;
 		boolean isSrcDataLoop = false;
 		boolean isDstDistributing = false;
-		boolean isSrcDistributing = false;
+		boolean isDstBroadcasting = false;
 		Task srcTask; 
 		Task dstTask;
 		
@@ -625,18 +625,18 @@ public class Application {
 		dstTask = this.taskMap.get(dstPort.getTaskName());
 		isDstDataLoop = isDataLoopTask(dstTask);
 		isSrcDataLoop = isDataLoopTask(srcTask);
-		isSrcDistributing = srcPort.isDistributingPort();
 		isDstDistributing = dstPort.isDistributingPort();
+		isDstBroadcasting = dstPort.isBroadcastingPort();
 		
-		if(isSrcDataLoop == true  && isDstDataLoop == true && isSrcDistributing == true && isDstDistributing == true)
+		if(isSrcDataLoop == true && isDstDataLoop == true && isDstDistributing == true)
 		{
 			channel.setChannelType(ChannelArrayType.FULL_ARRAY);
-		}
-		else if(isDstDataLoop == true) // even a task uses broadcasting it needs to be input_array type to manage available number
+		} // even a task uses broadcasting it needs to be input_array type to manage available number
+		else if((isSrcDataLoop == false && isDstDistributing == true) || isDstBroadcasting == true) 
 		{
 			channel.setChannelType(ChannelArrayType.INPUT_ARRAY);
 		}
-		else if(isSrcDataLoop == true)
+		else if(isSrcDataLoop == true && isDstDataLoop == false && isDstDistributing == false && isDstBroadcasting == false)
 		{
 			channel.setChannelType(ChannelArrayType.OUTPUT_ARRAY);
 		}
