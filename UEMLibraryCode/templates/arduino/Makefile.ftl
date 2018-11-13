@@ -4,7 +4,7 @@ ${envVar.name}=${envVar.value}
 </#list>
 
 <#if (used_communication_list?size > 0) >
-ARDUINO_LIBS="$(ARDUINO_LIBS) SoftwareSerial"
+ARDUINO_LIBS+=SoftwareSerial
 </#if>
 
 BOARD_TAG ?= uno
