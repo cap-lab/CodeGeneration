@@ -595,6 +595,7 @@ public class CodeOrganizer {
 					paramFile.getName().endsWith(Constants.CICL_FILE_EXTENSION) || 
 					paramFile.getName().endsWith(Constants.C_FILE_EXTENSION) ||
 					paramFile.getName().endsWith(Constants.CPP_FILE_EXTENSION) ||
+					paramFile.getName().endsWith(Constants.CUDA_FILE_EXTENSION) ||
 						(paramFile.getName().endsWith(Constants.HEADER_FILE_EXTENSION) && 
 						!paramFile.getName().endsWith(Constants.CIC_HEADER_FILE_EXTENSION))
 					))
