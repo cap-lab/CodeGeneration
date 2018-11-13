@@ -38,6 +38,8 @@ uem_result UCGPUMemory_HostAlloc(void **ppMemory, int nSize, EMemoryProperty fla
 uem_result UCGPUMemory_Free(void *pMemory);
 uem_result UCGPUMemory_FreeHost(void *pMemory);
 uem_result UCGPUMemory_Memcpy(void *pDest, const void *pSrc, int nSize, EMemcpyKind flags);
+uem_result UCGPUMemory_SetDevice(int nDevice);
+uem_result UCGPUMemory_GetDevice(int *pnDevice);
 
 #ifdef __cplusplus
 }
