@@ -30,7 +30,8 @@ void setup() {
 	if(result != ERR_UEM_NOERROR)
 	{
 		while(true) {
-			Serial.println("error on initializing addons");
+			Serial.println("ERR1: ");
+			Serial.println(result);
 			delay(2000);
 		}
 	}
@@ -38,7 +39,8 @@ void setup() {
 	if(result != ERR_UEM_NOERROR)
 	{
 		while(true) {
-			Serial.println("error on initializing channels");
+			Serial.println("ERR2: ");
+			Serial.println(result);
 			delay(2000);
 		}
 	}
@@ -46,7 +48,8 @@ void setup() {
 	if(result != ERR_UEM_NOERROR)
 	{
 		while(true) {
-			Serial.println("error on initializing task scheduler");
+			Serial.println("ERR3: ");
+			Serial.println(result);
 			delay(2000);
 		}
 	}
@@ -61,7 +64,7 @@ void loop() {
 	if(result != ERR_UEM_NOERROR)
 	{
 		while(true) {
-			Serial.print("error on running add on: ");
+			Serial.print("ERR4: ");
 			Serial.println(result);
 			delay(2000);
 		}
@@ -70,7 +73,8 @@ void loop() {
 	if(result != ERR_UEM_NOERROR)
 	{
 		while(true) {
-			Serial.println("error on running task scheduler");
+			Serial.println("ERR5: ");
+			Serial.println(result);
 			delay(2000);
 		}
 	}
