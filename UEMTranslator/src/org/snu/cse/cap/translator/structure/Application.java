@@ -1015,30 +1015,35 @@ public class Application {
 					dstRate = dstRate / dstTask.getLoopStruct().getLoopCount();	
 				}
 			}
-			
-			for(Object nodeObj : graph.nodes())
+
+			if(initialData == 0)
 			{
-				Node node = (Node) nodeObj;
-				if(graph.getName(node).equals(srcTask.getName()) == true)
+				for(Object nodeObj : graph.nodes())
 				{
-					srcNode = node;
-					unconnectedSDFTaskMap.remove(srcTask.getName());
+					Node node = (Node) nodeObj;
+					if(graph.getName(node).equals(srcTask.getName()) == true)
+					{
+						srcNode = node;
+						unconnectedSDFTaskMap.remove(srcTask.getName());
+					}
+					
+					if(graph.getName(node).equals(dstTask.getName()) == true)
+					{
+						dstNode = node;
+						unconnectedSDFTaskMap.remove(dstTask.getName());
+					}
 				}
 				
-				if(graph.getName(node).equals(dstTask.getName()) == true)
-				{
-					dstNode = node;
-					unconnectedSDFTaskMap.remove(dstTask.getName());
-				}
+				SDFEdgeWeight weight = new SDFEdgeWeight(channel.getOutputPort().getPortName(), channel.getInputPort().getPortName(), srcRate,
+					dstRate, initialData);
+				
+				Edge edge = new Edge(srcNode, dstNode);
+				edge.setWeight(weight);
+				graph.addEdge(edge);
+				graph.setName(edge, channel.getOutputPort().getPortName() + "to" + channel.getInputPort().getPortName());
 			}
 			
-			SDFEdgeWeight weight = new SDFEdgeWeight(channel.getOutputPort().getPortName(), channel.getInputPort().getPortName(), srcRate,
-					dstRate, initialData);
-			
-			Edge edge = new Edge(srcNode, dstNode);
-			edge.setWeight(weight);
-			graph.addEdge(edge);
-			graph.setName(edge, channel.getOutputPort().getPortName() + "to" + channel.getInputPort().getPortName());
+
 		}
 		else if(srcRate == Constants.INVALID_VALUE || dstRate == Constants.INVALID_VALUE)
 		{
