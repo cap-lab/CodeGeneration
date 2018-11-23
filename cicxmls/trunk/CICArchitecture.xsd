@@ -51,7 +51,7 @@
       <xs:element name="elements" type="ArchitectureElementListType" minOccurs="1" maxOccurs="1" />
 	  <xs:element name="connections" type="DeviceConnectionListType" minOccurs="0" maxOccurs="1" />
 	  <xs:element name="modules" type="ModuleListType" minOccurs="0" maxOccurs="1" />
-	  <xs:element name="envrionmentVariables" type="EnvironmentVariableListType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="environmentVariables" type="EnvironmentVariableListType" minOccurs="0" maxOccurs="1" />
 	</xs:sequence>
 	<xs:attribute name="name" type="NameType" use="required" />
 	<xs:attribute name="architecture" type="NameType" use="required" />
