@@ -385,9 +385,9 @@ public class Application {
 					insertDeviceModules(device, device_metadata.getModules().getModule(), moduleMap);	
 				}
 				
-				if(device_metadata.getEnvrionmentVariables() != null)
+				if(device_metadata.getEnvironmentVariables() != null)
 				{
-					insertEnvironmentVariables(device, device_metadata.getEnvrionmentVariables().getVariable());
+					insertEnvironmentVariables(device, device_metadata.getEnvironmentVariables().getVariable());
 				}
 
 				this.deviceInfo.put(device_metadata.getName(), device);
