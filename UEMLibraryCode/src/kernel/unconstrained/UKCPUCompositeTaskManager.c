@@ -953,6 +953,8 @@ static void *compositeTaskThreadRoutine(void *pData)
 	pstTaskThread = pstThreadData->pstTaskThread;
 	// pstThreadData->nCurSeqId
 
+
+
 	result = handleTaskMainRoutine(pstCompositeTask, pstTaskThread, pstTaskThread->fnCompositeGo);
 	ERRIFGOTO(result, _EXIT);
 
@@ -1233,7 +1235,10 @@ static uem_result callInitFunction(STask *pstLeafTask, void *pUserData)
 
 	for(nLoop = 0; nLoop < pstLeafTask->nTaskThreadSetNum ; nLoop++)
 	{
+		// set device
 		pstLeafTask->astTaskThreadFunctions[nLoop].fnInit(pstLeafTask->nTaskId);
+
+		// reset device
 
 		result = UKChannel_FillInitialDataBySourceTaskId(pstLeafTask->nTaskId);
 		ERRIFGOTO(result, _EXIT);
