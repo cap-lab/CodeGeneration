@@ -15,7 +15,7 @@ extern "C"
 {
 #endif
 
-uem_result UKHostMemorySystem_CreateMemory(int nSize, OUT void **ppMemory);
+uem_result UKHostMemorySystem_CreateMemory(int nSize, int nProcessorId, OUT void **ppMemory);
 uem_result UKHostMemorySystem_CopyToMemory(IN void *pMemory, IN void *pSource, int nCopySize);
 uem_result UKHostMemorySystem_CopyFromMemory(IN void *pDestination, IN void *pMemory, int nCopySize);
 uem_result UKHostMemorySystem_CopyInMemory(IN void *pInMemoryDst, IN void *pInMemorySrc, int nCopySize);

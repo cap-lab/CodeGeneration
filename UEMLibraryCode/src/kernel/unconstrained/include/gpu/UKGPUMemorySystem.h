@@ -15,9 +15,8 @@ extern "C"
 {
 #endif
 
-uem_result UKGPUMemorySystem_CreateMemory(int nSize, OUT void **ppMemory);
-uem_result UKGPUMemorySystem_CreateHostAllocMemory(int nSize, OUT void **ppMemory);
-uem_result UKGPUMemorySystem_CopyHostToDeviceMemory(IN void *pDest, IN void *pSrc, int nCopySize);
+uem_result UKGPUMemorySystem_CreateMemory(int nSize, int nProcessorId, OUT void **ppMemory);
+uem_result UKGPUMemorySystem_CreateHostAllocMemory(int nSize, int nProcessorId, OUT void **ppMemory);
 uem_result UKGPUMemorySystem_CopyHostToDeviceMemory(IN void *pDest, IN void *pSrc, int nCopySize);
 uem_result UKGPUMemorySystem_CopyDeviceToHostMemory(IN void *pDest, IN void *pSrc, int nCopySize);
 uem_result UKGPUMemorySystem_CopyDeviceToDeviceMemory(IN void *pDest, IN void *pSrc, int nCopySize);
@@ -29,3 +28,4 @@ uem_result UKGPUMemorySystem_DestroyMemory(IN OUT void **ppMemory);
 #endif
 
 #endif /* SRC_KERNEL_UNCONSTRAINED_UKGPUMEMORYSYSTEM_H_ */
+

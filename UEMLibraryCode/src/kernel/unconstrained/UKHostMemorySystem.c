@@ -14,7 +14,7 @@
 #include <UCBasic.h>
 #include <UCAlloc.h>
 
-uem_result UKHostMemorySystem_CreateMemory(int nSize, OUT void **ppMemory)
+uem_result UKHostMemorySystem_CreateMemory(int nSize, int nProcessorId, OUT void **ppMemory)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 

@@ -13,13 +13,27 @@
 
 #include <UCGPUMemory.h>
 
-uem_result UKGPUMemorySystem_CreateMemory(int nSize, OUT void **ppMemory)
+uem_result UKGPUMemorySystem_CreateMemory(int nSize, int nProcessorId, OUT void **ppMemory)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	int nDeviceOri = 0;
+	int nGPUProcessorId = 0;
 
 	IFVARERRASSIGNGOTO(ppMemory , NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
+	result = UKProcessor_GetGPUProcessorId(nProcessorId, &nGPUProcessorId);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCGPUMemory_GetDevice(&nDeviceOri);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCGPUMemory_SetDevice(nGPUProcessorId);
+	ERRIFGOTO(result, _EXIT);
+
 	result = UCGPUMemory_Malloc(ppMemory, nSize);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCGPUMemory_SetDevice(nDeviceOri);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -28,13 +42,27 @@ _EXIT:
 }
 
 
-uem_result UKGPUMemorySystem_CreateHostAllocMemory(int nSize, OUT void **ppMemory)
+uem_result UKGPUMemorySystem_CreateHostAllocMemory(int nSize, int nProcessorId, OUT void **ppMemory)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	int nDeviceOri = 0;
+	int nGPUProcessorId = 0;
 
 	IFVARERRASSIGNGOTO(ppMemory , NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
+	result = UKProcessor_GetGPUProcessorId(nProcessorId, &nGPUProcessorId);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCGPUMemory_GetDevice(&nDeviceOri);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCGPUMemory_SetDevice(nGPUProcessorId);
+	ERRIFGOTO(result, _EXIT);
+
 	result = UCGPUMemory_HostAlloc(ppMemory, nSize, MEMORY_PROPERTY_PORTABLE);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCGPUMemory_SetDevice(nDeviceOri);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;

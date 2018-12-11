@@ -52,6 +52,7 @@ typedef struct _SGeneralTask {
 	uem_bool bIsSubConvergentLoop;
 	STask *pstLoopParentTask;
 	uem_bool bLoopDesignatedTask;
+	int nProcessorId;
 	HCPUGeneralTaskManager hManager;
 } SGeneralTask;
 
@@ -369,6 +370,7 @@ static uem_result createGeneralTaskStruct(HCPUGeneralTaskManager hCPUTaskManager
 	pstGeneralTask->bIsSubLoop = isSubLoopTask(pstMappedInfo->pstTask, &(pstGeneralTask->pstLoopParentTask));
 	pstGeneralTask->bIsSubConvergentLoop = isSubConvergentLoopTask(pstMappedInfo->pstTask);
 	pstGeneralTask->pstTask = pstMappedInfo->pstTask;
+	pstGeneralTask->nProcessorId = pstMappedInfo->nProcessorId;
 
 	if(pstGeneralTask->bIsModeTransition == TRUE)
 	{
@@ -1232,6 +1234,8 @@ static void *taskThreadRoutine(void *pData)
 	SGeneralTask *pstGeneralTask = NULL;
 	STask *pstCurrentTask = NULL;
 	int nIndex = 0;
+	uem_bool *pbIsCPU = FALSE;
+	int nGPUProcessorId = 0;
 
 	pstThreadData = (struct _SGeneralTaskThreadData *) pData;
 
@@ -1239,6 +1243,24 @@ static void *taskThreadRoutine(void *pData)
 	pstGeneralTask = pstThreadData->pstGeneralTask;
 	pstCurrentTask = pstGeneralTask->pstTask;
 	nIndex = pstTaskThread->nTaskFuncId;
+
+	result = UKProcessor_IsCPUByProcessorId(pstGeneralTask->nProcessorId, &pbIsCPU);
+	ERRIFGOTO(result, _EXIT);
+
+	if (pbIsCPU == TRUE) {
+		if (pstTaskThread->nProcId != MAPPING_NOT_SPECIFIED) {
+			result = UCThread_SetMappedCPU(pstTaskThread->hThread,
+					pstTaskThread->nProcId);
+			ERRIFGOTO(result, _EXIT);
+		}
+	}
+	else{
+		result = UKProcessor_GetGPUProcessorId(pstGeneralTask->nProcessorId, &nGPUProcessorId);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UCGPUMemory_SetDevice(nGPUProcessorId);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	pstCurrentTask->astTaskThreadFunctions[nIndex].fnInit(pstCurrentTask->nTaskId);
 
@@ -1300,12 +1322,6 @@ static uem_result createGeneralTaskThread(IN int nOffset, IN void *pData, IN voi
 	ERRIFGOTO(result, _EXIT);
 
 	pstTaskThreadData = NULL;
-
-	if(pstTaskThread->nProcId != MAPPING_NOT_SPECIFIED)
-	{
-		result = UCThread_SetMappedCPU(pstTaskThread->hThread, pstTaskThread->nProcId);
-		ERRIFGOTO(result, _EXIT);
-	}
 
     result = ERR_UEM_NOERROR;
 _EXIT:

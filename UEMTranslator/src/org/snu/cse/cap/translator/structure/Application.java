@@ -555,6 +555,7 @@ public class Application {
 		}
 		
 		channel.setCommunicationType(CommunicationType.SHARED_MEMORY);
+		channel.setProcesserId(srcProcId);
 		
 		if(srcCPU == false && dstCPU == true) {
 			channel.setAccessType(InMemoryAccessType.GPU_CPU);                                     

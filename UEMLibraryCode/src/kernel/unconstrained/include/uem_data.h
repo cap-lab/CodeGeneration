@@ -94,6 +94,14 @@ typedef struct _STaskIteration {
 } STaskIteration;
 
 
+typedef struct _SMap {
+	HThread hThread;
+	int nProcessorId;
+	int nProcessorLocalId;
+	int nPrevProcessorId;
+	int nPrevProcessorLocalId;
+};
+
 typedef struct _STask {
 	int nTaskId;
 	const char *pszTaskName;

@@ -20,7 +20,16 @@ public class Channel implements Cloneable {
 	private int nextChannelIndex;
 	private int channelSampleSize;
 	private int socketInfoIndex;
+	private int processerId;
 	
+	public int getProcesserId() {
+		return processerId;
+	}
+
+	public void setProcesserId(int processerId) {
+		this.processerId = processerId;
+	}
+
 	public Channel(int index, int size, int initialDataLen, int sampleSize) {
 		this.size = size;
 		this.index = index;

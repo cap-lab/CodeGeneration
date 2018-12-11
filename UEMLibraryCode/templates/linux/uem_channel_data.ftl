@@ -87,7 +87,7 @@ SPortSampleRate g_astPortSampleRate_${port.taskName}_${port.portName}[] = {
 // ##PORT_ARRAY_TEMPLATE::START
 SPort g_astPortInfo[] = {
 <#list port_info as port>
-	{
+	{ // index number: ${port?index}
 		${port.taskId}, // Task ID
 		"${port.portName}", // Port name
 		PORT_SAMPLE_RATE_${port.portSampleRateType}, // Port sample rate type
@@ -460,7 +460,6 @@ SSerialReaderChannel g_stSerialReaderChannel_${channel.index} = {
 </#list>
 // ##SPECIFIC_CHANNEL_LIST_TEMPLATE::END
 
-
 // ##CHANNEL_LIST_TEMPLATE::START
 SChannel g_astChannels[] = {
 <#list channel_list as channel>
@@ -470,9 +469,10 @@ SChannel g_astChannels[] = {
 		COMMUNICATION_TYPE_${channel.communicationType}, // Channel communication type
 		CHANNEL_TYPE_${channel.channelType}, // Channel type
 		CHANNEL_${channel.index}_SIZE, // Channel size
-		&(g_astPortInfo[${channel.inputPortIndex}]), // Outer-most input port information
-		&(g_astPortInfo[${channel.outputPortIndex}]), // Outer-most output port information
+		&(g_astPortInfo[${channel.inputPortIndex}]), // Outer-most input port information (port name: ${channel.inputPort.portName})
+		&(g_astPortInfo[${channel.outputPortIndex}]), // Outer-most output port information (port name: ${channel.outputPort.portName})
 		${channel.initialDataLen?c}, // Initial data length
+		${channel.processerId?c}, // Propcesosr ID
 	<#switch channel.communicationType>
 		<#case "SHARED_MEMORY">
 		&g_stSharedMemoryChannel_${channel.index}, // specific shared memory channel structure pointer
@@ -515,8 +515,8 @@ SChannelAPI g_stSharedMemoryChannel = {
 	UKSharedMemoryChannel_ClearExit,
 	UKSharedMemoryChannel_FillInitialData,
 	UKSharedMemoryChannel_Finalize, // fnFinalize
-	NULL,
-	NULL,
+	(FnChannelAPIInitialize) NULL,
+	(FnChannelAPIFinalize) NULL,
 };
 
 <#if used_communication_list?seq_contains("tcp")>

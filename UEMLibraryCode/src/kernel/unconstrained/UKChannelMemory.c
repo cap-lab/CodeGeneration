@@ -140,7 +140,7 @@ uem_result UKChannelMemory_Initialize(SChannel *pstChannel, SSharedMemoryChannel
 	// If not set, initialize those things, // pBuffer => is NULL => alloc
 	if(pstSharedMemoryChannel->bStaticAllocation == FALSE && pstSharedMemoryChannel->pBuffer == NULL)
 	{
-		result = pstSharedMemoryChannel->pstMemoryAccessAPI->fnCreateMemory(pstChannel->nBufSize, &(pstSharedMemoryChannel->pBuffer));
+		result = pstSharedMemoryChannel->pstMemoryAccessAPI->fnCreateMemory(pstChannel->nBufSize, pstChannel->nProcessorId, &(pstSharedMemoryChannel->pBuffer));
 		ERRIFGOTO(result, _EXIT);
 	}
 
@@ -1244,7 +1244,7 @@ static uem_result fillInitialData(SChannel *pstChannel, SSharedMemoryChannel *ps
 	pstMemoryAPI = pstSharedMemoryChannel->pstMemoryAccessAPI;
 
 	// fill non-set memory (does not need to set the memory after creating memory)
-	result = pstMemoryAPI->fnCreateMemory(nDataToFill, &pBuffer);
+	result = pstMemoryAPI->fnCreateMemory(nDataToFill, pstChannel->nProcessorId, &pBuffer);
 	ERRIFGOTO(result, _EXIT);
 
 	result = copyAndMovePointerToRoundedQueue(pstChannel, pstSharedMemoryChannel, pBuffer, nDataToFill, 0, pstMemoryAPI->fnCopyInMemory);

@@ -55,7 +55,7 @@ typedef struct _SAvailableChunk {
 	SAvailableChunk *pstNext;
 } SAvailableChunk;
 
-typedef uem_result (*FnCreateMemory)(int nSize, OUT void **ppMemory);
+typedef uem_result (*FnCreateMemory)(int nSize, int nProcessorId, OUT void **ppMemory);
 typedef uem_result (*FnCopyMemory)(IN void *pDest, IN void *pSource, int nCopySize);
 typedef uem_result (*FnDestroyMemory)(IN OUT void **ppMemory);
 
@@ -138,6 +138,7 @@ typedef struct _SChannel {
 	SPort *pstInputPort;
 	SPort *pstOutputPort;
 	int nInitialDataLen;
+	int nProcessorId;
 	void *pChannelStruct;
 } SChannel;
 

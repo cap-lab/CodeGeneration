@@ -16,6 +16,7 @@ extern "C"
 #endif
 
 uem_result UKProcessor_IsCPUByProcessorId(int nProcessorId, uem_bool *pbIsCPU);
+uem_result UKProcessor_GetGPUProcessorId(IN int nProcessorId, OUT int *pnGPUProcessorId);
 
 #ifdef __cplusplus
 }

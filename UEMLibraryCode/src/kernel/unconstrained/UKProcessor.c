@@ -40,3 +40,30 @@ _EXIT:
 	return result;
 }
 
+uem_result UKProcessor_GetGPUProcessorId(IN int nProcessorId, OUT int *pnGPUProcessorId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop = 0;
+	int nCPUProcessorNum = 0;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(pnGPUProcessorId, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	if(nProcessorId < 0)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+#endif
+	for(nLoop = 0 ; nLoop < g_nProcessorInfoNum ; nLoop++)
+	{
+		if(g_astProcessorInfo[nLoop].bIsCPU == TRUE)
+		{
+			nCPUProcessorNum++;
+		}
+	}
+
+	*pnGPUProcessorId = nProcessorId - nCPUProcessorNum;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
