@@ -93,9 +93,6 @@ typedef struct _STaskIteration {
 	int nRunInIteration;
 } STaskIteration;
 
-//typedef uem_result (*FnProcessorMap)(HMap hMap, HThread hThead, int nProcessorId, int nProcessorLocalId);
-//typedef uem_result (*FnResetProcessorMap)(HMap hMap);
-
 
 typedef struct _SMap {
 	HThread hThread;
@@ -104,18 +101,6 @@ typedef struct _SMap {
 	int nPrevProcessorId;
 	int nPrevProcessorLocalId;
 };
-
-
-//UKProcessorMap_Create();
-//GetProcessor;
-//UKProcessorMap_Destroy();
-
-
-//typedef struct _SProcssorMapAPI {
-//	FnProcessorMap fnMapProcessor;
-//	FnResetProcessorMap fnResetMappedProcessor;
-//} SProcssorMapAPI;
-
 
 typedef struct _STask {
 	int nTaskId;
@@ -196,25 +181,12 @@ typedef struct _SMappedGeneralTaskInfo {
 	STask *pstTask;
 	int nProcessorId;
 	int nLocalId;
-	//SProcssorMapAPI *pstMapAPI;
 } SMappedGeneralTaskInfo;
-
-/*
-SProcssorMapAPI g_stCPUMap = {
-	UKMapping_SetCPU, => UCThread_SetMappedCPU wrapping 한 것
-	UKMapping_ResetCPU,
-};
-
-SProcssorMapAPI g_stGPUMap = {
-	UKMapping_SetGPU, => UCGPUMemory_SetDevice wrapping 한 것
-	UKMapping_ResetGPU,
-};*/
 
 typedef struct _SMappedCompositeTaskInfo {
 	SScheduledTasks *pstScheduledTasks;
 	int nProcessorId;
 	int nLocalId;
-	//SProcssorMapAPI *pstMapAPI;
 } SMappedCompositeTaskInfo;
 
 typedef struct _SMappedTaskInfo {
