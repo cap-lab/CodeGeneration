@@ -13,8 +13,9 @@
 
 #include <UCBasic.h>
 #include <UCAlloc.h>
+#include <UCThread.h>
 
-uem_result UKHostMemorySystem_CreateMemory(int nSize, int nProcessorId, OUT void **ppMemory)
+uem_result UKHostSystem_CreateMemory(int nSize, int nProcessorId, OUT void **ppMemory)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
@@ -29,7 +30,7 @@ _EXIT:
 }
 
 
-uem_result UKHostMemorySystem_CopyToMemory(IN void *pMemory, IN void *pSource, int nCopySize)
+uem_result UKHostSystem_CopyToMemory(IN void *pMemory, IN void *pSource, int nCopySize)
 {
 	UC_memcpy(pMemory, pSource, nCopySize);
 
@@ -37,7 +38,7 @@ uem_result UKHostMemorySystem_CopyToMemory(IN void *pMemory, IN void *pSource, i
 }
 
 
-uem_result UKHostMemorySystem_CopyInMemory(IN void *pInMemoryDst, IN void *pInMemorySrc, int nCopySize)
+uem_result UKHostSystem_CopyInMemory(IN void *pInMemoryDst, IN void *pInMemorySrc, int nCopySize)
 {
 	UC_memcpy(pInMemoryDst, pInMemorySrc, nCopySize);
 
@@ -45,7 +46,7 @@ uem_result UKHostMemorySystem_CopyInMemory(IN void *pInMemoryDst, IN void *pInMe
 }
 
 
-uem_result UKHostMemorySystem_CopyFromMemory(IN void *pDestination, IN void *pMemory, int nCopySize)
+uem_result UKHostSystem_CopyFromMemory(IN void *pDestination, IN void *pMemory, int nCopySize)
 {
 	UC_memcpy(pDestination, pMemory, nCopySize);
 
@@ -53,7 +54,7 @@ uem_result UKHostMemorySystem_CopyFromMemory(IN void *pDestination, IN void *pMe
 }
 
 
-uem_result UKHostMemorySystem_DestroyMemory(IN OUT void **ppMemory)
+uem_result UKHostSystem_DestroyMemory(IN OUT void **ppMemory)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
@@ -70,4 +71,15 @@ _EXIT:
 }
 
 
+uem_result UKHostSystem_MapCPU(HThread hThread, int nProcessorId, int nLocalId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	if (nLocalId != MAPPING_NOT_SPECIFIED) {
+		result = UCThread_SetMappedCPU(hThread, nLocalId);
+		ERRIFGOTO(result, _EXIT);
+	}
+_EXIT:
+	return result;
+}
 

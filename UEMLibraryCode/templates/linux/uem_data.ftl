@@ -7,7 +7,11 @@
 #include <uem_data.h>
 #include <UKTask.h>
 #include <UKModeTransition.h>
-#include <UKHostMemorySystem.h>
+#include <UKHostSystem.h>
+
+<#if gpu_used == true>
+#include <UKGPUSystem.h>
+</#if>
 
 SExecutionTime g_stExecutionTime = { ${execution_time.value?c}, TIME_METRIC_${execution_time.metric} } ;
 
@@ -285,6 +289,15 @@ SScheduledTasks g_astScheduledTaskList[] = {
 </#list>
 };
 
+SGenericMapProcessor g_stCPUProcessor = {
+	UKHostSystem_MapCPU,
+};
+
+<#if gpu_used == true>
+SGenericMapProcessor g_stGPUProcessor = {
+	UKGPUSystem_MapGPU,
+};
+</#if>
 
 // ##MAPPING_SCHEDULING_INFO_TEMPLATE::START
 
@@ -295,6 +308,19 @@ SMappedGeneralTaskInfo g_astGeneralTaskMappingInfo[] = {
 		&g_astTasks_${mapped_task.parentTaskGraphName}[${mapped_task.inGraphIndex}], // Task ID or composite task information
 		${mappedProcessor.processorId}, // Processor ID
 		${mappedProcessor.processorLocalId}, // Processor local ID
+		<#list device_info as device_name, device>
+			<#if device_name == mapped_task.mappedDeviceName>
+				<#list device.processorList as processor>
+					<#if processor.id == mappedProcessor.processorId>
+						<#if processor.isCPU == true>
+		&g_stCPUProcessor, // CPU Processor API
+						<#else>
+		&g_stGPUProcessor, // GPU Processor API
+						</#if>
+					</#if>
+				</#list>
+			</#if>
+		</#list>
 	},
 	</#list>
 </#list>

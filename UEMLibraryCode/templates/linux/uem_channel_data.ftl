@@ -17,7 +17,7 @@
 	</#if>
 </#if>
 
-#include <UKHostMemorySystem.h>
+#include <UKHostSystem.h>
 #include <UKSharedMemoryChannel.h>
 #include <UKChannel.h>
 
@@ -41,7 +41,7 @@
 	</#if>
 </#if>
 <#if gpu_used == true>
-#include <UKGPUMemorySystem.h>
+#include <UKGPUSystem.h>
 </#if>
 
 
@@ -220,44 +220,44 @@ SSerialInfo g_astSerialSlaveInfo[] = {
 
 
 SGenericMemoryAccess g_stHostMemory = {
-	UKHostMemorySystem_CreateMemory,
-	UKHostMemorySystem_CopyToMemory,
-	UKHostMemorySystem_CopyInMemory,
-	UKHostMemorySystem_CopyFromMemory,
-	UKHostMemorySystem_DestroyMemory,
+	UKHostSystem_CreateMemory,
+	UKHostSystem_CopyToMemory,
+	UKHostSystem_CopyInMemory,
+	UKHostSystem_CopyFromMemory,
+	UKHostSystem_DestroyMemory,
 };
 
 <#if gpu_used == true>
 SGenericMemoryAccess g_stHostToDeviceMemory = {
-	UKHostMemorySystem_CreateMemory,
-	UKHostMemorySystem_CopyToMemory,
-	UKHostMemorySystem_CopyInMemory,
-	UKGPUMemorySystem_CopyHostToDeviceMemory,
-	UKHostMemorySystem_DestroyMemory,
+	UKHostSystem_CreateMemory,
+	UKHostSystem_CopyToMemory,
+	UKHostSystem_CopyInMemory,
+	UKGPUSystem_CopyHostToDeviceMemory,
+	UKHostSystem_DestroyMemory,
 };
 
 SGenericMemoryAccess g_stDeviceToHostMemory = {
-	UKHostMemorySystem_CreateMemory,
-	UKGPUMemorySystem_CopyDeviceToHostMemory,
-	UKHostMemorySystem_CopyInMemory,
-	UKHostMemorySystem_CopyFromMemory,
-	UKHostMemorySystem_DestroyMemory,
+	UKHostSystem_CreateMemory,
+	UKGPUSystem_CopyDeviceToHostMemory,
+	UKHostSystem_CopyInMemory,
+	UKHostSystem_CopyFromMemory,
+	UKHostSystem_DestroyMemory,
 };
 
 SGenericMemoryAccess g_stDeviceItSelfMemory = {
-	UKGPUMemorySystem_CreateMemory,
-	UKGPUMemorySystem_CopyDeviceToDeviceMemory,
-	UKGPUMemorySystem_CopyDeviceToDeviceMemory,
-	UKGPUMemorySystem_CopyDeviceToDeviceMemory,
-	UKGPUMemorySystem_DestroyMemory,
+	UKGPUSystem_CreateMemory,
+	UKGPUSystem_CopyDeviceToDeviceMemory,
+	UKGPUSystem_CopyDeviceToDeviceMemory,
+	UKGPUSystem_CopyDeviceToDeviceMemory,
+	UKGPUSystem_DestroyMemory,
 };
 
 SGenericMemoryAccess g_stDeviceToDeviceMemory = {
-	UKGPUMemorySystem_CreateHostAllocMemory,
-	UKGPUMemorySystem_CopyDeviceToHostMemory,
-	UKHostMemorySystem_CopyInMemory, // host alloc memory can use host memcpy function
-	UKGPUMemorySystem_CopyHostToDeviceMemory,
-	UKGPUMemorySystem_DestroyHostAllocMemory,
+	UKGPUSystem_CreateHostAllocMemory,
+	UKGPUSystem_CopyDeviceToHostMemory,
+	UKHostSystem_CopyInMemory, // host alloc memory can use host memcpy function
+	UKGPUSystem_CopyHostToDeviceMemory,
+	UKGPUSystem_DestroyHostAllocMemory,
 };
 </#if>
 

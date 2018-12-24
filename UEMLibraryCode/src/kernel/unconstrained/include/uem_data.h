@@ -93,7 +93,6 @@ typedef struct _STaskIteration {
 	int nRunInIteration;
 } STaskIteration;
 
-
 typedef struct _SMap {
 	HThread hThread;
 	int nProcessorId;
@@ -176,11 +175,18 @@ typedef struct _SAddOnModule {
 	FnAddOnModuleFinalize fnFinalize;
 } SAddOnModule;
 
+typedef uem_result (*FnMapProcessor)(HThread hThread, int nProcessorId, int nLocalId);
+
+typedef struct _SGenericMapProcessor {
+	FnMapProcessor fnMapProcessor;
+} SGenericMapProcessor;
+
 typedef struct _SMappedGeneralTaskInfo {
 	ETaskType enType;
 	STask *pstTask;
 	int nProcessorId;
 	int nLocalId;
+	SGenericMapProcessor *pstMapProcessorAPI;
 } SMappedGeneralTaskInfo;
 
 typedef struct _SMappedCompositeTaskInfo {

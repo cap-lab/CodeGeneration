@@ -53,6 +53,7 @@ typedef struct _SGeneralTask {
 	STask *pstLoopParentTask;
 	uem_bool bLoopDesignatedTask;
 	int nProcessorId;
+	SGenericMapProcessor *pstMapProcessorAPI;
 	HCPUGeneralTaskManager hManager;
 } SGeneralTask;
 
@@ -371,6 +372,7 @@ static uem_result createGeneralTaskStruct(HCPUGeneralTaskManager hCPUTaskManager
 	pstGeneralTask->bIsSubConvergentLoop = isSubConvergentLoopTask(pstMappedInfo->pstTask);
 	pstGeneralTask->pstTask = pstMappedInfo->pstTask;
 	pstGeneralTask->nProcessorId = pstMappedInfo->nProcessorId;
+	pstGeneralTask->pstMapProcessorAPI = pstMappedInfo->pstMapProcessorAPI;
 
 	if(pstGeneralTask->bIsModeTransition == TRUE)
 	{
@@ -1236,6 +1238,7 @@ static void *taskThreadRoutine(void *pData)
 	int nIndex = 0;
 	uem_bool *pbIsCPU = FALSE;
 	int nGPUProcessorId = 0;
+	SGenericMapProcessor *pstProcessorAPI = NULL;
 
 	pstThreadData = (struct _SGeneralTaskThreadData *) pData;
 
@@ -1244,23 +1247,10 @@ static void *taskThreadRoutine(void *pData)
 	pstCurrentTask = pstGeneralTask->pstTask;
 	nIndex = pstTaskThread->nTaskFuncId;
 
-	result = UKProcessor_IsCPUByProcessorId(pstGeneralTask->nProcessorId, &pbIsCPU);
+	pstProcessorAPI = pstGeneralTask->pstMapProcessorAPI;
+
+	result = pstProcessorAPI->fnMapProcessor(pstTaskThread->hThread, pstGeneralTask->nProcessorId, pstTaskThread->nProcId);
 	ERRIFGOTO(result, _EXIT);
-
-	if (pbIsCPU == TRUE) {
-		if (pstTaskThread->nProcId != MAPPING_NOT_SPECIFIED) {
-			result = UCThread_SetMappedCPU(pstTaskThread->hThread,
-					pstTaskThread->nProcId);
-			ERRIFGOTO(result, _EXIT);
-		}
-	}
-	else{
-		result = UKProcessor_GetGPUProcessorId(pstGeneralTask->nProcessorId, &nGPUProcessorId);
-		ERRIFGOTO(result, _EXIT);
-
-		result = UCGPUMemory_SetDevice(nGPUProcessorId);
-		ERRIFGOTO(result, _EXIT);
-	}
 
 	pstCurrentTask->astTaskThreadFunctions[nIndex].fnInit(pstCurrentTask->nTaskId);
 
