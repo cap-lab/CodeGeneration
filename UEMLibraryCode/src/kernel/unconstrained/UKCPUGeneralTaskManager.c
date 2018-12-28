@@ -29,7 +29,6 @@
 
 #define THREAD_DESTROY_TIMEOUT (3000)
 
-
 typedef struct _SGeneralTaskThread {
 	int nProcId;
 	int nTaskFuncId;
@@ -1249,6 +1248,10 @@ static void *taskThreadRoutine(void *pData)
 
 	pstProcessorAPI = pstGeneralTask->pstMapProcessorAPI;
 
+	// wait until pstTaskThread->hThread is set
+	result = UCThreadEvent_WaitEvent(pstTaskThread->hEvent);
+	ERRIFGOTO(result, _EXIT);
+
 	result = pstProcessorAPI->fnMapProcessor(pstTaskThread->hThread, pstGeneralTask->nProcessorId, pstTaskThread->nProcId);
 	ERRIFGOTO(result, _EXIT);
 
@@ -1309,6 +1312,9 @@ static uem_result createGeneralTaskThread(IN int nOffset, IN void *pData, IN voi
 	pstTaskThreadData->pstTaskThread = pstTaskThread;
 
 	result = UCThread_Create(taskThreadRoutine, pstTaskThreadData, &(pstTaskThread->hThread));
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadEvent_SetEvent(pstTaskThread->hEvent);
 	ERRIFGOTO(result, _EXIT);
 
 	pstTaskThreadData = NULL;
