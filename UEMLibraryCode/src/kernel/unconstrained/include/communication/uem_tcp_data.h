@@ -55,7 +55,7 @@ typedef struct _STCPSocketChannel {
 	int nBufLen; // temporary buffer length (for WRITER)
 	HThreadMutex hMutex;
 	uem_bool bChannelExit;
-	SSharedMemoryChannel *pstInternalChannel;
+	SSharedMemoryChannel *pstInternalChannel; // for WRITER
 	SGenericMemoryAccess *pstReaderAccess; // for READER channel
 } STCPSocketChannel;
 

@@ -15,10 +15,10 @@ extern "C"
 {
 #endif
 
-
+#ifndef API_LITE
 void UFSystem_Kill(IN int nCallerTaskId);
 void UFSystem_Stop(IN int nCallerTaskId);
-
+#endif
 
 #ifdef __cplusplus
 }

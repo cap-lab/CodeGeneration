@@ -13,6 +13,7 @@
 
 #include <UFSystem.h>
 
+#ifndef API_LITE
 void SYS_REQ_KILL(int nCallerTaskId)
 {
 	UFSystem_Kill(nCallerTaskId);
@@ -23,5 +24,5 @@ void SYS_REQ_STOP(int nCallerTaskId)
 {
 	UFSystem_Stop(nCallerTaskId);
 }
-
+#endif
 

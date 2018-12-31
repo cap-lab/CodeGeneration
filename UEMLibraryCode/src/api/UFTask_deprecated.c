@@ -11,16 +11,8 @@
 
 #include <uem_common.h>
 
-#include <UKCPUTaskManager.h>
-
 #include <UFTask_deprecated.h>
 #include <UFTask.h>
-
-
-void SYS_REQ_SET_THROUGHPUT(int nCallerTaskId, char *pszTaskName, char *pszValue, char *pszUnit)
-{
-	UFTask_SetThroughput (nCallerTaskId, pszTaskName, pszValue, pszUnit);
-}
 
 
 long SYS_REQ_GET_PARAM_INT(int nCallerTaskId, char *pszTaskName, char *pszParamName)
@@ -109,6 +101,12 @@ _EXIT:
 	return nTaskState;
 }
 
+#ifndef API_LITE
+void SYS_REQ_SET_THROUGHPUT(int nCallerTaskId, char *pszTaskName, char *pszValue, char *pszUnit)
+{
+	UFTask_SetThroughput (nCallerTaskId, pszTaskName, pszValue, pszUnit);
+}
+
 
 void SYS_REQ_EXECUTE_TRANSITION(int nCallerTaskId, char *pszTaskName)
 {
@@ -145,4 +143,4 @@ char *SYS_REQ_GET_MODE(int nCallerTaskId, char *pszTaskName)
 _EXIT:
 	return pszModeName;
 }
-
+#endif

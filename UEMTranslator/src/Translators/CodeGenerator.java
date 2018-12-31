@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -25,6 +26,8 @@ import org.snu.cse.cap.translator.UnsupportedHardwareInformation;
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 import org.snu.cse.cap.translator.structure.ProgrammingLanguage;
 import org.snu.cse.cap.translator.structure.device.Device;
+import org.snu.cse.cap.translator.structure.device.EnvironmentVariable;
+import org.snu.cse.cap.translator.structure.device.SoftwarePlatformType;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
 import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.task.Task;
@@ -168,15 +171,30 @@ public class CodeGenerator
 		}
     }
     
-    private void generateMakefile(CodeOrganizer codeOrganizer, String topDirPath) throws TemplateNotFoundException, MalformedTemplateNameException, 
+    private void generateMakefile(CodeOrganizer codeOrganizer, String topDirPath, ArrayList<EnvironmentVariable> envVarList) throws TemplateNotFoundException, MalformedTemplateNameException, 
     																freemarker.core.ParseException, IOException, TemplateException
     {
-    	Template makefileTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_MAKEFILE);
+    	Template makefileTemplate = this.templateConfig.getTemplate(codeOrganizer.getPlatform() + Constants.TEMPLATE_PATH_SEPARATOR + Constants.TEMPLATE_FILE_MAKEFILE);
 		// Create the root hash
 		Map<String, Object> makefileRootHash = new HashMap<>();
-		String outputFilePath = topDirPath + File.separator + Constants.DEFAULT_MAKEFILE_AM;
+		String outputFilePath = topDirPath + File.separator;
 		
+		switch(codeOrganizer.getBuildType())
+		{
+		case AUTOMAKE:
+			outputFilePath += Constants.DEFAULT_MAKEFILE_AM;
+			break;
+		case MAKEFILE:
+			outputFilePath += Constants.DEFAULT_MAKEFILE;
+			break;
+		default:
+			//TODO: must be error
+			break;
+		}
+	
 		makefileRootHash.put(Constants.TEMPLATE_TAG_BUILD_INFO, codeOrganizer);
+		makefileRootHash.put(Constants.TEMPLATE_TAG_ENVIRONMENT_VARIABLE_INFO, envVarList);
+		makefileRootHash.put(Constants.TEMPLATE_TAG_USED_COMMUNICATION_LIST, codeOrganizer.getUsedCommunicationSet());
 
 		Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
 		makefileTemplate.process(makefileRootHash, out);
@@ -202,7 +220,21 @@ public class CodeGenerator
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_COMMUNICATION_USED, device.useCommunication());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TCP_CLIENT_LIST, device.getTcpClientList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TCP_SERVER_LIST, device.getTcpServerList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_BLUETOOTH_MASTER_LIST, device.getBluetoothMasterList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_BLUETOOTH_SLAVE_LIST, device.getBluetoothUnconstrainedSlaveList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_MASTER_LIST, device.getSerialMasterList());
+		if(device.getPlatform() == SoftwarePlatformType.ARDUINO)
+		{
+			uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_SLAVE_LIST, device.getSerialConstrainedSlaveList());	
+		}
+		else if(device.getPlatform() == SoftwarePlatformType.LINUX)
+		{
+			uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_SLAVE_LIST, device.getSerialUnconstrainedSlaveList());
+		}
+		
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_MODULE_LIST, device.getModuleList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_DEVICE_CONSTRAINED_INFO, codeOrganizer.getDeviceRestriction());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_USED_COMMUNICATION_LIST, codeOrganizer.getUsedCommunicationSet());
 		
     	for(String outputFileName : codeOrganizer.getKernelDataSourceList())
     	{
@@ -212,7 +244,7 @@ public class CodeGenerator
     		
     		// remove file extension of the file name (removes last dot and the following chars ex. abc.x.c => abc.x)
     		templateFileName = outputFileName.replaceFirst("[.][^.]+$", "")  + Constants.TEMPLATE_FILE_EXTENSION;
-    		uemDataTemplate = this.templateConfig.getTemplate(templateFileName);
+    		uemDataTemplate = this.templateConfig.getTemplate(codeOrganizer.getPlatform() + Constants.TEMPLATE_PATH_SEPARATOR + templateFileName);
     		outputFilePath += outputFileName;
     		
     		Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
@@ -305,18 +337,20 @@ public class CodeGenerator
 			for(Device device : uemDatamodel.getApplication().getDeviceInfo().values())
 			{
 				CodeOrganizer codeOrganizer = new CodeOrganizer(device.getArchitecture().toString(), 
-						device.getPlatform().toString(), device.getRuntime().toString(), device.isGPUMapped(), device.useCommunication());
+						device.getPlatform().toString(), device.getRuntime().toString(), device.isGPUMapped(), device.getRequiredCommunicationSet());
 				String topSrcDir = this.mOutputPath + File.separator + device.getName();
 				
 				codeOrganizer.fillSourceCodeListFromTaskAndLibraryMap(device.getTaskMap(), device.getLibraryMap());
 				codeOrganizer.extraInfoFromTaskAndLibraryMap(device.getTaskMap(), device.getLibraryMap());
 				codeOrganizer.fillSourceCodeAndFlagsFromModules(device.getModuleList());
 				codeOrganizer.extractDataFromProperties(this.translatorProperties);
+				codeOrganizer.setBuildType(this.translatorProperties);
 				
 				codeOrganizer.copyFilesFromLibraryCodeTemplate(this.libraryCodeTemplateDir, topSrcDir);
+				codeOrganizer.copyBuildFiles(this.translatorProperties, this.libraryCodeTemplateDir, topSrcDir);
 				codeOrganizer.copyApplicationCodes(this.mOutputPath, topSrcDir);
 				
-				generateMakefile(codeOrganizer, topSrcDir);
+				generateMakefile(codeOrganizer, topSrcDir, device.getEnvironmentVariableList());
 				generateKernelDataCode(codeOrganizer, device, topSrcDir, codeOrganizer.getLanguage());
 				generateTaskCode(device, topSrcDir);
 				generateLibraryCodes(device, topSrcDir);
@@ -324,24 +358,31 @@ public class CodeGenerator
 		} catch (TemplateNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.exit(-1);
 		} catch (MalformedTemplateNameException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.exit(-1);
 		} catch (freemarker.core.ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.exit(-1);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.exit(-1);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.exit(-1);
 		} catch (TemplateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.exit(-1);
 		} catch (UnsupportedHardwareInformation e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.exit(-1);
 		}
     }
 

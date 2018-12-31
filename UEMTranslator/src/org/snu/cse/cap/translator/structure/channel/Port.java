@@ -154,36 +154,53 @@ public class Port {
 		this.maximumChunkNum = maxParallel;
 	}
 	
-	public boolean isDistributingPort() {
+	private boolean checkPort(LoopPortType checkPortType)
+	{
 		Port port;
-		boolean isDistributingPort = false;
+		boolean isPortTypeMatch = false;
 		
 		port = this;
 		while(port != null)
 		{
-			if(port.getPortType() == PortType.QUEUE && port.getLoopPortType() == LoopPortType.DISTRIBUTING)
+			if(port.getPortType() == PortType.QUEUE && port.getLoopPortType() == checkPortType)
 			{
-				isDistributingPort = true;
+				isPortTypeMatch = true;
 				break;
 			}
 			port = port.getUpperGraphPort();
 		}
 		
-		if(isDistributingPort == false)
+		if(isPortTypeMatch == false)
 		{
 			port = this.getSubgraphPort();
 			while(port != null)
 			{
-				if(port.getPortType() == PortType.QUEUE && port.getLoopPortType() == LoopPortType.DISTRIBUTING)
+				if(port.getPortType() == PortType.QUEUE && port.getLoopPortType() == checkPortType)
 				{
-					isDistributingPort = true;
+					isPortTypeMatch = true;
 					break;
 				}
 				port = port.getSubgraphPort();
 			}
 		}
 		
+		return isPortTypeMatch;		
+	}
+	
+	public boolean isDistributingPort() {
+		boolean isDistributingPort = false;
+		
+		isDistributingPort = checkPort(LoopPortType.DISTRIBUTING);
+		
 		return isDistributingPort;
+	}
+	
+	public boolean isBroadcastingPort() {
+		boolean isBroadcastingPort = false;
+		
+		isBroadcastingPort = checkPort(LoopPortType.BROADCASTING);
+		
+		return isBroadcastingPort;
 	}
 	
 	public void putSampleRate(PortSampleRate portSampleRate) {

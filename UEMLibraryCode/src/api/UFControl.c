@@ -41,6 +41,20 @@ _EXIT:
 }
 
 
+uem_result UFControl_CallTask (IN int nCallerTaskId, IN char *pszTaskName)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	result = UKTask_CallTask(nCallerTaskId, pszTaskName);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+#ifndef API_LITE
 uem_result UFControl_SuspendTask (IN int nCallerTaskId, IN char *pszTaskName)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -65,19 +79,7 @@ uem_result UFControl_ResumeTask (IN int nCallerTaskId, IN char *pszTaskName)
 _EXIT:
 	return result;
 }
-
-
-uem_result UFControl_CallTask (IN int nCallerTaskId, IN char *pszTaskName)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-
-	result = UKTask_CallTask(nCallerTaskId, pszTaskName);
-	ERRIFGOTO(result, _EXIT);
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
+#endif
 
 
 

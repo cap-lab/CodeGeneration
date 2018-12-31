@@ -13,8 +13,10 @@ extern "C"
 {
 #endif
 
+#ifndef API_LITE
 void SYS_REQ_KILL(int nCallerTaskId);
 void SYS_REQ_STOP(int nCallerTaskId);
+#endif
 
 #ifdef __cplusplus
 }

@@ -11,6 +11,7 @@
 #include <uem_common.h>
 
 #include <UCBasic.h>
+#include <UCAlloc.h>
 #include <UCDynamicLinkedList.h>
 #include <UCThreadMutex.h>
 #include <UCThreadEvent.h>
@@ -20,8 +21,9 @@
 
 #include <uem_data.h>
 
-#include <UKChannel.h>
-#include <UKTask.h>
+#include <UKTask_internal.h>
+
+#include <UKChannel_internal.h>
 #include <UKModeTransition.h>
 #include <UKCPUTaskManager.h>
 #include <UKCPUCompositeTaskManager.h>
@@ -59,7 +61,7 @@ uem_result UKCPUTaskManager_Create(OUT HCPUTaskManager *phCPUTaskManager)
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(phCPUTaskManager, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
-	pstManager = UC_malloc(sizeof(SCPUTaskManager));
+	pstManager = UCAlloc_malloc(sizeof(SCPUTaskManager));
 	ERRMEMGOTO(pstManager, result, _EXIT);
 
 	pstManager->enId = ID_UEM_CPU_TASK_MANAGER;
@@ -539,10 +541,22 @@ static uem_result setMaximumTaskIteration(STask *pstTask, void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SMaxIterationSetCallback *pstIterationSet = NULL;
+	int nCurMaxIteration = 0;
+	STask *pstParentTask = NULL;
 
 	pstIterationSet = (SMaxIterationSetCallback *) pUserData;
 
-	result = UKTask_SetTargetIteration(pstTask, pstIterationSet->nMaxIteration, pstIterationSet->nBaseTaskId);
+	nCurMaxIteration = pstIterationSet->nMaxIteration;
+	pstParentTask = pstTask;
+	while(pstParentTask->pstParentGraph->pstParentTask != NULL)
+	{
+		if(pstParentTask->pstParentGraph->pstParentTask->pstLoopInfo != NULL) {
+			nCurMaxIteration = nCurMaxIteration * pstParentTask->pstParentGraph->pstParentTask->pstLoopInfo->nLoopCount;
+		}
+		pstParentTask = pstParentTask->pstParentGraph->pstParentTask;
+	}
+
+	result = UKTask_SetTargetIteration(pstTask, nCurMaxIteration, pstIterationSet->nBaseTaskId);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;

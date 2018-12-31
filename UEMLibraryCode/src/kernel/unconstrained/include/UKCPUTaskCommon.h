@@ -14,7 +14,7 @@
 
 #include <UCThreadMutex.h>
 
-#include <UKTask.h>
+#include <UKTask_internal.h>
 
 #ifdef __cplusplus
 extern "C"

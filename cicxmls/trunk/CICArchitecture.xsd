@@ -51,6 +51,7 @@
       <xs:element name="elements" type="ArchitectureElementListType" minOccurs="1" maxOccurs="1" />
 	  <xs:element name="connections" type="DeviceConnectionListType" minOccurs="0" maxOccurs="1" />
 	  <xs:element name="modules" type="ModuleListType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="environmentVariables" type="EnvironmentVariableListType" minOccurs="0" maxOccurs="1" />
 	</xs:sequence>
 	<xs:attribute name="name" type="NameType" use="required" />
 	<xs:attribute name="architecture" type="NameType" use="required" />
@@ -61,23 +62,26 @@
   <xs:complexType name="DeviceConnectionListType">
     <xs:sequence>
       <xs:element name="TCPConnection" type="TCPConnectionType" minOccurs="0" maxOccurs="unbounded" />
-	  <xs:element name="BluetoothConnection" type="BluetoothConnectionType" minOccurs="0" maxOccurs="unbounded" />
+	  <xs:element name="SerialConnection" type="SerialConnectionType" minOccurs="0" maxOccurs="unbounded" />
 	</xs:sequence>
   </xs:complexType>
 
   <xs:complexType name="TCPConnectionType">
 	<xs:attribute name="name" type="NameType" use="required" />
+	<xs:attribute name="network" type="NetworkType" use="optional" />
 	<xs:attribute name="role" type="TCPRoleType" use="required" />
 	<xs:attribute name="ip" type="xs:string" use="optional" />
-	<xs:attribute name="port" type="xs:nonNegativeInteger" use="optional" />
+	<xs:attribute name="port" type="xs:nonNegativeInteger" use="required" />
   </xs:complexType>
-
-  <xs:complexType name="BluetoothConnectionType">
+  
+  <xs:complexType name="SerialConnectionType">
 	<xs:attribute name="name" type="NameType" use="required" />
-	<xs:attribute name="role" type="BluetoothRoleType" use="required" />
-	<xs:attribute name="friendlyName" type="xs:string" use="optional" />
-	<xs:attribute name="MAC" type="xs:string" use="required" />
-  </xs:complexType>  
+	<xs:attribute name="network" type="NetworkType" use="optional" />
+	<xs:attribute name="role" type="MasterSlaveRoleType" use="required" />
+	<xs:attribute name="boardTXPinNumber" type="xs:nonNegativeInteger" use="optional" />
+	<xs:attribute name="boardRXPinNumber" type="xs:nonNegativeInteger" use="optional" />
+	<xs:attribute name="portAddress" type="xs:string" use="optional" /> <!--for wire/USB connection, it becomes serial port path. For BLUETOOTH, it becomes MAC address -->
+  </xs:complexType>
   
   <xs:complexType name="ModuleListType">
     <xs:sequence>
@@ -87,6 +91,17 @@
 
   <xs:complexType name="ModuleType">
  	<xs:attribute name="name" type="NameType" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="EnvironmentVariableListType">
+    <xs:sequence>
+      <xs:element name="variable" type="EnvironmentVariableType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="EnvironmentVariableType">
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="value" type="xs:string" use="required" />
   </xs:complexType>
 
   <!-- Type definitions for architecture element types -->
@@ -101,6 +116,8 @@
     <xs:attribute name="OS" type="xs:string" use="optional" />
     <xs:attribute name="scheduler" type="ArchitectureSchedulerType" use="optional" />
     <xs:attribute name="clock" type="xs:nonNegativeInteger" use="optional" />
+    <!-- Relative cost -->
+    <xs:attribute name="relativeCost" type="xs:decimal" use="optional" />
     <!-- Clock frequency in MHz -->
     <xs:attribute name="archiType" type="xs:string" use="optional" />
     <xs:attribute name="activePower" type="xs:nonNegativeInteger" use="optional" />
@@ -173,6 +190,22 @@
       <xs:enumeration value="master" />
       <xs:enumeration value="slave" />
     </xs:restriction>
-  </xs:simpleType>   
+  </xs:simpleType>
+  
+  <xs:simpleType name="MasterSlaveRoleType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="master" />
+      <xs:enumeration value="slave" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+    <xs:simpleType name="NetworkType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Ethernet/Wi-Fi" />
+      <xs:enumeration value="Bluetooth" />
+      <xs:enumeration value="USB" />
+      <xs:enumeration value="Wire" />
+    </xs:restriction>
+  </xs:simpleType>
   
 </xs:schema>

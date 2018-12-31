@@ -1,5 +1,7 @@
 package org.snu.cse.cap.translator.structure.device.connection;
 
+import hopes.cic.xml.NetworkType;
+
 public class TCPConnection extends Connection {
 	private String IP;
 	private int port;
@@ -9,7 +11,7 @@ public class TCPConnection extends Connection {
 	
 	public TCPConnection(String name, String role, String IP, int port) 
 	{
-		super(name, role, ConnectionType.TCP);
+		super(name, role, NetworkType.ETHERNET_WI_FI, ProtocolType.TCP);
 		this.IP = IP;
 		this.port = port;
 	}

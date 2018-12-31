@@ -27,6 +27,7 @@ public class Constants {
 	public static final int INVALID_VALUE = -1;
 	
 	public static final String NAME_SPLITER = "/";
+	public static final String TEMPLATE_PATH_SEPARATOR = "/";
 	
 	public static final String DEFAULT_PROPERTIES_FILE_NAME = "translator.properties";
 	public static final String DEFAULT_MODULE_XML_FILE_NAME = "module.xml";
@@ -35,6 +36,7 @@ public class Constants {
 	public static final String DEFAULT_TEMPLATE_DIR = "templates";
 	public static final String DEFAULT_TRANSLATED_CODE_TEMPLATE_DIR = ".." + File.separator + "UEMLibraryCode";
 	public static final String DEFAULT_MAKEFILE_AM = "Makefile.am";
+	public static final String DEFAULT_MAKEFILE = "Makefile";
 	
 	// template files
 	public static final String TEMPLATE_FILE_TASK_CODE = "task_code.ftl";
@@ -54,15 +56,22 @@ public class Constants {
 	public static final String TEMPLATE_TAG_PORT_KEY_TO_INDEX = "port_key_to_index";
 	public static final String TEMPLATE_TAG_EXECUTION_TIME = "execution_time";
 	public static final String TEMPLATE_TAG_LIBRARY_INFO = "library_info";
+	public static final String TEMPLATE_TAG_DEVICE_CONSTRAINED_INFO = "device_constrained_info";
+	public static final String TEMPLATE_TAG_USED_COMMUNICATION_LIST = "used_communication_list";
 	
 	public static final String TEMPLATE_TAG_GPU_USED = "gpu_used";
 	public static final String TEMPLATE_TAG_COMMUNICATION_USED = "communication_used";
 	public static final String TEMPLATE_TAG_TCP_SERVER_LIST = "tcp_server_list";
 	public static final String TEMPLATE_TAG_TCP_CLIENT_LIST = "tcp_client_list";
 	public static final String TEMPLATE_TAG_MODULE_LIST = "module_list";
+	public static final String TEMPLATE_TAG_BLUETOOTH_MASTER_LIST = "bluetooth_master_list";
+	public static final String TEMPLATE_TAG_BLUETOOTH_SLAVE_LIST = "bluetooth_slave_list";
+	public static final String TEMPLATE_TAG_SERIAL_MASTER_LIST = "serial_master_list";
+	public static final String TEMPLATE_TAG_SERIAL_SLAVE_LIST = "serial_slave_list";
 	
 	// tags for Makefile.ftl
 	public static final String TEMPLATE_TAG_BUILD_INFO = "build_info";
+	public static final String TEMPLATE_TAG_ENVIRONMENT_VARIABLE_INFO = "env_var_info";
 	
 	// tags for task_code.ftl
 	public static final String TEMPLATE_TAG_TASK_INFO = "task_info";

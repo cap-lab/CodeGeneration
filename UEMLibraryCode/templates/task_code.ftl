@@ -12,6 +12,7 @@
 #define TASK_CODE_END
 #define TASK_NAME "${task_info.name}"
 #define THIS_TASK_ID (${task_info.id})
+#define THIS_THREAD_ID (${task_func_id})
 
 <#if task_gpu_mapping_info??>
 #define GRID __grid
@@ -45,6 +46,8 @@ static dim3 __threads(THREAD_X, THREAD_Y, THREAD_Z);
 
 #include <UFSystem.h>
 #include <UFSystem_deprecated.h>
+
+#include <UFLoop.h>
 
 <#if task_info.type == "CONTROL">
 #include <UFTimer.h>

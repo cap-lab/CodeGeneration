@@ -37,10 +37,25 @@
 
   <xs:complexType name="MappingLibraryType">
     <xs:sequence>
-      <xs:element name="processor" type="MappingProcessorIdType" minOccurs="1" maxOccurs="1" />
+	  <xs:element name="processor" type="MappingProcessorIdType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="device" type="MappingDeviceType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="task" type="LibraryAccessItemType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="library" type="LibraryAccessItemType" minOccurs="0" maxOccurs="unbounded" />
     </xs:sequence>
     <xs:attribute name="name" type="NameType" use="required" />
   </xs:complexType>
+
+  <xs:complexType name="LibraryAccessItemType">
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="accessMethod" type="LibraryAccessType" use="required" />
+  </xs:complexType>
+  
+  <xs:simpleType name="LibraryAccessType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="duplicate" />
+      <xs:enumeration value="mapping" />
+    </xs:restriction>
+  </xs:simpleType>
 
   <xs:complexType name="MappingProcessorIdType">
     <xs:attribute name="pool" type="NameType" use="required" />

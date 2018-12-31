@@ -32,6 +32,13 @@ void SYS_REQ_STOP_TASK(int nCallerTaskId, char *pszTaskName)
 }
 
 
+void SYS_REQ_CALL_TASK(int nCallerTaskId, char *pszTaskName)
+{
+	UFControl_CallTask(nCallerTaskId, pszTaskName);
+}
+
+
+#ifndef API_LITE
 void SYS_REQ_SUSPEND_TASK(int nCallerTaskId, char *pszTaskName)
 {
 	UFControl_SuspendTask(nCallerTaskId, pszTaskName);
@@ -42,11 +49,4 @@ void SYS_REQ_RESUME_TASK(int nCallerTaskId, char *pszTaskName)
 {
 	UFControl_ResumeTask(nCallerTaskId, pszTaskName);
 }
-
-
-void SYS_REQ_CALL_TASK(int nCallerTaskId, char *pszTaskName)
-{
-	UFControl_CallTask(nCallerTaskId, pszTaskName);
-}
-
-
+#endif

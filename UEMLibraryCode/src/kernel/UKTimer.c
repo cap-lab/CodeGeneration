@@ -26,29 +26,29 @@
 #define TIMER_METRIC_GAP (1000)
 
 
-static uem_result convertTimeToMilliSec(IN int nTimeValue, IN char *pszTimeUnit, OUT int *pnMilliSec)
+static uem_result convertTimeToMilliSec(IN int nTimeValue, IN char *pszTimeUnit, OUT uem_time *ptMilliSec)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
 	// compare also the last NULL string, so size is sizeof(TIMER_UNIT_XXX)
 	if(UC_memcmp(pszTimeUnit, TIMER_UNIT_SEC, sizeof(TIMER_UNIT_SEC)) == 0)
 	{
-		*pnMilliSec = nTimeValue * TIMER_METRIC_GAP;
+		*ptMilliSec = nTimeValue * TIMER_METRIC_GAP;
 	}
 	else if(UC_memcmp(pszTimeUnit, TIMER_UNIT_MILLSEC, sizeof(TIMER_UNIT_MILLSEC)) == 0)
 	{
-		*pnMilliSec = nTimeValue;
+		*ptMilliSec = nTimeValue;
 	}
 	else if(UC_memcmp(pszTimeUnit, TIMER_UNIT_MICROSEC, sizeof(TIMER_UNIT_MICROSEC)) == 0)
 	{
 		// Microsecond is not supported because its resolution is too small to wait.
 		if(nTimeValue < TIMER_METRIC_GAP)
 		{
-			*pnMilliSec = 1;
+			*ptMilliSec = 1;
 		}
 		else
 		{
-			*pnMilliSec = nTimeValue / TIMER_METRIC_GAP;
+			*ptMilliSec = nTimeValue / TIMER_METRIC_GAP;
 		}
 	}
 	else
@@ -66,12 +66,12 @@ static uem_result findEmptyTimerSlot(STimer *pstTimer, int *pnTimerIndex)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nLoop = 0;
-	long long llCurTime = 0;
+	uem_time tCurTime = 0;
 	int nTimerIndex = INVALID_TIMER_SLOT_ID;
 
 	for(nLoop = 0 ; nLoop < g_nTimerSlotNum; nLoop++)
 	{
-		if(pstTimer[nLoop].nTimeInMilliSec == INVALID_TIME_VALUE)
+		if(pstTimer[nLoop].tTimeInMilliSec == INVALID_TIME_VALUE)
 		{
 			nTimerIndex = nLoop;
 			break;
@@ -84,6 +84,7 @@ static uem_result findEmptyTimerSlot(STimer *pstTimer, int *pnTimerIndex)
 		{
 			if(pstTimer[nLoop].bAlarmChecked == TRUE)
 			{
+				nTimerIndex = nLoop;
 				break;
 			}
 		}
@@ -93,8 +94,9 @@ static uem_result findEmptyTimerSlot(STimer *pstTimer, int *pnTimerIndex)
 	{
 		for(nLoop = 0 ; nLoop < g_nTimerSlotNum; nLoop++)
 		{
-			if(pstTimer[nLoop].llAlarmTime < llCurTime)
+			if(pstTimer[nLoop].tAlarmTime < tCurTime)
 			{
+				nTimerIndex = nLoop;
 				break;
 			}
 		}
@@ -118,14 +120,14 @@ uem_result UKTimer_SetAlarm (IN int nCallerTaskId, IN int nTimeValue, IN char *p
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstCallerTask = NULL;
-	int nMilliSec = 0;
-	long long llCurTime = 0;
+	uem_time tMilliSec = 0;
+	uem_time tCurTime = 0;
 	int nTimerIndex = INVALID_TIMER_SLOT_ID;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(pszTimeUnit, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 	IFVARERRASSIGNGOTO(pnTimerId, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	if(nTimeValue < 0)
+	if(nTimeValue <= 0)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
 	}
@@ -138,23 +140,23 @@ uem_result UKTimer_SetAlarm (IN int nCallerTaskId, IN int nTimeValue, IN char *p
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 	}
 
-	result = convertTimeToMilliSec(nTimeValue, pszTimeUnit, &nMilliSec);
+	result = convertTimeToMilliSec(nTimeValue, pszTimeUnit, &tMilliSec);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UCTime_GetCurTickInMilliSeconds(&llCurTime);
+	result = UCTime_GetCurTickInMilliSeconds(&tCurTime);
 	ERRIFGOTO(result, _EXIT);
 
 	result = findEmptyTimerSlot(pstCallerTask->astTimer, &nTimerIndex);
 	ERRIFGOTO(result, _EXIT);
 
 	pstCallerTask->astTimer[nTimerIndex].bAlarmChecked = FALSE;
-	pstCallerTask->astTimer[nTimerIndex].nTimeInMilliSec = nMilliSec;
-	pstCallerTask->astTimer[nTimerIndex].llAlarmTime = llCurTime + nMilliSec;
+	pstCallerTask->astTimer[nTimerIndex].tTimeInMilliSec = tMilliSec;
+	pstCallerTask->astTimer[nTimerIndex].tAlarmTime = tCurTime + tMilliSec;
 
 	*pnTimerId = pstCallerTask->astTimer[nTimerIndex].nSlotId;
 
 	result = ERR_UEM_NOERROR;
-_EXIT:;
+_EXIT:
 	return result;
 }
 
@@ -199,7 +201,7 @@ uem_result UKTimer_GetAlarmed (IN int nCallerTaskId, IN int nTimerId, OUT uem_bo
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstCallerTask = NULL;
 	int nTimerIndex = INVALID_TIMER_SLOT_ID;
-	long long llCurTime = 0;
+	uem_time tCurTime = 0;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(pbTimerPassed, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
@@ -219,15 +221,15 @@ uem_result UKTimer_GetAlarmed (IN int nCallerTaskId, IN int nTimerId, OUT uem_bo
 	result = getTimerSlotIndex(pstCallerTask->astTimer, nTimerId, &nTimerIndex);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UCTime_GetCurTickInMilliSeconds(&llCurTime);
+	result = UCTime_GetCurTickInMilliSeconds(&tCurTime);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstCallerTask->astTimer[nTimerIndex].nTimeInMilliSec == INVALID_TIME_VALUE)
+	if(pstCallerTask->astTimer[nTimerIndex].tTimeInMilliSec == INVALID_TIME_VALUE)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
 	}
 
-	if(pstCallerTask->astTimer[nTimerIndex].llAlarmTime < llCurTime)
+	if(pstCallerTask->astTimer[nTimerIndex].tAlarmTime < tCurTime)
 	{
 		pstCallerTask->astTimer[nTimerIndex].bAlarmChecked = TRUE;
 		*pbTimerPassed = TRUE;
@@ -265,9 +267,9 @@ uem_result UKTimer_Reset (IN int nCallerTaskId, IN int nTimerId)
 	result = getTimerSlotIndex(pstCallerTask->astTimer, nTimerId, &nTimerIndex);
 	ERRIFGOTO(result, _EXIT);
 
-	pstCallerTask->astTimer[nTimerIndex].nTimeInMilliSec = INVALID_TIME_VALUE;
+	pstCallerTask->astTimer[nTimerIndex].tTimeInMilliSec = INVALID_TIME_VALUE;
 	pstCallerTask->astTimer[nTimerIndex].bAlarmChecked = FALSE;
-	pstCallerTask->astTimer[nTimerIndex].llAlarmTime = 0;
+	pstCallerTask->astTimer[nTimerIndex].tAlarmTime = 0;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

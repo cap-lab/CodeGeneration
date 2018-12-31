@@ -28,6 +28,8 @@
 #include <UKTime.h>
 #include <UKModule.h>
 
+#include <UFSystem.h>
+
 // not static which is used globally
 HCPUTaskManager g_hCPUTaskManager = NULL;
 
@@ -258,6 +260,9 @@ int main(int argc, char *argv[])
 
 	// Execute tasks
 	executeTasks();
+
+	// Set stop flag (set TRUE to escape block of all tasks)
+	UFSystem_Stop(0);
 
 	// Channel finalization
 	UKChannel_Finalize();

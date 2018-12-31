@@ -177,6 +177,9 @@
    <xs:complexType name="LibraryFunctionArgumentType">
     <xs:attribute name="type" type="xs:string" use="required" />
     <xs:attribute name="name" type="xs:string" use="required" />
+    <xs:attribute name="size" type="xs:positiveInteger" use="optional" />
+    <xs:attribute name="pointer" type="YesNoType" use="optional" />
+    <xs:attribute name="output" type="YesNoType" use="optional" />
    </xs:complexType>
 
    <xs:complexType name="LibraryFunctionType">
@@ -184,6 +187,7 @@
       <xs:element name="argument" type="LibraryFunctionArgumentType" minOccurs="0" maxOccurs="unbounded" />
     </xs:sequence>
     <xs:attribute name="returnType" type="xs:string" use="required" />
+    <xs:attribute name="returnSize" type="xs:nonNegativeInteger" use="optional" />
     <xs:attribute name="name" type="xs:string" use="required" />
    </xs:complexType>
 

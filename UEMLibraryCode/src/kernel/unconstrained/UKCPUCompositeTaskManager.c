@@ -12,6 +12,7 @@
 #include <uem_common.h>
 
 #include <UCBasic.h>
+#include <UCAlloc.h>
 #include <UCTime.h>
 #include <UCThread.h>
 #include <UCDynamicLinkedList.h>
@@ -21,7 +22,7 @@
 
 #include <UKCPUTaskManager.h>
 #include <UKTime.h>
-#include <UKChannel.h>
+#include <UKChannel_internal.h>
 #include <UKModeTransition.h>
 #include <UKCPUCompositeTaskManager.h>
 
@@ -175,7 +176,7 @@ static uem_result createCompositeTaskThreadStructPerSchedule(SMappedCompositeTas
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCompositeTaskThread *pstCompositeTaskThread = NULL;
 
-	pstCompositeTaskThread = UC_malloc(sizeof(SCompositeTaskThread));
+	pstCompositeTaskThread = UCAlloc_malloc(sizeof(SCompositeTaskThread));
 	ERRMEMGOTO(pstCompositeTaskThread, result, _EXIT);
 
 	pstCompositeTaskThread->enTaskState = TASK_STATE_STOP;
@@ -254,7 +255,7 @@ static uem_result createCompositeTaskStruct(HCPUCompositeTaskManager hCPUTaskMan
 	int nTimeValue;
 	ETimeMetric enTimeMetric;
 
-	pstCompositeTask = UC_malloc(sizeof(SCompositeTask));
+	pstCompositeTask = UCAlloc_malloc(sizeof(SCompositeTask));
 	ERRMEMGOTO(pstCompositeTask, result, _EXIT);
 
 	pstCompositeTask->hEvent = NULL;
@@ -340,7 +341,7 @@ uem_result UKCPUCompositeTaskManager_Create(IN OUT HCPUCompositeTaskManager *phM
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(phManager, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
-	pstTaskManager = UC_malloc(sizeof(SCPUCompositeTaskManager));
+	pstTaskManager = UCAlloc_malloc(sizeof(SCPUCompositeTaskManager));
 	ERRMEMGOTO(pstTaskManager, result, _EXIT);
 
 	pstTaskManager->enId = ID_UEM_CPU_COMPOSITE_TASK_MANAGER;
@@ -996,7 +997,7 @@ static uem_result createCompositeTaskThread(IN int nOffset, IN void *pData, IN v
 		result = UCThreadMutex_Unlock(pstCompositeTask->hMutex);
 		ERRIFGOTO(result, _EXIT);
 
-		pstTaskThreadData = UC_malloc(sizeof(struct _SCompositeTaskThreadData));
+		pstTaskThreadData = UCAlloc_malloc(sizeof(struct _SCompositeTaskThreadData));
 		ERRMEMGOTO(pstTaskThreadData, result, _EXIT);
 
 		pstTaskThreadData->pstCompositeTask = pstCreateData->pstCompositeTask;
@@ -1228,13 +1229,17 @@ _EXIT:
 static uem_result callInitFunction(STask *pstLeafTask, void *pUserData)
 {
 	int nLoop = 0;
+	uem_result result = ERR_UEM_UNKNOWN;
 
-	for(nLoop = 0; nLoop < pstLeafTask->nTaskFunctionSetNum ; nLoop++)
+	for(nLoop = 0; nLoop < pstLeafTask->nTaskThreadSetNum ; nLoop++)
 	{
-		pstLeafTask->astTaskFunctions[nLoop].fnInit(pstLeafTask->nTaskId);
-	}
+		pstLeafTask->astTaskThreadFunctions[nLoop].fnInit(pstLeafTask->nTaskId);
 
-	return ERR_UEM_NOERROR;
+		result = UKChannel_FillInitialDataBySourceTaskId(pstLeafTask->nTaskId);
+		ERRIFGOTO(result, _EXIT);
+	}
+_EXIT:
+	return result;
 }
 
 
@@ -1242,9 +1247,9 @@ static uem_result callWrapupFunction(STask *pstLeafTask, void *pUserData)
 {
 	int nLoop = 0;
 
-	for(nLoop = 0; nLoop < pstLeafTask->nTaskFunctionSetNum ; nLoop++)
+	for(nLoop = 0; nLoop < pstLeafTask->nTaskThreadSetNum ; nLoop++)
 	{
-		pstLeafTask->astTaskFunctions[nLoop].fnWrapup();
+		pstLeafTask->astTaskThreadFunctions[nLoop].fnWrapup();
 	}
 
 	return ERR_UEM_NOERROR;

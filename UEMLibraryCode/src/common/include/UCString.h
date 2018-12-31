@@ -31,8 +31,13 @@ int UCString_ToInteger(uem_string strTarget, int nIndex, OUT int *pnEndIndex);
 uem_result UCString_AppendLow(uem_string strDst, char *pszSrc, int nSrcBufLen);
 int UCString_Length(uem_string strTarget);
 
-#define UEMSTRING_MAX (65536 - 2)
-#define UEMSTRING_CONST (65536 - 1) // if this value is set at UCString_New's nBufLen, it will consider the buffer size which is same to string length + 1
+#ifdef ARDUINO
+	#define UEMSTRING_MAX (256 - 2)
+	#define UEMSTRING_CONST (256 - 1) // if this value is set at UCString_New's nBufLen, it will consider the buffer size which is same to string length + 1
+#else
+	#define UEMSTRING_MAX (65536 - 2)
+	#define UEMSTRING_CONST (65536 - 1) // if this value is set at UCString_New's nBufLen, it will consider the buffer size which is same to string length + 1
+#endif
 //#define UEMSTRING_MAX (2147483647 - 2)
 //#define UEMSTRING_MAX (2147483647 - 1)
 

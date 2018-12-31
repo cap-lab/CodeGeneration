@@ -1,5 +1,6 @@
 package org.snu.cse.cap.translator.structure.channel;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.snu.cse.cap.translator.Constants;
@@ -12,12 +13,23 @@ public class Channel implements Cloneable {
 	private ChannelArrayType channelType;
 	private int size;
 	private Port inputPort; // the most outer port is set here
+	private int  inputPortIndex; // port index used in channel data generation
 	private Port outputPort; // the most outer port is set here
+	private int  outputPortIndex; // port index used in channel data generation
 	private int initialDataLen;
 	private int nextChannelIndex;
 	private int channelSampleSize;
-	private int tcpClientIndex;
+	private int socketInfoIndex;
+	private int processerId;
 	
+	public int getProcesserId() {
+		return processerId;
+	}
+
+	public void setProcesserId(int processerId) {
+		this.processerId = processerId;
+	}
+
 	public Channel(int index, int size, int initialDataLen, int sampleSize) {
 		this.size = size;
 		this.index = index;
@@ -25,7 +37,9 @@ public class Channel implements Cloneable {
 		this.initialDataLen = initialDataLen;
 		this.nextChannelIndex = Constants.INVALID_ID_VALUE;
 		this.channelSampleSize = sampleSize;
-		this.tcpClientIndex = Constants.INVALID_ID_VALUE;
+		this.socketInfoIndex = Constants.INVALID_ID_VALUE;
+		this.inputPortIndex = Constants.INVALID_VALUE;
+		this.outputPortIndex = Constants.INVALID_VALUE;
 	}
 	
 	// Does not need to clone inputPort and outputPort  
@@ -42,7 +56,7 @@ public class Channel implements Cloneable {
 		channel.initialDataLen = this.initialDataLen;
 		channel.nextChannelIndex = this.nextChannelIndex;
 		channel.channelSampleSize = this.channelSampleSize;
-		channel.tcpClientIndex = this.tcpClientIndex;
+		channel.socketInfoIndex = this.socketInfoIndex;
 		
 		// Shallow copy for these two objects
 		channel.inputPort = this.inputPort;
@@ -89,7 +103,7 @@ public class Channel implements Cloneable {
 
 	public Port getOutputPort() {
 		return outputPort;
-	} 
+	}
 
 	public void setInputPort(Port inputPort) {
 		this.inputPort = inputPort;
@@ -113,6 +127,40 @@ public class Channel implements Cloneable {
 		*/
 	}
 	
+	public void setPortIndexByPortList(ArrayList<Port> portList)
+	{
+		int index = 0;
+		int listSize = portList.size();
+		Port port;
+		for(index = 0; index < listSize ; index++)
+		{
+			if(this.inputPortIndex != Constants.INVALID_VALUE && this.outputPortIndex != Constants.INVALID_VALUE)
+			{
+				break;
+			}
+			
+			port = portList.get(index);
+			if(port.getTaskId() == this.inputPort.getTaskId() && 
+					port.getPortName().equals(this.inputPort.getPortName()) == true)
+			{
+				this.inputPortIndex = index;
+			}				
+			else if(port.getTaskId() == this.outputPort.getTaskId() && 
+					port.getPortName().equals(this.outputPort.getPortName()) == true)
+			{
+				this.outputPortIndex = index;
+			}
+		}
+	}
+	
+	public int getInputPortIndex() {
+		return inputPortIndex;
+	}
+
+	public int getOutputPortIndex() {
+		return outputPortIndex;
+	}
+
 	public void setMaximumChunkNum(HashMap<String, Task> taskMap)
 	{
 		this.inputPort.setMaximumParallelNumber(taskMap);
@@ -143,12 +191,12 @@ public class Channel implements Cloneable {
 		return channelSampleSize;
 	}
 
-	public int getTcpClientIndex() {
-		return tcpClientIndex;
+	public int getSocketInfoIndex() {
+		return socketInfoIndex;
 	}
 
-	public void setTcpClientIndex(int tcpClientIndex) {
-		this.tcpClientIndex = tcpClientIndex;
+	public void setSocketInfoIndex(int socketInfoIndex) {
+		this.socketInfoIndex = socketInfoIndex;
 	}
 
 	public InMemoryAccessType getAccessType() {
