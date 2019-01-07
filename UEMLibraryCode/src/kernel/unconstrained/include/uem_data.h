@@ -93,13 +93,6 @@ typedef struct _STaskIteration {
 	int nRunInIteration;
 } STaskIteration;
 
-typedef struct _SMap {
-	HThread hThread;
-	int nProcessorId;
-	int nProcessorLocalId;
-	int nPrevProcessorId;
-	int nPrevProcessorLocalId;
-};
 
 typedef struct _STask {
 	int nTaskId;

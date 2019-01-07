@@ -25,6 +25,8 @@
 #include <UKChannel_internal.h>
 #include <UKModeTransition.h>
 
+#include <UKProcessor.h>
+
 #include <UKCPUGeneralTaskManager.h>
 
 #define THREAD_DESTROY_TIMEOUT (3000)
@@ -1235,8 +1237,7 @@ static void *taskThreadRoutine(void *pData)
 	SGeneralTask *pstGeneralTask = NULL;
 	STask *pstCurrentTask = NULL;
 	int nIndex = 0;
-	uem_bool *pbIsCPU = FALSE;
-	int nGPUProcessorId = 0;
+	uem_bool bIsCPU = FALSE;
 	SGenericMapProcessor *pstProcessorAPI = NULL;
 
 	pstThreadData = (struct _SGeneralTaskThreadData *) pData;
@@ -1248,12 +1249,14 @@ static void *taskThreadRoutine(void *pData)
 
 	pstProcessorAPI = pstGeneralTask->pstMapProcessorAPI;
 
-	// wait until pstTaskThread->hThread is set
-	result = UCThreadEvent_WaitEvent(pstTaskThread->hEvent);
+	result = UKProcessor_IsCPUByProcessorId(pstGeneralTask->nProcessorId, &bIsCPU);
 	ERRIFGOTO(result, _EXIT);
 
-	result = pstProcessorAPI->fnMapProcessor(pstTaskThread->hThread, pstGeneralTask->nProcessorId, pstTaskThread->nProcId);
-	ERRIFGOTO(result, _EXIT);
+	if(bIsCPU == FALSE)
+	{
+		result = pstProcessorAPI->fnMapProcessor(pstTaskThread->hThread, pstGeneralTask->nProcessorId, pstTaskThread->nProcId);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	pstCurrentTask->astTaskThreadFunctions[nIndex].fnInit(pstCurrentTask->nTaskId);
 
@@ -1283,6 +1286,7 @@ static uem_result createGeneralTaskThread(IN int nOffset, IN void *pData, IN voi
 	SGeneralTask *pstGeneralTask = NULL;
 	struct _SGeneralTaskCreateData *pstCreateData = NULL;
 	struct _SGeneralTaskThreadData *pstTaskThreadData = NULL;
+	uem_bool bIsCPU = FALSE;
 	// int nModeId = INVALID_MODE_ID;
 
 	pstTaskThread = (SGeneralTaskThread *) pData;
@@ -1314,8 +1318,14 @@ static uem_result createGeneralTaskThread(IN int nOffset, IN void *pData, IN voi
 	result = UCThread_Create(taskThreadRoutine, pstTaskThreadData, &(pstTaskThread->hThread));
 	ERRIFGOTO(result, _EXIT);
 
-	result = UCThreadEvent_SetEvent(pstTaskThread->hEvent);
+	result = UKProcessor_IsCPUByProcessorId(pstGeneralTask->nProcessorId, &bIsCPU);
 	ERRIFGOTO(result, _EXIT);
+
+	if(bIsCPU == TRUE)
+	{
+		result = pstGeneralTask->pstMapProcessorAPI->fnMapProcessor(pstTaskThread->hThread, pstGeneralTask->nProcessorId, pstTaskThread->nProcId);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	pstTaskThreadData = NULL;
 
