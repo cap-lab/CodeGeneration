@@ -1228,9 +1228,13 @@ public class Application {
 	
 	public void makeChannelInformation(CICAlgorithmType algorithm_metadata) throws InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
 	{
-		algorithm_metadata.getChannels().getChannel();
 		int index = 0;
 		HashMap<String, ArrayList<Channel>> portToChannelConnection = new HashMap<String, ArrayList<Channel>>();
+		
+		if(algorithm_metadata.getChannels() == null)
+		{
+			return;
+		}
 	
 		for(ChannelType channelMetadata: algorithm_metadata.getChannels().getChannel())
 		{
