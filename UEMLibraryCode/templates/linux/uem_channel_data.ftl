@@ -522,12 +522,12 @@ SChannelAPI g_stSharedMemoryChannel = {
 <#if used_communication_list?seq_contains("tcp")>
 SChannelAPI g_stTCPSocketChannelWriter = {
 	UKTCPSocketChannel_Initialize, // fnInitialize
-	NULL, // fnReadFromQueue
-	NULL, // fnReadFromBuffer
+	(FnChannelReadFromQueue) NULL, // fnReadFromQueue
+	(FnChannelReadFromBuffer) NULL, // fnReadFromBuffer
 	UKTCPSocketChannel_WriteToQueue, // fnWriteToQueue
 	UKTCPSocketChannel_WriteToBuffer, // fnWriteToBuffer
-	NULL, // fnGetAvailableChunk
-	NULL, // fnGetNumOfAvailableData
+	(FnChannelGetAvailableChunk) NULL, // fnGetAvailableChunk
+	(FnChannelGetNumOfAvailableData) NULL, // fnGetNumOfAvailableData
 	UKTCPSocketChannel_Clear, // fnClear
 	UKTCPSocketChannel_SetExit,
 	UKTCPSocketChannel_ClearExit,
@@ -542,17 +542,17 @@ SChannelAPI g_stTCPSocketChannelReader = {
 	UKTCPSocketChannel_Initialize, // fnInitialize
 	UKTCPSocketChannel_ReadFromQueue, // fnReadFromQueue
 	UKTCPSocketChannel_ReadFromBuffer, // fnReadFromBuffer
-	NULL, // fnWriteToQueue
-	NULL, // fnWriteToBuffer
+	(FnChannelWriteToQueue) NULL, // fnWriteToQueue
+	(FnChannelWriteToBuffer) NULL, // fnWriteToBuffer
 	UKTCPSocketChannel_GetAvailableChunk, // fnGetAvailableChunk
 	UKTCPSocketChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
 	UKTCPSocketChannel_Clear, // fnClear
 	UKTCPSocketChannel_SetExit,
 	UKTCPSocketChannel_ClearExit,
-	NULL,
+	(FnChannelFillInitialData) NULL,
 	UKTCPSocketChannel_Finalize, // fnFinalize
-	NULL,
-	NULL,
+	(FnChannelAPIInitialize) NULL,
+	(FnChannelAPIFinalize) NULL,
 };
 </#if>
 
@@ -560,12 +560,12 @@ SChannelAPI g_stTCPSocketChannelReader = {
 <#if used_communication_list?seq_contains("bluetooth")>
 SChannelAPI g_stBluetoothChannelWriter = {
 	UKBluetoothChannel_Initialize, // fnInitialize
-	NULL, // fnReadFromQueue
-	NULL, // fnReadFromBuffer
+	(FnChannelReadFromQueue) NULL, // fnReadFromQueue
+	(FnChannelReadFromBuffer) NULL, // fnReadFromBuffer
 	UKBluetoothChannel_WriteToQueue, // fnWriteToQueue
 	UKBluetoothChannel_WriteToBuffer, // fnWriteToBuffer
-	NULL, // fnGetAvailableChunk
-	NULL, // fnGetNumOfAvailableData
+	(FnChannelGetAvailableChunk) NULL, // fnGetAvailableChunk
+	(FnChannelGetNumOfAvailableData) NULL, // fnGetNumOfAvailableData
 	UKBluetoothChannel_Clear, // fnClear
 	UKBluetoothChannel_SetExit,
 	UKBluetoothChannel_ClearExit,
@@ -580,17 +580,17 @@ SChannelAPI g_stBluetoothChannelReader = {
 	UKBluetoothChannel_Initialize, // fnInitialize
 	UKBluetoothChannel_ReadFromQueue, // fnReadFromQueue
 	UKBluetoothChannel_ReadFromBuffer, // fnReadFromBuffer
-	NULL, // fnWriteToQueue
-	NULL, // fnWriteToBuffer
+	(FnChannelWriteToQueue) NULL, // fnWriteToQueue
+	(FnChannelWriteToBuffer) NULL, // fnWriteToBuffer
 	UKBluetoothChannel_GetAvailableChunk, // fnGetAvailableChunk
 	UKBluetoothChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
 	UKBluetoothChannel_Clear, // fnClear
 	UKBluetoothChannel_SetExit,
 	UKBluetoothChannel_ClearExit,
-	NULL,
+	(FnChannelFillInitialData) NULL,
 	UKBluetoothChannel_Finalize, // fnFinalize
-	NULL,
-	NULL,
+	(FnChannelAPIInitialize) NULL,
+	(FnChannelAPIFinalize) NULL,
 };
 </#if>
 
@@ -613,8 +613,8 @@ SSocketAPI stBluetoothAPI = {
 	UCBluetoothSocket_Bind,
 	UCBluetoothSocket_Accept,
 	UCBluetoothSocket_Connect,
-	NULL,
-	NULL,
+	(FnSocketCreate) NULL,
+	(FnSocketDestroy) NULL,
 };
 </#if>
 
@@ -623,8 +623,8 @@ SSocketAPI stTCPAPI = {
 	UCTCPSocket_Bind,
 	UCTCPSocket_Accept,
 	UCTCPSocket_Connect,
-	NULL,
-	NULL,
+	(FnSocketCreate) NULL,
+	(FnSocketDestroy) NULL,
 };		
 </#if>
 
@@ -634,7 +634,7 @@ SSocketAPI stUnixDomainSocketAPI = {
 	UCUnixDomainSocket_Bind,
 	UCUnixDomainSocket_Accept,
 	UCUnixDomainSocket_Connect,
-	NULL,
+	(FnSocketCreate) NULL,
 	UCUnixDomainSocket_Destroy,
 };
 */
