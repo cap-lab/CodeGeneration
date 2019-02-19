@@ -15,6 +15,9 @@
 	<#if used_communication_list?seq_contains("bluetooth")>
 #include <UCBluetoothSocket.h>
 	</#if>
+	<#if used_communication_list?seq_contains("serial")>
+#include <UCSerialPort.h>
+	</#if>
 </#if>
 
 #include <UKHostSystem.h>
@@ -36,6 +39,12 @@
 	<#if used_communication_list?seq_contains("bluetooth")>
 #include <UKBluetoothModule.h>
 #include <UKBluetoothChannel.h>
+
+#include <uem_bluetooth_data.h>
+	</#if>
+	<#if used_communication_list?seq_contains("serial")>
+#include <UKSerialModule.h>
+#include <UKSerialChannel.h>
 
 #include <uem_bluetooth_data.h>
 	</#if>
@@ -192,6 +201,7 @@ SSerialInfo g_astSerialMasterInfo[] = {
 	<#list serial_master_list as master>
 	{
 		"${master.portAddress}", // serial port path
+		NULL, // hSerialPort handle
 		NULL, // thread handle
 		NULL, // connector handle
 		${master.channelAccessNum}, // max channel access number
@@ -206,6 +216,7 @@ SSerialInfo g_astSerialSlaveInfo[] = {
 	<#list serial_slave_list as slave>
 	{
 		"${slave.portAddress}", // serial port path
+		NULL, // hSerialPort handle
 		NULL, // thread handle
 		NULL, // connector handle
 		${slave.channelAccessNum}, // max channel access number
@@ -271,6 +282,7 @@ SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 		<#case "TCP_CLIENT_WRITER">
 		<#case "BLUETOOTH_MASTER_WRITER">
 		<#case "BLUETOOTH_SLAVE_WRITER">
+		<#case "SERIAL_MASTER_WRITER">
 		<#case "SERIAL_SLAVE_WRITER">
 SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 	ACCESS_TYPE_${channel.accessType},
@@ -594,6 +606,43 @@ SChannelAPI g_stBluetoothChannelReader = {
 };
 </#if>
 
+<#if used_communication_list?seq_contains("serial")>
+SChannelAPI g_stSerialChannelWriter = {
+	UKSerialChannel_Initialize, // fnInitialize
+	(FnChannelReadFromQueue) NULL, // fnReadFromQueue
+	(FnChannelReadFromBuffer) NULL, // fnReadFromBuffer
+	UKSerialChannel_WriteToQueue, // fnWriteToQueue
+	UKSerialChannel_WriteToBuffer, // fnWriteToBuffer
+	(FnChannelGetAvailableChunk) NULL, // fnGetAvailableChunk
+	(FnChannelGetNumOfAvailableData) NULL, // fnGetNumOfAvailableData
+	UKSerialChannel_Clear, // fnClear
+	UKSerialChannel_SetExit,
+	UKSerialChannel_ClearExit,
+	UKSerialChannel_FillInitialData,
+	UKSerialChannel_Finalize, // fnFinalize
+	UKSerialModule_Initialize,
+	UKSerialModule_Finalize,
+};
+
+
+SChannelAPI g_stSerialChannelReader = {
+	UKSerialChannel_Initialize, // fnInitialize
+	UKSerialChannel_ReadFromQueue, // fnReadFromQueue
+	UKSerialChannel_ReadFromBuffer, // fnReadFromBuffer
+	(FnChannelWriteToQueue) NULL, // fnWriteToQueue
+	(FnChannelWriteToBuffer) NULL, // fnWriteToBuffer
+	UKSerialChannel_GetAvailableChunk, // fnGetAvailableChunk
+	UKSerialChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
+	UKSerialChannel_Clear, // fnClear
+	UKSerialChannel_SetExit,
+	UKSerialChannel_ClearExit,
+	(FnChannelFillInitialData) NULL,
+	UKSerialChannel_Finalize, // fnFinalize
+	(FnChannelAPIInitialize) NULL,
+	(FnChannelAPIFinalize) NULL,
+};
+</#if>
+
 
 
 SChannelAPI *g_astChannelAPIList[] = {
@@ -606,6 +655,12 @@ SChannelAPI *g_astChannelAPIList[] = {
 	&g_stBluetoothChannelWriter,
 	&g_stBluetoothChannelReader,
 </#if>
+
+<#if used_communication_list?seq_contains("serial")>
+	&g_stSerialChannelWriter,
+	&g_stSerialChannelReader,
+</#if>
+
 };
 
 <#if used_communication_list?seq_contains("bluetooth")>
@@ -617,6 +672,7 @@ SSocketAPI stBluetoothAPI = {
 	(FnSocketDestroy) NULL,
 };
 </#if>
+
 
 <#if used_communication_list?seq_contains("tcp")>
 SSocketAPI stTCPAPI = {
@@ -708,6 +764,24 @@ uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType
 		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT)
 </#if>
 		break;
+
+	case COMMUNICATION_TYPE_SERIAL_MASTER_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_WRITER:
+<#if used_communication_list?seq_contains("serial")>
+		*ppstChannelAPI = &g_stSerialChannelWriter;	
+<#else>
+		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT)
+</#if>
+		break;
+	case COMMUNICATION_TYPE_SERIAL_MASTER_READER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_READER:
+<#if used_communication_list?seq_contains("serial")>
+		*ppstChannelAPI = &g_stSerialChannelReader;	
+<#else>
+		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT)
+</#if>
+		break;
+		
 	default:
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT)
 		break;

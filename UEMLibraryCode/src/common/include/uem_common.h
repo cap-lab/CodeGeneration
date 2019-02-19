@@ -121,6 +121,7 @@ typedef enum _EUemResult {
 	ERR_UEM_BIND_ERROR,
 	ERR_UEM_READ_BLOCK,
 	ERR_UEM_WRITE_BLOCK,
+	ERR_UEM_INVALID_SERIAL,
 
 } uem_result;
 
@@ -143,7 +144,8 @@ typedef enum _EUemModuleId {
 	ID_UEM_DYNAMIC_LINKED_LIST= 3,
 	ID_UEM_STACK			  = 4,
 	ID_UEM_SOCKET			  = 5,
-	ID_UEM_FIXED_SIZE_QUEUE = 6,
+	ID_UEM_SERIAL			  = 6,
+	ID_UEM_FIXED_SIZE_QUEUE = 7,
 
 	// UEM Kernel module
 	ID_UEM_KERNEL_MODULE = UEM_MODULE_KERNEL,

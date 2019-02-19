@@ -34,8 +34,8 @@ uem_result UKSerialChannel_Clear(SChannel *pstChannel)
 	{
 	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_READER:
 	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_WRITER:
-	case COMMUNICATION_TYPE_SERIAL_WRITER:
-	case COMMUNICATION_TYPE_SERIAL_READER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_READER:
 		pstSerialChannel = (SSerialChannel *) pstChannel->pChannelStruct;
 		result = UKChannelMemory_Clear(pstChannel, pstSerialChannel->pstInternalChannel);
 		ERRIFGOTO(result, _EXIT);

@@ -1,6 +1,9 @@
 
 <#list env_var_info as envVar>
 ${envVar.name}=${envVar.value}
+<#if envVar.name = "BOARD_TAG">
+<#assign board_tag= envVar.value>
+</#if>
 </#list>
 
 <#if (used_communication_list?size > 0) >
@@ -138,4 +141,9 @@ COMMON_LDFLAG_LIST=$(SYSTEM_LDFLAG_LIST)
 
 LDFLAGS+=$(MAIN_LDFLAG_LIST) $(API_LDFLAG_LIST) $(KERNEL_LDFLAG_LIST) $(COMMON_LDFLAG_LIST)
 
+
+<#if  board_tag == "OpenCR"> 
+include OpenCR.mk
+<#else> 
 include Arduino.mk
+</#if>
