@@ -18,8 +18,8 @@ extern "C"
 #endif
 
 
-#ifndef DEFAULT_BAUD_RATE
-	#define DEFAULT_BAUD_RATE (38400)
+#ifndef DATA_SERIAL_DEFAULT_BAUD_RATE
+	#define DATA_SERIAL_DEFAULT_BAUD_RATE (38400)
 #endif
 
 

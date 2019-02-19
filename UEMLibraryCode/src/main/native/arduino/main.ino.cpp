@@ -30,11 +30,11 @@
 	#define  DEBUG_SERIAL                     Serial
 #endif
 
-
+#define DEBUG_SERIAL_DEFAULT_BAUD_RATE 9600
 
 void setup() {
 	uem_result result;
-	DEBUG_SERIAL.begin(9600);
+	DEBUG_SERIAL.begin(DEBUG_SERIAL_DEFAULT_BAUD_RATE);
 	result = UKAddOnHandler_Init();
 	if(result != ERR_UEM_NOERROR)
 	{

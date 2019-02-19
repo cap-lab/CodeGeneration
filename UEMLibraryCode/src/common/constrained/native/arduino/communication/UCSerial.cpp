@@ -31,7 +31,7 @@ void UCSerial_Initialize(HSerial hSerial)
 
 	pstSerialHandle = (SSerialHandle *) hSerial;
 
-	pstSerialHandle->pclsHandle->begin(DEFAULT_BAUD_RATE);
+	pstSerialHandle->pclsHandle->begin(DATA_SERIAL_DEFAULT_BAUD_RATE);
 }
 
 
