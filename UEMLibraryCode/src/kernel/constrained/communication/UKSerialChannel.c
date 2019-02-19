@@ -60,6 +60,8 @@ uem_result UKSerialChannel_Initialize(SChannel *pstChannel)
 	{
 	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_READER:
 	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_READER:
 		pstSerialChannel = (SSerialChannel *) pstChannel->pChannelStruct;
 
 		result = UKChannelMemory_Initialize(pstChannel, pstSerialChannel->pstInternalChannel);
@@ -351,10 +353,12 @@ uem_result UKSerialChannel_HandleRequest(SChannel *pstChannel)
 	switch(pstChannel->enType)
 	{
 	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_READER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_READER:
 		result = makeRequestToSend(pstChannel);
 		ERRIFGOTO(result, _EXIT);
 		break;
 	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_WRITER:
 		result = makeResultToSend(pstChannel);
 		ERRIFGOTO(result, _EXIT);
 		break;
@@ -438,6 +442,7 @@ uem_result UKSerialChannel_GetNumOfAvailableData (SChannel *pstChannel, IN int n
 	switch(pstChannel->enType)
 	{
 	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_READER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_READER:
 		if(pstSerialChannel->stRequestInfo.enMessageType == MESSAGE_TYPE_NONE)
 		{
 			pstSerialChannel->stRequestInfo.enMessageType = MESSAGE_TYPE_AVAILABLE_DATA;
@@ -445,6 +450,7 @@ uem_result UKSerialChannel_GetNumOfAvailableData (SChannel *pstChannel, IN int n
 		}
 		break;
 	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_WRITER:
 		break;
 	default:
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);

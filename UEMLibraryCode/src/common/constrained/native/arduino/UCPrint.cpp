@@ -9,7 +9,14 @@
 #include <config.h>
 #endif
 
-#include <Arduino.h>
+#ifndef ARDUINO_OpenCR
+	#include <Arduino.h>
+	#define DEBUG_SERIAL Serial
+#else
+	#include <Arduino.h>
+	#define DEBUG_SERIAL Serial2
+#endif
+
 #include <stdarg.h>
 
 #define MAXSTRING_LEN (128)
@@ -25,7 +32,7 @@ void UCPrint_format(const char *pszFormat, ... )
          va_start (stArgs, pszFormat );
          vsnprintf(pszBuffer, MAXSTRING_LEN, pszFormat, stArgs);
          va_end (stArgs);
-         Serial.print(pszBuffer);
+         DEBUG_SERIAL.print(pszBuffer);
 }
 
 #ifdef __cplusplus

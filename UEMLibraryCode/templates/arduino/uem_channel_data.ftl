@@ -5,9 +5,22 @@
 #endif
 
 
-<#if communication_used == true>
+<#list env_var_info as envVar>
+  <#if envVar.name = "BOARD_TAG">
+    <#assign board_tag= envVar.value>
+<#--  break -->
+  </#if>
+</#list>
+
+<#if communication_used == true && board_tag != "OpenCR" >
 #include <Arduino.h>
 #include <SoftwareSerial.h>
+</#if>
+
+<#if communication_used == true && board_tag == "OpenCR" >
+#include <Arduino.h>
+#include <USBSerial.h>
+#include <HardwareSerial.h>
 </#if>
 
 #include <uem_common.h>
@@ -56,7 +69,7 @@ SPort g_astPortInfo[] = {
 
 
 // ##SOFTWARESERIAL_GENERATION_TEMPLATE::START
-<#if communication_used == true>
+<#if communication_used == true && board_tag != "OpenCR" > //modified(2019.02.18)
 	<#list serial_slave_list as slave>
 static SoftwareSerial s_clsSerial_${slave.name}(${slave.boardRXPinNumber}, ${slave.boardTXPinNumber});
 
@@ -75,9 +88,29 @@ SSerialInfo g_astSerialSlaveInfo[] = {
 	},
 	</#list>
 };
-	
 </#if>
 // ##SOFTWARESERIAL_GENERATION_TEMPLATE::END
+
+//OPENCRSERIAL_GENERATION_TEMPLATE::START
+<#if communication_used == true && board_tag == "OpenCR" > //modified(2019.02.18)
+	<#list serial_slave_list as slave> //suppose only one Serial used.
+SSerialHandle g_stSerial_${slave.name}  = { &Serial };
+
+SChannel *g_pastAccessChannel_${slave.name}[${slave.channelAccessNum}];
+	</#list>
+	
+SSerialInfo g_astSerialSlaveInfo[] = {
+	<#list serial_slave_list as slave>
+	{
+		&g_stSerial_${slave.name},
+		${slave.channelAccessNum},
+		0,
+		g_pastAccessChannel_${slave.name},
+	},
+	</#list>
+};
+</#if>
+//OPENCRSERIAL_GENERATION_TEMPLATE::END
 
 // ##SPECIFIC_CHANNEL_LIST_TEMPLATE::START
 <#list channel_list as channel>
@@ -86,6 +119,8 @@ SSerialInfo g_astSerialSlaveInfo[] = {
 		<#case "SHARED_MEMORY">
 		<#case "BLUETOOTH_SLAVE_WRITER">
 		<#case "BLUETOOTH_SLAVE_READER">
+		<#case "SERIAL_SLAVE_WRITER">
+		<#case "SERIAL_SLAVE_READER">	
 SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 	s_pChannel_${channel.index}_buffer, // Channel buffer pointer
 	s_pChannel_${channel.index}_buffer, // Channel data start
@@ -98,7 +133,9 @@ SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 	
 	<#switch channel.communicationType>
 		<#case "BLUETOOTH_SLAVE_WRITER">
-		<#case "BLUETOOTH_SLAVE_READER">	
+		<#case "BLUETOOTH_SLAVE_READER">
+		<#case "SERIAL_SLAVE_WRITER">
+		<#case "SERIAL_SLAVE_READER">	
 SSerialChannel g_stSerialChannel_${channel.index} = {
 	&g_astSerialSlaveInfo[${channel.socketInfoIndex}],
 	{
@@ -132,6 +169,8 @@ SChannel g_astChannels[] = {
 			<#break>
 		<#case "BLUETOOTH_SLAVE_WRITER">
 		<#case "BLUETOOTH_SLAVE_READER">
+		<#case "SERIAL_SLAVE_WRITER">
+		<#case "SERIAL_SLAVE_READER">
 		&g_stSerialChannel_${channel.index}, // specific serial channel structure pointer
 			<#break>
 	</#switch>
@@ -218,6 +257,8 @@ uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType
 		break;
 	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_READER:
 	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_READER:
 <#if communication_used == true>
 		*ppstChannelAPI = &g_stSerialChannel;	
 <#else>

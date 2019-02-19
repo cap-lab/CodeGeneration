@@ -23,15 +23,24 @@
 #include <UKTaskScheduler.h>
 #include <UKAddOnHandler.h>
 
+
+#ifdef ARDUINO_OpenCR
+ 	 #define DEBUG_SERIAL                     Serial2
+#elif
+	#define  DEBUG_SERIAL                     Serial
+#endif
+
+
+
 void setup() {
 	uem_result result;
-	Serial.begin(9600);
+	DEBUG_SERIAL.begin(9600);
 	result = UKAddOnHandler_Init();
 	if(result != ERR_UEM_NOERROR)
 	{
 		while(true) {
-			Serial.println("ERR1: ");
-			Serial.println(result);
+			DEBUG_SERIAL.println("ERR1: ");
+			DEBUG_SERIAL.println(result);
 			delay(2000);
 		}
 	}
@@ -39,8 +48,8 @@ void setup() {
 	if(result != ERR_UEM_NOERROR)
 	{
 		while(true) {
-			Serial.println("ERR2: ");
-			Serial.println(result);
+			DEBUG_SERIAL.println("ERR2: ");
+			DEBUG_SERIAL.println(result);
 			delay(2000);
 		}
 	}
@@ -48,8 +57,8 @@ void setup() {
 	if(result != ERR_UEM_NOERROR)
 	{
 		while(true) {
-			Serial.println("ERR3: ");
-			Serial.println(result);
+			DEBUG_SERIAL.println("ERR3: ");
+			DEBUG_SERIAL.println(result);
 			delay(2000);
 		}
 	}
@@ -57,27 +66,28 @@ void setup() {
 
 void loop() {
 	uem_result result;
-	//Serial.print("test ");
-	//Serial.print(a);
-	//Serial.println();
+	//DEBUG_SERIAL.print("test ");
+	//DEBUG_SERIAL.print(a);
+	//DEBUG_SERIAL.println();
 	result = UKAddOnHandler_Run();
 	if(result != ERR_UEM_NOERROR)
 	{
 		while(true) {
-			Serial.print("ERR4: ");
-			Serial.println(result);
+			DEBUG_SERIAL.print("ERR4: ");
+			DEBUG_SERIAL.println(result);
 			delay(2000);
 		}
 	}
-    result = UKTaskScheduler_Run();
+	result = UKTaskScheduler_Run();
 	if(result != ERR_UEM_NOERROR)
 	{
 		while(true) {
-			Serial.println("ERR5: ");
-			Serial.println(result);
+			DEBUG_SERIAL.println("ERR5: ");
+			DEBUG_SERIAL.println(result);
 			delay(2000);
 		}
 	}
 }
+
 
 

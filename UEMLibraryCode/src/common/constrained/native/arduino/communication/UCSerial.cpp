@@ -10,8 +10,9 @@
 #endif
 
 #include <Arduino.h>
-
-#include <SoftwareSerial.h>
+#ifndef ARDUINO_OpenCR
+	#include <SoftwareSerial.h>
+#endif
 
 #include <uem_common.h>
 

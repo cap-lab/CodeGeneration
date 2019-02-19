@@ -6,7 +6,7 @@ ${envVar.name}=${envVar.value}
 </#if>
 </#list>
 
-<#if (used_communication_list?size > 0) >
+<#if (used_communication_list?size > 0) && board_tag != "OpenCR">
 ARDUINO_LIBS+=SoftwareSerial
 </#if>
 
