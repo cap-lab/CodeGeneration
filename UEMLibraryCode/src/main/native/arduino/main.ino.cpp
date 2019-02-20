@@ -30,7 +30,7 @@
 	#define  DEBUG_SERIAL                     Serial
 #endif
 
-#define DEBUG_SERIAL_DEFAULT_BAUD_RATE 9600
+#define DEBUG_SERIAL_DEFAULT_BAUD_RATE 57600
 
 void setup() {
 	uem_result result;

@@ -539,7 +539,7 @@ SChannelAPI g_stTCPSocketChannelWriter = {
 	UKTCPSocketChannel_WriteToQueue, // fnWriteToQueue
 	UKTCPSocketChannel_WriteToBuffer, // fnWriteToBuffer
 	(FnChannelGetAvailableChunk) NULL, // fnGetAvailableChunk
-	(FnChannelGetNumOfAvailableData) NULL, // fnGetNumOfAvailableData
+	UKTCPSocketChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
 	UKTCPSocketChannel_Clear, // fnClear
 	UKTCPSocketChannel_SetExit,
 	UKTCPSocketChannel_ClearExit,
@@ -577,7 +577,7 @@ SChannelAPI g_stBluetoothChannelWriter = {
 	UKBluetoothChannel_WriteToQueue, // fnWriteToQueue
 	UKBluetoothChannel_WriteToBuffer, // fnWriteToBuffer
 	(FnChannelGetAvailableChunk) NULL, // fnGetAvailableChunk
-	(FnChannelGetNumOfAvailableData) NULL, // fnGetNumOfAvailableData
+	UKBluetoothChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
 	UKBluetoothChannel_Clear, // fnClear
 	UKBluetoothChannel_SetExit,
 	UKBluetoothChannel_ClearExit,
@@ -614,7 +614,7 @@ SChannelAPI g_stSerialChannelWriter = {
 	UKSerialChannel_WriteToQueue, // fnWriteToQueue
 	UKSerialChannel_WriteToBuffer, // fnWriteToBuffer
 	(FnChannelGetAvailableChunk) NULL, // fnGetAvailableChunk
-	(FnChannelGetNumOfAvailableData) NULL, // fnGetNumOfAvailableData
+	UKSerialChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
 	UKSerialChannel_Clear, // fnClear
 	UKSerialChannel_SetExit,
 	UKSerialChannel_ClearExit,

@@ -184,79 +184,92 @@ _EXIT:
 //convert conventional baud_rate form to appropriate form
 static speed_t setBaudRate(int baud_rate_int){
 	switch(baud_rate_int){
-		case 0       : return 0000000;                /* hang up */
-		case 50      : return 0000001;
-		case 75      : return 0000002;
-		case 110     : return 0000003;
-		case 134     : return 0000004;
-		case 150     : return 0000005;
-		case 200     : return 0000006;
-		case 300     : return 0000007;
-		case 600     : return 0000010;
-		case 1200    : return 0000011;
-		case 1800    : return 0000012;
-		case 2400    : return 0000013;
-		case 4800    : return 0000014;
-		case 9600    : return 0000015;
-		case 19200   : return 0000016;
-		case 38400   : return 0000017;
-		case 57600   : return 0010001;
-		case 115200  : return 0010002;
-		case 230400  : return 0010003;
-		case 460800  : return 0010004;
-		case 500000  : return 0010005;
-		case 576000  : return 0010006;
-		case 921600  : return 0010007;
-		case 1000000 : return 0010010;
-		case 1152000 : return 0010011;
-		case 1500000 : return 0010012;
-		case 2000000 : return 0010013;
-		case 2500000 : return 0010014;
-		case 3000000 : return 0010015;
-		case 3500000 : return 0010016;
-		case 4000000 : return 0010017;
+			case 0       : return B0      ;                /* hang up */
+			case 50      : return B50     ;
+			case 75      : return B75     ;
+			case 110     : return B110    ;
+			case 134     : return B134    ;
+			case 150     : return B150    ;
+			case 200     : return B200    ;
+			case 300     : return B300    ;
+			case 600     : return B600    ;
+			case 1200    : return B1200   ;
+			case 1800    : return B1800   ;
+			case 2400    : return B2400   ;
+			case 4800    : return B4800   ;
+			case 9600    : return B9600   ;
+			case 19200   : return B19200  ;
+			case 38400   : return B38400  ;
+			case 57600   : return B57600  ;
+			case 115200  : return B115200 ;
+			case 230400  : return B230400 ;
+			case 460800  : return B460800 ;
+			case 500000  : return B500000 ;
+			case 576000  : return B576000 ;
+			case 921600  : return B921600 ;
+			case 1000000 : return B1000000;
+			case 1152000 : return B1152000;
+			case 1500000 : return B1500000;
+			case 2000000 : return B2000000;
+			case 2500000 : return B2500000;
+			case 3000000 : return B3000000;
+			case 3500000 : return B3500000;
+			case 4000000 : return B4000000;
 		default : return -1; //error case
 	}
 }
 
 static int open_port(char str[])
 {
-    int fd = open(str, O_RDWR | O_NOCTTY | O_SYNC); // O_SYNC? NDELAY or NONBLOCK?
-    //NOCTTY : this program doesn't want to be the "controlling terminal" for that port.
+	 //int fd = open(str, O_RDWR | O_NOCTTY | O_NONBLOCK); // ?? NDELAY or NONBLOCK?
+	    int fd = open(str, O_RDWR | O_NOCTTY | O_SYNC); // ?? NDELAY or NONBLOCK?
 
-    if (fd == -1)
-    {
-        perror("open_port: Unable to open port. ");
-        return fd;
-    }
-    else
-        fcntl(fd, F_SETFL, 0);
+	  if (fd == -1)
+	  {
+	        error_message("open_port: Unable to open %s\n",str);
+	  }
+	  else
+	        fcntl(fd, F_SETFL, 0);
 
-    struct termios options;
-    tcgetattr(fd, &options); //this gets the current options set for the port
+	  struct termios options;
+	  memset (&options, 0, sizeof options);
+	  tcgetattr(fd, &options); //this gets the current options set for the port
+	  if (tcgetattr (fd, &options) != 0)
+	  {
+	      error_message ("error %d from tcgetattr", errno);
+	      return -1;
+	  }
 
-    // setting the options
-    cfsetispeed(&options, setBaudRate(DEFAULT_BAUD_RATE)); //input baudrate
-    cfsetospeed(&options, setBaudRate(DEFAULT_BAUD_RATE)); // output baudrate
-    options.c_cflag |= (CLOCAL | CREAD); // ?? enable receicer and set local mode
-    //options.c_cflag &= ~CSIZE; /* mask the character size bits */
-    options.c_cflag |= CS8;    /* select 8 data bits */
-    options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG); // choosing raw input
-    options.c_iflag &= ~INPCK; // disable parity check
-    options.c_iflag &= ~(IXON | IXOFF | IXANY); // disable software flow control
-    options.c_oflag |= OPOST; // ?? choosing processed output
-    options.c_cc[VMIN] = 1; // Wait until x bytes read (blocks!)
-    options.c_cc[VTIME] = 0; // Wait x * 0.1s for input (unblocks!)
+	  // setting the options
 
-    // settings for no parity bit
-    options.c_cflag &= ~PARENB;
-    options.c_cflag &= ~CSTOPB;
-    options.c_cflag &= ~CSIZE;
-    options.c_cflag |= CS8;
 
-    tcsetattr(fd, TCSANOW, &options); //set the new options ... TCSANOW specifies all option changes to occur immediately
+	  cfsetispeed(&options, setBaudRate(DEFAULT_BAUD_RATE)); //input baudrate
+	  cfsetospeed(&options, setBaudRate(DEFAULT_BAUD_RATE)); // output baudrate
+	  options.c_cflag = (options.c_cflag & ~CSIZE) | CS8;     // 8-bit chars
+	  options.c_iflag &= ~IGNBRK;         // disable break processing
+	  options.c_lflag = 0;                // no signaling chars, no echo,
+	  // no canonical processing
+	  options.c_oflag = 0;                // no remapping, no delays
+	  options.c_cc[VMIN]  = 1;            // read doesn't block
+	  options.c_cc[VTIME] = 0;            // 0.5 seconds read timeout
 
-    return (fd);
+	  options.c_iflag &= ~(IXON | IXOFF | IXANY); // shut off xon/xoff ctrl
+
+	  options.c_cflag |= (CLOCAL | CREAD);// ignore modem controls,
+	  // enable reading
+	  options.c_cflag &= ~(PARENB | PARODD);      // shut off parity
+	  options.c_cflag |= 0;
+	  options.c_cflag &= ~CSTOPB;
+	  options.c_cflag &= ~CRTSCTS;
+
+	  if (tcsetattr (fd, TCSANOW, &options) != 0)
+	  {
+	      error_message ("error %d from tcsetattr", errno);
+	      return -1;
+	  }
+
+	  return (fd);
+
 }
 
 uem_result UCSerialPort_Open(HSerialPort hSerialPort)
