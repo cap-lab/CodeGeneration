@@ -1,7 +1,6 @@
 package hae.peace.container.cic.mapping.xml;
 
 import hae.kernel.util.ObjectList;
-import hae.peace.container.cic.mapping.CICDSEPanel;
 import hae.peace.container.cic.mapping.CICManualDSEPanel;
 import hae.peace.container.cic.mapping.MappingTask;
 import hae.peace.container.cic.mapping.Processor;
@@ -73,18 +72,6 @@ public class CICMappingXMLHandler {
 						continue;
 					}
 					task.addProcessorForce(processor);
-
-					// TODO wavefront에서의 다음 코드의 의미 확인
-					//				    if(parallelType.equals("WAVEFRONT"))
-					//				    {
-					//				        Node waveElem = getChildNodeByName((Element)subTaskNode, "wavefront");
-					//				        String procId = getChildNodeValue(waveElem,"wrapperProcId");
-					//				        if(procId!=null)
-					//				        {
-					//				            Processor selProc = findProcessorByIndex(Integer.parseInt(procId.trim()));
-					//				            if(selProc!=null) subTask.getAssignedProcList().add(selProc);
-					//				        }
-					//				    }
 				}
 
 				taskList.add(task);

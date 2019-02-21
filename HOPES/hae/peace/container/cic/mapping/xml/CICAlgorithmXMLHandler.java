@@ -3,6 +3,7 @@ package hae.peace.container.cic.mapping.xml;
 
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import hae.kernel.util.ObjectList;
@@ -28,10 +29,49 @@ public class CICAlgorithmXMLHandler {
 		updateTaskList(taskList);
 	}
 	
+	private HashMap<String, TaskType> getFullTaskMap(List<TaskType> taskList)
+	{
+		HashMap<String, TaskType> taskMap = new HashMap<String, TaskType>();
+		for(TaskType task : taskList)
+		{
+			taskMap.put(task.getName(), task);
+		}
+		
+		return taskMap;
+	}
+	
+	private boolean isInDataTypeLoop(String taskName, HashMap<String, TaskType> taskMap)
+	{
+		boolean isDataTypeLoop = false;
+		TaskType task;
+		String currentTaskName;
+		
+		task = taskMap.get(taskName);
+		
+		do {
+			currentTaskName = task.getName();
+			
+			if(task.getLoopStructure() != null && task.getLoopStructure().getType() == LoopStructureTypeType.DATA)
+			{
+				isDataTypeLoop = true;
+				break;
+			}
+					
+			task = taskMap.get(task.getParentTask());
+			
+		}while(task.getName().equals(currentTaskName) == false);
+		
+		return isDataTypeLoop;
+	}
+	
+	
 	public void updateTaskList(ObjectList taskList)
 	{
 		Map<String, DataParallelType> mapParallelType = new HashMap<String, DataParallelType>();
 		Map<String, LoopStructureTypeType> mapLoopType = new HashMap<String, LoopStructureTypeType>();
+		HashMap<String, TaskType> taskMap;
+		
+		taskMap = getFullTaskMap(algorithm.getTasks().getTask());
 		
 		for(TaskType taskType : algorithm.getTasks().getTask())
 		{
@@ -41,10 +81,11 @@ public class CICAlgorithmXMLHandler {
 				String key = taskName;
 				mapParallelType.put(key, taskType.getDataParallel().getType());
 			}
-			if(taskType.getTaskType().equals("Loop"))
+			
+			if(isInDataTypeLoop(taskName, taskMap) == true)
 			{
 				String key = taskName;
-				mapLoopType.put(key, taskType.getLoopStructure().getType());
+				mapLoopType.put(key, LoopStructureTypeType.DATA);
 			}
 		}
 		
