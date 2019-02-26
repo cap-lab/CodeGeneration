@@ -5,10 +5,13 @@
 #endif
 
 
+<#--  default board_tag name to avoid error from unassigned board_tag value -->
+<#assign board_tag= "uno">
+
 <#list env_var_info as envVar>
   <#if envVar.name = "BOARD_TAG">
     <#assign board_tag= envVar.value>
-<#--  break -->
+    <#break>
   </#if>
 </#list>
 
