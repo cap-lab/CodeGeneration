@@ -170,11 +170,11 @@ SBluetoothInfo g_astBluetoothMasterInfo[] = {
 	<#list bluetooth_master_list as master>
 	{
 		"${master.portAddress}", // target mac address
-		NULL, // socket handle
-		NULL, // thread handle
-		NULL, // connector handle
+		(HSocket) NULL, // socket handle
+		(HThread) NULL, // thread handle
+		(HConnector) NULL, // connector handle
 		${master.channelAccessNum}, // max channel access number
-		NULL, // Serial communication manager handle
+		(HSerialCommunicationManager) NULL, // Serial communication manager handle
 		FALSE, // initialized or not
 	},
 	</#list>
@@ -184,11 +184,11 @@ SBluetoothInfo g_astBluetoothSlaveInfo[] = {
 	<#list bluetooth_slave_list as slave>
 	{
 		"${slave.portAddress}", // slave mac address
-		NULL, // socket handle
-		NULL, // thread handle
-		NULL, // connector handle
+		(HSocket) NULL, // socket handle
+		(HThread) NULL, // thread handle
+		(HConnector) NULL, // connector handle
 		${slave.channelAccessNum}, // max channel access number
-		NULL, // Serial communication manager handle
+		(HSerialCommunicationManager) NULL, // Serial communication manager handle
 		FALSE, // initialized or not
 	},
 	</#list>
@@ -201,11 +201,11 @@ SSerialInfo g_astSerialMasterInfo[] = {
 	<#list serial_master_list as master>
 	{
 		"${master.portAddress}", // serial port path
-		NULL, // hSerialPort handle
-		NULL, // thread handle
-		NULL, // connector handle
+		(HSerialPort) NULL, // hSerialPort handle
+		(HThread) NULL, // thread handle
+		(HConnector) NULL, // connector handle
 		${master.channelAccessNum}, // max channel access number
-		NULL, // Serial communication manager handle	
+		(HSerialCommunicationManager) NULL, // Serial communication manager handle	
 		FALSE, // initialized or not
 	},
 	</#list>
@@ -216,11 +216,11 @@ SSerialInfo g_astSerialSlaveInfo[] = {
 	<#list serial_slave_list as slave>
 	{
 		"${slave.portAddress}", // serial port path
-		NULL, // hSerialPort handle
-		NULL, // thread handle
-		NULL, // connector handle
+		(HSerialPort) NULL, // hSerialPort handle
+		(HThread) NULL, // thread handle
+		(HConnector) NULL, // connector handle
 		${slave.channelAccessNum}, // max channel access number
-		NULL, // Serial communication manager handle	
+		(HSerialCommunicationManager) NULL, // Serial communication manager handle		
 		FALSE, // initialized or not
 	},
 	</#list>
@@ -296,9 +296,9 @@ SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 					<#break>
 				<#case "GPU_GPU">
 				<#case "GPU_GPU_DIFFERENT">
-	NULL, // Channel buffer pointer
-	NULL, // Channel data start
-	NULL, // Channel data end
+	(void*) NULL, // Channel buffer pointer
+	(void*) NULL, // Channel data start
+	(void*) NULL, // Channel data end
 					<#break>
 			</#switch>
 	0, // Channel data length
@@ -372,7 +372,7 @@ STCPSocketChannel g_stTCPSocketChannel_${channel.index} = {
 		</#switch>
 	(SExternalCommunicationInfo *) NULL, // SExternalCommunicationInfo *pstCommunicationInfo;
 	(HThread) NULL, // HThread hReceivingThread;
-	NULL, // char *pBuffer;
+	(char *) NULL, // char *pBuffer;
 	0, // int nBufLen;
 	(HThreadMutex) NULL, // HThreadMutex hMutex;
 	FALSE, // uem_bool bChannelExit;
@@ -423,10 +423,10 @@ SSerialWriterChannel g_stSerialWriterChannel_${channel.index} = {
 				<#break>
 		</#switch>
 	(HFixedSizeQueue) NULL,
-	NULL,
-	NULL,
+	(HThread) NULL,
+	(char*) NULL,
 	0,
-	NULL,
+	(HThreadMutex) NULL,
 	FALSE,
 	&g_stSharedMemoryChannel_${channel.index},	
 };
@@ -455,7 +455,7 @@ SSerialReaderChannel g_stSerialReaderChannel_${channel.index} = {
 					<#break>
 			</#switch>
 	(HFixedSizeQueue) NULL, // response queue
-	NULL, // mutex variable
+	(HThreadMutex) NULL, // mutex variable
 	FALSE, // channel exit flag
 			<#switch channel.accessType>
 				<#case "CPU_ONLY">

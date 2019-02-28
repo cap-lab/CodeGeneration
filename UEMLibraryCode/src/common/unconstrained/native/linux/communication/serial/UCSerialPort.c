@@ -29,7 +29,7 @@
 #define error_message(format, args...) fprintf(stderr, format, args)
 
 #ifndef DEFAULT_BAUD_RATE
-	#define DEFAULT_BAUD_RATE (9600)
+	#define DEFAULT_BAUD_RATE (38400) //should be same with Arduino DATA_SERIAL_DEFAULT_BAUD_RATE when communicating with Arduino
 #endif
 
 
