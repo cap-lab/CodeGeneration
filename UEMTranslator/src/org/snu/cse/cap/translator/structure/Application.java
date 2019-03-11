@@ -1114,10 +1114,6 @@ public class Application {
 					taskRep = firing.getIterationCount();
 				}
 				
-				if(task.getLoopStruct() != null)
-				{
-					taskRep = taskRep * task.getLoopStruct().getLoopCount();
-				}
 				task.getIterationCountList().put(modeId+"", taskRep);
 			}
 		}
@@ -1126,6 +1122,7 @@ public class Application {
 	private void setIndividualIterationCount(ArrayList<Task> taskList, SDFGraph graph, int modeId)
 	{
 		mocgraph.sched.Schedule schedule;
+		int taskRep;
 		
 		if(taskList.size() <= 2)
 		{

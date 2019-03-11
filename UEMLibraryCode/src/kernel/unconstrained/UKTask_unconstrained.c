@@ -399,6 +399,13 @@ uem_result UKTask_SetTargetIteration(STask *pstTask, int nTargetIteration, int n
 			(pstCurrentTask->pstParentGraph->pstParentTask != NULL &&
 			pstCurrentTask->pstParentGraph->pstParentTask->nTaskId == nTargetTaskId))
 		{
+			if(pstCurrentTask->pstParentGraph->pstParentTask != NULL && pstCurrentTask->pstParentGraph->pstParentTask->pstLoopInfo != NULL)
+			{
+				result = getTaskIterationIndex(pstCurrentTask->pstParentGraph->pstParentTask, nCurrentIteration, &nIndex);
+				ERRIFGOTO(result, _EXIT_LOCK);
+
+				nNewIteration = nNewIteration * pstCurrentTask->pstParentGraph->pstParentTask->astTaskIteration[nIndex].nRunInIteration;
+			}
 			nNewIteration = nNewIteration * nTargetIteration;
 			bFound = TRUE;
 			break;
