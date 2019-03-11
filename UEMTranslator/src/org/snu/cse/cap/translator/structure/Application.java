@@ -1122,11 +1122,10 @@ public class Application {
 	private void setIndividualIterationCount(ArrayList<Task> taskList, SDFGraph graph, int modeId)
 	{
 		mocgraph.sched.Schedule schedule;
-		int taskRep;
 		
 		if(taskList.size() <= 2)
 		{
-			TwoNodeStrategy st = new TwoNodeStrategy(graph);			
+			TwoNodeStrategy st = new TwoNodeStrategy(graph);
 			schedule = st.schedule();
 		}
 		else
