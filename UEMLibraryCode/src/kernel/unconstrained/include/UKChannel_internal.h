@@ -24,7 +24,8 @@ uem_result UKChannel_SetExitByTaskId(int nTaskId);
 uem_result UKChannel_ClearExitByTaskId(int nTaskId);
 uem_result UKChannel_ClearChannelInSubgraph(int nParentTaskId);
 uem_result UKChannel_FillInitialDataBySourceTaskId(int nTaskId);
-
+uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT int *pnChunkLen);
+uem_result UKChannel_PopLoopTaskBroadcastingDataFromQueueByTaskId(int nLoopTaskId, int nTaskId, int nNumOfDataToPop);
 
 #ifdef __cplusplus
 }

@@ -18,62 +18,15 @@
 #include <uem_data.h>
 
 #include <UKTask_internal.h>
-
+#include <UKChannel_internal.h>
 
 static uem_result setChunkNumAndLen(SPort *pstPort, SChunkInfo *pstChunkInfo)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	int nCurrentSampleRateIndex = 0;
-	SPort *pstMostInnerPort = NULL;
-	int nOuterMostSampleRate = 0;
-	STask *pstCurTask = NULL;
 	int nLoop = 0;
 
-	nCurrentSampleRateIndex = pstPort->nCurrentSampleRateIndex;
-
-	nOuterMostSampleRate = pstPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
-
-	pstMostInnerPort = pstPort;
-	while(pstMostInnerPort->pstSubGraphPort != NULL)
-	{
-		pstMostInnerPort = pstMostInnerPort->pstSubGraphPort;
-	}
-
-	if(pstPort != pstMostInnerPort)
-	{
-		nCurrentSampleRateIndex = pstMostInnerPort->nCurrentSampleRateIndex;
-
-		pstChunkInfo->nChunkNum = nOuterMostSampleRate / pstMostInnerPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
-		pstChunkInfo->nChunkLen = pstMostInnerPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstMostInnerPort->nSampleSize;
-	}
-	else
-	{
-		result = UKTask_GetTaskFromTaskId(pstPort->nTaskId, &pstCurTask);
-		if(result == ERR_UEM_NO_DATA)
-		{
-			result = ERR_UEM_NOERROR;
-		}
-		ERRIFGOTO(result, _EXIT);
-
-		// If the task id cannot be obtained by "UKTask_GetTaskFromTaskId",
-		// it means the information is missing because of remote communication, so set as a general task information
-		if(pstCurTask == NULL || pstCurTask->pstLoopInfo == NULL) // general task
-		{
-			pstChunkInfo->nChunkNum = 1;
-			pstChunkInfo->nChunkLen = nOuterMostSampleRate * pstPort->nSampleSize;
-		}
-		else if(pstCurTask->pstLoopInfo->enType == LOOP_TYPE_DATA &&
-			pstPort->astSampleRates[nCurrentSampleRateIndex].nMaxAvailableDataNum == 1)
-		{
-			pstChunkInfo->nChunkNum = nOuterMostSampleRate / (nOuterMostSampleRate / pstCurTask->pstLoopInfo->nLoopCount);
-			pstChunkInfo->nChunkLen = (nOuterMostSampleRate * pstPort->nSampleSize) / pstChunkInfo->nChunkNum;
-		}
-		else // broadcasting or convergent
-		{
-			pstChunkInfo->nChunkNum = 1;
-			pstChunkInfo->nChunkLen = nOuterMostSampleRate * pstPort->nSampleSize;
-		}
-	}
+	result = UKChannel_GetChunkNumAndLen(pstPort, &(pstChunkInfo->nChunkNum), &(pstChunkInfo->nChunkLen));
+	ERRIFGOTO(result, _EXIT);
 
 	// clear chunk information
 	for(nLoop = 0 ; nLoop < pstChunkInfo->nChunkNum ; nLoop++)
@@ -251,17 +204,23 @@ static uem_result copyAndMovePointerFromRoundedQueue(unsigned char *pDest, SChan
 		nSegmentLen = pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize - pstSharedMemoryChannel->pDataStart;
 		nRemainderLen = nDataToRead - nSegmentLen;
 
-		result = pstMemoryAPI->fnCopyFromMemory(pDest, pstSharedMemoryChannel->pDataStart, nSegmentLen);
-		ERRIFGOTO(result, _EXIT);
-		result = pstMemoryAPI->fnCopyFromMemory(pDest + nSegmentLen, pstSharedMemoryChannel->pBuffer, nRemainderLen);
-		ERRIFGOTO(result, _EXIT);
+		if(pDest != NULL)
+		{
+			result = pstMemoryAPI->fnCopyFromMemory(pDest, pstSharedMemoryChannel->pDataStart, nSegmentLen);
+			ERRIFGOTO(result, _EXIT);
+			result = pstMemoryAPI->fnCopyFromMemory(pDest + nSegmentLen, pstSharedMemoryChannel->pBuffer, nRemainderLen);
+			ERRIFGOTO(result, _EXIT);
+		}
 
 		pstSharedMemoryChannel->pDataStart = pstSharedMemoryChannel->pBuffer + nRemainderLen;
 	}
 	else
 	{
-		result = pstMemoryAPI->fnCopyFromMemory(pDest, pstSharedMemoryChannel->pDataStart, nDataToRead);
-		ERRIFGOTO(result, _EXIT);
+		if(pDest != NULL)
+		{
+			result = pstMemoryAPI->fnCopyFromMemory(pDest, pstSharedMemoryChannel->pDataStart, nDataToRead);
+			ERRIFGOTO(result, _EXIT);
+		}
 
 		if(pstSharedMemoryChannel->pDataStart + nDataToRead == pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
 		{
@@ -387,15 +346,21 @@ static uem_result copyFromRoundedChunk(unsigned char *pDest, SChannel *pstChanne
 		nSegmentLen = pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize - pstSrcChunk->pDataStart;
 		nRemainderLen = nDataToRead - nSegmentLen;
 
-		result = pstMemoryAPI->fnCopyFromMemory(pDest, pstSrcChunk->pDataStart, nSegmentLen);
-		ERRIFGOTO(result, _EXIT);
-		result = pstMemoryAPI->fnCopyFromMemory(pDest + nSegmentLen, pstSharedMemoryChannel->pBuffer, nRemainderLen);
-		ERRIFGOTO(result, _EXIT);
+		if(pDest != NULL)
+		{
+			result = pstMemoryAPI->fnCopyFromMemory(pDest, pstSrcChunk->pDataStart, nSegmentLen);
+			ERRIFGOTO(result, _EXIT);
+			result = pstMemoryAPI->fnCopyFromMemory(pDest + nSegmentLen, pstSharedMemoryChannel->pBuffer, nRemainderLen);
+			ERRIFGOTO(result, _EXIT);
+		}
 	}
 	else
 	{
-		result = pstMemoryAPI->fnCopyFromMemory(pDest, pstSrcChunk->pDataStart, nDataToRead);
-		ERRIFGOTO(result, _EXIT);
+		if(pDest != NULL)
+		{
+			result = pstMemoryAPI->fnCopyFromMemory(pDest, pstSrcChunk->pDataStart, nDataToRead);
+			ERRIFGOTO(result, _EXIT);
+		}
 	}
 
 	result = ERR_UEM_NOERROR;

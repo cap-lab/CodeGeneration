@@ -424,8 +424,11 @@ uem_result UKSerialChannel_ReadFromQueue(SChannel *pstChannel, IN OUT unsigned c
 	pBody = stResponseItem.uDetailItem.stResponse.pData;
 	nDataRead = stResponseItem.uDetailItem.stResponse.nDataSize;
 
-	result = pstSerialReaderChannel->pstReaderAccess->fnCopyFromMemory(pBuffer, pBody, nDataRead);
-	ERRIFGOTO(result, _EXIT);
+	if(pBuffer != NULL)
+	{
+		result = pstSerialReaderChannel->pstReaderAccess->fnCopyFromMemory(pBuffer, pBody, nDataRead);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	*pnDataRead = nDataRead;
 

@@ -542,8 +542,11 @@ uem_result UKTCPSocketChannel_ReadFromQueue(SChannel *pstChannel, IN OUT unsigne
 	result = UKUEMProtocol_GetBodyDataFromReceivedData(hProtocol, &nDataRead, &pBody);
 	ERRIFGOTO(result, _EXIT);
 
-	result = pstTCPChannel->pstReaderAccess->fnCopyFromMemory(pBuffer, pBody, nDataRead);
-	ERRIFGOTO(result, _EXIT);
+	if(pBuffer != NULL)
+	{
+		result = pstTCPChannel->pstReaderAccess->fnCopyFromMemory(pBuffer, pBody, nDataRead);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	*pnDataRead = nDataRead;
 
