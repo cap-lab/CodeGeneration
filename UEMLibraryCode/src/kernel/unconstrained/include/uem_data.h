@@ -86,6 +86,8 @@ typedef struct _SLoopInfo {
 
 typedef struct _STaskThreadContext {
 	int nCurRunIndex; // the run count of the task which is responsible by the current thread
+	int nCurThreadIteration;
+	int nTargetThreadIteration;
 } STaskThreadContext;
 
 typedef struct _STaskIteration {

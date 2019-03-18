@@ -1137,9 +1137,85 @@ public class Application {
 		handleScheduleElement(graph, schedule, modeId);
 	}
 	
+	private TaskGraph getTaskGraphCanBeMerged(TaskGraph taskGraph, HashMap<String, TaskGraph> taskGraphMap, HashMap<String, TaskGraph> mergedTaskGraphMap)
+	{
+		TaskGraph mergedParentTaskGraph = null;
+		TaskGraph currentTaskGraph;
+		TaskGraph parentTaskGraph;
+		
+		currentTaskGraph = taskGraph;
+		
+		while(currentTaskGraph.getParentTask() != null)
+		{
+			parentTaskGraph = taskGraphMap.get(currentTaskGraph.getParentTask().getParentTaskGraphName());
+			
+			if(parentTaskGraph != null)
+			{
+				if(currentTaskGraph.getTaskGraphType() == TaskGraphType.DATAFLOW && 
+						parentTaskGraph.getTaskGraphType() == TaskGraphType.PROCESS_NETWORK)
+				{
+					mergedParentTaskGraph = currentTaskGraph.clone();
+					mergedTaskGraphMap.put(mergedParentTaskGraph.getName(), mergedParentTaskGraph);
+					break;						
+				}
+				else
+				{
+					mergedParentTaskGraph = mergedTaskGraphMap.get(parentTaskGraph.getName());
+					if(mergedParentTaskGraph != null)
+					{
+						break;
+					}					
+				}
+			}
+			currentTaskGraph = parentTaskGraph;
+		}
+	
+		return mergedParentTaskGraph;
+	}
+	
+	private HashMap<String, TaskGraph> mergeTaskGraph(HashMap<String, TaskGraph> taskGraphMap)
+	{
+		HashMap<String, TaskGraph> mergedTaskGraphMap = new HashMap<String, TaskGraph>();
+		Task parentTask = null;
+		TaskGraph mergedTaskGraph = null;
+		TaskGraph mergedParentTaskGraph;
+		
+		for(TaskGraph taskGraph: taskGraphMap.values())
+		{
+			parentTask = taskGraph.getParentTask(); 
+			if(parentTask == null)
+			{
+				mergedTaskGraph = taskGraph.clone();
+				mergedTaskGraphMap.put(taskGraph.getName(), mergedTaskGraph);
+			}
+			else if(parentTask.getModeTransition() != null || parentTask.getLoopStruct() != null)
+			{
+				mergedTaskGraph = taskGraph.clone();
+				mergedTaskGraphMap.put(taskGraph.getName(), mergedTaskGraph);
+			}
+		}
+		
+		for(TaskGraph taskGraph: taskGraphMap.values())
+		{
+			parentTask = taskGraph.getParentTask(); 
+			if(parentTask != null && parentTask.getModeTransition() == null && parentTask.getLoopStruct() == null) {
+				mergedParentTaskGraph = getTaskGraphCanBeMerged(taskGraph, taskGraphMap, mergedTaskGraphMap);
+				if(mergedParentTaskGraph.getName().equals(taskGraph.getName()) == false) {
+					mergedParentTaskGraph.mergeChildTaskGraph(taskGraph);
+				}
+			}
+		}
+		
+		return mergedTaskGraphMap;
+	}
+	
 	private void setIterationCount(HashMap<String, TaskGraph> taskGraphMap)
 	{
-		for(TaskGraph taskGraph: taskGraphMap.values())
+		HashMap<String, TaskGraph> mergedTaskGraphMap;
+		
+		mergedTaskGraphMap = mergeTaskGraph(taskGraphMap);
+		
+		for(TaskGraph taskGraph: mergedTaskGraphMap.values())
 		{
 			if(taskGraph.getTaskGraphType() == TaskGraphType.DATAFLOW)
 			{
@@ -1150,14 +1226,28 @@ public class Application {
 				{
 					Task srcTask;
 					Task dstTask;
+					boolean findSrcTask = false;
+					boolean findDstTask = false; 
 					
 					srcTask = this.taskMap.get(channel.getOutputPort().getTaskName());
 					dstTask = this.taskMap.get(channel.getInputPort().getTaskName());
 					
-					if(srcTask.getParentTaskGraphName().equals(taskGraph.getName()) == true && 
-						dstTask.getParentTaskGraphName().equals(taskGraph.getName()) == true)
+					for (Task task : taskGraph.getTaskList())
 					{
-						channelList.add(channel);
+						if(srcTask.getName().equals(task.getName()))
+						{
+							findSrcTask = true;
+						}
+						if(dstTask.getName().equals(task.getName()))
+						{
+							findDstTask = true;
+						}
+						
+						if(findSrcTask == true && findDstTask == true)
+						{
+							channelList.add(channel);
+							break;
+						}
 					}
 				}
 					

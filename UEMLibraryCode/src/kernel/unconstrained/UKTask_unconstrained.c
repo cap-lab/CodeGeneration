@@ -421,7 +421,24 @@ uem_result UKTask_SetTargetIteration(STask *pstTask, int nTargetIteration, int n
 
 	if(bFound == TRUE)
 	{
+		int nRemainder = 0;
+		int nLoop = 0;
 		pstTask->nTargetIteration = nNewIteration;
+
+		if(pstTask->nTaskThreadSetNum > 0)
+		{
+			nRemainder =  pstTask->nTargetIteration % pstTask->nTaskThreadSetNum;
+
+			for(nLoop = 0 ; nLoop < pstTask->nTaskThreadSetNum ; nLoop++)
+			{
+				pstTask->astThreadContext[nLoop].nTargetThreadIteration = (pstTask->astTaskIteration[nIndex].nRunInIteration * pstTask->nTargetIteration) / pstTask->nTaskThreadSetNum;
+
+				if(nLoop < nRemainder)
+				{
+					pstTask->astThreadContext[nLoop].nTargetThreadIteration++;
+				}
+			}
+		}
 	}
 	else
 	{
@@ -472,13 +489,18 @@ _EXIT:
 }
 
 
-uem_result UKTask_CheckIterationRunCount(STask *pstTask, OUT uem_bool *pbTargetIterationReached)
+uem_result UKTask_CheckIterationRunCount(STask *pstTask, int nThreadId, OUT uem_bool *pbTargetIterationReached)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	uem_bool bTargetIterationReached = FALSE;
 
 	result = UCThreadMutex_Lock(pstTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
+
+	if(pstTask->astThreadContext[nThreadId].nCurThreadIteration >= pstTask->astThreadContext[nThreadId].nTargetThreadIteration)
+	{
+		bTargetIterationReached = TRUE;
+	}
 
 	if(pstTask->nTargetIteration > 0 && pstTask->nCurIteration >= pstTask->nTargetIteration)
 	{
@@ -500,7 +522,7 @@ _EXIT:
 }
 
 
-uem_result UKTask_IncreaseRunCount(STask *pstTask, OUT uem_bool *pbTargetIterationReached)
+uem_result UKTask_IncreaseRunCount(STask *pstTask, int nThreadId, OUT uem_bool *pbTargetIterationReached)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nIndex = 0;
@@ -566,6 +588,12 @@ uem_result UKTask_IncreaseRunCount(STask *pstTask, OUT uem_bool *pbTargetIterati
 	//UEM_DEBUG_PRINT("Task!!: %s => pstTask->astTaskIteration[%d].nRunInIteration: %d, nCurModeIndex: %d\n", pstTask->pszTaskName, nIndex, pstTask->astTaskIteration[nIndex].nRunInIteration, nCurModeIndex);
 
 	pstTask->nCurRunInIteration++;
+	pstTask->astThreadContext[nThreadId].nCurThreadIteration++;
+
+	if(pstTask->astThreadContext[nThreadId].nCurThreadIteration >= pstTask->astThreadContext[nThreadId].nTargetThreadIteration)
+	{
+		bTargetIterationReached = TRUE;
+	}
 
 	if(pstTask->nCurRunInIteration >= pstTask->astTaskIteration[nIndex].nRunInIteration)
 	{

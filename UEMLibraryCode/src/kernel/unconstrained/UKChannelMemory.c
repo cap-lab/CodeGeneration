@@ -506,6 +506,12 @@ static uem_result readFromArrayQueue(SChannel *pstChannel, SSharedMemoryChannel 
 			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
 		}
 
+		if(pstSharedMemoryChannel->nReadReferenceCount > 0 &&
+				pstSharedMemoryChannel->pstAvailableInputChunkHead != NULL)
+		{
+			UCThreadEvent_SetEvent(pstSharedMemoryChannel->hReadEvent);
+		}
+
 		result = UCThreadMutex_Unlock(pstSharedMemoryChannel->hMutex);
 		ERRIFGOTO(result, _EXIT);
 
@@ -648,7 +654,7 @@ static uem_result readFromGeneralQueue(SChannel *pstChannel, SSharedMemoryChanne
 
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
-pstSharedMemoryChannel->nReadReferenceCount--;
+	pstSharedMemoryChannel->nReadReferenceCount--;
 
 	if(pstSharedMemoryChannel->nWriteReferenceCount > 0)
 	{
@@ -838,8 +844,9 @@ static uem_result writeToArrayQueue(SChannel *pstChannel, SSharedMemoryChannel *
 
 	// TODO: Error check out exit logic needed
 	while(pstSharedMemoryChannel->nDataLen + nExpectedProduceSize > pstChannel->nBufSize || // nBuffer is full or
-		(pstSharedMemoryChannel->nWrittenOutputChunkNum > 0 && pstSharedMemoryChannel->nWrittenOutputChunkNum < pstSharedMemoryChannel->stOutputPortChunk.nChunkNum &&
-				pstSharedMemoryChannel->stOutputPortChunk.astChunk[nChunkIndex].nChunkDataLen > 0)) // current chunk index is already filled with data
+		(pstSharedMemoryChannel->nWrittenOutputChunkNum > 0 &&
+		pstSharedMemoryChannel->nWrittenOutputChunkNum < pstSharedMemoryChannel->stOutputPortChunk.nChunkNum &&
+		pstSharedMemoryChannel->stOutputPortChunk.astChunk[nChunkIndex].nChunkDataLen > 0)) // current chunk index is already filled with data
 	{
 		if(pstSharedMemoryChannel->bWriteExit == TRUE)
 		{
@@ -980,6 +987,7 @@ _EXIT_LOCK:
 _EXIT:
 	return result;
 }
+
 
 static uem_result getAvailableChunkFromArrayQueue(SChannel *pstChannel, SSharedMemoryChannel *pstSharedMemoryChannel, OUT int *pnChunkIndex)
 {

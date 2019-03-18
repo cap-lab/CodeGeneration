@@ -156,7 +156,9 @@ STaskThreadContext g_ast_${task.name}_thread_context[] = {
 	<#if !task.childTaskGraphName??>
 		<#list 0..(task.taskFuncNum-1) as task_func_id>
 	{
-		0
+		0, // current run index used for getting loop task iteration
+		0, // current run count of thread
+		0, // target run count of thread
 	},
 		</#list>
 	</#if>

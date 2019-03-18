@@ -1210,7 +1210,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			if(bFunctionCalled == TRUE)
 			{
 				nExecutionCount++;
-				result = UKTask_IncreaseRunCount(pstCurrentTask, &bTargetIterationReached);
+				result = UKTask_IncreaseRunCount(pstCurrentTask, pstTaskThread->nTaskFuncId, &bTargetIterationReached);
 				if(result != ERR_UEM_NOERROR)
 					UEM_DEBUG_PRINT("%s (Proc: %d, func_id: %d, current iteration: %d, reached: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId, pstCurrentTask->nCurIteration, bTargetIterationReached);
 				ERRIFGOTO(result, _EXIT);
@@ -1228,7 +1228,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			break;
 		case TASK_STATE_STOPPING:
 			// check one more time to handle suspended tasks
-			result = UKTask_CheckIterationRunCount(pstCurrentTask, &bTargetIterationReached);
+			result = UKTask_CheckIterationRunCount(pstCurrentTask, pstTaskThread->nTaskFuncId, &bTargetIterationReached);
 			ERRIFGOTO(result, _EXIT);
 			// run until iteration count;
 			while(bTargetIterationReached == FALSE)
@@ -1253,7 +1253,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 				fnGo(pstCurrentTask->nTaskId);
 				//UEM_DEBUG_PRINT("%s (stopping-driven, Proc: %d, func_id: %d, current iteration: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId, pstCurrentTask->nCurIteration);
 				nExecutionCount++;
-				result = UKTask_IncreaseRunCount(pstCurrentTask, &bTargetIterationReached);
+				result = UKTask_IncreaseRunCount(pstCurrentTask, pstTaskThread->nTaskFuncId, &bTargetIterationReached);
 				ERRIFGOTO(result, _EXIT);
 			}
 			UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
