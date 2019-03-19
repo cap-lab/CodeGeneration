@@ -506,7 +506,7 @@ static uem_result readFromArrayQueue(SChannel *pstChannel, SSharedMemoryChannel 
 			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
 		}
 
-		if(pstSharedMemoryChannel->nReadReferenceCount > 0 &&
+		if(pstSharedMemoryChannel->nReadReferenceCount > 1 &&
 				pstSharedMemoryChannel->pstAvailableInputChunkHead != NULL)
 		{
 			UCThreadEvent_SetEvent(pstSharedMemoryChannel->hReadEvent);
@@ -611,44 +611,8 @@ static uem_result readFromGeneralQueue(SChannel *pstChannel, SSharedMemoryChanne
 		ERRIFGOTO(result, _EXIT);
 	}
 
-	if(pstChannel->enChannelType == CHANNEL_TYPE_OUTPUT_ARRAY)
-	{
-		int nNewChunkIndex = 0 ;
-		nNewChunkIndex = (pstSharedMemoryChannel->stOutputPortChunk.nChunkLen * pstSharedMemoryChannel->stOutputPortChunk.nChunkNum -
-						MIN(pstSharedMemoryChannel->nDataLen, pstSharedMemoryChannel->stOutputPortChunk.nChunkLen * pstSharedMemoryChannel->stOutputPortChunk.nChunkNum))/pstSharedMemoryChannel->stOutputPortChunk.nChunkLen;
-
-		nChunkIndex = nNewChunkIndex;
-	}
-
 	result = copyAndMovePointerFromRoundedQueue(pBuffer, pstChannel, pstSharedMemoryChannel, nDataToRead);
 	ERRIFGOTO(result, _EXIT_LOCK);
-
-	if(pstChannel->enChannelType == CHANNEL_TYPE_OUTPUT_ARRAY)
-	{
-		int nLoop = 0;
-		int nTotalDataRead = 0;
-		int nDataRead = 0;
-
-		for(nLoop = nChunkIndex ; nLoop < pstSharedMemoryChannel->stOutputPortChunk.nChunkNum ; nLoop++)
-		{
-			if(pstSharedMemoryChannel->stOutputPortChunk.astChunk[nLoop].nChunkDataLen < nDataToRead)
-			{
-				nDataRead = pstSharedMemoryChannel->stOutputPortChunk.astChunk[nLoop].nChunkDataLen;
-			}
-			else // pstChannel->stOutputPortChunk.astChunk[nLoop].nChunkDataLen >= nDataToRead
-			{
-				nDataRead = nDataToRead;
-			}
-
-			pstSharedMemoryChannel->stOutputPortChunk.astChunk[nLoop].nChunkDataLen -= nDataRead;
-			nTotalDataRead += nDataRead;
-
-			if(nTotalDataRead >= nDataToRead)
-			{
-				break;
-			}
-		}
-	}
 
 	*pnDataRead = nDataToRead;
 
@@ -815,6 +779,9 @@ static uem_result clearOutputChunkInfo(SChannel *pstChannel, SSharedMemoryChanne
 
 		// maximum available number is not needed for output chunk
 		pstSharedMemoryChannel->stOutputPortChunk.astChunk[nLoop].nAvailableDataNum = 1;
+
+		// clear chunk data len
+		pstSharedMemoryChannel->stOutputPortChunk.astChunk[nLoop].nChunkDataLen = 0;
 	}
 
 	pstSharedMemoryChannel->nWrittenOutputChunkNum = 0;
@@ -851,6 +818,13 @@ static uem_result writeToArrayQueue(SChannel *pstChannel, SSharedMemoryChannel *
 		if(pstSharedMemoryChannel->bWriteExit == TRUE)
 		{
 			UEMASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
+		}
+
+		if(pstSharedMemoryChannel->nWriteReferenceCount > 1 &&
+			pstSharedMemoryChannel->nDataLen + nExpectedProduceSize <= pstChannel->nBufSize)
+		{
+			result = UCThreadEvent_SetEvent(pstSharedMemoryChannel->hWriteEvent);
+			ERRIFGOTO(result, _EXIT_LOCK);
 		}
 
 		result = UCThreadMutex_Unlock(pstSharedMemoryChannel->hMutex);

@@ -427,7 +427,7 @@ uem_result UKTask_SetTargetIteration(STask *pstTask, int nTargetIteration, int n
 
 		if(pstTask->nTaskThreadSetNum > 0)
 		{
-			nRemainder =  pstTask->nTargetIteration % pstTask->nTaskThreadSetNum;
+			nRemainder =  (pstTask->astTaskIteration[nIndex].nRunInIteration * pstTask->nTargetIteration) % pstTask->nTaskThreadSetNum;
 
 			for(nLoop = 0 ; nLoop < pstTask->nTaskThreadSetNum ; nLoop++)
 			{
