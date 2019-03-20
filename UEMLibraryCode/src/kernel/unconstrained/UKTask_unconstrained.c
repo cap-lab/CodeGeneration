@@ -590,7 +590,8 @@ uem_result UKTask_IncreaseRunCount(STask *pstTask, int nThreadId, OUT uem_bool *
 	pstTask->nCurRunInIteration++;
 	pstTask->astThreadContext[nThreadId].nCurThreadIteration++;
 
-	if(pstTask->astThreadContext[nThreadId].nCurThreadIteration >= pstTask->astThreadContext[nThreadId].nTargetThreadIteration)
+	if(pstTask->astThreadContext[nThreadId].nTargetThreadIteration > 0 &&
+		pstTask->astThreadContext[nThreadId].nCurThreadIteration >= pstTask->astThreadContext[nThreadId].nTargetThreadIteration)
 	{
 		bTargetIterationReached = TRUE;
 	}
