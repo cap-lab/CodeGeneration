@@ -957,6 +957,10 @@ uem_result UKChannelMemory_WriteToBuffer (SChannel *pstChannel, SSharedMemoryCha
 
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
+	if(pstSharedMemoryChannel->nReadReferenceCount > 0)
+	{
+		UCThreadEvent_SetEvent(pstSharedMemoryChannel->hReadEvent);
+	}
 	UCThreadMutex_Unlock(pstSharedMemoryChannel->hMutex);
 _EXIT:
 	return result;
