@@ -14,6 +14,7 @@
 
 #include <uem_common.h>
 
+#include <UKLibrary.h>
 //#include <UCPrint.h>
 
 #include <uem_data.h>
@@ -45,6 +46,8 @@ void setup() {
 		}
 	}
 	result = UKChannel_Initialize();
+
+	UKLibrary_Initialize();
 	if(result != ERR_UEM_NOERROR)
 	{
 		while(true) {
