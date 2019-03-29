@@ -73,6 +73,10 @@ static dim3 __threads(THREAD_X, THREAD_Y, THREAD_Z);
 #include "${headerFile}"
 </#list>
 
+<#if (task_info.taskFuncNum > 1) >
+static const int s_nTaskThreadId = THIS_THREAD_ID;
+</#if>
+
 #include "${task_info.taskCodeFile}"
 
 
