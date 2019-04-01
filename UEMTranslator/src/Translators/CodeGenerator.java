@@ -171,7 +171,7 @@ public class CodeGenerator
 		}
     }
     
-    private void generateMakefile(CodeOrganizer codeOrganizer, String topDirPath, ArrayList<EnvironmentVariable> envVarList) throws TemplateNotFoundException, MalformedTemplateNameException, 
+    private void generateMakefile(CodeOrganizer codeOrganizer, Device device, String topDirPath, ArrayList<EnvironmentVariable> envVarList) throws TemplateNotFoundException, MalformedTemplateNameException, 
     																freemarker.core.ParseException, IOException, TemplateException
     {
     	Template makefileTemplate = this.templateConfig.getTemplate(codeOrganizer.getPlatform() + Constants.TEMPLATE_PATH_SEPARATOR + Constants.TEMPLATE_FILE_MAKEFILE);
@@ -195,6 +195,8 @@ public class CodeGenerator
 		makefileRootHash.put(Constants.TEMPLATE_TAG_BUILD_INFO, codeOrganizer);
 		makefileRootHash.put(Constants.TEMPLATE_TAG_ENVIRONMENT_VARIABLE_INFO, envVarList);
 		makefileRootHash.put(Constants.TEMPLATE_TAG_USED_COMMUNICATION_LIST, codeOrganizer.getUsedCommunicationSet());
+		//19.04.01 added
+		makefileRootHash.put(Constants.TEMPLATE_TAG_DEVICE_ARCHITECTURE_INFO, device.getArchitecture());
 
 		Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
 		makefileTemplate.process(makefileRootHash, out);
@@ -355,7 +357,7 @@ public class CodeGenerator
 				codeOrganizer.copyBuildFiles(this.translatorProperties, this.libraryCodeTemplateDir, topSrcDir);
 				codeOrganizer.copyApplicationCodes(this.mOutputPath, topSrcDir);
 				
-				generateMakefile(codeOrganizer, topSrcDir, device.getEnvironmentVariableList());
+				generateMakefile(codeOrganizer, device, topSrcDir, device.getEnvironmentVariableList());
 				//generateKernelDataCode(codeOrganizer, device, topSrcDir, codeOrganizer.getLanguage());
 				generateKernelDataCode(codeOrganizer, device, topSrcDir, device.getEnvironmentVariableList(), codeOrganizer.getLanguage());
 				generateTaskCode(device, topSrcDir);

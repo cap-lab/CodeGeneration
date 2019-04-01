@@ -141,8 +141,16 @@ COMMON_LDFLAG_LIST=$(SYSTEM_LDFLAG_LIST)
 LDFLAGS+=$(MAIN_LDFLAG_LIST) $(API_LDFLAG_LIST) $(KERNEL_LDFLAG_LIST) $(COMMON_LDFLAG_LIST)
 
 
+
+
+
 ifneq ($(BOARD_TAG),OpenCR)
+<#if device_architecture_info.name() == "SAMD">
+  include Sam.mk
+  CFLAGS+=-std=gnu11  #seems to be Sam.mk bug.
+<#else>
   include Arduino.mk
+</#if>
 else
   include OpenCR.mk  
 endif
