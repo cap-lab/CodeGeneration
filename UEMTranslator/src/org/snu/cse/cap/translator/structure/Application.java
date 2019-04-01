@@ -1399,6 +1399,31 @@ public class Application {
 		}
 	}
 	
+	private void checkLibraryMasterIsC(Library library)
+	{
+		for(LibraryConnection connection : library.getLibraryConnectionList())
+		{
+			if(connection.isMasterLibrary() == true)
+			{
+				Library masterLibrary = this.libraryMap.get(connection.getMasterName());
+				if(masterLibrary.getLanguage() == ProgrammingLanguage.C)
+				{
+					library.setMasterLanguageC(true);
+					break;
+				}
+			}
+			else // task
+			{
+				Task masterTask = this.taskMap.get(connection.getMasterName());
+				if(masterTask.getLanguage() == ProgrammingLanguage.C)
+				{
+					library.setMasterLanguageC(true);
+					break;
+				}
+			}
+		}
+	}
+	
 	private void setLibraryConnectionInformation(CICAlgorithmType algorithm_metadata)
 	{
 		if(algorithm_metadata.getLibraryConnections() != null)
@@ -1423,6 +1448,12 @@ public class Application {
 														connectionType.getMasterPort(), true);
 					library.getLibraryConnectionList().add(libraryConnection);
 				}
+			}
+			
+			//this.taskMap;
+			for(Library library : this.libraryMap.values())
+			{
+				checkLibraryMasterIsC(library);
 			}
 		}
 	}

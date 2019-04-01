@@ -324,7 +324,9 @@ public class CodeGenerator
 				outputSourcePath += Constants.C_FILE_EXTENSION;	
 			}
 			
+			libraryRootHash.put(Constants.TEMPLATE_TAG_TASK_MAP, device.getTaskMap());
 			libraryRootHash.put(Constants.TEMPLATE_TAG_LIB_INFO, library);
+			libraryRootHash.put(Constants.TEMPLATE_TAG_LIBRARY_INFO, device.getLibraryMap());
 						
 			Writer outSource = new OutputStreamWriter(new PrintStream(new File(outputSourcePath)));
 			libraryCodeTemplate.process(libraryRootHash, outSource);

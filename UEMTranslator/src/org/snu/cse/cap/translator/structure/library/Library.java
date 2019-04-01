@@ -23,6 +23,7 @@ public class Library {
 	private String cFlags;
 	private ProgrammingLanguage language;
 	private String fileExtension;
+	private boolean isMasterLanguageC;
 	
 	// // Master can be a task or a library
 	public Library(String name, String type, String file, String header)
@@ -39,6 +40,7 @@ public class Library {
 		this.masterPortToLibraryMap = new HashMap<String, Library>();
 		this.ldFlags = null;
 		this.cFlags = null;
+		this.isMasterLanguageC = false;
 	}
 	
 	public void setExtraHeaderSet(List<String> extraHeaderList)
@@ -132,5 +134,13 @@ public class Library {
 
 	public String getFileExtension() {
 		return fileExtension;
+	}
+
+	public boolean getIsMasterLanguageC() {
+		return isMasterLanguageC;
+	}
+
+	public void setMasterLanguageC(boolean isMasterLanguageC) {
+		this.isMasterLanguageC = isMasterLanguageC;
 	}
 }

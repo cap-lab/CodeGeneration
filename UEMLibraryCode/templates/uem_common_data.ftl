@@ -43,7 +43,7 @@ void ${task.name}_Wrapup${task_func_id}();
 
 // ##LIBRARY_INIT_WRAPUP_TEMPLATE::START
 <#list library_info as libraryName, library>
-		<#if library.language=="C">
+		<#if library.language=="C" || library.isMasterLanguageC == true>
 #ifdef __cplusplus
 extern "C"
 {
@@ -51,7 +51,7 @@ extern "C"
 		</#if>
 void l_${libraryName}_init();
 void l_${libraryName}_wrapup();
-		<#if library.language=="C">
+		<#if library.language=="C" || library.isMasterLanguageC == true>
 #ifdef __cplusplus
 }
 #endif 
