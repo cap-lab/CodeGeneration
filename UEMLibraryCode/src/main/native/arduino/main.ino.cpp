@@ -27,7 +27,7 @@
 
 #ifdef ARDUINO_OpenCR
  	 #define DEBUG_SERIAL                     Serial2
-#elif
+#else
 	#define  DEBUG_SERIAL                     Serial
 #endif
 
