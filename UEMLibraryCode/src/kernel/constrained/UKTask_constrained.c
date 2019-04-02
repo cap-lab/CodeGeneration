@@ -14,7 +14,7 @@
 #include <uem_data.h>
 
 #include <UKTask.h>
-#include <UKTaskScheduler.h>
+#include <UKTaskControl.h>
 
 uem_result UKTask_Initialize()
 {
@@ -45,7 +45,7 @@ uem_result UKTask_RunTask (IN int nCallerTaskId, IN char *pszTaskName)
 	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UKTaskScheduler_RunTask(pstTask);
+	result = UKTaskControl_RunTask(pstTask);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -70,7 +70,7 @@ uem_result UKTask_StopTask (IN int nCallerTaskId, IN char *pszTaskName, IN uem_b
 	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UKTaskScheduler_StopTask(pstTask);
+	result = UKTaskControl_StopTask(pstTask);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -129,7 +129,7 @@ uem_result UKTask_GetTaskState(IN int nCallerTaskId, char *pszTaskName, EInterna
 	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UKTaskScheduler_GetTaskState(pstTask, penTaskState);
+	result = UKTaskControl_GetTaskState(pstTask, penTaskState);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;

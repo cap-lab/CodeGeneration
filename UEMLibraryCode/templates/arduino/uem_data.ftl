@@ -6,7 +6,7 @@
 
 #include <uem_data.h>
 
-#include <UKTaskScheduler.h>
+#include <UKTaskControl.h>
 
 <#assign timerSlotSize=3 />
 #define MAX_TIMER_SLOT_SIZE (${timerSlotSize})
