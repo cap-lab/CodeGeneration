@@ -17,9 +17,6 @@
 #include <UKLibrary.h>
 //#include <UCPrint.h>
 
-#include <uem_data.h>
-#include <uem_channel_data.h>
-
 #include <UKChannel.h>
 #include <UKTaskScheduler.h>
 #include <UKAddOnHandler.h>
