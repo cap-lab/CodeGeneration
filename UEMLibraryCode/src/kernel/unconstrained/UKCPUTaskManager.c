@@ -272,7 +272,7 @@ static uem_result traverseAndCreateGeneralTasks(STask *pstTask, IN void *pUserDa
 
 	hManager = (HCPUGeneralTaskManager) pUserData;
 
-	if (pstTask->enType == TASK_TYPE_COMPUTATIONAL || pstTask->enType == TASK_TYPE_LOOP)
+	if ((pstTask->enType == TASK_TYPE_COMPUTATIONAL || pstTask->enType == TASK_TYPE_LOOP)  && pstTask->enRunCondition != RUN_CONDITION_CONTROL_DRIVEN)
 	{
 		result = UKCPUGeneralTaskManager_GetTaskState(hManager, pstTask, &enTaskState);
 		ERRIFGOTO(result, _EXIT);
