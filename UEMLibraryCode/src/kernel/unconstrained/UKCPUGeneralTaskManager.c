@@ -1053,13 +1053,7 @@ static uem_result handleLoopTaskIteration(SGeneralTaskThread *pstTaskThread, SGe
 		{
 			//stop loop task iteration
 			//set iteration to target iteration
-			result = UCThreadMutex_Unlock(pstParentTask->hMutex);
-			ERRIFGOTO(result, _EXIT);
-
 			result = changeTaskState(pstGeneralTask, TASK_STATE_SUSPEND);
-			ERRIFGOTO(result, _EXIT);
-
-			result = UCThreadMutex_Lock(pstParentTask->hMutex);
 			ERRIFGOTO(result, _EXIT);
 
 			result = updateLoopIterationHistory(pstGeneralTask);
@@ -1106,13 +1100,7 @@ static uem_result handleLoopTaskIteration(SGeneralTaskThread *pstTaskThread, SGe
 
 	if(bStateChangeNeeded == TRUE)
 	{
-		result = UCThreadMutex_Unlock(pstParentTask->hMutex);
-		ERRIFGOTO(result, _EXIT);
-
 		result = changeTaskState(pstGeneralTask, enNewState);
-		ERRIFGOTO(result, _EXIT);
-
-		result = UCThreadMutex_Lock(pstParentTask->hMutex);
 		ERRIFGOTO(result, _EXIT);
 	}
 
