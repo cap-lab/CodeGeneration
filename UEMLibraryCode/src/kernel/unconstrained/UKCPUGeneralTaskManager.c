@@ -914,6 +914,10 @@ static uem_result setLoopTaskCurrentIteration(STask *pstTask, void *pUserData)
 						pstTask->nCurIteration = pstLoopInfo->astLoopIteration[nLoop].nNextIteration * nSavedIteration;
 						break;
 					}
+					else if(pstTask->nCurIteration >= pstLoopInfo->astLoopIteration[nLoop].nNextIteration * nSavedIteration)
+					{
+						break;
+					}
 
 					if (nLoop <= 0) {
 						nLoop = LOOP_HISTORY_ARRAY_SIZE;
