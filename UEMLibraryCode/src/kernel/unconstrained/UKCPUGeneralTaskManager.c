@@ -1876,6 +1876,73 @@ _EXIT:
 }
 
 
+static uem_result checkTaskThreadRunning(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SGeneralTaskThread *pstTaskThread = NULL;
+	int *pnStartCount = 0;
+
+	pstTaskThread = (SGeneralTaskThread *) pData;
+	pnStartCount = (int *) pUserData;
+
+	if(pstTaskThread->bSuspended == FALSE)
+	{
+		*pnStartCount = *pnStartCount + 1;
+	}
+
+    result = ERR_UEM_NOERROR;
+_EXIT:
+    return result;
+}
+
+
+uem_result UKCPUGeneralTaskManager_CheckTaskStarted(HCPUGeneralTaskManager hManager, STask *pstTargetTask, uem_bool *pbStarted)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCPUGeneralTaskManager *pstTaskManager = NULL;
+	SGeneralTask *pstGeneralTask = NULL;
+	int nTotalThreadNum = 0;
+	int nStartCount = 0;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(pbStarted, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+	IFVARERRASSIGNGOTO(pstTargetTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	if (IS_VALID_HANDLE(hManager, ID_UEM_CPU_GENERAL_TASK_MANAGER) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+#endif
+
+	pstTaskManager = hManager;
+
+	result = UCThreadMutex_Lock(pstTaskManager->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, checkTaskThreadRunning, &nStartCount);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	result = UCDynamicLinkedList_GetLength(pstGeneralTask->hThreadList, &nTotalThreadNum);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	if(nStartCount == nTotalThreadNum) // All tasks are started
+	{
+		*pbStarted = TRUE;
+	}
+	else
+	{
+		*pbStarted = FALSE;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstTaskManager->hMutex);
+_EXIT:
+	return result;
+}
+
+
 uem_result UKCPUGeneralTaskManager_CheckAllTaskStopped(HCPUGeneralTaskManager hManager, uem_bool *pbStopped)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
