@@ -437,18 +437,16 @@ public class Application {
 	private void setSourceRemoteCommunicationType(Channel channel, String srcTaskDevice, String dstTaskDevice) throws InvalidDeviceConnectionException
 	{
 		// TODO: only TCP communication is supported now
-		DeviceConnection srcTaskConnection = this.deviceConnectionList.get(srcTaskDevice);
-		DeviceConnection dstTaskConnection = this.deviceConnectionList.get(dstTaskDevice);
+		DeviceConnection srcTaskConnection = this.deviceConnectionList.get(srcTaskDevice); // turtlebot
+		DeviceConnection dstTaskConnection = this.deviceConnectionList.get(dstTaskDevice); // HostPC
 		ConnectionPair connectionPair = null;
 		
 		if(srcTaskConnection != null) {// source is master
 			connectionPair = srcTaskConnection.findOneConnectionToAnotherDevice(dstTaskDevice);
 		}
-		else if(dstTaskConnection != null) {// destination is master
+		
+		if(connectionPair == null && dstTaskConnection != null) {// destination is master
 			connectionPair = dstTaskConnection.findOneConnectionToAnotherDevice(srcTaskDevice);
-		}
-		else {
-			throw new InvalidDeviceConnectionException();
 		}
 		
 		if(connectionPair == null) {
@@ -847,10 +845,12 @@ public class Application {
 		if(srcTaskConnection != null) {// source is master
 			connectionPair = srcTaskConnection.findOneConnectionToAnotherDevice(dstDevice.getName());
 		}
-		else if(dstTaskConnection != null) {// destination is master
+		
+		if(connectionPair == null && dstTaskConnection != null) {// destination is master
 			connectionPair = dstTaskConnection.findOneConnectionToAnotherDevice(srcDevice.getName());
 		}
-		else {
+		
+		if(connectionPair == null) {
 			throw new InvalidDeviceConnectionException();
 		}
 		
@@ -1348,7 +1348,7 @@ public class Application {
 			channel.setInputPort(dstPort.getMostUpperPortInfo());
 			// maximum chunk number
 			channel.setMaximumChunkNum(this.taskMap);
-			
+
 			srcTaskMappingInfo = findMappingInfoByTaskName(channelSrcPort.getTask());
 			dstTaskMappingInfo = findMappingInfoByTaskName(channelDstPort.getTask());
 			
