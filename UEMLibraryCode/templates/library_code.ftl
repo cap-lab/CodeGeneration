@@ -17,6 +17,20 @@
 #define LIBCALL_this(f, ...) l_${lib_info.name}_##f(__VA_ARGS__)
 #define LIBFUNC(rtype, f, ...) rtype l_${lib_info.name}_##f(__VA_ARGS__)
 
+
+<#if lib_info.isMasterLanguageC == true>
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+</#if>
+
 #include "${lib_info.file}"
+
+<#if lib_info.isMasterLanguageC == true>
+#ifdef __cplusplus
+}
+#endif
+</#if>
 
 #undef LIBFUNC

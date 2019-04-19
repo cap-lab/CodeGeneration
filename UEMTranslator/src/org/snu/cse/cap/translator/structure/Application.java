@@ -437,18 +437,16 @@ public class Application {
 	private void setSourceRemoteCommunicationType(Channel channel, String srcTaskDevice, String dstTaskDevice) throws InvalidDeviceConnectionException
 	{
 		// TODO: only TCP communication is supported now
-		DeviceConnection srcTaskConnection = this.deviceConnectionList.get(srcTaskDevice);
-		DeviceConnection dstTaskConnection = this.deviceConnectionList.get(dstTaskDevice);
+		DeviceConnection srcTaskConnection = this.deviceConnectionList.get(srcTaskDevice); // turtlebot
+		DeviceConnection dstTaskConnection = this.deviceConnectionList.get(dstTaskDevice); // HostPC
 		ConnectionPair connectionPair = null;
 		
 		if(srcTaskConnection != null) {// source is master
 			connectionPair = srcTaskConnection.findOneConnectionToAnotherDevice(dstTaskDevice);
 		}
-		else if(dstTaskConnection != null) {// destination is master
+		
+		if(connectionPair == null && dstTaskConnection != null) {// destination is master
 			connectionPair = dstTaskConnection.findOneConnectionToAnotherDevice(srcTaskDevice);
-		}
-		else {
-			throw new InvalidDeviceConnectionException();
 		}
 		
 		if(connectionPair == null) {
@@ -847,10 +845,12 @@ public class Application {
 		if(srcTaskConnection != null) {// source is master
 			connectionPair = srcTaskConnection.findOneConnectionToAnotherDevice(dstDevice.getName());
 		}
-		else if(dstTaskConnection != null) {// destination is master
+		
+		if(connectionPair == null && dstTaskConnection != null) {// destination is master
 			connectionPair = dstTaskConnection.findOneConnectionToAnotherDevice(srcDevice.getName());
 		}
-		else {
+		
+		if(connectionPair == null) {
 			throw new InvalidDeviceConnectionException();
 		}
 		
@@ -1114,10 +1114,6 @@ public class Application {
 					taskRep = firing.getIterationCount();
 				}
 				
-				if(task.getLoopStruct() != null)
-				{
-					taskRep = taskRep * task.getLoopStruct().getLoopCount();
-				}
 				task.getIterationCountList().put(modeId+"", taskRep);
 			}
 		}
@@ -1129,7 +1125,7 @@ public class Application {
 		
 		if(taskList.size() <= 2)
 		{
-			TwoNodeStrategy st = new TwoNodeStrategy(graph);			
+			TwoNodeStrategy st = new TwoNodeStrategy(graph);
 			schedule = st.schedule();
 		}
 		else
@@ -1141,9 +1137,85 @@ public class Application {
 		handleScheduleElement(graph, schedule, modeId);
 	}
 	
+	private TaskGraph getTaskGraphCanBeMerged(TaskGraph taskGraph, HashMap<String, TaskGraph> taskGraphMap, HashMap<String, TaskGraph> mergedTaskGraphMap)
+	{
+		TaskGraph mergedParentTaskGraph = null;
+		TaskGraph currentTaskGraph;
+		TaskGraph parentTaskGraph;
+		
+		currentTaskGraph = taskGraph;
+		
+		while(currentTaskGraph.getParentTask() != null)
+		{
+			parentTaskGraph = taskGraphMap.get(currentTaskGraph.getParentTask().getParentTaskGraphName());
+			
+			if(parentTaskGraph != null)
+			{
+				if(currentTaskGraph.getTaskGraphType() == TaskGraphType.DATAFLOW && 
+						parentTaskGraph.getTaskGraphType() == TaskGraphType.PROCESS_NETWORK)
+				{
+					mergedParentTaskGraph = currentTaskGraph.clone();
+					mergedTaskGraphMap.put(mergedParentTaskGraph.getName(), mergedParentTaskGraph);
+					break;						
+				}
+				else
+				{
+					mergedParentTaskGraph = mergedTaskGraphMap.get(parentTaskGraph.getName());
+					if(mergedParentTaskGraph != null)
+					{
+						break;
+					}					
+				}
+			}
+			currentTaskGraph = parentTaskGraph;
+		}
+	
+		return mergedParentTaskGraph;
+	}
+	
+	private HashMap<String, TaskGraph> mergeTaskGraph(HashMap<String, TaskGraph> taskGraphMap)
+	{
+		HashMap<String, TaskGraph> mergedTaskGraphMap = new HashMap<String, TaskGraph>();
+		Task parentTask = null;
+		TaskGraph mergedTaskGraph = null;
+		TaskGraph mergedParentTaskGraph;
+		
+		for(TaskGraph taskGraph: taskGraphMap.values())
+		{
+			parentTask = taskGraph.getParentTask(); 
+			if(parentTask == null)
+			{
+				mergedTaskGraph = taskGraph.clone();
+				mergedTaskGraphMap.put(taskGraph.getName(), mergedTaskGraph);
+			}
+			else if(parentTask.getModeTransition() != null || parentTask.getLoopStruct() != null)
+			{
+				mergedTaskGraph = taskGraph.clone();
+				mergedTaskGraphMap.put(taskGraph.getName(), mergedTaskGraph);
+			}
+		}
+		
+		for(TaskGraph taskGraph: taskGraphMap.values())
+		{
+			parentTask = taskGraph.getParentTask(); 
+			if(parentTask != null && parentTask.getModeTransition() == null && parentTask.getLoopStruct() == null) {
+				mergedParentTaskGraph = getTaskGraphCanBeMerged(taskGraph, taskGraphMap, mergedTaskGraphMap);
+				if(mergedParentTaskGraph.getName().equals(taskGraph.getName()) == false) {
+					mergedParentTaskGraph.mergeChildTaskGraph(taskGraph);
+				}
+			}
+		}
+		
+		return mergedTaskGraphMap;
+	}
+	
 	private void setIterationCount(HashMap<String, TaskGraph> taskGraphMap)
 	{
-		for(TaskGraph taskGraph: taskGraphMap.values())
+		HashMap<String, TaskGraph> mergedTaskGraphMap;
+		
+		mergedTaskGraphMap = mergeTaskGraph(taskGraphMap);
+		
+		for(TaskGraph taskGraph: mergedTaskGraphMap.values())
 		{
 			if(taskGraph.getTaskGraphType() == TaskGraphType.DATAFLOW)
 			{
@@ -1154,14 +1226,28 @@ public class Application {
 				{
 					Task srcTask;
 					Task dstTask;
+					boolean findSrcTask = false;
+					boolean findDstTask = false; 
 					
 					srcTask = this.taskMap.get(channel.getOutputPort().getTaskName());
 					dstTask = this.taskMap.get(channel.getInputPort().getTaskName());
 					
-					if(srcTask.getParentTaskGraphName().equals(taskGraph.getName()) == true && 
-						dstTask.getParentTaskGraphName().equals(taskGraph.getName()) == true)
+					for (Task task : taskGraph.getTaskList())
 					{
-						channelList.add(channel);
+						if(srcTask.getName().equals(task.getName()))
+						{
+							findSrcTask = true;
+						}
+						if(dstTask.getName().equals(task.getName()))
+						{
+							findDstTask = true;
+						}
+						
+						if(findSrcTask == true && findDstTask == true)
+						{
+							channelList.add(channel);
+							break;
+						}
 					}
 				}
 					
@@ -1228,9 +1314,13 @@ public class Application {
 	
 	public void makeChannelInformation(CICAlgorithmType algorithm_metadata) throws InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
 	{
-		algorithm_metadata.getChannels().getChannel();
 		int index = 0;
 		HashMap<String, ArrayList<Channel>> portToChannelConnection = new HashMap<String, ArrayList<Channel>>();
+		
+		if(algorithm_metadata.getChannels() == null)
+		{
+			return;
+		}
 	
 		for(ChannelType channelMetadata: algorithm_metadata.getChannels().getChannel())
 		{
@@ -1258,7 +1348,7 @@ public class Application {
 			channel.setInputPort(dstPort.getMostUpperPortInfo());
 			// maximum chunk number
 			channel.setMaximumChunkNum(this.taskMap);
-			
+
 			srcTaskMappingInfo = findMappingInfoByTaskName(channelSrcPort.getTask());
 			dstTaskMappingInfo = findMappingInfoByTaskName(channelDstPort.getTask());
 			
@@ -1309,6 +1399,31 @@ public class Application {
 		}
 	}
 	
+	private void checkLibraryMasterIsC(Library library)
+	{
+		for(LibraryConnection connection : library.getLibraryConnectionList())
+		{
+			if(connection.isMasterLibrary() == true)
+			{
+				Library masterLibrary = this.libraryMap.get(connection.getMasterName());
+				if(masterLibrary.getLanguage() == ProgrammingLanguage.C)
+				{
+					library.setMasterLanguageC(true);
+					break;
+				}
+			}
+			else // task
+			{
+				Task masterTask = this.taskMap.get(connection.getMasterName());
+				if(masterTask.getLanguage() == ProgrammingLanguage.C)
+				{
+					library.setMasterLanguageC(true);
+					break;
+				}
+			}
+		}
+	}
+	
 	private void setLibraryConnectionInformation(CICAlgorithmType algorithm_metadata)
 	{
 		if(algorithm_metadata.getLibraryConnections() != null)
@@ -1333,6 +1448,12 @@ public class Application {
 														connectionType.getMasterPort(), true);
 					library.getLibraryConnectionList().add(libraryConnection);
 				}
+			}
+			
+			//this.taskMap;
+			for(Library library : this.libraryMap.values())
+			{
+				checkLibraryMasterIsC(library);
 			}
 		}
 	}

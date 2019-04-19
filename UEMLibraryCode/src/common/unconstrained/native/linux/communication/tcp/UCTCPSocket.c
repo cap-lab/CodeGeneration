@@ -13,11 +13,19 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
 #else
 #include <winsock.h>
 #endif
 
 #include <uem_common.h>
+
+#ifndef WIN32
+	#ifdef DEBUG_PRINT
+#include <errno.h>
+#include <string.h>
+	#endif
+#endif
 
 #include <UCBasic.h>
 

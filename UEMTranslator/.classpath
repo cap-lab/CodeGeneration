@@ -8,16 +8,12 @@
 			<attribute name="javadoc_location" value="jar:platform:/resource/UEMTranslator/jars/commons-cli-1.4-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="jars/freemarker.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/E:/HOPES_developer/HOPES_develop_release/UEMTranslator/documentation/_html/api"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/SDFGraph"/>
 	<classpathentry kind="lib" path="/JavaLibraries/jars/mapss.jar"/>
 	<classpathentry kind="lib" path="/JavaLibraries/jars/mocgraph.jar"/>
 	<classpathentry kind="lib" path="jars/ptolemy.jar"/>
 	<classpathentry kind="lib" path="/JavaLibraries/jars/jaxb-api.jar"/>
 	<classpathentry kind="lib" path="/JavaLibraries/jars/jaxb-impl.jar"/>
+	<classpathentry kind="lib" path="/JavaLibraries/jars/freemarker.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

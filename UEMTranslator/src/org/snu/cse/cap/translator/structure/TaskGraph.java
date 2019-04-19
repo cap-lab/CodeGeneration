@@ -71,5 +71,38 @@ public class TaskGraph {
 		this.parentTask = parentTask;
 	}
 	
+	public TaskGraph clone()
+	{
+		TaskGraph clonedGraph;
+		
+		clonedGraph = new TaskGraph(this.name);
+		clonedGraph.setTaskGraphType(this.taskGraphType);
+		clonedGraph.setParentTask(this.parentTask);
+		
+		for(Task task : this.taskList)
+		{
+			clonedGraph.putTask(task);
+		}
+		
+		return clonedGraph;
+	}
 	
+	public void mergeChildTaskGraph(TaskGraph subgraph)
+	{
+		// remove task with "subgraph name"
+		for(Task subGraphParentTask : this.taskList)
+		{
+			if(subGraphParentTask.getName().equals(subgraph.getName()) == true)
+			{
+				this.taskList.remove(subGraphParentTask);
+				break;
+			}
+		}
+		
+		// put tasks in subgraph
+		for(Task subgraphTask : subgraph.getTaskList())
+		{
+			this.taskList.add(subgraphTask);
+		}
+	}
 }

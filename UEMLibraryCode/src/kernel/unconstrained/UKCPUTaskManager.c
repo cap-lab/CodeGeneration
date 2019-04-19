@@ -272,7 +272,7 @@ static uem_result traverseAndCreateGeneralTasks(STask *pstTask, IN void *pUserDa
 
 	hManager = (HCPUGeneralTaskManager) pUserData;
 
-	if (pstTask->enType == TASK_TYPE_COMPUTATIONAL || pstTask->enType == TASK_TYPE_LOOP)
+	if ((pstTask->enType == TASK_TYPE_COMPUTATIONAL || pstTask->enType == TASK_TYPE_LOOP)  && pstTask->enRunCondition != RUN_CONDITION_CONTROL_DRIVEN)
 	{
 		result = UKCPUGeneralTaskManager_GetTaskState(hManager, pstTask, &enTaskState);
 		ERRIFGOTO(result, _EXIT);
@@ -470,6 +470,35 @@ _EXIT:
 	return result;
 }
 
+static uem_result waitUntilGeneralTaskIsStarted(HCPUGeneralTaskManager hGeneralTaskManager, STask *pstTask)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	uem_bool bStarted = FALSE;
+	ECPUTaskState enState;
+
+	while(bStarted == FALSE)
+	{
+		result = UKCPUGeneralTaskManager_GetTaskState(hGeneralTaskManager, pstTask, &enState);
+		ERRIFGOTO(result, _EXIT);
+
+		if(enState == TASK_STATE_RUNNING)
+		{
+			result = UKCPUGeneralTaskManager_CheckTaskStarted(hGeneralTaskManager, pstTask, &bStarted);
+			ERRIFGOTO(result, _EXIT);
+
+			UCThread_Yield();
+		}
+		else
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+		}
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 
 static uem_result runDataflowSubgraphTask(STask *pstTask, void *pUserData)
 {
@@ -479,12 +508,15 @@ static uem_result runDataflowSubgraphTask(STask *pstTask, void *pUserData)
 	hGeneralTaskManager = (HCPUGeneralTaskManager) pUserData;
 
 	result = UKCPUGeneralTaskManager_CreateThread(hGeneralTaskManager, pstTask);
-			ERRIFGOTO(result, _EXIT);
+	ERRIFGOTO(result, _EXIT);
 
 	result = UKCPUGeneralTaskManager_ChangeState(hGeneralTaskManager, pstTask, TASK_STATE_RUNNING);
 	ERRIFGOTO(result, _EXIT);
 
 	result = UKCPUGeneralTaskManager_ActivateThread(hGeneralTaskManager, pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = waitUntilGeneralTaskIsStarted(hGeneralTaskManager, pstTask);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -837,6 +869,9 @@ uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUTaskManager, int nTaskId
 		ERRIFGOTO(result, _EXIT);
 
 		result = UKCPUGeneralTaskManager_ActivateThread(pstManager->hGeneralManager, pstTask);
+		ERRIFGOTO(result, _EXIT);
+
+		result = waitUntilGeneralTaskIsStarted(pstManager->hGeneralManager, pstTask);
 		ERRIFGOTO(result, _EXIT);
 	}
 

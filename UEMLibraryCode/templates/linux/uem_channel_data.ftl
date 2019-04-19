@@ -15,6 +15,9 @@
 	<#if used_communication_list?seq_contains("bluetooth")>
 #include <UCBluetoothSocket.h>
 	</#if>
+	<#if used_communication_list?seq_contains("serial")>
+#include <UCSerialPort.h>
+	</#if>
 </#if>
 
 #include <UKHostSystem.h>
@@ -36,6 +39,12 @@
 	<#if used_communication_list?seq_contains("bluetooth")>
 #include <UKBluetoothModule.h>
 #include <UKBluetoothChannel.h>
+
+#include <uem_bluetooth_data.h>
+	</#if>
+	<#if used_communication_list?seq_contains("serial")>
+#include <UKSerialModule.h>
+#include <UKSerialChannel.h>
 
 #include <uem_bluetooth_data.h>
 	</#if>
@@ -161,11 +170,11 @@ SBluetoothInfo g_astBluetoothMasterInfo[] = {
 	<#list bluetooth_master_list as master>
 	{
 		"${master.portAddress}", // target mac address
-		NULL, // socket handle
-		NULL, // thread handle
-		NULL, // connector handle
+		(HSocket) NULL, // socket handle
+		(HThread) NULL, // thread handle
+		(HConnector) NULL, // connector handle
 		${master.channelAccessNum}, // max channel access number
-		NULL, // Serial communication manager handle
+		(HSerialCommunicationManager) NULL, // Serial communication manager handle
 		FALSE, // initialized or not
 	},
 	</#list>
@@ -175,11 +184,11 @@ SBluetoothInfo g_astBluetoothSlaveInfo[] = {
 	<#list bluetooth_slave_list as slave>
 	{
 		"${slave.portAddress}", // slave mac address
-		NULL, // socket handle
-		NULL, // thread handle
-		NULL, // connector handle
+		(HSocket) NULL, // socket handle
+		(HThread) NULL, // thread handle
+		(HConnector) NULL, // connector handle
 		${slave.channelAccessNum}, // max channel access number
-		NULL, // Serial communication manager handle
+		(HSerialCommunicationManager) NULL, // Serial communication manager handle
 		FALSE, // initialized or not
 	},
 	</#list>
@@ -192,10 +201,11 @@ SSerialInfo g_astSerialMasterInfo[] = {
 	<#list serial_master_list as master>
 	{
 		"${master.portAddress}", // serial port path
-		NULL, // thread handle
-		NULL, // connector handle
+		(HSerialPort) NULL, // hSerialPort handle
+		(HThread) NULL, // thread handle
+		(HConnector) NULL, // connector handle
 		${master.channelAccessNum}, // max channel access number
-		NULL, // Serial communication manager handle	
+		(HSerialCommunicationManager) NULL, // Serial communication manager handle	
 		FALSE, // initialized or not
 	},
 	</#list>
@@ -206,10 +216,11 @@ SSerialInfo g_astSerialSlaveInfo[] = {
 	<#list serial_slave_list as slave>
 	{
 		"${slave.portAddress}", // serial port path
-		NULL, // thread handle
-		NULL, // connector handle
+		(HSerialPort) NULL, // hSerialPort handle
+		(HThread) NULL, // thread handle
+		(HConnector) NULL, // connector handle
 		${slave.channelAccessNum}, // max channel access number
-		NULL, // Serial communication manager handle	
+		(HSerialCommunicationManager) NULL, // Serial communication manager handle		
 		FALSE, // initialized or not
 	},
 	</#list>
@@ -271,6 +282,7 @@ SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 		<#case "TCP_CLIENT_WRITER">
 		<#case "BLUETOOTH_MASTER_WRITER">
 		<#case "BLUETOOTH_SLAVE_WRITER">
+		<#case "SERIAL_MASTER_WRITER">
 		<#case "SERIAL_SLAVE_WRITER">
 SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 	ACCESS_TYPE_${channel.accessType},
@@ -284,9 +296,9 @@ SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 					<#break>
 				<#case "GPU_GPU">
 				<#case "GPU_GPU_DIFFERENT">
-	NULL, // Channel buffer pointer
-	NULL, // Channel data start
-	NULL, // Channel data end
+	(void*) NULL, // Channel buffer pointer
+	(void*) NULL, // Channel data start
+	(void*) NULL, // Channel data end
 					<#break>
 			</#switch>
 	0, // Channel data length
@@ -360,7 +372,7 @@ STCPSocketChannel g_stTCPSocketChannel_${channel.index} = {
 		</#switch>
 	(SExternalCommunicationInfo *) NULL, // SExternalCommunicationInfo *pstCommunicationInfo;
 	(HThread) NULL, // HThread hReceivingThread;
-	NULL, // char *pBuffer;
+	(char *) NULL, // char *pBuffer;
 	0, // int nBufLen;
 	(HThreadMutex) NULL, // HThreadMutex hMutex;
 	FALSE, // uem_bool bChannelExit;
@@ -411,10 +423,10 @@ SSerialWriterChannel g_stSerialWriterChannel_${channel.index} = {
 				<#break>
 		</#switch>
 	(HFixedSizeQueue) NULL,
-	NULL,
-	NULL,
+	(HThread) NULL,
+	(char*) NULL,
 	0,
-	NULL,
+	(HThreadMutex) NULL,
 	FALSE,
 	&g_stSharedMemoryChannel_${channel.index},	
 };
@@ -443,7 +455,7 @@ SSerialReaderChannel g_stSerialReaderChannel_${channel.index} = {
 					<#break>
 			</#switch>
 	(HFixedSizeQueue) NULL, // response queue
-	NULL, // mutex variable
+	(HThreadMutex) NULL, // mutex variable
 	FALSE, // channel exit flag
 			<#switch channel.accessType>
 				<#case "CPU_ONLY">
@@ -522,12 +534,12 @@ SChannelAPI g_stSharedMemoryChannel = {
 <#if used_communication_list?seq_contains("tcp")>
 SChannelAPI g_stTCPSocketChannelWriter = {
 	UKTCPSocketChannel_Initialize, // fnInitialize
-	NULL, // fnReadFromQueue
-	NULL, // fnReadFromBuffer
+	(FnChannelReadFromQueue) NULL, // fnReadFromQueue
+	(FnChannelReadFromBuffer) NULL, // fnReadFromBuffer
 	UKTCPSocketChannel_WriteToQueue, // fnWriteToQueue
 	UKTCPSocketChannel_WriteToBuffer, // fnWriteToBuffer
-	NULL, // fnGetAvailableChunk
-	NULL, // fnGetNumOfAvailableData
+	(FnChannelGetAvailableChunk) NULL, // fnGetAvailableChunk
+	UKTCPSocketChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
 	UKTCPSocketChannel_Clear, // fnClear
 	UKTCPSocketChannel_SetExit,
 	UKTCPSocketChannel_ClearExit,
@@ -542,17 +554,17 @@ SChannelAPI g_stTCPSocketChannelReader = {
 	UKTCPSocketChannel_Initialize, // fnInitialize
 	UKTCPSocketChannel_ReadFromQueue, // fnReadFromQueue
 	UKTCPSocketChannel_ReadFromBuffer, // fnReadFromBuffer
-	NULL, // fnWriteToQueue
-	NULL, // fnWriteToBuffer
+	(FnChannelWriteToQueue) NULL, // fnWriteToQueue
+	(FnChannelWriteToBuffer) NULL, // fnWriteToBuffer
 	UKTCPSocketChannel_GetAvailableChunk, // fnGetAvailableChunk
 	UKTCPSocketChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
 	UKTCPSocketChannel_Clear, // fnClear
 	UKTCPSocketChannel_SetExit,
 	UKTCPSocketChannel_ClearExit,
-	NULL,
+	(FnChannelFillInitialData) NULL,
 	UKTCPSocketChannel_Finalize, // fnFinalize
-	NULL,
-	NULL,
+	(FnChannelAPIInitialize) NULL,
+	(FnChannelAPIFinalize) NULL,
 };
 </#if>
 
@@ -560,12 +572,12 @@ SChannelAPI g_stTCPSocketChannelReader = {
 <#if used_communication_list?seq_contains("bluetooth")>
 SChannelAPI g_stBluetoothChannelWriter = {
 	UKBluetoothChannel_Initialize, // fnInitialize
-	NULL, // fnReadFromQueue
-	NULL, // fnReadFromBuffer
+	(FnChannelReadFromQueue) NULL, // fnReadFromQueue
+	(FnChannelReadFromBuffer) NULL, // fnReadFromBuffer
 	UKBluetoothChannel_WriteToQueue, // fnWriteToQueue
 	UKBluetoothChannel_WriteToBuffer, // fnWriteToBuffer
-	NULL, // fnGetAvailableChunk
-	NULL, // fnGetNumOfAvailableData
+	(FnChannelGetAvailableChunk) NULL, // fnGetAvailableChunk
+	UKBluetoothChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
 	UKBluetoothChannel_Clear, // fnClear
 	UKBluetoothChannel_SetExit,
 	UKBluetoothChannel_ClearExit,
@@ -580,17 +592,54 @@ SChannelAPI g_stBluetoothChannelReader = {
 	UKBluetoothChannel_Initialize, // fnInitialize
 	UKBluetoothChannel_ReadFromQueue, // fnReadFromQueue
 	UKBluetoothChannel_ReadFromBuffer, // fnReadFromBuffer
-	NULL, // fnWriteToQueue
-	NULL, // fnWriteToBuffer
+	(FnChannelWriteToQueue) NULL, // fnWriteToQueue
+	(FnChannelWriteToBuffer) NULL, // fnWriteToBuffer
 	UKBluetoothChannel_GetAvailableChunk, // fnGetAvailableChunk
 	UKBluetoothChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
 	UKBluetoothChannel_Clear, // fnClear
 	UKBluetoothChannel_SetExit,
 	UKBluetoothChannel_ClearExit,
-	NULL,
+	(FnChannelFillInitialData) NULL,
 	UKBluetoothChannel_Finalize, // fnFinalize
-	NULL,
-	NULL,
+	(FnChannelAPIInitialize) NULL,
+	(FnChannelAPIFinalize) NULL,
+};
+</#if>
+
+<#if used_communication_list?seq_contains("serial")>
+SChannelAPI g_stSerialChannelWriter = {
+	UKSerialChannel_Initialize, // fnInitialize
+	(FnChannelReadFromQueue) NULL, // fnReadFromQueue
+	(FnChannelReadFromBuffer) NULL, // fnReadFromBuffer
+	UKSerialChannel_WriteToQueue, // fnWriteToQueue
+	UKSerialChannel_WriteToBuffer, // fnWriteToBuffer
+	(FnChannelGetAvailableChunk) NULL, // fnGetAvailableChunk
+	UKSerialChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
+	UKSerialChannel_Clear, // fnClear
+	UKSerialChannel_SetExit,
+	UKSerialChannel_ClearExit,
+	UKSerialChannel_FillInitialData,
+	UKSerialChannel_Finalize, // fnFinalize
+	UKSerialModule_Initialize,
+	UKSerialModule_Finalize,
+};
+
+
+SChannelAPI g_stSerialChannelReader = {
+	UKSerialChannel_Initialize, // fnInitialize
+	UKSerialChannel_ReadFromQueue, // fnReadFromQueue
+	UKSerialChannel_ReadFromBuffer, // fnReadFromBuffer
+	(FnChannelWriteToQueue) NULL, // fnWriteToQueue
+	(FnChannelWriteToBuffer) NULL, // fnWriteToBuffer
+	UKSerialChannel_GetAvailableChunk, // fnGetAvailableChunk
+	UKSerialChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
+	UKSerialChannel_Clear, // fnClear
+	UKSerialChannel_SetExit,
+	UKSerialChannel_ClearExit,
+	(FnChannelFillInitialData) NULL,
+	UKSerialChannel_Finalize, // fnFinalize
+	(FnChannelAPIInitialize) NULL,
+	(FnChannelAPIFinalize) NULL,
 };
 </#if>
 
@@ -606,6 +655,12 @@ SChannelAPI *g_astChannelAPIList[] = {
 	&g_stBluetoothChannelWriter,
 	&g_stBluetoothChannelReader,
 </#if>
+
+<#if used_communication_list?seq_contains("serial")>
+	&g_stSerialChannelWriter,
+	&g_stSerialChannelReader,
+</#if>
+
 };
 
 <#if used_communication_list?seq_contains("bluetooth")>
@@ -613,18 +668,19 @@ SSocketAPI stBluetoothAPI = {
 	UCBluetoothSocket_Bind,
 	UCBluetoothSocket_Accept,
 	UCBluetoothSocket_Connect,
-	NULL,
-	NULL,
+	(FnSocketCreate) NULL,
+	(FnSocketDestroy) NULL,
 };
 </#if>
+
 
 <#if used_communication_list?seq_contains("tcp")>
 SSocketAPI stTCPAPI = {
 	UCTCPSocket_Bind,
 	UCTCPSocket_Accept,
 	UCTCPSocket_Connect,
-	NULL,
-	NULL,
+	(FnSocketCreate) NULL,
+	(FnSocketDestroy) NULL,
 };		
 </#if>
 
@@ -634,7 +690,7 @@ SSocketAPI stUnixDomainSocketAPI = {
 	UCUnixDomainSocket_Bind,
 	UCUnixDomainSocket_Accept,
 	UCUnixDomainSocket_Connect,
-	NULL,
+	(FnSocketCreate) NULL,
 	UCUnixDomainSocket_Destroy,
 };
 */
@@ -708,6 +764,24 @@ uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType
 		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT)
 </#if>
 		break;
+
+	case COMMUNICATION_TYPE_SERIAL_MASTER_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_WRITER:
+<#if used_communication_list?seq_contains("serial")>
+		*ppstChannelAPI = &g_stSerialChannelWriter;	
+<#else>
+		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT)
+</#if>
+		break;
+	case COMMUNICATION_TYPE_SERIAL_MASTER_READER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_READER:
+<#if used_communication_list?seq_contains("serial")>
+		*ppstChannelAPI = &g_stSerialChannelReader;	
+<#else>
+		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT)
+</#if>
+		break;
+		
 	default:
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT)
 		break;

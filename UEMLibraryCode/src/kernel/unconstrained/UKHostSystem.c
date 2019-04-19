@@ -79,6 +79,8 @@ uem_result UKHostSystem_MapCPU(HThread hThread, int nProcessorId, int nLocalId)
 		result = UCThread_SetMappedCPU(hThread, nLocalId);
 		ERRIFGOTO(result, _EXIT);
 	}
+
+	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
 }

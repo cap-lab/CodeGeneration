@@ -72,6 +72,7 @@ public class Constants {
 	// tags for Makefile.ftl
 	public static final String TEMPLATE_TAG_BUILD_INFO = "build_info";
 	public static final String TEMPLATE_TAG_ENVIRONMENT_VARIABLE_INFO = "env_var_info";
+	public static final String TEMPLATE_TAG_DEVICE_ARCHITECTURE_INFO = "device_architecture_info";
 	
 	// tags for task_code.ftl
 	public static final String TEMPLATE_TAG_TASK_INFO = "task_info";

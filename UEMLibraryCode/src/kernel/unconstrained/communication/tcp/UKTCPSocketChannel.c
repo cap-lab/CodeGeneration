@@ -542,8 +542,11 @@ uem_result UKTCPSocketChannel_ReadFromQueue(SChannel *pstChannel, IN OUT unsigne
 	result = UKUEMProtocol_GetBodyDataFromReceivedData(hProtocol, &nDataRead, &pBody);
 	ERRIFGOTO(result, _EXIT);
 
-	result = pstTCPChannel->pstReaderAccess->fnCopyFromMemory(pBuffer, pBody, nDataRead);
-	ERRIFGOTO(result, _EXIT);
+	if(pBuffer != NULL)
+	{
+		result = pstTCPChannel->pstReaderAccess->fnCopyFromMemory(pBuffer, pBody, nDataRead);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	*pnDataRead = nDataRead;
 
@@ -617,15 +620,28 @@ uem_result UKTCPSocketChannel_GetNumOfAvailableData (SChannel *pstChannel, IN in
 
 	pstTCPChannel = (STCPSocketChannel *) pstChannel->pChannelStruct;
 
-	hProtocol = pstTCPChannel->pstCommunicationInfo->hProtocol;
+	switch(pstChannel->enType)
+	{
+	case COMMUNICATION_TYPE_TCP_SERVER_READER:
+	case COMMUNICATION_TYPE_TCP_CLIENT_READER:
+		hProtocol = pstTCPChannel->pstCommunicationInfo->hProtocol;
 
-	result = UKUEMProtocol_SetAvailableDataRequest(hProtocol, nChunkIndex);
-	ERRIFGOTO(result, _EXIT);
+		result = UKUEMProtocol_SetAvailableDataRequest(hProtocol, nChunkIndex);
+		ERRIFGOTO(result, _EXIT);
 
-	result = sendAndCheckResult(pstTCPChannel, hProtocol, &nDataNum);
-	ERRIFGOTO(result, _EXIT);
+		result = sendAndCheckResult(pstTCPChannel, hProtocol, &nDataNum);
+		ERRIFGOTO(result, _EXIT);
 
-	*pnDataNum = nDataNum;
+		*pnDataNum = nDataNum;
+		break;
+	case COMMUNICATION_TYPE_TCP_SERVER_WRITER:
+	case COMMUNICATION_TYPE_TCP_CLIENT_WRITER:
+		result = UKChannelMemory_GetNumOfAvailableData(pstChannel, pstTCPChannel->pstInternalChannel, nChunkIndex, pnDataNum);
+		ERRIFGOTO(result, _EXIT);
+		break;
+	default:
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

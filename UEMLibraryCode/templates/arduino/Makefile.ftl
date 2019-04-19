@@ -3,11 +3,13 @@
 ${envVar.name}=${envVar.value}
 </#list>
 
-<#if (used_communication_list?size > 0) >
-ARDUINO_LIBS+=SoftwareSerial
-</#if>
-
 BOARD_TAG ?= uno
+
+<#if (used_communication_list?size > 0)>
+ifneq ($(BOARD_TAG),OpenCR)
+  ARDUINO_LIBS+=SoftwareSerial
+endif
+</#if>
 
 MAIN_DIR=src/main
 
@@ -125,8 +127,12 @@ MODULE_CFLAGS=-I$(MODULE_DIR)/include
 CFLAGS_LIST=$(TOP_CFLAGS) $(MAIN_CFLAGS) $(API_CFLAGS) $(KERNEL_CFLAGS) $(COMMON_CFLAGS) $(MODULE_CFLAGS)
 
 CFLAGS+=-Wall $(CFLAGS_LIST) $(SYSTEM_CFLAGS)
-CXXFLAGS+=-Wall $(CFLAGS_LIST) $(SYSTEM_CFLAGS)
 
+<#if device_architecture_info.name() == "SAMD">
+CFLAGS+=-std=gnu11  #seems to be Sam.mk bug.
+</#if>
+
+CXXFLAGS+=-Wall $(CFLAGS_LIST) $(SYSTEM_CFLAGS)
 
 MAIN_LDFLAG_LIST=
 
@@ -138,4 +144,13 @@ COMMON_LDFLAG_LIST=$(SYSTEM_LDFLAG_LIST)
 
 LDFLAGS+=$(MAIN_LDFLAG_LIST) $(API_LDFLAG_LIST) $(KERNEL_LDFLAG_LIST) $(COMMON_LDFLAG_LIST)
 
-include Arduino.mk
+ifneq ($(BOARD_TAG),OpenCR)
+<#if device_architecture_info.name() == "SAMD">
+  include Sam.mk  
+<#else>
+  include Arduino.mk
+</#if>
+else
+  include OpenCR.mk  
+endif
+

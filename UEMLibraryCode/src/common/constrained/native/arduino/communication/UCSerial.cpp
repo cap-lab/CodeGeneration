@@ -10,8 +10,9 @@
 #endif
 
 #include <Arduino.h>
-
-#include <SoftwareSerial.h>
+#ifndef ARDUINO_OpenCR
+	#include <SoftwareSerial.h>
+#endif
 
 #include <uem_common.h>
 
@@ -30,7 +31,7 @@ void UCSerial_Initialize(HSerial hSerial)
 
 	pstSerialHandle = (SSerialHandle *) hSerial;
 
-	pstSerialHandle->pclsHandle->begin(DEFAULT_BAUD_RATE);
+	pstSerialHandle->pclsHandle->begin(DATA_SERIAL_DEFAULT_BAUD_RATE);
 }
 
 

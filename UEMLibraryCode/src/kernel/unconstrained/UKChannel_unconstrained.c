@@ -24,6 +24,76 @@
 
 uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType enType, OUT SChannelAPI **ppstChannelAPI);
 
+
+uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT int *pnChunkLen)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nCurrentSampleRateIndex = 0;
+	SPort *pstMostInnerPort = NULL;
+	int nOuterMostSampleRate = 0;
+	STask *pstCurTask = NULL;
+	int nChunkNum = 0;
+	int nChunkLen = 0;
+
+	IFVARERRASSIGNGOTO(pnChunkNum, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+	IFVARERRASSIGNGOTO(pnChunkLen, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	nCurrentSampleRateIndex = pstPort->nCurrentSampleRateIndex;
+
+	nOuterMostSampleRate = pstPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
+
+	pstMostInnerPort = pstPort;
+	while(pstMostInnerPort->pstSubGraphPort != NULL)
+	{
+		pstMostInnerPort = pstMostInnerPort->pstSubGraphPort;
+	}
+
+	if(pstPort != pstMostInnerPort)
+	{
+		nCurrentSampleRateIndex = pstMostInnerPort->nCurrentSampleRateIndex;
+
+		nChunkNum = nOuterMostSampleRate / pstMostInnerPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
+		nChunkLen = pstMostInnerPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstMostInnerPort->nSampleSize;
+	}
+	else
+	{
+		result = UKTask_GetTaskFromTaskId(pstPort->nTaskId, &pstCurTask);
+		if(result == ERR_UEM_NO_DATA)
+		{
+			result = ERR_UEM_NOERROR;
+		}
+		ERRIFGOTO(result, _EXIT);
+
+		// If the task id cannot be obtained by "UKTask_GetTaskFromTaskId",
+		// it means the information is missing because of remote communication, so set as a general task information
+		if(pstCurTask == NULL || pstCurTask->pstLoopInfo == NULL) // general task
+		{
+			nChunkNum = 1;
+			nChunkLen = nOuterMostSampleRate * pstPort->nSampleSize;
+		}
+		else if(pstCurTask->pstLoopInfo->enType == LOOP_TYPE_DATA &&
+			pstPort->astSampleRates[nCurrentSampleRateIndex].nMaxAvailableDataNum == 1)
+		{
+			nChunkNum = nOuterMostSampleRate / (nOuterMostSampleRate / pstCurTask->pstLoopInfo->nLoopCount);
+			nChunkLen = (nOuterMostSampleRate * pstPort->nSampleSize) / nChunkNum;
+		}
+		else // broadcasting or convergent
+		{
+			nChunkNum = 1;
+			nChunkLen = nOuterMostSampleRate * pstPort->nSampleSize;
+		}
+	}
+
+	*pnChunkNum = nChunkNum;
+	*pnChunkLen = nChunkLen;
+
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 uem_result UKChannel_SetExit()
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -228,6 +298,68 @@ uem_result UKChannel_ClearExitByTaskId(int nTaskId)
 	return result;
 }
 
+
+static uem_result popDataFromQueue(SChannel *pstChannel, SChannelAPI *pstChannelAPI, int nNumOfDataToPop)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nChunkNum = 0;
+	int nChunkLen = 0;
+	int nDataRead = 0;
+	int nLoop = 0;
+	int nSubLoop = 0;
+	int nDataCanRead = 0;
+
+	result = UKChannel_GetChunkNumAndLen(pstChannel->pstInputPort, &nChunkNum, &nChunkLen);
+	ERRIFGOTO(result, _EXIT);
+
+	// if the buffer pointer is NULL, no copy is required
+	for(nLoop = 0 ; nLoop < nNumOfDataToPop ; nLoop++)
+	{
+		for(nSubLoop = 0 ; nSubLoop < nChunkNum ; nSubLoop++)
+		{
+			result = pstChannelAPI->fnGetNumOfAvailableData(pstChannel, nSubLoop, &nDataCanRead);
+			ERRIFGOTO(result, _EXIT);
+
+			if(nDataCanRead >= nDataRead)
+			{
+				result = pstChannelAPI->fnReadFromQueue(pstChannel, NULL, nChunkLen, nSubLoop, &nDataRead);
+				ERRIFGOTO(result, _EXIT);
+			}
+		}
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+uem_result UKChannel_PopLoopTaskBroadcastingDataFromQueueByTaskId(int nLoopTaskId, int nTaskId, int nNumOfDataToPop)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop = 0;
+	SChannelAPI *pstChannelAPI = NULL;
+
+	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
+	{
+		result = ChannelAPI_GetAPIStructureFromCommunicationType(g_astChannels[nLoop].enType, &pstChannelAPI);
+		if(result == ERR_UEM_NOERROR && pstChannelAPI->fnGetNumOfAvailableData != NULL && pstChannelAPI->fnReadFromQueue != NULL)
+		{
+			if(matchTaskIdInPort(g_astChannels[nLoop].pstInputPort, nTaskId) == TRUE)
+			{
+				if(matchTaskIdInPort(g_astChannels[nLoop].pstInputPort, nLoopTaskId) == TRUE)
+				{
+					result = popDataFromQueue(&(g_astChannels[nLoop]), pstChannelAPI, nNumOfDataToPop);
+					ERRIFGOTO(result, _EXIT);
+				}
+			}
+		}
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
 
 uem_result UKChannel_FillInitialDataBySourceTaskId(int nTaskId)
 {

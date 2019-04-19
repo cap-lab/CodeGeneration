@@ -1,8 +1,8 @@
 /*
- * UKBluetoothChannel.c
+ * UKSerialChannel.c
  *
- *  Created on: 2018. 10. 12.
- *      Author: chjej202
+ *  Created on: 2019. 02. 18., modified from UKSerialChannel.c
+ *      Author: dowhan1128
  */
 
 
@@ -15,30 +15,31 @@
 #include <UCTime.h>
 #include <UCAlloc.h>
 
+//#include <uem_serial_data.h>
 #include <uem_bluetooth_data.h>
 
 #include <UKChannelMemory.h>
 
 #include <UKSerialCommunicationManager.h>
-#include <UKBluetoothChannel.h>
+#include <UKSerialChannel.h>
 
 #define SERIAL_COMMUNICATION_CHANNEL_QUEUE_SIZE (1)
 #define REMOTE_REQUEST_WAIT_SLEEP_TIME (100)
 #define REMOTE_REQUEST_WAIT_RETRY_COUNT (30)
 
-uem_result UKBluetoothChannel_Clear(SChannel *pstChannel)
+uem_result UKSerialChannel_Clear(SChannel *pstChannel)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSerialWriterChannel *pstWriterChannel = NULL;
 
 	switch(pstChannel->enType)
 	{
-	case COMMUNICATION_TYPE_BLUETOOTH_MASTER_READER:
-	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_READER:
+	case COMMUNICATION_TYPE_SERIAL_MASTER_READER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_READER:
 		// do nothing
 		break;
-	case COMMUNICATION_TYPE_BLUETOOTH_MASTER_WRITER:
-	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_MASTER_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_WRITER:
 		pstWriterChannel = (SSerialWriterChannel *) pstChannel->pChannelStruct;
 		result = UKChannelMemory_Clear(pstChannel, pstWriterChannel->pstInternalChannel);
 		ERRIFGOTO(result, _EXIT);
@@ -54,18 +55,18 @@ _EXIT:
 }
 
 
-static uem_result getChannelQueueFromSerialCommunicationManager(IN uem_bool *pbExitFlag, SBluetoothInfo *pstBluetoothInfo, int nChannelId, OUT HFixedSizeQueue *phRecevingQueue)
+static uem_result getChannelQueueFromSerialCommunicationManager(IN uem_bool *pbExitFlag, SSerialInfo *pstSerialInfo, int nChannelId, OUT HFixedSizeQueue *phRecevingQueue)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKSerialCommunicationManager_SetChannel(pstBluetoothInfo->hManager, nChannelId);
+	result = UKSerialCommunicationManager_SetChannel(pstSerialInfo->hManager, nChannelId);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UKSerialCommunicationManager_GetChannelQueue(pstBluetoothInfo->hManager, nChannelId, phRecevingQueue);
+	result = UKSerialCommunicationManager_GetChannelQueue(pstSerialInfo->hManager, nChannelId, phRecevingQueue);
 	ERRIFGOTO(result, _EXIT);
 
 	// wait until serial manager is initialized
-	while(pstBluetoothInfo->bInitialized == FALSE)
+	while(pstSerialInfo->bInitialized == FALSE)
 	{
 		if(*pbExitFlag == TRUE)
 		{
@@ -78,7 +79,6 @@ static uem_result getChannelQueueFromSerialCommunicationManager(IN uem_bool *pbE
 _EXIT:
 	return result;
 }
-
 
 
 static uem_result reallocTempBuffer(SSerialWriterChannel *pstWriterChannel, int nTargetSize)
@@ -100,19 +100,17 @@ _EXIT:
 	return result;
 }
 
-
-
 static uem_result handleReadQueue(SChannel *pstChannel, SCommunicationQueueItem *pstReceivedItem)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSerialWriterChannel *pstWriterChannel = NULL;
-	SBluetoothInfo *pstBluetoothInfo = NULL;
+	SSerialInfo *pstSerialInfo = NULL;
 	SCommunicationQueueItem stItemToSend;
 	int nDataToRead = 0;
 	int nDataRead = 0;
 
 	pstWriterChannel = (SSerialWriterChannel *) pstChannel->pChannelStruct;
-	pstBluetoothInfo = (SBluetoothInfo *) pstWriterChannel->pConnectionInfo;
+	pstSerialInfo = (SSerialInfo *) pstWriterChannel->pConnectionInfo;
 
 	stItemToSend.enMessageType = MESSAGE_TYPE_RESULT;
 	stItemToSend.nChannelId = pstChannel->nChannelIndex;
@@ -133,7 +131,7 @@ static uem_result handleReadQueue(SChannel *pstChannel, SCommunicationQueueItem 
 	stItemToSend.uDetailItem.stResponse.nDataSize = nDataRead;
 	stItemToSend.uDetailItem.stResponse.nReturnValue = nDataRead;
 
-	result = UKSerialCommunicationManager_PutItemToSend(pstBluetoothInfo->hManager, &stItemToSend);
+	result = UKSerialCommunicationManager_PutItemToSend(pstSerialInfo->hManager, &stItemToSend);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -141,18 +139,17 @@ _EXIT:
 	return result;
 }
 
-
 static uem_result handleReadBuffer(SChannel *pstChannel, SCommunicationQueueItem *pstReceivedItem)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSerialWriterChannel *pstWriterChannel = NULL;
-	SBluetoothInfo *pstBluetoothInfo = NULL;
+	SSerialInfo *pstSerialInfo = NULL;
 	SCommunicationQueueItem stItemToSend;
 	int nDataToRead = 0;
 	int nDataRead = 0;
 
 	pstWriterChannel = (SSerialWriterChannel *) pstChannel->pChannelStruct;
-	pstBluetoothInfo = (SBluetoothInfo *) pstWriterChannel->pConnectionInfo;
+	pstSerialInfo = (SSerialInfo *) pstWriterChannel->pConnectionInfo;
 
 	stItemToSend.enMessageType = MESSAGE_TYPE_RESULT;
 	stItemToSend.nChannelId = pstChannel->nChannelIndex;
@@ -173,7 +170,7 @@ static uem_result handleReadBuffer(SChannel *pstChannel, SCommunicationQueueItem
 	stItemToSend.uDetailItem.stResponse.nDataSize = nDataRead;
 	stItemToSend.uDetailItem.stResponse.nReturnValue = nDataRead;
 
-	result = UKSerialCommunicationManager_PutItemToSend(pstBluetoothInfo->hManager, &stItemToSend);
+	result = UKSerialCommunicationManager_PutItemToSend(pstSerialInfo->hManager, &stItemToSend);
 	ERRIFGOTO(result, _EXIT);
 
 
@@ -187,14 +184,14 @@ static uem_result notifyAndPushError(SChannel *pstChannel, SCommunicationQueueIt
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSerialWriterChannel *pstWriterChannel = NULL;
-	SBluetoothInfo *pstBluetoothInfo = NULL;
+	SSerialInfo *pstSerialInfo = NULL;
 	SCommunicationQueueItem stItemToSend;
 	SCommunicationQueueItem *pstItem = NULL;
 
 	pstItem = &stItemToSend;
 
 	pstWriterChannel = (SSerialWriterChannel *) pstChannel->pChannelStruct;
-	pstBluetoothInfo = (SBluetoothInfo *) pstWriterChannel->pConnectionInfo;
+	pstSerialInfo = (SSerialInfo *) pstWriterChannel->pConnectionInfo;
 
 	pstItem->enMessageType = MESSAGE_TYPE_NONE;
 	pstItem->nChannelId = pstChannel->nChannelIndex;
@@ -203,7 +200,7 @@ static uem_result notifyAndPushError(SChannel *pstChannel, SCommunicationQueueIt
 	pstItem->uDetailItem.stResponse.pData = NULL;
 	pstItem->uDetailItem.stResponse.nDataSize = 0;
 
-	result = UKSerialCommunicationManager_PutItemToSend(pstBluetoothInfo->hManager, pstItem);
+	result = UKSerialCommunicationManager_PutItemToSend(pstSerialInfo->hManager, pstItem);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -215,12 +212,12 @@ static uem_result handleAvailableData(SChannel *pstChannel, SCommunicationQueueI
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSerialWriterChannel *pstWriterChannel = NULL;
-	SBluetoothInfo *pstBluetoothInfo = NULL;
+	SSerialInfo *pstSerialInfo = NULL;
 	int nDataNum = 0;
 	SCommunicationQueueItem stItemToSend;
 
 	pstWriterChannel = (SSerialWriterChannel *) pstChannel->pChannelStruct;
-	pstBluetoothInfo = (SBluetoothInfo *) pstWriterChannel->pConnectionInfo;
+	pstSerialInfo = (SSerialInfo*) pstWriterChannel->pConnectionInfo;
 
 	stItemToSend.enMessageType = MESSAGE_TYPE_RESULT;
 	stItemToSend.nChannelId = pstChannel->nChannelIndex;
@@ -234,7 +231,7 @@ static uem_result handleAvailableData(SChannel *pstChannel, SCommunicationQueueI
 
 	stItemToSend.uDetailItem.stResponse.nReturnValue = nDataNum;
 
-	result = UKSerialCommunicationManager_PutItemToSend(pstBluetoothInfo->hManager, &stItemToSend);
+	result = UKSerialCommunicationManager_PutItemToSend(pstSerialInfo->hManager, &stItemToSend);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -346,34 +343,34 @@ _EXIT:
 	return result;
 }
 
-uem_result UKBluetoothChannel_Initialize(SChannel *pstChannel)
+uem_result UKSerialChannel_Initialize(SChannel *pstChannel)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSerialWriterChannel *pstWriterChannel = NULL;
 	SSerialReaderChannel *pstReaderChannel = NULL;
-	SBluetoothInfo *pstBluetoothInfo = NULL;
+	SSerialInfo *pstSerialInfo = NULL;
 
 	switch(pstChannel->enType)
 	{
-	case COMMUNICATION_TYPE_BLUETOOTH_MASTER_READER:
-	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_READER:
+	case COMMUNICATION_TYPE_SERIAL_MASTER_READER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_READER:
 		// connect
 		pstReaderChannel = (SSerialReaderChannel *) pstChannel->pChannelStruct;
-		pstBluetoothInfo = (SBluetoothInfo *) pstReaderChannel->pConnectionInfo;
+		pstSerialInfo = (SSerialInfo *) pstReaderChannel->pConnectionInfo;
 
-		result = getChannelQueueFromSerialCommunicationManager(&(pstReaderChannel->bChannelExit), pstBluetoothInfo, pstChannel->nChannelIndex, &(pstReaderChannel->hResponseQueue));
+		result = getChannelQueueFromSerialCommunicationManager(&(pstReaderChannel->bChannelExit), pstSerialInfo, pstChannel->nChannelIndex, &(pstReaderChannel->hResponseQueue));
 		ERRIFGOTO(result, _EXIT);
 		break;
-	case COMMUNICATION_TYPE_BLUETOOTH_MASTER_WRITER:
-	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_MASTER_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_WRITER:
 		// connect and create receive thread
 		pstWriterChannel = (SSerialWriterChannel *) pstChannel->pChannelStruct;
-		pstBluetoothInfo = (SBluetoothInfo *) pstWriterChannel->pConnectionInfo;
+		pstSerialInfo = (SSerialInfo *) pstWriterChannel->pConnectionInfo;
 
 		result = UKChannelMemory_Initialize(pstChannel, pstWriterChannel->pstInternalChannel);
 		ERRIFGOTO(result, _EXIT);
 
-		result = getChannelQueueFromSerialCommunicationManager(&(pstWriterChannel->bChannelExit), pstBluetoothInfo, pstChannel->nChannelIndex, &(pstWriterChannel->hRequestQueue));
+		result = getChannelQueueFromSerialCommunicationManager(&(pstWriterChannel->bChannelExit), pstSerialInfo, pstChannel->nChannelIndex, &(pstWriterChannel->hRequestQueue));
 		ERRIFGOTO(result, _EXIT);
 
 		result = createReceiverThread(pstChannel);
@@ -390,25 +387,25 @@ _EXIT:
 }
 
 
-uem_result UKBluetoothChannel_ReadFromQueue(SChannel *pstChannel, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead)
+uem_result UKSerialChannel_ReadFromQueue(SChannel *pstChannel, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSerialReaderChannel *pstSerialReaderChannel = NULL;
 	int nDataRead = 0;
 	void *pBody = NULL;
-	SBluetoothInfo *pstBluetoothInfo = NULL;
+	SSerialInfo *pstSerialInfo = NULL;
 	SCommunicationQueueItem stItem;
 	SCommunicationQueueItem stResponseItem;
 	int nElementSize = 0;
 
 	pstSerialReaderChannel = (SSerialReaderChannel *) pstChannel->pChannelStruct;
-	pstBluetoothInfo = (SBluetoothInfo *) pstSerialReaderChannel->pConnectionInfo;
+	pstSerialInfo = (SSerialInfo *) pstSerialReaderChannel->pConnectionInfo;
 
 	stItem.enMessageType = MESSAGE_TYPE_READ_QUEUE;
 	stItem.nChannelId = pstChannel->nChannelIndex;
 	stItem.uDetailItem.stRequest.nRequestDataSize = nDataToRead;
 
-	result = UKSerialCommunicationManager_PutItemToSend(pstBluetoothInfo->hManager, &stItem);
+	result = UKSerialCommunicationManager_PutItemToSend(pstSerialInfo->hManager, &stItem);
 	ERRIFGOTO(result, _EXIT);
 
 	// blocking happened here
@@ -433,7 +430,6 @@ uem_result UKBluetoothChannel_ReadFromQueue(SChannel *pstChannel, IN OUT unsigne
 		ERRIFGOTO(result, _EXIT);
 	}
 
-
 	*pnDataRead = nDataRead;
 
 	result = ERR_UEM_NOERROR;
@@ -441,25 +437,25 @@ _EXIT:
 	return result;
 }
 
-uem_result UKBluetoothChannel_ReadFromBuffer(SChannel *pstChannel, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead)
+uem_result UKSerialChannel_ReadFromBuffer(SChannel *pstChannel, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSerialReaderChannel *pstSerialReaderChannel = NULL;
 	int nDataRead = 0;
 	void *pBody = NULL;
-	SBluetoothInfo *pstBluetoothInfo = NULL;
+	SSerialInfo *pstSerialInfo = NULL;
 	SCommunicationQueueItem stItem;
 	SCommunicationQueueItem stResponseItem;
 	int nElementSize = 0;
 
 	pstSerialReaderChannel = (SSerialReaderChannel *) pstChannel->pChannelStruct;
-	pstBluetoothInfo = (SBluetoothInfo *) pstSerialReaderChannel->pConnectionInfo;
+	pstSerialInfo = (SSerialInfo *) pstSerialReaderChannel->pConnectionInfo;
 
 	stItem.enMessageType = MESSAGE_TYPE_READ_BUFFER;
 	stItem.nChannelId = pstChannel->nChannelIndex;
 	stItem.uDetailItem.stRequest.nRequestDataSize = nDataToRead;
 
-	result = UKSerialCommunicationManager_PutItemToSend(pstBluetoothInfo->hManager, &stItem);
+	result = UKSerialCommunicationManager_PutItemToSend(pstSerialInfo->hManager, &stItem);
 	ERRIFGOTO(result, _EXIT);
 
 	// blocking happened here
@@ -489,7 +485,7 @@ _EXIT:
 }
 
 
-uem_result UKBluetoothChannel_GetAvailableChunk (SChannel *pstChannel, OUT int *pnChunkIndex)
+uem_result UKSerialChannel_GetAvailableChunk (SChannel *pstChannel, OUT int *pnChunkIndex)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
@@ -502,28 +498,28 @@ uem_result UKBluetoothChannel_GetAvailableChunk (SChannel *pstChannel, OUT int *
 	return result;
 }
 
-uem_result UKBluetoothChannel_GetNumOfAvailableData (SChannel *pstChannel, IN int nChunkIndex, OUT int *pnDataNum)
+uem_result UKSerialChannel_GetNumOfAvailableData (SChannel *pstChannel, IN int nChunkIndex, OUT int *pnDataNum)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSerialReaderChannel *pstSerialReaderChannel = NULL;
 	SSerialWriterChannel *pstWriterChannel = NULL;
-	SBluetoothInfo *pstBluetoothInfo = NULL;
+	SSerialInfo *pstSerialInfo = NULL;
 	SCommunicationQueueItem stItem;
 	SCommunicationQueueItem stResponseItem;
 	int nElementSize = 0;
 
 	switch(pstChannel->enType)
 	{
-	case COMMUNICATION_TYPE_BLUETOOTH_MASTER_READER:
-	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_READER:
+	case COMMUNICATION_TYPE_SERIAL_MASTER_READER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_READER:
 		pstSerialReaderChannel = (SSerialReaderChannel *) pstChannel->pChannelStruct;
-		pstBluetoothInfo = (SBluetoothInfo *) pstSerialReaderChannel->pConnectionInfo;
+		pstSerialInfo = (SSerialInfo *) pstSerialReaderChannel->pConnectionInfo;
 
 		stItem.enMessageType = MESSAGE_TYPE_AVAILABLE_DATA;
 		stItem.nChannelId = pstChannel->nChannelIndex;
 		stItem.uDetailItem.stRequest.nRequestDataSize = 0; // not used
 
-		result = UKSerialCommunicationManager_PutItemToSend(pstBluetoothInfo->hManager, &stItem);
+		result = UKSerialCommunicationManager_PutItemToSend(pstSerialInfo->hManager, &stItem);
 		ERRIFGOTO(result, _EXIT);
 
 		// blocking happened here
@@ -541,8 +537,8 @@ uem_result UKBluetoothChannel_GetNumOfAvailableData (SChannel *pstChannel, IN in
 
 		*pnDataNum = stResponseItem.uDetailItem.stResponse.nReturnValue;
 		break;
-	case COMMUNICATION_TYPE_BLUETOOTH_MASTER_WRITER:
-	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_MASTER_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_WRITER:
 		pstWriterChannel = (SSerialWriterChannel *) pstChannel->pChannelStruct;
 
 		result = UKChannelMemory_GetNumOfAvailableData(pstChannel, pstWriterChannel->pstInternalChannel, nChunkIndex, pnDataNum);
@@ -560,7 +556,7 @@ _EXIT:
 
 
 // same to shared memory channel write
-uem_result UKBluetoothChannel_WriteToQueue (SChannel *pstChannel, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten)
+uem_result UKSerialChannel_WriteToQueue (SChannel *pstChannel, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSerialWriterChannel *pstWriterChannel = NULL;
@@ -576,7 +572,7 @@ _EXIT:
 }
 
 
-uem_result UKBluetoothChannel_FillInitialData(SChannel *pstChannel)
+uem_result UKSerialChannel_FillInitialData(SChannel *pstChannel)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSerialWriterChannel *pstWriterChannel = NULL;
@@ -593,7 +589,7 @@ _EXIT:
 
 
 // same to shared memory channel write
-uem_result UKBluetoothChannel_WriteToBuffer (SChannel *pstChannel, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten)
+uem_result UKSerialChannel_WriteToBuffer (SChannel *pstChannel, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSerialWriterChannel *pstWriterChannel = NULL;
@@ -609,7 +605,7 @@ _EXIT:
 }
 
 
-uem_result UKBluetoothChannel_SetExit(SChannel *pstChannel, int nExitFlag)
+uem_result UKSerialChannel_SetExit(SChannel *pstChannel, int nExitFlag)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSerialWriterChannel *pstWriterChannel = NULL;
@@ -617,13 +613,13 @@ uem_result UKBluetoothChannel_SetExit(SChannel *pstChannel, int nExitFlag)
 
 	switch(pstChannel->enType)
 	{
-	case COMMUNICATION_TYPE_BLUETOOTH_MASTER_READER:
-	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_READER:
+	case COMMUNICATION_TYPE_SERIAL_MASTER_READER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_READER:
 		pstReaderChannel = (SSerialReaderChannel *) pstChannel->pChannelStruct;
 		pstReaderChannel->bChannelExit = TRUE;
 		break;
-	case COMMUNICATION_TYPE_BLUETOOTH_MASTER_WRITER:
-	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_MASTER_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_WRITER:
 		pstWriterChannel = (SSerialWriterChannel *) pstChannel->pChannelStruct;
 		pstWriterChannel->bChannelExit = TRUE;
 		result = UKChannelMemory_SetExit(pstChannel, pstWriterChannel->pstInternalChannel, nExitFlag);
@@ -640,7 +636,7 @@ _EXIT:
 }
 
 
-uem_result UKBluetoothChannel_ClearExit(SChannel *pstChannel, int nExitFlag)
+uem_result UKSerialChannel_ClearExit(SChannel *pstChannel, int nExitFlag)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSerialWriterChannel *pstWriterChannel = NULL;
@@ -648,13 +644,13 @@ uem_result UKBluetoothChannel_ClearExit(SChannel *pstChannel, int nExitFlag)
 
 	switch(pstChannel->enType)
 	{
-	case COMMUNICATION_TYPE_BLUETOOTH_MASTER_READER:
-	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_READER:
+	case COMMUNICATION_TYPE_SERIAL_MASTER_READER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_READER:
 		pstReaderChannel = (SSerialReaderChannel *) pstChannel->pChannelStruct;
 		pstReaderChannel->bChannelExit = TRUE;
 		break;
-	case COMMUNICATION_TYPE_BLUETOOTH_MASTER_WRITER:
-	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_MASTER_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_WRITER:
 		pstWriterChannel = (SSerialWriterChannel *) pstChannel->pChannelStruct;
 		pstWriterChannel->bChannelExit = FALSE;
 		result = UKChannelMemory_ClearExit(pstChannel, pstWriterChannel->pstInternalChannel, nExitFlag);
@@ -671,29 +667,29 @@ _EXIT:
 }
 
 
-uem_result UKBluetoothChannel_Finalize(SChannel *pstChannel)
+uem_result UKSerialChannel_Finalize(SChannel *pstChannel)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSerialWriterChannel *pstWriterChannel = NULL;
 	SSerialReaderChannel *pstReaderChannel = NULL;
-	SBluetoothInfo *pstBluetoothInfo = NULL;
+	SSerialInfo *pstSerialInfo = NULL;
 	int nRetryCount = 0;
 
-	UKBluetoothChannel_SetExit(pstChannel, EXIT_FLAG_READ | EXIT_FLAG_WRITE);
+	UKSerialChannel_SetExit(pstChannel, EXIT_FLAG_READ | EXIT_FLAG_WRITE);
 
 	switch(pstChannel->enType)
 	{
-	case COMMUNICATION_TYPE_BLUETOOTH_MASTER_READER:
-	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_READER:
+	case COMMUNICATION_TYPE_SERIAL_MASTER_READER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_READER:
 		pstReaderChannel = (SSerialReaderChannel *) pstChannel->pChannelStruct;
-		pstBluetoothInfo = (SBluetoothInfo *) pstReaderChannel->pConnectionInfo;
-		result = UKSerialCommunicationManager_ReleaseChannel(pstBluetoothInfo->hManager, pstChannel->nChannelIndex);
+		pstSerialInfo = (SSerialInfo *) pstReaderChannel->pConnectionInfo;
+		result = UKSerialCommunicationManager_ReleaseChannel(pstSerialInfo->hManager, pstChannel->nChannelIndex);
 		ERRIFGOTO(result, _EXIT);
 		break;
-	case COMMUNICATION_TYPE_BLUETOOTH_MASTER_WRITER:
-	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_MASTER_WRITER:
+	case COMMUNICATION_TYPE_SERIAL_SLAVE_WRITER:
 		pstWriterChannel = (SSerialWriterChannel *) pstChannel->pChannelStruct;
-		pstBluetoothInfo = (SBluetoothInfo *) pstWriterChannel->pConnectionInfo;
+		pstSerialInfo = (SSerialInfo *) pstWriterChannel->pConnectionInfo;
 
 		// wait until the reader consumes the data for several seconds
 		while(pstWriterChannel->pstInternalChannel->nDataLen > 0 &&
@@ -703,7 +699,7 @@ uem_result UKBluetoothChannel_Finalize(SChannel *pstChannel)
 			UCTime_Sleep(REMOTE_REQUEST_WAIT_SLEEP_TIME);
 		}
 
-		result = UKSerialCommunicationManager_ReleaseChannel(pstBluetoothInfo->hManager, pstChannel->nChannelIndex);
+		result = UKSerialCommunicationManager_ReleaseChannel(pstSerialInfo->hManager, pstChannel->nChannelIndex);
 		ERRIFGOTO(result, _EXIT);
 
 		// destroy receiver thread

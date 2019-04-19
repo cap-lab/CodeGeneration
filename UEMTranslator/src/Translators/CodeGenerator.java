@@ -171,7 +171,7 @@ public class CodeGenerator
 		}
     }
     
-    private void generateMakefile(CodeOrganizer codeOrganizer, String topDirPath, ArrayList<EnvironmentVariable> envVarList) throws TemplateNotFoundException, MalformedTemplateNameException, 
+    private void generateMakefile(CodeOrganizer codeOrganizer, Device device, String topDirPath, ArrayList<EnvironmentVariable> envVarList) throws TemplateNotFoundException, MalformedTemplateNameException, 
     																freemarker.core.ParseException, IOException, TemplateException
     {
     	Template makefileTemplate = this.templateConfig.getTemplate(codeOrganizer.getPlatform() + Constants.TEMPLATE_PATH_SEPARATOR + Constants.TEMPLATE_FILE_MAKEFILE);
@@ -195,12 +195,14 @@ public class CodeGenerator
 		makefileRootHash.put(Constants.TEMPLATE_TAG_BUILD_INFO, codeOrganizer);
 		makefileRootHash.put(Constants.TEMPLATE_TAG_ENVIRONMENT_VARIABLE_INFO, envVarList);
 		makefileRootHash.put(Constants.TEMPLATE_TAG_USED_COMMUNICATION_LIST, codeOrganizer.getUsedCommunicationSet());
+		//19.04.01 added
+		makefileRootHash.put(Constants.TEMPLATE_TAG_DEVICE_ARCHITECTURE_INFO, device.getArchitecture());
 
 		Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
 		makefileTemplate.process(makefileRootHash, out);
     }
     
-    private void generateKernelDataCode(CodeOrganizer codeOrganizer, Device device, String topDirPath, ProgrammingLanguage language) throws TemplateNotFoundException, MalformedTemplateNameException, 
+    private void generateKernelDataCode(CodeOrganizer codeOrganizer, Device device, String topDirPath, ArrayList<EnvironmentVariable> envVarList, ProgrammingLanguage language) throws TemplateNotFoundException, MalformedTemplateNameException, 
 	freemarker.core.ParseException, IOException, TemplateException
     {
     	Map<String, Object> uemDataRootHash = new HashMap<>();
@@ -223,6 +225,9 @@ public class CodeGenerator
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_BLUETOOTH_MASTER_LIST, device.getBluetoothMasterList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_BLUETOOTH_SLAVE_LIST, device.getBluetoothUnconstrainedSlaveList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_MASTER_LIST, device.getSerialMasterList());
+		//19.02.19
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_ENVIRONMENT_VARIABLE_INFO, envVarList);
+		//
 		if(device.getPlatform() == SoftwarePlatformType.ARDUINO)
 		{
 			uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_SLAVE_LIST, device.getSerialConstrainedSlaveList());	
@@ -321,7 +326,9 @@ public class CodeGenerator
 				outputSourcePath += Constants.C_FILE_EXTENSION;	
 			}
 			
+			libraryRootHash.put(Constants.TEMPLATE_TAG_TASK_MAP, device.getTaskMap());
 			libraryRootHash.put(Constants.TEMPLATE_TAG_LIB_INFO, library);
+			libraryRootHash.put(Constants.TEMPLATE_TAG_LIBRARY_INFO, device.getLibraryMap());
 						
 			Writer outSource = new OutputStreamWriter(new PrintStream(new File(outputSourcePath)));
 			libraryCodeTemplate.process(libraryRootHash, outSource);
@@ -350,8 +357,9 @@ public class CodeGenerator
 				codeOrganizer.copyBuildFiles(this.translatorProperties, this.libraryCodeTemplateDir, topSrcDir);
 				codeOrganizer.copyApplicationCodes(this.mOutputPath, topSrcDir);
 				
-				generateMakefile(codeOrganizer, topSrcDir, device.getEnvironmentVariableList());
-				generateKernelDataCode(codeOrganizer, device, topSrcDir, codeOrganizer.getLanguage());
+				generateMakefile(codeOrganizer, device, topSrcDir, device.getEnvironmentVariableList());
+				//generateKernelDataCode(codeOrganizer, device, topSrcDir, codeOrganizer.getLanguage());
+				generateKernelDataCode(codeOrganizer, device, topSrcDir, device.getEnvironmentVariableList(), codeOrganizer.getLanguage());
 				generateTaskCode(device, topSrcDir);
 				generateLibraryCodes(device, topSrcDir);
 			}			

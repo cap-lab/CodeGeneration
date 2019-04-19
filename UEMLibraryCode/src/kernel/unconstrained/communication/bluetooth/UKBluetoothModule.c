@@ -41,7 +41,7 @@ _EXIT:
 }
 
 
-uem_result bluetoothReceive(HConnector hConnector, HUserConnector hUserHandle, IN int nTimeout, IN OUT char *pBuffer, IN int nBufferLen, OUT int *pnReceivedSize)
+static uem_result bluetoothReceive(HConnector hConnector, HUserConnector hUserHandle, IN int nTimeout, IN OUT char *pBuffer, IN int nBufferLen, OUT int *pnReceivedSize)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	HSocket hSocket = NULL;

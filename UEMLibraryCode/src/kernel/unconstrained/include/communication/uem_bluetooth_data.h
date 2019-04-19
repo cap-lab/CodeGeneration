@@ -12,7 +12,9 @@
 
 #include <UCThreadMutex.h>
 #include <UCDynamicSocket.h>
+#include <UCSerialPort.h>
 #include <UCFixedSizeQueue.h>
+
 
 #include <UKConnector.h>
 #include <UKSerialCommunicationManager.h>
@@ -36,6 +38,7 @@ typedef struct _SBluetoothInfo {
 
 typedef struct _SSerialInfo {
 	const char *pszSerialPortPath;
+	HSerialPort hSerialPort;
 	HThread hHandlingThread;
 	HConnector hConnector;
 	int nMaxChannelAccessNum;
