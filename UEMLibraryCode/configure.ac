@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT([UEM Translated Code], [0.5], [sha@snu.ac.kr])
+AC_INIT([UEM Translated Code], [0.6], [sha@snu.ac.kr])
 AC_CONFIG_HEADERS([config.h])
 AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE()
