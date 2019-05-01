@@ -307,6 +307,7 @@ _EXIT:
 uem_result UKTask_ClearRunCount(STask *pstTask)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop = 0;
 
 	result = UCThreadMutex_Lock(pstTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
@@ -314,6 +315,11 @@ uem_result UKTask_ClearRunCount(STask *pstTask)
 	pstTask->nCurRunInIteration = 0;
 	pstTask->nCurIteration = 0;
 	pstTask->nTargetIteration = 0;
+
+	for(nLoop = 0; nLoop < pstTask->nTaskThreadSetNum ; nLoop++)
+	{
+		pstTask->astThreadContext[nLoop].nCurThreadIteration = 0;
+	}
 
 	result = ERR_UEM_NOERROR;
 
@@ -425,7 +431,7 @@ uem_result UKTask_SetTargetIteration(STask *pstTask, int nTargetIteration, int n
 		int nLoop = 0;
 		pstTask->nTargetIteration = nNewIteration;
 
-		if(pstTask->nTaskThreadSetNum > 0)
+		if(pstTask->nTaskThreadSetNum > 1) // This is used only when the task is mapped to multiple processors
 		{
 			nRemainder =  (pstTask->astTaskIteration[nIndex].nRunInIteration * pstTask->nTargetIteration) % pstTask->nTaskThreadSetNum;
 
@@ -497,7 +503,8 @@ uem_result UKTask_CheckIterationRunCount(STask *pstTask, int nThreadId, OUT uem_
 	result = UCThreadMutex_Lock(pstTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstTask->astThreadContext[nThreadId].nCurThreadIteration >= pstTask->astThreadContext[nThreadId].nTargetThreadIteration)
+	if(pstTask->astThreadContext[nThreadId].nTargetThreadIteration > 0 &&
+		pstTask->astThreadContext[nThreadId].nCurThreadIteration >= pstTask->astThreadContext[nThreadId].nTargetThreadIteration)
 	{
 		bTargetIterationReached = TRUE;
 	}
