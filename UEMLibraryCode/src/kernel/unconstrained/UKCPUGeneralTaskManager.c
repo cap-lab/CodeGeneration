@@ -1177,7 +1177,9 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 				result = handleLoopTaskIteration(pstTaskThread, pstGeneralTask);
 				ERRIFGOTO(result, _EXIT);
 			}
-
+		}
+		if(bFunctionCalled == TRUE)
+		{
 			result = setTaskThreadIteration(pstGeneralTask, pstTaskThread);
 			ERRIFGOTO(result, _EXIT);
 		}
@@ -1264,6 +1266,8 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 
 			result = waitRunSignal(pstGeneralTask, pstTaskThread, FALSE, &llNextTime, &nMaxRunCount);
 			ERRIFGOTO(result, _EXIT);
+
+			bFunctionCalled = FALSE;
 			break;
 		default:
 			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
