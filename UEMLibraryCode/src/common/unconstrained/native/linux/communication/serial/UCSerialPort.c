@@ -388,7 +388,6 @@ uem_result UCSerialPort_Receive(HSerialPort hSerialPort, IN int nTimeout, IN OUT
     result = selectTimeout(pstSerialPort->portfd, &stReadSet, NULL, NULL, nTimeout);
     ERRIFGOTO(result, _EXIT);
 
-    //에러 발생 지점
     nDataReceived = read(hSerialPort->portfd, pBuffer, nBufferLen); // read up to nBufferLen characters
 
     if(nDataReceived <= 0)
