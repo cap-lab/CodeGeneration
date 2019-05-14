@@ -484,7 +484,7 @@ SChannel g_astChannels[] = {
 		&(g_astPortInfo[${channel.inputPortIndex}]), // Outer-most input port information (port name: ${channel.inputPort.portName})
 		&(g_astPortInfo[${channel.outputPortIndex}]), // Outer-most output port information (port name: ${channel.outputPort.portName})
 		${channel.initialDataLen?c}, // Initial data length
-		${channel.processerId?c}, // Propcesosr ID
+		${channel.processerId?c}, // Processor ID
 	<#switch channel.communicationType>
 		<#case "SHARED_MEMORY">
 		&g_stSharedMemoryChannel_${channel.index}, // specific shared memory channel structure pointer

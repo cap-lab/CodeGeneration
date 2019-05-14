@@ -24,6 +24,7 @@ public class Library {
 	private ProgrammingLanguage language;
 	private String fileExtension;
 	private boolean isMasterLanguageC;
+	private String description;
 	
 	// // Master can be a task or a library
 	public Library(String name, String type, String file, String header)
@@ -41,6 +42,7 @@ public class Library {
 		this.ldFlags = null;
 		this.cFlags = null;
 		this.isMasterLanguageC = false;
+		this.description = "";
 	}
 	
 	public void setExtraHeaderSet(List<String> extraHeaderList)
@@ -142,5 +144,13 @@ public class Library {
 
 	public void setMasterLanguageC(boolean isMasterLanguageC) {
 		this.isMasterLanguageC = isMasterLanguageC;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 }

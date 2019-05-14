@@ -6,11 +6,13 @@ public class Function {
 	private String name;
 	private String returnType;
 	private ArrayList<Argument> argumentList;
+	private String description;
 	
 	public Function(String name, String returnType) {
 		this.name = name;
 		this.returnType = returnType;
 		this.argumentList = new ArrayList<Argument>();
+		this.description = "";
 	}
 	
 	public String getName() {
@@ -23,5 +25,13 @@ public class Function {
 
 	public ArrayList<Argument> getArgumentList() {
 		return argumentList;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 }

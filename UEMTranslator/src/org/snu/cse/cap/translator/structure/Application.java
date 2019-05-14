@@ -87,9 +87,10 @@ public class Application {
 	// Overall metadata information
 	private ArrayList<Channel> channelList;
 	private HashMap<String, Task> taskMap; // Task name : Task class
+	private HashMap<String, TaskGraph> fullTaskGraphMap; // Task name : Task class
 	private HashMap<String, Port> portInfo; // Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
 	private HashMap<String, Device> deviceInfo; // device name: Device class
-	private HashMap<String, DeviceConnection> deviceConnectionList;
+	private HashMap<String, DeviceConnection> deviceConnectionMap;
 	private HashMap<String, HWElementType> elementTypeHash; // element type name : HWElementType class
 	private TaskGraphType applicationGraphProperty;	
 	private HashMap<String, Library> libraryMap; // library name : Library class
@@ -103,8 +104,9 @@ public class Application {
 		this.deviceInfo = new HashMap<String, Device>();
 		this.elementTypeHash = new HashMap<String, HWElementType>();
 		this.applicationGraphProperty = null;
-		this.deviceConnectionList = new HashMap<String, DeviceConnection>();
+		this.deviceConnectionMap = new HashMap<String, DeviceConnection>();
 		this.libraryMap = new HashMap<String, Library>();
+		this.fullTaskGraphMap = new HashMap<String, TaskGraph>();
 		this.executionTime = null;
 	}
 	
@@ -114,18 +116,19 @@ public class Application {
 			PortDirection direction = PortDirection.fromValue(portType.getDirection().value());
 			Port port = new Port(taskId, taskName, portType.getName(), portType.getSampleSize().intValue(), portType.getType().value(), direction);
 			
+			if(portType.getDescription() != null && portType.getDescription().trim().length() > 0) {
+				port.setDescription(portType.getDescription());
+			}
+			
 			this.portInfo.put(port.getPortKey(), port);
 			
-			if(portType.getRate() != null)
-			{
-				for(TaskRateType taskRate: portType.getRate())
-				{ 
+			if(portType.getRate() != null) {
+				for(TaskRateType taskRate: portType.getRate()) { 
 					PortSampleRate sampleRate = new PortSampleRate(taskRate.getMode(), taskRate.getRate().intValue());
 					port.putSampleRate(sampleRate);
 				}
 			}
-			else
-			{
+			else {
 				// variable sample rate, do nothing
 			}
 		}
@@ -300,14 +303,14 @@ public class Application {
 			{
 				DeviceConnection deviceConnection;
 				Connection master;
-				if(this.deviceConnectionList.containsKey(connectType.getMaster()))
+				if(this.deviceConnectionMap.containsKey(connectType.getMaster()))
 				{
-					deviceConnection = this.deviceConnectionList.get(connectType.getMaster());
+					deviceConnection = this.deviceConnectionMap.get(connectType.getMaster());
 				}
 				else
 				{
 					deviceConnection = new DeviceConnection(connectType.getMaster());
-					this.deviceConnectionList.put(connectType.getMaster(), deviceConnection);
+					this.deviceConnectionMap.put(connectType.getMaster(), deviceConnection);
 				}
 				
 				try {
@@ -437,8 +440,8 @@ public class Application {
 	private void setSourceRemoteCommunicationType(Channel channel, String srcTaskDevice, String dstTaskDevice) throws InvalidDeviceConnectionException
 	{
 		// TODO: only TCP communication is supported now
-		DeviceConnection srcTaskConnection = this.deviceConnectionList.get(srcTaskDevice); // turtlebot
-		DeviceConnection dstTaskConnection = this.deviceConnectionList.get(dstTaskDevice); // HostPC
+		DeviceConnection srcTaskConnection = this.deviceConnectionMap.get(srcTaskDevice);
+		DeviceConnection dstTaskConnection = this.deviceConnectionMap.get(dstTaskDevice);
 		ConnectionPair connectionPair = null;
 		
 		if(srcTaskConnection != null) {// source is master
@@ -813,8 +816,8 @@ public class Application {
 	
 	private void findAndSetSocketInfoIndex(Channel channel, Device srcDevice, Device dstDevice) throws InvalidDeviceConnectionException
 	{
-		DeviceConnection srcTaskConnection = this.deviceConnectionList.get(srcDevice.getName());
-		DeviceConnection dstTaskConnection = this.deviceConnectionList.get(dstDevice.getName());
+		DeviceConnection srcTaskConnection = this.deviceConnectionMap.get(srcDevice.getName());
+		DeviceConnection dstTaskConnection = this.deviceConnectionMap.get(dstDevice.getName());
 		ConnectionPair connectionPair = null;
 		Device targetDevice;
 
@@ -1276,16 +1279,15 @@ public class Application {
 		}
 	}
 	
-	private void makeSDFTaskIterationCount()
+	private void makeFullTaskGraph()
 	{
-		HashMap<String, TaskGraph> taskGraphMap = new HashMap<String, TaskGraph>();
-		Task parentTask;
+		Task parentTask;	
 		
 		// make global task graph list
 		for(Task task : this.taskMap.values())
 		{
 			TaskGraph taskGraph;
-			if(taskGraphMap.containsKey(task.getParentTaskGraphName()) == false)
+			if(this.fullTaskGraphMap.containsKey(task.getParentTaskGraphName()) == false)
 			{
 				parentTask = this.taskMap.get(task.getParentTaskGraphName());
 				
@@ -1299,17 +1301,21 @@ public class Application {
 					taskGraph = new TaskGraph(task.getParentTaskGraphName(), this.applicationGraphProperty.getString());
 				}
 				
-				taskGraphMap.put(task.getParentTaskGraphName(), taskGraph);
+				this.fullTaskGraphMap.put(task.getParentTaskGraphName(), taskGraph);
 			}
 			else
 			{
-				taskGraph = taskGraphMap.get(task.getParentTaskGraphName());
+				taskGraph = this.fullTaskGraphMap.get(task.getParentTaskGraphName());
 			}
 			
 			taskGraph.putTask(task);
 		}
-		
-		setIterationCount(taskGraphMap);
+	}
+	
+	private void makeSDFTaskIterationCount()
+	{
+		makeFullTaskGraph();
+		setIterationCount(this.fullTaskGraphMap);
 	}
 	
 	public void makeChannelInformation(CICAlgorithmType algorithm_metadata) throws InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
@@ -1344,8 +1350,8 @@ public class Application {
 			setChannelType(channel, srcPort, dstPort);
 			
 			// input/output port (port information)
-			channel.setOutputPort(srcPort.getMostUpperPortInfo());
-			channel.setInputPort(dstPort.getMostUpperPortInfo());
+			channel.setOutputPort(srcPort.getMostUpperPort());
+			channel.setInputPort(dstPort.getMostUpperPort());
 			// maximum chunk number
 			channel.setMaximumChunkNum(this.taskMap);
 
@@ -1463,11 +1469,19 @@ public class Application {
 		for(LibraryFunctionType functionType : libraryType.getFunction())
 		{
 			Function function = new Function(functionType.getName(), functionType.getReturnType());
+			
+			if(functionType.getDescription() != null && functionType.getDescription().trim().length() > 0) {
+				function.setDescription(functionType.getDescription());
+			}
 
 			for(LibraryFunctionArgumentType argType: functionType.getArgument())
 			{
 				Argument argument = new Argument(argType.getName(), argType.getType());
 				function.getArgumentList().add(argument);
+				
+				if(argType.getDescription() != null && argType.getDescription().trim().length() > 0) {
+					argument.setDescription(argType.getDescription());
+				}
 			}
 			
 			library.getFunctionList().add(function);
@@ -1481,19 +1495,21 @@ public class Application {
 			for(LibraryType libraryType: algorithm_metadata.getLibraries().getLibrary())
 			{
 				Library library = new Library(libraryType.getName(), libraryType.getType(), libraryType.getFile(), libraryType.getHeader());
+				
+				if(libraryType.getDescription() != null && libraryType.getDescription().trim().length() > 0) {
+					library.setDescription(libraryType.getDescription());
+				}
 								
 				setLibraryFunction(library, libraryType);
 				library.setExtraHeaderSet(libraryType.getExtraHeader());
 				library.setExtraSourceSet(libraryType.getExtraSource());
 				library.setLanguageAndFileExtension(libraryType.getLanguage());
 				
-				if(libraryType.getCflags() != null)
-				{
+				if(libraryType.getCflags() != null) {
 					library.setcFlags(libraryType.getCflags());	
 				}
 								
-				if(libraryType.getLdflags() != null)
-				{
+				if(libraryType.getLdflags() != null) {
 					library.setLdFlags(libraryType.getLdflags());	
 				}
 				
@@ -1550,5 +1566,17 @@ public class Application {
 
 	public ExecutionTime getExecutionTime() {
 		return executionTime;
+	}
+
+	public HashMap<String, TaskGraph> getFullTaskGraphMap() {
+		return fullTaskGraphMap;
+	}
+
+	public HashMap<String, Library> getLibraryMap() {
+		return libraryMap;
+	}
+
+	public HashMap<String, DeviceConnection> getDeviceConnectionMap() {
+		return deviceConnectionMap;
 	}
 }
