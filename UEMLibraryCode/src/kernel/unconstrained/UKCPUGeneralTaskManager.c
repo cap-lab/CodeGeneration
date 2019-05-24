@@ -838,18 +838,28 @@ _EXIT:
 static uem_result traverseAndSetEventToTemporarySuspendedTask(STask *pstTask, void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	SGeneralTask *pstCallerTask = NULL;
 	HCPUGeneralTaskManager hManager = NULL;
 	ECPUTaskState enState;
 
-	hManager = (HCPUGeneralTaskManager) pUserData;
+	pstCallerTask = (SGeneralTask *) pUserData;
+	hManager = pstCallerTask->hManager;
 
 	result = UKCPUGeneralTaskManager_GetTaskState(hManager, pstTask, &enState);
 	ERRIFGOTO(result, _EXIT);
 
 	if(enState == TASK_STATE_SUSPEND)
 	{
-		result = UKCPUGeneralTaskManager_ChangeState(hManager, pstTask, TASK_STATE_RUNNING);
-		ERRIFGOTO(result, _EXIT);
+		if(pstCallerTask->pstTask->nTaskId == pstTask->nTaskId)
+		{
+			result = changeTaskStateInLock(pstCallerTask, TASK_STATE_RUNNING);
+			ERRIFGOTO(result, _EXIT);
+		}
+		else
+		{
+			result = UKCPUGeneralTaskManager_ChangeState(hManager, pstTask, TASK_STATE_RUNNING);
+			ERRIFGOTO(result, _EXIT);
+		}
 
 		result = UKCPUGeneralTaskManager_ActivateThread(hManager, pstTask);
 		ERRIFGOTO(result, _EXIT);
@@ -864,17 +874,27 @@ static uem_result traverseAndSetEventToStopTask(STask *pstTask, void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	HCPUGeneralTaskManager hManager = NULL;
+	SGeneralTask *pstCallerTask = NULL;
 	ECPUTaskState enState;
 
-	hManager = (HCPUGeneralTaskManager) pUserData;
+	pstCallerTask = (SGeneralTask *) pUserData;
+	hManager = pstCallerTask->hManager;
 
 	result = UKCPUGeneralTaskManager_GetTaskState(hManager, pstTask, &enState);
 	ERRIFGOTO(result, _EXIT);
 
 	if(pstTask->nCurIteration >= pstTask->nTargetIteration && enState == TASK_STATE_SUSPEND)
 	{
-		result = UKCPUGeneralTaskManager_ChangeState(hManager, pstTask, TASK_STATE_STOP);
-		ERRIFGOTO(result, _EXIT);
+		if(pstCallerTask->pstTask->nTaskId == pstTask->nTaskId) //callerTask(=Designated Task) already holds lock, so avoid lock.
+		{
+			result = changeTaskStateInLock(pstCallerTask, TASK_STATE_STOP);
+			ERRIFGOTO(result, _EXIT);
+		}
+		else
+		{
+			result = UKCPUGeneralTaskManager_ChangeState(hManager, pstTask, TASK_STATE_STOP);
+			ERRIFGOTO(result, _EXIT);
+		}
 
 		result = UKCPUGeneralTaskManager_ActivateThread(hManager, pstTask);
 		ERRIFGOTO(result, _EXIT);
@@ -1095,7 +1115,7 @@ static uem_result handleLoopTaskIteration(SGeneralTaskThread *pstTaskThread, SGe
 			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstParentTask, setLoopTaskCurrentIteration, pstParentTask);
 			ERRIFGOTO(result, _EXIT_LOCK);
 
-			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstParentTask, traverseAndSetEventToStopTask, pstGeneralTask->hManager);
+			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstParentTask, traverseAndSetEventToStopTask, pstGeneralTask);
 			ERRIFGOTO(result, _EXIT_LOCK);
 
 			pstParentTask->pstLoopInfo->bDesignatedTaskState = FALSE;
@@ -1109,7 +1129,7 @@ static uem_result handleLoopTaskIteration(SGeneralTaskThread *pstTaskThread, SGe
 			pstParentTask->pstLoopInfo->nCurrentIteration++;
 			//pstParentTask->pstLoopInfo->nCurrentIteration = pstGeneralTask->pstTask->nCurIteration + 1;
 		}
-		result = UKCPUTaskCommon_TraverseSubGraphTasks(pstParentTask, traverseAndSetEventToTemporarySuspendedTask, pstGeneralTask->hManager);
+		result = UKCPUTaskCommon_TraverseSubGraphTasks(pstParentTask, traverseAndSetEventToTemporarySuspendedTask, pstGeneralTask);
 		ERRIFGOTO(result, _EXIT_LOCK);
 	}
 
@@ -1593,7 +1613,7 @@ uem_result UKCPUGeneralTaskManager_ChangeState(HCPUGeneralTaskManager hManager, 
 	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
 	ERRIFGOTO(result, _EXIT_LOCK);
 
-	result = changeTaskStateInLock(pstGeneralTask, enTaskState);
+	result = changeTaskState(pstGeneralTask, enTaskState);
 	ERRIFGOTO(result, _EXIT_LOCK);
 
 	result = ERR_UEM_NOERROR;
