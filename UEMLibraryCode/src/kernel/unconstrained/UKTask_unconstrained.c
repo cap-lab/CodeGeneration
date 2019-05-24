@@ -124,11 +124,11 @@ uem_result UKTask_StopTask (IN int nCallerTaskId, IN char *pszTaskName, IN uem_b
 	STask *pstTask = NULL;
 	STask *pstCallerTask = NULL;
 
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
+
 	if(bDelayedStop == FALSE)
 	{
-		result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
-		ERRIFGOTO(result, _EXIT);
-
 		if(pstCallerTask->enType != TASK_TYPE_CONTROL)
 		{
 			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
@@ -142,14 +142,14 @@ uem_result UKTask_StopTask (IN int nCallerTaskId, IN char *pszTaskName, IN uem_b
 	}
 	else // bDelayedStop == TRUE
 	{
+		result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
+		ERRIFGOTO(result, _EXIT);
+
 		if(pstCallerTask->enType == TASK_TYPE_COMPUTATIONAL &&
 						pstCallerTask->pstParentGraph->pstParentTask == NULL && pstCallerTask->nTaskId != pstTask->nTaskId)
 		{
 			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 		}
-
-		result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
-		ERRIFGOTO(result, _EXIT);
 
 		result = UKCPUTaskManager_StoppingTask(g_hCPUTaskManager, pstTask->nTaskId);
 		ERRIFGOTO(result, _EXIT);

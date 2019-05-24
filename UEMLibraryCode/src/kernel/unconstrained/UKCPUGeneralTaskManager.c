@@ -652,21 +652,18 @@ static uem_result traverseAndSetIsSuspended(IN int nOffset, IN void *pData, IN v
 }
 
 
-static uem_result changeTaskState(SGeneralTask *pstGeneralTask, ECPUTaskState enTaskState)
+static uem_result changeTaskStateInLock(SGeneralTask *pstGeneralTask, ECPUTaskState enTaskState)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	char *pszModeName = NULL;
 	int nCurModeIndex = 0;
 
-	result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
-	ERRIFGOTO(result, _EXIT);
-
 	result = UKCPUTaskCommon_CheckTaskState(pstGeneralTask->enTaskState, enTaskState);
-	ERRIFGOTO(result, _EXIT_LOCK);
+	ERRIFGOTO(result, _EXIT);
 
 	if(result != ERR_UEM_NOERROR)
 	{
-		UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT_LOCK);
+		UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
 	}
 
 	// change task state to suspend when the target task is included in MTM task graph and is not a source task.
@@ -680,7 +677,7 @@ static uem_result changeTaskState(SGeneralTask *pstGeneralTask, ECPUTaskState en
 	if(enTaskState == TASK_STATE_SUSPEND)
 	{
 		result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, traverseAndSetIsSuspended, NULL);
-		ERRIFGOTO(result, _EXIT_LOCK);
+		ERRIFGOTO(result, _EXIT);
 	}
 
 	if(pstGeneralTask->enTaskState == TASK_STATE_SUSPEND && enTaskState == TASK_STATE_STOPPING && pstGeneralTask->bIsModeTransition == TRUE)
@@ -697,6 +694,22 @@ static uem_result changeTaskState(SGeneralTask *pstGeneralTask, ECPUTaskState en
 	}
 
 	pstGeneralTask->enTaskState = enTaskState;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result changeTaskState(SGeneralTask *pstGeneralTask, ECPUTaskState enTaskState)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = changeTaskStateInLock(pstGeneralTask, enTaskState);
+	ERRIFGOTO(result, _EXIT_LOCK);
 
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
@@ -1004,14 +1017,16 @@ static uem_result clearGeneralTaskData(SGeneralTask *pstGeneralTask)
 }
 
 
-static uem_bool compareIterationtoAllParentLoopTask(STask *pstTask)
+static uem_bool compareIterationtoAllParentLoopTask(STask *pstTask, SGeneralTask *pstGeneralTask)
 {
 	STask *pstCurrentTask = NULL;
 	uem_bool bNeedtoSuspend = FALSE;
 	int nCurIteration = 0;
+	int nLoopIndex;
 
-	pstCurrentTask = pstTask->pstParentGraph->pstParentTask;
+	pstCurrentTask = pstTask;
 	nCurIteration = pstTask->nCurIteration;
+	nLoopIndex = pstGeneralTask->nCurLoopIndex;
 
 	while(pstCurrentTask != NULL)
 	{
@@ -1024,8 +1039,18 @@ static uem_bool compareIterationtoAllParentLoopTask(STask *pstTask)
 					bNeedtoSuspend = TRUE;
 					break;
 				}
+				else if(pstCurrentTask->pstLoopInfo->nCurrentIteration < nLoopIndex)
+				{
+					bNeedtoSuspend = TRUE;
+					break;
+				}
+			}
+			else // LOOP_TYPE_DATA
+			{
+
 			}
 			nCurIteration = nCurIteration / pstCurrentTask->pstLoopInfo->nLoopCount;
+			nLoopIndex = nLoopIndex / pstCurrentTask->pstLoopInfo->nLoopCount;
 		}
 
 		pstCurrentTask = pstCurrentTask->pstParentGraph->pstParentTask;
@@ -1057,7 +1082,7 @@ static uem_result handleLoopTaskIteration(SGeneralTaskThread *pstTaskThread, SGe
 		{
 			//stop loop task iteration
 			//set iteration to target iteration
-			result = changeTaskState(pstGeneralTask, TASK_STATE_SUSPEND);
+			result = changeTaskStateInLock(pstGeneralTask, TASK_STATE_SUSPEND);
 			ERRIFGOTO(result, _EXIT);
 
 			result = updateLoopIterationHistory(pstGeneralTask);
@@ -1096,7 +1121,7 @@ static uem_result handleLoopTaskIteration(SGeneralTaskThread *pstTaskThread, SGe
 		enNewState = TASK_STATE_STOP;
 		bStateChangeNeeded = TRUE;
 	}
-	else if(compareIterationtoAllParentLoopTask(pstCurrentTask) == TRUE)
+	else if(compareIterationtoAllParentLoopTask(pstCurrentTask, pstGeneralTask) == TRUE)
 	{
 		enNewState = TASK_STATE_SUSPEND;
 		bStateChangeNeeded = TRUE;
@@ -1104,7 +1129,7 @@ static uem_result handleLoopTaskIteration(SGeneralTaskThread *pstTaskThread, SGe
 
 	if(bStateChangeNeeded == TRUE)
 	{
-		result = changeTaskState(pstGeneralTask, enNewState);
+		result = changeTaskStateInLock(pstGeneralTask, enNewState);
 		ERRIFGOTO(result, _EXIT);
 	}
 
@@ -1124,15 +1149,9 @@ static uem_result setTaskThreadIteration(SGeneralTask *pstGeneralTask, SGeneralT
 	nIndex = pstTaskThread->nTaskFuncId;
 	pstCurrentTask = pstGeneralTask->pstTask;
 
-	result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
-	ERRIFGOTO(result, _EXIT);
-
 	pstCurrentTask->astThreadContext[nIndex].nCurRunIndex = pstGeneralTask->nCurLoopIndex;
 
 	pstGeneralTask->nCurLoopIndex++;
-
-	result = UCThreadMutex_Unlock(pstGeneralTask->hMutex);
-	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -1158,7 +1177,16 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 	result = waitRunSignal(pstGeneralTask, pstTaskThread, TRUE, &llNextTime, &nMaxRunCount);
 	ERRIFGOTO(result, _EXIT);
 
-	result = setTaskThreadIteration(pstGeneralTask, pstTaskThread);
+	result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	if(enRunCondition == RUN_CONDITION_TIME_DRIVEN)
+	{
+		result = setTaskThreadIteration(pstGeneralTask, pstTaskThread);
+		ERRIFGOTO(result, _EXIT_ERROR_LOCK);
+	}
+
+	result = UCThreadMutex_Unlock(pstGeneralTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
 	// if nSeqId is changed, it means this thread is detached or stopped from the CPU task manager.
@@ -1169,19 +1197,28 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 		{
 			if(pstGeneralTask->bIsModeTransition == TRUE)
 			{
+				//handle MTM Task
 				result = handleTaskModeTransition(pstTaskThread, pstGeneralTask);
 				ERRIFGOTO(result, _EXIT);
 			}
+		}
+		result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
+		ERRIFGOTO(result, _EXIT);
+		if(bFunctionCalled == TRUE && pstGeneralTask->enTaskState == TASK_STATE_RUNNING)
+		{
 			if(pstGeneralTask->bIsSubConvergentLoop == TRUE)
 			{
+				//handle Loop Task and change TaskState if necessary.
 				result = handleLoopTaskIteration(pstTaskThread, pstGeneralTask);
-				ERRIFGOTO(result, _EXIT);
+				ERRIFGOTO(result, _EXIT_ERROR_LOCK);
 			}
 		}
-		if(bFunctionCalled == TRUE)
+		if(pstGeneralTask->enTaskState == TASK_STATE_RUNNING &&
+			(enRunCondition != RUN_CONDITION_TIME_DRIVEN ||
+			(enRunCondition == RUN_CONDITION_TIME_DRIVEN && bFunctionCalled == TRUE)))
 		{
 			result = setTaskThreadIteration(pstGeneralTask, pstTaskThread);
-			ERRIFGOTO(result, _EXIT);
+			ERRIFGOTO(result, _EXIT_ERROR_LOCK);
 		}
 		switch(pstGeneralTask->enTaskState)
 		{
@@ -1189,16 +1226,21 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			switch(enRunCondition)
 			{
 			case RUN_CONDITION_TIME_DRIVEN:
+				result = UCThreadMutex_Unlock(pstGeneralTask->hMutex);
+				ERRIFGOTO(result, _EXIT);
+				//use bFunctionCall To check TimeDrivenTask run condition.
 				result = UKCPUTaskCommon_HandleTimeDrivenTask(pstCurrentTask, fnGo, &llNextTime, &nRunCount, &nMaxRunCount, &bFunctionCalled);
 				ERRIFGOTO(result, _EXIT);
 				break;
 			case RUN_CONDITION_DATA_DRIVEN:
 			case RUN_CONDITION_CONTROL_DRIVEN:
+				result = UCThreadMutex_Unlock(pstGeneralTask->hMutex);
+				ERRIFGOTO(result, _EXIT);
 				fnGo(pstCurrentTask->nTaskId);
 				bFunctionCalled = TRUE;
 				break;
 			default:
-				ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+				ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT_ERROR_LOCK);
 				break;
 			}
 			if(bFunctionCalled == TRUE)
@@ -1221,6 +1263,9 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			}
 			break;
 		case TASK_STATE_STOPPING:
+			result = UCThreadMutex_Unlock(pstGeneralTask->hMutex);
+			ERRIFGOTO(result, _EXIT);
+
 			// check one more time to handle suspended tasks
 			result = UKTask_CheckIterationRunCount(pstCurrentTask, pstTaskThread->nTaskFuncId, &bTargetIterationReached);
 			ERRIFGOTO(result, _EXIT);
@@ -1242,7 +1287,11 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 						break;
 					}
 				}
+				result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
+				ERRIFGOTO(result, _EXIT);
 				result = setTaskThreadIteration(pstGeneralTask, pstTaskThread);
+				ERRIFGOTO(result, _EXIT_ERROR_LOCK);
+				result = UCThreadMutex_Unlock(pstGeneralTask->hMutex);
 				ERRIFGOTO(result, _EXIT);
 				fnGo(pstCurrentTask->nTaskId);
 				//UEM_DEBUG_PRINT("%s (stopping-driven, Proc: %d, func_id: %d, current iteration: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId, pstCurrentTask->nCurIteration);
@@ -1254,11 +1303,11 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			break;
 		case TASK_STATE_STOP:
 			// do nothing
-			break;
-		case TASK_STATE_SUSPEND:
-			result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
+			result = UCThreadMutex_Unlock(pstGeneralTask->hMutex);
 			ERRIFGOTO(result, _EXIT);
 
+			break;
+		case TASK_STATE_SUSPEND:
 			pstTaskThread->bSuspended = TRUE;
 
 			result = UCThreadMutex_Unlock(pstGeneralTask->hMutex);
@@ -1267,10 +1316,10 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			result = waitRunSignal(pstGeneralTask, pstTaskThread, FALSE, &llNextTime, &nMaxRunCount);
 			ERRIFGOTO(result, _EXIT);
 
-			bFunctionCalled = FALSE;
+			bFunctionCalled = TRUE;
 			break;
 		default:
-			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT_ERROR_LOCK);
 			break;
 		}
 	}
@@ -1285,6 +1334,11 @@ _EXIT:
 //			UEM_DEBUG_PRINT("g_astChannels[%d]: size: %d, dataLen: %d\n", nLoop, g_astChannels[nLoop].nBufSize, g_astChannels[nLoop].nDataLen);
 //		}
 //	}
+	return result;
+_EXIT_ERROR_LOCK:
+	UEM_DEBUG_PRINT("pstCurrentTask error out : %s (count: %d)\n", pstCurrentTask->pszTaskName, nExecutionCount);
+	UCThreadMutex_Unlock(pstGeneralTask->hMutex);
+
 	return result;
 }
 
@@ -1539,7 +1593,7 @@ uem_result UKCPUGeneralTaskManager_ChangeState(HCPUGeneralTaskManager hManager, 
 	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
 	ERRIFGOTO(result, _EXIT_LOCK);
 
-	result = changeTaskState(pstGeneralTask, enTaskState);
+	result = changeTaskStateInLock(pstGeneralTask, enTaskState);
 	ERRIFGOTO(result, _EXIT_LOCK);
 
 	result = ERR_UEM_NOERROR;
