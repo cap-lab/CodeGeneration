@@ -10,75 +10,31 @@
 
 #include <uem_common.h>
 
-#include <UCThreadMutex.h>
-#include <UCDynamicSocket.h>
-#include <UCSerialPort.h>
-#include <UCFixedSizeQueue.h>
+#include <UKVirtualCommunication.h>
 
-
-#include <UKConnector.h>
-#include <UKSerialCommunicationManager.h>
-
-#include <uem_channel_data.h>
+#include <uem_remote_data.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+typedef struct _SBluetoothAccessInfo {
+	char *pszTargetMacAddress;
+	EMasterSlavePairType enType;
+} BluetoothAccessInfo;
+
 typedef struct _SBluetoothInfo {
-	const char *pszTargetMacAddress;
-	HSocket hSocket;
-	HThread hHandlingThread;
-	HConnector hConnector;
-	int nMaxChannelAccessNum;
-	HSerialCommunicationManager hManager;
-	uem_bool bInitialized;
+	SAggregateServiceInfo stAggregateInfo;
+	BluetoothAccessInfo stAccessInfo;
 } SBluetoothInfo;
 
-typedef struct _SSerialInfo {
-	const char *pszSerialPortPath;
-	HSerialPort hSerialPort;
-	HThread hHandlingThread;
-	HConnector hConnector;
-	int nMaxChannelAccessNum;
-	HSerialCommunicationManager hManager;
-	uem_bool bInitialized;
-} SSerialInfo;
-
-typedef struct _SSerialWriterChannel {
-	void *pConnectionInfo;
-	HFixedSizeQueue hRequestQueue;
-	HThread hReceivingThread; // for WRITER channel
-	char *pBuffer; // temporary buffer for getting data from shared memory channel (for WRITER)
-	int nBufLen; // temporary buffer length (for WRITER)
-	HThreadMutex hMutex;
-	uem_bool bChannelExit;
-	SSharedMemoryChannel *pstInternalChannel; // for WRITER
-} SSerialWriterChannel;
-
-typedef struct _SSerialReaderChannel {
-	void *pConnectionInfo;
-	HFixedSizeQueue hResponseQueue;
-	// SSerialCommunicationManager handle; =>
-	// hResponseQueue; // single-size queue
-	HThreadMutex hMutex;
-	uem_bool bChannelExit;
-	SGenericMemoryAccess *pstReaderAccess; // for READER channel
-} SSerialReaderChannel;
 
 extern SBluetoothInfo g_astBluetoothMasterInfo[];
 extern int g_nBluetoothMasterNum;
 
 extern SBluetoothInfo g_astBluetoothSlaveInfo[];
 extern int g_nBluetoothSlaveNum;
-
-extern SSerialInfo g_astSerialMasterInfo[];
-extern int g_nSerialMasterInfoNum;
-
-extern SSerialInfo g_astSerialSlaveInfo[];
-extern int g_nSerialSlaveInfoNum;
-
 
 
 #ifdef __cplusplus

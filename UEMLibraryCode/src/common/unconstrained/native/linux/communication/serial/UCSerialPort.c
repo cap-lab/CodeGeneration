@@ -58,32 +58,21 @@ _EXIT:
     return result;
 }
 
-uem_result UCSerialPort_Create(IN SSerialPortInfo *pstSerialPortInfo, IN uem_bool bIsServer, OUT HSerialPort *phSerialPort)
+uem_result UCSerialPort_Create(IN SSerialPortInfo *pstSerialPortInfo, OUT HSerialPort *phSerialPort)
 {
     uem_result result = ERR_UEM_UNKNOWN;
     SUCSerialPort *pstSerialPort = NULL;
 #ifdef ARGUMENT_CHECK
     IFVARERRASSIGNGOTO(pstSerialPortInfo, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
     IFVARERRASSIGNGOTO(phSerialPort, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-
-    if(bIsServer != TRUE && bIsServer != FALSE)
-    {
-        ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
-    }
-    if(bIsServer == TRUE && pstSerialPortInfo->pszSerialPortPath == NULL)
-    {
-        ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
-    }
 #endif
 
     pstSerialPort = (SUCSerialPort *) UCAlloc_malloc(sizeof(SUCSerialPort));
     ERRMEMGOTO(pstSerialPort, result, _EXIT);
 
     pstSerialPort->enID = ID_UEM_SERIAL;
-    pstSerialPort->bIsServer = bIsServer;
-    pstSerialPort->portfd = SERIAL_FD_NOT_SET; //not yet open port.
-    pstSerialPort->nSerialfd = SERIAL_FD_NOT_SET;
-    pstSerialPort->pszSerialPath = pstSerialPortInfo->pszSerialPortPath;
+    pstSerialPort->nSerialfd = SERIAL_FD_NOT_SET; //not yet open port.
+    pstSerialPort->pszSerialPath = NULL;
 
     if(pstSerialPortInfo->pszSerialPortPath != NULL) // socket path is used
     {
@@ -117,14 +106,12 @@ uem_result UCSerialPort_Destroy(IN OUT HSerialPort *phSerialPort)
     pstSerialPort = (SUCSerialPort *) *phSerialPort;
 
 
-    if(pstSerialPort->portfd != SERIAL_FD_NOT_SET)
+    if(pstSerialPort->nSerialfd != SERIAL_FD_NOT_SET)
     {
 		UCSerialPort_Close(pstSerialPort);
-
     }
 
     SAFEMEMFREE(pstSerialPort->pszSerialPath);
-
     SAFEMEMFREE(pstSerialPort);
 
     *phSerialPort = NULL;
@@ -136,7 +123,7 @@ _EXIT:
 
 //timeout check.
 //for example, passing pstReadSet arguments makes it wait until read or timeout.
-static uem_result selectTimeout(int portfd, fd_set *pstReadSet, fd_set *pstWriteSet, fd_set *pstExceptSet, int nTimeout)
+static uem_result selectTimeout(int nSerialfd, fd_set *pstReadSet, fd_set *pstWriteSet, fd_set *pstExceptSet, int nTimeout)
 {
     uem_result result = ERR_UEM_UNKNOWN;
     struct timeval stTimeVal;
@@ -145,25 +132,25 @@ static uem_result selectTimeout(int portfd, fd_set *pstReadSet, fd_set *pstWrite
     if(pstReadSet != NULL)
     {
         FD_ZERO(pstReadSet);
-        FD_SET(portfd, pstReadSet);
+        FD_SET(nSerialfd, pstReadSet);
     }
 
     if(pstWriteSet != NULL)
     {
         FD_ZERO(pstWriteSet);
-        FD_SET(portfd, pstWriteSet);
+        FD_SET(nSerialfd, pstWriteSet);
     }
 
     if(pstExceptSet != NULL)
    {
        FD_ZERO(pstExceptSet);
-       FD_SET(portfd, pstExceptSet);
+       FD_SET(nSerialfd, pstExceptSet);
    }
 
     stTimeVal.tv_sec = nTimeout;
     stTimeVal.tv_usec = 0;
 
-    nRet = select(portfd+1, pstReadSet, pstWriteSet, pstExceptSet, &stTimeVal);
+    nRet = select(nSerialfd+1, pstReadSet, pstWriteSet, pstExceptSet, &stTimeVal);
     if(nRet < 0)
     {
         ERRASSIGNGOTO(result, ERR_UEM_SELECT_ERROR, _EXIT);
@@ -284,20 +271,15 @@ uem_result UCSerialPort_Open(HSerialPort hSerialPort)
     }
 #endif
     pstSerialPort = (SUCSerialPort *) hSerialPort;
-#ifdef ARGUMENT_CHECK
-    if(pstSerialPort->bIsServer == TRUE)
-    {
-        ERRASSIGNGOTO(result, ERR_UEM_INVALID_SERIAL, _EXIT);
-    }
-#endif
 
     char *portname = pstSerialPort->pszSerialPath;
-	int portfd = open_port(portname);
-	if (portfd < 0)
+	int nSerialfd = open_port(portname);
+	if (nSerialfd < 0)
 	{
-			error_message ("error %d opening %s: %s", errno, portname, strerror (errno));
+		error_message ("error %d opening %s: %s", errno, portname, strerror (errno));
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_SERIAL, _EXIT);
 	}
-	hSerialPort->portfd = portfd;
+	hSerialPort->nSerialfd = nSerialfd;
 
     result = ERR_UEM_NOERROR;
 _EXIT:
@@ -307,8 +289,13 @@ _EXIT:
 uem_result UCSerialPort_Close(HSerialPort hSerialPort)
 {
     uem_result result = ERR_UEM_NOERROR;
-	close(hSerialPort->portfd);
-	hSerialPort->portfd = SERIAL_FD_NOT_SET;
+
+    if(hSerialPort->nSerialfd != SERIAL_FD_NOT_SET)
+    {
+    	close(hSerialPort->nSerialfd);
+    	hSerialPort->nSerialfd = SERIAL_FD_NOT_SET;
+    }
+
     return result;
 }
 
@@ -332,16 +319,11 @@ uem_result UCSerialPort_Send(HSerialPort hSerialPort, IN int nTimeout, IN char *
     }
 #endif
     pstSerialPort = (SUCSerialPort *) hSerialPort;
-#ifdef ARGUMENT_CHECK
-    if(pstSerialPort->bIsServer == TRUE)
-    {
-        ERRASSIGNGOTO(result, ERR_UEM_INVALID_SERIAL, _EXIT);
-    }
-#endif
-    result = selectTimeout(pstSerialPort->portfd, NULL, &stWriteSet, NULL, nTimeout);
+
+    result = selectTimeout(pstSerialPort->nSerialfd, NULL, &stWriteSet, NULL, nTimeout);
     ERRIFGOTO(result, _EXIT);
 
-    nDataSent = write(pstSerialPort->portfd, pData, nDataLen);
+    nDataSent = write(pstSerialPort->nSerialfd, pData, nDataLen);
 	usleep ((nDataLen + 25) * 100);             // sleep enough to transmit. //TODO : check whether this sleep code is needed or not.
 
     if(nDataSent < 0)
@@ -379,16 +361,11 @@ uem_result UCSerialPort_Receive(HSerialPort hSerialPort, IN int nTimeout, IN OUT
     }
 #endif
     pstSerialPort = (SUCSerialPort *) hSerialPort;
-#ifdef ARGUMENT_CHECK
-    if(pstSerialPort->bIsServer == TRUE)
-    {
-        ERRASSIGNGOTO(result, ERR_UEM_INVALID_SERIAL, _EXIT);
-    }
-#endif
-    result = selectTimeout(pstSerialPort->portfd, &stReadSet, NULL, NULL, nTimeout);
+
+    result = selectTimeout(pstSerialPort->nSerialfd, &stReadSet, NULL, NULL, nTimeout);
     ERRIFGOTO(result, _EXIT);
 
-    nDataReceived = read(hSerialPort->portfd, pBuffer, nBufferLen); // read up to nBufferLen characters
+    nDataReceived = read(hSerialPort->nSerialfd, pBuffer, nBufferLen); // read up to nBufferLen characters
 
     if(nDataReceived <= 0)
     {

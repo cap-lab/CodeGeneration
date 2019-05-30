@@ -28,25 +28,27 @@
 
 <#if communication_used == true>
 #include <UKUEMProtocol.h>
+#include <UKVirtualCommunication.h>
+#include <UKRemoteChannel.h>
+#include <uem_remote_data.h>
+
+#include <UKSocketCommunication.h>
 
 	<#if used_communication_list?seq_contains("tcp")>
 #include <UKTCPServerManager.h>
-#include <UKTCPSocketChannel.h>
-
+#include <UKTCPCommunication.h>
 #include <uem_tcp_data.h>
 	</#if>
 	
 	<#if used_communication_list?seq_contains("bluetooth")>
 #include <UKBluetoothModule.h>
-#include <UKBluetoothChannel.h>
-
+#include <UKBluetoothCommunication.h>
 #include <uem_bluetooth_data.h>
 	</#if>
 	<#if used_communication_list?seq_contains("serial")>
 #include <UKSerialModule.h>
-#include <UKSerialChannel.h>
-
-#include <uem_bluetooth_data.h>
+#include <UKSerialCommunication.h>
+#include <uem_serial_data.h>
 	</#if>
 </#if>
 <#if gpu_used == true>
@@ -86,7 +88,7 @@ SPortSampleRate g_astPortSampleRate_${port.taskName}_${port.portName}[] = {
 		${sample_rate.sampleRate?c}, // Sample rate
 		${sample_rate.maxAvailableNum}, // Available number of data
 	},
-	</#list>	
+	</#list>
 };
 
 </#list>
@@ -119,13 +121,57 @@ SAvailableChunk g_astAvailableInputChunk_channel_${channel.index}[${channel.inpu
 </#list>
 // ##AVAILABLE_CHUNK_LIST_TEMPLATE::END
 
+
+<#if used_communication_list?seq_contains("tcp")>
+SVirtualCommunicationAPI g_stTCPCommunication = {
+	UKTCPCommunication_Create,
+	UKSocketCommunication_Destroy,
+	UKSocketCommunication_Connect,
+	UKSocketCommunication_Disconnect,
+	UKSocketCommunication_Listen,
+	UKSocketCommunication_Accept,
+	UKSocketCommunication_Send,
+	UKSocketCommunication_Receive,
+};
+</#if>
+
+<#if used_communication_list?seq_contains("bluetooth")>
+SVirtualCommunicationAPI g_stBluetoothCommunication = {
+	UKBluetoothCommunication_Create,
+	UKSocketCommunication_Destroy,
+	UKSocketCommunication_Connect,
+	UKSocketCommunication_Disconnect,
+	UKSocketCommunication_Listen,
+	UKSocketCommunication_Accept,
+	UKSocketCommunication_Send,
+	UKSocketCommunication_Receive,
+};
+
+</#if>
+<#if used_communication_list?seq_contains("serial")>
+SVirtualCommunicationAPI g_stSerialCommunication = {
+	UKSerialCommunication_Create,
+	UKSerialCommunication_Destroy,
+	UKSerialCommunication_Connect,
+	UKSerialCommunication_Disconnect,
+	UKSerialCommunication_Listen,
+	UKSerialCommunication_Accept,
+	UKSerialCommunication_Send,
+	UKSerialCommunication_Receive,
+};
+
+</#if>
+
+
+
 <#if used_communication_list?seq_contains("tcp")>
 // ##TCP_CLIENT_GENERATION_TEMPLATE::START
-STCPClientInfo g_astTCPClientInfo[] = {
+STCPInfo g_astTCPClientInfo[] = {
 	<#list tcp_client_list as client>
 	{
-		"${client.IP}",
 		${client.port?c},
+		"${client.IP}",
+		PAIR_TYPE_CLIENT,
 	},
 	</#list>
 };
@@ -136,46 +182,70 @@ STCPClientInfo g_astTCPClientInfo[] = {
 STCPServerInfo g_astTCPServerInfo[] = {
 	<#list tcp_server_list as server>
 	{
-		${server.port?c},
-		(HSocket) NULL,
-		(HThread) NULL,
+		{
+			${server.port?c},
+			(char *) NULL,
+			PAIR_TYPE_SERVER,
+		},
+		{
+			(HVirtualSocket) NULL,
+			(HThread) NULL,
+			&g_stTCPCommunication,
+		},		
 	},
 	</#list>
 };
 // ##TCP_SERVER_GENERATION_TEMPLATE::END
 
-// ##TCP_COMMUNICATION_GENERATION_TEMPLATE::START
-SExternalCommunicationInfo g_astExternalCommunicationInfo[] = {
+</#if>
+
+
+// ##INDIVIDUAL_CONNECTION_GENERATION_TEMPLATE::START
+SIndividualConnectionInfo g_astIndividualConnectionInfo[] = {
 	<#list channel_list as channel>
-		<#switch channel.communicationType>
-			<#case "TCP_CLIENT_WRITER">
-			<#case "TCP_CLIENT_READER">
-			<#case "TCP_SERVER_WRITER">
-			<#case "TCP_SERVER_READER">
+		<#switch channel.remoteMethodType>
+			<#case "TCP">
 	{
 		${channel.index},
-		COMMUNICATION_TYPE_${channel.communicationType},
-		(HSocket) NULL,
+		COMMUNICATION_METHOD_${channel.remoteMethodType},
+			<#switch channel.connectionRoleType>
+				<#case "CLIENT">
+		(STCPInfo *) &g_astTCPClientInfo[${channel.socketInfoIndex}],
+		PAIR_TYPE_CLIENT,
+					<#break>
+				<#case "SERVER">
+		NULL,
+		PAIR_TYPE_SERVER,
+					<#break>
+			</#switch>
+		&g_stTCPCommunication,
+		(HVirtualSocket) NULL,
 		(HUEMProtocol) NULL,
 	},
 				<#break>
 		</#switch>
 	</#list>
 };
-// ##TCP_COMMUNICATION_GENERATION_TEMPLATE::END
-</#if>
+// ##INDIVIDUAL_CONNECTION_GENERATION_TEMPLATE::END
+
 
 <#if used_communication_list?seq_contains("bluetooth")>
+// ##BLUETOOTH_COMMUNICATION_GENERATION_TEMPLATE::START
 SBluetoothInfo g_astBluetoothMasterInfo[] = {
 	<#list bluetooth_master_list as master>
 	{
-		"${master.portAddress}", // target mac address
-		(HSocket) NULL, // socket handle
-		(HThread) NULL, // thread handle
-		(HConnector) NULL, // connector handle
-		${master.channelAccessNum}, // max channel access number
-		(HSerialCommunicationManager) NULL, // Serial communication manager handle
-		FALSE, // initialized or not
+		{
+			(HThread) NULL, // thread handle
+			${master.channelAccessNum}, // max channel access number
+			(HVirtualSocket) NULL, // socket handle
+			&g_stBluetoothCommunication, // bluetooth communication API
+			(HSerialCommunicationManager) NULL, // Serial communication manager handle
+			FALSE, // initialized or not
+		},
+		{
+			"${master.portAddress}", // target mac address
+			PAIR_TYPE_MASTER,
+		},
 	},
 	</#list>
 };
@@ -183,30 +253,41 @@ SBluetoothInfo g_astBluetoothMasterInfo[] = {
 SBluetoothInfo g_astBluetoothSlaveInfo[] = {
 	<#list bluetooth_slave_list as slave>
 	{
-		"${slave.portAddress}", // slave mac address
-		(HSocket) NULL, // socket handle
-		(HThread) NULL, // thread handle
-		(HConnector) NULL, // connector handle
-		${slave.channelAccessNum}, // max channel access number
-		(HSerialCommunicationManager) NULL, // Serial communication manager handle
-		FALSE, // initialized or not
+		{
+			(HThread) NULL, // thread handle
+			${slave.channelAccessNum}, // max channel access number
+			(HVirtualSocket) NULL, // socket handle
+			&g_stBluetoothCommunication, // bluetooth communication API
+			(HSerialCommunicationManager) NULL, // Serial communication manager handle
+			FALSE, // initialized or not
+		},
+		{
+			"${slave.portAddress}", // slave mac address
+			PAIR_TYPE_SLAVE,
+		},
 	},
 	</#list>
 };
-
+// ##BLUETOOTH_COMMUNICATION_GENERATION_TEMPLATE::END
 </#if>
 
 <#if used_communication_list?seq_contains("serial")>
+// ##SERIAL_COMMUNICATION_GENERATION_TEMPLATE::START
 SSerialInfo g_astSerialMasterInfo[] = {
 	<#list serial_master_list as master>
 	{
-		"${master.portAddress}", // serial port path
-		(HSerialPort) NULL, // hSerialPort handle
-		(HThread) NULL, // thread handle
-		(HConnector) NULL, // connector handle
-		${master.channelAccessNum}, // max channel access number
-		(HSerialCommunicationManager) NULL, // Serial communication manager handle	
-		FALSE, // initialized or not
+		{
+			(HThread) NULL, // thread handle
+			${master.channelAccessNum}, // max channel access number
+			(HVirtualSocket) NULL, // socket handle
+			&g_stSerialCommunication, // bluetooth communication API
+			(HSerialCommunicationManager) NULL, // Serial communication manager handle
+			FALSE, // initialized or not
+		},
+		{
+			"${master.portAddress}", // serial port path
+			PAIR_TYPE_MASTER,
+		},
 	},
 	</#list>
 };
@@ -215,19 +296,66 @@ SSerialInfo g_astSerialMasterInfo[] = {
 SSerialInfo g_astSerialSlaveInfo[] = {
 	<#list serial_slave_list as slave>
 	{
-		"${slave.portAddress}", // serial port path
-		(HSerialPort) NULL, // hSerialPort handle
-		(HThread) NULL, // thread handle
-		(HConnector) NULL, // connector handle
-		${slave.channelAccessNum}, // max channel access number
-		(HSerialCommunicationManager) NULL, // Serial communication manager handle		
-		FALSE, // initialized or not
+		{
+			(HThread) NULL, // thread handle
+			${slave.channelAccessNum}, // max channel access number
+			(HVirtualSocket) NULL, // socket handle
+			&g_stSerialCommunication, // bluetooth communication API
+			(HSerialCommunicationManager) NULL, // Serial communication manager handle
+			FALSE, // initialized or not
+		},
+		{
+			"${slave.portAddress}", // serial port path
+			PAIR_TYPE_SLAVE,
+		},
 	},
 	</#list>
 };
-
-
+// ##SERIAL_COMMUNICATION_GENERATION_TEMPLATE::END
 </#if>
+
+
+
+SAggregateConnectionInfo g_astAggregateConnectionInfo[] = {
+<#if used_communication_list?seq_contains("bluetooth") || used_communication_list?seq_contains("serial")>
+	<#list channel_list as channel>
+	{
+		<#switch channel.remoteMethodType>
+			<#case "BLUETOOTH">
+		${channel.index},
+		{
+			(HFixedSizeQueue) NULL,
+		},
+				<#switch channel.connectionRoleType>
+					<#case "MASTER">
+	&(g_astBluetoothMasterInfo[${channel.socketInfoIndex}].stAggregateInfo),
+						<#break>
+					<#case "SLAVE">
+	&(g_astBluetoothSlaveInfo[${channel.socketInfoIndex}].stAggregateInfo),
+						<#break>
+				</#switch>
+				<#break>
+			<#case "SERIAL">
+	${channel.index},
+	{
+		(HFixedSizeQueue) NULL,
+	},			
+				<#switch channel.connectionRoleType>
+					<#case "MASTER">
+	&(g_astSerialMasterInfo[${channel.socketInfoIndex}].stAggregateInfo),
+						<#break>
+					<#case "SLAVE">
+	&(g_astSerialSlaveInfo[${channel.socketInfoIndex}].stAggregateInfo),
+						<#break>
+				</#switch>
+	
+				<#break>
+		</#switch>
+	},
+	</#list>
+</#if>
+};
+
 
 
 SGenericMemoryAccess g_stHostMemory = {
@@ -273,17 +401,29 @@ SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 </#if>
 
 
+<#macro printRemoteChannelCommonInfo channel>
+	{ 
+			<#switch channel.remoteMethodType>
+				<#case "TCP">
+		CONNECTION_METHOD_INDIVIDUAL,
+					<#break>
+				<#case "BLUETOOTH">
+				<#case "SERIAL">
+		CONNECTION_METHOD_AGGREGATE,
+					<#break>
+			</#switch>
+		NULL, // will be set to SIndividualServiceInfo or SAggregateServiceInfo
+		(HThreadMutex) NULL,
+		FALSE, // bChannelExit
+	},
+</#macro>
+
 // ##SPECIFIC_CHANNEL_LIST_TEMPLATE::START
 <#list channel_list as channel>
 
 	<#switch channel.communicationType>
 		<#case "SHARED_MEMORY">
-		<#case "TCP_SERVER_WRITER">
-		<#case "TCP_CLIENT_WRITER">
-		<#case "BLUETOOTH_MASTER_WRITER">
-		<#case "BLUETOOTH_SLAVE_WRITER">
-		<#case "SERIAL_MASTER_WRITER">
-		<#case "SERIAL_SLAVE_WRITER">
+		<#case "REMOTE_WRITER">
 SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 	ACCESS_TYPE_${channel.accessType},
 			<#switch channel.accessType>
@@ -357,106 +497,18 @@ SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 	</#switch>
 
 	<#switch channel.communicationType>
-		<#case "TCP_CLIENT_WRITER">
-		<#case "TCP_CLIENT_READER">
-		<#case "TCP_SERVER_WRITER">
-		<#case "TCP_SERVER_READER">
-STCPSocketChannel g_stTCPSocketChannel_${channel.index} = {
-		<#switch channel.communicationType>
-			<#case "TCP_CLIENT_WRITER">
-			<#case "TCP_CLIENT_READER">
-	(STCPClientInfo *) &g_astTCPClientInfo[${channel.socketInfoIndex}], // STCPClientInfo *pstClientInfo;
-				<#break>
-			<#default>
-	(STCPClientInfo *) NULL, // STCPClientInfo *pstClientInfo;
-		</#switch>
-	(SExternalCommunicationInfo *) NULL, // SExternalCommunicationInfo *pstCommunicationInfo;
-	(HThread) NULL, // HThread hReceivingThread;
-	(char *) NULL, // char *pBuffer;
-	0, // int nBufLen;
-	(HThreadMutex) NULL, // HThreadMutex hMutex;
-	FALSE, // uem_bool bChannelExit;
-		<#switch channel.communicationType>
-			<#case "TCP_CLIENT_WRITER">
-			<#case "TCP_SERVER_WRITER">
-	&g_stSharedMemoryChannel_${channel.index}, // SSharedMemoryChannel *pstInternalChannel;
-	(SGenericMemoryAccess *) NULL, // SGenericMemoryAccess *pstReaderAccess - READER-part channel memory access API
-				<#break>
-			<#case "TCP_CLIENT_READER">
-			<#case "TCP_SERVER_READER">
-	(SSharedMemoryChannel *) NULL, // SSharedMemoryChannel *pstInternalChannel;
-				<#switch channel.accessType>
-					<#case "CPU_ONLY">
-	&g_stHostMemory, // SGenericMemoryAccess *pstReaderAccess - READER-part channel memory access API
-						<#break>
-					<#case "CPU_GPU">
-	&g_stHostToDeviceMemory, // SGenericMemoryAccess *pstReaderAccess - READER-part channel memory access API
-						<#break>
-					<#default>
-	error (cannot generate other access type)
-				</#switch>
-				<#break>
-		</#switch>
-};
-			<#break>
-	</#switch>
-	
-	<#switch channel.communicationType>
-		<#case "BLUETOOTH_MASTER_WRITER">
-		<#case "BLUETOOTH_SLAVE_WRITER">
-		<#case "SERIAL_MASTER_WRITER">
-		<#case "SERIAL_SLAVE_WRITER">
-		
-SSerialWriterChannel g_stSerialWriterChannel_${channel.index} = {
-		<#switch channel.communicationType>
-			<#case "BLUETOOTH_MASTER_WRITER">
-	(void *) &g_astBluetoothMasterInfo[${channel.socketInfoIndex}],
-				<#break>
-			<#case "BLUETOOTH_SLAVE_WRITER">
-	(void *) &g_astBluetoothSlaveInfo[${channel.socketInfoIndex}],
-				<#break>
-			<#case "SERIAL_MASTER_WRITER">
-	(void *) &g_astSerialMasterInfo[${channel.socketInfoIndex}],			
-				<#break>
-			<#case "SERIAL_SLAVE_WRITER">
-	(void *) &g_astSerialSlaveInfo[${channel.socketInfoIndex}],			
-				<#break>
-		</#switch>
-	(HFixedSizeQueue) NULL,
-	(HThread) NULL,
-	(char*) NULL,
+		<#case "REMOTE_WRITER">
+SRemoteWriterChannel g_stRemoteWriterChannel_${channel.index} = {
+			<@printRemoteChannelCommonInfo channel />
+	(HThread) NULL, // receive handling thread
+	(char *) NULL,
 	0,
-	(HThreadMutex) NULL,
-	FALSE,
-	&g_stSharedMemoryChannel_${channel.index},	
+	&g_stSharedMemoryChannel_${channel.index}, // SSharedMemoryChannel *pstInternalChannel;
 };
 			<#break>
-	</#switch>
-
-	
-	<#switch channel.communicationType>
-		<#case "BLUETOOTH_MASTER_READER">
-		<#case "BLUETOOTH_SLAVE_READER">
-		<#case "SERIAL_MASTER_READER">
-		<#case "SERIAL_SLAVE_READER">
-SSerialReaderChannel g_stSerialReaderChannel_${channel.index} = {
-			<#switch channel.communicationType>
-				<#case "BLUETOOTH_MASTER_READER">
-	(void *) &g_astBluetoothMasterInfo[${channel.socketInfoIndex}],
-					<#break>
-				<#case "BLUETOOTH_SLAVE_READER">
-	(void *) &g_astBluetoothSlaveInfo[${channel.socketInfoIndex}],
-					<#break>
-				<#case "SERIAL_MASTER_READER">
-	(void *) &g_astSerialMasterInfo[${channel.socketInfoIndex}],
-					<#break>
-				<#case "SERIAL_SLAVE_READER">
-	(void *) &g_astSerialSlaveInfo[${channel.socketInfoIndex}],
-					<#break>
-			</#switch>
-	(HFixedSizeQueue) NULL, // response queue
-	(HThreadMutex) NULL, // mutex variable
-	FALSE, // channel exit flag
+		<#case "REMOTE_READER">
+SRemoteReaderChannel g_stRemoteReaderChannel_${channel.index} = {
+			<@printRemoteChannelCommonInfo channel />
 			<#switch channel.accessType>
 				<#case "CPU_ONLY">
 	&g_stHostMemory, // SGenericMemoryAccess *pstReaderAccess - READER-part channel memory access API
@@ -464,11 +516,12 @@ SSerialReaderChannel g_stSerialReaderChannel_${channel.index} = {
 				<#case "CPU_GPU">
 	&g_stHostToDeviceMemory, // SGenericMemoryAccess *pstReaderAccess - READER-part channel memory access API
 					<#break>
+				<#default>
+	error (cannot generate other access type)
 			</#switch>
 };
 			<#break>
 	</#switch>
-
 </#list>
 // ##SPECIFIC_CHANNEL_LIST_TEMPLATE::END
 
@@ -489,23 +542,11 @@ SChannel g_astChannels[] = {
 		<#case "SHARED_MEMORY">
 		&g_stSharedMemoryChannel_${channel.index}, // specific shared memory channel structure pointer
 			<#break>
-		<#case "TCP_CLIENT_WRITER">
-		<#case "TCP_CLIENT_READER">
-		<#case "TCP_SERVER_WRITER">
-		<#case "TCP_SERVER_READER">
-		&g_stTCPSocketChannel_${channel.index}, // specific TCP socket channel structure pointer
+		<#case "REMOTE_WRITER">
+		&g_stRemoteWriterChannel_${channel.index}, // specific TCP socket channel structure pointer
 			<#break>
-		<#case "BLUETOOTH_MASTER_WRITER">
-		<#case "BLUETOOTH_SLAVE_WRITER">
-		<#case "SERIAL_MASTER_WRITER">
-		<#case "SERIAL_SLAVE_WRITER">
-			&g_stSerialWriterChannel_${channel.index}, // specific bluetooth/serial channel structure pointer
-			<#break>
-		<#case "BLUETOOTH_MASTER_READER">
-		<#case "BLUETOOTH_SLAVE_READER">
-		<#case "SERIAL_MASTER_READER">
-		<#case "SERIAL_SLAVE_READER">
-			&g_stSerialReaderChannel_${channel.index}, // specific bluetooth/serial channel structure pointer
+		<#case "REMOTE_READER">
+		&g_stRemoteReaderChannel_${channel.index}, // specific bluetooth/serial channel structure pointer
 			<#break>
 	</#switch>
 	},
@@ -513,6 +554,42 @@ SChannel g_astChannels[] = {
 };
 // ##CHANNEL_LIST_TEMPLATE::END
 
+<#if communication_used == true>
+SChannelAPI g_stRemoteWriterChannel = {
+	UKRemoteChannel_Initialize,
+	(FnChannelReadFromQueue) NULL,
+	(FnChannelReadFromBuffer) NULL,
+	UKRemoteChannel_WriteToQueue,
+	UKRemoteChannel_WriteToBuffer,
+	(FnChannelGetAvailableChunk) NULL,
+	UKRemoteChannel_GetNumOfAvailableData,
+	UKRemoteChannel_Clear,
+	UKRemoteChannel_SetExit,
+	UKRemoteChannel_ClearExit,
+	UKRemoteChannel_FillInitialData,
+	UKRemoteChannel_Finalize,
+	UKRemoteChannel_APIInitialize, 
+	UKRemoteChannel_APIFinalize,
+};
+
+
+SChannelAPI g_stRemoteReaderChannel = {
+	UKRemoteChannel_Initialize,
+	UKRemoteChannel_ReadFromQueue,
+	UKRemoteChannel_ReadFromBuffer,
+	(FnChannelWriteToQueue) NULL,
+	(FnChannelWriteToBuffer) NULL,
+	UKRemoteChannel_GetAvailableChunk,
+	UKRemoteChannel_GetNumOfAvailableData,
+	UKRemoteChannel_Clear,
+	UKRemoteChannel_SetExit,
+	UKRemoteChannel_ClearExit,
+	(FnChannelFillInitialData) NULL,
+	UKRemoteChannel_Finalize,
+	(FnChannelAPIInitialize) NULL, 
+	(FnChannelAPIFinalize) NULL,
+};
+</#if>
 
 SChannelAPI g_stSharedMemoryChannel = {
 	UKSharedMemoryChannel_Initialize, // fnInitialize
@@ -531,136 +608,39 @@ SChannelAPI g_stSharedMemoryChannel = {
 	(FnChannelAPIFinalize) NULL,
 };
 
-<#if used_communication_list?seq_contains("tcp")>
-SChannelAPI g_stTCPSocketChannelWriter = {
-	UKTCPSocketChannel_Initialize, // fnInitialize
-	(FnChannelReadFromQueue) NULL, // fnReadFromQueue
-	(FnChannelReadFromBuffer) NULL, // fnReadFromBuffer
-	UKTCPSocketChannel_WriteToQueue, // fnWriteToQueue
-	UKTCPSocketChannel_WriteToBuffer, // fnWriteToBuffer
-	(FnChannelGetAvailableChunk) NULL, // fnGetAvailableChunk
-	UKTCPSocketChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
-	UKTCPSocketChannel_Clear, // fnClear
-	UKTCPSocketChannel_SetExit,
-	UKTCPSocketChannel_ClearExit,
-	UKTCPSocketChannel_FillInitialData,
-	UKTCPSocketChannel_Finalize, // fnFinalize
-	UKTCPServerManager_Initialize,
-	UKTCPServerManager_Finalize,
-};
-
-
-SChannelAPI g_stTCPSocketChannelReader = {
-	UKTCPSocketChannel_Initialize, // fnInitialize
-	UKTCPSocketChannel_ReadFromQueue, // fnReadFromQueue
-	UKTCPSocketChannel_ReadFromBuffer, // fnReadFromBuffer
-	(FnChannelWriteToQueue) NULL, // fnWriteToQueue
-	(FnChannelWriteToBuffer) NULL, // fnWriteToBuffer
-	UKTCPSocketChannel_GetAvailableChunk, // fnGetAvailableChunk
-	UKTCPSocketChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
-	UKTCPSocketChannel_Clear, // fnClear
-	UKTCPSocketChannel_SetExit,
-	UKTCPSocketChannel_ClearExit,
-	(FnChannelFillInitialData) NULL,
-	UKTCPSocketChannel_Finalize, // fnFinalize
-	(FnChannelAPIInitialize) NULL,
-	(FnChannelAPIFinalize) NULL,
-};
-</#if>
-
-
-<#if used_communication_list?seq_contains("bluetooth")>
-SChannelAPI g_stBluetoothChannelWriter = {
-	UKBluetoothChannel_Initialize, // fnInitialize
-	(FnChannelReadFromQueue) NULL, // fnReadFromQueue
-	(FnChannelReadFromBuffer) NULL, // fnReadFromBuffer
-	UKBluetoothChannel_WriteToQueue, // fnWriteToQueue
-	UKBluetoothChannel_WriteToBuffer, // fnWriteToBuffer
-	(FnChannelGetAvailableChunk) NULL, // fnGetAvailableChunk
-	UKBluetoothChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
-	UKBluetoothChannel_Clear, // fnClear
-	UKBluetoothChannel_SetExit,
-	UKBluetoothChannel_ClearExit,
-	UKBluetoothChannel_FillInitialData,
-	UKBluetoothChannel_Finalize, // fnFinalize
-	UKBluetoothModule_Initialize,
-	UKBluetoothModule_Finalize,
-};
-
-
-SChannelAPI g_stBluetoothChannelReader = {
-	UKBluetoothChannel_Initialize, // fnInitialize
-	UKBluetoothChannel_ReadFromQueue, // fnReadFromQueue
-	UKBluetoothChannel_ReadFromBuffer, // fnReadFromBuffer
-	(FnChannelWriteToQueue) NULL, // fnWriteToQueue
-	(FnChannelWriteToBuffer) NULL, // fnWriteToBuffer
-	UKBluetoothChannel_GetAvailableChunk, // fnGetAvailableChunk
-	UKBluetoothChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
-	UKBluetoothChannel_Clear, // fnClear
-	UKBluetoothChannel_SetExit,
-	UKBluetoothChannel_ClearExit,
-	(FnChannelFillInitialData) NULL,
-	UKBluetoothChannel_Finalize, // fnFinalize
-	(FnChannelAPIInitialize) NULL,
-	(FnChannelAPIFinalize) NULL,
-};
-</#if>
-
-<#if used_communication_list?seq_contains("serial")>
-SChannelAPI g_stSerialChannelWriter = {
-	UKSerialChannel_Initialize, // fnInitialize
-	(FnChannelReadFromQueue) NULL, // fnReadFromQueue
-	(FnChannelReadFromBuffer) NULL, // fnReadFromBuffer
-	UKSerialChannel_WriteToQueue, // fnWriteToQueue
-	UKSerialChannel_WriteToBuffer, // fnWriteToBuffer
-	(FnChannelGetAvailableChunk) NULL, // fnGetAvailableChunk
-	UKSerialChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
-	UKSerialChannel_Clear, // fnClear
-	UKSerialChannel_SetExit,
-	UKSerialChannel_ClearExit,
-	UKSerialChannel_FillInitialData,
-	UKSerialChannel_Finalize, // fnFinalize
-	UKSerialModule_Initialize,
-	UKSerialModule_Finalize,
-};
-
-
-SChannelAPI g_stSerialChannelReader = {
-	UKSerialChannel_Initialize, // fnInitialize
-	UKSerialChannel_ReadFromQueue, // fnReadFromQueue
-	UKSerialChannel_ReadFromBuffer, // fnReadFromBuffer
-	(FnChannelWriteToQueue) NULL, // fnWriteToQueue
-	(FnChannelWriteToBuffer) NULL, // fnWriteToBuffer
-	UKSerialChannel_GetAvailableChunk, // fnGetAvailableChunk
-	UKSerialChannel_GetNumOfAvailableData, // fnGetNumOfAvailableData
-	UKSerialChannel_Clear, // fnClear
-	UKSerialChannel_SetExit,
-	UKSerialChannel_ClearExit,
-	(FnChannelFillInitialData) NULL,
-	UKSerialChannel_Finalize, // fnFinalize
-	(FnChannelAPIInitialize) NULL,
-	(FnChannelAPIFinalize) NULL,
-};
-</#if>
-
-
 
 SChannelAPI *g_astChannelAPIList[] = {
 	&g_stSharedMemoryChannel,
+<#if communication_used == true>
+	&g_stRemoteReaderChannel,
+	&g_stRemoteWriterChannel,
+</#if>
+};
+
+
+
+FnChannelAPIInitialize g_aFnRemoteCommunicationModuleIntializeList[] = {
 <#if used_communication_list?seq_contains("tcp")>
-	&g_stTCPSocketChannelWriter,
-	&g_stTCPSocketChannelReader,
+	UKTCPServerManager_Initialize,
 </#if>
 <#if used_communication_list?seq_contains("bluetooth")>
-	&g_stBluetoothChannelWriter,
-	&g_stBluetoothChannelReader,
+	UKBluetoothModule_Initialize,
 </#if>
-
 <#if used_communication_list?seq_contains("serial")>
-	&g_stSerialChannelWriter,
-	&g_stSerialChannelReader,
+	UKSerialModule_Initialize,
 </#if>
+};
 
+FnChannelAPIFinalize g_aFnRemoteCommunicationModuleFinalizeList[] = {
+<#if used_communication_list?seq_contains("tcp")>
+	UKTCPServerManager_Finalize,
+</#if>
+<#if used_communication_list?seq_contains("bluetooth")>
+	UKBluetoothModule_Finalize,
+</#if>
+<#if used_communication_list?seq_contains("serial")>
+	UKSerialModule_Finalize,
+</#if>
 };
 
 <#if used_communication_list?seq_contains("bluetooth")>
@@ -731,57 +711,20 @@ uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType
 	case COMMUNICATION_TYPE_SHARED_MEMORY:
 		*ppstChannelAPI = &g_stSharedMemoryChannel;
 		break;
-	case COMMUNICATION_TYPE_TCP_SERVER_READER:
-	case COMMUNICATION_TYPE_TCP_CLIENT_READER:
-<#if used_communication_list?seq_contains("tcp")>
-		*ppstChannelAPI = &g_stTCPSocketChannelReader;
-<#else>
-		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED_YET, _EXIT)
-</#if>
-		break;
-	case COMMUNICATION_TYPE_TCP_SERVER_WRITER:
-	case COMMUNICATION_TYPE_TCP_CLIENT_WRITER:
-<#if used_communication_list?seq_contains("tcp")>
-		*ppstChannelAPI = &g_stTCPSocketChannelWriter;
+	case COMMUNICATION_TYPE_REMOTE_READER:
+<#if communication_used == true>
+		*ppstChannelAPI = &g_stRemoteReaderChannel;
 <#else>
 		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT)
 </#if>
 		break;
-		
-	case COMMUNICATION_TYPE_BLUETOOTH_MASTER_WRITER:
-	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_WRITER:
-<#if used_communication_list?seq_contains("bluetooth")>
-		*ppstChannelAPI = &g_stBluetoothChannelWriter;	
+	case COMMUNICATION_TYPE_REMOTE_WRITER:
+<#if communication_used == true>
+		*ppstChannelAPI = &g_stRemoteWriterChannel;
 <#else>
 		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT)
 </#if>
-		break;
-	case COMMUNICATION_TYPE_BLUETOOTH_MASTER_READER:
-	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_READER:
-<#if used_communication_list?seq_contains("bluetooth")>
-		*ppstChannelAPI = &g_stBluetoothChannelReader;	
-<#else>
-		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT)
-</#if>
-		break;
-
-	case COMMUNICATION_TYPE_SERIAL_MASTER_WRITER:
-	case COMMUNICATION_TYPE_SERIAL_SLAVE_WRITER:
-<#if used_communication_list?seq_contains("serial")>
-		*ppstChannelAPI = &g_stSerialChannelWriter;	
-<#else>
-		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT)
-</#if>
-		break;
-	case COMMUNICATION_TYPE_SERIAL_MASTER_READER:
-	case COMMUNICATION_TYPE_SERIAL_SLAVE_READER:
-<#if used_communication_list?seq_contains("serial")>
-		*ppstChannelAPI = &g_stSerialChannelReader;	
-<#else>
-		ERRASSIGNGOTO(result, ERR_UEM_NOT_SUPPORTED, _EXIT)
-</#if>
-		break;
-		
+		break;		
 	default:
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT)
 		break;
@@ -796,13 +739,23 @@ _EXIT:
 }
 #endif
 
+
+
 int g_nChannelNum = ARRAYLEN(g_astChannels);
 int g_nChannelAPINum = ARRAYLEN(g_astChannelAPIList);
 <#if communication_used == true>
 	<#if used_communication_list?seq_contains("tcp")>
-int g_nExternalCommunicationInfoNum = ARRAYLEN(g_astExternalCommunicationInfo);
+int g_nIndividualConnectionInfoNum = ARRAYLEN(g_astIndividualConnectionInfo);
+	<#else>
+int g_nIndividualConnectionInfoNum = 0;
 	</#if>
-
+	
+	<#if used_communication_list?seq_contains("bluetooth") || used_communication_list?seq_contains("serial")>
+int g_nAggregateConnectionInfoNum = ARRAYLEN(g_astAggregateConnectionInfo);
+	<#else>
+int g_nAggregateConnectionInfoNum = 0;
+	</#if>
+	
 	<#if (tcp_server_list?size > 0) >
 int g_nTCPServerInfoNum = ARRAYLEN(g_astTCPServerInfo);
 	<#else>
@@ -831,8 +784,10 @@ int g_nSerialMasterInfoNum = 0;
 int g_nSerialSlaveInfoNum = ARRAYLEN(g_astSerialSlaveInfo);	
 	<#else>
 int g_nSerialSlaveInfoNum = 0;
-	</#if>				
-</#if>
+	</#if>
 
+int g_nRemoteCommunicationModuleNum = ARRAYLEN(g_aFnRemoteCommunicationModuleIntializeList);
+
+</#if>
 
 

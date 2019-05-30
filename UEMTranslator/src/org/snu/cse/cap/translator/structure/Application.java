@@ -12,11 +12,13 @@ import org.snu.cse.cap.translator.ExecutionTime;
 import org.snu.cse.cap.translator.structure.channel.Channel;
 import org.snu.cse.cap.translator.structure.channel.ChannelArrayType;
 import org.snu.cse.cap.translator.structure.channel.CommunicationType;
+import org.snu.cse.cap.translator.structure.channel.ConnectionRoleType;
 import org.snu.cse.cap.translator.structure.channel.InMemoryAccessType;
 import org.snu.cse.cap.translator.structure.channel.LoopPortType;
 import org.snu.cse.cap.translator.structure.channel.Port;
 import org.snu.cse.cap.translator.structure.channel.PortDirection;
 import org.snu.cse.cap.translator.structure.channel.PortSampleRate;
+import org.snu.cse.cap.translator.structure.channel.RemoteCommunicationMethodType;
 import org.snu.cse.cap.translator.structure.device.Device;
 import org.snu.cse.cap.translator.structure.device.EnvironmentVariable;
 import org.snu.cse.cap.translator.structure.device.HWCategory;
@@ -437,9 +439,58 @@ public class Application {
 		return mappingInfo;
 	}
 	
+	
+	private void setRemoteCommunicationMethodType(Channel channel, ConnectionPair connectionPair) 
+	{
+		switch(connectionPair.getMasterConnection().getProtocol())
+		{
+		case SERIAL:
+			switch(connectionPair.getMasterConnection().getNetwork())
+			{
+			case BLUETOOTH:
+				channel.setRemoteMethodType(RemoteCommunicationMethodType.BLUETOOTH);
+				break;
+			case USB:
+			case WIRE:
+				channel.setRemoteMethodType(RemoteCommunicationMethodType.SERIAL);
+				break;
+			case ETHERNET_WI_FI:
+				break;
+			default:
+				throw new UnsupportedOperationException();				
+			}
+			break;
+		case TCP:
+			channel.setRemoteMethodType(RemoteCommunicationMethodType.TCP);
+
+			break;
+		default:
+			throw new UnsupportedOperationException();
+		}
+	}
+	
+	private void setChannelConnectionRoleType(Channel channel, ConnectionPair connectionPair, String taskName)
+	{
+		if(connectionPair.getMasterConnection().getProtocol() == ProtocolType.TCP) {
+			if(connectionPair.getMasterDeviceName().equals(taskName) == true) {
+				channel.setConnectionRoleType(ConnectionRoleType.SERVER);
+			}
+			else {
+				channel.setConnectionRoleType(ConnectionRoleType.CLIENT);
+			}		
+		}
+		else {
+			if(connectionPair.getMasterDeviceName().equals(taskName) == true) {
+				channel.setConnectionRoleType(ConnectionRoleType.MASTER);
+			}
+			else {
+				channel.setConnectionRoleType(ConnectionRoleType.SLAVE);
+			}
+		}
+	}
+	
 	private void setSourceRemoteCommunicationType(Channel channel, String srcTaskDevice, String dstTaskDevice) throws InvalidDeviceConnectionException
 	{
-		// TODO: only TCP communication is supported now
 		DeviceConnection srcTaskConnection = this.deviceConnectionMap.get(srcTaskDevice);
 		DeviceConnection dstTaskConnection = this.deviceConnectionMap.get(dstTaskDevice);
 		ConnectionPair connectionPair = null;
@@ -455,49 +506,11 @@ public class Application {
 		if(connectionPair == null) {
 			throw new InvalidDeviceConnectionException();
 		}
-			
-		switch(connectionPair.getMasterConnection().getProtocol())
-		{
-		case SERIAL:
-			switch(connectionPair.getMasterConnection().getNetwork())
-			{
-			case BLUETOOTH:
-				if(connectionPair.getMasterDeviceName().equals(srcTaskDevice) == true) {
-
-					channel.setCommunicationType(CommunicationType.BLUETOOTH_MASTER_WRITER);	
-				}
-				else {
-					channel.setCommunicationType(CommunicationType.BLUETOOTH_SLAVE_WRITER);
-				}
-				break;
-			case USB:
-			case WIRE:
-				if(connectionPair.getMasterDeviceName().equals(srcTaskDevice) == true) {
-
-					channel.setCommunicationType(CommunicationType.SERIAL_MASTER_WRITER);	
-				}
-				else {
-					channel.setCommunicationType(CommunicationType.SERIAL_SLAVE_WRITER);
-				}
-				break;
-			case ETHERNET_WI_FI:
-				break;
-			default:
-				throw new UnsupportedOperationException();				
-			}
-			break;
-		case TCP:
-			if(connectionPair.getMasterDeviceName().equals(srcTaskDevice) == true) {
-
-				channel.setCommunicationType(CommunicationType.TCP_SERVER_WRITER);	
-			}
-			else {
-				channel.setCommunicationType(CommunicationType.TCP_CLIENT_WRITER);
-			}
-			break;
-		default:
-			throw new UnsupportedOperationException();
-		}
+		
+		channel.setCommunicationType(CommunicationType.REMOTE_WRITER);
+		
+		setRemoteCommunicationMethodType(channel, connectionPair);
+		setChannelConnectionRoleType(channel, connectionPair, srcTaskDevice);
 	}
 	
 	private void setInMemoryAccessTypeOfRemoteChannel(Channel channel, MappingInfo taskMappingInfo, boolean isSrcTask)
@@ -593,7 +606,7 @@ public class Application {
 		}
 		else // located at the same device
 		{	
-			setInDeviceCommunicationType(channel,  srcTaskMappingInfo, dstTaskMappingInfo);
+			setInDeviceCommunicationType(channel, srcTaskMappingInfo, dstTaskMappingInfo);
 		}
 	}
 		
@@ -668,35 +681,29 @@ public class Application {
 		}
 	}
 	
-	private CommunicationType getDstTaskCommunicationType(CommunicationType srcTaskCommunicationType)
+	private ConnectionRoleType getDstTaskConnectionRoleType(ConnectionRoleType srcTaskConnectionRoleType)
 	{
-		CommunicationType dstTaskCommunicationType;
+		ConnectionRoleType dstTaskConnectionRoleType;
 		
-		switch(srcTaskCommunicationType)
+		switch(srcTaskConnectionRoleType)
 		{
-		case TCP_CLIENT_WRITER:
-			dstTaskCommunicationType = CommunicationType.TCP_SERVER_READER;
+		case CLIENT:
+			dstTaskConnectionRoleType = ConnectionRoleType.SERVER;
 			break;
-		case TCP_SERVER_WRITER:
-			dstTaskCommunicationType = CommunicationType.TCP_CLIENT_READER;
+		case SERVER:
+			dstTaskConnectionRoleType = ConnectionRoleType.CLIENT;
 			break;
-		case BLUETOOTH_SLAVE_WRITER:
-			dstTaskCommunicationType = CommunicationType.BLUETOOTH_MASTER_READER;
+		case MASTER:
+			dstTaskConnectionRoleType = ConnectionRoleType.SLAVE;
 			break;
-		case BLUETOOTH_MASTER_WRITER:
-			dstTaskCommunicationType = CommunicationType.BLUETOOTH_SLAVE_READER;
-			break;
-		case SERIAL_SLAVE_WRITER:
-			dstTaskCommunicationType = CommunicationType.SERIAL_MASTER_READER;
-			break;
-		case SERIAL_MASTER_WRITER:
-			dstTaskCommunicationType = CommunicationType.SERIAL_SLAVE_READER;
+		case SLAVE:
+			dstTaskConnectionRoleType = ConnectionRoleType.MASTER;
 			break;
 		default:
 			throw new UnsupportedOperationException();
 		}
 		
-		return dstTaskCommunicationType;
+		return dstTaskConnectionRoleType;
 	}
 	
 	private void setSocketIndexFromTCPConnection(Channel channel, Device targetDevice, ConnectionPair connectionPair)
@@ -725,24 +732,20 @@ public class Application {
 		ConstrainedSerialConnection connection = null;
 		ArrayList<ConstrainedSerialConnection> connectionList = null;
 		
-		switch(channel.getCommunicationType())
+		switch(channel.getRemoteMethodType())
 		{
-		case BLUETOOTH_SLAVE_WRITER:
-		case BLUETOOTH_SLAVE_READER:
-		case SERIAL_SLAVE_WRITER:
-		case SERIAL_SLAVE_READER:
-			connectionList = targetDevice.getSerialConstrainedSlaveList();
-			connection = (ConstrainedSerialConnection) connectionPair.getSlaveConnection();
+		case BLUETOOTH:
+		case SERIAL:
+			switch(channel.getConnectionRoleType())
+			{
+			case SLAVE:
+				connectionList = targetDevice.getSerialConstrainedSlaveList();
+				connection = (ConstrainedSerialConnection) connectionPair.getSlaveConnection();
+				break;
+			default:
+				throw new InvalidDeviceConnectionException();		
+			}
 			break;
-		case BLUETOOTH_MASTER_READER:
-		case BLUETOOTH_MASTER_WRITER:
-		case SERIAL_MASTER_READER:
-		case SERIAL_MASTER_WRITER:
-		case TCP_SERVER_READER:
-		case TCP_SERVER_WRITER:
-		case TCP_CLIENT_WRITER:
-		case TCP_CLIENT_READER:
-		case SHARED_MEMORY:			
 		default:
 			throw new InvalidDeviceConnectionException();	
 		}
@@ -768,35 +771,40 @@ public class Application {
 		UnconstrainedSerialConnection connection = null;
 		ArrayList<UnconstrainedSerialConnection> connectionList = null;
 		
-		switch(channel.getCommunicationType())
+		switch(channel.getRemoteMethodType())
 		{
-		case BLUETOOTH_MASTER_READER:
-		case BLUETOOTH_MASTER_WRITER:
-			connectionList = targetDevice.getBluetoothMasterList();
-			connection = (UnconstrainedSerialConnection) connectionPair.getMasterConnection();
+		case BLUETOOTH:
+			switch(channel.getConnectionRoleType())
+			{
+			case MASTER:
+				connectionList = targetDevice.getBluetoothMasterList();
+				connection = (UnconstrainedSerialConnection) connectionPair.getMasterConnection();
+				break;
+			case SLAVE:
+				connectionList = targetDevice.getBluetoothUnconstrainedSlaveList();
+				connection = (UnconstrainedSerialConnection) connectionPair.getSlaveConnection();
+				break;
+			default:
+				throw new InvalidDeviceConnectionException();
+			}
 			break;
-		case SERIAL_MASTER_READER:
-		case SERIAL_MASTER_WRITER:
-			connectionList = targetDevice.getSerialMasterList();
-			connection = (UnconstrainedSerialConnection) connectionPair.getMasterConnection();
+		case SERIAL:
+			switch(channel.getConnectionRoleType())
+			{
+			case MASTER:
+				connectionList = targetDevice.getSerialMasterList();
+				connection = (UnconstrainedSerialConnection) connectionPair.getMasterConnection();
+				break;
+			case SLAVE:
+				connectionList = targetDevice.getSerialUnconstrainedSlaveList();
+				connection = (UnconstrainedSerialConnection) connectionPair.getSlaveConnection();
+				break;
+			default:
+				throw new InvalidDeviceConnectionException();
+			}
 			break;
-		case BLUETOOTH_SLAVE_WRITER:
-		case BLUETOOTH_SLAVE_READER:
-			connectionList = targetDevice.getBluetoothUnconstrainedSlaveList();
-			connection = (UnconstrainedSerialConnection) connectionPair.getSlaveConnection();
-			break;
-		case SERIAL_SLAVE_WRITER:
-		case SERIAL_SLAVE_READER:
-			connectionList = targetDevice.getSerialUnconstrainedSlaveList();
-			connection = (UnconstrainedSerialConnection) connectionPair.getSlaveConnection();
-			break;
-		case TCP_SERVER_READER:
-		case TCP_SERVER_WRITER:
-		case TCP_CLIENT_WRITER:
-		case TCP_CLIENT_READER:
-		case SHARED_MEMORY:			
 		default:
-			throw new InvalidDeviceConnectionException();	
+			throw new InvalidDeviceConnectionException();
 		}
 		
 		connection.incrementChannelAccessNum();
@@ -820,27 +828,28 @@ public class Application {
 		DeviceConnection dstTaskConnection = this.deviceConnectionMap.get(dstDevice.getName());
 		ConnectionPair connectionPair = null;
 		Device targetDevice;
-
-		switch(channel.getCommunicationType())
+		
+		switch(channel.getConnectionRoleType())
 		{
-		case BLUETOOTH_MASTER_READER:
-		case BLUETOOTH_SLAVE_READER:
-		case SERIAL_MASTER_READER:
-		case SERIAL_SLAVE_READER:
-		case TCP_CLIENT_READER:
-			targetDevice = dstDevice;
+		case MASTER:
+		case SLAVE:
+		case CLIENT:
+			switch(channel.getCommunicationType())
+			{
+			case REMOTE_READER:
+				targetDevice = dstDevice;
+				break;
+			case REMOTE_WRITER:
+				targetDevice = srcDevice;
+				break;
+			case SHARED_MEMORY:
+				return; // do nothing with shared memory
+			default:
+				throw new InvalidDeviceConnectionException();	
+			}
 			break;
-		case BLUETOOTH_MASTER_WRITER:
-		case BLUETOOTH_SLAVE_WRITER:
-		case SERIAL_MASTER_WRITER:
-		case SERIAL_SLAVE_WRITER:
-		case TCP_CLIENT_WRITER:
-			targetDevice = srcDevice;
-			break;
-		case TCP_SERVER_READER:
-		case TCP_SERVER_WRITER:
-		case SHARED_MEMORY:
-			return; // do nothing with other channel type
+		case SERVER: // do nothing with server
+			return;
 		default:
 			throw new InvalidDeviceConnectionException();	
 		}
@@ -900,7 +909,8 @@ public class Application {
 			putPortIntoDeviceHierarchically(dstDevice, channel.getInputPort(), PortDirection.INPUT);
 			putPortIntoDeviceHierarchically(dstDevice, channel.getOutputPort(), PortDirection.OUTPUT);
 						
-			channelInDevice.setCommunicationType(getDstTaskCommunicationType(channel.getCommunicationType()));
+			channelInDevice.setCommunicationType(CommunicationType.REMOTE_READER);
+			channelInDevice.setConnectionRoleType(getDstTaskConnectionRoleType(channel.getConnectionRoleType()));
 			setInMemoryAccessTypeOfRemoteChannel(channelInDevice, dstTaskMappingInfo, false);
 			
 			findAndSetSocketInfoIndex(channelInDevice, srcDevice, dstDevice);

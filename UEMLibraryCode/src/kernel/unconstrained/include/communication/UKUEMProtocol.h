@@ -16,6 +16,8 @@
 
 #include <uem_protocol_data.h>
 
+#include <UKVirtualCommunication.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -47,7 +49,7 @@ typedef struct _SUEMProtocol *HUEMProtocol;
 
 uem_result UKUEMProtocol_Create(OUT HUEMProtocol *phProtocol);
 uem_result UKUEMProtocol_GetMessageParamNumByMessageType(EMessageType enMessageType, int *pnParamNum);
-uem_result UKUEMProtocol_SetSocket(HUEMProtocol hProtocol, HSocket hSocket);
+uem_result UKUEMProtocol_SetSocket(HUEMProtocol hProtocol, HVirtualSocket hSocket, SVirtualCommunicationAPI *pstAPI);
 uem_result UKUEMProtocol_HandShake(HUEMProtocol hProtocol, unsigned int unDeviceKey, int nChannelId);
 uem_result UKUEMProtocol_SetReadQueueRequest(HUEMProtocol hProtocol, int nIndex, int nSizeToRead);
 uem_result UKUEMProtocol_SetReadBufferRequest(HUEMProtocol hProtocol, int nIndex, int nSizeToRead);

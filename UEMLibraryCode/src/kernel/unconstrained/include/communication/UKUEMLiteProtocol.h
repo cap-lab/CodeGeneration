@@ -10,7 +10,7 @@
 
 #include <uem_common.h>
 
-#include <UKConnector.h>
+#include <UKVirtualCommunication.h>
 #include <uem_protocol_data.h>
 
 #include <uem_lite_protocol_data.h>
@@ -24,7 +24,7 @@ extern "C"
 typedef struct _SUEMLiteProtocol *HUEMLiteProtocol;
 
 uem_result UKUEMLiteProtocol_Create(OUT HUEMLiteProtocol *phProtocol);
-uem_result UKUEMLiteProtocol_SetConnector(HUEMLiteProtocol hProtocol, HConnector hConnector);
+uem_result UKUEMLiteProtocol_SetVirtualSocket(HUEMLiteProtocol hProtocol, HVirtualSocket hSocket, SVirtualCommunicationAPI *pstAPI);
 uem_result UKUEMLiteProtocol_HandShake(HUEMLiteProtocol hProtocol, HUEMLiteProtocol hReceiveProtocol, unsigned int unDeviceKey);
 uem_result UKUEMLiteProtocol_SetReadQueueRequest(HUEMLiteProtocol hProtocol, int nChannelId, int nSizeToRead);
 uem_result UKUEMLiteProtocol_SetReadBufferRequest(HUEMLiteProtocol hProtocol, int nChannelId, int nSizeToRead);

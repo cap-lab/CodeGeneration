@@ -10,7 +10,8 @@
 
 #include <uem_common.h>
 
-#include <UKConnector.h>
+#include <UKVirtualCommunication.h>
+
 #include <uem_protocol_data.h>
 
 #ifdef __cplusplus
@@ -23,6 +24,7 @@ typedef struct _SSerialCommunicationManager *HSerialCommunicationManager;
 
 typedef struct _SRequestItem {
 	int nRequestDataSize;
+	int nChunkIndex;
 } SRequestItem;
 
 typedef struct _SResponseItem {
@@ -44,7 +46,7 @@ typedef struct _SItemToSend {
 } SCommunicationQueueItem;
 
 
-uem_result UKSerialCommunicationManager_Create(HConnector hConnector, int nMaximumSend, OUT HSerialCommunicationManager *phManager);
+uem_result UKSerialCommunicationManager_Create(HVirtualSocket hSocket, SVirtualCommunicationAPI *pstAPI, int nMaxChannelNum, OUT HSerialCommunicationManager *phManager);
 uem_result UKSerialCommunicationManager_Destroy(IN OUT HSerialCommunicationManager *phManager);
 uem_result UKSerialCommunicationManager_Run(HSerialCommunicationManager hManager);
 uem_result UKSerialCommunicationManager_PutItemToSend(HSerialCommunicationManager hManager, SCommunicationQueueItem *pstItem);

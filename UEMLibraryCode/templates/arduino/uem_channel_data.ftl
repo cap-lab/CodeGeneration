@@ -117,13 +117,6 @@ SSerialInfo g_astSerialSlaveInfo[] = {
 
 // ##SPECIFIC_CHANNEL_LIST_TEMPLATE::START
 <#list channel_list as channel>
-
-	<#switch channel.communicationType>
-		<#case "SHARED_MEMORY">
-		<#case "BLUETOOTH_SLAVE_WRITER">
-		<#case "BLUETOOTH_SLAVE_READER">
-		<#case "SERIAL_SLAVE_WRITER">
-		<#case "SERIAL_SLAVE_READER">	
 SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 	s_pChannel_${channel.index}_buffer, // Channel buffer pointer
 	s_pChannel_${channel.index}_buffer, // Channel data start
@@ -131,14 +124,15 @@ SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 	0, // Channel data length
 	<#if (channel.initialDataLen > 0)>FALSE<#else>TRUE</#if>, // initial data is updated
 };
-			<#break>
-	</#switch>
-	
+
 	<#switch channel.communicationType>
-		<#case "BLUETOOTH_SLAVE_WRITER">
-		<#case "BLUETOOTH_SLAVE_READER">
-		<#case "SERIAL_SLAVE_WRITER">
-		<#case "SERIAL_SLAVE_READER">	
+		<#case "REMOTE_WRITER">
+		<#case "REMOTE_READER">	
+			<#switch channel.remoteMethodType>
+				<#case "BLUETOOTH">
+				<#case "SERIAL">
+					<#switch channel.connectionRoleType>
+						<#case "SLAVE">
 SSerialChannel g_stSerialChannel_${channel.index} = {
 	&g_astSerialSlaveInfo[${channel.socketInfoIndex}],
 	{
@@ -146,6 +140,10 @@ SSerialChannel g_stSerialChannel_${channel.index} = {
 		0,
 	},
 	&g_stSharedMemoryChannel_${channel.index},
+							<#break>
+				 	</#switch> 	
+					<#break>
+		 	</#switch>
 };
 			<#break>
 	</#switch>
@@ -170,12 +168,19 @@ SChannel g_astChannels[] = {
 		<#case "SHARED_MEMORY">
 		&g_stSharedMemoryChannel_${channel.index}, // specific shared memory channel structure pointer
 			<#break>
-		<#case "BLUETOOTH_SLAVE_WRITER">
-		<#case "BLUETOOTH_SLAVE_READER">
-		<#case "SERIAL_SLAVE_WRITER">
-		<#case "SERIAL_SLAVE_READER">
+		<#case "REMOTE_WRITER">
+		<#case "REMOTE_READER">
+			<#switch channel.remoteMethodType>
+				<#case "BLUETOOTH">
+				<#case "SERIAL">
+					<#switch channel.connectionRoleType>
+						<#case "SLAVE">
 		&g_stSerialChannel_${channel.index}, // specific serial channel structure pointer
-			<#break>
+							<#break>
+					</#switch> 	
+					<#break>
+			</#switch>
+		   <#break>
 	</#switch>
 	},
 </#list>
@@ -258,10 +263,9 @@ uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType
 	case COMMUNICATION_TYPE_SHARED_MEMORY:
 		*ppstChannelAPI = &g_stSharedMemoryChannel;
 		break;
-	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_READER:
-	case COMMUNICATION_TYPE_BLUETOOTH_SLAVE_WRITER:
-	case COMMUNICATION_TYPE_SERIAL_SLAVE_WRITER:
-	case COMMUNICATION_TYPE_SERIAL_SLAVE_READER:
+	// For unconstrained device, only serial communication (serial or bluetooth) is supported for remote communication
+	case COMMUNICATION_TYPE_REMOTE_WRITER:
+	case COMMUNICATION_TYPE_REMOTE_READER
 <#if communication_used == true>
 		*ppstChannelAPI = &g_stSerialChannel;	
 <#else>

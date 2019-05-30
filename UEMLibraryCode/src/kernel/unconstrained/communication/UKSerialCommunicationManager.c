@@ -23,6 +23,8 @@
 
 #include <UKUEMLiteProtocol.h>
 
+#include <UKVirtualCommunication.h>
+
 #include <UKSerialCommunicationManager.h>
 
 
@@ -39,7 +41,8 @@ typedef struct _SSerialCommunicationManager {
 	EUemModuleId enId;
 	HUEMLiteProtocol hSendData;
 	HUEMLiteProtocol hReceiveData;
-	HConnector hConnector;
+	HVirtualSocket hSocket;
+	SVirtualCommunicationAPI *pstAPI;
 	HFixedSizeQueue hSendQueue; // queue (with mutex) (queue size : number of channels between this connection)
 	HThread hReceiveHandlingThread;
 	SChannelIdToQueueMap *pastChannelQueueTable;
@@ -274,7 +277,7 @@ _EXIT:
 
 
 
-uem_result UKSerialCommunicationManager_Create(HConnector hConnector, int nMaxChannelNum, OUT HSerialCommunicationManager *phManager)
+uem_result UKSerialCommunicationManager_Create(HVirtualSocket hSocket, SVirtualCommunicationAPI *pstAPI, int nMaxChannelNum, OUT HSerialCommunicationManager *phManager)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSerialCommunicationManager *pstManager = NULL;
@@ -318,13 +321,13 @@ uem_result UKSerialCommunicationManager_Create(HConnector hConnector, int nMaxCh
 	result = UKUEMLiteProtocol_Create(&(pstManager->hReceiveData));
 	ERRIFGOTO(result, _EXIT);
 
-	result = UKUEMLiteProtocol_SetConnector(pstManager->hReceiveData, hConnector);
+	result = UKUEMLiteProtocol_SetVirtualSocket(pstManager->hReceiveData, hSocket, pstAPI);
 	ERRIFGOTO(result, _EXIT);
 
 	result = UKUEMLiteProtocol_Create(&(pstManager->hSendData));
 	ERRIFGOTO(result, _EXIT);
 
-	result = UKUEMLiteProtocol_SetConnector(pstManager->hSendData, hConnector);
+	result = UKUEMLiteProtocol_SetVirtualSocket(pstManager->hSendData, hSocket, pstAPI);
 	ERRIFGOTO(result, _EXIT);
 
 	result = UCThreadMutex_Create(&(pstManager->hMutex));

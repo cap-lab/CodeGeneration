@@ -71,6 +71,7 @@ uem_result UCDynamicSocket_Bind(HSocket hServerSocket);
 uem_result UCDynamicSocket_Listen(HSocket hServerSocket);
 uem_result UCDynamicSocket_Accept(HSocket hServerSocket, IN int nTimeout, IN OUT HSocket hSocket);
 uem_result UCDynamicSocket_Connect(HSocket hClientSocket, IN int nTimeout);
+uem_result UCDynamicSocket_Disconnect(HSocket hClientSocket);
 uem_result UCDynamicSocket_Send(HSocket hSocket, IN int nTimeout, IN char *pData, IN int nDataLen, OUT int *pnSentSize);
 uem_result UCDynamicSocket_Receive(HSocket hSocket, IN int nTimeout, IN OUT char *pBuffer, IN int nBufferLen, OUT int *pnReceivedSize);
 

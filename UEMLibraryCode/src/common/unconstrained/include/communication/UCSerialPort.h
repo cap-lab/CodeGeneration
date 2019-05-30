@@ -29,15 +29,13 @@ typedef struct _SUCSerialPort
 {
 	EUemModuleId enID;
     int nSerialfd;
-    int portfd;
     uem_string_struct stSerialPortPath;
     char *pszSerialPath;
-    uem_bool bIsServer;
 } SUCSerialPort;
 
 typedef struct _SUCSerialPort *HSerialPort;
 
-uem_result UCSerialPort_Create(IN SSerialPortInfo *pstSerialPortInfo, IN uem_bool bIsServer, OUT HSerialPort *phSerialPort);
+uem_result UCSerialPort_Create(IN SSerialPortInfo *pstSerialPortInfo, OUT HSerialPort *phSerialPort);
 uem_result UCSerialPort_Destroy(IN OUT HSerialPort *phSerialPort);
 uem_result UCSerialPort_Open(HSerialPort hClientSerial);
 uem_result UCSerialPort_Close(HSerialPort hClientSerial);
