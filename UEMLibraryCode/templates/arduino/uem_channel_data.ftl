@@ -265,7 +265,7 @@ uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType
 		break;
 	// For unconstrained device, only serial communication (serial or bluetooth) is supported for remote communication
 	case COMMUNICATION_TYPE_REMOTE_WRITER:
-	case COMMUNICATION_TYPE_REMOTE_READER
+	case COMMUNICATION_TYPE_REMOTE_READER:
 <#if communication_used == true>
 		*ppstChannelAPI = &g_stSerialChannel;	
 <#else>

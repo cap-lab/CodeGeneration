@@ -581,14 +581,6 @@ static uem_result disconnectToServer(SIndividualConnectionInfo *pstConnectionInf
 static uem_result initializeAggregateChannel(IN uem_bool *pbExitFlag, SAggregateServiceInfo *pstServiceInfo, int nChannelId, OUT HFixedSizeQueue *phRecevingQueue)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-
-
-	result = UKSerialCommunicationManager_SetChannel(pstServiceInfo->hManager, nChannelId);
-	ERRIFGOTO(result, _EXIT);
-
-	result = UKSerialCommunicationManager_GetChannelQueue(pstServiceInfo->hManager, nChannelId, phRecevingQueue);
-	ERRIFGOTO(result, _EXIT);
-
 	// wait until serial manager is initialized
 	while(pstServiceInfo->bInitialized == FALSE)
 	{
@@ -598,6 +590,12 @@ static uem_result initializeAggregateChannel(IN uem_bool *pbExitFlag, SAggregate
 		}
 		UCTime_Sleep(10);
 	}
+
+	result = UKSerialCommunicationManager_SetChannel(pstServiceInfo->hManager, nChannelId);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKSerialCommunicationManager_GetChannelQueue(pstServiceInfo->hManager, nChannelId, phRecevingQueue);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

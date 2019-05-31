@@ -158,7 +158,7 @@ digraph application_task_graph  {
       <#list master_to_slave_connection.slaveDeviceToConnectionMap as slave_device_name, slave_connection_list>
         <#list slave_connection_list as slave_connection>
           <@compress single_line=true>| ${slave_connection.network} / ${slave_connection.protocol} | ${slave_connection.role} |
-            <#if slave_connection.protocol == "TCP">${slave_connection.IP}:${slave_connection.port?c}<#else>${slave_connection.portAddress}</#if> | ${slave_device_name} |
+            <#if slave_connection.protocol == "TCP">${slave_connection.IP}:${slave_connection.port?c}<#else><#if slave_connection.portAddress??>${slave_connection.portAddress}<#else>Board TX: ${slave_connection.boardTXPinNumber}, Board RX: ${slave_connection.boardRXPinNumber}</#if></#if> | ${slave_device_name} |
           </@compress>
 
         </#list>

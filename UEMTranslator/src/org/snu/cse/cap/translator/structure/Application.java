@@ -455,7 +455,6 @@ public class Application {
 				channel.setRemoteMethodType(RemoteCommunicationMethodType.SERIAL);
 				break;
 			case ETHERNET_WI_FI:
-				break;
 			default:
 				throw new UnsupportedOperationException();				
 			}
@@ -828,7 +827,7 @@ public class Application {
 		DeviceConnection dstTaskConnection = this.deviceConnectionMap.get(dstDevice.getName());
 		ConnectionPair connectionPair = null;
 		Device targetDevice;
-		
+
 		switch(channel.getConnectionRoleType())
 		{
 		case MASTER:
@@ -849,6 +848,8 @@ public class Application {
 			}
 			break;
 		case SERVER: // do nothing with server
+			return;
+		case NONE:
 			return;
 		default:
 			throw new InvalidDeviceConnectionException();	

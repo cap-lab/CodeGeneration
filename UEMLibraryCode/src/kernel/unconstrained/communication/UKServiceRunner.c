@@ -42,6 +42,7 @@ static void *aggregateClientThread(void *pData)
 	int nRetryCount = 0;
 
 	pstServiceInfo = (SAggregateServiceInfo *) pData;
+	pstAPI = pstServiceInfo->pstAPI;
 
 	while(nRetryCount < CONNECT_RETRY_COUNT)
 	{
@@ -70,6 +71,32 @@ static void *aggregateClientThread(void *pData)
 
 	// handshake first
 	result = UKSerialCommunicationManager_Handshake(pstServiceInfo->hManager);
+	if(result == ERR_UEM_CONNECT_ERROR)
+	{
+		while(nRetryCount < CONNECT_RETRY_COUNT)
+		{
+			if(g_bSystemExit == TRUE)
+			{
+				ERRASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT);
+			}
+			//retry until Handshake successfully done.
+			//Handshake itself contains receive/timeout whileloop. Once it sends message, it waits to receive data
+			//3 seconds x 3 times.
+			result = UKSerialCommunicationManager_Handshake(pstServiceInfo->hManager);
+
+			if(result == ERR_UEM_CONNECT_ERROR)
+			{
+				nRetryCount++;
+				continue;
+			}
+			else if(result == ERR_UEM_NET_TIMEOUT)
+			{
+				UEM_DEBUG_PRINT("Timeout] Waiting for slave to accept handshake (%d).\n", nRetryCount);
+			}
+			ERRIFGOTO(result, _EXIT);
+			break;
+		}
+	}
 	ERRIFGOTO(result, _EXIT);
 
 	pstServiceInfo->bInitialized = TRUE;
@@ -94,6 +121,7 @@ static void *aggregateServiceThread(void *pData)
 	uem_result result = ERR_UEM_UNKNOWN;
 	HVirtualSocket hServerSocket = NULL;
 	SVirtualCommunicationAPI *pstAPI = NULL;
+	int nRetryCount = 0;
 
 	pstThreadData = (struct _SAggregateServiceThreadData *) pData;
 
@@ -107,7 +135,21 @@ static void *aggregateServiceThread(void *pData)
 	ERRIFGOTO(result, _EXIT);
 
 	result = pstAPI->fnAccept(hServerSocket, ACCEPT_TIMEOUT, pstServiceInfo->hSocket);
+	while (result == ERR_UEM_NET_TIMEOUT)
+	{
+		if(g_bSystemExit == TRUE)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT);
+		}
+		result = pstAPI->fnAccept(hServerSocket, ACCEPT_TIMEOUT, pstServiceInfo->hSocket);
+		if(result == ERR_UEM_NET_TIMEOUT)
+		{
+			continue;
+		}
+		break;
+	}
 	ERRIFGOTO(result, _EXIT);
+
 	if(result == ERR_UEM_SKIP_THIS)
 	{
 		// client socket is not provided, use server socket instead for communication
@@ -124,6 +166,27 @@ static void *aggregateServiceThread(void *pData)
 	ERRIFGOTO(result, _EXIT);
 
 	result = UKSerialCommunicationManager_AcceptHandshake(pstServiceInfo->hManager);
+	if(result == ERR_UEM_NET_TIMEOUT && hServerSocket == NULL)
+	{
+		while(nRetryCount < CONNECT_RETRY_COUNT)
+		{
+			if(g_bSystemExit == TRUE)
+			{
+				ERRASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT);
+			}
+
+			result = UKSerialCommunicationManager_AcceptHandshake(pstServiceInfo->hManager);
+			if(result == ERR_UEM_NET_TIMEOUT)
+			{
+				// Timeout value is currently set as RECEIVE_TIMEOUT(=3 seconds) in UKSerialCommunicationManager_AcceptHandshake,
+				nRetryCount++;
+				UEM_DEBUG_PRINT("Timeout] Waiting for master to be connected (%d).\n", nRetryCount);
+				continue;
+			}
+			ERRIFGOTO(result, _EXIT);
+			break;
+		}
+	}
 	ERRIFGOTO(result, _EXIT);
 
 	pstServiceInfo->bInitialized = TRUE;
@@ -135,10 +198,6 @@ _EXIT:
 	if(result != ERR_UEM_NOERROR && g_bSystemExit == FALSE)
 	{
 		UEM_DEBUG_PRINT("aggregate service thread is exited with error: %08x\n", result);
-	}
-	if(pstServiceInfo->hSocket != NULL)
-	{
-		pstAPI->fnDestroy(&pstServiceInfo->hSocket);
 	}
 	if (hServerSocket != NULL)
 	{
@@ -164,7 +223,7 @@ uem_result UKServiceRunner_StartAggregatedService(SAggregateServiceInfo *pstServ
 	pstThreadData = (struct _SAggregateServiceThreadData *) UCAlloc_malloc(sizeof(struct _SAggregateServiceThreadData));
 	ERRMEMGOTO(pstThreadData, result, _EXIT);
 
-	result = pstAPI->fnCreate(&(pstServiceInfo->hSocket), pSocketInfo);
+	result = pstAPI->fnCreate(&(pstServiceInfo->hSocket), NULL);
 	ERRIFGOTO(result, _EXIT);
 
 	pstThreadData->pstServiceInfo = pstServiceInfo;
@@ -199,7 +258,10 @@ static uem_result destroyAggreagatedService(SAggregateServiceInfo *pstServiceInf
 
 	UKSerialCommunicationManager_Destroy(&(pstServiceInfo->hManager));
 
-	pstAPI->fnDestroy(&(pstServiceInfo->hSocket));
+	if(pstServiceInfo->hSocket != NULL)
+	{
+		pstAPI->fnDestroy(&(pstServiceInfo->hSocket));
+	}
 
 	result = ERR_UEM_NOERROR;
 
