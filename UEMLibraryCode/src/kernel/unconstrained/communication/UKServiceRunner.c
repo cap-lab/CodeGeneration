@@ -220,6 +220,11 @@ uem_result UKServiceRunner_StartAggregatedService(SAggregateServiceInfo *pstServ
 #endif
 	pstAPI = pstServiceInfo->pstAPI;
 
+	if(pstServiceInfo->nMaxChannelAccessNum == 0)
+	{
+		UEMASSIGNGOTO(result, ERR_UEM_SKIP_THIS, _EXIT);
+	}
+
 	pstThreadData = (struct _SAggregateServiceThreadData *) UCAlloc_malloc(sizeof(struct _SAggregateServiceThreadData));
 	ERRMEMGOTO(pstThreadData, result, _EXIT);
 
@@ -254,9 +259,15 @@ static uem_result destroyAggreagatedService(SAggregateServiceInfo *pstServiceInf
 
 	pstServiceInfo->bInitialized = FALSE;
 
-	UCThread_Destroy(&(pstServiceInfo->hServiceThread), FALSE, DESTROY_TIMEOUT_IN_MS);
+	if(pstServiceInfo->hServiceThread != NULL)
+	{
+		UCThread_Destroy(&(pstServiceInfo->hServiceThread), FALSE, DESTROY_TIMEOUT_IN_MS);
+	}
 
-	UKSerialCommunicationManager_Destroy(&(pstServiceInfo->hManager));
+	if(pstServiceInfo->hManager != NULL)
+	{
+		UKSerialCommunicationManager_Destroy(&(pstServiceInfo->hManager));
+	}
 
 	if(pstServiceInfo->hSocket != NULL)
 	{
@@ -294,6 +305,11 @@ uem_result UKServiceRunner_StartAggregatedClientService(SAggregateServiceInfo *p
 	IFVARERRASSIGNGOTO(pSocketInfo, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
 	pstAPI = pstServiceInfo->pstAPI;
+
+	if(pstServiceInfo->nMaxChannelAccessNum == 0)
+	{
+		UEMASSIGNGOTO(result, ERR_UEM_SKIP_THIS, _EXIT);
+	}
 
 	result = pstAPI->fnCreate(&(pstServiceInfo->hSocket), pSocketInfo);
 	ERRIFGOTO(result, _EXIT);
@@ -490,8 +506,11 @@ uem_result UKServiceRunner_StopIndividualService(SIndividualServiceInfo *pstServ
 	IFVARERRASSIGNGOTO(pstServiceInfo, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 	IFVARERRASSIGNGOTO(pstServiceInfo->pstAPI, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
-	result = UCThread_Destroy(&(pstServiceInfo->hServiceThread), FALSE, DESTROY_TIMEOUT_IN_MS);
-	ERRIFGOTO(result, _EXIT);
+	if(pstServiceInfo->hServiceThread != NULL)
+	{
+		result = UCThread_Destroy(&(pstServiceInfo->hServiceThread), FALSE, DESTROY_TIMEOUT_IN_MS);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	result = pstServiceInfo->pstAPI->fnDestroy(&(pstServiceInfo->hSocket));
 	ERRIFGOTO(result, _EXIT);
