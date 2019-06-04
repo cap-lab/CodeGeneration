@@ -200,6 +200,7 @@ STCPServerInfo g_astTCPServerInfo[] = {
 </#if>
 
 
+<#if communication_used == true>
 // ##INDIVIDUAL_CONNECTION_GENERATION_TEMPLATE::START
 SIndividualConnectionInfo g_astIndividualConnectionInfo[] = {
 	<#list channel_list as channel>
@@ -227,7 +228,7 @@ SIndividualConnectionInfo g_astIndividualConnectionInfo[] = {
 	</#list>
 };
 // ##INDIVIDUAL_CONNECTION_GENERATION_TEMPLATE::END
-
+</#if>
 
 <#if used_communication_list?seq_contains("bluetooth")>
 // ##BLUETOOTH_COMMUNICATION_GENERATION_TEMPLATE::START
@@ -315,47 +316,46 @@ SSerialInfo g_astSerialSlaveInfo[] = {
 </#if>
 
 
-
+<#if communication_used == true>
 SAggregateConnectionInfo g_astAggregateConnectionInfo[] = {
-<#if used_communication_list?seq_contains("bluetooth") || used_communication_list?seq_contains("serial")>
-	<#list channel_list as channel>
+	<#if used_communication_list?seq_contains("bluetooth") || used_communication_list?seq_contains("serial")>
+		<#list channel_list as channel>
 	{
-		<#switch channel.remoteMethodType>
-			<#case "BLUETOOTH">
+			<#switch channel.remoteMethodType>
+				<#case "BLUETOOTH">
 		${channel.index},
 		{
 			(HFixedSizeQueue) NULL,
 		},
-				<#switch channel.connectionRoleType>
-					<#case "MASTER">
+					<#switch channel.connectionRoleType>
+						<#case "MASTER">
 		&(g_astBluetoothMasterInfo[${channel.socketInfoIndex}].stAggregateInfo),
-						<#break>
-					<#case "SLAVE">
+							<#break>
+						<#case "SLAVE">
 		&(g_astBluetoothSlaveInfo[${channel.socketInfoIndex}].stAggregateInfo),
-						<#break>
-				</#switch>
-				<#break>
-			<#case "SERIAL">
+							<#break>
+					</#switch>
+					<#break>
+				<#case "SERIAL">
 		${channel.index},
 		{
 			(HFixedSizeQueue) NULL,
 		},			
-				<#switch channel.connectionRoleType>
-					<#case "MASTER">
+					<#switch channel.connectionRoleType>
+						<#case "MASTER">
 		&(g_astSerialMasterInfo[${channel.socketInfoIndex}].stAggregateInfo),
-						<#break>
-					<#case "SLAVE">
+							<#break>
+						<#case "SLAVE">
 		&(g_astSerialSlaveInfo[${channel.socketInfoIndex}].stAggregateInfo),
-						<#break>
-				</#switch>
-	
-				<#break>
-		</#switch>
+							<#break>
+					</#switch>
+					<#break>
+			</#switch>
 	},
-	</#list>
-</#if>
+		</#list>
+	</#if>
 };
-
+</#if>
 
 
 SGenericMemoryAccess g_stHostMemory = {
