@@ -29,9 +29,31 @@ typedef struct _SAddOnFunction {
 extern SAddOnFunction g_astAddOns[];
 extern int g_nAddOnNum;
 
-
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
 uem_result UKAddOnHandler_Init();
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
 uem_result UKAddOnHandler_Run();
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
 uem_result UKAddOnHandler_Fini();
 
 

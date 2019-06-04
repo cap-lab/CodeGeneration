@@ -15,7 +15,28 @@ extern "C"
 {
 #endif
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nCallerTaskId
+ * @param nTaskThreadId
+ * @param[out] pnTaskIteration
+ *
+ * @return
+ */
 uem_result UKLoop_GetLoopTaskIteration(IN int nCallerTaskId, IN int nTaskThreadId, OUT int *pnTaskIteration);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nCallerTaskId
+ *
+ * @return
+ */
 uem_result UKLoop_StopNextIteration(IN int nCallerTaskId);
 
 #ifdef __cplusplus

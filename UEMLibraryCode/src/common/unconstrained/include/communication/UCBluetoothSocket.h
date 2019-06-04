@@ -17,8 +17,39 @@ extern "C"
 {
 #endif
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hSocket
+ *
+ * @return
+ */
 uem_result UCBluetoothSocket_Bind(HSocket hSocket);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hServerSocket
+ * @param hClientSocket
+ *
+ * @return
+ */
 uem_result UCBluetoothSocket_Accept(HSocket hServerSocket, HSocket hClientSocket);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hSocket
+ * @param nTimeout
+ *
+ * @return
+ */
 uem_result UCBluetoothSocket_Connect(HSocket hSocket, IN int nTimeout);
 
 #ifdef __cplusplus

@@ -13,9 +13,50 @@ extern "C"
 {
 #endif
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nSize
+ *
+ * @return
+ */
 void *UCAlloc_malloc(int nSize);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nNumOfElements
+ * @param nSize
+ *
+ * @return
+ */
 void *UCAlloc_calloc(int nNumOfElements, int nSize);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param pMem
+ * @param nSize
+ *
+ * @return
+ */
 void *UCAlloc_realloc(void *pMem, int nSize);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param pMem
+ *
+ * @return
+ */
 void UCAlloc_free(void *pMem);
 
 #define SAFEMEMFREE(mem) if((mem) != NULL){UCAlloc_free((mem));mem=NULL;}

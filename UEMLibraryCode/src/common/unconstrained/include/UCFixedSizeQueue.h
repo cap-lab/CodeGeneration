@@ -18,10 +18,55 @@ extern "C"
 
 typedef struct _SFixedSizeQueue *HFixedSizeQueue;
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nElementSize
+ * @param nElementNum
+ * @param[out] phQueue
+ *
+ * @return
+ */
 uem_result UCFixedSizeQueue_Create(int nElementSize, int nElementNum, OUT HFixedSizeQueue *phQueue);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param phQueue
+ *
+ * @return
+ */
 uem_result UCFixedSizeQueue_Destroy(IN OUT HFixedSizeQueue *phQueue);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hQueue
+ * @param pData
+ * @param nElementSize
+ *
+ * @return
+ */
 uem_result UCFixedSizeQueue_PutItem(HFixedSizeQueue hQueue, void *pData, int nElementSize);
-uem_result UCFixedSizeQueue_GetItem(HFixedSizeQueue hQueue, void *pData, int *pnElementSize);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hQueue
+ * @param pData
+ * @param[out] pnElementSize
+ *
+ * @return
+ */
+uem_result UCFixedSizeQueue_GetItem(HFixedSizeQueue hQueue, void *pData, OUT int *pnElementSize);
 
 
 #ifdef __cplusplus

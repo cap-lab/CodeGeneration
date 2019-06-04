@@ -18,6 +18,19 @@ extern "C"
 {
 #endif
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param tPrevTime
+ * @param nPeriod
+ * @param enPeriodMetric
+ * @param[out] ptNextTime
+ * @param[out] pnNextMaxRunCount
+ *
+ * @return
+ */
 uem_result UKTime_GetNextTimeByPeriod(uem_time tPrevTime, int nPeriod, ETimeMetric enPeriodMetric,
 											OUT uem_time *ptNextTime, OUT int *pnNextMaxRunCount);
 

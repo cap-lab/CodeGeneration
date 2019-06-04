@@ -328,24 +328,24 @@ SAggregateConnectionInfo g_astAggregateConnectionInfo[] = {
 		},
 				<#switch channel.connectionRoleType>
 					<#case "MASTER">
-	&(g_astBluetoothMasterInfo[${channel.socketInfoIndex}].stAggregateInfo),
+		&(g_astBluetoothMasterInfo[${channel.socketInfoIndex}].stAggregateInfo),
 						<#break>
 					<#case "SLAVE">
-	&(g_astBluetoothSlaveInfo[${channel.socketInfoIndex}].stAggregateInfo),
+		&(g_astBluetoothSlaveInfo[${channel.socketInfoIndex}].stAggregateInfo),
 						<#break>
 				</#switch>
 				<#break>
 			<#case "SERIAL">
-	${channel.index},
-	{
-		(HFixedSizeQueue) NULL,
-	},			
+		${channel.index},
+		{
+			(HFixedSizeQueue) NULL,
+		},			
 				<#switch channel.connectionRoleType>
 					<#case "MASTER">
-	&(g_astSerialMasterInfo[${channel.socketInfoIndex}].stAggregateInfo),
+		&(g_astSerialMasterInfo[${channel.socketInfoIndex}].stAggregateInfo),
 						<#break>
 					<#case "SLAVE">
-	&(g_astSerialSlaveInfo[${channel.socketInfoIndex}].stAggregateInfo),
+		&(g_astSerialSlaveInfo[${channel.socketInfoIndex}].stAggregateInfo),
 						<#break>
 				</#switch>
 	

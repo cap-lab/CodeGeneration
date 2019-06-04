@@ -45,9 +45,49 @@ extern int g_nControlTaskNum;
 extern int g_nGeneralTaskNum;
 extern int g_nCompositeTaskNum;
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param pstTask
+ *
+ * @return
+ */
 uem_result UKTaskControl_RunTask(STask *pstTask);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param pstTask
+ *
+ * @return
+ */
 uem_result UKTaskControl_StopTask(STask *pstTask);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param pstTask
+ *
+ * @return
+ */
 uem_result UKTaskControl_StoppingTask(STask *pstTask);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param pstTask
+ * @param penTaskState
+ *
+ * @return
+ */
 uem_result UKTaskControl_GetTaskState(STask *pstTask, EInternalTaskState *penTaskState);
 
 #ifdef __cplusplus

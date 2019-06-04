@@ -13,8 +13,20 @@ extern "C"
 {
 #endif
 
-
+/**
+ * @brief
+ *
+ * This function
+ *
+ */
 void UKLibrary_Initialize();
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ */
 void UKLibrary_Finalize();
 
 

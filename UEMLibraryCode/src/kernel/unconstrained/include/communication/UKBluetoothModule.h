@@ -16,7 +16,22 @@ extern "C"
 {
 #endif
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
 uem_result UKBluetoothModule_Initialize();
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
 uem_result UKBluetoothModule_Finalize();
 
 #ifdef __cplusplus

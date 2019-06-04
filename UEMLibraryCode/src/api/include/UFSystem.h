@@ -16,7 +16,26 @@ extern "C"
 #endif
 
 #ifndef API_LITE
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nCallerTaskId
+ *
+ * @return
+ */
 void UFSystem_Kill(IN int nCallerTaskId);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nCallerTaskId
+ *
+ * @return
+ */
 void UFSystem_Stop(IN int nCallerTaskId);
 #endif
 

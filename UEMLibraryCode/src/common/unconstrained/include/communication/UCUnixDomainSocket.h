@@ -17,9 +17,50 @@ extern "C"
 {
 #endif
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hSocket
+ *
+ * @return
+ */
 uem_result UCUnixDomainSocket_Bind(HSocket hSocket);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hServerSocket
+ * @param hClientSocket
+ *
+ * @return
+ */
 uem_result UCUnixDomainSocket_Accept(HSocket hServerSocket, HSocket hClientSocket);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hSocket
+ * @param nTimeout
+ *
+ * @return
+ */
 uem_result UCUnixDomainSocket_Connect(HSocket hSocket, IN int nTimeout);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hSocket
+ *
+ * @return
+ */
 uem_result UCUnixDomainSocket_Destroy(HSocket hSocket);
 
 #ifdef __cplusplus

@@ -17,14 +17,106 @@ extern "C"
 {
 #endif
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nTaskId
+ *
+ * @return
+ */
 uem_bool UKChannel_IsTaskSourceTask(int nTaskId);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nTaskId
+ * @param pszModeName
+ *
+ * @return
+ */
 uem_bool UKChannel_IsPortRateAvailableTask(int nTaskId, char *pszModeName);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
 uem_result UKChannel_SetExit();
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nTaskId
+ *
+ * @return
+ */
 uem_result UKChannel_SetExitByTaskId(int nTaskId);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nTaskId
+ *
+ * @return
+ */
 uem_result UKChannel_ClearExitByTaskId(int nTaskId);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nParentTaskId
+ *
+ * @return
+ */
 uem_result UKChannel_ClearChannelInSubgraph(int nParentTaskId);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nTaskId
+ *
+ * @return
+ */
 uem_result UKChannel_FillInitialDataBySourceTaskId(int nTaskId);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param pstPort
+ * @param[out] pnChunkNum
+ * @param[out] pnChunkLen
+ *
+ * @return
+ */
 uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT int *pnChunkLen);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nLoopTaskId
+ * @param nTaskId
+ * @param nNumOfDataToPop
+ *
+ * @return
+ */
 uem_result UKChannel_PopLoopTaskBroadcastingDataFromQueueByTaskId(int nLoopTaskId, int nTaskId, int nNumOfDataToPop);
 
 #ifdef __cplusplus

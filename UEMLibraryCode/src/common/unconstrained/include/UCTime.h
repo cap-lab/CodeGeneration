@@ -15,9 +15,37 @@ extern "C"
 {
 #endif
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param[out] ptTime
+ *
+ * @return
+ */
+uem_result UCTime_GetCurTimeInMilliSeconds(OUT uem_time *ptTime);
 
-uem_result UCTime_GetCurTimeInMilliSeconds(uem_time *ptTime);
-uem_result UCTime_GetCurTickInMilliSeconds(uem_time *ptTime);
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param[out] ptTime
+ *
+ * @return
+ */
+uem_result UCTime_GetCurTickInMilliSeconds(OUT uem_time *ptTime);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nMillisec
+ *
+ * @return
+ */
 uem_result UCTime_Sleep(int nMillisec);
 
 #ifdef __cplusplus

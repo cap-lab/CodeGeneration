@@ -45,15 +45,111 @@ typedef struct _SItemToSend {
 	USendItem uDetailItem;
 } SCommunicationQueueItem;
 
-
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hSocket
+ * @param pstAPI
+ * @param nMaxChannelNum
+ * @param[out] phManager
+ *
+ * @return
+ */
 uem_result UKSerialCommunicationManager_Create(HVirtualSocket hSocket, SVirtualCommunicationAPI *pstAPI, int nMaxChannelNum, OUT HSerialCommunicationManager *phManager);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param phManager
+ *
+ * @return
+ */
 uem_result UKSerialCommunicationManager_Destroy(IN OUT HSerialCommunicationManager *phManager);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hManager
+ *
+ * @return
+ */
 uem_result UKSerialCommunicationManager_Run(HSerialCommunicationManager hManager);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hManager
+ * @param pstItem
+ *
+ * @return
+ */
 uem_result UKSerialCommunicationManager_PutItemToSend(HSerialCommunicationManager hManager, SCommunicationQueueItem *pstItem);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hManager
+ * @param nChannelId
+ *
+ * @return
+ */
 uem_result UKSerialCommunicationManager_SetChannel(HSerialCommunicationManager hManager, int nChannelId);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hManager
+ * @param nChannelId
+ *
+ * @return
+ */
 uem_result UKSerialCommunicationManager_ReleaseChannel(HSerialCommunicationManager hManager, int nChannelId);
-uem_result UKSerialCommunicationManager_GetChannelQueue(HSerialCommunicationManager hManager, int nChannelId, HFixedSizeQueue *phQueue);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hManager
+ * @param nChannelId
+ * @param[out] phQueue
+ *
+ * @return
+ */
+uem_result UKSerialCommunicationManager_GetChannelQueue(HSerialCommunicationManager hManager, int nChannelId, OUT HFixedSizeQueue *phQueue);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hManager
+ *
+ * @return
+ */
 uem_result UKSerialCommunicationManager_Handshake(HSerialCommunicationManager hManager);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hManager
+ *
+ * @return
+ */
 uem_result UKSerialCommunicationManager_AcceptHandshake(HSerialCommunicationManager hManager);
 
 

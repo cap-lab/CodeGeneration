@@ -47,22 +47,214 @@ extern "C"
 
 typedef struct _SUEMProtocol *HUEMProtocol;
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param[out] phProtocol
+ *
+ * @return
+ */
 uem_result UKUEMProtocol_Create(OUT HUEMProtocol *phProtocol);
-uem_result UKUEMProtocol_GetMessageParamNumByMessageType(EMessageType enMessageType, int *pnParamNum);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param enMessageType
+ * @param[out] pnParamNum
+ *
+ * @return
+ */
+uem_result UKUEMProtocol_GetMessageParamNumByMessageType(EMessageType enMessageType, OUT int *pnParamNum);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hProtocol
+ * @param hSocket
+ * @param pstAPI
+ *
+ * @return
+ */
 uem_result UKUEMProtocol_SetSocket(HUEMProtocol hProtocol, HVirtualSocket hSocket, SVirtualCommunicationAPI *pstAPI);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hProtocol
+ * @param unDeviceKey
+ * @param nChannelId
+ *
+ * @return
+ */
 uem_result UKUEMProtocol_HandShake(HUEMProtocol hProtocol, unsigned int unDeviceKey, int nChannelId);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hProtocol
+ * @param nIndex
+ * @param nSizeToRead
+ *
+ * @return
+ */
 uem_result UKUEMProtocol_SetReadQueueRequest(HUEMProtocol hProtocol, int nIndex, int nSizeToRead);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hProtocol
+ * @param nIndex
+ * @param nSizeToRead
+ *
+ * @return
+ */
 uem_result UKUEMProtocol_SetReadBufferRequest(HUEMProtocol hProtocol, int nIndex, int nSizeToRead);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hProtocol
+ *
+ * @return
+ */
 uem_result UKUEMProtocol_SetAvailableIndexRequest(HUEMProtocol hProtocol);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hProtocol
+ * @param nIndex
+ *
+ * @return
+ */
 uem_result UKUEMProtocol_SetAvailableDataRequest(HUEMProtocol hProtocol, int nIndex);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hProtocol
+ * @param enErrorCode
+ * @param nReturnValue
+ *
+ * @return
+ */
 uem_result UKUEMProtocol_SetResultMessage(HUEMProtocol hProtocol, EProtocolError enErrorCode, int nReturnValue);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hProtocol
+ * @param enErrorCode
+ * @param nDataSize
+ * @param pData
+ *
+ * @return
+ */
 uem_result UKUEMProtocol_SetResultMessageWithBuffer(HUEMProtocol hProtocol, EProtocolError enErrorCode, int nDataSize, void *pData);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hProtocol
+ *
+ * @return
+ */
 uem_result UKUEMProtocol_Send(HUEMProtocol hProtocol);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hProtocol
+ *
+ * @return
+ */
 uem_result UKUEMProtocol_Receive(HUEMProtocol hProtocol);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hProtocol
+ * @param nChannelId
+ *
+ * @return
+ */
 uem_result UKUEMProtocol_SetChannelId(HUEMProtocol hProtocol, int nChannelId);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hProtocol
+ * @param[out] penMessageType
+ * @param[out] pnParamNum
+ * @param[out] ppanParam
+ *
+ * @return
+ */
 uem_result UKUEMProtocol_GetRequestFromReceivedData(HUEMProtocol hProtocol, OUT EMessageType *penMessageType, OUT int *pnParamNum, OUT int **ppanParam);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hProtocol
+ * @param[out] penErrorCode
+ * @param[out] pnReturnValue
+ *
+ * @return
+ */
 uem_result UKUEMProtocol_GetResultFromReceivedData(HUEMProtocol hProtocol, OUT EProtocolError *penErrorCode, OUT int *pnReturnValue);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hProtocol
+ * @param[out] pnBodySize
+ * @param[out] ppBody
+ *
+ * @return
+ */
 uem_result UKUEMProtocol_GetBodyDataFromReceivedData(HUEMProtocol hProtocol, OUT int *pnBodySize, OUT void **ppBody);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param[in,out] phProtocol
+ *
+ * @return
+ */
 uem_result UKUEMProtocol_Destroy(IN OUT HUEMProtocol *phProtocol);
 
 #ifdef __cplusplus

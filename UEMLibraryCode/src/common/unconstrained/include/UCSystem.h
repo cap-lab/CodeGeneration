@@ -15,6 +15,13 @@ extern "C"
 {
 #endif
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
 void UCSystem_Exit();
 
 #ifdef __cplusplus

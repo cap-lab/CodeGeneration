@@ -15,7 +15,27 @@ extern "C"
 {
 #endif
 
-uem_result UKProcessor_IsCPUByProcessorId(int nProcessorId, uem_bool *pbIsCPU);
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nProcessorId
+ * @param[out] pbIsCPU
+ * @return
+ */
+uem_result UKProcessor_IsCPUByProcessorId(int nProcessorId, OUT uem_bool *pbIsCPU);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nProcessorId
+ * @param[out] pnGPUProcessorId
+ *
+ * @return
+ */
 uem_result UKProcessor_GetGPUProcessorId(IN int nProcessorId, OUT int *pnGPUProcessorId);
 
 #ifdef __cplusplus

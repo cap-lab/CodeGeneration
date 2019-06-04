@@ -21,12 +21,52 @@ typedef struct _SThread *HThread;
 
 typedef void * (*FnNativeThread)(void *pData);
 
-uem_result UCThread_Create(FnNativeThread fnThreadRoutine, void *pUserData, HThread *phThread);
-uem_result UCThread_Destroy(HThread *phThread, uem_bool bDetach, int nTimeoutInMS);
-void UCThread_Yield();
-uem_result UCThread_SetMappedCPU(HThread hThread, int nCoreId);
-//uem_result UCThread_GetCPUAffinityMask(HThread hThread, unsigned long long *pnThreadAffinity);
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param fnThreadRoutine
+ * @param pUserData
+ * @param[out] phThread
+ *
+ * @return
+ */
+uem_result UCThread_Create(FnNativeThread fnThreadRoutine, void *pUserData, OUT HThread *phThread);
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param[in,out] phThread
+ * @param bDetach
+ * @param nTimeoutInMS
+ *
+ * @return
+ */
+uem_result UCThread_Destroy(IN OUT HThread *phThread, uem_bool bDetach, int nTimeoutInMS);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
+void UCThread_Yield();
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hThread
+ * @param nCoreId
+ *
+ * @return
+ */
+uem_result UCThread_SetMappedCPU(HThread hThread, int nCoreId);
 
 
 #ifdef __cplusplus

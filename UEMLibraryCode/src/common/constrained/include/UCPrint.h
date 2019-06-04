@@ -14,6 +14,16 @@ extern "C"
 {
 #endif
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param pszFormat
+ * @param ...
+ *
+ * @return
+ */
 void UCPrint_format(const char *pszFormat, ... );
 
 #ifdef __cplusplus

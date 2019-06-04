@@ -15,8 +15,31 @@ extern "C"
 {
 #endif
 
+#ifndef API_LITE
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nCallerTaskId
+ * @param nTaskThreadId
+ * @param[out] pnTaskIteration
+ *
+ * @return
+ */
 uem_result UFLoop_GetIteration(IN int nCallerTaskId, IN int nTaskThreadId, OUT int *pnTaskIteration);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param nCallerTaskId
+ *
+ * @return
+ */
 uem_result UFLoop_StopNextIteration(IN int nCallerTaskId);
+#endif
 
 #ifdef __cplusplus
 }

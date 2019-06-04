@@ -17,7 +17,22 @@ extern "C"
 {
 #endif
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
 uem_result UKModule_Initialize();
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
 uem_result UKModule_Finalize();
 
 extern int g_nModuleNum;

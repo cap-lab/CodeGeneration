@@ -64,15 +64,128 @@ typedef struct _SSocketAPI {
 } SSocketAPI;
 
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param enSocketType
+ * @param pstSocketAPIList
+ *
+ * @return
+ */
 uem_result UCDynamicSocket_SetAPIList(ESocketType enSocketType, SSocketAPI *pstSocketAPIList);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param pstSocketInfo
+ * @param bIsServer
+ * @param[out] phSocket
+ *
+ * @return
+ */
 uem_result UCDynamicSocket_Create(IN SSocketInfo *pstSocketInfo, IN uem_bool bIsServer, OUT HSocket *phSocket);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param phSocket
+ *
+ * @return
+ */
 uem_result UCDynamicSocket_Destroy(IN OUT HSocket *phSocket);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hServerSocket
+ *
+ * @return
+ */
 uem_result UCDynamicSocket_Bind(HSocket hServerSocket);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hServerSocket
+ *
+ * @return
+ */
 uem_result UCDynamicSocket_Listen(HSocket hServerSocket);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hServerSocket
+ * @param nTimeout
+ * @param hSocket
+ *
+ * @return
+ */
 uem_result UCDynamicSocket_Accept(HSocket hServerSocket, IN int nTimeout, IN OUT HSocket hSocket);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hClientSocket
+ * @param nTimeout
+ *
+ * @return
+ */
 uem_result UCDynamicSocket_Connect(HSocket hClientSocket, IN int nTimeout);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hClientSocket
+ *
+ * @return
+ */
 uem_result UCDynamicSocket_Disconnect(HSocket hClientSocket);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hSocket
+ * @param nTimeout
+ * @param pData
+ * @param nDataLen
+ * @param[out] pnSentSize
+ *
+ * @return
+ */
 uem_result UCDynamicSocket_Send(HSocket hSocket, IN int nTimeout, IN char *pData, IN int nDataLen, OUT int *pnSentSize);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hSocket
+ * @param nTimeout
+ * @param pBuffer
+ * @param nBufferLen
+ * @param[out] pnReceivedSize
+ *
+ * @return
+ */
 uem_result UCDynamicSocket_Receive(HSocket hSocket, IN int nTimeout, IN OUT char *pBuffer, IN int nBufferLen, OUT int *pnReceivedSize);
 
 #ifdef __cplusplus

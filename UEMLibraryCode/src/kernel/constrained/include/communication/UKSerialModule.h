@@ -18,10 +18,43 @@ extern "C"
 {
 #endif
 
-
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
 uem_result UKSerialModule_Initialize();
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
 uem_result UKSerialModule_Finalize();
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param pstSerialInfo
+ * @param pstChannel
+ *
+ * @return
+ */
 uem_result UKSerialModule_SetChannel(SSerialInfo *pstSerialInfo, SChannel *pstChannel);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
 uem_result UKSerialModule_Run();
 
 

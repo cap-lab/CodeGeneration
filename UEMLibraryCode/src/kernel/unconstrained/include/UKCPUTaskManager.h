@@ -29,20 +29,157 @@ typedef struct _SCPUTaskManager *HCPUTaskManager;
 // global variable which is used for accessing CPUTaskManager from APIs
 extern HCPUTaskManager g_hCPUTaskManager;
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param[out] phCPUTaskManager
+ *
+ * @return
+ */
 uem_result UKCPUTaskManager_Create(OUT HCPUTaskManager *phCPUTaskManager);
-//uem_result UKCPUTaskManager_RegisterTask(HCPUTaskManager hCPUTaskManager, STask *pstTask, int nCPUId);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hCPUTaskManager
+ * @param pstMappedTask
+ *
+ * @return
+ */
 uem_result UKCPUTaskManager_RegisterTask(HCPUTaskManager hCPUTaskManager, SMappedGeneralTaskInfo *pstMappedTask);
-//uem_result UKCPUTaskManager_RegisterCompositeTask(HCPUTaskManager hCPUTaskManager, SScheduledTasks *pstScheduledTasks, int nCPUId);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hCPUTaskManager
+ * @param pstMappedTask
+ *
+ * @return
+ */
 uem_result UKCPUTaskManager_RegisterCompositeTask(HCPUTaskManager hCPUTaskManager, SMappedCompositeTaskInfo *pstMappedTask);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hCPUTaskManager
+ *
+ * @return
+ */
 uem_result UKCPUTaskManager_RunRegisteredTasks(HCPUTaskManager hCPUTaskManager);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hCPUTaskManager
+ *
+ * @return
+ */
 uem_result UKCPUTaskManager_StopAllTasks(HCPUTaskManager hCPUTaskManager);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hCPUTaskManager
+ * @param nTaskId
+ *
+ * @return
+ */
 uem_result UKCPUTaskManager_SuspendTask(HCPUTaskManager hCPUTaskManager, int nTaskId);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hCPUTaskManager
+ * @param nTaskId
+ *
+ * @return
+ */
 uem_result UKCPUTaskManager_StoppingTask(HCPUTaskManager hCPUTaskManager, int nTaskId);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hCPUTaskManager
+ * @param nTaskId
+ *
+ * @return
+ */
 uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUTaskManager, int nTaskId);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hCPUTaskManager
+ * @param nTaskId
+ *
+ * @return
+ */
 uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUTaskManager, int nTaskId);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hCPUTaskManager
+ * @param nTaskId
+ *
+ * @return
+ */
 uem_result UKCPUTaskManager_ResumeTask(HCPUTaskManager hCPUTaskManager, int nTaskId);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hCPUTaskManager
+ * @param nTaskId
+ * @param[out] penTaskState
+ *
+ * @return
+ */
 uem_result UKCPUTaskManager_GetTaskState(HCPUTaskManager hCPUTaskManager, int nTaskId, EInternalTaskState *penTaskState);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hCPUTaskManager
+ * @param[out] pbStopped
+ *
+ * @return
+ */
 uem_result UKCPUTaskManager_IsAllTaskStopped(HCPUTaskManager hCPUTaskManager, uem_bool *pbStopped);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param[in,out] phCPUTaskManager
+ *
+ * @return
+ */
 uem_result UKCPUTaskManager_Destroy(IN OUT HCPUTaskManager *phCPUTaskManager);
 
 #ifdef __cplusplus

@@ -19,15 +19,74 @@ extern "C"
 {
 #endif
 
-
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param pstServiceInfo
+ * @param pSocketInfo
+ *
+ * @return
+ */
 uem_result UKServiceRunner_StartAggregatedService(SAggregateServiceInfo *pstServiceInfo, void *pSocketInfo);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param pstServiceInfo
+ *
+ * @return
+ */
 uem_result UKServiceRunner_StopAggregatedService(SAggregateServiceInfo *pstServiceInfo);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param pstServiceInfo
+ * @param pSocketInfo
+ *
+ * @return
+ */
 uem_result UKServiceRunner_StartAggregatedClientService(SAggregateServiceInfo *pstServiceInfo, void *pSocketInfo);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param pstServiceInfo
+ *
+ * @return
+ */
 uem_result UKServiceRunner_StopAggregatedClientService(SAggregateServiceInfo *pstServiceInfo);
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param pstServiceInfo
+ * @param pSocketInfo
+ *
+ * @return
+ */
 uem_result UKServiceRunner_StartIndividualService(SIndividualServiceInfo *pstServiceInfo, void *pSocketInfo);
-uem_result UKServiceRunner_StopIndividualService(SIndividualServiceInfo *pstServiceInfo);
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param pstServiceInfo
+ *
+ * @return
+ */
+uem_result UKServiceRunner_StopIndividualService(SIndividualServiceInfo *pstServiceInfo);
 
 #ifdef __cplusplus
 }

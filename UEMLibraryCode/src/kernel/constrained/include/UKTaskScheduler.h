@@ -15,7 +15,22 @@ extern "C"
 {
 #endif
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
 uem_result UKTaskScheduler_Init();
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
 uem_result UKTaskScheduler_Run();
 
 #ifdef __cplusplus

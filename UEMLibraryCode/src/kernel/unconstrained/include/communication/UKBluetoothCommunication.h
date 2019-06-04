@@ -17,6 +17,15 @@ extern "C"
 {
 #endif
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param[out] phSocket
+ * @param pSocketInfo
+ * @return
+ */
 uem_result UKBluetoothCommunication_Create(OUT HVirtualSocket *phSocket, void *pSocketInfo);
 
 

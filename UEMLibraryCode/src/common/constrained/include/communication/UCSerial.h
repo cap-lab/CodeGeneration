@@ -25,9 +25,55 @@ extern "C"
 
 typedef struct _SSerialHandle *HSerial;
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hSerial
+ *
+ * @return
+ */
 void UCSerial_Initialize(HSerial hSerial);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hSerial
+ * @param pData
+ * @param nDataLen
+ * @param[out] pnSentSize
+ *
+ * @return
+ */
 uem_result UCSerial_Send(HSerial hSerial, IN char *pData, IN int nDataLen, OUT int *pnSentSize);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hSerial
+ * @param pBuffer
+ * @param nBufferLen
+ * @param[out] pnReceivedSize
+ *
+ * @return
+ */
 uem_result UCSerial_Receive(HSerial hSerial, IN OUT char *pBuffer, IN int nBufferLen, OUT int *pnReceivedSize);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hSerial
+ * @param[out] pnAvailableSize
+ *
+ * @return
+ */
 uem_result UCSerial_Available(HSerial hSerial, OUT int *pnAvailableSize);
 
 #ifdef __cplusplus

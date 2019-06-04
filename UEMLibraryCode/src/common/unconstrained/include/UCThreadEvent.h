@@ -19,11 +19,61 @@ typedef struct _SThreadEvent *HThreadEvent;
 
 extern HThreadEvent *g_ahStaticThreadEvents;
 
-uem_result UCThreadEvent_Create(HThreadEvent *phEvent);
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param phEvent [out]
+ *
+ * @return
+ */
+uem_result UCThreadEvent_Create(OUT HThreadEvent *phEvent);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hEvent
+ *
+ * @return
+ */
 uem_result UCThreadEvent_SetEvent(HThreadEvent hEvent);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hEvent
+ *
+ * @return
+ */
 uem_result UCThreadEvent_WaitEvent(HThreadEvent hEvent);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hEvent
+ * @param llSleepTimeMs
+ *
+ * @return
+ */
 uem_result UCThreadEvent_WaitTimeEvent(HThreadEvent hEvent, long long llSleepTimeMs);
-uem_result UCThreadEvent_Destroy(HThreadEvent *phEvent);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param[in,out] phEvent
+ *
+ * @return
+ */
+uem_result UCThreadEvent_Destroy(IN OUT HThreadEvent *phEvent);
 
 #ifdef __cplusplus
 }

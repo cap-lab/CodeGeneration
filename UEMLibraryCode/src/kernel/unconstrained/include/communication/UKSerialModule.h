@@ -16,7 +16,22 @@ extern "C"
 {
 #endif
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
 uem_result UKSerialModule_Initialize();
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
 uem_result UKSerialModule_Finalize();
 
 #ifdef __cplusplus

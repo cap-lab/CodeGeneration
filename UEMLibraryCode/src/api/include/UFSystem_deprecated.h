@@ -14,7 +14,26 @@ extern "C"
 #endif
 
 #ifndef API_LITE
+/**
+ * @brief (Deprecated)
+ *
+ * This function
+ *
+ * @param nCallerTaskId
+ *
+ * @return
+ */
 void SYS_REQ_KILL(int nCallerTaskId);
+
+/**
+ * @brief (Deprecated)
+ *
+ * This function
+ *
+ * @param nCallerTaskId
+ *
+ * @return
+ */
 void SYS_REQ_STOP(int nCallerTaskId);
 #endif
 

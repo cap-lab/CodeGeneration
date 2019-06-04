@@ -15,7 +15,22 @@ extern "C"
 {
 #endif
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
 uem_result UKTCPServerManager_Initialize();
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @return
+ */
 uem_result UKTCPServerManager_Finalize();
 
 #ifdef __cplusplus

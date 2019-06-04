@@ -19,9 +19,49 @@ typedef struct _SThreadMutex *HThreadMutex;
 
 extern HThreadMutex *g_ahStaticThreadMutexes;
 
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param[out] phMutex
+ *
+ * @return
+ */
 uem_result UCThreadMutex_Create(HThreadMutex *phMutex);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hMutex
+ *
+ * @return
+ */
 uem_result UCThreadMutex_Lock(HThreadMutex hMutex);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hMutex
+ *
+ * @return
+ */
 uem_result UCThreadMutex_Unlock(HThreadMutex hMutex);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param phMutex
+ *
+ * @return
+ */
 uem_result UCThreadMutex_Destroy(HThreadMutex *phMutex);
 
 #ifdef __cplusplus

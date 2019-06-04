@@ -35,11 +35,79 @@ typedef struct _SUCSerialPort
 
 typedef struct _SUCSerialPort *HSerialPort;
 
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param pstSerialPortInfo
+ * @param[out] phSerialPort
+ *
+ * @return
+ */
 uem_result UCSerialPort_Create(IN SSerialPortInfo *pstSerialPortInfo, OUT HSerialPort *phSerialPort);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param phSerialPort
+ *
+ * @return
+ */
 uem_result UCSerialPort_Destroy(IN OUT HSerialPort *phSerialPort);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hClientSerial
+ *
+ * @return
+ */
 uem_result UCSerialPort_Open(HSerialPort hClientSerial);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hClientSerial
+ *
+ * @return
+ */
 uem_result UCSerialPort_Close(HSerialPort hClientSerial);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hSerialPort
+ * @param nTimeout
+ * @param pData
+ * @param nDataLen
+ * @param[out] pnSentSize
+ *
+ * @return
+ */
 uem_result UCSerialPort_Send(HSerialPort hSerialPort, IN int nTimeout, IN char *pData, IN int nDataLen, OUT int *pnSentSize);
+
+/**
+ * @brief
+ *
+ * This function
+ *
+ * @param hSerialPort
+ * @param nTimeout
+ * @param pBuffer
+ * @param nBufferLen
+ * @param[out] pnReceivedSize
+ *
+ * @return
+ */
 uem_result UCSerialPort_Receive(HSerialPort hSerialPort, IN int nTimeout, IN OUT char *pBuffer, IN int nBufferLen, OUT int *pnReceivedSize);
 
 #ifdef __cplusplus
