@@ -19,6 +19,14 @@ SExecutionTime g_stExecutionTime = { ${execution_time.value?c}, TIME_METRIC_${ex
 <#assign timerSlotSize=10 />
 #define MAX_TIMER_SLOT_SIZE (${timerSlotSize})
 
+<#list flat_task as task_name, task>
+	<#if task.modeTransition??>
+		<#if (task.modeTransition.modeMap?size > 1)>
+static uem_bool transitMode_${task.name}(SModeTransitionMachine *pstModeTransition);
+		</#if>
+	</#if>
+</#list>
+
 <#include "../uem_common_data.ftl">
 
 // ##LOOP_STRUCTURE_TEMPLATE::START

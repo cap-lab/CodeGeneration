@@ -144,8 +144,10 @@ ${innerspace}	STask *pstTask = (STask *)NULL;
 ${innerspace}	uem_result result;
 ${innerspace}
 ${innerspace}	result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
-${innerspace}
-${innerspace}	pstTask->astThreadContext[${scheduleItem.taskFuncId}].nRunCount = pstTask->nCurIteration;
+${innerspace}	if(result == ERR_UEM_NOERROR)
+${innerspace}	{
+${innerspace}		pstTask->astThreadContext[${scheduleItem.taskFuncId}].nCurRunIndex = pstTask->nCurIteration;
+${innerspace}	}
 ${innerspace}}
 		</#if>
 ${innerspace}${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}(${flat_task[scheduleItem.taskName].id});//UEM_DEBUG_PRINT("${scheduleItem.taskName}_Go${scheduleItem.taskFuncId} called (Line: %d)\n", __LINE__);
