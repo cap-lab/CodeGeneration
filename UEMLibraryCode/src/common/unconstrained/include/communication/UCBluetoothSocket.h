@@ -23,7 +23,7 @@ extern "C"
  * This function binds a Bluetooth socket. This is a slave-only function. \n
  * @ref UCDynamicSocket_Bind calls this function when the created socket is Bluetooth.
  *
- * @param hServerSocket a Socket handle to be binded.
+ * @param hServerSocket a socket handle to be binded.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_SOCKET_ERROR, @ref ERR_UEM_BIND_ERROR. \n
@@ -36,7 +36,7 @@ uem_result UCBluetoothSocket_Bind(HSocket hServerSocket);
  * @brief Accept a Bluetooth master connection (slave-only).
  *
  * This function accepts a master connection from different process/system. \n
- * To communicate with master, retrieved @a hClientSocket is used. \n
+ * To communicate with a master, retrieved @a hClientSocket is used. \n
  * To get new master connection, @a hClientSocket needs to be created before.
  *
  * @param hServerSocket a socket handle to accept master connection.
