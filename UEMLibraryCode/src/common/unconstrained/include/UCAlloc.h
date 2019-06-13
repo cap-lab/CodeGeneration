@@ -57,8 +57,6 @@ void *UCAlloc_realloc(void *pMem, int nSize);
  * This function deallocates the allocated memory. This is a wrapper function of free().
  *
  * @param pMem pointer to allocated memory.
- *
- * @return it returns nothing.
  */
 void UCAlloc_free(void *pMem);
 
