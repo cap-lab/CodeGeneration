@@ -60,7 +60,7 @@ uem_result UCUnixDomainSocket_Accept(HSocket hServerSocket, IN OUT HSocket hClie
  * @warning This function is not used in current UEM library code.
  *
  * @param hSocket a socket handle.
- * @param nTimeout  (not used).
+ * @param nTimeout (not used).
  *
  * @return  @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_SOCKET_ERROR, @ref ERR_UEM_CONNECT_ERROR. \n

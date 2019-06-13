@@ -14,48 +14,51 @@ extern "C"
 #endif
 
 /**
- * @brief
+ * @brief Allocate host memory.
  *
- * This function
+ * This function allocates host memory. This is a wrapper function of malloc().
  *
- * @param nSize
+ * @param nSize the size of memory to be allocated.
  *
- * @return
+ * @return the pointer to allocated memory. If the malloc() fails, it will return NULL.
  */
 void *UCAlloc_malloc(int nSize);
 
 /**
- * @brief
+ * @brief Allocate host memory and set bits to 0.
  *
- * This function
+ * This function allocates host memory and clear memory to 0. \n
+ * This is a wrapper function of calloc(). Total allocated size will be @a nNumOfElements * @a nSize.
  *
- * @param nNumOfElements
- * @param nSize
+ * @param nNumOfElements the number of elements to allocate.
+ * @param nSize the size of each element.
  *
- * @return
+ * @return the pointer to allocated memory. If the calloc() fails, it will return NULL.
  */
 void *UCAlloc_calloc(int nNumOfElements, int nSize);
 
 /**
- * @brief
+ * @brief Reallocate host memory.
  *
- * This function
+ * This function changes the size of the memory. This function may move the memory location. \n
+ * This is a wrapper function of realloc(). If the retrieved pointer indicates the new location, \n
+ * @a pMem may be deallocated.
  *
- * @param pMem
- * @param nSize
+ * @param pMem pointer to allocated memory.
+ * @param nSize new memory size.
  *
- * @return
+ * @return the pointer to reallocated memory. If the realloc() fails, it will return NULL.
  */
 void *UCAlloc_realloc(void *pMem, int nSize);
 
 /**
- * @brief
+ * @brief Deallocate host memory.
  *
- * This function
+ * This function deallocates the allocated memory. This is a wrapper function of free().
  *
- * @param pMem
+ * @param pMem pointer to allocated memory.
  *
- * @return
+ * @return it returns nothing.
  */
 void UCAlloc_free(void *pMem);
 
