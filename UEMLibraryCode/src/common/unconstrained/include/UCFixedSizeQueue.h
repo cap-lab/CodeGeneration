@@ -58,8 +58,8 @@ uem_result UCFixedSizeQueue_Destroy(IN OUT HFixedSizeQueue *phQueue);
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_TIME_EXPIRED, \n
  *         @ref ERR_UEM_SUSPEND. \n
- *         @ref ERR_EUM_TIME_EXPIRED can be returned when the queue is full and the item cannot be put to the queue during specific amount of time.
- *         @ref ERR_EUM_SUSPEND can be occurred when the queue is going to be destroyed by calling @ref UCFixedSizeQueue_Destroy.
+ *         @ref ERR_UEM_TIME_EXPIRED can be returned when the queue is full and the item cannot be put to the queue during specific amount of time.
+ *         @ref ERR_UEM_SUSPEND can be occurred when the queue is going to be destroyed by calling @ref UCFixedSizeQueue_Destroy.
  */
 uem_result UCFixedSizeQueue_PutItem(HFixedSizeQueue hQueue, void *pData, int nElementSize);
 
@@ -76,8 +76,8 @@ uem_result UCFixedSizeQueue_PutItem(HFixedSizeQueue hQueue, void *pData, int nEl
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_TIME_EXPIRED, \n
  *         @ref ERR_UEM_SUSPEND. \n
- *         @ref ERR_EUM_TIME_EXPIRED can be returned when the queue is full and the item cannot be put to the queue during specific amount of time.
- *         @ref ERR_EUM_SUSPEND can be occurred when the queue is going to be destroyed by calling @ref UCFixedSizeQueue_Destroy.
+ *         @ref ERR_UEM_TIME_EXPIRED can be returned when the queue is full and the item cannot be put to the queue during specific amount of time.
+ *         @ref ERR_UEM_SUSPEND can be occurred when the queue is going to be destroyed by calling @ref UCFixedSizeQueue_Destroy.
  */
 uem_result UCFixedSizeQueue_GetItem(HFixedSizeQueue hQueue, void *pData, OUT int *pnElementSize);
 
