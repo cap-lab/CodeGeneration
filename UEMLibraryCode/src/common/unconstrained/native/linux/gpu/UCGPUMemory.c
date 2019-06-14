@@ -119,27 +119,33 @@ uem_result UCGPUMemory_GetDevice(int *pnDevice)
 uem_result UCGPUMemory_Memcpy(void *pDest, const void *pSrc, int nSize, EMemcpyKind flags)
 {
 	cudaError_t error;
+	uem_result result = ERR_UEM_UNKNOWN;
 
 	switch (flags){
 	case MEMCPY_KIND_HOST_TO_HOST:
 		error = cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyHostToHost);
+		result = convertCUDAErrorToUEMError(error);
 		break;
 	case MEMCPY_KIND_HOST_TO_DEVICE:
 		error = cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyHostToDevice);
+		result = convertCUDAErrorToUEMError(error);
 		break;
 	case MEMCPY_KIND_DEVICE_TO_HOST:
 		error = cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyDeviceToHost);
+		result = convertCUDAErrorToUEMError(error);
 		break;
 	case MEMCPY_KIND_DEVICE_TO_DEVICE:
 		error = cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyDeviceToDevice);
+		result = convertCUDAErrorToUEMError(error);
 		break;
 	case MEMCPY_KIND_DEFAULT:
 		error = cudaMemcpy(pDest, pSrc, nSize,cudaMemcpyDefault);
+		result = convertCUDAErrorToUEMError(error);
 		break;
 	default:
-		//error;
+		result = ERR_UEM_INVALID_PARAM;
 		break;
 	}
 
-	return convertCUDAErrorToUEMError(error);
+	return result;
 }

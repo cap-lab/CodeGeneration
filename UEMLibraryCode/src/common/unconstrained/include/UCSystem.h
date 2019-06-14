@@ -16,11 +16,10 @@ extern "C"
 #endif
 
 /**
- * @brief
+ * @brief terminate a program.
  *
- * This function
+ * This function forcedly terminates the current program. This is a wrapper function exit();
  *
- * @return
  */
 void UCSystem_Exit();
 

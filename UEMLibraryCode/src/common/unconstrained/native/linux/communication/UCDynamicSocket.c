@@ -203,26 +203,6 @@ _EXIT:
 }
 
 
-/*
-static uem_result convertSocketErrorToCAPError(int nErrno)
-{
-    uem_result result = ERR_UEM_UNKNOWN;
-
-    switch(nErrno)
-    {
-    case EADDRINUSE:
-        result = ERR_UEM_BIND_ERROR;
-        break;
-    default:
-        result = ERR_UEM_NET_ERROR;
-        break;
-    }
-
-    return result;
-}
-*/
-
-
 uem_result UCDynamicSocket_Bind(HSocket hServerSocket)
 {
     uem_result result = ERR_UEM_UNKNOWN;

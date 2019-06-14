@@ -31,7 +31,7 @@
 
 #include <UCDynamicSocket.h>
 
-uem_result UCTCPSocket_Bind(HSocket hSocket)
+uem_result UCTCPSocket_Bind(HSocket hServerSocket)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SUCSocket *pstSocket = NULL;
@@ -39,7 +39,7 @@ uem_result UCTCPSocket_Bind(HSocket hSocket)
     int nRet = 0;
     struct linger stLinger;
 
-	pstSocket = (SUCSocket *) hSocket;
+	pstSocket = (SUCSocket *) hServerSocket;
 
    pstSocket->nSocketfd = socket(AF_INET, SOCK_STREAM, 0);
    if(pstSocket->nSocketfd < 0)

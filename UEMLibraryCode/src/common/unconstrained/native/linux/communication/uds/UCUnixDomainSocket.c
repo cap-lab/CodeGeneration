@@ -23,7 +23,7 @@
 
 #define MAX_SOCKET_PATH (MAX_SUN_PATH+1)
 
-uem_result UCUnixDomainSocket_Bind(HSocket hSocket)
+uem_result UCUnixDomainSocket_Bind(HSocket hServerSocket)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SUCSocket *pstSocket = NULL;
@@ -32,7 +32,7 @@ uem_result UCUnixDomainSocket_Bind(HSocket hSocket)
 	int nLen = 0;
 	 int nRet = 0;
 
-	pstSocket = (SUCSocket *) hSocket;
+	pstSocket = (SUCSocket *) hServerSocket;
 
     pstSocket->nSocketfd = socket(AF_UNIX, SOCK_STREAM, 0);
     if(pstSocket->nSocketfd < 0)

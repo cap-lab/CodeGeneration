@@ -21,48 +21,56 @@ extern HThreadMutex *g_ahStaticThreadMutexes;
 
 
 /**
- * @brief
+ * @brief Create a mutex.
  *
- * This function
+ * This function creates mutual exclusion area (or critical section).
  *
- * @param[out] phMutex
+ * @param[out] phMutex a mutex handle to be created.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_OUT_OF_MEMORY, @ref ERR_UEM_MUTEX_ERROR.
+ *         @ref ERR_UEM_MUTEX_ERROR can be occurred when the internal OS-dependent mutex operation is failed.
  */
 uem_result UCThreadMutex_Create(HThreadMutex *phMutex);
 
 /**
- * @brief
+ * @brief Enter mutual exclusion area.
  *
- * This function
+ * This function enters mutual exclusion area. To leave mutual exclusion area, @ref UCThreadMutex_Unlock is used.
  *
- * @param hMutex
+ * @param hMutex a mutex handle.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_MUTEX_ERROR. \n
+ *         @ref ERR_UEM_MUTEX_ERROR can be occurred when the internal OS-dependent mutex operation is failed.
  */
 uem_result UCThreadMutex_Lock(HThreadMutex hMutex);
 
 /**
- * @brief
+ * @brief Leave mutual exclusion area.
  *
- * This function
+ * This function leaves mutual exclusion area.
  *
- * @param hMutex
+ * @param hMutex a mutex handle.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_MUTEX_ERROR. \n
+ *         @ref ERR_UEM_MUTEX_ERROR can be occurred when the internal OS-dependent mutex operation is failed.
  */
 uem_result UCThreadMutex_Unlock(HThreadMutex hMutex);
 
 /**
- * @brief
+ * @brief Destroy mutual exclusion area.
  *
- * This function
+ * This function destroys mutual exclusion area.
  *
- * @param phMutex
+ * @param[in,out] phMutex a mutex handle to be destroyed.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_MUTEX_ERROR. \n
+ *         @ref ERR_UEM_MUTEX_ERROR can be occurred when the internal OS-dependent mutex operation is failed.
  */
-uem_result UCThreadMutex_Destroy(HThreadMutex *phMutex);
+uem_result UCThreadMutex_Destroy(IN OUT HThreadMutex *phMutex);
 
 #ifdef __cplusplus
 }

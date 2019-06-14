@@ -33,85 +33,96 @@ typedef enum _EMemoryProperty {
 } EMemoryProperty;
 
 /**
- * @brief
+ * @brief Allocate new memory for GPU.
  *
- * This function
+ * This function allocates new GPU memory. This function can be used if CUDA is available.
  *
- * @param ppMemory
- * @param nSize
+ * @param[out] ppMemory an allocated GPU memory's pointer.
+ * @param nSize memory size to be allocated
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - converted errors retrieved from cudamalloc().
  */
-uem_result UCGPUMemory_Malloc(void **ppMemory, int nSize);
+uem_result UCGPUMemory_Malloc(OUT void **ppMemory, int nSize);
 
 /**
- * @brief
+ * @brief Allocate host-side memory.
  *
- * This function
+ * This function allocates host memory which is must faster than accessing normal host memory. \n
+ * This function can be used if CUDA is available.
  *
- * @param ppMemory
- * @param nSize
- * @param flags
+ * @param[out] ppMemory an allocated host memory's pointer.
+ * @param nSize memory size to be allocated
+ * @param flags memory flags of @ref EMemoryProperty which are corresponding from cudaHostAllocXXX Flags
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - converted errors retrieved from cudaHostAlloc().
  */
 uem_result UCGPUMemory_HostAlloc(void **ppMemory, int nSize, EMemoryProperty flags);
 
 /**
- * @brief
+ * @brief Deallocate the memory previously allocated from @ref UCGPUMemory_Malloc.
  *
- * This function
+ * This function deallocates the memory previously allocated from @ref UCGPUMemory_Malloc.
  *
- * @param pMemory
+ * @param pMemory the allocated GPU memory pointer.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - converted errors retrieved from cudaFree().
  */
 uem_result UCGPUMemory_Free(void *pMemory);
 
 /**
- * @brief
+ * @brief Deallocate the memory previously allocated from @ref UCGPUMemory_HostAlloc.
  *
- * This function
+ * This function deallocates the memory previously allocated from @ref UCGPUMemory_HostAlloc.
  *
- * @param pMemory
+ * @param pMemory the allocated host memory pointer.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - converted errors retrieved from cudaFreeHost().
  */
 uem_result UCGPUMemory_FreeHost(void *pMemory);
 
 /**
- * @brief
+ * @brief Copy memory from/to host/GPU depending on @a EMemcpyKind.
  *
- * This function
+ * This function copies the host/GPU memory depending on @a EMemcpyKind.
  *
- * @param pDest
- * @param pSrc
- * @param nSize
- * @param flags
+ * @param pDest pointer to the destination of data to be copied.
+ * @param pSrc pointer to the source of data to be copied.
+ * @param nSize size of data to be copied.
+ * @param flags a flag indicates the location of source and destination pointer.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - converted errors retrieved from cudaMemcpy().
+ *
+ * @sa EMemcpyKind
  */
 uem_result UCGPUMemory_Memcpy(void *pDest, const void *pSrc, int nSize, EMemcpyKind flags);
 
 /**
- * @brief
+ * @brief Set GPU memory access location.
  *
- * This function
+ * This function sets the GPU memory access location. \n
+ * By setting this value, the running thread can map the GPU memory to the specific GPU if the multiple GPUs are used.
  *
- * @param nDevice
+ * @param nDevice A GPU device number to be mapped.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - converted errors retrieved from cudaSetDevice().
  */
 uem_result UCGPUMemory_SetDevice(int nDevice);
 
 /**
- * @brief
+ * @brief Get a current thread's GPU memory access location.
  *
- * This function
+ * This function retrieves the GPU device number which is mapped on the current running thread.
  *
- * @param[out] pnDevice
+ * @param[out] pnDevice A GPU device number which is mapped on the current thread.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - converted errors retrieved from cudaGetDevice().
  */
 uem_result UCGPUMemory_GetDevice(OUT int *pnDevice);
 
