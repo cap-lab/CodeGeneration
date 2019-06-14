@@ -16,64 +16,102 @@ extern "C"
 #endif
 
 /**
- * @brief
+ * @brief Execute task.
  *
- * This function
+ * The task keeps running all the time.
  *
- * @param nCallerTaskId
- * @param pszTaskName
+ * @param nCallerTaskId id of caller task.
+ * @param pszTaskName target task name to be run.
  *
  * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid Caller Task or target task name. \n
+ * @ref ERR_UEM_ILLEGAL_CONTROL if caller task is not a Control task. \n
+ * @ref ERR_UEM_ILLEGAL_DATA if subgraph containing target task is Process Network type. \n
+
+ *\n
+ * Functions that may propagate error results : \n
+ * (constrained kernel code) UKTaskControl_RunTask \n
+ * (unconstrained kernel code) UKCPUTaskManager_RunTask \n
+ * \n
+ *
  */
 uem_result UFControl_RunTask (IN int nCallerTaskId, IN char *pszTaskName);
 
 /**
- * @brief
+  * @brief Stop task execution.
  *
- * This function
+ * The task could be continued by @ref UFControl_RunTask.
  *
- * @param nCallerTaskId
- * @param pszTaskName
- * @param bDelayedStop
+ * @param nCallerTaskId id of caller task.
+ * @param pszTaskName target task name to be stopped.
+ * @param bDelayedStop task is terminated after The job currently being run is done.
  *
  * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid caller task id or target task name.
+ * @ref ERR_UEM_ILLEGAL_CONTROL, \n
+ * (unconstrained kernel code) when bDelayedStop is True, task type is Computational,
+ * parents task is null and taskId is not matched to the id found by name. \n
+ * (constrained kernel code) when Caller task is not Control Task. \n
+ *
+ *\n
+ * Functions that may propagate error results : \n
+ * @ref UKCPUTaskManager_StopTask
+ * @ref UKCPUTaskManager_StoppingTask\n
+ *  \n
  */
 uem_result UFControl_StopTask (IN int nCallerTaskId, IN char *pszTaskName, IN uem_bool bDelayedStop);
 
 /**
- * @brief
+ * @brief Execute a task only once.
  *
- * This function
+ * TASK_INIT and TASK_WRAPUP are also called when executing.
  *
- * @param nCallerTaskId
- * @param pszTaskName
+ * @param nCallerTaskId id of caller task.
+ * @param pszTaskName target task name to be stopped.
  *
  * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid caller task id or target task name.\n
+ * @ref ERR_UEM_ILLEGAL_CONTROL, \n
+ * (constrained kernel code) when Caller task is not Control Task. \n
  */
 uem_result UFControl_CallTask (IN int nCallerTaskId, IN char *pszTaskName);
 
 #ifndef API_LITE
 /**
- * @brief
+ * @brief Suspend a task.
  *
- * This function
+ * The task could be continued by @ref UFControl_ResumeTask.
  *
- * @param nCallerTaskId
- * @param pszTaskName
+ * @param nCallerTaskId id of caller task.
+ * @param pszTaskName target task to be suspended.
  *
  * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid caller task id or target task name. \n
+ * @ref ERR_UEM_ILLEGAL_CONTROL when Caller task is not Control Task. \n
  */
+
 uem_result UFControl_SuspendTask (IN int nCallerTaskId, IN char *pszTaskName);
 
 /**
- * @brief
+ * @brief Resume suspended task.
  *
- * This function
- *
- * @param nCallerTaskId
- * @param pszTaskName
+ * @param nCallerTaskId id of caller task.
+ * @param pszTaskName target task to be resumed.
  *
  * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid caller task id or target task name. \n
+ * @ref ERR_UEM_ILLEGAL_CONTROL when Caller task is not Control Task. \n
+
+ * \n
+ *  Functions that may propagate error results \n
+ * @ref UKCPUTaskManager_ResumeTask \n
+ * \n
+ *
  */
 uem_result UFControl_ResumeTask (IN int nCallerTaskId, IN char *pszTaskName);
 #endif

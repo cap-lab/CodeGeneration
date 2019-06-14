@@ -15,22 +15,19 @@ extern "C"
 
 #ifndef API_LITE
 /**
- * @brief (Deprecated)
+ * @brief (Deprecated) Kill running program.
  *
- * This function
- *
- * @param nCallerTaskId
+ * @param nCallerTaskId id of caller task(currently not used).
  *
  * @return
+ *
  */
 void SYS_REQ_KILL(int nCallerTaskId);
 
 /**
- * @brief (Deprecated)
+ * @brief (Deprecated) Stop execution of each task, then set whole program to be terminated.
  *
- * This function
- *
- * @param nCallerTaskId
+ * @param nCallerTaskId id of caller task(currently not used).
  *
  * @return
  */

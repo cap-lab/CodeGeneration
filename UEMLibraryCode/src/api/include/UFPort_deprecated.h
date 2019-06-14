@@ -14,117 +14,111 @@ extern "C"
 #endif
 
 /**
- * @brief (Deprecated)
+ * @brief (Deprecated) returns channel ID corresponding to the task and port name
  *
- * This function
+ * returned nChannelId value is INVALID_CHANNEL_ID(== -1) if channel not exists.
  *
- * @param nTaskId
- * @param pszPortName
+ * @param nTaskId id of task
+ * @param pszPortName port name
  *
- * @return
+ * @return corresponding channel id
+ **
  */
+
 int PORT_INITIALIZE(int nTaskId, const char *pszPortName);
 
 /**
- * @brief (Deprecated)
+ * @brief (Deprecated) receive data from Message Queue..
  *
- * This function
+ * blocked if no data could be read.
  *
- * @param nChannelId
- * @param pBuffer
- * @param nLen
+ * @param nChannelId ID of channel to receive data.
+ * @param pBuffer buffer to receive data.
+ * @param nLen buffer size.
  *
- * @return
+ * @return size of received data.
  */
 int MQ_RECEIVE(int nChannelId, unsigned char *pBuffer, int nLen);
 
 /**
- * @brief (Deprecated)
+ * @brief (Deprecated) send data to Message Queue.
  *
- * This function
+ * @param nChannelId ID of channel to send data.
+ * @param pBuffer buffer to send data.
+ * @param nLen buffer size.
  *
- * @param nChannelId
- * @param pBuffer
- * @param nLen
- *
- * @return
+ * @return sent data size.
  */
 int MQ_SEND(int nChannelId, unsigned char *pBuffer, int nLen);
 
 /**
- * @brief (Deprecated)
+ * @brief (Deprecated) Check if available data exists on the port.
  *
- * This function
+ * @param nChannelId ID of channel to check available data.
  *
- * @param nChannelId
- *
- * @return
+ * @return data size that could be received.
  */
 int MQ_AVAILABLE(int nChannelId);
 
 /**
- * @brief (Deprecated)
+@brief (Deprecated) receive data from buffer
  *
- * This function
+ * blocked if no data could be read.
  *
- * @param nChannelId
- * @param pBuffer
- * @param nLen
+ * @param nChannelId ID of channel to receive data.
+ * @param pBuffer buffer to receive data.
+ * @param nLen buffer size.
  *
- * @return
+ * @return size of received data.
  */
 int BUF_RECEIVE(int nChannelId, unsigned char *pBuffer, int nLen);
 
 /**
- * @brief (Deprecated)
+ * @brief (Deprecated) send data to buffer.
  *
- * This function
+ * @param nChannelId ID of channel to send data.
+ * @param pBuffer buffer to send data.
+ * @param nLen buffer size.
  *
- * @param nChannelId
- * @param pBuffer
- * @param nLen
- *
- * @return
+ * @return sent data size.
  */
 int BUF_SEND(int nChannelId, unsigned char *pBuffer, int nLen);
 
 #ifndef API_LITE
 /**
- * @brief (Deprecated)
+ * @brief (Deprecated) receives data from specific index of the array channel.
  *
- * This function
+ * blocked if no data in that chunk index exists.
  *
- * @param nChannelId
- * @param pBuffer
- * @param nLen
- * @param nIndex
+ * @param nChannelId ID of channel to receive data.
+ * @param pBuffer buffer to receive data.
+ * @param nLen buffer size.
+ * @param nIndex array channel index.
  *
- * @return
+ * @return size of received data
  */
 int AC_RECEIVE(int nChannelId, unsigned char *pBuffer, int nLen, int nIndex);
 
 /**
- * @brief (Deprecated)
+ * @brief (Deprecated) send data to a specific index of the array channel.
  *
- * This function
+ * blocked If the data in that chunk index is not read yet.
  *
- * @param nChannelId
- * @param pBuffer
- * @param nLen
- * @param nIndex
+ * @param nChannelId ID of channel to send data.
+ * @param pBuffer buffer to send data.
+ * @param nLen buffer size.
+ * @param nIndex  array channel index.
  *
- * @return
+ * @return sent data size.
  */
 int AC_SEND(int nChannelId, unsigned char *pBuffer, int nLen, int nIndex);
 
 /**
- * @brief (Deprecated)
+ * @brief (Deprecated)  return an index that can receive the current data from the array channel.
  *
- * This function
+ * @param nChannelId ID of channel to check available data.
  *
- * @param nChannelId
- *
- * @return
+ * @return Index of a specific chunk having data to be received.
  */
 int AC_CHECK(int nChannelId);
 #endif

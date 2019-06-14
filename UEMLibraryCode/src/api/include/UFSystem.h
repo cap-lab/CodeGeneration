@@ -17,22 +17,18 @@ extern "C"
 
 #ifndef API_LITE
 /**
- * @brief
- *
- * This function
- *
- * @param nCallerTaskId
+ * @brief Kill the program.
+ * *
+ * @param nCallerTaskId id of caller task(currently not used).
  *
  * @return
  */
 void UFSystem_Kill(IN int nCallerTaskId);
 
 /**
- * @brief
+ * @brief Stop execution of each task, then set whole program to be terminated.
  *
- * This function
- *
- * @param nCallerTaskId
+ * @param nCallerTaskId id of caller task(currently not used).
  *
  * @return
  */

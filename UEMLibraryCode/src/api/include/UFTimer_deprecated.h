@@ -14,48 +14,46 @@ extern "C"
 #endif
 
 /**
- * @brief (Deprecated)
+ * @brief (Deprecated) Return the current time base.
  *
- * This function
+ * time is expressed in usec unit, and can be expressed up to 100 seconds.
  *
- * @param nCallerTaskId
+ * @param nCallerTaskId id of caller task.
  *
- * @return
+ * @return timebase value.
  */
 unsigned int SYS_REQ_GET_CURRENT_TIME_BASE(int nCallerTaskId);
 
 /**
- * @brief (Deprecated)
+ * @brief (Deprecated) Set a timer based on current time.
  *
- * This function
+ * @param nCallerTaskId id of caller task.
+ * @param nTimeValue timer value.
+ * @param pszTimeUnit timer unit. \n
+ * can choose between "S", "MS" ,"US"(default is US).
  *
- * @param nCallerTaskId
- * @param nTimeValue
- * @param pszTimeUnit
- *
- * @return
+ * @return timer id.
  */
 int SYS_REQ_SET_TIMER(int nCallerTaskId, unsigned int nTimeValue, char *pszTimeUnit);
 
 /**
- * @brief (Deprecated)
+ * @brief (Deprecated) Check if the set timer expires.
  *
- * This function
+ * If the time elapses, the timer is re-initialized.
  *
- * @param nCallerTaskId
- * @param nTimerId
+ * @param nCallerTaskId id of caller task.
+ * @param nTimerId timer id.
  *
- * @return
+ * @return value indicating whether time is passed or not. \n
+ * 1 indicates time passed, 0 indicates time not passed.
  */
 int SYS_REQ_GET_TIMER_ALARMED(int nCallerTaskId, unsigned int nTimerId);
 
 /**
- * @brief (Deprecated)
+ * @brief (Deprecated) re-initialized the timer.
  *
- * This function
- *
- * @param nCallerTaskId
- * @param nTimerId
+ * @param nCallerTaskId id of caller task.
+ * @param nTimerId timer id.
  *
  * @return
  */
