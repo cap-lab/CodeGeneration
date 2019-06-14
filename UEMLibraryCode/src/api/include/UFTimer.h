@@ -72,7 +72,7 @@ uem_result UFTimer_SetAlarm (IN int nCallerTaskId, IN int nTimeValue, IN char *p
 uem_result UFTimer_GetAlarmed (IN int nCallerTaskId, IN int nTimerId, OUT uem_bool *pbTimerPassed);
 
 /**
- * @brief re-initialized the timer.
+ * @brief re-initialize the timer.
  *
  * @param nCallerTaskId id of caller task.
  * @param nTimerId timer id.
@@ -81,6 +81,7 @@ uem_result UFTimer_GetAlarmed (IN int nCallerTaskId, IN int nTimerId, OUT uem_bo
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
  * @ref ERR_UEM_INVALID_PARAM for invalid caller task id, or \n
  * if nTimerId less then 0 or nTimerId greater then or equal to g_nTimerSlotNum, or \n
+ * corresponding time value is INVALID_TIME_VALUE. \n
  * @ref ERR_UEM_ILLEGAL_CONTROL if caller task is not a Control task. \n
  * @ref ERR_UEM_ILLEGAL_DATA if timer id does not match to any task timer slot.
  */

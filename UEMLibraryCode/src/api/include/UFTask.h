@@ -34,7 +34,7 @@ typedef enum _ETaskState {
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
  * @ref ERR_UEM_INVALID_PARAM for invalid caller task id, task name, parameter name. \n
  * @ref ERR_UEM_ILLEGAL_CONTROL if task is not Control task and task tries to get parameter at other task. \n
- * @ref ERR_UEM_NO_DATA if no task exists corresponding to that name. \n
+ * @ref ERR_UEM_NO_DATA if no task exists corresponding to task id or task name. \n
  * @ref ERR_UEM_NOT_FOUND if parameter does not exists at target task.
  */
 uem_result UFTask_GetIntegerParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, OUT int *pnParamVal);
@@ -51,7 +51,7 @@ uem_result UFTask_GetIntegerParameter (IN int nCallerTaskId, IN char *pszTaskNam
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
  * @ref ERR_UEM_INVALID_PARAM for invalid caller task id, task name, parameter name. \n
  * @ref ERR_UEM_ILLEGAL_CONTROL if task is not Control task. \n
- * @ref ERR_UEM_NO_DATA if no task exists corresponding to that name. \n
+ * @ref ERR_UEM_NO_DATA if no task exists corresponding to task id or task name. \n
  * @ref ERR_UEM_NOT_FOUND if parameter does not exists at target task.
  */
 
@@ -69,15 +69,13 @@ uem_result UFTask_SetIntegerParameter (IN int nCallerTaskId, IN char *pszTaskNam
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
  * @ref ERR_UEM_INVALID_PARAM for invalid caller task id, task name, parameter name. \n
  * @ref ERR_UEM_ILLEGAL_CONTROL if task is not Control task and task tries to get parameter at other task. \n
- * @ref ERR_UEM_NO_DATA if no task exists corresponding to that name. \n
+ * @ref ERR_UEM_NO_DATA if no task exists corresponding to task id or task name. \n
  * @ref ERR_UEM_NOT_FOUND if parameter does not exists at target task.
  */
 uem_result UFTask_GetFloatParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, OUT double *pdbParamVal);
 
 /**
  * @brief Set the corresponding floating point parameter of the corresponding task.
- *
- * This function
  *
  * @param nCallerTaskId id of caller task.
  * @param pszTaskName task name with the corresponding parameter.
@@ -88,7 +86,7 @@ uem_result UFTask_GetFloatParameter (IN int nCallerTaskId, IN char *pszTaskName,
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
  * @ref ERR_UEM_INVALID_PARAM for invalid caller task id, task name, parameter name. \n
  * @ref ERR_UEM_ILLEGAL_CONTROL if task is not Control task. \n
- * @ref ERR_UEM_NO_DATA if no task exists corresponding to that name. \n
+ * @ref ERR_UEM_NO_DATA if no task exists corresponding to task id or task name. \n
  * @ref ERR_UEM_NOT_FOUND if parameter does not exists at target task.
  */
 uem_result UFTask_SetFloatParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, IN double dbParamVal);
