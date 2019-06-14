@@ -17,54 +17,56 @@ extern "C"
 
 
 /**
- * @brief
+ * @brief Change endianness from system-endian integer to little-endian byte order.
  *
- * This function
+ * This function stores an integer value to buffer with little-endian byte order. \n
+ * @a nValue can be both little or big endian depending on what kind of system is used.
  *
- * @param nValue
- * @param pBuffer
- * @param nBufferLen
+ * @param nValue an integer value to be stored on the buffer.
+ * @param[in,out] pBuffer a buffer to store an integer value with little-endian order.
+ * @param nBufferLen size of the buffer.
  *
- * @return
+ * @return It returns TRUE if the conversion is successfully done. Otherwise, it returns FALSE.
  */
 uem_bool UCEndian_SystemIntToLittleEndianChar(int nValue, IN OUT char *pBuffer, int nBufferLen);
 
 /**
- * @brief
+ * @brief Change endianness from system-endian short to little-endian byte order.
  *
- * This function
+ * This function stores a short value to buffer with little-endian byte order. \n
+ * @a sValue can be both little or big endian depending on what kind of system is used.
  *
- * @param sValue
- * @param pBuffer
- * @param nBufferLen
+ * @param sValue a short value to be stored on the buffer.
+ * @param[in,out] pBuffer a buffer to store a short value with little-endian order.
+ * @param nBufferLen size of the buffer.
  *
- * @return
+ * @return It returns TRUE if the conversion is successfully done. Otherwise, it returns FALSE.
  */
 uem_bool UCEndian_SystemShortToLittleEndianChar(short sValue, IN OUT char *pBuffer, int nBufferLen);
 
 /**
- * @brief
+ * @brief Change endianness from little-endian byte order to system-endian integer.
  *
- * This function
+ * This function gets an integer value from the buffer with little-endian order.
  *
- * @param pBuffer
- * @param nBufferLen
- * @param[out] pnValue
+ * @param pBuffer a buffer to get an integer value.
+ * @param nBufferLen size of the buffer.
+ * @param[out] pnValue an integer value retrieved from the buffer.
  *
- * @return
+ * @return It returns TRUE if the conversion is successfully done. Otherwise, it returns FALSE.
  */
 uem_bool UCEndian_LittleEndianCharToSystemInt(char *pBuffer, int nBufferLen, OUT int *pnValue);
 
 /**
- * @brief
+ * @brief Change endianness from little-endian byte order to system-endian short.
  *
- * This function
+ * This function gets a short value from the buffer with little-endian order.
  *
- * @param pBuffer
- * @param nBufferLen
- * @param[out] psValue
+ * @param pBuffer a buffer to get a short value.
+ * @param nBufferLen size of the buffer.
+ * @param[out] psValue a short value retrieved from the buffer.
  *
- * @return
+ * @return It returns TRUE if the conversion is successfully done. Otherwise, it returns FALSE.
  */
 uem_bool UCEndian_LittleEndianCharToSystemShort(char *pBuffer, int nBufferLen, OUT short *psValue);
 
