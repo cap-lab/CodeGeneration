@@ -288,14 +288,21 @@ _EXIT:
 
 uem_result UCSerialPort_Close(HSerialPort hSerialPort)
 {
-    uem_result result = ERR_UEM_NOERROR;
-
+    uem_result result = ERR_UEM_UNKNOWN;
+    int nRet = 0;
+#ifdef ARGUMENT_CHECK
+    if(IS_VALID_HANDLE(hSerialPort, ID_UEM_SERIAL) == FALSE)
+    {
+        ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+    }
+#endif
     if(hSerialPort->nSerialfd != SERIAL_FD_NOT_SET)
     {
     	close(hSerialPort->nSerialfd);
     	hSerialPort->nSerialfd = SERIAL_FD_NOT_SET;
     }
-
+    result = ERR_UEM_NOERROR;
+_EXIT:
     return result;
 }
 
