@@ -34,11 +34,16 @@ _EXIT:
 uem_result UCTime_Sleep(int nMillisec)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-
+#ifdef ARGUMENT_CHECK
+    if(nMillisec < 0)
+    {
+    	ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+    }
+#endif
 	delay((unsigned long) nMillisec);
 
 	result = ERR_UEM_NOERROR;
-
+_EXIT:
 	return result;
 }
 

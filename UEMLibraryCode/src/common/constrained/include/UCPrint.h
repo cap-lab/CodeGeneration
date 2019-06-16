@@ -15,14 +15,15 @@ extern "C"
 #endif
 
 /**
- * @brief
+ * @brief Print format for Arduino platform.
  *
- * This function
+ * This function works as printf() function in unconstrained platforms. \n
  *
- * @param pszFormat
- * @param ...
+ * @warning This function costs lots of memory for memory-constrained devices, so minimum usage is required.
+ * @warning Floating point printing may not be working well because of device restriction.
  *
- * @return
+ * @param pszFormat print format which is similar to printf().
+ * @param ... arguments used in printf().
  */
 void UCPrint_format(const char *pszFormat, ... );
 

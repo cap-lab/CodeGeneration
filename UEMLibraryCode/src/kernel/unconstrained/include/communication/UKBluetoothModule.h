@@ -17,20 +17,25 @@ extern "C"
 #endif
 
 /**
- * @brief
+ * @brief Initialize Bluetooth module.
  *
- * This function
+ * This function initialize Bluetooth aggregate clients and services. \n
+ * This function establish connections with other Bluetooth devices for channel communication.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_OUT_OF_MEMORY, @ref ERR_UEM_INTERNAL_FAIL, and \n
+ *         errors corresponding to @ref SVirtualCommunication fnCreate().
  */
 uem_result UKBluetoothModule_Initialize();
 
 /**
- * @brief
+ * @brief Finalize Bluetooth module.
  *
- * This function
+ * This function finalizes Bluetooth aggregate clients and services. \n
+ * This function destroys connections with other Bluetooth devices.
  *
- * @return
+ * @return This function always returns @ref ERR_UEM_NOERROR. \n
+ *
  */
 uem_result UKBluetoothModule_Finalize();
 
