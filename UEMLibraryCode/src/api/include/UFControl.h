@@ -4,7 +4,6 @@
  *  Created on: 2017. 8. 11.
  *      Author: jej
  */
-//UKCPUTaskManager쪽 error를 어떻게 서술해줘야 할지 고민.
 
 #ifndef SRC_API_INCLUDE_UFCONTROL_H_
 #define SRC_API_INCLUDE_UFCONTROL_H_
