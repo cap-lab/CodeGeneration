@@ -423,7 +423,7 @@ static uem_result setResultMessage(SSerialCommunicationManager *pstManager, int 
 	{
 	case MESSAGE_TYPE_READ_QUEUE:
 	case MESSAGE_TYPE_READ_BUFFER:
-		result = UKUEMLiteProtocol_SetResultMessageHeaderUsingBuffer(pstManager->hSendData,
+		result = UKUEMLiteProtocol_SetResultMessageUsingBuffer(pstManager->hSendData,
 														pstResponseItem->enRequestMessageType, nChannelId,
 														ERR_UEMPROTOCOL_NOERROR, pstResponseItem->nDataSize,
 														pstResponseItem->pData);

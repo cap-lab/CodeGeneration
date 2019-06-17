@@ -293,7 +293,7 @@ _EXIT:
 }
 
 
-uem_result UKUEMLiteProtocol_SetResultMessageHeaderUsingBuffer(HUEMLiteProtocol hProtocol, EMessageType enRequestType, int nChannelId, EProtocolError enErrorCode, int nDataSize, void *pData)
+uem_result UKUEMLiteProtocol_SetResultMessageUsingBuffer(HUEMLiteProtocol hProtocol, EMessageType enRequestType, int nChannelId, EProtocolError enErrorCode, int nDataSize, void *pData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _SUEMLiteProtocol *pstProtocol = NULL;
