@@ -86,9 +86,9 @@ uem_result UFPort_ReadFromBuffer (IN int nChannelId, IN OUT unsigned char *pBuff
  * @brief Send data to a specific chunk index on a port whose type is queue.
  * blocked If the data in that chunk index is not read yet.
  *
- * @param nChannelId ID of channel to receive data.
- * @param pBuffer buffer to receive data.
- * @param nDataToRead buffer size.
+ * @param nChannelId ID of channel to send data.
+ * @param pBuffer buffer to send data.
+ * @param nDataToWrite buffer size.
  * @param nChunkIndex The index of a particular chunk.
  * @param[out] pnDataWritten sent data size.
  *
@@ -108,9 +108,9 @@ uem_result UFPort_WriteToQueue (IN int nChannelId, IN unsigned char *pBuffer, IN
 /**
  * @brief Send data to a specific chunk index on a port whose type is buffer.
  *
- * @param nChannelId ID of channel to receive data.
- * @param pBuffer buffer to receive data.
- * @param nDataToRead buffer size.
+ * @param nChannelId ID of channel to send data.
+ * @param pBuffer buffer to send data.
+ * @param nDataToWrite buffer size.
  * @param nChunkIndex The index of a particular chunk.
  * @param[out] pnDataWritten sent data size.
  *
@@ -128,11 +128,11 @@ uem_result UFPort_WriteToQueue (IN int nChannelId, IN unsigned char *pBuffer, IN
 uem_result UFPort_WriteToBuffer (IN int nChannelId, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten);
 
 /**
- * @brief Check if available data exists on the port.
+ * @brief Return the number of available data on the channel with chunk index.
  *
  * @param nChannelId ID of channel to check available data.
  * @param nChunkIndex The index of a particular chunk.
- * @param[out] pnDataNum data size that could be recei.ed
+ * @param[out] pnDataNum data size that could be received.
  *
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
@@ -148,12 +148,11 @@ uem_result UFPort_WriteToBuffer (IN int nChannelId, IN unsigned char *pBuffer, I
 uem_result UFPort_GetNumOfAvailableData (IN int nChannelId, IN int nChunkIndex, OUT int *pnDataNum);
 
 /**
- * @brief Return the chunk_index that can receive the current data on the port.
+ * @brief Return chunk index that can receive the current data on the port.
  *
  * If no data is available for all chunk index, blocked until new data is received.
  *
  * @param nChannelId ID of channel to check available data.
- * @param nChunkIndex The index of a particular chunk.
  * @param[out] pnChunkIndex Index of a specific chunk having data to be received.
  *
  * @return
