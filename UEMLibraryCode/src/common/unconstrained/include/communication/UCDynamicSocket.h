@@ -200,9 +200,9 @@ uem_result UCDynamicSocket_Accept(HSocket hServerSocket, IN int nTimeout, IN OUT
 uem_result UCDynamicSocket_Connect(HSocket hClientSocket, IN int nTimeout);
 
 /**
- * @brief Disconnect from a server (client-only).
+ * @brief Disconnect a socket from a server (client-only).
  *
- * This function disconnect from a server.
+ * This function disconnect a socket from a server.
  *
  * @param hClientSocket a socket handle
  *
@@ -220,8 +220,8 @@ uem_result UCDynamicSocket_Disconnect(HSocket hClientSocket);
  * @param hSocket a socket handle.
  * @param nTimeout a maximum time to wait for sending data.
  * @param pData data to send.
- * @param nDataLen the amount of data to send.
- * @param[out] pnSentSize the amount of data sent.
+ * @param nDataLen amount of data to send.
+ * @param[out] pnSentSize amount of data sent.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_SOCKET, @ref ERR_UEM_INVALID_PARAM, \n
@@ -242,9 +242,9 @@ uem_result UCDynamicSocket_Send(HSocket hSocket, IN int nTimeout, IN char *pData
  *
  * @param hSocket a socket handle
  * @param nTimeout a maximum time to wait for receiving data.
- * @param pBuffer a buffer to receive data.
- * @param nBufferLen the size of buffer.
- * @param[out] pnReceivedSize the amount of data received.
+ * @param pBuffer buffer to receive data.
+ * @param nBufferLen size of buffer.
+ * @param[out] pnReceivedSize amount of data received.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_SOCKET, @ref ERR_UEM_INVALID_PARAM, \n

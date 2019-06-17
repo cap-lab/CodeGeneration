@@ -38,7 +38,7 @@ typedef struct _SUCSerialPort *HSerialPort;
 /**
  * @brief Create a serial communication port handle.
  *
- * This function creates a serial communication port handle. @ref SSerailPortInfo is needed to create new serial port.
+ * This function creates a serial communication port handle. @ref SSerialPortInfo is needed to create new serial port.
  *
  * @param pstSerialPortInfo serial communication settings
  * @param[out] phSerialPort a serial port handle to be created.

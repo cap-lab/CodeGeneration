@@ -44,8 +44,8 @@ uem_result UKRemoteChannel_Clear(SChannel *pstChannel);
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_INTERNAL_FAIL, @ref ERR_UEM_MUTEX_ERROR, \n
- *         @ref ERR_UEM_SEND_ERROR, @ref ERR_UEM_NET_TIMEOUT, @ref ERR_UEM_ILLEGAL_DATA, @ref ERR_UEM_ILLEGAL_CONTROL, \n
- *         @ref ERR_UEM_SUSPEND, and corresponding errors from fnCreate(), fnConnect(), fnReceive(), fnSend() of SVirtualCommunication.
+ *         @ref ERR_UEM_NET_SEND_ERROR, @ref ERR_UEM_NET_TIMEOUT, @ref ERR_UEM_ILLEGAL_DATA, @ref ERR_UEM_ILLEGAL_CONTROL, \n
+ *         @ref ERR_UEM_SUSPEND, and corresponding errors from fnCreate(), fnConnect(), fnReceive(), fnSend() of SVirtualCommunicationAPI.
  *
  * @sa UKRemoteChannel_Finalize.
  */
@@ -70,8 +70,8 @@ uem_result UKRemoteChannel_Initialize(SChannel *pstChannel);
  *         @ref ERR_UEM_ILLEGAL_DATA, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_TIME_EXPIRED, and \n
  *         internal virtual functions' results. \n
  *         @ref ERR_UEM_ILLEGAL_DATA is happened when the received result is invalid. \n
- *         @ref ERR_UEM_TIME_EXPIRED can be happened if the request sending time takes too long.
- *         @ref ERR_UEM_SUSPEND is occurred when the program is going to be exit.
+ *         @ref ERR_UEM_TIME_EXPIRED can be happened if the request sending time takes too long. \n
+ *         @ref ERR_UEM_SUSPEND is occurred when the program is going to exit.
  */
 uem_result UKRemoteChannel_ReadFromQueue(SChannel *pstChannel, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead);
 
@@ -93,8 +93,8 @@ uem_result UKRemoteChannel_ReadFromQueue(SChannel *pstChannel, IN OUT unsigned c
  *         @ref ERR_UEM_ILLEGAL_DATA, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_TIME_EXPIRED, and \n
  *         internal virtual functions' results. \n
  *         @ref ERR_UEM_ILLEGAL_DATA is happened when the received result is invalid. \n
- *         @ref ERR_UEM_TIME_EXPIRED can be happened if the request sending time takes too long.
- *         @ref ERR_UEM_SUSPEND is occurred when the program is going to be exit.
+ *         @ref ERR_UEM_TIME_EXPIRED can be happened if the request sending time takes too long. \n
+ *         @ref ERR_UEM_SUSPEND is occurred when the program is going to exit.
  */
 uem_result UKRemoteChannel_ReadFromBuffer(SChannel *pstChannel, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead);
 
@@ -113,7 +113,7 @@ uem_result UKRemoteChannel_ReadFromBuffer(SChannel *pstChannel, IN OUT unsigned 
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_INTERNAL_FAIL, @ref ERR_UEM_SUSPEND. \n
- *         @ref ERR_UEM_SUSPEND is occurred when the program is going to be exit. \n
+ *         @ref ERR_UEM_SUSPEND is occurred when the program is going to exit. \n
  *         @ref ERR_UEM_INTERNAL_FAIL is occurred when the remote device sends an error.
  */
 uem_result UKRemoteChannel_GetAvailableChunk (SChannel *pstChannel, OUT int *pnChunkIndex);
@@ -132,7 +132,7 @@ uem_result UKRemoteChannel_GetAvailableChunk (SChannel *pstChannel, OUT int *pnC
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_INTERNAL_FAIL, @ref ERR_UEM_SUSPEND, \n
  *         @ref ERR_UEM_ILLEGAL_DATA. \n
- *         @ref ERR_UEM_SUSPEND is occurred when the program is going to be exit. \n
+ *         @ref ERR_UEM_SUSPEND is occurred when the program is going to exit. \n
  *         @ref ERR_UEM_INTERNAL_FAIL is occurred when the remote device sends an error. \n
  *         @ref ERR_UEM_ILLEGAL_DATA is occurred when received data is corrupted.
  */
@@ -153,7 +153,7 @@ uem_result UKRemoteChannel_GetNumOfAvailableData (SChannel *pstChannel, IN int n
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_SUSPEND. \n
- *         @ref ERR_UEM_SUSPEND is occurred when the program is going to be exit.
+ *         @ref ERR_UEM_SUSPEND is occurred when the program is going to exit.
  */
 uem_result UKRemoteChannel_WriteToQueue (SChannel *pstChannel, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten);
 
@@ -185,7 +185,7 @@ uem_result UKRemoteChannel_FillInitialData(SChannel *pstChannel);
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_SUSPEND. \n
- *         @ref ERR_UEM_SUSPEND is occurred when the program is going to be exit.
+ *         @ref ERR_UEM_SUSPEND is occurred when the program is going to exit.
  */
 uem_result UKRemoteChannel_WriteToBuffer (SChannel *pstChannel, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten);
 

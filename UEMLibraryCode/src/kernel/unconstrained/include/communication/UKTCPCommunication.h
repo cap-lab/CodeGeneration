@@ -21,14 +21,14 @@ extern "C"
  * @brief Create a TCP communication socket.
  *
  * This function creates a TCP communication socket. \n
- * This is an implementation function of UKVirtualCommunication of fnCreate().
+ * This is an implementation function of SVirtualCommunicationAPI's fnCreate().
  *
  * @param[out] phSocket phSocket a socket handle to be created.
  * @param pSocketInfo TCP socket options.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_OUT_OF_MEMORY, @ref ERR_UEM_NOT_SUPPORTED, \n
- *         @ref ERR_UEM_NOT_FOUND. \n
+ *         @ref ERR_UEM_NOT_FOUND.
  */
 uem_result UKTCPCommunication_Create(OUT HVirtualSocket *phSocket, void *pSocketInfo);
 

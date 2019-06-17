@@ -21,7 +21,7 @@ extern "C"
  * @brief Create a Bluetooth communication socket.
  *
  * This function creates a Bluetooth communication socket. \n
- * This is an implementation function of UKVirtualCommunication of fnCreate().
+ * This is an implementation function of SVirtualCommunicationAPI's fnCreate().
  *
  * @param[out] phSocket a socket handle to be created.
  * @param pSocketInfo Bluetooth socket options.

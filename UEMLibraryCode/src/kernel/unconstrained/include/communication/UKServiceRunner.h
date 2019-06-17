@@ -20,71 +20,88 @@ extern "C"
 #endif
 
 /**
- * @brief
+ * @brief Start aggregated service.
  *
- * This function
+ * This function starts aggregated service which multiple channels share single connection to communicate with another device. \n
+ * This function is used when the connection role is a slave.
  *
- * @param pstServiceInfo
- * @param pSocketInfo
+ * @param pstServiceInfo structure of aggregate service to start.
+ * @param pSocketInfo socket information going to be used by aggregate service.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         @ref ERR_UEM_SKIP_THIS is returned when this service does not have any corresponding channels. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_OUT_OF_MEMORY, and \n
+ *         errors corresponding to @ref SVirtualCommunicationAPI fnCreate().
  */
 uem_result UKServiceRunner_StartAggregatedService(SAggregateServiceInfo *pstServiceInfo, void *pSocketInfo);
 
 /**
- * @brief
+ * @brief Stop aggregated service.
  *
- * This function
+ * This function stops aggregated service.
  *
- * @param pstServiceInfo
+ * @param pstServiceInfo structure of aggregate service to stop.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
  */
 uem_result UKServiceRunner_StopAggregatedService(SAggregateServiceInfo *pstServiceInfo);
 
 /**
- * @brief
+ * @brief Start aggregated client service.
  *
- * This function
+ * This function starts aggregated client service which multiple channels share single connection to communicate with another device. \n
+ * This function is used when the connection role is a master.
  *
- * @param pstServiceInfo
- * @param pSocketInfo
+ * @param pstServiceInfo structure of aggregate client service to start.
+ * @param pSocketInfo socket information going to be used by aggregate service.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         @ref ERR_UEM_SKIP_THIS is returned when this service does not have any corresponding channels. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_OUT_OF_MEMORY, and \n
+ *         errors corresponding to @ref SVirtualCommunicationAPI fnCreate().
  */
 uem_result UKServiceRunner_StartAggregatedClientService(SAggregateServiceInfo *pstServiceInfo, void *pSocketInfo);
 
 /**
- * @brief
+ * @brief Stop aggregated client service.
  *
- * This function
+ * This function stops aggregated client service.
  *
- * @param pstServiceInfo
+ * @param pstServiceInfo structure of aggregate client service to stop.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
  */
 uem_result UKServiceRunner_StopAggregatedClientService(SAggregateServiceInfo *pstServiceInfo);
 
 /**
- * @brief
+ * @brief Start individual service.
  *
- * This function
+ * This function starts individual service which each channel has their own connection. \n
+ * This service is needed when the device role is a server. \n
+ * Individual service accepts clients and pass the socket information to each corresponding channels. \n
  *
- * @param pstServiceInfo
- * @param pSocketInfo
+ * @param pstServiceInfo structure of individual service to start.
+ * @param pSocketInfo socket information going to be used by individual service.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_OUT_OF_MEMORY, and \n
+ *         errors corresponding to @ref SVirtualCommunicationAPI fnCreate() and fnListen().
  */
 uem_result UKServiceRunner_StartIndividualService(SIndividualServiceInfo *pstServiceInfo, void *pSocketInfo);
 
 /**
- * @brief
+ * @brief Stop individual service.
  *
- * This function
+ * This function stops individual service.
  *
- * @param pstServiceInfo
+ * @param pstServiceInfo structure of individual service to stop.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_INTERNAL_FAIL, and \n
+ *         errors corresponding to @ref SVirtualCommunicationAPI fnDestroy(). \n
+ *         @ref ERR_UEM_INTERNAL_FAIL can be occurred when threads created by this module is not terminated properly.
  */
 uem_result UKServiceRunner_StopIndividualService(SIndividualServiceInfo *pstServiceInfo);
 
