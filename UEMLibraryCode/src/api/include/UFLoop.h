@@ -38,7 +38,7 @@ uem_result UFLoop_GetIteration(IN int nCallerTaskId, IN int nTaskThreadId, OUT i
  *
  * Can be used only for Deignated task inside CType Loop task.
  *
- * @param nTaskThreadId id of caller task thread.
+ * @param nCallerTaskId id of caller task thread.
  *
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n

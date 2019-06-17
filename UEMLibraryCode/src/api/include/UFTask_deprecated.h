@@ -55,7 +55,7 @@ double SYS_REQ_GET_PARAM_FLOAT(int nCallerTaskId, char *pszTaskName, char *pszPa
  * @param nCallerTaskId id of caller task.
  * @param pszTaskName task name with the corresponding parameter.
  * @param pszParamName parameter name.
- * @param lParamVal the value to be assigned as the parameter value.
+ * @param dbParamVal the value to be assigned as the parameter value.
  *
  * @return
  */

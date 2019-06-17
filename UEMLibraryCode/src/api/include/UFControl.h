@@ -4,6 +4,7 @@
  *  Created on: 2017. 8. 11.
  *      Author: jej
  */
+//UKCPUTaskManager쪽 error를 어떻게 서술해줘야 할지 고민.
 
 #ifndef SRC_API_INCLUDE_UFCONTROL_H_
 #define SRC_API_INCLUDE_UFCONTROL_H_
@@ -57,8 +58,8 @@ uem_result UFControl_RunTask (IN int nCallerTaskId, IN char *pszTaskName);
  *
  *\n
  * Functions that may propagate error results : \n
- * @ref UKCPUTaskManager_StopTask
- * @ref UKCPUTaskManager_StoppingTask\n
+ * @ref UKCPUTaskManager_StopTask \n
+ * @ref UKCPUTaskManager_StoppingTask \n
  *  \n
  */
 uem_result UFControl_StopTask (IN int nCallerTaskId, IN char *pszTaskName, IN uem_bool bDelayedStop);

@@ -23,7 +23,7 @@ extern "C"
  *
  *
  * @param nTaskId id of task.
- * @param pszPortName port name.
+ * @param szPortName port name.
  * @param pnChannelId returned channel id. -1 for invalid channel id.
  *
  * @return
