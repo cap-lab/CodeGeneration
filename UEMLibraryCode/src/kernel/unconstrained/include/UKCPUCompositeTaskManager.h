@@ -24,125 +24,154 @@ typedef struct _SCPUCompositeTaskManager *HCPUCompositeTaskManager;
 typedef uem_result (*CbFnTraverseCompositeTask)(STask *pstTask, IN void *pUserData);
 
 /**
- * @brief
+ * @brief Create a composite task manager.
  *
- * This function
+ * This function creates a composite task manager. \n
+ * Composite task means that one or multiple tasks are combined to a single thread to be executed. \n
+ * Composite task is created when the schedule order is already defined before generating codes. \n
+ * (These tasks can be generated when the scheduling policy is self-timed for code generation).
  *
- * @param[out] phManager
+ * @param[out] phManager a composite task manager handle to be created.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_MUTEX_ERROR, @ref ERR_UEM_OUT_OF_MEMORY.
  */
 uem_result UKCPUCompositeTaskManager_Create(IN OUT HCPUCompositeTaskManager *phManager);
 
 /**
- * @brief
+ * @brief Register a task to composite task manager.
  *
- * This function
+ * This function registers a task to the composite task manager.
  *
- * @param hManager
- * @param pstMappedTask
+ * @param hManager a composite task manager handle.
+ * @param pstMappedTask a composite task and mapping info to register.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_OUT_OF_MEMORY, \n
+ *         @ref ERR_UEM_INTERNAL_FAIL.
  */
 uem_result UKCPUCompositeTaskManager_RegisterTask(HCPUCompositeTaskManager hManager, SMappedCompositeTaskInfo *pstMappedTask);
 
 /**
- * @brief
+ * @brief Traverse all the composite tasks in composite task manager.
  *
- * This function
+ * This function traverses all the composite tasks in the composite task manager.
  *
- * @param hManager
- * @param fnCallback
- * @param pUserData
+ * @param hManager a composite task manager handle.
+ * @param fnCallback callback function during traversing composite tasks.
+ * @param pUserData user data used in the callback function.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_INVALID_HANDLE, and \n
+ *         corresponding results from callback function.
  */
 uem_result UKCPUCompositeTaskManager_TraverseCompositeTaskList(HCPUCompositeTaskManager hManager, CbFnTraverseCompositeTask fnCallback, void *pUserData);
 
 /**
- * @brief
+ * @brief Create threads in the task.
  *
- * This function
+ * This function creates threads in the task. \n
+ * Before calling this function, registered composite tasks are not working at all.
  *
- * @param hManager
- * @param pstTargetTask
+ * @param hManager a composite task manager handle.
+ * @param pstTargetTask target task to create threads.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_NOT_FOUND, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_OUT_OF_MEMORY, \n
+ *         @ref ERR_UEM_INTERNAL_FAIL. \n
+ *         @ref ERR_UEM_NOT_FOUND is occurred when the target task is not found in the composite task manager. \n
+ *         @ref ERR_UEM_INTERNAL_FAIL is happened when the thread creation or thread-related operations are failed.
  */
 uem_result UKCPUCompositeTaskManager_CreateThread(HCPUCompositeTaskManager hManager, STask *pstTargetTask);
 
 /**
- * @brief
+ * @brief Change state of the task.
  *
- * This function
+ * This function changes the task state. \n
+ * After calling this function, @ref UKCPUCompositeTaskManager_ActivateThread is also needed because it does not wake up threads.
  *
- * @param hManager
- * @param pstTargetTask
- * @param enTaskState
+ * @param hManager a composite task manager handle.
+ * @param pstTargetTask target task to change state.
+ * @param enTaskState new task state.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_NOT_FOUND, @ref ERR_UEM_INVALID_HANDLE. \n
+ *         @ref ERR_UEM_NOT_FOUND is occurred when the target task is not found in the composite task manager.
  */
 uem_result UKCPUCompositeTaskManager_ChangeState(HCPUCompositeTaskManager hManager, STask *pstTargetTask, ECPUTaskState enTaskState);
 
 /**
- * @brief
+ * @brief Activate threads in the task.
  *
- * This function
+ * This function activates threads. This function wakes up the threads to do jobs according to their task state.
  *
- * @param hManager
- * @param pstTargetTask
+ * @param hManager a composite task manager handle.
+ * @param pstTargetTask target task to activate threads.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_NOT_FOUND, @ref ERR_UEM_INVALID_HANDLE. \n
+ *         @ref ERR_UEM_NOT_FOUND is occurred when the target task is not found in the composite task manager.
  */
 uem_result UKCPUCompositeTaskManager_ActivateThread(HCPUCompositeTaskManager hManager, STask *pstTargetTask);
 
 /**
- * @brief
+ * @brief Get task state.
  *
- * This function
+ * This function retrieves the state of the task.
  *
- * @param hManager
- * @param pstTargetTask
- * @param[out] penTaskState
+ * @param hManager a composite task manager handle.
+ * @param pstTargetTask target task to get task state.
+ * @param[out] penTaskState task state.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_NOT_FOUND, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INTERNAL_FAIL. \n
+ *         @ref ERR_UEM_NOT_FOUND is occurred when the target task is not found in the composite task manager. \n
+ *         @ref ERR_UEM_INTERNAL_FAIL is occurred when threads in the task is not terminated yet if the task is control-driven or stopping-state task.
  */
-uem_result UKCPUCompositeTaskManager_GetTaskState(HCPUCompositeTaskManager hManager, STask *pstTargetTask, ECPUTaskState *penTaskState);
+uem_result UKCPUCompositeTaskManager_GetTaskState(HCPUCompositeTaskManager hManager, STask *pstTargetTask, OUT ECPUTaskState *penTaskState);
 
 /**
- * @brief
+ * @brief Destroy threads in the task.
  *
- * This function
+ * This function destroys threads in the task. \n
+ * After calling this function, @ref UKCPUCompositeTaskManager_CreateThread is needed to re-execute tasks.
  *
- * @param hManager
- * @param pstTargetTask
+ * @param hManager a composite task manager handle.
+ * @param pstTargetTask target task to destroy threads.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_NOT_FOUND, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INTERNAL_FAIL. \n
+ *         @ref ERR_UEM_NOT_FOUND is occurred when the target task is not found in the composite task manager. \n
+ *         @ref ERR_UEM_INTERNAL_FAIL is occurred when threads in the task is not terminated properly.
  */
 uem_result UKCPUCompositeTaskManager_DestroyThread(HCPUCompositeTaskManager hManager, STask *pstTargetTask);
 
 /**
- * @brief
+ * @brief Destroy a composite task manager.
  *
- * This function
+ * This function destroys a composite task manager.
  *
- * @param phManager
+ * @param[in,out] phManager a composite task manager handle to be destroyed.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INTERNAL_FAIL. \n
+ *         @ref ERR_UEM_INTERNAL_FAIL is occurred when threads in the task is not terminated properly.
  */
 uem_result UKCPUCompositeTaskManager_Destroy(IN OUT HCPUCompositeTaskManager *phManager);
 
 /**
- * @brief
+ * @brief Check all the composite tasks are stopped.
  *
- * This function
+ * This function checks all the tasks are stopped in the composite task manager.
  *
- * @param hManager
- * @param[out] pbStopped
+ * @param hManager a composite task manager handle.
+ * @param[out] pbStopped boolean value of all tasks are stopped or not.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INTERNAL_FAIL. \n
+ *         @ref ERR_UEM_INTERNAL_FAIL is occurred when threads in the task is not terminated yet if the task is control-driven or stopping-state task.
  */
-uem_result UKCPUCompositeTaskManager_CheckAllTaskStopped(HCPUCompositeTaskManager hManager, uem_bool *pbStopped);
+uem_result UKCPUCompositeTaskManager_CheckAllTaskStopped(HCPUCompositeTaskManager hManager, OUT uem_bool *pbStopped);
 
 #ifdef __cplusplus
 }
