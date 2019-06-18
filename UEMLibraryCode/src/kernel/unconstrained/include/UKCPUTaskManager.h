@@ -30,155 +30,199 @@ typedef struct _SCPUTaskManager *HCPUTaskManager;
 extern HCPUTaskManager g_hCPUTaskManager;
 
 /**
- * @brief
+ * @brief Create a task manager.
  *
- * This function
+ * This function creates a task manager. \n
+ * Task manager is an integrated manager of general task manager and composite task manager. \n
+ * Internally, it calls both managers to control tasks.
  *
- * @param[out] phCPUTaskManager
+ * @param[out] phCPUTaskManager a task manager handle to be created.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_MUTEX_ERROR, @ref ERR_UEM_OUT_OF_MEMORY, @ref ERR_UEM_INVALID_PARAM.
  */
 uem_result UKCPUTaskManager_Create(OUT HCPUTaskManager *phCPUTaskManager);
 
 /**
- * @brief
+ * @brief Register a general task.
  *
- * This function
+ * This function registers a general task to the task manager.
  *
- * @param hCPUTaskManager
- * @param pstMappedTask
+ * @param hCPUTaskManager a task manager handle.
+ * @param pstMappedTask a general task and mapping info to register.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_OUT_OF_MEMORY, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM.
  */
 uem_result UKCPUTaskManager_RegisterTask(HCPUTaskManager hCPUTaskManager, SMappedGeneralTaskInfo *pstMappedTask);
 
 /**
- * @brief
+ * @brief Register a composite task.
  *
- * This function
+ * This function registers a composite task to the task manager.
  *
- * @param hCPUTaskManager
- * @param pstMappedTask
+ * @param hCPUTaskManager a task manager handle.
+ * @param pstMappedTask a composite task and mapping info to register.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_OUT_OF_MEMORY, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, \n
+ *         @ref ERR_UEM_INTERNAL_FAIL.
  */
 uem_result UKCPUTaskManager_RegisterCompositeTask(HCPUTaskManager hCPUTaskManager, SMappedCompositeTaskInfo *pstMappedTask);
 
 /**
- * @brief
+ * @brief Execute registered tasks.
  *
- * This function
+ * This function runs all the registered tasks. \n
+ * First of all, it executes control tasks first and then executes rest tasks except control-driven tasks.
  *
- * @param hCPUTaskManager
+ * @param hCPUTaskManager a task manager handle.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INTERNAL_FAIL, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_OUT_OF_MEMORY.
+ *         @ref ERR_UEM_INTERNAL_FAIL is happened when the thread creation or thread-related operations are failed.
  */
 uem_result UKCPUTaskManager_RunRegisteredTasks(HCPUTaskManager hCPUTaskManager);
 
 /**
- * @brief
+ * @brief Stop all tasks.
  *
- * This function
+ * This function stops all tasks.
  *
- * @param hCPUTaskManager
+ * @param hCPUTaskManager a task manager handle.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INTERNAL_FAIL. \n
+ *          @ref ERR_UEM_INTERNAL_FAIL is occurred when threads in the task is not terminated properly.
  */
 uem_result UKCPUTaskManager_StopAllTasks(HCPUTaskManager hCPUTaskManager);
 
 /**
- * @brief
+ * @brief Suspend a task.
  *
- * This function
+ * This function suspends a task. the task state must be running.
  *
- * @param hCPUTaskManager
- * @param nTaskId
+ * @param hCPUTaskManager a task manager handle.
+ * @param nTaskId target task id to suspend.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_NOT_FOUND, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, \n
+ *         @ref ERR_UEM_ILLEGAL_DATA. \n
+ *         @ref ERR_UEM_NOT_FOUND is occurred when the target task is not found in the task manager. \n
+ *         @ref ERR_UEM_ILLEGAL_DATA is occurred when the target task has a subgraph with process network.
  */
 uem_result UKCPUTaskManager_SuspendTask(HCPUTaskManager hCPUTaskManager, int nTaskId);
 
 /**
- * @brief
+ * @brief Stop task nicely.
  *
- * This function
+ * This function stops a task nicely. This function tries to wait until the iteration is finished.
  *
- * @param hCPUTaskManager
- * @param nTaskId
+ * @param hCPUTaskManager a task manager handle.
+ * @param nTaskId target task id to stop.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_NOT_FOUND, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, \n
+ *         @ref ERR_UEM_ILLEGAL_DATA. \n
+ *         @ref ERR_UEM_NOT_FOUND is occurred when the target task is not found in the task manager. \n
+ *         @ref ERR_UEM_ILLEGAL_DATA is occurred when the target task has a subgraph with process network.
  */
 uem_result UKCPUTaskManager_StoppingTask(HCPUTaskManager hCPUTaskManager, int nTaskId);
 
 /**
- * @brief
+ * @brief Stop task forcedly.
  *
- * This function
+ * This function stops a task forcedly. This function immediately stops the task.
+ * For exception, this function also stop nicely if a task has a dataflow subgraph.
  *
- * @param hCPUTaskManager
- * @param nTaskId
+ * @param hCPUTaskManager a task manager handle.
+ * @param nTaskId target task id to stop.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_NOT_FOUND, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, \n
+ *         @ref ERR_UEM_ILLEGAL_DATA, @ref ERR_UEM_INTERNAL_FAIL. \n
+ *         @ref ERR_UEM_NOT_FOUND is occurred when the target task is not found in the task manager. \n
+ *         @ref ERR_UEM_ILLEGAL_DATA is occurred when the target task has a subgraph with process network. \n
+ *         @ref ERR_UEM_INTERNAL_FAIL is occurred when threads in the task is not terminated properly.
  */
 uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUTaskManager, int nTaskId);
 
 /**
- * @brief
+ * @brief Run a task.
  *
- * This function
+ * This function runs a task. the task state must be stopped.
  *
- * @param hCPUTaskManager
- * @param nTaskId
+ * @param hCPUTaskManager a task manager handle.
+ * @param nTaskId target task id to run.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_NOT_FOUND, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, \n
+ *         @ref ERR_UEM_ILLEGAL_DATA, @ref ERR_UEM_INTERNAL_FAIL. \n
+ *         @ref ERR_UEM_NOT_FOUND is occurred when the target task is not found in the task manager. \n
+ *         @ref ERR_UEM_ILLEGAL_DATA is occurred when the target task has a subgraph with process network. \n
+ *         @ref ERR_UEM_INTERNAL_FAIL is occurred when threads in the task is not started properly.
  */
 uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUTaskManager, int nTaskId);
 
 /**
- * @brief
+ * @brief Resume a task.
  *
- * This function
+ * This function resumes a task. the task state must be suspended.
  *
- * @param hCPUTaskManager
- * @param nTaskId
+ * @param hCPUTaskManager a task manager handle.
+ * @param nTaskId target task id to resume.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_NOT_FOUND, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, \n
+ *         @ref ERR_UEM_ILLEGAL_DATA, @ref ERR_UEM_INTERNAL_FAIL. \n
+ *         @ref ERR_UEM_NOT_FOUND is occurred when the target task is not found in the task manager. \n
+ *         @ref ERR_UEM_ILLEGAL_DATA is occurred when the target task has a subgraph with process network. \n
+ *         @ref ERR_UEM_INTERNAL_FAIL is occurred when threads in the task is not started properly.
  */
 uem_result UKCPUTaskManager_ResumeTask(HCPUTaskManager hCPUTaskManager, int nTaskId);
 
 /**
- * @brief
+ * @brief Get task state.
  *
- * This function
+ * This function retrieves the state of the task.
  *
- * @param hCPUTaskManager
- * @param nTaskId
- * @param[out] penTaskState
+ * @param hCPUTaskManager a task manager handle.
+ * @param nTaskId target task id to get state.
+ * @param[out] penTaskState task state.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_NOT_FOUND, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, \n
+ *         @ref ERR_UEM_ILLEGAL_DATA, @ref ERR_UEM_INTERNAL_FAIL. \n
+ *         @ref ERR_UEM_NOT_FOUND is occurred when the target task is not found in the task manager. \n
+ *         @ref ERR_UEM_ILLEGAL_DATA is occurred when the target task has a subgraph with process network. \n
+ *         @ref ERR_UEM_INTERNAL_FAIL is occurred when stopping state task termination is not finished properly.
  */
-uem_result UKCPUTaskManager_GetTaskState(HCPUTaskManager hCPUTaskManager, int nTaskId, EInternalTaskState *penTaskState);
+uem_result UKCPUTaskManager_GetTaskState(HCPUTaskManager hCPUTaskManager, int nTaskId, OUT EInternalTaskState *penTaskState);
 
 /**
- * @brief
+ * @brief Check all tasks are stopped.
  *
- * This function
+ * This function checks all the tasks are stopped.
  *
- * @param hCPUTaskManager
- * @param[out] pbStopped
+ * @param hCPUTaskManager a task manager handle.
+ * @param[out] pbStopped boolean value of all tasks are stopped or not.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_INTERNAL_FAIL. \n
+ *         @ref ERR_UEM_INTERNAL_FAIL is occurred when threads in the task is not terminated yet if the task is stopping-state task.
  */
-uem_result UKCPUTaskManager_IsAllTaskStopped(HCPUTaskManager hCPUTaskManager, uem_bool *pbStopped);
+uem_result UKCPUTaskManager_IsAllTaskStopped(HCPUTaskManager hCPUTaskManager, OUT uem_bool *pbStopped);
 
 /**
- * @brief
+ * @brief Destroy a task manager.
  *
- * This function
+ * This function a task manager.
  *
- * @param[in,out] phCPUTaskManager
+ * @param[in,out] phCPUTaskManager a task manager handle to be destroyed.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INTERNAL_FAIL. \n
+ *         @ref ERR_UEM_INTERNAL_FAIL is occurred when threads in the task is not terminated properly.
  */
 uem_result UKCPUTaskManager_Destroy(IN OUT HCPUTaskManager *phCPUTaskManager);
 
