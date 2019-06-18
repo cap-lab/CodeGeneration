@@ -11,7 +11,7 @@
 
 #include <uem_common.h>
 
-#include <SVirtualCommunicationAPI.h>
+#include <UKVirtualCommunication.h>
 
 #ifdef __cplusplus
 extern "C"
