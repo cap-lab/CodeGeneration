@@ -74,7 +74,7 @@ uem_result UKTask_GetTaskFromTaskId(int nTaskId, STask **ppstTask);
  * @param pUserData user data used in the callback function.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
- *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, and corresponding results from the callback function. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_NO_DATA, and corresponding results from the callback function. \n
  *         @ref ERR_UEM_NO_DATA can be occurred if there is no task in application.
  */
 uem_result UKTask_TraverseAllTasks(FnTaskTraverse fnCallback, void *pUserData);

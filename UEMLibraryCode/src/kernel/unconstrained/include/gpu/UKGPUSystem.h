@@ -23,9 +23,9 @@ extern "C"
  * This function creates a memory block used by GPU. \n
  * This function is fnCreateMemory() function of @ref SGenericMemoryAccess.
  *
- * @param nSize memory block size to be allocated
+ * @param nSize memory block size to be allocated.
  * @param nProcessorId a processor id to specify GPU.
- * @param[out] ppMemory an allocated GPU memory block's pointer
+ * @param[out] ppMemory an allocated GPU memory block's pointer.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, converted errors retrieved from cudamalloc(), cudaGetDevice(), cudaSetDevice().
@@ -38,9 +38,9 @@ uem_result UKGPUSystem_CreateMemory(int nSize, int nProcessorId, OUT void **ppMe
  * This function creates host memory block. This memory block is used for transferring data between different GPUs. \n
  * This function is fnCreateMemory() function of @ref SGenericMemoryAccess.
  *
- * @param nSize memory block size to be allocated
+ * @param nSize memory block size to be allocated.
  * @param nProcessorId (not used).
- * @param[out] ppMemory an allocated host memory block's pointer
+ * @param[out] ppMemory an allocated host memory block's pointer.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, converted errors retrieved from cudaHostAlloc().
