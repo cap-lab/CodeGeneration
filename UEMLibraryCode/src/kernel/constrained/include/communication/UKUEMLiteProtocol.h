@@ -21,124 +21,137 @@ extern "C"
 #endif
 
 /**
- * @brief
+ * @brief Receive data.
  *
- * This function
+ * This function receives data. Data can be a request or result from remote device.
  *
- * @param hSerial
+ * @param hSerial a Serial handle.
  *
  * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_ILLEGAL_DATA,@ref ERR_UEM_NOT_SUPPORTED.
  */
 uem_result UKUEMLiteProtocol_Receive(HSerial hSerial);
 
 /**
- * @brief
+ * @brief Set read queue request.
  *
- * This function
+ * This function sets channel read queue request.
  *
- * @param nChannelId
- * @param nSizeToRead
+ * @param nChannelId a target channel ID to set a request.
+ * @param nSizeToRead size of data to request.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
  */
 uem_result UKUEMLiteProtocol_SetReadQueueRequest(int nChannelId, int nSizeToRead);
 
 /**
- * @brief
+ * @brief Set read buffer request.
  *
- * This function
+ * This function sets channel read buffer request.
  *
- * @param nChannelId
- * @param nSizeToRead
+ * @param nChannelId a target channel ID to set a request.
+ * @param nSizeToRead size of data to request.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
  */
 uem_result UKUEMLiteProtocol_SetReadBufferRequest(int nChannelId, int nSizeToRead);
 
 /**
- * @brief
+ * @brief Set available data request.
  *
- * This function
+ * This function sets channel available data request.
  *
- * @param nChannelId
+ * @param nChannelId a target channel ID to set a request.
  *
- * @return
+  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
  */
 uem_result UKUEMLiteProtocol_SetAvailableDataRequest(int nChannelId);
 
 /**
- * @brief
+ * @brief Set result message without using data area.
  *
- * This function
+ * This function sets a result message as a response.
  *
- * @param enRequestType
- * @param nChannelId
- * @param enErrorCode
- * @param nReturnValue
+ * @param enRequestType a corresponding request to result message.
+ * @param nChannelId a target channel ID to set a result.
+ * @param enErrorCode an error code number to send.
+ * @param nReturnValue result value to send.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * 			Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
  */
 uem_result UKUEMLiteProtocol_SetResultMessage(EMessageType enRequestType, int nChannelId, EProtocolError enErrorCode, int nReturnValue);
 
 /**
- * @brief
+ * @brief Set result message with data area.
  *
- * This function
+ * This function sets a result message as a response with actual channel data.
  *
- * @param enRequestType
- * @param nChannelId
- * @param enErrorCode
- * @param nDataSize
+ * @param enRequestType a corresponding request to result message.
+ * @param nChannelId a target channel ID to set a result.
+ * @param enErrorCode an error code number to send.
+ * @param nDataSize size of result data to attach.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
  */
 uem_result UKUEMLiteProtocol_SetResultMessageHeaderUsingBuffer(EMessageType enRequestType, int nChannelId, EProtocolError enErrorCode, int nDataSize);
 
 /**
- * @brief
+ * @brief Get result buffer to be sent.
  *
- * This function
+ * This function gets result buffer to be sent.
  *
- * @param ppbyBuffer
- * @param[out] pnBufferSize
+ * @param ppbyBuffer pointer to buffer containing data to be sent.
+ * @param[out] pnBufferSize size of result data.
  *
- * @return
+ * @return  @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *			Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
  */
 uem_result UKUEMLiteProtocol_GetResultBufferToSend(OUT unsigned char **ppbyBuffer, OUT int *pnBufferSize);
 
 /**
- * @brief
+ * @brief Send data which are set.
  *
- * This function
+ * This function sends data which are set by @ref UKUEMLiteProtocol_SetReadQueueRequest, @ref UKUEMLiteProtocol_SetReadBufferRequest, \n
+ * @ref UKUEMLiteProtocol_SetAvailableDataRequest, @ref UKUEMLiteProtocol_SetResultMessage, \n
+ * or @ref UKUEMLiteProtocol_SetResultMessageHeaderUsingBuffer.
  *
- * @param hSerial
+ * @param hSerial a Serial handle.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_NET_SEND_ERROR, @ref ERR_UEM_ILLEGAL_DATA.
  */
 uem_result UKUEMLiteProtocol_Send(HSerial hSerial);
 
 /**
- * @brief
+ * @brief Get header information from received data.
  *
- * This function
+ * This function gets header information from received data.
  *
- * @param[out] pnChannelId
- * @param[out] penMessageType
- * @param[out] pnParamNum
- * @param[out] ppanParam
- * @return
+ * @param[out] pnChannelId a target channel ID received.
+ * @param[out] penMessageType message type (@ref EMessageType).
+ * @param[out] pnParamNum number of parameters of @a ppasParam.
+ * @param[out] ppanParam received parameters in the header.
+ *
+ * @return  @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_ILLEGAL_DATA.
  */
 uem_result UKUEMLiteProtocol_GetHeaderFromReceivedData(OUT int *pnChannelId, OUT EMessageType *penMessageType, OUT int *pnParamNum, OUT short **ppanParam);
 
 /**
- * @brief
+ * @brief Get body information from received data.
  *
- * This function
+ * This function gets body information from received data. In body, actual channel buffer data is stored.
  *
- * @param[out] pnBodySize
- * @param[out] ppBody
+ * @param[out] pnBodySize size of body data.
+ * @param[out] ppBody pointer to body data.
  *
- * @return
+ * @return It always returns @ref ERR_UEM_NOERROR.
  */
 uem_result UKUEMLiteProtocol_GetBodyDataFromReceivedData(OUT int *pnBodySize, OUT void **ppBody);
 
