@@ -112,6 +112,8 @@ uem_result UKChannel_SetExit()
 		}
 	}
 
+	result = ERR_UEM_NOERROR;
+
 	return result;
 }
 
@@ -262,6 +264,8 @@ uem_result UKChannel_SetExitByTaskId(int nTaskId)
 		}
 	}
 
+	result = ERR_UEM_NOERROR;
+
 	return result;
 }
 
@@ -294,6 +298,8 @@ uem_result UKChannel_ClearExitByTaskId(int nTaskId)
 			}
 		}
 	}
+
+	result = ERR_UEM_NOERROR;
 
 	return result;
 }
