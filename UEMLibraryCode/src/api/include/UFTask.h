@@ -106,23 +106,31 @@ uem_result UFTask_SetFloatParameter (IN int nCallerTaskId, IN char *pszTaskName,
  * 2 for STATE_WAIT (waiting state) \n
  * 3 for STATE_END (termination requesting state) \n
  *
+ * @sa UKTask_GetTaskState.
+ *
  * @param nCallerTaskId id of caller task.
  * @param pszTaskName task name to check state of.
  * @param[out] penTaskState task state value.
  *
  * @return
- * @ref ERR_UEM_NOERROR is returned if there is no error. \n
- * @ref ERR_UEM_ILLEGAL_CONTROL if task is not Control task and tries to get task state from other task. \n
- * @ref ERR_UEM_NO_DATA if task corresponding to caller task id does not exists. \n
- * @ref ERR_UEM_ILLEGAL_DATA if task is not static scheduled and includes subgraph of process Network. \n
- * @ref ERR_UEM_INVALID_HANDLE for invalid CPUTaskManager handler(generated from translator). \n
- * errors could be propagated while checking task state of the sub-tasks if current task includes subtasks.
+ *  @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *  @ref ERR_UEM_INVALID_PARAM for invalid @a nCallerTaskId or @a pszTaskName, or for NULL @a penTaskState. \n
+ *  @ref ERR_UEM_NO_DATA if task corresponding to caller task id does not exists. \n
+ *  @ref ERR_UEM_ILLEGAL_DATA if task is not static scheduled and includes subgraph of process Network. \n
+ *  @ref ERR_UEM_INVALID_HANDLE for invalid CPUTaskManager handler(generated from translator). \n
+ *  errors could be propagated while checking task state of the sub-tasks if current task includes subtasks.
+ *  (unconstrained device) \n
+ *  @ref ERR_UEM_ILLEGAL_CONTROL if Caller task is not control Task and target task it not caller task. \n
+ *  (constrained device) \n
+ *  @ref ERR_UEM_ILLEGAL_CONTROL if Caller task is not control Task.
  */
 uem_result UFTask_GetState (IN int nCallerTaskId, IN char *pszTaskName, OUT ETaskState *penTaskState);
 
 #ifndef API_LITE
 /**
  * @brief Set a schedule that meets the entered throughput.
+ *
+ * @sa UKTask_SetThroughputConstraint.
  *
  * @param nCallerTaskId id of caller task.
  * @param pszTaskName task name to set throughput.

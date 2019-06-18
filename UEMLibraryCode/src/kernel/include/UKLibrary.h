@@ -14,17 +14,17 @@ extern "C"
 #endif
 
 /**
- * @brief
+ * @brief Initialize library task.
  *
- * This function
+ * This function initializes library task by calling tasks' init function.
  *
  */
 void UKLibrary_Initialize();
 
 /**
- * @brief
+ * @brief Finalize library task.
  *
- * This function
+ * This function finalizes library task by calling tasks' wrapup function.
  *
  */
 void UKLibrary_Finalize();

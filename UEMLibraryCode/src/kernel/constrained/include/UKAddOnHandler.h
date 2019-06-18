@@ -30,10 +30,10 @@ extern SAddOnFunction g_astAddOns[];
 extern int g_nAddOnNum;
 
 /**
- * @brief Perform addon module initialization.
+ * @brief Initialize addon module.
  *
- * Addon module is used for extra jobs needed for task execution. \n
- * This function executes addon module initialization function.
+ * This function executes addon module initialization function. \n
+ * Addon module is used for extra jobs needed for task execution.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error.
  */
@@ -42,7 +42,6 @@ uem_result UKAddOnHandler_Init();
 /**
  * @brief Perform addon module execution.
  *
- * Addon module is used for extra jobs needed for task execution. \n
  * This function executes addon module run function.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error.
@@ -52,7 +51,6 @@ uem_result UKAddOnHandler_Run();
 /**
  * @brief Perform addon module wrapup.
  *
- * Addon module is used for extra jobs needed for task execution. \n
  * This function executes addon module wrapup function.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error.

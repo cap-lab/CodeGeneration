@@ -21,13 +21,13 @@ extern "C"
  * @brief Initialize a shared memory channel.
  *
  * This function initializes a shared memory channel. \n
+ * This function is wrapper of @ref UKChannelMemory_Initialize. \n
  * This function is a part of @ref SChannelAPI.
  *
  * @param pstChannel a single channel structure.
  *
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
- *
  * (unconstrained device) \n
  * Errors to be returned - @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_MUTEX_ERROR, @ref ERR_UEM_INTERNAL_FAIL \n
  *
@@ -41,7 +41,9 @@ uem_result UKSharedMemoryChannel_Initialize(SChannel *pstChannel);
  * This function reads data from a shared memory channel. \n
  * Because it reads from queue, data in the channel is removed after reading the data. \n
  * for unconstrained device, read method is different depending on channel type(array queue or general queue) \n
+ * This function is wrapper of @ref UKChannelMemory_ReadFromQueue. \n
  * This function is a part of @ref SChannelAPI.
+
  *
  * @param pstChannel a single channel structure.
  * @param[in,out] pBuffer buffer to store read data.
@@ -53,7 +55,7 @@ uem_result UKSharedMemoryChannel_Initialize(SChannel *pstChannel);
  *  @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *  @ref ERR_UEM_INVALID_PARAM if channel's pChannelStruct is NULL. \n
  *  (constrained device) \n
- *  @ref ERR_UEM_READ_BLOCK if channel data is not enough or not initialized. \n
+ *  @ref ERR_UEM_READ_BLOCK if channel data is not enough to read or not initialized. \n
  *  (unconstrained device, array queue) \n
  *  @ref ERR_UEM_SUSPEND if bReadExit is true. \n
  *  @ref ERR_UEM_ILLEGAL_DATA if target chunk data size is not equal to @a nDataToRead. \n
@@ -69,6 +71,7 @@ uem_result UKSharedMemoryChannel_ReadFromQueue(SChannel *pstChannel, IN OUT unsi
  *
  * This function reads data from a shared memory channel. \n
  * Because it reads from buffer, data in the channel is preserved after reading the data. \n
+ * This function is wrapper of @ref UKChannelMemory_ReadFromBuffer. \n
  * This function is a part of @ref SChannelAPI.
  *
  * @param pstChannel a single channel structure.
@@ -90,6 +93,7 @@ uem_result UKSharedMemoryChannel_ReadFromBuffer(SChannel *pstChannel, IN OUT uns
  *
  * This function writes data to the channel as a buffer. \n
  * Because it write to buffer, it overwrites the data in the channel. \n
+ * This function is wrapper of @ref UKChannelMemory_WriteToBuffer. \n
  * This function is a part of @ref SChannelAPI.
  *
  * @param pstChannel a single channel structure.
@@ -110,6 +114,7 @@ uem_result UKSharedMemoryChannel_WriteToBuffer (SChannel *pstChannel, IN unsigne
  *
  * This function writes data to the channel as a queue. \n
  * Because it writes to queue, the write block happened if the channel data is full. \n
+ * This function is wrapper of @ref UKChannelMemory_WriteToQueue. \n
  * This function is a part of @ref SChannelAPI.
  *
  * @param pstChannel a single channel structure.
@@ -132,8 +137,9 @@ uem_result UKSharedMemoryChannel_WriteToQueue (SChannel *pstChannel, IN unsigned
  * @brief Get readable chunk index from queue.
  *
  * This function gets readable chunk index from queue.
- * This function is a part of @ref SChannelAPI.
  * for unconstrained device, getting chunk method is different depending on channel type(array queue or general queue). \n
+ * This function is wrapper of @ref UKChannelMemory_GetAvailableChunk. \n
+ * This function is a part of @ref SChannelAPI.
  *
  * @param pstChannel a single channel structure.
  * @param[out] pnChunkIndex an available chunk index to be read.
@@ -141,7 +147,7 @@ uem_result UKSharedMemoryChannel_WriteToQueue (SChannel *pstChannel, IN unsigned
  * @return  @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *  @ref ERR_UEM_INVALID_PARAM if channel's pChannelStruct is NULL. \n
  *  (constrained device) \n
- *  @ref ERR_UEM_READ_BLOCK if channel data is not enough or not initialized. \n
+ *  @ref ERR_UEM_READ_BLOCK if channel data is not enough to read or not initialized. \n
  *  (unconstrained device) \n
  *  Errors to be returned - @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_MUTEX_ERROR, @ref ERR_UEM_INTERNAL_FAIL \n
  *  @ref ERR_UEM_SUSPEND if bReadExit is true. \n
@@ -149,9 +155,10 @@ uem_result UKSharedMemoryChannel_WriteToQueue (SChannel *pstChannel, IN unsigned
 uem_result UKSharedMemoryChannel_GetAvailableChunk (SChannel *pstChannel, OUT int *pnChunkIndex);
 
 /**
- * @brief Get number of data in remote channel.
+ * @brief Get number of data in shared memory channel.
  *
  * This function retrieves the number of data in channel in specific chunk index. \n
+ * This function is wrapper of @ref UKChannelMemory_GetNumOfAvailableData. \n
  * This function is a part of @ref SChannelAPI.
  *
  * @param pstChannel a single channel structure.
@@ -168,7 +175,8 @@ uem_result UKSharedMemoryChannel_GetNumOfAvailableData (SChannel *pstChannel, IN
 /**
  * @brief Clear shared memory channel data.
  *
-  * This function clears shared memory channel data. \n
+ * This function clears shared memory channel data. \n
+ * This function is wrapper of @ref UKChannelMemory_Clear. \n
  * This function is a part of @ref SChannelAPI.
  *
  * @param pstChannel a single channel structure.
@@ -184,6 +192,7 @@ uem_result UKSharedMemoryChannel_Clear(SChannel *pstChannel);
  * This function set exit flags to escape from blocking state of the channel. \n
  * @ref EXIT_FLAG_READ and @ref EXIT_FLAG_WRITE can be used as a bit flag. \n
  * This function is meaningful only for unconstrained device. \n
+ * This function is wrapper of @ref UKChannelMemory_SetExit. \n
  * This function is a part of @ref SChannelAPI.
  *
  * @param pstChannel a single channel structure.
@@ -199,7 +208,8 @@ uem_result UKSharedMemoryChannel_SetExit(SChannel *pstChannel, int nExitFlag);
  *
  * This function clears exit flags to reuse channel. \n
  * This function can be called for rerunning the task graphs. \n
-  * This function is meaningful only for unconstrained device. \n
+ * This function is meaningful only for unconstrained device. \n
+ * This function is wrapper of @ref UKChannelMemory_ClearExit. \n
  * This function is a part of @ref SChannelAPI.
  *
  * @param pstChannel a single channel structure.
@@ -214,22 +224,25 @@ uem_result UKSharedMemoryChannel_ClearExit(SChannel *pstChannel, int nExitFlag);
  * @brief Fill initial data in channel.
  *
  * This function fills initial data in channel.
+ * This function is wrapper of @ref UKChannelMemory_FillInitialData. \n
  * This function is a part of @ref SChannelAPI.
  *
  * @param pstChannel a single channel structure.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * Errors to be returned - @ref ERR_UEM_INVALID_PARAM. \n
  * (unconstrained device) \n
- * Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_MUTEX_ERROR, @ref ERR_UEM_INTERNAL_FAIL \n
+ * Errors to be returned - @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_MUTEX_ERROR, @ref ERR_UEM_INTERNAL_FAIL \n
  */
 uem_result UKSharedMemoryChannel_FillInitialData(SChannel *pstChannel);
 
 /**
- * @brief Finalize a remote channel.
+ * @brief Finalize a shared memory channel.
  *
  * This function finalizes a shared memory channel. \n
  * This function call @ref UKChannelMemory_Finalize function to finalize shared memory channel (UKChannelMemory). \n
  * This function is meaningful only for unconstrained device. \n
+ * This function is wrapper of @ref UKChannelMemory_Finalize. \n
  * This function is a part of @ref SChannelAPI.
  *
  * @param pstChannel a single channel structure.
