@@ -17,157 +17,156 @@ extern "C"
 {
 #endif
 
-/**
- * @brief
- *
- * This function
- *
- * @return
- */
-uem_result UKModeTransition_Initialize();
 
 /**
- * @brief
+ * @brief Get current mode name of a task.
  *
- * This function
+ * This function retrieves the current mode name of task @a pszTaskName.
  *
- * @return
- */
-uem_result UKModeTransition_Finalize();
-
-/**
- * @brief
+ * @param nCallerTaskId id of caller task (currently not used).
+ * @param pszTaskName target MTM (mode transition machine) task name to get mode name.
+ * @param[out] ppszModeName retrieved mode name.
  *
- * This function
- *
- * @param nCallerTaskId
- * @param pszTaskName
- * @param[out] ppszModeName
- *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_NO_DATA, @ref ERR_UEM_ILLEGAL_DATA.
+ *         @ref ERR_UEM_NO_DATA is occurred when the task name cannot be found.
+ *         @ref ERR_UEM_ILLEGAL_DATA is occurred when the task is not an MTM task.
  */
 uem_result UKModeTransition_GetCurrentModeName (IN int nCallerTaskId, IN char *pszTaskName, OUT char **ppszModeName);
 
 /**
- * @brief
+ * @brief Set Mode transition machine task integer parameter.
  *
- * This function
+ * This function sets Mode transition machine task integer parameter.
  *
- * @param nCallerTaskId
- * @param pszTaskName
- * @param pszParamName
- * @param nParamVal
+ * @param nCallerTaskId id of caller task (currently not used).
+ * @param pszTaskName target MTM (mode transition machine) task name to get integer parameter.
+ * @param pszParamName integer parameter name.
+ * @param nParamVal integer value to set.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_NO_DATA, @ref ERR_UEM_ILLEGAL_DATA.
+ *         @ref ERR_UEM_NO_DATA is occurred when the task name cannot be found.
+ *         @ref ERR_UEM_ILLEGAL_DATA is occurred when the task is not an MTM task.
  */
 uem_result UKModeTransition_SetModeIntegerParameter (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszParamName, IN int nParamVal);
 
 /**
- * @brief
+ * @brief Update mode of MTM task.
  *
- * This function
+ * This function updates the mode of MTM task with mode transition function. \n
+ * Mode transition may be happened depending on the update of mode variables.
  *
- * @param nCallerTaskId
- * @param pszTaskName
+ * @param nCallerTaskId id of caller task (currently not used).
+ * @param pszTaskName target MTM (mode transition machine) task name to update mode.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_NO_DATA, @ref ERR_UEM_ILLEGAL_DATA.
+ *         @ref ERR_UEM_NO_DATA is occurred when the task name cannot be found.
+ *         @ref ERR_UEM_ILLEGAL_DATA is occurred when the task is not an MTM task.
  */
 uem_result UKModeTransition_UpdateMode (IN int nCallerTaskId, IN char *pszTaskName);
 
 /**
- * @brief
+ * @brief Get Mode state of MTM task with lock protection.
  *
- * This function
+ * This function retrieves the mode state of target MTM task. This function is called by composite MTM task.
  *
- * @param nTaskId
+ * @param nTaskId target MTM (mode transition machine) task id to get mode state.
  *
- * @return
+ * @return mode state (@ref EModeState).
  */
 EModeState UKModeTransition_GetModeState(int nTaskId);
 
 /**
- * @brief
+ * @brief Get mode index by mode ID.
  *
- * This function
+ * This function retrieves mode index value by mode ID. Mode index is an index number to access mode information in astModeMap.
  *
- * @param pstModeTransition
- * @param nModeId
+ * @param pstModeTransition mode transition machine structure.
+ * @param nModeId mode id.
  *
- * @return
+ * @return mode index number.
  */
 int UKModeTransition_GetModeIndexByModeId(SModeTransitionMachine *pstModeTransition, int nModeId);
 
 /**
- * @brief
+ * @brief Get variable index with variable name.
  *
- * This function
+ * This function retrieves variable index by variable name. Variable index is an index number to access variable value in astVarIntMap.
  *
- * @param pstModeTransition
- * @param pszVariableName
+ * @param pstModeTransition mode transition machine structure.
+ * @param pszVariableName mode variable name.
  *
- * @return
+ * @return variable index number.
  */
 int UKModeTransition_GetVariableIndexByName(SModeTransitionMachine *pstModeTransition, char *pszVariableName);
 
 /**
- * @brief
+ * @brief Get current mode's index by iteration number.
  *
- * This function
+ * This function retrieves current mode's index by current iteration number.
  *
- * @param pstModeTransition
- * @param nCurrentIteration
- * @param[out] pnModeIndex
+ * @param pstModeTransition mode transition machine structure.
+ * @param nCurrentIteration current iteration number.
+ * @param[out] pnModeIndex an index value to access mode information in array.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         @ref ERR_UEM_NOT_FOUND is occurred when the corresponding mode index cannot be found \n
+ *         (This is occurred when the iteration is 0 or task is going to stop).
  */
 uem_result UKModeTransition_GetCurrentModeIndexByIteration(SModeTransitionMachine *pstModeTransition, int nCurrentIteration, OUT int *pnModeIndex);
 
 /**
- * @brief
+ * @brief Get next mode's index and new iteration number by current iteration number.
  *
- * This function
+ * This function retrieves next mode's index and new iteration number by current iteration number.
  *
- * @param pstModeTransition
- * @param nCurrentIteration
- * @param[out] pnModeIndex
- * @param[out] pnStartIteration
+ * @param pstModeTransition mode transition machine structure.
+ * @param nCurrentIteration current iteration number.
+ * @param[out] pnModeIndex an index value to access mode information in array.
+ * @param[out] pnStartIteration next iteration number.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_NOT_FOUND, @ref ERR_UEM_NO_DATA. \n
+ *         @ref ERR_UEM_NOT_FOUND is occurred when the corresponding mode index cannot be found. \n
+ *         @ref ERR_UEM_NO_DATA is occurred when next mode index is not available yet.
  */
 uem_result UKModeTransition_GetNextModeStartIndexByIteration(SModeTransitionMachine *pstModeTransition, int nCurrentIteration, OUT int *pnModeIndex, OUT int *pnStartIteration);
 
 /**
- * @brief
+ * @brief Clear mode transition machine structure.
  *
- * This function
+ * This function clears mode transition machine structure.
  *
- * @param pstModeTransition
+ * @param pstModeTransition mode transition machine structure.
  *
- * @return
+ * @return It always returns @ref ERR_UEM_NOERROR.
  */
 uem_result UKModeTransition_Clear(SModeTransitionMachine *pstModeTransition);
 
 /**
- * @brief
+ * @brief Get Mode state of MTM task without lock protection.
  *
- * This function
+ * This function retrieves mode state. This function is called by task managers.
  *
- * @param pstModeTransition
+ * @param pstModeTransition mode transition machine structure.
  *
- * @return
+ * @return mode state (@ref EModeState).
  */
 EModeState UKModeTransition_GetModeStateInternal(SModeTransitionMachine *pstModeTransition);
 
 /**
- * @brief
+ * @brief Update mode state and newly-started mode's iteration number.
  *
- * This function
+ * This function updates mode state and newly-started mode's iteration number. \n
+ * When the mode is moved from MODE_STATE_TRANSITING to MODE_STATE_NORMAL.
  *
- * @param pstModeTransition
- * @param enModeState
- * @param nIteration
+ * @param pstModeTransition mode transition machine structure.
+ * @param enModeState mode state to update.
+ * @param nIteration iteration number to update the mode state.
  *
- * @return
+ * @return updated mode state (@ref EModeState).
  */
 EModeState UKModeTransition_UpdateModeStateInternal(SModeTransitionMachine *pstModeTransition, EModeState enModeState, int nIteration);
 

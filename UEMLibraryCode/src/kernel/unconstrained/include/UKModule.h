@@ -18,20 +18,22 @@ extern "C"
 #endif
 
 /**
- * @brief
+ * @brief Initialize modules.
  *
- * This function
+ * This function initializes modules. Supported modules are located in src/module folder.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - corresponding error results from each module's fnInitialize() function.
  */
 uem_result UKModule_Initialize();
 
 /**
- * @brief
+ * @brief Finalize modules.
  *
- * This function
+ * This function finalizes modules. Supported modules are located in src/module folder.
  *
- * @return
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - corresponding error results from each module's fnFinalize() function.
  */
 uem_result UKModule_Finalize();
 
