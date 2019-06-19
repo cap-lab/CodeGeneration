@@ -146,7 +146,7 @@ uem_result UKUEMLiteProtocol_SetResultMessageUsingBuffer(HUEMLiteProtocol hProto
  *
  * This function sends data which are set by @ref UKUEMLiteProtocol_SetReadQueueRequest, @ref UKUEMLiteProtocol_SetReadBufferRequest, \n
  * @ref UKUEMLiteProtocol_SetAvailableDataRequest, @ref UKUEMLiteProtocol_SetResultMessage, \n
- * or @ref UKUEMLiteProtocol_SetResultMessageHeaderUsingBuffer.
+ * or @ref UKUEMLiteProtocol_SetResultMessageUsingBuffer.
  *
  * @param hProtocol a protocol handle.
  *
