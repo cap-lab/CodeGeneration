@@ -57,8 +57,8 @@ uem_result UFControl_RunTask (IN int nCallerTaskId, IN char *pszTaskName);
  *
  *\n
  * Functions that may propagate error results : \n
- * @ref UKCPUTaskManager_StopTask \n
- * @ref UKCPUTaskManager_StoppingTask \n
+ * UKCPUTaskManager_StopTask \n
+ * UKCPUTaskManager_StoppingTask \n
  *  \n
  */
 uem_result UFControl_StopTask (IN int nCallerTaskId, IN char *pszTaskName, IN uem_bool bDelayedStop);
@@ -83,6 +83,9 @@ uem_result UFControl_CallTask (IN int nCallerTaskId, IN char *pszTaskName);
 /**
  * @brief Suspend a task.
  *
+ * This function suspend task. \n
+ * only used in unconstrained device.
+ *
  * The task could be continued by @ref UFControl_ResumeTask.
  *
  * @param nCallerTaskId id of caller task.
@@ -99,6 +102,9 @@ uem_result UFControl_SuspendTask (IN int nCallerTaskId, IN char *pszTaskName);
 /**
  * @brief Resume suspended task.
  *
+ * This function resumes suspended task. \n
+ * only used in unconstrained device.
+ *
  * @param nCallerTaskId id of caller task.
  * @param pszTaskName target task to be resumed.
  *
@@ -109,7 +115,7 @@ uem_result UFControl_SuspendTask (IN int nCallerTaskId, IN char *pszTaskName);
 
  * \n
  *  Functions that may propagate error results \n
- * @ref UKCPUTaskManager_ResumeTask \n
+ *  (unconstrained device) UKCPUTaskManager_ResumeTask \n
  * \n
  *
  */
