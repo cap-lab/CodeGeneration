@@ -1121,7 +1121,6 @@ static uem_result handleLoopTaskIteration(SGeneralTaskThread *pstTaskThread, SGe
 	STask *pstParentTask = NULL;
 	int nLoopCount = 0;
 	int nCurIteration = 0;
-	ECPUTaskState enNewState;
 
 	pstCurrentTask = pstGeneralTask->pstTask;
 	pstParentTask = pstGeneralTask->pstLoopParentTask;
@@ -2110,7 +2109,7 @@ static uem_result checkTaskThreadRunning(IN int nOffset, IN void *pData, IN void
 	}
 
     result = ERR_UEM_NOERROR;
-_EXIT:
+
     return result;
 }
 
