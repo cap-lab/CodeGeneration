@@ -24,7 +24,7 @@ extern "C"
  * and initialize each channel with matching channelAPI initialization function.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
- * error could be propagated from  @ref ChannelAPI_GetAPIStructureFromCommunicationType.
+ * error could be propagated from  ChannelAPI_GetAPIStructureFromCommunicationType.
  */
 uem_result UKChannel_Initialize();
 
@@ -57,8 +57,8 @@ int UKChannel_GetChannelIdByTaskAndPortName(int nTaskId, char *szPortName);
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
  * @ref ERR_UEM_INVALID_PARAM for invalid @a nChannelId, @a pBuffer, @a nChunkIndex. \n
- * @ref ERR_UEM_ILLEGAL_CONTROL if ChannelAPI found by @ref ChannelAPI_GetAPIStructureFromCommunicationType function has invalid writeToBuffer function. \n
- * error could be propagated from fnWriteToBuffer function of channelAPI or from @ref ChannelAPI_GetAPIStructureFromCommunicationType.
+ * @ref ERR_UEM_ILLEGAL_CONTROL if ChannelAPI found by ChannelAPI_GetAPIStructureFromCommunicationType function has invalid writeToBuffer function. \n
+ * error could be propagated from fnWriteToBuffer function of channelAPI or from ChannelAPI_GetAPIStructureFromCommunicationType.
  *
  */
 uem_result UKChannel_WriteToBuffer(int nChannelId, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten);
@@ -79,8 +79,8 @@ uem_result UKChannel_WriteToBuffer(int nChannelId, IN unsigned char *pBuffer, IN
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
  * @ref ERR_UEM_INVALID_PARAM for invalid @a nChannelId, @a pBuffer, @a nChunkIndex. \n
- * @ref ERR_UEM_ILLEGAL_CONTROL if ChannelAPI found by @ref ChannelAPI_GetAPIStructureFromCommunicationType function has invalid writeToQueue function.
- * error could be propagated from fnWriteToQueue function of channelAPI or from @ref ChannelAPI_GetAPIStructureFromCommunicationType.
+ * @ref ERR_UEM_ILLEGAL_CONTROL if ChannelAPI found by ChannelAPI_GetAPIStructureFromCommunicationType function has invalid writeToQueue function.
+ * error could be propagated from fnWriteToQueue function of channelAPI or from ChannelAPI_GetAPIStructureFromCommunicationType.
  */
 uem_result UKChannel_WriteToQueue(int nChannelId, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten);
 
@@ -99,8 +99,8 @@ uem_result UKChannel_WriteToQueue(int nChannelId, IN unsigned char *pBuffer, IN 
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
  * @ref ERR_UEM_INVALID_PARAM for invalid @a nChannelId, @a pBuffer, @a nChunkIndex. \n
- * @ref ERR_UEM_ILLEGAL_CONTROL if ChannelAPI found by @ref ChannelAPI_GetAPIStructureFromCommunicationType function has invalid readFromqueue function. \n
-  * error could be propagated from fnReadFromqueue function of channelAPI or from @ref ChannelAPI_GetAPIStructureFromCommunicationType.
+ * @ref ERR_UEM_ILLEGAL_CONTROL if ChannelAPI found by ChannelAPI_GetAPIStructureFromCommunicationType function has invalid readFromqueue function. \n
+  * error could be propagated from fnReadFromqueue function of channelAPI or from ChannelAPI_GetAPIStructureFromCommunicationType.
  */
 uem_result UKChannel_ReadFromQueue(int nChannelId, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead);
 
@@ -119,8 +119,8 @@ uem_result UKChannel_ReadFromQueue(int nChannelId, IN OUT unsigned char *pBuffer
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
  * @ref ERR_UEM_INVALID_PARAM for invalid @a nChannelId, @a pBuffer, @a nChunkIndex. \n
- * @ref ERR_UEM_ILLEGAL_CONTROL if ChannelAPI found by @ref ChannelAPI_GetAPIStructureFromCommunicationType function has invalid readFromBuffer function. \n
- * error could be propagated from fnReadFromBuffer function of channelAPI or from @ref ChannelAPI_GetAPIStructureFromCommunicationType.
+ * @ref ERR_UEM_ILLEGAL_CONTROL if ChannelAPI found by ChannelAPI_GetAPIStructureFromCommunicationType function has invalid readFromBuffer function. \n
+ * error could be propagated from fnReadFromBuffer function of channelAPI or from ChannelAPI_GetAPIStructureFromCommunicationType.
  */
 uem_result UKChannel_ReadFromBuffer(int nChannelId, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead);
 
@@ -137,8 +137,8 @@ uem_result UKChannel_ReadFromBuffer(int nChannelId, IN OUT unsigned char *pBuffe
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
  * @ref ERR_UEM_INVALID_PARAM for invalid @a nChannelId, @a pBuffer, @a nChunkIndex. \n
- * @ref ERR_UEM_ILLEGAL_CONTROL if ChannelAPI found by @ref ChannelAPI_GetAPIStructureFromCommunicationType function has invalid getNumOfAvailableData function. \n
- * error could be propagated from fnGetNumOfAvailableData function of channelAPI or from @ref ChannelAPI_GetAPIStructureFromCommunicationType.
+ * @ref ERR_UEM_ILLEGAL_CONTROL if ChannelAPI found by ChannelAPI_GetAPIStructureFromCommunicationType function has invalid getNumOfAvailableData function. \n
+ * error could be propagated from fnGetNumOfAvailableData function of channelAPI or from ChannelAPI_GetAPIStructureFromCommunicationType.
  */
 uem_result UKChannel_GetNumOfAvailableData (IN int nChannelId, IN int nChunkIndex, OUT int *pnDataNum);
 
@@ -154,8 +154,8 @@ uem_result UKChannel_GetNumOfAvailableData (IN int nChannelId, IN int nChunkInde
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
  * @ref ERR_UEM_INVALID_PARAM for invalid @a nChannelId, @a nChunkIndex. \n
- * @ref ERR_UEM_ILLEGAL_CONTROL if ChannelAPI found by @ref ChannelAPI_GetAPIStructureFromCommunicationType function has invalid getAvailableChunk function. \n
- * error could be propagated from fnGetAvailableChunk function of channelAPI or from @ref ChannelAPI_GetAPIStructureFromCommunicationType.
+ * @ref ERR_UEM_ILLEGAL_CONTROL if ChannelAPI found by ChannelAPI_GetAPIStructureFromCommunicationType function has invalid getAvailableChunk function. \n
+ * error could be propagated from fnGetAvailableChunk function of channelAPI or from ChannelAPI_GetAPIStructureFromCommunicationType.
  */
 uem_result UKChannel_GetAvailableIndex (IN int nChannelId, OUT int *pnChunkIndex);
 
@@ -170,8 +170,8 @@ uem_result UKChannel_GetAvailableIndex (IN int nChannelId, OUT int *pnChunkIndex
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
  * @ref ERR_UEM_INVALID_PARAM for invalid @a nChannelId. \n
- * @ref ERR_UEM_ILLEGAL_CONTROL if ChannelAPI found by @ref ChannelAPI_GetAPIStructureFromCommunicationType function has invalid clear function. \n
- * error could be propagated from fnClear function of channelAPI or from @ref ChannelAPI_GetAPIStructureFromCommunicationType.
+ * @ref ERR_UEM_ILLEGAL_CONTROL if ChannelAPI found by ChannelAPI_GetAPIStructureFromCommunicationType function has invalid clear function. \n
+ * error could be propagated from fnClear function of channelAPI or from ChannelAPI_GetAPIStructureFromCommunicationType.
  */
 uem_result UKChannel_Clear(IN int nChannelId);
 
@@ -196,7 +196,7 @@ uem_result UKChannel_GetChannelSize(IN int nChannelId, OUT int *pnChannelSize);
  *
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
- * error could be propagated from fnFinalize function of channelAPI or from @ref ChannelAPI_GetAPIStructureFromCommunicationType.
+ * error could be propagated from fnFinalize function of channelAPI or from ChannelAPI_GetAPIStructureFromCommunicationType.
  */
 uem_result UKChannel_Finalize();
 
@@ -211,7 +211,7 @@ uem_result UKChannel_Finalize();
  *
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
- * error could be propagated from fnClear function of channelAPI or from @ref ChannelAPI_GetAPIStructureFromCommunicationType.
+ * error could be propagated from fnClear function of channelAPI or from ChannelAPI_GetAPIStructureFromCommunicationType.
  */
 uem_result UKChannel_ClearChannelInSubgraph(int nParentTaskId);
 
