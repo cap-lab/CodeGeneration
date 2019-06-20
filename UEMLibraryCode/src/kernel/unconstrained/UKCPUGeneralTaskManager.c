@@ -876,9 +876,11 @@ static uem_result traverseAndSetEventToStopTask(STask *pstTask, void *pUserData)
 	HCPUGeneralTaskManager hManager = NULL;
 	SGeneralTask *pstCallerTask = NULL;
 	ECPUTaskState enState;
+	STask *pstCallerLoopParentTask = NULL;
 
 	pstCallerTask = (SGeneralTask *) pUserData;
 	hManager = pstCallerTask->hManager;
+	pstCallerLoopParentTask = pstCallerTask->pstLoopParentTask;
 
 	result = UKCPUGeneralTaskManager_GetTaskState(hManager, pstTask, &enState);
 	ERRIFGOTO(result, _EXIT);
@@ -892,8 +894,12 @@ static uem_result traverseAndSetEventToStopTask(STask *pstTask, void *pUserData)
 		}
 		else
 		{
+			UCThreadMutex_Unlock(pstCallerLoopParentTask->hMutex);
+
 			result = UKCPUGeneralTaskManager_ChangeState(hManager, pstTask, TASK_STATE_STOP);
 			ERRIFGOTO(result, _EXIT);
+
+			UCThreadMutex_Lock(pstCallerLoopParentTask->hMutex);
 		}
 
 		result = UKCPUGeneralTaskManager_ActivateThread(hManager, pstTask);
@@ -943,7 +949,7 @@ static uem_result setLoopTaskCurrentIteration(STask *pstTask, void *pUserData)
 					//UEM_DEBUG_PRINT("pstLoopInfo->astLoopIteration[%d]: prev: %d, next: %d, nCurrentIteration: %d\n", nLoop, pstTask->nCurIteration == pstLoopInfo->astLoopIteration[nLoop].nPrevIteration, pstTask->nCurIteration = pstLoopInfo->astLoopIteration[nLoop].nNextIteration, nCurrentIteration);
 					if (pstTask->nCurIteration > pstLoopInfo->astLoopIteration[nLoop].nPrevIteration * nSavedIteration &&
 						pstTask->nCurIteration < pstLoopInfo->astLoopIteration[nLoop].nNextIteration * nSavedIteration) {
-						nNumOfDataToPop = pstLoopInfo->astLoopIteration[nLoop].nNextIteration * nSavedIteration - pstTask->nCurIteration;
+						nNumOfDataToPop = pstLoopInfo->astLoopIteration[nLoop].nNextIteration * nSavedIteration - pstTask->nCurIteration;						
 						pstTask->nCurIteration = pstLoopInfo->astLoopIteration[nLoop].nNextIteration * nSavedIteration;
 						break;
 					}
@@ -977,6 +983,30 @@ static uem_result setLoopTaskCurrentIteration(STask *pstTask, void *pUserData)
 _EXIT:
 	return result;
 }
+
+
+static uem_result setLoopTaskCurrentIterationIfSuspended(STask *pstTask, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	ECPUTaskState enState;
+	SGeneralTask *pstDesignatedTask = NULL;
+
+	pstDesignatedTask = (SGeneralTask *) pUserData;
+
+	result = UKCPUGeneralTaskManager_GetTaskState(pstDesignatedTask->hManager, pstTask, &enState);
+	ERRIFGOTO(result, _EXIT);
+
+	if(enState == TASK_STATE_SUSPEND)
+	{
+		result = setLoopTaskCurrentIteration(pstTask, pstDesignatedTask->pstLoopParentTask);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 
 static uem_result updateLoopIterationHistory(SGeneralTask *pstGeneralTask)
 {
@@ -1069,7 +1099,12 @@ static uem_bool compareIterationtoAllParentLoopTask(STask *pstTask, SGeneralTask
 			{
 
 			}
-			nCurIteration = nCurIteration / pstCurrentTask->pstLoopInfo->nLoopCount;
+
+			if(pstTask != pstCurrentTask)
+			{
+				nCurIteration = nCurIteration / pstCurrentTask->pstLoopInfo->nLoopCount;
+			}
+
 			nLoopIndex = nLoopIndex / pstCurrentTask->pstLoopInfo->nLoopCount;
 		}
 
@@ -1087,14 +1122,9 @@ static uem_result handleLoopTaskIteration(SGeneralTaskThread *pstTaskThread, SGe
 	int nLoopCount = 0;
 	int nCurIteration = 0;
 	ECPUTaskState enNewState;
-	uem_bool bStateChangeNeeded = FALSE;
-
 
 	pstCurrentTask = pstGeneralTask->pstTask;
 	pstParentTask = pstGeneralTask->pstLoopParentTask;
-
-	result = UCThreadMutex_Lock(pstParentTask->hMutex);
-	ERRIFGOTO(result, _EXIT);
 
 	if(pstParentTask->pstLoopInfo->enType == LOOP_TYPE_CONVERGENT && pstParentTask->pstLoopInfo->nDesignatedTaskId == pstCurrentTask->nTaskId)
 	{
@@ -1112,7 +1142,8 @@ static uem_result handleLoopTaskIteration(SGeneralTaskThread *pstTaskThread, SGe
 			nLoopCount = pstParentTask->pstLoopInfo->nLoopCount;
 			pstParentTask->pstLoopInfo->nCurrentIteration = nCurIteration - (nCurIteration % nLoopCount) + nLoopCount;
 
-			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstParentTask, setLoopTaskCurrentIteration, pstParentTask);
+//			setLoopTaskCurrentIterationIfSuspended
+			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstParentTask, setLoopTaskCurrentIterationIfSuspended, pstGeneralTask);
 			ERRIFGOTO(result, _EXIT_LOCK);
 
 			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstParentTask, traverseAndSetEventToStopTask, pstGeneralTask);
@@ -1129,33 +1160,26 @@ static uem_result handleLoopTaskIteration(SGeneralTaskThread *pstTaskThread, SGe
 			pstParentTask->pstLoopInfo->nCurrentIteration++;
 			//pstParentTask->pstLoopInfo->nCurrentIteration = pstGeneralTask->pstTask->nCurIteration + 1;
 		}
-		result = UKCPUTaskCommon_TraverseSubGraphTasks(pstParentTask, traverseAndSetEventToTemporarySuspendedTask, pstGeneralTask);
-		ERRIFGOTO(result, _EXIT_LOCK);
+
+		if(pstGeneralTask->enTaskState != TASK_STATE_STOP)
+		{
+			result = UCThreadMutex_Unlock(pstParentTask->hMutex);
+			ERRIFGOTO(result, _EXIT);
+
+			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstParentTask, traverseAndSetEventToTemporarySuspendedTask, pstGeneralTask);
+			ERRIFGOTO(result, _EXIT);
+
+			result = UCThreadMutex_Lock(pstParentTask->hMutex);
+			ERRIFGOTO(result, _EXIT);
+		}
 	}
 
 	result = setLoopTaskCurrentIteration(pstCurrentTask, pstParentTask);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstCurrentTask->nTargetIteration > 0 && pstCurrentTask->nCurIteration >= pstCurrentTask->nTargetIteration)
-	{
-		enNewState = TASK_STATE_STOP;
-		bStateChangeNeeded = TRUE;
-	}
-	else if(compareIterationtoAllParentLoopTask(pstCurrentTask, pstGeneralTask) == TRUE)
-	{
-		enNewState = TASK_STATE_SUSPEND;
-		bStateChangeNeeded = TRUE;
-	}
-
-	if(bStateChangeNeeded == TRUE)
-	{
-		result = changeTaskStateInLock(pstGeneralTask, enNewState);
-		ERRIFGOTO(result, _EXIT);
-	}
-
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
-	UCThreadMutex_Unlock(pstParentTask->hMutex);
+
 _EXIT:
 	return result;
 }
@@ -1165,14 +1189,92 @@ static uem_result setTaskThreadIteration(SGeneralTask *pstGeneralTask, SGeneralT
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstCurrentTask = NULL;
 	int nIndex = 0;
+	int nCurIteration;
 
 	nIndex = pstTaskThread->nTaskFuncId;
 	pstCurrentTask = pstGeneralTask->pstTask;
 
+	result = UCThreadMutex_Lock(pstCurrentTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstCurrentTask->pstLoopInfo != NULL)
+	{
+		nCurIteration = pstCurrentTask->nCurIteration * pstCurrentTask->pstLoopInfo->nLoopCount;
+	}
+	else
+	{
+		nCurIteration = pstCurrentTask->nCurIteration;
+	}
+
+	if(pstGeneralTask->nCurLoopIndex < nCurIteration)
+	{
+		pstGeneralTask->nCurLoopIndex = nCurIteration;
+	}
+
 	pstCurrentTask->astThreadContext[nIndex].nCurRunIndex = pstGeneralTask->nCurLoopIndex;
+
+	result = UCThreadMutex_Unlock(pstCurrentTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
 
 	pstGeneralTask->nCurLoopIndex++;
 
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+static uem_result setTaskThreadIterationInConvergentLoop(SGeneralTask *pstGeneralTask, SGeneralTaskThread *pstTaskThread, uem_bool *pbSuspended)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask *pstCurrentTask = NULL;
+	int nIndex = 0;
+	int nCurIteration;
+
+	nIndex = pstTaskThread->nTaskFuncId;
+	pstCurrentTask = pstGeneralTask->pstTask;
+
+	result = UCThreadMutex_Lock(pstCurrentTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstCurrentTask->pstLoopInfo != NULL)
+	{
+		if(pstGeneralTask->pstLoopParentTask != NULL &&
+			pstGeneralTask->pstLoopParentTask->pstLoopInfo->nCurrentIteration > pstCurrentTask->nCurIteration)
+		{
+			nCurIteration = pstGeneralTask->pstLoopParentTask->pstLoopInfo->nCurrentIteration * pstCurrentTask->pstLoopInfo->nLoopCount;
+		}
+		else
+		{
+			nCurIteration = pstCurrentTask->nCurIteration * pstCurrentTask->pstLoopInfo->nLoopCount;
+		}
+	}
+	else
+	{
+		nCurIteration = pstCurrentTask->nCurIteration;
+	}
+
+	if(pstGeneralTask->nCurLoopIndex < nCurIteration)
+	{		
+		pstGeneralTask->nCurLoopIndex = nCurIteration;
+	}
+
+	if(pstCurrentTask->pstLoopInfo != NULL && 
+		pstCurrentTask->nTargetIteration > 0 && (pstGeneralTask->nCurLoopIndex / pstCurrentTask->pstLoopInfo->nLoopCount)  >= pstCurrentTask->nTargetIteration )
+	{
+		*pbSuspended = TRUE;
+	}
+	else
+	{
+		*pbSuspended = FALSE;
+		pstCurrentTask->astThreadContext[nIndex].nCurRunIndex = pstGeneralTask->nCurLoopIndex;
+
+		pstGeneralTask->nCurLoopIndex++;
+	}
+
+	result = UCThreadMutex_Unlock(pstCurrentTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
@@ -1189,6 +1291,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 	uem_bool bFunctionCalled = FALSE;
 	int nExecutionCount = 0;
 	uem_bool bTargetIterationReached = FALSE;
+	uem_bool bNeedSuspended = FALSE;
 
 	pstCurrentTask = pstGeneralTask->pstTask;
 
@@ -1224,22 +1327,60 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 		}
 		result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
 		ERRIFGOTO(result, _EXIT);
-		if(bFunctionCalled == TRUE && pstGeneralTask->enTaskState == TASK_STATE_RUNNING)
+		if(pstGeneralTask->enTaskState == TASK_STATE_RUNNING || pstGeneralTask->enTaskState == TASK_STATE_SUSPEND)
 		{
 			if(pstGeneralTask->bIsSubConvergentLoop == TRUE)
 			{
-				//handle Loop Task and change TaskState if necessary.
-				result = handleLoopTaskIteration(pstTaskThread, pstGeneralTask);
-				ERRIFGOTO(result, _EXIT_ERROR_LOCK);
+				result = UCThreadMutex_Lock(pstGeneralTask->pstLoopParentTask->hMutex);
+				ERRIFGOTO(result, _EXIT);
+
+				if(bFunctionCalled == TRUE)
+				{
+					//handle Loop Task and change TaskState if necessary.
+					result = handleLoopTaskIteration(pstTaskThread, pstGeneralTask);
+					ERRIFGOTO(result, _EXIT_ERROR_LOCK);
+				}
+
+				if(pstCurrentTask->nTargetIteration > 0 && pstCurrentTask->nCurIteration >= pstCurrentTask->nTargetIteration)
+				{
+					result = changeTaskStateInLock(pstGeneralTask, TASK_STATE_STOP);
+					ERRIFGOTO(result, _EXIT);
+				}
+				else if(compareIterationtoAllParentLoopTask(pstCurrentTask, pstGeneralTask) == TRUE)
+				{
+					result = changeTaskStateInLock(pstGeneralTask, TASK_STATE_SUSPEND);
+					ERRIFGOTO(result, _EXIT);
+				}
+
+				if(pstGeneralTask->enTaskState == TASK_STATE_RUNNING &&
+					(enRunCondition != RUN_CONDITION_TIME_DRIVEN ||
+					(enRunCondition == RUN_CONDITION_TIME_DRIVEN && bFunctionCalled == TRUE)))
+				{
+					//TaskThreadIteration updating for tasks inside convergent Loop
+					result = setTaskThreadIterationInConvergentLoop(pstGeneralTask, pstTaskThread, &bNeedSuspended);
+					ERRIFGOTO(result, _EXIT_ERROR_LOCK);
+					if(bNeedSuspended == TRUE) 
+					{
+						result = changeTaskStateInLock(pstGeneralTask, TASK_STATE_SUSPEND);
+						ERRIFGOTO(result, _EXIT);
+					}
+				}
+
+				result = UCThreadMutex_Unlock(pstGeneralTask->pstLoopParentTask->hMutex);
+				ERRIFGOTO(result, _EXIT);
+			}
+			else
+			{
+				if(pstGeneralTask->enTaskState == TASK_STATE_RUNNING &&
+					(enRunCondition != RUN_CONDITION_TIME_DRIVEN ||
+					(enRunCondition == RUN_CONDITION_TIME_DRIVEN && bFunctionCalled == TRUE)))
+				{
+					result = setTaskThreadIteration(pstGeneralTask, pstTaskThread);
+					ERRIFGOTO(result, _EXIT_ERROR_LOCK);
+				}
 			}
 		}
-		if(pstGeneralTask->enTaskState == TASK_STATE_RUNNING &&
-			(enRunCondition != RUN_CONDITION_TIME_DRIVEN ||
-			(enRunCondition == RUN_CONDITION_TIME_DRIVEN && bFunctionCalled == TRUE)))
-		{
-			result = setTaskThreadIteration(pstGeneralTask, pstTaskThread);
-			ERRIFGOTO(result, _EXIT_ERROR_LOCK);
-		}
+
 		switch(pstGeneralTask->enTaskState)
 		{
 		case TASK_STATE_RUNNING:
@@ -1631,7 +1772,7 @@ static uem_result traverseAndSetEventToTaskThread(IN int nOffset, IN void *pData
 
 	pstTaskThread = (SGeneralTaskThread *) pData;
 
-	if(pstTaskThread->bSuspended == TRUE)
+	if(pstTaskThread->bSuspended == TRUE && pstTaskThread->hEvent != NULL)
 	{
 		result = UCThreadEvent_SetEvent(pstTaskThread->hEvent);
 		ERRIFGOTO(result, _EXIT);
