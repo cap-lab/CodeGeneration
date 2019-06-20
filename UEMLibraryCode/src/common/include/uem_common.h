@@ -52,6 +52,7 @@ extern "C"
 #define INVALID_TIME_VALUE (0)
 #define VARIABLE_SAMPLE_RATE (-1)
 #define MAPPING_NOT_SPECIFIED (-1)
+#define CHUNK_INDEX_NOT_SPECIFIED (-1)
 #define CHUNK_NUM_NOT_INITIALIZED (-1)
 #define INVALID_ARRAY_INDEX (-1)
 
@@ -173,7 +174,7 @@ typedef enum _EUemModuleId {
 }
 #endif
 
-//#define _DEBUG
+#define _DEBUG
 #define DEBUG_PRINT
 
 

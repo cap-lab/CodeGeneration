@@ -13,9 +13,9 @@
 
 #include <UCBasic.h>
 #include <UCAlloc.h>
-#include <UCDynamicSocket.h>
 #include <UCEndian.h>
 
+#include <UKVirtualCommunication.h>
 #include <UKUEMProtocol.h>
 
 #define MAX_MESSAGE_PARAMETER (3)
@@ -51,7 +51,8 @@ typedef struct _SUEMProtocol {
 	SUEMProtocolData stDataToSend;
 	uem_bool bReceived;
 	SUEMProtocolData stReceivedData;
-	HSocket hSocket;
+	HVirtualSocket hSocket;
+	SVirtualCommunicationAPI *pstAPI;
 	int nChannelId;
 	int unKey;
 } SUEMProtocol;
@@ -95,8 +96,11 @@ uem_result UKUEMProtocol_Create(OUT HUEMProtocol *phProtocol)
 	ERRMEMGOTO(pstProtocol, result, _EXIT);
 
 	pstProtocol->hSocket = NULL;
+	pstProtocol->pstAPI = NULL;
 	pstProtocol->bSent = FALSE;
 	pstProtocol->bReceived = FALSE;
+	pstProtocol->nChannelId = INVALID_CHANNEL_ID;
+	pstProtocol->unKey = 0; // not used now
 
 	pstProtocol->stReceivedData.unKey = 0;
 	pstProtocol->stReceivedData.pBodyData = NULL;
@@ -117,16 +121,18 @@ _EXIT:
 	return result;
 }
 
-uem_result UKUEMProtocol_SetSocket(HUEMProtocol hProtocol, HSocket hSocket)
+uem_result UKUEMProtocol_SetSocket(HUEMProtocol hProtocol, HVirtualSocket hSocket, SVirtualCommunicationAPI *pstAPI)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _SUEMProtocol *pstProtocol = NULL;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(hProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+	IFVARERRASSIGNGOTO(pstAPI, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
 	pstProtocol = hProtocol;
 
 	pstProtocol->hSocket = hSocket;
+	pstProtocol->pstAPI = pstAPI;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -454,7 +460,7 @@ _EXIT:
 	return result;
 }
 
-static uem_result sendData(HSocket hSocket, SUEMProtocolData *pstDataToSend)
+static uem_result sendData(HVirtualSocket hSocket, SVirtualCommunicationAPI *pstAPI, SUEMProtocolData *pstDataToSend)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nSentSize = 0;
@@ -463,7 +469,7 @@ static uem_result sendData(HSocket hSocket, SUEMProtocolData *pstDataToSend)
 
 	while(nSizeToSend > 0)
 	{
-		result = UCDynamicSocket_Send(hSocket, SEND_TIMEOUT, pstDataToSend->pFullMessage + nTotalSizeSent, nSizeToSend, &nSentSize);
+		result = pstAPI->fnSend(hSocket, SEND_TIMEOUT, pstDataToSend->pFullMessage + nTotalSizeSent, nSizeToSend, &nSentSize);
 		ERRIFGOTO(result, _EXIT);
 
 		nSizeToSend -= nSentSize;
@@ -484,7 +490,10 @@ uem_result UKUEMProtocol_Send(HUEMProtocol hProtocol)
 	IFVARERRASSIGNGOTO(hProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
 	pstProtocol = hProtocol;
-
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(pstProtocol->pstAPI, NULL, result, ERR_UEM_INVALID_SOCKET, _EXIT);
+	IFVARERRASSIGNGOTO(pstProtocol->hSocket, NULL, result, ERR_UEM_INVALID_SOCKET, _EXIT);
+#endif
 	if(pstProtocol->bSent == TRUE)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_ALREADY_DONE, _EXIT);
@@ -493,7 +502,7 @@ uem_result UKUEMProtocol_Send(HUEMProtocol hProtocol)
 	result = makeSendingData(&(pstProtocol->stDataToSend));
 	ERRIFGOTO(result, _EXIT);
 
-	result = sendData(pstProtocol->hSocket, &(pstProtocol->stDataToSend));
+	result = sendData(pstProtocol->hSocket, pstProtocol->pstAPI, &(pstProtocol->stDataToSend));
 	ERRIFGOTO(result, _EXIT);
 
 	//UEM_DEBUG_PRINT("pstProtocol send: %d\n", pstProtocol->stDataToSend.sMessagePacket);
@@ -506,7 +515,7 @@ _EXIT:
 }
 
 
-static uem_result receiveHeader(HSocket hSocket, char *pHeaderBuffer, int nBufferLen, OUT int *pnHeaderLength)
+static uem_result receiveHeader(HVirtualSocket hSocket, SVirtualCommunicationAPI *pstAPI, char *pHeaderBuffer, int nBufferLen, OUT int *pnHeaderLength)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nDataReceived = 0;
@@ -518,7 +527,7 @@ static uem_result receiveHeader(HSocket hSocket, char *pHeaderBuffer, int nBuffe
 
 	while(nTotalDataReceived < nDataToRead)
 	{
-		result = UCDynamicSocket_Receive(hSocket, RECEIVE_TIMEOUT, pHeaderBuffer+nTotalDataReceived, nDataToRead - nTotalDataReceived, &nDataReceived);
+		result = pstAPI->fnReceive(hSocket, RECEIVE_TIMEOUT, pHeaderBuffer+nTotalDataReceived, nDataToRead - nTotalDataReceived, &nDataReceived);
 		ERRIFGOTO(result, _EXIT);
 
 		nTotalDataReceived += nDataReceived;
@@ -539,7 +548,7 @@ static uem_result receiveHeader(HSocket hSocket, char *pHeaderBuffer, int nBuffe
 
 	while(nTotalDataReceived < nDataToRead)
 	{
-		result = UCDynamicSocket_Receive(hSocket, RECEIVE_TIMEOUT, pHeaderBuffer + nIndex + nTotalDataReceived, nDataToRead - nTotalDataReceived, &nDataReceived);
+		result = pstAPI->fnReceive(hSocket, RECEIVE_TIMEOUT, pHeaderBuffer + nIndex + nTotalDataReceived, nDataToRead - nTotalDataReceived, &nDataReceived);
 		ERRIFGOTO(result, _EXIT);
 
 		nTotalDataReceived += nDataReceived;
@@ -587,13 +596,13 @@ _EXIT:
 }
 
 
-static uem_result receiveData(HSocket hSocket, SUEMProtocolData *pstDataReceived)
+static uem_result receiveData(HVirtualSocket hSocket, SVirtualCommunicationAPI *pstAPI, SUEMProtocolData *pstDataReceived)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	char abyHeader[PRE_HEADER_LENGTH+MAX_HEADER_LENGTH];
 	int nHeaderLength = 0;
 
-	result = receiveHeader(hSocket, abyHeader, PRE_HEADER_LENGTH+MAX_HEADER_LENGTH, &nHeaderLength);
+	result = receiveHeader(hSocket, pstAPI, abyHeader, PRE_HEADER_LENGTH+MAX_HEADER_LENGTH, &nHeaderLength);
 	ERRIFGOTO(result, _EXIT);
 
 	result = parseHeader(pstDataReceived, abyHeader+PRE_HEADER_LENGTH, nHeaderLength);
@@ -605,7 +614,7 @@ _EXIT:
 }
 
 
-static uem_result receiveBody(HSocket hSocket, SUEMProtocolData *pstDataReceived)
+static uem_result receiveBody(HVirtualSocket hSocket, SVirtualCommunicationAPI *pstAPI, SUEMProtocolData *pstDataReceived)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nBodySize;
@@ -626,7 +635,7 @@ static uem_result receiveBody(HSocket hSocket, SUEMProtocolData *pstDataReceived
 
 	while(nTotalReceivedSize < nBodySize)
 	{
-		result = UCDynamicSocket_Receive(hSocket, RECEIVE_TIMEOUT, pstDataReceived->pBodyData + nTotalReceivedSize,
+		result = pstAPI->fnReceive(hSocket, RECEIVE_TIMEOUT, pstDataReceived->pBodyData + nTotalReceivedSize,
 										nBodySize - nTotalReceivedSize, &nReceivedSize);
 		ERRIFGOTO(result, _EXIT);
 
@@ -651,13 +660,16 @@ uem_result UKUEMProtocol_Receive(HUEMProtocol hProtocol)
 	IFVARERRASSIGNGOTO(hProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
 	pstProtocol = hProtocol;
-
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(pstProtocol->hSocket, NULL, result, ERR_UEM_INVALID_SOCKET, _EXIT);
+	IFVARERRASSIGNGOTO(pstProtocol->pstAPI, NULL, result, ERR_UEM_INVALID_SOCKET, _EXIT);
+#endif
 	if(pstProtocol->bReceived == TRUE)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 	}
 
-	result = receiveData(pstProtocol->hSocket, &(pstProtocol->stReceivedData));
+	result = receiveData(pstProtocol->hSocket, pstProtocol->pstAPI, &(pstProtocol->stReceivedData));
 	ERRIFGOTO(result, _EXIT);
 
 	enSentMessageType = (EMessageType) pstProtocol->stDataToSend.sMessagePacket;
@@ -666,7 +678,7 @@ uem_result UKUEMProtocol_Receive(HUEMProtocol hProtocol)
 	if(enReceivedMessageType == MESSAGE_TYPE_RESULT &&
 		(enSentMessageType == MESSAGE_TYPE_READ_QUEUE || enSentMessageType == MESSAGE_TYPE_READ_BUFFER))
 	{
-		result = receiveBody(pstProtocol->hSocket, &(pstProtocol->stReceivedData));
+		result = receiveBody(pstProtocol->hSocket, pstProtocol->pstAPI, &(pstProtocol->stReceivedData));
 		ERRIFGOTO(result, _EXIT);
 	}
 

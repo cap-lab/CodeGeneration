@@ -12,11 +12,13 @@ import org.snu.cse.cap.translator.ExecutionTime;
 import org.snu.cse.cap.translator.structure.channel.Channel;
 import org.snu.cse.cap.translator.structure.channel.ChannelArrayType;
 import org.snu.cse.cap.translator.structure.channel.CommunicationType;
+import org.snu.cse.cap.translator.structure.channel.ConnectionRoleType;
 import org.snu.cse.cap.translator.structure.channel.InMemoryAccessType;
 import org.snu.cse.cap.translator.structure.channel.LoopPortType;
 import org.snu.cse.cap.translator.structure.channel.Port;
 import org.snu.cse.cap.translator.structure.channel.PortDirection;
 import org.snu.cse.cap.translator.structure.channel.PortSampleRate;
+import org.snu.cse.cap.translator.structure.channel.RemoteCommunicationMethodType;
 import org.snu.cse.cap.translator.structure.device.Device;
 import org.snu.cse.cap.translator.structure.device.EnvironmentVariable;
 import org.snu.cse.cap.translator.structure.device.HWCategory;
@@ -87,9 +89,10 @@ public class Application {
 	// Overall metadata information
 	private ArrayList<Channel> channelList;
 	private HashMap<String, Task> taskMap; // Task name : Task class
+	private HashMap<String, TaskGraph> fullTaskGraphMap; // Task name : Task class
 	private HashMap<String, Port> portInfo; // Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
 	private HashMap<String, Device> deviceInfo; // device name: Device class
-	private HashMap<String, DeviceConnection> deviceConnectionList;
+	private HashMap<String, DeviceConnection> deviceConnectionMap;
 	private HashMap<String, HWElementType> elementTypeHash; // element type name : HWElementType class
 	private TaskGraphType applicationGraphProperty;	
 	private HashMap<String, Library> libraryMap; // library name : Library class
@@ -103,8 +106,9 @@ public class Application {
 		this.deviceInfo = new HashMap<String, Device>();
 		this.elementTypeHash = new HashMap<String, HWElementType>();
 		this.applicationGraphProperty = null;
-		this.deviceConnectionList = new HashMap<String, DeviceConnection>();
+		this.deviceConnectionMap = new HashMap<String, DeviceConnection>();
 		this.libraryMap = new HashMap<String, Library>();
+		this.fullTaskGraphMap = new HashMap<String, TaskGraph>();
 		this.executionTime = null;
 	}
 	
@@ -114,18 +118,19 @@ public class Application {
 			PortDirection direction = PortDirection.fromValue(portType.getDirection().value());
 			Port port = new Port(taskId, taskName, portType.getName(), portType.getSampleSize().intValue(), portType.getType().value(), direction);
 			
+			if(portType.getDescription() != null && portType.getDescription().trim().length() > 0) {
+				port.setDescription(portType.getDescription());
+			}
+			
 			this.portInfo.put(port.getPortKey(), port);
 			
-			if(portType.getRate() != null)
-			{
-				for(TaskRateType taskRate: portType.getRate())
-				{ 
+			if(portType.getRate() != null) {
+				for(TaskRateType taskRate: portType.getRate()) { 
 					PortSampleRate sampleRate = new PortSampleRate(taskRate.getMode(), taskRate.getRate().intValue());
 					port.putSampleRate(sampleRate);
 				}
 			}
-			else
-			{
+			else {
 				// variable sample rate, do nothing
 			}
 		}
@@ -300,14 +305,14 @@ public class Application {
 			{
 				DeviceConnection deviceConnection;
 				Connection master;
-				if(this.deviceConnectionList.containsKey(connectType.getMaster()))
+				if(this.deviceConnectionMap.containsKey(connectType.getMaster()))
 				{
-					deviceConnection = this.deviceConnectionList.get(connectType.getMaster());
+					deviceConnection = this.deviceConnectionMap.get(connectType.getMaster());
 				}
 				else
 				{
 					deviceConnection = new DeviceConnection(connectType.getMaster());
-					this.deviceConnectionList.put(connectType.getMaster(), deviceConnection);
+					this.deviceConnectionMap.put(connectType.getMaster(), deviceConnection);
 				}
 				
 				try {
@@ -434,11 +439,59 @@ public class Application {
 		return mappingInfo;
 	}
 	
+	
+	private void setRemoteCommunicationMethodType(Channel channel, ConnectionPair connectionPair) 
+	{
+		switch(connectionPair.getMasterConnection().getProtocol())
+		{
+		case SERIAL:
+			switch(connectionPair.getMasterConnection().getNetwork())
+			{
+			case BLUETOOTH:
+				channel.setRemoteMethodType(RemoteCommunicationMethodType.BLUETOOTH);
+				break;
+			case USB:
+			case WIRE:
+				channel.setRemoteMethodType(RemoteCommunicationMethodType.SERIAL);
+				break;
+			case ETHERNET_WI_FI:
+			default:
+				throw new UnsupportedOperationException();				
+			}
+			break;
+		case TCP:
+			channel.setRemoteMethodType(RemoteCommunicationMethodType.TCP);
+
+			break;
+		default:
+			throw new UnsupportedOperationException();
+		}
+	}
+	
+	private void setChannelConnectionRoleType(Channel channel, ConnectionPair connectionPair, String taskName)
+	{
+		if(connectionPair.getMasterConnection().getProtocol() == ProtocolType.TCP) {
+			if(connectionPair.getMasterDeviceName().equals(taskName) == true) {
+				channel.setConnectionRoleType(ConnectionRoleType.SERVER);
+			}
+			else {
+				channel.setConnectionRoleType(ConnectionRoleType.CLIENT);
+			}		
+		}
+		else {
+			if(connectionPair.getMasterDeviceName().equals(taskName) == true) {
+				channel.setConnectionRoleType(ConnectionRoleType.MASTER);
+			}
+			else {
+				channel.setConnectionRoleType(ConnectionRoleType.SLAVE);
+			}
+		}
+	}
+	
 	private void setSourceRemoteCommunicationType(Channel channel, String srcTaskDevice, String dstTaskDevice) throws InvalidDeviceConnectionException
 	{
-		// TODO: only TCP communication is supported now
-		DeviceConnection srcTaskConnection = this.deviceConnectionList.get(srcTaskDevice); // turtlebot
-		DeviceConnection dstTaskConnection = this.deviceConnectionList.get(dstTaskDevice); // HostPC
+		DeviceConnection srcTaskConnection = this.deviceConnectionMap.get(srcTaskDevice);
+		DeviceConnection dstTaskConnection = this.deviceConnectionMap.get(dstTaskDevice);
 		ConnectionPair connectionPair = null;
 		
 		if(srcTaskConnection != null) {// source is master
@@ -452,49 +505,11 @@ public class Application {
 		if(connectionPair == null) {
 			throw new InvalidDeviceConnectionException();
 		}
-			
-		switch(connectionPair.getMasterConnection().getProtocol())
-		{
-		case SERIAL:
-			switch(connectionPair.getMasterConnection().getNetwork())
-			{
-			case BLUETOOTH:
-				if(connectionPair.getMasterDeviceName().equals(srcTaskDevice) == true) {
-
-					channel.setCommunicationType(CommunicationType.BLUETOOTH_MASTER_WRITER);	
-				}
-				else {
-					channel.setCommunicationType(CommunicationType.BLUETOOTH_SLAVE_WRITER);
-				}
-				break;
-			case USB:
-			case WIRE:
-				if(connectionPair.getMasterDeviceName().equals(srcTaskDevice) == true) {
-
-					channel.setCommunicationType(CommunicationType.SERIAL_MASTER_WRITER);	
-				}
-				else {
-					channel.setCommunicationType(CommunicationType.SERIAL_SLAVE_WRITER);
-				}
-				break;
-			case ETHERNET_WI_FI:
-				break;
-			default:
-				throw new UnsupportedOperationException();				
-			}
-			break;
-		case TCP:
-			if(connectionPair.getMasterDeviceName().equals(srcTaskDevice) == true) {
-
-				channel.setCommunicationType(CommunicationType.TCP_SERVER_WRITER);	
-			}
-			else {
-				channel.setCommunicationType(CommunicationType.TCP_CLIENT_WRITER);
-			}
-			break;
-		default:
-			throw new UnsupportedOperationException();
-		}
+		
+		channel.setCommunicationType(CommunicationType.REMOTE_WRITER);
+		
+		setRemoteCommunicationMethodType(channel, connectionPair);
+		setChannelConnectionRoleType(channel, connectionPair, srcTaskDevice);
 	}
 	
 	private void setInMemoryAccessTypeOfRemoteChannel(Channel channel, MappingInfo taskMappingInfo, boolean isSrcTask)
@@ -590,7 +605,7 @@ public class Application {
 		}
 		else // located at the same device
 		{	
-			setInDeviceCommunicationType(channel,  srcTaskMappingInfo, dstTaskMappingInfo);
+			setInDeviceCommunicationType(channel, srcTaskMappingInfo, dstTaskMappingInfo);
 		}
 	}
 		
@@ -665,35 +680,29 @@ public class Application {
 		}
 	}
 	
-	private CommunicationType getDstTaskCommunicationType(CommunicationType srcTaskCommunicationType)
+	private ConnectionRoleType getDstTaskConnectionRoleType(ConnectionRoleType srcTaskConnectionRoleType)
 	{
-		CommunicationType dstTaskCommunicationType;
+		ConnectionRoleType dstTaskConnectionRoleType;
 		
-		switch(srcTaskCommunicationType)
+		switch(srcTaskConnectionRoleType)
 		{
-		case TCP_CLIENT_WRITER:
-			dstTaskCommunicationType = CommunicationType.TCP_SERVER_READER;
+		case CLIENT:
+			dstTaskConnectionRoleType = ConnectionRoleType.SERVER;
 			break;
-		case TCP_SERVER_WRITER:
-			dstTaskCommunicationType = CommunicationType.TCP_CLIENT_READER;
+		case SERVER:
+			dstTaskConnectionRoleType = ConnectionRoleType.CLIENT;
 			break;
-		case BLUETOOTH_SLAVE_WRITER:
-			dstTaskCommunicationType = CommunicationType.BLUETOOTH_MASTER_READER;
+		case MASTER:
+			dstTaskConnectionRoleType = ConnectionRoleType.SLAVE;
 			break;
-		case BLUETOOTH_MASTER_WRITER:
-			dstTaskCommunicationType = CommunicationType.BLUETOOTH_SLAVE_READER;
-			break;
-		case SERIAL_SLAVE_WRITER:
-			dstTaskCommunicationType = CommunicationType.SERIAL_MASTER_READER;
-			break;
-		case SERIAL_MASTER_WRITER:
-			dstTaskCommunicationType = CommunicationType.SERIAL_SLAVE_READER;
+		case SLAVE:
+			dstTaskConnectionRoleType = ConnectionRoleType.MASTER;
 			break;
 		default:
 			throw new UnsupportedOperationException();
 		}
 		
-		return dstTaskCommunicationType;
+		return dstTaskConnectionRoleType;
 	}
 	
 	private void setSocketIndexFromTCPConnection(Channel channel, Device targetDevice, ConnectionPair connectionPair)
@@ -722,24 +731,20 @@ public class Application {
 		ConstrainedSerialConnection connection = null;
 		ArrayList<ConstrainedSerialConnection> connectionList = null;
 		
-		switch(channel.getCommunicationType())
+		switch(channel.getRemoteMethodType())
 		{
-		case BLUETOOTH_SLAVE_WRITER:
-		case BLUETOOTH_SLAVE_READER:
-		case SERIAL_SLAVE_WRITER:
-		case SERIAL_SLAVE_READER:
-			connectionList = targetDevice.getSerialConstrainedSlaveList();
-			connection = (ConstrainedSerialConnection) connectionPair.getSlaveConnection();
+		case BLUETOOTH:
+		case SERIAL:
+			switch(channel.getConnectionRoleType())
+			{
+			case SLAVE:
+				connectionList = targetDevice.getSerialConstrainedSlaveList();
+				connection = (ConstrainedSerialConnection) connectionPair.getSlaveConnection();
+				break;
+			default:
+				throw new InvalidDeviceConnectionException();		
+			}
 			break;
-		case BLUETOOTH_MASTER_READER:
-		case BLUETOOTH_MASTER_WRITER:
-		case SERIAL_MASTER_READER:
-		case SERIAL_MASTER_WRITER:
-		case TCP_SERVER_READER:
-		case TCP_SERVER_WRITER:
-		case TCP_CLIENT_WRITER:
-		case TCP_CLIENT_READER:
-		case SHARED_MEMORY:			
 		default:
 			throw new InvalidDeviceConnectionException();	
 		}
@@ -765,35 +770,40 @@ public class Application {
 		UnconstrainedSerialConnection connection = null;
 		ArrayList<UnconstrainedSerialConnection> connectionList = null;
 		
-		switch(channel.getCommunicationType())
+		switch(channel.getRemoteMethodType())
 		{
-		case BLUETOOTH_MASTER_READER:
-		case BLUETOOTH_MASTER_WRITER:
-			connectionList = targetDevice.getBluetoothMasterList();
-			connection = (UnconstrainedSerialConnection) connectionPair.getMasterConnection();
+		case BLUETOOTH:
+			switch(channel.getConnectionRoleType())
+			{
+			case MASTER:
+				connectionList = targetDevice.getBluetoothMasterList();
+				connection = (UnconstrainedSerialConnection) connectionPair.getMasterConnection();
+				break;
+			case SLAVE:
+				connectionList = targetDevice.getBluetoothUnconstrainedSlaveList();
+				connection = (UnconstrainedSerialConnection) connectionPair.getSlaveConnection();
+				break;
+			default:
+				throw new InvalidDeviceConnectionException();
+			}
 			break;
-		case SERIAL_MASTER_READER:
-		case SERIAL_MASTER_WRITER:
-			connectionList = targetDevice.getSerialMasterList();
-			connection = (UnconstrainedSerialConnection) connectionPair.getMasterConnection();
+		case SERIAL:
+			switch(channel.getConnectionRoleType())
+			{
+			case MASTER:
+				connectionList = targetDevice.getSerialMasterList();
+				connection = (UnconstrainedSerialConnection) connectionPair.getMasterConnection();
+				break;
+			case SLAVE:
+				connectionList = targetDevice.getSerialUnconstrainedSlaveList();
+				connection = (UnconstrainedSerialConnection) connectionPair.getSlaveConnection();
+				break;
+			default:
+				throw new InvalidDeviceConnectionException();
+			}
 			break;
-		case BLUETOOTH_SLAVE_WRITER:
-		case BLUETOOTH_SLAVE_READER:
-			connectionList = targetDevice.getBluetoothUnconstrainedSlaveList();
-			connection = (UnconstrainedSerialConnection) connectionPair.getSlaveConnection();
-			break;
-		case SERIAL_SLAVE_WRITER:
-		case SERIAL_SLAVE_READER:
-			connectionList = targetDevice.getSerialUnconstrainedSlaveList();
-			connection = (UnconstrainedSerialConnection) connectionPair.getSlaveConnection();
-			break;
-		case TCP_SERVER_READER:
-		case TCP_SERVER_WRITER:
-		case TCP_CLIENT_WRITER:
-		case TCP_CLIENT_READER:
-		case SHARED_MEMORY:			
 		default:
-			throw new InvalidDeviceConnectionException();	
+			throw new InvalidDeviceConnectionException();
 		}
 		
 		connection.incrementChannelAccessNum();
@@ -813,31 +823,34 @@ public class Application {
 	
 	private void findAndSetSocketInfoIndex(Channel channel, Device srcDevice, Device dstDevice) throws InvalidDeviceConnectionException
 	{
-		DeviceConnection srcTaskConnection = this.deviceConnectionList.get(srcDevice.getName());
-		DeviceConnection dstTaskConnection = this.deviceConnectionList.get(dstDevice.getName());
+		DeviceConnection srcTaskConnection = this.deviceConnectionMap.get(srcDevice.getName());
+		DeviceConnection dstTaskConnection = this.deviceConnectionMap.get(dstDevice.getName());
 		ConnectionPair connectionPair = null;
 		Device targetDevice;
 
-		switch(channel.getCommunicationType())
+		switch(channel.getConnectionRoleType())
 		{
-		case BLUETOOTH_MASTER_READER:
-		case BLUETOOTH_SLAVE_READER:
-		case SERIAL_MASTER_READER:
-		case SERIAL_SLAVE_READER:
-		case TCP_CLIENT_READER:
-			targetDevice = dstDevice;
+		case MASTER:
+		case SLAVE:
+		case CLIENT:
+			switch(channel.getCommunicationType())
+			{
+			case REMOTE_READER:
+				targetDevice = dstDevice;
+				break;
+			case REMOTE_WRITER:
+				targetDevice = srcDevice;
+				break;
+			case SHARED_MEMORY:
+				return; // do nothing with shared memory
+			default:
+				throw new InvalidDeviceConnectionException();	
+			}
 			break;
-		case BLUETOOTH_MASTER_WRITER:
-		case BLUETOOTH_SLAVE_WRITER:
-		case SERIAL_MASTER_WRITER:
-		case SERIAL_SLAVE_WRITER:
-		case TCP_CLIENT_WRITER:
-			targetDevice = srcDevice;
-			break;
-		case TCP_SERVER_READER:
-		case TCP_SERVER_WRITER:
-		case SHARED_MEMORY:
-			return; // do nothing with other channel type
+		case SERVER: // do nothing with server
+			return;
+		case NONE:
+			return;
 		default:
 			throw new InvalidDeviceConnectionException();	
 		}
@@ -897,7 +910,8 @@ public class Application {
 			putPortIntoDeviceHierarchically(dstDevice, channel.getInputPort(), PortDirection.INPUT);
 			putPortIntoDeviceHierarchically(dstDevice, channel.getOutputPort(), PortDirection.OUTPUT);
 						
-			channelInDevice.setCommunicationType(getDstTaskCommunicationType(channel.getCommunicationType()));
+			channelInDevice.setCommunicationType(CommunicationType.REMOTE_READER);
+			channelInDevice.setConnectionRoleType(getDstTaskConnectionRoleType(channel.getConnectionRoleType()));
 			setInMemoryAccessTypeOfRemoteChannel(channelInDevice, dstTaskMappingInfo, false);
 			
 			findAndSetSocketInfoIndex(channelInDevice, srcDevice, dstDevice);
@@ -1276,16 +1290,15 @@ public class Application {
 		}
 	}
 	
-	private void makeSDFTaskIterationCount()
+	private void makeFullTaskGraph()
 	{
-		HashMap<String, TaskGraph> taskGraphMap = new HashMap<String, TaskGraph>();
-		Task parentTask;
+		Task parentTask;	
 		
 		// make global task graph list
 		for(Task task : this.taskMap.values())
 		{
 			TaskGraph taskGraph;
-			if(taskGraphMap.containsKey(task.getParentTaskGraphName()) == false)
+			if(this.fullTaskGraphMap.containsKey(task.getParentTaskGraphName()) == false)
 			{
 				parentTask = this.taskMap.get(task.getParentTaskGraphName());
 				
@@ -1299,17 +1312,21 @@ public class Application {
 					taskGraph = new TaskGraph(task.getParentTaskGraphName(), this.applicationGraphProperty.getString());
 				}
 				
-				taskGraphMap.put(task.getParentTaskGraphName(), taskGraph);
+				this.fullTaskGraphMap.put(task.getParentTaskGraphName(), taskGraph);
 			}
 			else
 			{
-				taskGraph = taskGraphMap.get(task.getParentTaskGraphName());
+				taskGraph = this.fullTaskGraphMap.get(task.getParentTaskGraphName());
 			}
 			
 			taskGraph.putTask(task);
 		}
-		
-		setIterationCount(taskGraphMap);
+	}
+	
+	private void makeSDFTaskIterationCount()
+	{
+		makeFullTaskGraph();
+		setIterationCount(this.fullTaskGraphMap);
 	}
 	
 	public void makeChannelInformation(CICAlgorithmType algorithm_metadata) throws InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
@@ -1344,8 +1361,8 @@ public class Application {
 			setChannelType(channel, srcPort, dstPort);
 			
 			// input/output port (port information)
-			channel.setOutputPort(srcPort.getMostUpperPortInfo());
-			channel.setInputPort(dstPort.getMostUpperPortInfo());
+			channel.setOutputPort(srcPort.getMostUpperPort());
+			channel.setInputPort(dstPort.getMostUpperPort());
 			// maximum chunk number
 			channel.setMaximumChunkNum(this.taskMap);
 
@@ -1463,11 +1480,19 @@ public class Application {
 		for(LibraryFunctionType functionType : libraryType.getFunction())
 		{
 			Function function = new Function(functionType.getName(), functionType.getReturnType());
+			
+			if(functionType.getDescription() != null && functionType.getDescription().trim().length() > 0) {
+				function.setDescription(functionType.getDescription());
+			}
 
 			for(LibraryFunctionArgumentType argType: functionType.getArgument())
 			{
 				Argument argument = new Argument(argType.getName(), argType.getType());
 				function.getArgumentList().add(argument);
+				
+				if(argType.getDescription() != null && argType.getDescription().trim().length() > 0) {
+					argument.setDescription(argType.getDescription());
+				}
 			}
 			
 			library.getFunctionList().add(function);
@@ -1481,19 +1506,21 @@ public class Application {
 			for(LibraryType libraryType: algorithm_metadata.getLibraries().getLibrary())
 			{
 				Library library = new Library(libraryType.getName(), libraryType.getType(), libraryType.getFile(), libraryType.getHeader());
+				
+				if(libraryType.getDescription() != null && libraryType.getDescription().trim().length() > 0) {
+					library.setDescription(libraryType.getDescription());
+				}
 								
 				setLibraryFunction(library, libraryType);
 				library.setExtraHeaderSet(libraryType.getExtraHeader());
 				library.setExtraSourceSet(libraryType.getExtraSource());
 				library.setLanguageAndFileExtension(libraryType.getLanguage());
 				
-				if(libraryType.getCflags() != null)
-				{
+				if(libraryType.getCflags() != null) {
 					library.setcFlags(libraryType.getCflags());	
 				}
 								
-				if(libraryType.getLdflags() != null)
-				{
+				if(libraryType.getLdflags() != null) {
 					library.setLdFlags(libraryType.getLdflags());	
 				}
 				
@@ -1550,5 +1577,17 @@ public class Application {
 
 	public ExecutionTime getExecutionTime() {
 		return executionTime;
+	}
+
+	public HashMap<String, TaskGraph> getFullTaskGraphMap() {
+		return fullTaskGraphMap;
+	}
+
+	public HashMap<String, Library> getLibraryMap() {
+		return libraryMap;
+	}
+
+	public HashMap<String, DeviceConnection> getDeviceConnectionMap() {
+		return deviceConnectionMap;
 	}
 }

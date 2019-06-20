@@ -13,8 +13,20 @@ extern "C"
 {
 #endif
 
-
+/**
+ * @brief Initialize library task.
+ *
+ * This function initializes library task by calling tasks' init function.
+ *
+ */
 void UKLibrary_Initialize();
+
+/**
+ * @brief Finalize library task.
+ *
+ * This function finalizes library task by calling tasks' wrapup function.
+ *
+ */
 void UKLibrary_Finalize();
 
 

@@ -37,10 +37,13 @@ public class Constants {
 	public static final String DEFAULT_TRANSLATED_CODE_TEMPLATE_DIR = ".." + File.separator + "UEMLibraryCode";
 	public static final String DEFAULT_MAKEFILE_AM = "Makefile.am";
 	public static final String DEFAULT_MAKEFILE = "Makefile";
+	public static final String DEFAULT_DOXYFILE = "Doxyfile";
+	public static final String DEFAULT_DOXYGEN_MANUAL = "uem_manual";
 	
 	// template files
 	public static final String TEMPLATE_FILE_TASK_CODE = "task_code.ftl";
 	public static final String TEMPLATE_FILE_MAKEFILE = "Makefile.ftl";
+	public static final String TEMPLATE_FILE_DOXYFILE= "Doxyfile.ftl";
 	public static final String TEMPLATE_FILE_LIBRARY_CODE = "library_code.ftl";
 	public static final String TEMPLATE_FILE_LIBRARY_HEADER = "library_header.ftl";
 	public static final String TEMPLATE_FILE_EXTENSION = ".ftl";
@@ -69,10 +72,19 @@ public class Constants {
 	public static final String TEMPLATE_TAG_SERIAL_MASTER_LIST = "serial_master_list";
 	public static final String TEMPLATE_TAG_SERIAL_SLAVE_LIST = "serial_slave_list";
 	
-	// tags for Makefile.ftl
+	// tags for Makefile.ftl and Doxyfile.ftl
 	public static final String TEMPLATE_TAG_BUILD_INFO = "build_info";
 	public static final String TEMPLATE_TAG_ENVIRONMENT_VARIABLE_INFO = "env_var_info";
 	public static final String TEMPLATE_TAG_DEVICE_ARCHITECTURE_INFO = "device_architecture_info";
+	
+	// tags for uem_manual.ftl
+	public static final String TEMPLATE_TAG_MANUAL_DEVICE_INFO = TEMPLATE_TAG_DEVICE_INFO;
+	public static final String TEMPLATE_TAG_MANUAL_TASK_GRAPH = TEMPLATE_TAG_TASK_GRAPH;
+	public static final String TEMPLATE_TAG_MANUAL_LIBRARY_MAP = "library_map";
+	public static final String TEMPLATE_TAG_MANUAL_CHANNEL_LIST = TEMPLATE_TAG_CHANNEL_LIST;
+	public static final String TEMPLATE_TAG_MANUAL_TASK_MAP = TEMPLATE_TAG_TASK_MAP;
+	public static final String TEMPLATE_TAG_MANUAL_DEVICE_MAP = "device_map";
+	public static final String TEMPLATE_TAG_MANUAL_DEVICE_CONNECTION_MAP = "device_connection_map";
 	
 	// tags for task_code.ftl
 	public static final String TEMPLATE_TAG_TASK_INFO = "task_info";

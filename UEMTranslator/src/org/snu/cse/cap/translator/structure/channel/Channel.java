@@ -9,6 +9,8 @@ import org.snu.cse.cap.translator.structure.task.Task;
 public class Channel implements Cloneable {
 	private int index;
 	private CommunicationType communicationType;
+	private ConnectionRoleType connectionRoleType;
+	private RemoteCommunicationMethodType remoteMethodType;
 	private InMemoryAccessType accessType;
 	private ChannelArrayType channelType;
 	private int size;
@@ -40,6 +42,9 @@ public class Channel implements Cloneable {
 		this.socketInfoIndex = Constants.INVALID_ID_VALUE;
 		this.inputPortIndex = Constants.INVALID_VALUE;
 		this.outputPortIndex = Constants.INVALID_VALUE;
+		this.remoteMethodType = RemoteCommunicationMethodType.NONE;
+		this.connectionRoleType = ConnectionRoleType.NONE;
+		
 	}
 	
 	// Does not need to clone inputPort and outputPort  
@@ -57,6 +62,8 @@ public class Channel implements Cloneable {
 		channel.nextChannelIndex = this.nextChannelIndex;
 		channel.channelSampleSize = this.channelSampleSize;
 		channel.socketInfoIndex = this.socketInfoIndex;
+		channel.remoteMethodType = this.remoteMethodType;
+		channel.connectionRoleType = this.connectionRoleType;
 		
 		// Shallow copy for these two objects
 		channel.inputPort = this.inputPort;
@@ -205,5 +212,21 @@ public class Channel implements Cloneable {
 
 	public void setAccessType(InMemoryAccessType accessType) {
 		this.accessType = accessType;
+	}
+
+	public ConnectionRoleType getConnectionRoleType() {
+		return connectionRoleType;
+	}
+
+	public RemoteCommunicationMethodType getRemoteMethodType() {
+		return remoteMethodType;
+	}
+
+	public void setConnectionRoleType(ConnectionRoleType connectionRoleType) {
+		this.connectionRoleType = connectionRoleType;
+	}
+
+	public void setRemoteMethodType(RemoteCommunicationMethodType remoteMethodType) {
+		this.remoteMethodType = remoteMethodType;
 	}
 }

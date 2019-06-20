@@ -51,6 +51,7 @@ enum TaskRunCondition {
 public class Task {
 	private int id;
 	private String name;
+	private String shortName;
 	private TaskShapeType type;
 	private int taskFuncNum;
 	private int runRate;
@@ -74,6 +75,7 @@ public class Task {
 	private String ldFlags;
 	private String taskGraphProperty;
 	private HashMap<String, Integer> iterationCountList;  // mode ID : iteration count
+	private String description;
 	
 	public Task(int id, TaskType xmlTaskData)
 	{
@@ -88,12 +90,14 @@ public class Task {
 		this.extraSourceSet = new HashSet<String>();
 		this.taskGraphProperty = xmlTaskData.getSubGraphProperty();
 		this.iterationCountList = new HashMap<String, Integer>();
+		this.description = "";
 		
 		// mode 0 with single iteration is the default iteration count for all tasks
 		this.iterationCountList.put(0+"", 0);
 	
 		setId(id);
 		setName(xmlTaskData.getName());
+		this.shortName = this.name;
 		setType(xmlTaskData.getTaskType(), xmlTaskData.getLoopStructure());
 		setParentTaskGraphName(xmlTaskData.getParentTask());
 		setRunCondition(xmlTaskData.getRunCondition().value());
@@ -104,6 +108,7 @@ public class Task {
 		setExtraHeaderSet(xmlTaskData.getExtraHeader());
 		setExtraSourceSet(xmlTaskData.getExtraSource());
 		setLanguageAndFileExtension(xmlTaskData.getLanguage());
+		setDescription(xmlTaskData.getDescription());
 		
 		if(xmlTaskData.getLdflags() != null)
 		{
@@ -196,16 +201,18 @@ public class Task {
 			TaskParameter taskParam;
 			
 			try {
-				if(ParameterType.fromValue(param.getType()) == ParameterType.DOUBLE)
-				{
+				if(ParameterType.fromValue(param.getType()) == ParameterType.DOUBLE) {
 					taskParam = new TaskDoubleParameter(param.getName(), Double.parseDouble(param.getValue()));
 				}
-				else if(ParameterType.fromValue(param.getType()) == ParameterType.INT)
-				{
+				else if(ParameterType.fromValue(param.getType()) == ParameterType.INT) {
 					taskParam = new TaskIntegerParameter(param.getName(), Integer.parseInt(param.getValue()));
 				}
-				else{
+				else {
 					throw new InvalidTargetObjectTypeException();
+				}
+				
+				if(param.getDescription() != null && param.getDescription().trim().length() > 0) {
+					taskParam.setDescription(param.getDescription());
 				}
 				
 				this.taskParamList.add(taskParam);
@@ -321,6 +328,7 @@ public class Task {
 		else
 		{
 			this.parentTaskGraphName = parentTaskGraphName;	
+			this.shortName = this.name.substring(parentTaskGraphName.length()+1);
 		}
 	}
 	
@@ -423,5 +431,20 @@ public class Task {
 
 	public ProgrammingLanguage getLanguage() {
 		return language;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		if(description != null && description.trim().length() > 0)
+		{
+			this.description = description;
+		}
+	}
+
+	public String getShortName() {
+		return shortName;
 	}
 }

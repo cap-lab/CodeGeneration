@@ -15,7 +15,28 @@ extern "C"
 {
 #endif
 
-uem_result UCTime_GetCurTickInMilliSeconds(uem_time *ptTime);
+/**
+ * @brief Get current tick value in milliseconds.
+ *
+ * This function retrieves a current tick (uptime of a device) in millisecond time unit.
+ *
+ * @param[out] ptTime current tick in milliseconds.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
+ */
+uem_result UCTime_GetCurTickInMilliSeconds(OUT uem_time *ptTime);
+
+/**
+ * @brief Sleep current thread.
+ *
+ * This function sleeps the current thread for a specific amount of time.
+ *
+ * @param nMillisec the amount of time to sleep in milliseconds.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
+ */
 uem_result UCTime_Sleep(int nMillisec);
 
 #ifdef __cplusplus

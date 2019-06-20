@@ -488,6 +488,10 @@ static uem_result waitUntilGeneralTaskIsStarted(HCPUGeneralTaskManager hGeneralT
 
 			UCThread_Yield();
 		}
+		else if(enState == TASK_STATE_SUSPEND)
+		{
+			bStarted = TRUE;
+		}
 		else
 		{
 			ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);

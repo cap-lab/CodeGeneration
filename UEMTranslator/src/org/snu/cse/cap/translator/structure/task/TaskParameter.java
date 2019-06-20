@@ -25,10 +25,12 @@ public abstract class TaskParameter {
 	protected int id;
 	protected ParameterType type;
 	protected String name;
+	protected String description;
 	
 	public TaskParameter(String name, ParameterType type) {
 		this.name = name;
 		this.type = type;
+		this.description = "";
 	}
 	
 	public int getId() {
@@ -53,5 +55,13 @@ public abstract class TaskParameter {
 	
 	public void setName(String paramName) {
 		this.name = paramName;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 }

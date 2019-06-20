@@ -77,7 +77,7 @@ typedef struct _SLoopInfo {
 	ELoopType enType;
 	int nLoopCount;
 	int nDesignatedTaskId;
-	uem_bool bDesignatedTaskState;
+	uem_bool bDesignatedTaskState; //flag to check whether the task should be terminated.
 	int nCurrentIteration;
 	SLoopIterationHistory astLoopIteration[LOOP_HISTORY_ARRAY_SIZE];
 	int nCurHistoryStartIndex;

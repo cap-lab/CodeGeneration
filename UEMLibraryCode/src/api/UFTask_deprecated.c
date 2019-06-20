@@ -107,17 +107,16 @@ void SYS_REQ_SET_THROUGHPUT(int nCallerTaskId, char *pszTaskName, char *pszValue
 	UFTask_SetThroughput (nCallerTaskId, pszTaskName, pszValue, pszUnit);
 }
 
-
-void SYS_REQ_EXECUTE_TRANSITION(int nCallerTaskId, char *pszTaskName)
+char *SYS_REQ_GET_MODE(int nCallerTaskId, char *pszTaskName)
 {
+	char *pszModeName = NULL;
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UFTask_UpdateMode(nCallerTaskId, pszTaskName);
+	result = UFTask_GetCurrentModeName (nCallerTaskId, pszTaskName, &pszModeName);
 	ERRIFGOTO(result, _EXIT);
 _EXIT:
-	return;
+	return pszModeName;
 }
-
 
 void SYS_REQ_SET_MTM_PARAM_INT(int nCallerTaskId, char *pszTaskName, char *pszParamName, long lParamVal)
 {
@@ -132,15 +131,14 @@ _EXIT:
 	return;
 }
 
-
-char *SYS_REQ_GET_MODE(int nCallerTaskId, char *pszTaskName)
+void SYS_REQ_EXECUTE_TRANSITION(int nCallerTaskId, char *pszTaskName)
 {
-	char *pszModeName = NULL;
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UFTask_GetCurrentModeName (nCallerTaskId, pszTaskName, &pszModeName);
+	result = UFTask_UpdateMode(nCallerTaskId, pszTaskName);
 	ERRIFGOTO(result, _EXIT);
 _EXIT:
-	return pszModeName;
+	return;
 }
+
 #endif

@@ -29,9 +29,32 @@ typedef struct _SAddOnFunction {
 extern SAddOnFunction g_astAddOns[];
 extern int g_nAddOnNum;
 
-
+/**
+ * @brief Initialize addon module.
+ *
+ * This function executes addon module initialization function. \n
+ * Addon module is used for extra jobs needed for task execution.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error.
+ */
 uem_result UKAddOnHandler_Init();
+
+/**
+ * @brief Perform addon module execution.
+ *
+ * This function executes addon module run function.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error.
+ */
 uem_result UKAddOnHandler_Run();
+
+/**
+ * @brief Perform addon module wrapup.
+ *
+ * This function executes addon module wrapup function.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error.
+ */
 uem_result UKAddOnHandler_Fini();
 
 

@@ -131,7 +131,15 @@ static void initializeCompositeTasks(int nTaskNum, SCompositeTaskRuntimeInfo ast
 		}
 		else
 		{
-			callHierarchicalInitOrWrapupFunctions(pstParentTask, TRUE);
+			if(pstParentTask->enRunCondition != RUN_CONDITION_CONTROL_DRIVEN)
+			{
+				callHierarchicalInitOrWrapupFunctions(pstParentTask, TRUE);
+			}
+			else
+			{
+				//No init for control-driven task.
+			}
+
 		}
 	}
 }
@@ -268,9 +276,7 @@ static uem_result runCompositeTasks(int nTaskNum, SCompositeTaskRuntimeInfo astR
 
 				if(pstParentTask->enRunCondition == RUN_CONDITION_CONTROL_DRIVEN)
 				{
-					// set FALSE to run once
-					callHierarchicalInitOrWrapupFunctions(pstParentTask, FALSE);
-					astRuntimeInfo[nLoop].bRunning = FALSE;
+					callHierarchicalInitOrWrapupFunctions(pstParentTask, TRUE);
 				}
 			}
 			else
@@ -278,6 +284,13 @@ static uem_result runCompositeTasks(int nTaskNum, SCompositeTaskRuntimeInfo astR
 				nTaskId = INVALID_TASK_ID;
 			}
 			astRuntimeInfo[nLoop].pstCompositeTaskSchedule->fnCompositeGo(nTaskId);
+
+			if(pstParentTask != NULL && pstParentTask->enRunCondition == RUN_CONDITION_CONTROL_DRIVEN)
+			{
+				//set FALSE to run once
+				callHierarchicalInitOrWrapupFunctions(pstParentTask, FALSE);
+				astRuntimeInfo[nLoop].bRunning = FALSE;
+			}
 		}
 	}
 

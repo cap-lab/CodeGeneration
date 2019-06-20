@@ -112,6 +112,8 @@ uem_result UKChannel_SetExit()
 		}
 	}
 
+	result = ERR_UEM_NOERROR;
+
 	return result;
 }
 
@@ -262,6 +264,8 @@ uem_result UKChannel_SetExitByTaskId(int nTaskId)
 		}
 	}
 
+	result = ERR_UEM_NOERROR;
+
 	return result;
 }
 
@@ -295,6 +299,8 @@ uem_result UKChannel_ClearExitByTaskId(int nTaskId)
 		}
 	}
 
+	result = ERR_UEM_NOERROR;
+
 	return result;
 }
 
@@ -308,12 +314,15 @@ static uem_result popDataFromQueue(SChannel *pstChannel, SChannelAPI *pstChannel
 	int nLoop = 0;
 	int nSubLoop = 0;
 	int nDataCanRead = 0;
+	int nBroadcastNum = 0;
 
 	result = UKChannel_GetChunkNumAndLen(pstChannel->pstInputPort, &nChunkNum, &nChunkLen);
 	ERRIFGOTO(result, _EXIT);
 
+	nBroadcastNum = nNumOfDataToPop / nChunkNum;
+
 	// if the buffer pointer is NULL, no copy is required
-	for(nLoop = 0 ; nLoop < nNumOfDataToPop ; nLoop++)
+	for(nLoop = 0 ; nLoop < nBroadcastNum ; nLoop++)
 	{
 		for(nSubLoop = 0 ; nSubLoop < nChunkNum ; nSubLoop++)
 		{

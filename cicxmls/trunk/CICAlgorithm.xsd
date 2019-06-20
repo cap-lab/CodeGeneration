@@ -144,6 +144,7 @@
     </xs:sequence>
     <xs:attribute name="name" type="NameType" use="required" />
     <xs:attribute name="direction" type="PortDirectionType" use="required" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
     <xs:attribute name="type" type="PortTypeType" use="required" />
     <xs:attribute name="period" type="xs:nonNegativeInteger" use="optional" />
     <xs:attribute name="sampleType" type="xs:string" use="optional" />
@@ -164,6 +165,7 @@
   <xs:complexType name="LibraryMasterPortType">
     <xs:attribute name="name" type="NameType" use="required" />
     <xs:attribute name="type" type="NameType" use="required" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
   </xs:complexType>
 
   <xs:complexType name="TaskParameterType">
@@ -181,6 +183,7 @@
     <xs:attribute name="size" type="xs:positiveInteger" use="optional" />
     <xs:attribute name="pointer" type="YesNoType" use="optional" />
     <xs:attribute name="output" type="YesNoType" use="optional" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
    </xs:complexType>
 
    <xs:complexType name="LibraryFunctionType">
@@ -190,6 +193,7 @@
     <xs:attribute name="returnType" type="xs:string" use="required" />
     <xs:attribute name="returnSize" type="xs:nonNegativeInteger" use="optional" />
     <xs:attribute name="name" type="xs:string" use="required" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
    </xs:complexType>
 
    <xs:complexType name="LibraryType">

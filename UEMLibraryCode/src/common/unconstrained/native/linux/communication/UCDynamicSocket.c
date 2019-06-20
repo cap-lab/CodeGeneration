@@ -184,10 +184,11 @@ uem_result UCDynamicSocket_Destroy(IN OUT HSocket *phSocket)
     if(pstSocket->nSocketfd != SOCKET_FD_NOT_SET)
     {
         close(pstSocket->nSocketfd);
-        if(pstSocketAPI->fnDestroy != NULL)
-        {
-        	pstSocketAPI->fnDestroy((HSocket) pstSocket);
-        }
+    }
+
+    if(pstSocketAPI->fnDestroy != NULL)
+    {
+    	pstSocketAPI->fnDestroy((HSocket) pstSocket);
     }
 
     SAFEMEMFREE(pstSocket->pszSocketPath);
@@ -200,26 +201,6 @@ uem_result UCDynamicSocket_Destroy(IN OUT HSocket *phSocket)
 _EXIT:
     return result;
 }
-
-
-/*
-static uem_result convertSocketErrorToCAPError(int nErrno)
-{
-    uem_result result = ERR_UEM_UNKNOWN;
-
-    switch(nErrno)
-    {
-    case EADDRINUSE:
-        result = ERR_UEM_BIND_ERROR;
-        break;
-    default:
-        result = ERR_UEM_NET_ERROR;
-        break;
-    }
-
-    return result;
-}
-*/
 
 
 uem_result UCDynamicSocket_Bind(HSocket hServerSocket)
@@ -451,6 +432,33 @@ _EXIT:
     return result;
 }
 
+
+uem_result UCDynamicSocket_Disconnect(HSocket hClientSocket)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+    SUCSocket *pstSocket = NULL;
+    SSocketAPI *pstSocketAPI = NULL;
+#ifdef ARGUMENT_CHECK
+    if(IS_VALID_HANDLE(hClientSocket, ID_UEM_SOCKET) == FALSE)
+    {
+        ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+    }
+#endif
+    pstSocket = (SUCSocket *) hClientSocket;
+
+    result = getSocketAPIByType(pstSocket->enSocketType, &pstSocketAPI);
+    ERRIFGOTO(result, _EXIT);
+
+    if(pstSocket->nSocketfd != SOCKET_FD_NOT_SET)
+    {
+        close(pstSocket->nSocketfd);
+        pstSocket->nSocketfd = SOCKET_FD_NOT_SET;
+    }
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
 
 
 uem_result UCDynamicSocket_Send(HSocket hSocket, IN int nTimeout, IN char *pData, IN int nDataLen, OUT int *pnSentSize)

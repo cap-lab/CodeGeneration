@@ -23,6 +23,7 @@ import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.TranslatorProperties;
 import org.snu.cse.cap.translator.UEMMetaDataModel;
 import org.snu.cse.cap.translator.UnsupportedHardwareInformation;
+import org.snu.cse.cap.translator.structure.Application;
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 import org.snu.cse.cap.translator.structure.ProgrammingLanguage;
 import org.snu.cse.cap.translator.structure.device.Device;
@@ -202,6 +203,44 @@ public class CodeGenerator
 		makefileTemplate.process(makefileRootHash, out);
     }
     
+    private void generateDoxyFile(CodeOrganizer codeOrganizer, String topDirPath) throws TemplateNotFoundException, MalformedTemplateNameException, 
+    freemarker.core.ParseException, IOException, TemplateException
+    {
+    	Template doxyFileTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_DOXYFILE);
+    	// Create the root hash
+    	Map<String, Object> doxyfileRootHash = new HashMap<>();
+    	String outputFilePath = topDirPath + File.separator;
+    	
+    	outputFilePath += Constants.DEFAULT_DOXYFILE;
+
+    	doxyfileRootHash.put(Constants.TEMPLATE_TAG_BUILD_INFO, codeOrganizer);
+
+    	Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
+    	doxyFileTemplate.process(doxyfileRootHash, out);
+    }
+    
+    private void generateDoxygenManual(CodeOrganizer codeOrganizer, Application application, Device device, String topDirPath) throws TemplateNotFoundException, MalformedTemplateNameException, 
+    freemarker.core.ParseException, IOException, TemplateException
+    {
+    	Template doxygenManualTemplate = this.templateConfig.getTemplate(Constants.DEFAULT_DOXYGEN_MANUAL+Constants.TEMPLATE_FILE_EXTENSION);
+    	// Create the root hash
+    	Map<String, Object> doxygenManualRootHash = new HashMap<>();
+    	String outputFilePath = topDirPath + File.separator + CodeOrganizer.KERNEL_GENERATED_DIR + File.separator;
+    	
+    	outputFilePath += Constants.DEFAULT_DOXYGEN_MANUAL + Constants.HEADER_FILE_EXTENSION;
+
+    	doxygenManualRootHash.put(Constants.TEMPLATE_TAG_MANUAL_DEVICE_INFO, device);
+    	doxygenManualRootHash.put(Constants.TEMPLATE_TAG_MANUAL_TASK_GRAPH, application.getFullTaskGraphMap());
+    	doxygenManualRootHash.put(Constants.TEMPLATE_TAG_MANUAL_LIBRARY_MAP, application.getLibraryMap());
+    	doxygenManualRootHash.put(Constants.TEMPLATE_TAG_MANUAL_CHANNEL_LIST, application.getChannelList());
+    	doxygenManualRootHash.put(Constants.TEMPLATE_TAG_MANUAL_TASK_MAP, application.getTaskMap());
+    	doxygenManualRootHash.put(Constants.TEMPLATE_TAG_MANUAL_DEVICE_MAP, application.getDeviceInfo());
+    	doxygenManualRootHash.put(Constants.TEMPLATE_TAG_MANUAL_DEVICE_CONNECTION_MAP, application.getDeviceConnectionMap());
+
+    	Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
+    	doxygenManualTemplate.process(doxygenManualRootHash, out);
+    }
+    
     private void generateKernelDataCode(CodeOrganizer codeOrganizer, Device device, String topDirPath, ArrayList<EnvironmentVariable> envVarList, ProgrammingLanguage language) throws TemplateNotFoundException, MalformedTemplateNameException, 
 	freemarker.core.ParseException, IOException, TemplateException
     {
@@ -225,7 +264,6 @@ public class CodeGenerator
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_BLUETOOTH_MASTER_LIST, device.getBluetoothMasterList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_BLUETOOTH_SLAVE_LIST, device.getBluetoothUnconstrainedSlaveList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_MASTER_LIST, device.getSerialMasterList());
-		//19.02.19
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_ENVIRONMENT_VARIABLE_INFO, envVarList);
 		//
 		if(device.getPlatform() == SoftwarePlatformType.ARDUINO)
@@ -341,7 +379,7 @@ public class CodeGenerator
     public void generateCode()
     {
    		try {
-			for(Device device : uemDatamodel.getApplication().getDeviceInfo().values())
+			for(Device device : this.uemDatamodel.getApplication().getDeviceInfo().values())
 			{
 				CodeOrganizer codeOrganizer = new CodeOrganizer(device.getArchitecture().toString(), 
 						device.getPlatform().toString(), device.getRuntime().toString(), device.isGPUMapped(), device.getRequiredCommunicationSet());
@@ -352,7 +390,7 @@ public class CodeGenerator
 				codeOrganizer.fillSourceCodeAndFlagsFromModules(device.getModuleList());
 				codeOrganizer.extractDataFromProperties(this.translatorProperties);
 				codeOrganizer.setBuildType(this.translatorProperties);
-				
+
 				codeOrganizer.copyFilesFromLibraryCodeTemplate(this.libraryCodeTemplateDir, topSrcDir);
 				codeOrganizer.copyBuildFiles(this.translatorProperties, this.libraryCodeTemplateDir, topSrcDir);
 				codeOrganizer.copyApplicationCodes(this.mOutputPath, topSrcDir);
@@ -362,6 +400,8 @@ public class CodeGenerator
 				generateKernelDataCode(codeOrganizer, device, topSrcDir, device.getEnvironmentVariableList(), codeOrganizer.getLanguage());
 				generateTaskCode(device, topSrcDir);
 				generateLibraryCodes(device, topSrcDir);
+				generateDoxyFile(codeOrganizer, topSrcDir);
+				generateDoxygenManual(codeOrganizer, this.uemDatamodel.getApplication(), device, topSrcDir);
 			}			
 		} catch (TemplateNotFoundException e) {
 			// TODO Auto-generated catch block

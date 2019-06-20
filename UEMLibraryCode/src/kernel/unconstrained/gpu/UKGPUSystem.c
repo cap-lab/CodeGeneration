@@ -46,8 +46,6 @@ _EXIT:
 uem_result UKGPUSystem_CreateHostAllocMemory(int nSize, int nProcessorId, OUT void **ppMemory)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	int nDeviceOri = 0;
-	int nGPUProcessorId = 0;
 
 	IFVARERRASSIGNGOTO(ppMemory , NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
