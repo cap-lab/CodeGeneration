@@ -63,7 +63,8 @@ public class CodeGenerator
     }
     
     public CodeGenerator(String[] args)
-    {   	
+    {
+    	String translatorRootDir = "";
 		this.templateConfig = new Configuration(Configuration.VERSION_2_3_27);
 		
 		this.templateConfig.setDefaultEncoding("UTF-8");
@@ -74,15 +75,17 @@ public class CodeGenerator
 		this.translatorProperties = new Properties();
 
 		try {
-			this.translatorProperties.load(new FileInputStream(Constants.DEFAULT_PROPERTIES_FILE_PATH));
+			translatorRootDir = getCanonicalPath(getClass().getProtectionDomain().getCodeSource().getLocation().getFile() + "..");
+			
+			this.translatorProperties.load(new FileInputStream(translatorRootDir + File.separator + Constants.DEFAULT_PROPERTIES_FILE_PATH));
 			
 			this.templateDir = this.translatorProperties.getProperty(TranslatorProperties.PROPERTIES_TEMPLATE_CODE_PATH, 
 																	Constants.DEFAULT_TEMPLATE_DIR);
-			this.templateDir = getCanonicalPath(this.templateDir);
+			this.templateDir = getCanonicalPath(translatorRootDir + File.separator + this.templateDir);
 			
 			this.libraryCodeTemplateDir = this.translatorProperties.getProperty(TranslatorProperties.PROPERTIES_TRANSLATED_CODE_TEMPLATE_PATH,
 												Constants.DEFAULT_TRANSLATED_CODE_TEMPLATE_DIR);
-			this.libraryCodeTemplateDir = getCanonicalPath(this.libraryCodeTemplateDir);
+			this.libraryCodeTemplateDir = getCanonicalPath(translatorRootDir + File.separator + this.libraryCodeTemplateDir);
 			
 			this.templateConfig.setDirectoryForTemplateLoading(new File(this.templateDir));
 			

@@ -31,7 +31,7 @@ public class Constants {
 	
 	public static final String DEFAULT_PROPERTIES_FILE_NAME = "translator.properties";
 	public static final String DEFAULT_MODULE_XML_FILE_NAME = "module.xml";
-	public static final String DEFAULT_PROPERTIES_FILE_PATH = ".." + File.separator + "UEMTranslator" + File.separator + "config" + File.separator + DEFAULT_PROPERTIES_FILE_NAME;
+	public static final String DEFAULT_PROPERTIES_FILE_PATH = "config" + File.separator + DEFAULT_PROPERTIES_FILE_NAME;
 	public static final String DEFAULT_MODULE_XML_PATH = ".." + File.separator + "UEMTranslator" + File.separator + "config" + File.separator + DEFAULT_MODULE_XML_FILE_NAME;
 	public static final String DEFAULT_TEMPLATE_DIR = "templates";
 	public static final String DEFAULT_TRANSLATED_CODE_TEMPLATE_DIR = ".." + File.separator + "UEMLibraryCode";
