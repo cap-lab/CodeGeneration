@@ -8,7 +8,6 @@
 			<attribute name="javadoc_location" value="jar:platform:/resource/UEMTranslator/jars/commons-cli-1.4-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/SDFGraph"/>
 	<classpathentry kind="lib" path="/JavaLibraries/jars/mapss.jar"/>
 	<classpathentry kind="lib" path="/JavaLibraries/jars/mocgraph.jar"/>
 	<classpathentry kind="lib" path="jars/ptolemy.jar"/>
