@@ -17,6 +17,7 @@
       <xs:element name="tasks" type="TaskListType" minOccurs="1" maxOccurs="1" />
       <xs:element name="libraries" type="LibraryListType" minOccurs="0" maxOccurs="1" />
 	  <xs:element name="channels" type="ChannelListType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="multicastGroups" type="MulticastGroupListType" minOccurs="0" maxOccurs="1" />
 	  <xs:element name="portMaps" type="PortMapListType" minOccurs="0" maxOccurs="1" />
       <xs:element name="libraryConnections" type="LibraryConnectionListType" minOccurs="0" maxOccurs="1" />
       <xs:element name="taskGroups" type="TaskGroupListType" minOccurs="0" maxOccurs="1" />
@@ -43,7 +44,13 @@
       <xs:element name="channel" type="ChannelType" minOccurs="1" maxOccurs="unbounded" />
     </xs:sequence>
   </xs:complexType>
-
+  
+  <xs:complexType name="MulticastGroupListType">
+    <xs:sequence>
+      <xs:element name="multicastGroup" type="MulticastGroupType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  
   <xs:complexType name="PortMapListType">
     <xs:sequence>
       <xs:element name="portMap" type="PortMapType" minOccurs="1" maxOccurs="unbounded" />
@@ -237,7 +244,23 @@
     <xs:attribute name="task" type="NameType" use="required" />
     <xs:attribute name="port" type="NameType" use="required" />
   </xs:complexType>
-
+  
+  <!-- Type definitions for multicast group specification -->
+  <xs:complexType name="MulticastGroupType">
+    <xs:sequence>
+      <xs:element name="multicastPort" type="MulticastPortType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="groupName" type="NameType" use="required" />
+    <xs:attribute name="size" type="xs:nonNegativeInteger" use="required" />
+	<xs:attribute name="initialDataSize" type="xs:nonNegativeInteger" use="optional" />
+  </xs:complexType>
+  
+  <xs:complexType name="MulticastPortType">
+    <xs:attribute name="task" type="NameType" use="required" />
+    <xs:attribute name="port" type="NameType" use="required" />
+    <xs:attribute name="direction" type="PortDirectionType" use="required" />
+  </xs:complexType>
+  
   <!-- Type definitions for port map specification -->
   <xs:complexType name="PortMapType">
     <xs:attribute name="task" type="NameType" use="required" />

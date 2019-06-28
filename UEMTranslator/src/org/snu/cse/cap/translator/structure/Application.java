@@ -33,7 +33,9 @@ import org.snu.cse.cap.translator.structure.device.connection.DeviceConnection;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
 import org.snu.cse.cap.translator.structure.device.connection.ProtocolType;
 import org.snu.cse.cap.translator.structure.device.connection.SerialConnection;
+import org.snu.cse.cap.translator.structure.device.connection.IPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.TCPConnection;
+import org.snu.cse.cap.translator.structure.device.connection.UDPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.UnconstrainedSerialConnection;
 import org.snu.cse.cap.translator.structure.library.Argument;
 import org.snu.cse.cap.translator.structure.library.Function;
@@ -61,6 +63,7 @@ import hopes.cic.xml.ChannelPortType;
 import hopes.cic.xml.ChannelType;
 import hopes.cic.xml.DeviceConnectionListType;
 import hopes.cic.xml.EnvironmentVariableType;
+import hopes.cic.xml.IPConnectionType;
 import hopes.cic.xml.LibraryFunctionArgumentType;
 import hopes.cic.xml.LibraryFunctionType;
 import hopes.cic.xml.LibraryLibraryConnectionType;
@@ -70,7 +73,6 @@ import hopes.cic.xml.ModeType;
 import hopes.cic.xml.ModuleType;
 import hopes.cic.xml.PortMapType;
 import hopes.cic.xml.SerialConnectionType;
-import hopes.cic.xml.TCPConnectionType;
 import hopes.cic.xml.TaskLibraryConnectionType;
 import hopes.cic.xml.TaskPortType;
 import hopes.cic.xml.TaskRateType;
@@ -275,13 +277,28 @@ public class Application {
 			}
 		}
 			
-		if(connectionList.getTCPConnection() != null) 
+		if(connectionList.getIPConnection() != null) 
 		{
-			for(TCPConnectionType connectionType: connectionList.getTCPConnection())
+			for(IPConnectionType connectionType: connectionList.getIPConnection())
 			{
-				TCPConnection connection = new TCPConnection(connectionType.getName(), connectionType.getRole().toString(), 
-						connectionType.getIp(), connectionType.getPort().intValue());
-				device.putConnection(connection);
+				IPConnection connection = null;
+				switch(connectionType.getProtocol()) {
+				case TCP:
+					connection = new TCPConnection(connectionType.getName(), connectionType.getRole().toString(), 
+							connectionType.getIp(), connectionType.getPort().intValue());
+					break;
+				case UDP:
+					connection = new UDPConnection(connectionType.getName(), connectionType.getRole().toString(), 
+							connectionType.getIp(), connectionType.getPort().intValue());
+					break;
+				default:
+					throw new IllegalArgumentException();
+				}
+				
+				if(connection != null)
+				{
+					device.putConnection(connection);
+				}
 			}
 		}
 	}

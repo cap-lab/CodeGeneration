@@ -19,7 +19,9 @@ import org.snu.cse.cap.translator.structure.device.connection.ConstrainedSerialC
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
 import org.snu.cse.cap.translator.structure.device.connection.ProtocolType;
 import org.snu.cse.cap.translator.structure.device.connection.SerialConnection;
+import org.snu.cse.cap.translator.structure.device.connection.IPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.TCPConnection;
+import org.snu.cse.cap.translator.structure.device.connection.UDPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.UnconstrainedSerialConnection;
 import org.snu.cse.cap.translator.structure.gpu.TaskGPUSetupInfo;
 import org.snu.cse.cap.translator.structure.library.Library;
@@ -82,6 +84,8 @@ public class Device {
 	private HashMap<String, Integer> portKeyToIndex;  //Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
 	private ArrayList<TCPConnection> tcpServerList;
 	private ArrayList<TCPConnection> tcpClientList;
+	private ArrayList<UDPConnection> udpServerList;
+	private ArrayList<UDPConnection> udpClientList;
 	private ArrayList<UnconstrainedSerialConnection> bluetoothMasterList;
 	private ArrayList<UnconstrainedSerialConnection> bluetoothUnconstrainedSlaveList;
 	private ArrayList<ConstrainedSerialConnection> serialConstrainedSlaveList;
@@ -113,6 +117,8 @@ public class Device {
 		this.portKeyToIndex = new HashMap<String, Integer>();
 		this.tcpServerList = new ArrayList<TCPConnection>();
 		this.tcpClientList = new ArrayList<TCPConnection>();
+		this.udpServerList = new ArrayList<UDPConnection>();
+		this.udpClientList = new ArrayList<UDPConnection>();
 		
 		this.bluetoothMasterList = new ArrayList<UnconstrainedSerialConnection>();
 		this.bluetoothUnconstrainedSlaveList = new ArrayList<UnconstrainedSerialConnection>();
@@ -1064,11 +1070,19 @@ public class Device {
 		switch(connection.getProtocol())
 		{
 		case TCP:
-			if(connection.getRole().equalsIgnoreCase(TCPConnection.ROLE_SERVER) == true) {
+			if(connection.getRole().equalsIgnoreCase(IPConnection.ROLE_SERVER) == true) {
 				this.tcpServerList.add((TCPConnection) connection);
 			}
 			else {
 				this.tcpClientList.add((TCPConnection) connection);	
+			}
+			break;
+		case UDP:
+			if(connection.getRole().equalsIgnoreCase(IPConnection.ROLE_SERVER) == true) {
+				this.udpServerList.add((UDPConnection) connection);
+			}
+			else {
+				this.udpClientList.add((UDPConnection) connection);	
 			}
 			break;
 		case SERIAL:
