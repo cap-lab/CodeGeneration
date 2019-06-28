@@ -7,7 +7,6 @@ import org.snu.cse.cap.translator.structure.communication.InMemoryAccessType;
 public class MulticastGroup implements Cloneable {
 	private int index;
 	private String groupName;
-	private InMemoryAccessType accessType;
 	private int size;
 	private ArrayList<MulticastPort> inputPortList; // the most input port is set here
 	private ArrayList<MulticastPort> outputPortList; // the most outer port is set here
@@ -26,7 +25,6 @@ public class MulticastGroup implements Cloneable {
 		
 		multicastGroup = (MulticastGroup) super.clone();
 		multicastGroup.index = this.index;
-		multicastGroup.accessType = this.accessType;
 		multicastGroup.size = this.size;
 		
 		multicastGroup.nextMulticastGroupIndex = this.nextMulticastGroupIndex;
@@ -86,11 +84,11 @@ public class MulticastGroup implements Cloneable {
 		this.nextMulticastGroupIndex = nextMulticastGroupIndex;
 	}
 
-	public InMemoryAccessType getAccessType() {
-		return accessType;
+	public void clearInputPort() {
+		this.inputPortList.clear();
 	}
-
-	public void setAccessType(InMemoryAccessType accessType) {
-		this.accessType = accessType;
+	
+	public void clearOutputPort() {
+		this.outputPortList.clear();
 	}
 }

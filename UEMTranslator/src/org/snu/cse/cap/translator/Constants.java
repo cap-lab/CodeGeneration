@@ -55,7 +55,7 @@ public class Constants {
 	public static final String TEMPLATE_TAG_DEVICE_INFO = "device_info";
 	public static final String TEMPLATE_TAG_MAPPING_INFO = "mapping_info";
 	public static final String TEMPLATE_TAG_STATIC_SCHEDULE_INFO = "schedule_info";
-	public static final String TEMPLATE_TAG_MULTICAST_PORT_INFO = "multicast_port_info";
+	public static final String TEMPLATE_TAG_MULTICAST_GROUP_INFO = "multicast_group_info";
 	public static final String TEMPLATE_TAG_PORT_INFO = "port_info";
 	public static final String TEMPLATE_TAG_PORT_KEY_TO_INDEX = "port_key_to_index";
 	public static final String TEMPLATE_TAG_EXECUTION_TIME = "execution_time";

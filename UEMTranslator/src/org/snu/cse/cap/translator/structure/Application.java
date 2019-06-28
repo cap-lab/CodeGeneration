@@ -185,6 +185,9 @@ public class Application {
 			this.taskMap.put(task.getName(), task);
 			
 			putPortInfoFromTask(task_metadata, taskId, task.getName());
+
+			putMulticastPortInfoFromTask(task_metadata, taskId, task.getName());
+			
 			taskId++;
 		}
 		
@@ -1398,36 +1401,50 @@ public class Application {
 		}
 	}
 	
-	private void putMulticastPortIntoDeviceHierarchically(Device device, Port port)
-	{
-		Port currentPort;
-		
-		currentPort = port;
-		while(currentPort != null)
-		{
-			if(device.getMulticastPortList().contains((MulticastPort)currentPort) == false)
-			{
-				device.getMulticastPortList().add((MulticastPort)currentPort);	
-			}
-			currentPort = currentPort.getSubgraphPort();
-		}
-	}
-	
-	public void addMulticastGroupAndMulticastPortInfoToDevice(MulticastGroup multicastGroup) throws InvalidDataInMetadataFileException
+	public void addMulticastGroupAndMulticastPortInfoToDevice(MulticastGroup multicastGroup) throws InvalidDataInMetadataFileException, CloneNotSupportedException
 	{
 		ArrayList<MulticastPort> inputPortList = multicastGroup.getInputPortList();
+		MulticastGroup multicastGroupForSpecificDevice = null;
 		for(MulticastPort inputPort : inputPortList)
 		{
 			Device device = this.deviceInfo.get(findMappingInfoByTaskName(inputPort.getTaskName()).getMappedDeviceName());
 			
-			putMulticastPortIntoDeviceHierarchically(device, inputPort);
+			if(device.getMulticastGroupList().containsKey(inputPort.getGroupName()) == true)
+			{
+				device.putMulticastPort(inputPort);
+			}
+			else
+			{
+				multicastGroupForSpecificDevice = multicastGroup.clone();
+				
+				multicastGroupForSpecificDevice.clearInputPort();
+				multicastGroupForSpecificDevice.clearOutputPort();
+				
+				multicastGroupForSpecificDevice.putInputPort(inputPort);
+				
+				device.putMulticastGroup(multicastGroupForSpecificDevice);
+			}
 		}
 		ArrayList<MulticastPort> outputPortList = multicastGroup.getOutputPortList();
 		for(MulticastPort outputPort : outputPortList)
 		{
 			Device device = this.deviceInfo.get(findMappingInfoByTaskName(outputPort.getTaskName()).getMappedDeviceName());
 			
-			putMulticastPortIntoDeviceHierarchically(device, outputPort);
+			if(device.getMulticastGroupList().containsKey(outputPort.getGroupName()) == true)
+			{
+				device.putMulticastPort(outputPort);
+			}
+			else
+			{
+				multicastGroupForSpecificDevice = multicastGroup.clone();
+				
+				multicastGroupForSpecificDevice.clearInputPort();
+				multicastGroupForSpecificDevice.clearOutputPort();
+				
+				multicastGroupForSpecificDevice.putOutputPort(outputPort);
+				
+				device.putMulticastGroup(multicastGroupForSpecificDevice);
+			}
 		}
 	}
 	

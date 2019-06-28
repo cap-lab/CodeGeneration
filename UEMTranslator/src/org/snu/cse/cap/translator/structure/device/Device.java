@@ -73,13 +73,13 @@ public class Device {
 	
 	// in-device metadata information
 	private ArrayList<Channel> channelList;
+	private HashMap<String, MulticastGroup> multicastGroupList; // Group name : MulticastGroup class
 	private HashMap<String, Task> taskMap; // Task name : Task class
 	private HashMap<String, TaskGraph> taskGraphMap; // Task graph name : TaskGraph class
 	private HashMap<String, GeneralTaskMappingInfo> generalMappingInfo; // Task name : GeneralTaskMappingInfo class
 	private HashMap<String, TaskGPUSetupInfo> gpuSetupInfo; // Task name : TaskGPUSetupInfo class
 	private HashMap<String, CompositeTaskMappingInfo> staticScheduleMappingInfo; // Parent task Name : CompositeTaskMappingInfo class
 	private ArrayList<ChannelPort> portList;
-	private ArrayList<MulticastPort> multicastPortList;
 	private HashMap<String, Library> libraryMap;
 	
 	private ArrayList<Module> moduleList;
@@ -115,7 +115,7 @@ public class Device {
 		this.staticScheduleMappingInfo = new HashMap<String, CompositeTaskMappingInfo>();
 		this.libraryMap = new HashMap<String, Library>();
 		this.portList = new ArrayList<ChannelPort>();
-		this.multicastPortList = new ArrayList<MulticastPort>();
+		this.multicastGroupList = new HashMap<String, MulticastGroup>();
 		
 		this.moduleList = new ArrayList<Module>();
 		
@@ -1213,8 +1213,27 @@ public class Device {
 		return portList;
 	}
 
-	public ArrayList<MulticastPort> getMulticastPortList() {
-		return multicastPortList;
+	public HashMap<String, MulticastGroup> getMulticastGroupList() {
+		return multicastGroupList;
+	}
+	
+	public void putMulticastGroup(MulticastGroup multicastGroup) {
+		this.multicastGroupList.put(multicastGroup.getGroupName(), multicastGroup);
+	}
+	
+	public void putMulticastPort(MulticastPort multicastPort) {
+		MulticastGroup multicastGroup = this.multicastGroupList.get(multicastPort.getGroupName());
+		switch(multicastPort.getDirection())
+		{
+		case INPUT:
+			multicastGroup.putInputPort(multicastPort);
+			break;
+		case OUTPUT:
+			multicastGroup.putOutputPort(multicastPort);
+			break;
+		default:
+			throw new IllegalArgumentException();
+		}
 	}
 	
 	public HashMap<String, Integer> getPortKeyToIndex() {
