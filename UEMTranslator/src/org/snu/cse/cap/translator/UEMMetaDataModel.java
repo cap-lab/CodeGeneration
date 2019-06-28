@@ -135,6 +135,7 @@ public class UEMMetaDataModel {
     	
     	this.application.makeTaskInformation(algorithmMetadata);
     	this.application.makeMappingAndTaskInformationPerDevices(mappingMetadata, profileMetadata, configurationMetadata, this.schedulePath, gpusetupMetadata);
+    	this.application.makeMulticastGroupInformation(algorithmMetadata);
     	this.application.makeChannelInformation(algorithmMetadata);
     	this.application.makeLibraryInformation(algorithmMetadata);
     	this.application.makeConfigurationInformation(configurationMetadata);

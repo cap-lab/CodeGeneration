@@ -1,76 +1,71 @@
-package org.snu.cse.cap.translator.structure.channel;
+package org.snu.cse.cap.translator.structure.communication.channel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.snu.cse.cap.translator.Constants;
+import org.snu.cse.cap.translator.structure.communication.Port;
+import org.snu.cse.cap.translator.structure.communication.PortDirection;
 import org.snu.cse.cap.translator.structure.task.Task;
 import org.snu.cse.cap.translator.structure.task.TaskLoopType;
 
-enum PortSampleRateType {
-	FIXED,
-	VARIABLE,
-	MULTIPLE,
-}
 
-enum PortType {
-	QUEUE("fifo"),
-	BUFFER("overwritable"),
-	;
-	
-	private final String value;
-	
-	private PortType(final String value) {
-		this.value = value;
-	}
-	
-	public static PortType fromValue(String value) {
-		 for (PortType c : PortType.values()) {
-			 if (c.value.equals(value)) {
-				 return c;
-			 }
-		 }
-		 throw new IllegalArgumentException(value.toString());
-	}	
-}
-
-public class Port {
+public class ChannelPort extends Port {
 	private int taskId;
-	private String taskName;
-	private String portName;
 	private PortSampleRateType portSampleRateType;
 	private ArrayList<PortSampleRate> portSampleRateList;
 	private int sampleSize;
 	private PortType portType;
-	private Port subgraphPort;
-	private Port upperGraphPort;
+	private ChannelPort subgraphPort;
+	private ChannelPort upperGraphPort;
 	private LoopPortType loopPortType;
 	private PortDirection direction;
 	private String portKey;
 	private int maximumChunkNum;
 	private String description;
 	
+	public enum PortSampleRateType {
+		FIXED,
+		VARIABLE,
+		MULTIPLE,
+	}
 	
-	public Port(int taskId, String taskName, String portName, int sampleSize, String portType, PortDirection direction) {
-		this.taskId = taskId;
-		this.taskName = taskName;
-		this.portName = portName;
+	public enum PortType {
+		QUEUE("fifo"),
+		BUFFER("overwritable"),
+		;
+		
+		private final String value;
+		
+		private PortType(final String value) {
+			this.value = value;
+		}
+		
+		public static PortType fromValue(String value) {
+			 for (PortType c : PortType.values()) {
+				 if (c.value.equals(value)) {
+					 return c;
+				 }
+			 }
+			 throw new IllegalArgumentException(value.toString());
+		}	
+	}
+	
+	public ChannelPort(int taskId, String taskName, String portName, int sampleSize, String portType, PortDirection direction) {
+		super(taskId, taskName, portName, direction);
 		this.sampleSize = sampleSize;
 		this.portType = PortType.fromValue(portType);
 		this.portSampleRateType = PortSampleRateType.VARIABLE;
 		this.portSampleRateList = new ArrayList<PortSampleRate>();
-		this.subgraphPort = null;
-		this.upperGraphPort = null;
 		this.loopPortType = null;
-		this.direction = direction;
 		this.portKey = taskName + Constants.NAME_SPLITER + portName + Constants.NAME_SPLITER + direction;
 		this.maximumChunkNum = 1;
 		this.description = "";
 	}
 	
-	public Port getMostUpperPort()
+	public ChannelPort getMostUpperPort()
 	{
-		Port upperPort = this;
+		ChannelPort upperPort = this;
 		
 		while(upperPort.getUpperGraphPort() != null)
 		{
@@ -80,9 +75,9 @@ public class Port {
 		return upperPort;
 	}
 	
-	public Port getMostInnerPort()
+	public ChannelPort getMostInnerPort()
 	{
-		Port innerPort = this;
+		ChannelPort innerPort = this;
 		
 		while(innerPort.getSubgraphPort() != null)
 		{
@@ -94,7 +89,7 @@ public class Port {
 	
 	private int setOutputMaximumParallelNumber(HashMap<String, Task> taskMap) {
 		int maxParallel = 1;
-		Port port;
+		ChannelPort port;
 		Task task;
 		
 		port = this;
@@ -124,7 +119,7 @@ public class Port {
 	
 	private int setInputMaximumParallelNumber(HashMap<String, Task> taskMap) {
 		int maxParallel = 1;
-		Port port;
+		ChannelPort port;
 		Task task;
 		
 		port = this;
@@ -170,7 +165,7 @@ public class Port {
 	
 	private boolean checkPort(LoopPortType checkPortType)
 	{
-		Port port;
+		ChannelPort port;
 		boolean isPortTypeMatch = false;
 		
 		port = this;
@@ -229,22 +224,6 @@ public class Port {
 		}
 	}
 	
-	public int getTaskId() {
-		return taskId;
-	}
-	
-	public void setTaskId(int taskId) {
-		this.taskId = taskId;
-	}
-	
-	public String getPortName() {
-		return portName;
-	}
-	
-	public void setPortName(String portName) {
-		this.portName = portName;
-	}
-	
 	public PortSampleRateType getPortSampleRateType() {
 		return portSampleRateType;
 	}
@@ -269,11 +248,11 @@ public class Port {
 		this.portType = portType;
 	}
 	
-	public Port getSubgraphPort() {
-		return subgraphPort;
+	public ChannelPort getSubgraphPort() {
+		return (ChannelPort) subgraphPort;
 	}
 
-	public void setSubgraphPort(Port subgraphPort) {
+	public void setSubgraphPort(ChannelPort subgraphPort) {
 		this.subgraphPort = subgraphPort;
 	}
 
@@ -281,20 +260,12 @@ public class Port {
 		return portSampleRateList;
 	}
 
-	public Port getUpperGraphPort() {
-		return upperGraphPort;
+	public ChannelPort getUpperGraphPort() {
+		return (ChannelPort) upperGraphPort;
 	}
 
-	public void setUpperGraphPort(Port uppergraphPort) {
+	public void setUpperGraphPort(ChannelPort uppergraphPort) {
 		this.upperGraphPort = uppergraphPort;
-	}
-
-	public String getTaskName() {
-		return taskName;
-	}
-
-	public void setTaskName(String taskName) {
-		this.taskName = taskName;
 	}
 
 	public LoopPortType getLoopPortType() {
@@ -303,10 +274,6 @@ public class Port {
 
 	public void setLoopPortType(LoopPortType loopPortType) {
 		this.loopPortType = loopPortType;
-	}
-
-	public PortDirection getDirection() {
-		return direction;
 	}
 
 	public String getPortKey() {

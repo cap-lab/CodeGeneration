@@ -256,6 +256,7 @@ public class CodeGenerator
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_DEVICE_INFO, this.uemDatamodel.getApplication().getDeviceInfo());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_MAPPING_INFO, device.getGeneralMappingInfo());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_STATIC_SCHEDULE_INFO, device.getStaticScheduleMappingInfo());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_MULTICAST_PORT_INFO, device.getMulticastPortList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_PORT_INFO, device.getPortList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_PORT_KEY_TO_INDEX, device.getPortKeyToIndex());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_EXECUTION_TIME, this.uemDatamodel.getApplication().getExecutionTime());
@@ -264,6 +265,8 @@ public class CodeGenerator
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_COMMUNICATION_USED, device.useCommunication());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TCP_CLIENT_LIST, device.getTcpClientList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TCP_SERVER_LIST, device.getTcpServerList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_UDP_CLIENT_LIST, device.getUdpClientList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_UDP_SERVER_LIST, device.getUdpServerList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_BLUETOOTH_MASTER_LIST, device.getBluetoothMasterList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_BLUETOOTH_SLAVE_LIST, device.getBluetoothUnconstrainedSlaveList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_MASTER_LIST, device.getSerialMasterList());

@@ -1,4 +1,4 @@
-package org.snu.cse.cap.translator.structure.channel;
+package org.snu.cse.cap.translator.structure.communication.channel;
 
 public enum RemoteCommunicationMethodType {
 	NONE,

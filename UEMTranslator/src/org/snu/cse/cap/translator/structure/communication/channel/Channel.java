@@ -1,22 +1,23 @@
-package org.snu.cse.cap.translator.structure.channel;
+package org.snu.cse.cap.translator.structure.communication.channel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.snu.cse.cap.translator.Constants;
+import org.snu.cse.cap.translator.structure.communication.InMemoryAccessType;
 import org.snu.cse.cap.translator.structure.task.Task;
 
 public class Channel implements Cloneable {
 	private int index;
-	private CommunicationType communicationType;
+	private ChannelCommunicationType communicationType;
 	private ConnectionRoleType connectionRoleType;
 	private RemoteCommunicationMethodType remoteMethodType;
 	private InMemoryAccessType accessType;
 	private ChannelArrayType channelType;
 	private int size;
-	private Port inputPort; // the most outer port is set here
+	private ChannelPort inputPort; // the most outer port is set here
 	private int  inputPortIndex; // port index used in channel data generation
-	private Port outputPort; // the most outer port is set here
+	private ChannelPort outputPort; // the most outer port is set here
 	private int  outputPortIndex; // port index used in channel data generation
 	private int initialDataLen;
 	private int nextChannelIndex;
@@ -76,7 +77,7 @@ public class Channel implements Cloneable {
 		return index;
 	}
 	
-	public CommunicationType getCommunicationType() {
+	public ChannelCommunicationType getCommunicationType() {
 		return communicationType;
 	}
 	
@@ -92,7 +93,7 @@ public class Channel implements Cloneable {
 		this.index = channelIndex;
 	}
 	
-	public void setCommunicationType(CommunicationType communicationType) {
+	public void setCommunicationType(ChannelCommunicationType communicationType) {
 		this.communicationType = communicationType;
 	}
 	
@@ -104,15 +105,15 @@ public class Channel implements Cloneable {
 		this.size = channelSize;
 	}
 
-	public Port getInputPort() {
+	public ChannelPort getInputPort() {
 		return inputPort;
 	}
 
-	public Port getOutputPort() {
+	public ChannelPort getOutputPort() {
 		return outputPort;
 	}
 
-	public void setInputPort(Port inputPort) {
+	public void setInputPort(ChannelPort inputPort) {
 		this.inputPort = inputPort;
 		
 		// update initial data length depending on port sample rate
@@ -134,11 +135,11 @@ public class Channel implements Cloneable {
 		*/
 	}
 	
-	public void setPortIndexByPortList(ArrayList<Port> portList)
+	public void setPortIndexByPortList(ArrayList<ChannelPort> portList)
 	{
 		int index = 0;
 		int listSize = portList.size();
-		Port port;
+		ChannelPort port;
 		for(index = 0; index < listSize ; index++)
 		{
 			if(this.inputPortIndex != Constants.INVALID_VALUE && this.outputPortIndex != Constants.INVALID_VALUE)
@@ -174,7 +175,7 @@ public class Channel implements Cloneable {
 		this.outputPort.setMaximumParallelNumber(taskMap);
 	}
 
-	public void setOutputPort(Port outputPort) {
+	public void setOutputPort(ChannelPort outputPort) {
 		this.outputPort = outputPort;
 	}
 

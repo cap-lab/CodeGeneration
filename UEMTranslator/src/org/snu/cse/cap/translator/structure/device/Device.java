@@ -12,8 +12,11 @@ import org.snu.cse.cap.translator.structure.TaskGraph;
 import org.snu.cse.cap.translator.structure.TaskGraphType;
 import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.structure.ExecutionPolicy;
-import org.snu.cse.cap.translator.structure.channel.Channel;
-import org.snu.cse.cap.translator.structure.channel.Port;
+import org.snu.cse.cap.translator.structure.communication.Port;
+import org.snu.cse.cap.translator.structure.communication.channel.Channel;
+import org.snu.cse.cap.translator.structure.communication.channel.ChannelPort;
+import org.snu.cse.cap.translator.structure.communication.multicast.MulticastGroup;
+import org.snu.cse.cap.translator.structure.communication.multicast.MulticastPort;
 import org.snu.cse.cap.translator.structure.device.connection.Connection;
 import org.snu.cse.cap.translator.structure.device.connection.ConstrainedSerialConnection;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
@@ -75,7 +78,8 @@ public class Device {
 	private HashMap<String, GeneralTaskMappingInfo> generalMappingInfo; // Task name : GeneralTaskMappingInfo class
 	private HashMap<String, TaskGPUSetupInfo> gpuSetupInfo; // Task name : TaskGPUSetupInfo class
 	private HashMap<String, CompositeTaskMappingInfo> staticScheduleMappingInfo; // Parent task Name : CompositeTaskMappingInfo class
-	private ArrayList<Port> portList;
+	private ArrayList<ChannelPort> portList;
+	private ArrayList<MulticastPort> multicastPortList;
 	private HashMap<String, Library> libraryMap;
 	
 	private ArrayList<Module> moduleList;
@@ -110,7 +114,8 @@ public class Device {
 		this.gpuSetupInfo = new HashMap<String, TaskGPUSetupInfo>();
 		this.staticScheduleMappingInfo = new HashMap<String, CompositeTaskMappingInfo>();
 		this.libraryMap = new HashMap<String, Library>();
-		this.portList = new ArrayList<Port>();
+		this.portList = new ArrayList<ChannelPort>();
+		this.multicastPortList = new ArrayList<MulticastPort>();
 		
 		this.moduleList = new ArrayList<Module>();
 		
@@ -808,10 +813,10 @@ public class Device {
 		}
 	}
 	
-	private boolean matchTaskIdInPort(Port inputPort, String taskName)
+	private boolean matchTaskIdInPort(ChannelPort inputPort, String taskName)
 	{
 		boolean matched = false;
-		Port port;
+		ChannelPort port;
 		
 		port = inputPort;
 		
@@ -832,8 +837,8 @@ public class Device {
 	private boolean isChannelLocatedInSameTaskGraph(Channel channel)
 	{
 		boolean sameGraph = false;
-		Port inputPort = channel.getInputPort();
-		Port outputPort = channel.getOutputPort();
+		ChannelPort inputPort = channel.getInputPort();
+		ChannelPort outputPort = channel.getOutputPort();
 		
 		while(inputPort != null && outputPort != null)
 		{
@@ -1054,6 +1059,10 @@ public class Device {
 			{
 				communicationSet.add(DeviceCommunicationType.SERIAL);
 			}
+			else if (connection.getProtocol().equals(ProtocolType.UDP))
+			{
+				communicationSet.add(DeviceCommunicationType.UDP);
+			}
 			else
 			{
 				throw new IllegalArgumentException();
@@ -1200,10 +1209,14 @@ public class Device {
 		return libraryMap;
 	}
 
-	public ArrayList<Port> getPortList() {
+	public ArrayList<ChannelPort> getPortList() {
 		return portList;
 	}
 
+	public ArrayList<MulticastPort> getMulticastPortList() {
+		return multicastPortList;
+	}
+	
 	public HashMap<String, Integer> getPortKeyToIndex() {
 		return portKeyToIndex;
 	}
@@ -1224,6 +1237,14 @@ public class Device {
 		return tcpClientList;
 	}
 
+	public ArrayList<UDPConnection> getUdpServerList() {
+		return udpServerList;
+	}
+
+	public ArrayList<UDPConnection> getUdpClientList() {
+		return udpClientList;
+	}
+	
 	public ArrayList<Module> getModuleList() {
 		return moduleList;
 	}

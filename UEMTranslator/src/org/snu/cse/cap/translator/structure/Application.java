@@ -9,16 +9,20 @@ import java.util.List;
 
 import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.ExecutionTime;
-import org.snu.cse.cap.translator.structure.channel.Channel;
-import org.snu.cse.cap.translator.structure.channel.ChannelArrayType;
-import org.snu.cse.cap.translator.structure.channel.CommunicationType;
-import org.snu.cse.cap.translator.structure.channel.ConnectionRoleType;
-import org.snu.cse.cap.translator.structure.channel.InMemoryAccessType;
-import org.snu.cse.cap.translator.structure.channel.LoopPortType;
-import org.snu.cse.cap.translator.structure.channel.Port;
-import org.snu.cse.cap.translator.structure.channel.PortDirection;
-import org.snu.cse.cap.translator.structure.channel.PortSampleRate;
-import org.snu.cse.cap.translator.structure.channel.RemoteCommunicationMethodType;
+import org.snu.cse.cap.translator.structure.communication.InMemoryAccessType;
+import org.snu.cse.cap.translator.structure.communication.Port;
+import org.snu.cse.cap.translator.structure.communication.PortDirection;
+import org.snu.cse.cap.translator.structure.communication.channel.Channel;
+import org.snu.cse.cap.translator.structure.communication.channel.ChannelArrayType;
+import org.snu.cse.cap.translator.structure.communication.channel.ChannelCommunicationType;
+import org.snu.cse.cap.translator.structure.communication.channel.ChannelPort;
+import org.snu.cse.cap.translator.structure.communication.channel.ConnectionRoleType;
+import org.snu.cse.cap.translator.structure.communication.channel.LoopPortType;
+import org.snu.cse.cap.translator.structure.communication.channel.PortSampleRate;
+import org.snu.cse.cap.translator.structure.communication.multicast.MulticastGroup;
+import org.snu.cse.cap.translator.structure.communication.multicast.MulticastCommunicationType;
+import org.snu.cse.cap.translator.structure.communication.multicast.MulticastPort;
+import org.snu.cse.cap.translator.structure.communication.channel.RemoteCommunicationMethodType;
 import org.snu.cse.cap.translator.structure.device.Device;
 import org.snu.cse.cap.translator.structure.device.EnvironmentVariable;
 import org.snu.cse.cap.translator.structure.device.HWCategory;
@@ -71,6 +75,8 @@ import hopes.cic.xml.LibraryType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.ModeType;
 import hopes.cic.xml.ModuleType;
+import hopes.cic.xml.MulticastGroupType;
+import hopes.cic.xml.MulticastPortType;
 import hopes.cic.xml.PortMapType;
 import hopes.cic.xml.SerialConnectionType;
 import hopes.cic.xml.TaskLibraryConnectionType;
@@ -90,9 +96,11 @@ import mocgraph.sched.ScheduleElement;
 public class Application {
 	// Overall metadata information
 	private ArrayList<Channel> channelList;
+	private ArrayList<MulticastGroup> multicastGroupList;
 	private HashMap<String, Task> taskMap; // Task name : Task class
 	private HashMap<String, TaskGraph> fullTaskGraphMap; // Task name : Task class
-	private HashMap<String, Port> portInfo; // Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
+	private HashMap<String, ChannelPort> portInfo; // Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
+	private HashMap<String, MulticastPort> multicastPortInfo; // Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
 	private HashMap<String, Device> deviceInfo; // device name: Device class
 	private HashMap<String, DeviceConnection> deviceConnectionMap;
 	private HashMap<String, HWElementType> elementTypeHash; // element type name : HWElementType class
@@ -104,7 +112,8 @@ public class Application {
 	{
 		this.channelList = new ArrayList<Channel>();
 		this.taskMap = new HashMap<String, Task>();
-		this.portInfo = new HashMap<String, Port>();
+		this.portInfo = new HashMap<String, ChannelPort>();
+		this.multicastPortInfo = new HashMap<String, MulticastPort>();
 		this.deviceInfo = new HashMap<String, Device>();
 		this.elementTypeHash = new HashMap<String, HWElementType>();
 		this.applicationGraphProperty = null;
@@ -118,24 +127,36 @@ public class Application {
 		for(TaskPortType portType: task_metadata.getPort())
 		{
 			PortDirection direction = PortDirection.fromValue(portType.getDirection().value());
-			Port port = new Port(taskId, taskName, portType.getName(), portType.getSampleSize().intValue(), portType.getType().value(), direction);
+			ChannelPort channelPort = new ChannelPort(taskId, taskName, portType.getName(), portType.getSampleSize().intValue(), portType.getType().value(), direction);
 			
 			if(portType.getDescription() != null && portType.getDescription().trim().length() > 0) {
-				port.setDescription(portType.getDescription());
+				channelPort.setDescription(portType.getDescription());
 			}
 			
-			this.portInfo.put(port.getPortKey(), port);
+			this.portInfo.put(channelPort.getPortKey(), channelPort);
 			
 			if(portType.getRate() != null) {
 				for(TaskRateType taskRate: portType.getRate()) { 
 					PortSampleRate sampleRate = new PortSampleRate(taskRate.getMode(), taskRate.getRate().intValue());
-					port.putSampleRate(sampleRate);
+					channelPort.putSampleRate(sampleRate);
 				}
 			}
 			else {
 				// variable sample rate, do nothing
 			}
 		}
+	}
+	
+	private void putMulticastPortInfoFromTask(TaskType task_metadata, int taskId, String taskName)
+	{
+		for(MulticastPortType multicastPortType: task_metadata.getMulticastPort())
+		{
+			PortDirection direction = PortDirection.fromValue(multicastPortType.getDirection().value());
+		
+			MulticastPort multicastPort = new MulticastPort(taskId, taskName, multicastPortType.getName(), multicastPortType.getGroup(), direction);
+			this.multicastPortInfo.put(multicastPort.getPortKey(), multicastPort);
+		}
+		
 	}
 	
 	private void setLoopDesignatedTaskIdFromTaskName()
@@ -183,12 +204,12 @@ public class Application {
 		{
 			PortDirection direction = PortDirection.fromValue(portMapType.getDirection().value());
 			Task task = this.taskMap.get(portMapType.getTask());
-			Port port = this.portInfo.get(portMapType.getTask() + Constants.NAME_SPLITER + portMapType.getPort() + 
+			ChannelPort port = this.portInfo.get(portMapType.getTask() + Constants.NAME_SPLITER + portMapType.getPort() + 
 										Constants.NAME_SPLITER + direction);
 			
 			if(portMapType.getChildTask() != null && portMapType.getChildTaskPort() != null)
 			{
-				Port childPort = this.portInfo.get(portMapType.getChildTask() + Constants.NAME_SPLITER + portMapType.getChildTaskPort() + 
+				ChannelPort childPort = this.portInfo.get(portMapType.getChildTask() + Constants.NAME_SPLITER + portMapType.getChildTaskPort() + 
 						Constants.NAME_SPLITER + direction);
 				
 				port.setSubgraphPort(childPort);
@@ -282,7 +303,8 @@ public class Application {
 			for(IPConnectionType connectionType: connectionList.getIPConnection())
 			{
 				IPConnection connection = null;
-				switch(connectionType.getProtocol()) {
+				switch(connectionType.getProtocol()) 
+				{
 				case TCP:
 					connection = new TCPConnection(connectionType.getName(), connectionType.getRole().toString(), 
 							connectionType.getIp(), connectionType.getPort().intValue());
@@ -523,7 +545,7 @@ public class Application {
 			throw new InvalidDeviceConnectionException();
 		}
 		
-		channel.setCommunicationType(CommunicationType.REMOTE_WRITER);
+		channel.setCommunicationType(ChannelCommunicationType.REMOTE_WRITER);
 		
 		setRemoteCommunicationMethodType(channel, connectionPair);
 		setChannelConnectionRoleType(channel, connectionPair, srcTaskDevice);
@@ -584,7 +606,7 @@ public class Application {
 			}
 		}
 		
-		channel.setCommunicationType(CommunicationType.SHARED_MEMORY);
+		channel.setCommunicationType(ChannelCommunicationType.SHARED_MEMORY);
 		channel.setProcesserId(srcProcId);
 		
 		if(srcCPU == false && dstCPU == true) {
@@ -644,7 +666,7 @@ public class Application {
 	}
 	
 	// ports and tasks are the most lower-level 
-	private void setChannelType(Channel channel, Port srcPort, Port dstPort) {
+	private void setChannelType(Channel channel, ChannelPort srcPort, ChannelPort dstPort) {
 		boolean isDstDataLoop = false;
 		boolean isSrcDataLoop = false;
 		boolean isDstDistributing = false;
@@ -677,10 +699,10 @@ public class Application {
 		}
 	}
 	
-	private void putPortIntoDeviceHierarchically(Device device, Port port, PortDirection direction)
+	private void putPortIntoDeviceHierarchically(Device device, ChannelPort port, PortDirection direction)
 	{
 		// key: taskName/portName/direction
-		Port currentPort;
+		ChannelPort currentPort;
 		String key;
 		
 		currentPort = port;
@@ -927,7 +949,7 @@ public class Application {
 			putPortIntoDeviceHierarchically(dstDevice, channel.getInputPort(), PortDirection.INPUT);
 			putPortIntoDeviceHierarchically(dstDevice, channel.getOutputPort(), PortDirection.OUTPUT);
 						
-			channelInDevice.setCommunicationType(CommunicationType.REMOTE_READER);
+			channelInDevice.setCommunicationType(ChannelCommunicationType.REMOTE_READER);
 			channelInDevice.setConnectionRoleType(getDstTaskConnectionRoleType(channel.getConnectionRoleType()));
 			setInMemoryAccessTypeOfRemoteChannel(channelInDevice, dstTaskMappingInfo, false);
 			
@@ -937,7 +959,7 @@ public class Application {
 		}
 	}
 	
-	private void setNextChannelId(HashMap<String, ArrayList<Channel>> portToChannelConnection, Port srcPort, Channel curChannel)
+	private void setNextChannelId(HashMap<String, ArrayList<Channel>> portToChannelConnection, ChannelPort srcPort, Channel curChannel)
 	{
 		String portStartKey;
 		ArrayList<Channel> sameSourceChannelList;
@@ -1345,6 +1367,124 @@ public class Application {
 		makeFullTaskGraph();
 		setIterationCount(this.fullTaskGraphMap);
 	}
+
+	public void setMulticastCommunicationType(ArrayList<String> deviceListMappedWithPort, ArrayList<MulticastPort> portList) throws InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
+	{
+		for(int i = 0 ; i < portList.size() ; i++) 
+		{
+			String deviceName = findMappingInfoByTaskName(portList.get(i).getTaskName()).getMappedDeviceName();
+			if(deviceListMappedWithPort.contains(deviceName) == true)
+			{
+				if(deviceListMappedWithPort.size()>=2)
+				{
+					portList.get(i).setCommunicationType(MulticastCommunicationType.SHARED_MEMORY_UDP);
+				}
+				else
+				{
+					portList.get(i).setCommunicationType(MulticastCommunicationType.SHARED_MEMORY);
+				}
+			}
+			else
+			{
+				if(deviceListMappedWithPort.size()>=1)
+				{
+					portList.get(i).setCommunicationType(MulticastCommunicationType.UDP);
+				}
+				else
+				{
+					throw new InvalidDeviceConnectionException();
+				}
+			}
+		}
+	}
+	
+	private void putMulticastPortIntoDeviceHierarchically(Device device, Port port)
+	{
+		Port currentPort;
+		
+		currentPort = port;
+		while(currentPort != null)
+		{
+			if(device.getMulticastPortList().contains((MulticastPort)currentPort) == false)
+			{
+				device.getMulticastPortList().add((MulticastPort)currentPort);	
+			}
+			currentPort = currentPort.getSubgraphPort();
+		}
+	}
+	
+	public void addMulticastGroupAndMulticastPortInfoToDevice(MulticastGroup multicastGroup) throws InvalidDataInMetadataFileException
+	{
+		ArrayList<MulticastPort> inputPortList = multicastGroup.getInputPortList();
+		for(MulticastPort inputPort : inputPortList)
+		{
+			Device device = this.deviceInfo.get(findMappingInfoByTaskName(inputPort.getTaskName()).getMappedDeviceName());
+			
+			putMulticastPortIntoDeviceHierarchically(device, inputPort);
+		}
+		ArrayList<MulticastPort> outputPortList = multicastGroup.getOutputPortList();
+		for(MulticastPort outputPort : outputPortList)
+		{
+			Device device = this.deviceInfo.get(findMappingInfoByTaskName(outputPort.getTaskName()).getMappedDeviceName());
+			
+			putMulticastPortIntoDeviceHierarchically(device, outputPort);
+		}
+	}
+	
+	public void makeMulticastGroupInformation(CICAlgorithmType algorithm_metadata) throws InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
+	{
+		int index = 0;
+		
+		if(algorithm_metadata.getMulticastGroups() == null)
+		{
+			return;
+		}
+		
+		for(MulticastGroupType multicastMetadata: algorithm_metadata.getMulticastGroups().getMulticastGroup())
+		{ 
+			ArrayList<String> deviceListMappedWithInputPort = new ArrayList<String>();
+			ArrayList<String> deviceListMappedWithOutputPort = new ArrayList<String>();
+			MulticastGroup multicastGroup = new MulticastGroup(index, multicastMetadata.getGroupName(), multicastMetadata.getSize().intValue());
+			
+			for(MulticastPort multicastPort : this.multicastPortInfo.values())
+			{
+				if(multicastGroup.getGroupName().equals(multicastPort.getGroupName()) == true)
+				{
+					String deviceName = findMappingInfoByTaskName(multicastPort.getTaskName()).getMappedDeviceName();
+					
+					switch(multicastPort.getDirection())
+					{
+					case INPUT:
+						multicastGroup.putInputPort(multicastPort);
+						if (deviceListMappedWithInputPort.contains(deviceName) == false)
+						{
+							deviceListMappedWithInputPort.add(deviceName);
+						}
+						break;
+					case OUTPUT:
+						multicastGroup.putOutputPort(multicastPort);
+						if (deviceListMappedWithOutputPort.contains(deviceName) == false)
+						{
+							deviceListMappedWithOutputPort.add(deviceName);
+						}
+						break;
+					default:
+						throw new InvalidDeviceConnectionException();
+					}
+				} // end of if(multicastGroup.getGroupName().equals(multicastPort.getGroupName()) == true)
+			} // end of for(MulticastPort multicastPort : this.multicastPortInfo.values())
+			ArrayList<MulticastPort> inputPortList = multicastGroup.getInputPortList();
+			setMulticastCommunicationType(deviceListMappedWithOutputPort, inputPortList);
+			
+			ArrayList<MulticastPort> outputPortList = multicastGroup.getOutputPortList();
+			setMulticastCommunicationType(deviceListMappedWithInputPort, outputPortList);
+			
+			addMulticastGroupAndMulticastPortInfoToDevice(multicastGroup);
+			
+			this.multicastGroupList.add(multicastGroup);
+			index++;
+		} // end of for(MulticastGroupType multicastMetadata: algorithm_metadata.getMulticastGroups().getMulticastGroup())
+	}	
 	
 	public void makeChannelInformation(CICAlgorithmType algorithm_metadata) throws InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
 	{
@@ -1368,8 +1508,8 @@ public class Application {
 			MappingInfo srcTaskMappingInfo;
 			MappingInfo dstTaskMappingInfo;
 			
-			Port srcPort = this.portInfo.get(channelSrcPort.getTask() + Constants.NAME_SPLITER + channelSrcPort.getPort() + Constants.NAME_SPLITER + PortDirection.OUTPUT);
-			Port dstPort = this.portInfo.get(channelDstPort.getTask() + Constants.NAME_SPLITER + channelDstPort.getPort() + Constants.NAME_SPLITER + PortDirection.INPUT);
+			ChannelPort srcPort = this.portInfo.get(channelSrcPort.getTask() + Constants.NAME_SPLITER + channelSrcPort.getPort() + Constants.NAME_SPLITER + PortDirection.OUTPUT);
+			ChannelPort dstPort = this.portInfo.get(channelDstPort.getTask() + Constants.NAME_SPLITER + channelDstPort.getPort() + Constants.NAME_SPLITER + PortDirection.INPUT);
 
 			// This information is used for single port multiple channel connection cases
 			setNextChannelId(portToChannelConnection, srcPort, channel);
@@ -1588,7 +1728,7 @@ public class Application {
 		return elementTypeHash;
 	}
 
-	public HashMap<String, Port> getPortInfo() {
+	public HashMap<String, ChannelPort> getPortInfo() {
 		return portInfo;
 	}
 

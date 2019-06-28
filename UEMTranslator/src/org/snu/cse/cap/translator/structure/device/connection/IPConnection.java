@@ -3,8 +3,8 @@ package org.snu.cse.cap.translator.structure.device.connection;
 import hopes.cic.xml.NetworkType;
 
 public class IPConnection extends Connection {
-	private String IP;
-	private int port;
+	protected String IP;
+	protected int port;
 	
 	public static final String ROLE_SERVER = "server";
 	public static final String ROLE_CLIENT = "client";
