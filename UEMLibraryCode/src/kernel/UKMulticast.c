@@ -25,7 +25,7 @@ uem_result UKMulticast_Initialize()
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nLoop = 0;
-	SMulticastAPI *pstMulticastAPI[g_nMulticastAPINum] = NULL;
+	SMulticastAPI *pstMulticastAPI[g_nMulticastAPINum];
 	int nAPINum = 0;
 	int nAPIIndex = 0;
 
@@ -43,7 +43,7 @@ uem_result UKMulticast_Initialize()
 
 	for(nLoop = 0; nLoop < g_nMulticastGroupNum; nLoop++)
 	{
-        result = MulticastAPI_GetAPIStructureFromCommunicationType(&g_astMulticastGroups[nLoop], PORT_DIRECTION_INPUT,  pstMulticastAPI, nAPINum);
+        result = MulticastAPI_GetAPIStructureFromCommunicationType(&g_astMulticastGroups[nLoop], PORT_DIRECTION_INPUT,  pstMulticastAPI, &nAPINum);
 		ERRIFGOTO(result, _EXIT);
 
 		for(nAPIIndex = 0 ; nAPIIndex < nAPINum ; nAPIIndex++)
@@ -53,7 +53,7 @@ uem_result UKMulticast_Initialize()
 				ERRIFGOTO(result, _EXIT);
 			}
 		}
-        result = MulticastAPI_GetAPIStructureFromCommunicationType(&g_astMulticastGroups[nLoop], PORT_DIRECTION_OUTPUT,  pstMulticastAPI, nAPINum);
+        result = MulticastAPI_GetAPIStructureFromCommunicationType(&g_astMulticastGroups[nLoop], PORT_DIRECTION_OUTPUT,  pstMulticastAPI, &nAPINum);
 		ERRIFGOTO(result, _EXIT);
 
 		for(nAPIIndex = 0 ; nAPIIndex < nAPINum ; nAPIIndex++)
@@ -69,33 +69,49 @@ _EXIT:
 	return result;
 }
 
-static uem_bool isMulticastPortTaskIdAndMulticastPortNameEqual(SMulticastPort *pstTopMulticastPort, uem_string strPortName, int nTaskId)
+uem_result UKMulticast_GetMulticastGroupIndexById(IN int nMulticastGroupId, OUT int *pnMulticastGroupIndex)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop = 0;
+	*pnMulticastGroupIndex = INVALID_MULTICAST_GROUP_ID;
+
+	for(nLoop = 0; nLoop < g_nMulticastGroupNum; nLoop++)
+	{
+		if(g_astMulticastGroups[nLoop].nMulticastGroupId == nMulticastGroupId)
+		{
+			*pnMulticastGroupIndex = nLoop;
+			result = ERR_UEM_NOERROR;
+			break;
+		}
+	}
+
+	return result;
+}
+
+static uem_result isMulticastPortTaskIdAndMulticastPortNameEqual(IN SMulticastPort *pstTopMulticastPort, IN uem_string strPortName, IN int nTaskId, OUT uem_bool *bIsMatch)
 {
 	uem_string_struct stStructPortName;
 	uem_result result = ERR_UEM_UNKNOWN;
-	uem_bool bIsMatch = FALSE;
 	SMulticastPort *pstMulticastPort = NULL;
 
+	*bIsMatch = FALSE;
 	pstMulticastPort = pstTopMulticastPort;
 
 	if (pstMulticastPort->nTaskId == nTaskId) {
 		result = UCString_New(&stStructPortName, (char *) pstMulticastPort->pszPortName, UEMSTRING_CONST);
 		ERRIFGOTO(result, _EXIT);
-
 		if (UCString_IsEqual(strPortName, &stStructPortName) == TRUE) {
-			bIsMatch = TRUE;
-			break;
+			*bIsMatch = TRUE;
 		}
 	}
-
+	result = ERR_UEM_NOERROR;
 _EXIT:
-	return bIsMatch;
+	return result;
 }
 
 uem_result UKMulticast_GetMulticastPortIndexByMulticastGroupIdAndMulticastPortId(IN int nMulticastGroupId, IN int nMulticastPortId, IN EPortDirection eDirection, OUT int *pnMulticastPortIndex)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	uem_bool bFound = FALSE;
 	int nMulticastPortIndex = 0;
 	int nMulticastGroupIndex = 0;
 	*pnMulticastPortIndex = INVALID_MULTICAST_PORT_ID;
@@ -130,26 +146,6 @@ _EXIT:
 	return result;
 }
 
-uem_result UKMulticast_GetMulticastGroupIndexById(IN int nMulticastGroupId, OUT int *pnMulticastGroupIndex)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	uem_bool bFound = FALSE;
-	int nLoop = 0;
-	*pnMulticastGroupIndex = INVALID_MULTICAST_GROUP_ID;
-
-	for(nLoop = 0; nLoop < g_nMulticastGroupNum; nLoop++)
-	{
-		if(g_astMulticastGroups[nLoop].nMulticastGroupId == nMulticastGroupId)
-		{
-			*pnMulticastGroupIndex = nLoop;
-			result = ERR_UEM_NOERROR;
-			break;
-		}
-	}
-
-	return result;
-}
-
 uem_result UKMulticast_Clear(IN int nMulticastGroupId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -161,14 +157,14 @@ uem_result UKMulticast_Clear(IN int nMulticastGroupId)
 	result = UKMulticast_GetMulticastGroupIndexById(nMulticastGroupId, &nIndex);
 	IFVARERRASSIGNGOTO(nIndex, INVALID_MULTICAST_GROUP_ID, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	result = MulticastAPI_GetAPIStructureFromCommunicationType(g_astMulticastGroups[nIndex], PORT_DIRECTION_INPUT, &nAPINum, pstMulticastAPI);
+	result = MulticastAPI_GetAPIStructureFromCommunicationType(&(g_astMulticastGroups[nIndex]), PORT_DIRECTION_INPUT, pstMulticastAPI, &nAPINum);
 	ERRIFGOTO(result, _EXIT);
 	for(nAPIIndex = 0 ; nAPIIndex < nAPINum ; nAPIIndex++)
 	{
 		if (pstMulticastAPI[nAPIIndex]->fnClear == NULL) {
 			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 		}
-		result = pstMulticastAPI[nAPIIndex]->fnClear(&g_astMulticastGroups[nIndex]);
+		result = pstMulticastAPI[nAPIIndex]->fnClear(&(g_astMulticastGroups[nIndex]));
 		ERRIFGOTO(result, _EXIT);
 	}
 
@@ -195,7 +191,10 @@ uem_result UKMulticast_GetMulticastGroupIdByTaskAndPortName(IN int nTaskId, IN c
 	{
 		for(nPortIndex = 0 ; nPortIndex < g_astMulticastGroups[nLoop].nInputPortNum ; nPortIndex++)
 		{
-			if (isMulticastPortTaskIdAndMulticastPortNameEqual(g_astMulticastGroups[nLoop].pstInputPort[nPortIndex], &stArgPortName, nTaskId) == TRUE)
+			uem_bool bIsMatch;
+			result = isMulticastPortTaskIdAndMulticastPortNameEqual(&(g_astMulticastGroups[nLoop].pstInputPort[nPortIndex]), &stArgPortName, nTaskId, &bIsMatch);
+			ERRIFGOTO(result, _EXIT);
+			if (bIsMatch == TRUE)
 			{
 				*pnMulticastGroupId = g_astMulticastGroups[nLoop].nMulticastGroupId;
 				bFound = TRUE;
@@ -208,7 +207,10 @@ uem_result UKMulticast_GetMulticastGroupIdByTaskAndPortName(IN int nTaskId, IN c
 		}
 		for(nPortIndex = 0 ; nPortIndex < g_astMulticastGroups[nLoop].nOutputPortNum ; nPortIndex++)
 		{
-			if (isMulticastPortTaskIdAndMulticastPortNameEqual(g_astMulticastGroups[nLoop].pstOutputPort[nPortIndex],&stArgPortName, nTaskId) == TRUE)
+			uem_bool bIsMatch;
+			result = isMulticastPortTaskIdAndMulticastPortNameEqual(&(g_astMulticastGroups[nLoop].pstOutputPort[nPortIndex]),&stArgPortName, nTaskId, &bIsMatch);
+			ERRIFGOTO(result, _EXIT);
+			if (bIsMatch == TRUE)
 			{
 				*pnMulticastGroupId = g_astMulticastGroups[nLoop].nMulticastGroupId;
 				bFound = TRUE;
@@ -241,7 +243,10 @@ uem_result UKMulticast_GetMulticastPortIdByTaskAndPortName(IN int nTaskId, IN ch
 	{
 		for(nPortIndex = 0 ; nPortIndex < g_astMulticastGroups[nLoop].nInputPortNum ; nPortIndex++)
 		{
-			if (isMulticastPortTaskIdAndMulticastPortNameEqual(g_astMulticastGroups[nLoop].pstInputPort[nPortIndex], &stArgPortName, nTaskId) == TRUE)
+			uem_bool bIsMatch = FALSE;
+			result = isMulticastPortTaskIdAndMulticastPortNameEqual(&(g_astMulticastGroups[nLoop].pstInputPort[nPortIndex]), &stArgPortName, nTaskId, &bIsMatch);
+			ERRIFGOTO(result, _EXIT);
+			if (bIsMatch == TRUE)
 			{
 				*pnMulticastPortId = g_astMulticastGroups[nLoop].pstInputPort[nPortIndex].nMulticastPortId;
 				bFound = TRUE;
@@ -254,7 +259,10 @@ uem_result UKMulticast_GetMulticastPortIdByTaskAndPortName(IN int nTaskId, IN ch
 		}
 		for(nPortIndex = 0 ; nPortIndex < g_astMulticastGroups[nLoop].nOutputPortNum ; nPortIndex++)
 		{
-			if (isMulticastPortTaskIdAndMulticastPortNameEqual(g_astMulticastGroups[nLoop].pstOutputPort[nPortIndex],&stArgPortName, nTaskId) == TRUE)
+			uem_bool bIsMatch = FALSE;
+			result = isMulticastPortTaskIdAndMulticastPortNameEqual(&(g_astMulticastGroups[nLoop].pstOutputPort[nPortIndex]),&stArgPortName, nTaskId, &bIsMatch);
+			ERRIFGOTO(result, _EXIT);
+			if (bIsMatch == TRUE)
 			{
 				*pnMulticastPortId = g_astMulticastGroups[nLoop].pstOutputPort[nPortIndex].nMulticastPortId;
 				bFound = TRUE;
@@ -277,7 +285,7 @@ uem_result UKMulticast_WriteToBuffer(IN int nMulticastGroupId, IN int nMulticast
 	int nMulticastPortIndex = 0;
 	int nAPINum = 0;
 	int nAPIIndex = 0;
-	SMulticastAPI *pstMulticastAPI[g_nMulticastAPINum] = NULL;
+	SMulticastAPI *pstMulticastAPI[g_nMulticastAPINum];
 #ifdef ARGUMENT_CHECK
 	if(pBuffer == NULL)
 	{
@@ -290,7 +298,7 @@ uem_result UKMulticast_WriteToBuffer(IN int nMulticastGroupId, IN int nMulticast
 	result = UKMulticast_GetMulticastPortIndexByMulticastGroupIdAndMulticastPortId(nMulticastGroupId, nMulticastPortId, PORT_DIRECTION_OUTPUT, &nMulticastPortIndex);
 	ERRIFGOTO(result, _EXIT);
 
-	result = MulticastAPI_GetAPIStructureFromCommunicationType(g_astMulticastGroups[nMulticastGroupIndex], PORT_DIRECTION_OUTPUT, &nAPINum, pstMulticastAPI);
+	result = MulticastAPI_GetAPIStructureFromCommunicationType(&(g_astMulticastGroups[nMulticastGroupIndex]), PORT_DIRECTION_OUTPUT, pstMulticastAPI, &nAPINum);
 	ERRIFGOTO(result, _EXIT);
 	for(nAPIIndex = 0 ; nAPIIndex < nAPINum ; nAPIIndex++)
 	{
@@ -298,7 +306,7 @@ uem_result UKMulticast_WriteToBuffer(IN int nMulticastGroupId, IN int nMulticast
 			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 		}
 
-		result = pstMulticastAPI[nAPIIndex]->fnWriteToBuffer(&g_astMulticastGroups[nMulticastGroupIndex].pstOutputPort[nMulticastPortIndex], pBuffer, nDataToWrite, pnDataWritten);
+		result = pstMulticastAPI[nAPIIndex]->fnWriteToBuffer(&(g_astMulticastGroups[nMulticastGroupIndex].pstOutputPort[nMulticastPortIndex]), pBuffer, nDataToWrite, pnDataWritten);
 		ERRIFGOTO(result, _EXIT);
 	}
 
@@ -313,7 +321,7 @@ uem_result UKMulticast_ReadFromBuffer(IN int nMulticastGroupId, IN int nMulticas
 	int nMulticastGroupIndex = 0;
 	int nMulticastPortIndex = 0;
 	int nAPINum = 0;
-	SMulticastAPI *pstMulticastAPI[g_nMulticastAPINum] = NULL;
+	SMulticastAPI *pstMulticastAPI[g_nMulticastAPINum];
 #ifdef ARGUMENT_CHECK
 	if(pBuffer == NULL)
 	{
@@ -326,7 +334,7 @@ uem_result UKMulticast_ReadFromBuffer(IN int nMulticastGroupId, IN int nMulticas
 	result = UKMulticast_GetMulticastPortIndexByMulticastGroupIdAndMulticastPortId(nMulticastGroupId, nMulticastPortId, PORT_DIRECTION_INPUT, &nMulticastPortIndex);
 	ERRIFGOTO(result, _EXIT);
 
-	result = MulticastAPI_GetAPIStructureFromCommunicationType(g_astMulticastGroups[nMulticastGroupIndex], PORT_DIRECTION_INPUT, &nAPINum, pstMulticastAPI);
+	result = MulticastAPI_GetAPIStructureFromCommunicationType(&(g_astMulticastGroups[nMulticastGroupIndex]), PORT_DIRECTION_INPUT, pstMulticastAPI, &nAPINum);
 	ERRIFGOTO(result, _EXIT);
 
 	if(pstMulticastAPI[MULTICAST_READ_API_INDEX]->fnReadFromBuffer == NULL)
@@ -334,7 +342,7 @@ uem_result UKMulticast_ReadFromBuffer(IN int nMulticastGroupId, IN int nMulticas
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 	}
 
-	result = pstMulticastAPI[MULTICAST_READ_API_INDEX]->fnReadFromBuffer(&g_astMulticastGroups[nMulticastGroupIndex].pstInputPort[nMulticastPortIndex], pBuffer, nDataToRead, pnDataRead);
+	result = pstMulticastAPI[MULTICAST_READ_API_INDEX]->fnReadFromBuffer(&(g_astMulticastGroups[nMulticastGroupIndex].pstInputPort[nMulticastPortIndex]), pBuffer, nDataToRead, pnDataRead);
 	ERRIFGOTO(result, _EXIT);
 
 	// to preserve, ERR_UEM_SUSPEND, do not set UEM_NOERROR here
@@ -365,11 +373,11 @@ uem_result UKMulticast_Finalize()
 	int nLoop = 0;
 	int nAPINum = 0;
 	int nAPIIndex = 0;
-	SMulticastAPI *pstMulticastAPI[g_nMulticastAPINum] = NULL;
+	SMulticastAPI *pstMulticastAPI[g_nMulticastAPINum];
 
 	for(nLoop = 0; nLoop < g_nMulticastGroupNum; nLoop++)
 	{
-		result = MulticastAPI_GetAPIStructureFromCommunicationType(g_astMulticastGroups[nLoop], PORT_DIRECTION_INPUT, &nAPINum, pstMulticastAPI);
+		result = MulticastAPI_GetAPIStructureFromCommunicationType(&(g_astMulticastGroups[nLoop]), PORT_DIRECTION_INPUT, pstMulticastAPI, &nAPINum);
 		if (result == ERR_UEM_NOERROR) {
 			for (nAPIIndex = 0; nAPIIndex < nAPINum; nAPIIndex++) {
 				if (pstMulticastAPI[nAPIIndex]->fnFinalize != NULL) {
@@ -377,7 +385,7 @@ uem_result UKMulticast_Finalize()
 				}
 			}
 		}
-		result = MulticastAPI_GetAPIStructureFromCommunicationType(g_astMulticastGroups[nLoop], PORT_DIRECTION_OUTPUT, &nAPINum, pstMulticastAPI);
+		result = MulticastAPI_GetAPIStructureFromCommunicationType(&(g_astMulticastGroups[nLoop]), PORT_DIRECTION_OUTPUT, pstMulticastAPI, &nAPINum);
 		if (result == ERR_UEM_NOERROR) {
 			for (nAPIIndex = 0; nAPIIndex < nAPINum; nAPIIndex++) {
 				if (pstMulticastAPI[nAPIIndex]->fnFinalize != NULL) {

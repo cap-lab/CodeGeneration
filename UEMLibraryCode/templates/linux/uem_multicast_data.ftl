@@ -33,10 +33,18 @@
 #define MULTICAST_${multicast.groupName}_SIZE (${multicast.size?c})
     </#if>
 </#list>
-// ##CHANNEL_SIZE_DEFINITION_TEMPLATE::END
+// ##MULTICAST_GROUP_SIZE_DEFINITION_TEMPLATE::END
+
+// ##MULTICAST_GROUP_BUFFER_DEFINITION_TEMPLATE::START
+<#list multicast_group_list as multicast>
+    <#if multicast.inputPortNum gt 0>
+char s_pMulticastGroup_${multicast.groupName}_buffer[MULTICAST_${multicast.groupName}_SIZE];
+    </#if>
+</#list>
+// ##MULTICAST_GROUP_BUFFER_DEFINITION_TEMPLATE::END
 
 // ##MEMORY_MENAGEMENT_TEMPLATE::START
-SGenericMemoryAccess g_stHostMemory = {
+SGenericMemoryAccess g_stMulticastHostMemory = {
     UKHostSystem_CreateMemory,
     UKHostSystem_CopyToMemory,
     UKHostSystem_CopyInMemory,
@@ -45,7 +53,7 @@ SGenericMemoryAccess g_stHostMemory = {
 };
 
 <#if gpu_used == true>
-SGenericMemoryAccess g_stDeviceMemory = {
+SGenericMemoryAccess g_stMulticastDeviceMemory = {
     UKHostSystem_CreateMemory,
     UKGPUSystem_CopyDeviceToHostMemory,
     UKHostSystem_CopyInMemory,
@@ -66,7 +74,7 @@ SSharedMemoryMulticast g_stSharedMemoryMulticast_${multicast.groupName} = {
     0, // nReadReferenceCount
     0, // nWriteReferenceCount
     (HThreadMutex) NULL, // Mutex
-    &g_stHostMemory, // pstMemoryAccessAPI
+    &g_stMulticastHostMemory, // pstMemoryAccessAPI
 };
     </#if>
     <#list multicast.inputCommunicationTypeList as communicationType>
@@ -86,14 +94,13 @@ SUDPSocket g_stUDPSocket_${multicast.groupName} = {
         </#switch>
     </#list>
 
-void *g_astMulticastRecvGateList_${multicast.groupName}[]{
+void *g_astMulticastRecvGateList_${multicast.groupName}[] = {
     <#list multicast.inputCommunicationTypeList as communicationType>
         <#switch communicationType>
             <#case "MULTICAST_COMMUNICATION_TYPE_UDP">
-    g_stUDPSocket_${multicast.groupName},
+    (SUDPSocket *) &g_stUDPSocket_${multicast.groupName},
             <#break>
             <#default>
-    NULL,
         </#switch>
     </#list>
 };
@@ -129,19 +136,19 @@ SMulticastPort g_astMulticastInputPortList_${multicast.groupName}[] = {
     {
         ${inputPort.taskId}, // nTaskId
         ${inputPort.portId}, // nPortId
-        ${inputPort.portName}, // pszPortName
+        "${inputPort.portName}", // pszPortName
         PORT_DIRECTION_OUTPUT, // eDirection
         <#switch inputPort.inMemoryAccessType>
         	<#case "CPU_ONLY">
-        &g_stHostMemory, // pstMemoryAccessAPI
+        &g_stMulticastHostMemory, // pstMemoryAccessAPI
         	<#break>
         	<#case "GPU_ONLY">
-        &g_stDeviceMemory, // pstMemoryAccessAPI
+        &g_stMulticastDeviceMemory, // pstMemoryAccessAPI
         	<#break>
         	<#default>
         </#switch>
-        NULL, // pMulticastGroup		
-        NULL, // pMulticastSendGateList
+        (SMulticastGroup *) NULL, // pMulticastGroup		
+        (void **) NULL, // pMulticastSendGateList
     },
     </#list>
 };
@@ -154,7 +161,7 @@ SMulticastPort g_astMulticastInputPortList_${multicast.groupName}[] = {
         <#list multicast.outputCommunicationTypeList as communicationType>
             <#switch communicationType>
                 <#case "MULTICAST_COMMUNICATION_TYPE_UDP">
-SUDPSocket g_astUDPSocket_${multicast.groupName}_&{multicast.portName} = {
+SUDPSocket g_astUDPSocket_${multicast.groupName}_${multicast.portName} = {
     (HThread) NULL, // hThread
     NULL, // pBuffer
     0, // nBufLen
@@ -175,7 +182,6 @@ void *g_astMulticastSendGateList_${multicast.groupName}_${outputPort.portName}[]
     g_astUDPSocket_${multicast.groupName}_${outputPort.portName},
                 <#break>
                 <#default>
-    NULL,
             </#switch>
         </#list>
 };
@@ -212,19 +218,19 @@ SMulticastPort g_astMulticastOutputPortList_${multicast.groupName}[] = {
     {
         ${outputPort.taskId}, // nTaskId
         ${outputPort.portId}, // nMulticastPortId
-        ${outputPort.portName}, // pszPortName
+        "${outputPort.portName}", // pszPortName
         PORT_DIRECTION_INPUT, // eDirection
         <#switch outputPort.inMemoryAccessType>
         	<#case "CPU_ONLY">
-        &g_stHostMemory, // pstMemoryAccessAPI
+        &g_stMulticastHostMemory, // pstMemoryAccessAPI
         	<#break>
         	<#case "GPU_ONLY">
-        &g_stDeviceMemory, // pstMemoryAccessAPI
+        &g_stMulticastDeviceMemory, // pstMemoryAccessAPI
         	<#break>
         	<#default>
         </#switch>
-        NULL, // pMulticastGroup
-        &g_astMulticastSendGateList_${multicast.groupName}_${outputPort.portName}, // pMulticastSendGateList
+        (SMulticastGroup *) NULL, // pMulticastGroup
+        g_astMulticastSendGateList_${multicast.groupName}_${outputPort.portName}, // pMulticastSendGateList
     },
     </#list>
 };
@@ -236,21 +242,22 @@ SMulticastGroup g_astMulticastGroups[] = {
 <#list multicast_group_list as multicast>
     {
         ${multicast.multicastGroupId}, // Multicast group ID
+        "${multicast.groupName}", // pszGroupName
         MULTICAST_${multicast.groupName}_SIZE, // Multicast group buffer size
-        &(g_astMulticastInputPortList_${multicast.groupName}), // pstInputPort
+        g_astMulticastInputPortList_${multicast.groupName}, // pstInputPort
         ${multicast.inputPortNum}, // nInputPortNum
-        &(g_astMulticastInputCommunicationInfo_${multicast.groupName}), // pstInputCommunicationInfo
+        g_astMulticastInputCommunicationInfo_${multicast.groupName}, // pstInputCommunicationInfo
         ARRAYLEN(g_astMulticastInputCommunicationInfo_${multicast.groupName}), // nInputCommunicationTypeNum
-        &(g_astMulticastOutputPortList_${multicast.groupName}), // pstOutputPort
+        g_astMulticastOutputPortList_${multicast.groupName}, // pstOutputPort
         ${multicast.outputPortNum}, // nOutputPortNum
-        &(g_astMulticastOutputCommunicationInfo_${multicast.groupName}), // pstOutputCommunicationInfo
+        g_astMulticastOutputCommunicationInfo_${multicast.groupName}, // pstOutputCommunicationInfo
         ARRAYLEN(g_astMulticastOutputCommunicationInfo_${multicast.groupName}), // nOutputCommunicationTypeNum
         <#if multicast.inputPortNum gt 0>
-        g_stSharedMemoryMulticast_${multicast.groupName}, // pMulticastStruct
+        &(g_stSharedMemoryMulticast_${multicast.groupName}), // pMulticastStruct
         <#else>
         NULL, // pMulticastStruct
         </#if>
-        &g_astMulticastRecvGateList_${multicast.groupName},
+        g_astMulticastRecvGateList_${multicast.groupName},
     },
 </#list>
 };
@@ -298,21 +305,21 @@ extern "C"
 {
 #endif
 
-    <#assign printed=false />
+<#assign printed=false />
 uem_result MulticastAPI_SetSocketAPIs()
 {
     uem_result result = ERR_UEM_UNKNOWN;
 
-    <#if used_communication_list?seq_contains("udp")>
+<#if used_communication_list?seq_contains("udp")>
     result = UCDynamicSocket_SetAPIList(SOCKET_TYPE_UDP, &stUDPAPI);
     ERRIFGOTO(result, _EXIT);
-        <#assign printed=true />
-    </#if>
+    <#assign printed=true />
+</#if>
 
     result = ERR_UEM_NOERROR;
-    <#if (printed == true)>
+<#if (printed == true)>
 _EXIT:
-        </#if>
+</#if>
     return result;
 }
 
@@ -326,11 +333,15 @@ uem_result MulticastAPI_GetAPIStructureFromCommunicationType(IN SMulticastGroup 
         {
             switch(pstMulticastGroup->pstInputCommunicationInfo->eCommunicationType)
             {
-                case COMMUNICATION_TYPE_SHARED_MEMORY:
+                case MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY:
                     pstMulticastAPI[nAPINum] = &g_stSharedMemoryMulticast;
                     break;
-                case COMMUNICATION_TYPE_UDP:
+                case MULTICAST_COMMUNICATION_TYPE_UDP:
+<#if used_communication_list?seq_contains("udp")>
                     pstMulticastAPI[nAPINum] = &g_stUDPSocketMulticast;
+<#else>
+                    ERRIFGOTO(result, _EXIT);
+</#if>
                     break;
                 default:
                     ERRIFGOTO(result, _EXIT);
@@ -343,11 +354,15 @@ uem_result MulticastAPI_GetAPIStructureFromCommunicationType(IN SMulticastGroup 
         {
             switch(pstMulticastGroup->pstOutputCommunicationInfo->eCommunicationType)
             {
-                case COMMUNICATION_TYPE_SHARED_MEMORY:
+                case MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY:
                     pstMulticastAPI[nAPINum] = &g_stSharedMemoryMulticast;
                     break;
-                case COMMUNICATION_TYPE_UDP:
+                case MULTICAST_COMMUNICATION_TYPE_UDP:
+<#if used_communication_list?seq_contains("udp")>
                     pstMulticastAPI[nAPINum] = &g_stUDPSocketMulticast;
+<#else>
+                    ERRIFGOTO(result, _EXIT);
+</#if>
                     break;
                 default:
                     ERRIFGOTO(result, _EXIT);
@@ -364,27 +379,39 @@ _EXIT:
 uem_result MulticastAPI_GetMulticastCommunicationTypeIndex(IN SMulticastGroup *pstMulticastGroup, IN EPortDirection eDirection, IN EMulticastCommunicationType eMulticastCommunicationType, OUT int *pnCommunicationTypeIndex)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop;
+	uem_bool bFound = FALSE;
 	
 	if(eDirection == PORT_DIRECTION_INPUT)
 	{
 		for(nLoop = 0 ; nLoop < pstMulticastGroup->nInputCommunicationTypeNum ; nLoop++)
 		{
-			if(eMulticastCommunicationType == pstMulticastGroup->pstInputCommunicationInfo[nLoop]->eCommunicationType)
+			if(eMulticastCommunicationType == pstMulticastGroup->pstInputCommunicationInfo[nLoop].eCommunicationType)
 			{
 				*pnCommunicationTypeIndex = nLoop;
+				bFound = TRUE;
 				break;
 			}
+		}
+		if(bFound == FALSE)
+		{
+		    ERRIFGOTO(result, _EXIT);
 		}
 	}
 	else
 	{
 		for(nLoop = 0 ; nLoop < pstMulticastGroup->nOutputCommunicationTypeNum ; nLoop++)
 		{
-			if(eMulticastCommunicationType == pstMulticastGroup->pstOutputCommunicationInfo[nLoop]->eCommunicationType)
+			if(eMulticastCommunicationType == pstMulticastGroup->pstOutputCommunicationInfo[nLoop].eCommunicationType)
 			{
 				*pnCommunicationTypeIndex = nLoop;
+				bFound = TRUE;
 				break;
 			}
+		}
+		if(bFound == FALSE)
+		{
+		    ERRIFGOTO(result, _EXIT);
 		}
 	}
 	result = ERR_UEM_NOERROR;

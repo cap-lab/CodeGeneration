@@ -103,7 +103,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKMulticastMemory_WriteToBuffer (SMulticastPort *pstMulticastPort, SSharedMemoryMulticast *pstSharedMemoryMulticast, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten)
+uem_result UKMulticastMemory_WriteToBuffer (SMulticastPort *pstMulticastPort, SSharedMemoryMulticast *pstSharedMemoryMulticast, IN unsigned char *pBuffer, IN int nDataToWrite, OUT int *pnDataWritten)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SGenericMemoryAccess *pstMemoryAPI = NULL;

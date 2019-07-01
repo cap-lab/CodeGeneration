@@ -35,6 +35,7 @@ typedef struct _SSharedMemoryMulticast {
 } SSharedMemoryMulticast;
 
 typedef struct _SMulticastPort SMulticastPort;
+typedef struct _SMulticastGroup SMulticastGroup;
 
 typedef struct _SMulticastPort {
 	int nTaskId;
@@ -43,7 +44,7 @@ typedef struct _SMulticastPort {
     EPortDirection eDirection;
 	SGenericMemoryAccess *pstMemoryAccessAPI; // in GPU or CPU?
 	SMulticastGroup *pMulticastGroup;
-	void *pMulticastSendGateList; // only for Output Port
+	void **pMulticastSendGateList; // only for Output Port
 } SMulticastPort;
 
 typedef struct _SMulticastCommunicationInfo {
@@ -57,19 +58,19 @@ typedef struct _SMulticastGroup {
 	int nBufSize;
 	SMulticastPort *pstInputPort;
 	int nInputPortNum;
-	SMulticastCommunicationInfo **pstInputCommunicationInfo;
+	SMulticastCommunicationInfo *pstInputCommunicationInfo;
     int nInputCommunicationTypeNum;
 	SMulticastPort *pstOutputPort;
 	int nOutputPortNum;
-	SMulticastCommunicationInfo **pstOutputCommunicationInfo;
+	SMulticastCommunicationInfo *pstOutputCommunicationInfo;
     int nOutputCommunicationTypeNum;
 	SSharedMemoryMulticast *pMulticastStruct;
 	void **pMulticastRecvGateList;
 } SMulticastGroup;
 
 typedef uem_result (*FnMulticastInitialize)(SMulticastGroup *pstMulticastGroup);
-typedef uem_result (*FnMulticastReadFromBuffer)(SMulticastGroup *pstMulticastGroup, IN OUT unsigned char *pBuffer, IN int nDataToRead, IN int nChunkIndex, OUT int *pnDataRead);
-typedef uem_result (*FnMulticastWriteToBuffer)(SMulticastGroup *pstMulticastGroup, IN unsigned char *pBuffer, IN int nDataToWrite, IN int nChunkIndex, OUT int *pnDataWritten);
+typedef uem_result (*FnMulticastReadFromBuffer)(SMulticastPort *pstMulticastPort, IN OUT unsigned char *pBuffer, IN int nDataToRead, OUT int *pnDataRead);
+typedef uem_result (*FnMulticastWriteToBuffer)(SMulticastPort *pstMulticastPort, IN unsigned char *pBuffer, IN int nDataToWrite, OUT int *pnDataWritten);
 typedef uem_result (*FnMulticastClear)(SMulticastGroup *pstMulticastGroup);
 typedef uem_result (*FnMulticastFinalize)(SMulticastGroup *pstMulticastGroup);
 typedef uem_result (*FnMulticastAPIInitialize)();

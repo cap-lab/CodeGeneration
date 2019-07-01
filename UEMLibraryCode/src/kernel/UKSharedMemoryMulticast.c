@@ -17,11 +17,8 @@
 
 uem_result UKSharedMemoryMulticast_Clear(SMulticastGroup *pstMulticastGroup)
 {
-	int index = 0;
-
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	SMulticastPort *pstMulticastPort = NULL;
 	SSharedMemoryMulticast *pstSharedMemoryMulticast = NULL;
 
 	pstSharedMemoryMulticast = (SSharedMemoryMulticast *) pstMulticastGroup->pMulticastStruct;
@@ -37,8 +34,6 @@ _EXIT:
 
 uem_result UKSharedMemoryMulticast_Initialize(SMulticastGroup *pstMulticastGroup)
 {
-	int index = 0;
-
 	uem_result result = ERR_UEM_UNKNOWN;
 
 	SSharedMemoryMulticast *pstSharedMemoryMulticast = NULL;
@@ -69,7 +64,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKSharedMemoryChannel_WriteToBuffer (SMulticastPort *pstMulticastPort, IN unsigned char *pBuffer, IN int nDataToWrite, OUT int *pnDataWritten)
+uem_result UKSharedMemoryMulticast_WriteToBuffer(SMulticastPort *pstMulticastPort, IN unsigned char *pBuffer, IN int nDataToWrite, OUT int *pnDataWritten)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSharedMemoryMulticast *pstSharedMemoryMulticast = NULL;
@@ -86,12 +81,8 @@ _EXIT:
 
 uem_result UKSharedMemoryMulticast_Finalize(SMulticastGroup *pstMulticastGroup)
 {
-
-	int index = 0;
-
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	SMulticastPort *pstMulticastPort = NULL;
 	SSharedMemoryMulticast *pstSharedMemoryMulticast = NULL;
 
 	pstSharedMemoryMulticast = (SSharedMemoryMulticast *) pstMulticastGroup->pMulticastStruct;

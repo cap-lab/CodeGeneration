@@ -18,8 +18,8 @@ extern "C"
 #endif
 
 uem_result UKSharedMemoryMulticast_Initialize(SMulticastGroup *pstMulticastGroup);
-uem_result UKSharedMemoryMulticast_ReadFromBuffer(SMulticastGroup *pstMulticastGroup, IN OUT unsigned char *pBuffer, IN int nDataToRead, OUT int *pnDataRead);
-uem_result UKSharedMemoryMulticast_WriteToBuffer (SMulticastGroup *pstMulticastGroup, IN unsigned char *pBuffer, IN int nDataToWrite, OUT int *pnDataWritten);
+uem_result UKSharedMemoryMulticast_ReadFromBuffer(SMulticastPort *pstMulticastPort, IN OUT unsigned char *pBuffer, IN int nDataToRead, OUT int *pnDataRead);
+uem_result UKSharedMemoryMulticast_WriteToBuffer(SMulticastPort *pstMulticastPort, IN unsigned char *pBuffer, IN int nDataToWrite, OUT int *pnDataWritten);
 uem_result UKSharedMemoryMulticast_Clear(SMulticastGroup *pstMulticastGroup);
 uem_result UKSharedMemoryMulticast_Finalize(SMulticastGroup *pstMulticastGroup);
 
