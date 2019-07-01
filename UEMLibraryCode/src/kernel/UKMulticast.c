@@ -28,6 +28,7 @@ uem_result UKMulticast_Initialize()
 	SMulticastAPI *pstMulticastAPI[g_nMulticastAPINum];
 	int nAPINum = 0;
 	int nAPIIndex = 0;
+	int nPortNum = 0;
 
 	result = MulticastAPI_SetSocketAPIs();
 	ERRIFGOTO(result, _EXIT);
@@ -64,6 +65,22 @@ uem_result UKMulticast_Initialize()
 			}
 		}
 	}
+
+	for(nLoop = 0; nLoop < g_nMulticastGroupNum; nLoop++)
+	{
+		SMulticastPort *pstInputPort = g_astMulticastGroups[nLoop].pstInputPort;
+		for(nPortNum = 0 ; nPortNum < g_astMulticastGroups[nLoop].nInputPortNum ; nPortNum++)
+		{
+			pstInputPort[nPortNum].pMulticastGroup = &g_astMulticastGroups[nLoop];
+		}
+
+		SMulticastPort *pstOutputPort = g_astMulticastGroups[nLoop].pstOutputPort;
+		for(nPortNum = 0 ; nPortNum < g_astMulticastGroups[nLoop].nOutputPortNum ; nPortNum++)
+		{
+			pstOutputPort[nPortNum].pMulticastGroup = &g_astMulticastGroups[nLoop];
+		}
+	}
+
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;

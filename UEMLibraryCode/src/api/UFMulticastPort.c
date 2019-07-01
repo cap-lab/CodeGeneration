@@ -82,7 +82,7 @@ uem_result UFMulticastPort_GetMulticastSize(IN int nMulticastGroupId, OUT int *p
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(pnMulticastGroupSize, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
-	result = UKMulticast_GetChannelSize(nMulticastGroupId, pnMulticastGroupSize);
+	result = UKMulticast_GetMulticastGroupSize(nMulticastGroupId, pnMulticastGroupSize);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
