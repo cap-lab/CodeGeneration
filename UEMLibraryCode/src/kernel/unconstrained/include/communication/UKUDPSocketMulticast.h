@@ -1,7 +1,7 @@
 /*
  * UKUDPSocketMulticast.h
  *
- *  Created on: 2018. 6. 11.
+ *  Created on: 2018. 6. 20.
  *      Author: wecracy
  */
 
@@ -27,4 +27,4 @@ uem_result UKUDPSocket_Finalize(SMulticastGroup *pstMulticastGroup);
 }
 #endif
 
-#endif /* SRC_KERNEL_UNCONSTRAINED_INCLUDE_COMMUNICATION_UKTCPSOCKETCHANNEL_H_ */
+#endif /* SRC_KERNEL_UNCONSTRAINED_INCLUDE_COMMUNICATION_UKUDPSOCKETMULTICAST_H_ */

@@ -1,12 +1,14 @@
 /*
- * UCSocket.h
+ * UCDynamicSocket.h
  *
  *  Created on: 2015. 8. 19.
  *      Author: chjej202
+ *      Changed :
+ *  	    1. 2019. 06. 20. wecracy
  */
 
-#ifndef SRC_COMMON_INCLUDE_UCDYNAMICSOCKET_H_
-#define SRC_COMMON_INCLUDE_UCDYNAMICSOCKET_H_
+#ifndef SRC_COMMON_INCLUDE_COMMUNICATION_UCDYNAMICSOCKET_H_
+#define SRC_COMMON_INCLUDE_COMMUNICATION_UCDYNAMICSOCKET_H_
 
 #include <uem_common.h>
 
@@ -264,4 +266,4 @@ uem_result UCDynamicSocket_Receive(HSocket hSocket, IN int nTimeout, IN OUT char
 }
 #endif
 
-#endif /* SRC_COMMON_INCLUDE_UCDYNAMICSOCKET_H_ */
+#endif /* SRC_COMMON_INCLUDE_COMMUNICATION_UCDYNAMICSOCKET_H_ */

@@ -5,8 +5,8 @@
  *      Author: dowhan1128
  */
 
-#ifndef SRC_COMMON_INCLUDE_UCSERIAL_H_
-#define SRC_COMMON_INCLUDE_UCSERIAL_H_
+#ifndef SRC_COMMON_INCLUDE_COMMUNICATION_UCSERIALPORT_H_
+#define SRC_COMMON_INCLUDE_COMMUNICATION_UCSERIALPORT_H_
 
 #include <uem_common.h>
 
@@ -129,4 +129,4 @@ uem_result UCSerialPort_Receive(HSerialPort hSerialPort, IN int nTimeout, IN OUT
 }
 #endif
 
-#endif /* SRC_COMMON_INCLUDE_UCSERIAL_H_ */
+#endif /* SRC_COMMON_INCLUDE_COMMUNICATION_UCSERIALPORT_H_ */

@@ -1,7 +1,7 @@
 /*
- * UKUDPSocketChannel.c
+ * UKUDPSocketMulticast.c
  *
- *  Created on: 2019. 6. 2.
+ *  Created on: 2019. 6. 20.
  *      Author: wecracy
  */
 

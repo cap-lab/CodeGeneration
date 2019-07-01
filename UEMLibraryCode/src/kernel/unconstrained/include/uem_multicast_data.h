@@ -1,12 +1,12 @@
 /*
  * uem_multicast_data.h
  *
- *  Created on: 2019. 3. 30.
+ *  Created on: 2019. 6. 20.
  *      Author: wecracy
  */
 
-#ifndef SRC_KERNEL_INCLUDE_UEM_MULTICAST_DATA_H_
-#define SRC_KERNEL_INCLUDE_UEM_MULTICAST_DATA_H_
+#ifndef SRC_KERNEL_UNCONSTRAINED_INCLUDE_UEM_MULTICAST_DATA_H_
+#define SRC_KERNEL_UNCONSTRAINED_INCLUDE_UEM_MULTICAST_DATA_H_
 
 #include <uem_common.h>
 
@@ -96,4 +96,4 @@ extern int g_nMulticastAPINum;
 }
 #endif
 
-#endif /* SRC_KERNEL_INCLUDE_UEM_MULTICAST_DATA_H_ */
+#endif /* SRC_KERNEL_UNCONSTRAINED_INCLUDE_UEM_MULTICAST_DATA_H_ */

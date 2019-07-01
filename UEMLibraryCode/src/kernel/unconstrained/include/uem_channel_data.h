@@ -3,10 +3,12 @@
  *
  *  Created on: 2018. 3. 30.
  *      Author: jej
+ *      Changed :
+ *  	    1. 2019. 06. 20. wecracy
  */
 
-#ifndef SRC_KERNEL_INCLUDE_UEM_CHANNEL_DATA_H_
-#define SRC_KERNEL_INCLUDE_UEM_CHANNEL_DATA_H_
+#ifndef SRC_KERNEL_UNCONSTRAINED_INCLUDE_UEM_CHANNEL_DATA_H_
+#define SRC_KERNEL_UNCONSTRAINED_INCLUDE_UEM_CHANNEL_DATA_H_
 
 #include <uem_common.h>
 
@@ -165,4 +167,4 @@ extern int g_nChannelAPINum;
 }
 #endif
 
-#endif /* SRC_KERNEL_INCLUDE_UEM_CHANNEL_DATA_H_ */
+#endif /* SRC_KERNEL_UNCONSTRAINED_INCLUDE_UEM_CHANNEL_DATA_H_ */

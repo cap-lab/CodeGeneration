@@ -3,6 +3,8 @@
  *
  *  Created on: 2018. 6. 8.
  *      Author: jej
+ *      Changed :
+ *  	    1. 2019. 06. 20. wecracy
  */
 
 #ifndef SRC_KERNEL_INCLUDE_UEM_ENUM_H_

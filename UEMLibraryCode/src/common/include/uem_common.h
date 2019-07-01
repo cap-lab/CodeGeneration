@@ -3,6 +3,8 @@
  *
  *  Created on: 2017. 8. 5.
  *      Author: jej
+ *      Changed :
+ *  	    1. 2019. 06. 20. wecracy
  */
 
 #ifndef SRC_COMMON_INCLUDE_UEM_COMMON_H_

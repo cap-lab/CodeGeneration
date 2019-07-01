@@ -1,8 +1,10 @@
 /*
- * UCSocket.c
+ * UCDynamicSocket.c
  *
  *  Created on: 2015. 8. 19.
  *      Author: chjej202
+ *      Changed :
+ *  	    1. 2019. 06. 20. wecracy
  */
 
 #ifdef HAVE_CONFIG_H

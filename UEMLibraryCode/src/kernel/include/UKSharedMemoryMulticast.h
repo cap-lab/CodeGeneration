@@ -1,7 +1,7 @@
 /*
  * UKSharedMemoryMulticast.h
  *
- *  Created on: 2019. 11. 9.
+ *  Created on: 2019. 6. 20.
  *      Author: wecracy
  */
 

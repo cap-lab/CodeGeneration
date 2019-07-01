@@ -1,7 +1,7 @@
 /*
- * UCTCPSocket.c
+ * UCUDPSocket.c
  *
- *  Created on: 2019. 10. 2.
+ *  Created on: 2019. 6. 20.
  *      Author: wecracy
  */
 

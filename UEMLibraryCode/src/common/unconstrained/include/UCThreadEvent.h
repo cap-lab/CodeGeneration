@@ -5,8 +5,8 @@
  *      Author: jej
  */
 
-#ifndef SRC_COMMON_INCLUDE_UCTHREADEVENT_H_
-#define SRC_COMMON_INCLUDE_UCTHREADEVENT_H_
+#ifndef SRC_COMMON_UNCONSTRAINED_INCLUDE_UCTHREADEVENT_H_
+#define SRC_COMMON_UNCONSTRAINED_INCLUDE_UCTHREADEVENT_H_
 
 #include "uem_common.h"
 
@@ -93,4 +93,4 @@ uem_result UCThreadEvent_Destroy(IN OUT HThreadEvent *phEvent);
 }
 #endif
 
-#endif /* SRC_COMMON_INCLUDE_UCTHREADEVENT_H_ */
+#endif /* SRC_COMMON_UNCONSTRAINED_INCLUDE_UCTHREADEVENT_H_ */

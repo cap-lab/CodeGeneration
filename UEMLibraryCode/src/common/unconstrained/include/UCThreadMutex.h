@@ -5,8 +5,8 @@
  *      Author: jej
  */
 
-#ifndef SRC_COMMON_INCLUDE_UCTHREADMUTEX_H_
-#define SRC_COMMON_INCLUDE_UCTHREADMUTEX_H_
+#ifndef SRC_COMMON_UNCONSTRAINED_INCLUDE_UCTHREADMUTEX_H_
+#define SRC_COMMON_UNCONSTRAINED_INCLUDE_UCTHREADMUTEX_H_
 
 #include "uem_common.h"
 
@@ -76,4 +76,4 @@ uem_result UCThreadMutex_Destroy(IN OUT HThreadMutex *phMutex);
 }
 #endif
 
-#endif /* SRC_COMMON_INCLUDE_UCTHREADMUTEX_H_ */
+#endif /* SRC_COMMON_UNCONSTRAINED_INCLUDE_UCTHREADMUTEX_H_ */

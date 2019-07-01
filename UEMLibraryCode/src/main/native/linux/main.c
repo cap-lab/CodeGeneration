@@ -3,6 +3,8 @@
  *
  *  Created on: 2017. 9. 7.
  *      Author: jej
+ *      Changed :
+ *  	    1. 2019. 06. 20. wecracy
  */
 
 #ifdef HAVE_CONFIG_H

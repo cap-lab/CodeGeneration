@@ -3,6 +3,8 @@
  *
  *  Created on: 2017. 8. 12.
  *      Author: jej
+ *      Changed :
+ *  	    1. 2019. 06. 20. wecracy
  */
 
 #ifndef SRC_KERNEL_UNCONSTRAINED_INCLUDE_UEM_DATA_H_
