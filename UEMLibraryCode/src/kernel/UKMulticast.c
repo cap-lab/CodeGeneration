@@ -304,6 +304,11 @@ uem_result UKMulticast_WriteToBuffer(IN int nMulticastGroupId, IN int nMulticast
 	result = MulticastAPI_GetAPIStructureFromCommunicationType(&(g_astMulticastGroups[nMulticastGroupIndex]), PORT_DIRECTION_OUTPUT, pstMulticastAPI, &nAPINum);
 	ERRIFGOTO(result, _EXIT);
 
+	if(nDataToWrite > g_astMulticastGroups[nMulticastGroupIndex].nBufSize)
+	{
+		nDataToWrite = g_astMulticastGroups[nMulticastGroupIndex].nBufSize;
+	}
+
 	for(nAPIIndex = 0 ; nAPIIndex < nAPINum ; nAPIIndex++)
 	{
 		if (pstMulticastAPI[nAPIIndex]->fnWriteToBuffer == NULL) {
@@ -344,6 +349,11 @@ uem_result UKMulticast_ReadFromBuffer(IN int nMulticastGroupId, IN int nMulticas
 	if(pstMulticastAPI[MULTICAST_READ_API_INDEX]->fnReadFromBuffer == NULL)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
+
+	if(nDataToRead > g_astMulticastGroups[nMulticastGroupIndex].nBufSize)
+	{
+		nDataToRead = g_astMulticastGroups[nMulticastGroupIndex].nBufSize;
 	}
 
 	result = pstMulticastAPI[MULTICAST_READ_API_INDEX]->fnReadFromBuffer(&(g_astMulticastGroups[nMulticastGroupIndex].pstInputPort[nMulticastPortIndex]), pBuffer, nDataToRead, pnDataRead);

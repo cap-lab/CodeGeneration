@@ -44,7 +44,7 @@ uem_result UKProcessor_GetGPUProcessorId(IN int nProcessorId, OUT int *pnGPUProc
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nLoop = 0;
-	int nCPUProcessorNum = 0;
+	int nGPUProcessorId = 0;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(pnGPUProcessorId, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
@@ -55,13 +55,17 @@ uem_result UKProcessor_GetGPUProcessorId(IN int nProcessorId, OUT int *pnGPUProc
 #endif
 	for(nLoop = 0 ; nLoop < g_nProcessorInfoNum ; nLoop++)
 	{
-		if(g_astProcessorInfo[nLoop].bIsCPU == TRUE)
+		if(nLoop == nProcessorId)
 		{
-			nCPUProcessorNum++;
+			break;
+		}
+		if(g_astProcessorInfo[nLoop].bIsCPU == FALSE)
+		{
+			nGPUProcessorId++;
 		}
 	}
 
-	*pnGPUProcessorId = nProcessorId - nCPUProcessorNum;
+	*pnGPUProcessorId = nGPUProcessorId;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
