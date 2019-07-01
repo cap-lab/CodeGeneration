@@ -3,7 +3,6 @@ package org.snu.cse.cap.translator.structure.communication.channel;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.structure.communication.Port;
 import org.snu.cse.cap.translator.structure.communication.PortDirection;
 import org.snu.cse.cap.translator.structure.task.Task;
@@ -11,7 +10,6 @@ import org.snu.cse.cap.translator.structure.task.TaskLoopType;
 
 
 public class ChannelPort extends Port {
-	private int taskId;
 	private PortSampleRateType portSampleRateType;
 	private ArrayList<PortSampleRate> portSampleRateList;
 	private int sampleSize;
@@ -20,7 +18,6 @@ public class ChannelPort extends Port {
 	private ChannelPort upperGraphPort;
 	private LoopPortType loopPortType;
 	private PortDirection direction;
-	private String portKey;
 	private int maximumChunkNum;
 	private String description;
 	
@@ -57,8 +54,9 @@ public class ChannelPort extends Port {
 		this.portType = PortType.fromValue(portType);
 		this.portSampleRateType = PortSampleRateType.VARIABLE;
 		this.portSampleRateList = new ArrayList<PortSampleRate>();
+		this.subgraphPort = null;
+		this.upperGraphPort = null;
 		this.loopPortType = null;
-		this.portKey = taskName + Constants.NAME_SPLITER + portName + Constants.NAME_SPLITER + direction;
 		this.maximumChunkNum = 1;
 		this.description = "";
 	}
@@ -274,10 +272,6 @@ public class ChannelPort extends Port {
 
 	public void setLoopPortType(LoopPortType loopPortType) {
 		this.loopPortType = loopPortType;
-	}
-
-	public String getPortKey() {
-		return portKey;
 	}
 
 	public int getMaximumChunkNum() {

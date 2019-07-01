@@ -27,6 +27,7 @@
 
 typedef struct _SSocketAPIList {
     SSocketAPI *pstTCPAPI;
+    SSocketAPI *pstUDPAPI;
     SSocketAPI *pstUnixDomainSocketAPI;
     SSocketAPI *pstBluetoothAPI;
 } SSocketAPIList;
@@ -35,6 +36,7 @@ static SSocketAPIList s_stSocketAPIs = {
     NULL,
     NULL,
     NULL,
+	NULL,
 };
 
 #define SOCKET_FD_NOT_SET (-1)
@@ -48,6 +50,9 @@ static uem_result  getSocketAPIByType(ESocketType enSocketType, SSocketAPI **pps
     {
     case SOCKET_TYPE_TCP:
         pstSocketAPI = s_stSocketAPIs.pstTCPAPI;
+        break;
+    case SOCKET_TYPE_UDP:
+        pstSocketAPI = s_stSocketAPIs.pstUDPAPI;
         break;
     case SOCKET_TYPE_UDS:
         pstSocketAPI = s_stSocketAPIs.pstUnixDomainSocketAPI;
@@ -564,6 +569,9 @@ uem_result UCDynamicSocket_SetAPIList(ESocketType enSocketType, SSocketAPI *pstS
     {
     case SOCKET_TYPE_TCP:
         s_stSocketAPIs.pstTCPAPI = pstSocketAPIList;
+        break;
+    case SOCKET_TYPE_UDP:
+        s_stSocketAPIs.pstUDPAPI = pstSocketAPIList;
         break;
     case SOCKET_TYPE_UDS:
         s_stSocketAPIs.pstUnixDomainSocketAPI = pstSocketAPIList;

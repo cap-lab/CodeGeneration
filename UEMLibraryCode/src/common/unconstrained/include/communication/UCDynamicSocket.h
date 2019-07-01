@@ -22,6 +22,7 @@ typedef enum _ESocketType
     SOCKET_TYPE_UDS, //!< Unix domain socket.
     SOCKET_TYPE_TCP, //!< TCP/IP Socket
 	SOCKET_TYPE_BLUETOOTH, //!< Bluetooth communication Socket
+	SOCKET_TYPE_UDP, //!< UDP/IP Socket
 } ESocketType;
 
 typedef struct _SSocketInfo

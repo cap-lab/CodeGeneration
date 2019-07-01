@@ -1,32 +1,20 @@
 package org.snu.cse.cap.translator.structure.communication;
 
+import org.snu.cse.cap.translator.Constants;
+
 public class Port {
 	protected int taskId;
 	protected String taskName;
 	protected String portName;
-	protected Port subgraphPort;
-	protected Port upperGraphPort;
+	protected String portKey;
 	protected PortDirection direction;
 	
 	public Port(int taskId, String taskName, String portName,PortDirection direction) {
 		this.taskId = taskId;
 		this.taskName = taskName;
 		this.portName = portName;
-		this.subgraphPort = null;
-		this.upperGraphPort = null;
+		this.portKey = taskName + Constants.NAME_SPLITER + portName + Constants.NAME_SPLITER + direction;
 		this.direction = direction;
-	}
-	
-	public Port getMostUpperPortInfo()
-	{
-		Port upperPort = this;
-		
-		while(upperPort.getUpperGraphPort() != null)
-		{
-			upperPort = upperPort.getUpperGraphPort();
-		}
-		
-		return upperPort;
 	}
 
 	public int getTaskId() {
@@ -44,23 +32,11 @@ public class Port {
 	public void setPortName(String portName) {
 		this.portName = portName;
 	}
+
+	public String getPortKey() {
+		return portKey;
+	}
 	
-	public Port getSubgraphPort() {
-		return subgraphPort;
-	}
-
-	public void setSubgraphPort(Port subgraphPort) {
-		this.subgraphPort = subgraphPort;
-	}
-
-	public Port getUpperGraphPort() {
-		return upperGraphPort;
-	}
-
-	public void setUpperGraphPort(Port uppergraphPort) {
-		this.upperGraphPort = uppergraphPort;
-	}
-
 	public String getTaskName() {
 		return taskName;
 	}

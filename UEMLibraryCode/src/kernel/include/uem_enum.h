@@ -70,7 +70,6 @@ typedef enum _ECommunicationType {
 	COMMUNICATION_TYPE_SHARED_MEMORY,
 	COMMUNICATION_TYPE_REMOTE_READER,
 	COMMUNICATION_TYPE_REMOTE_WRITER,
-
 } ECommunicationType;
 
 typedef enum _EChannelType {
@@ -79,6 +78,11 @@ typedef enum _EChannelType {
 	CHANNEL_TYPE_OUTPUT_ARRAY,
 	CHANNEL_TYPE_FULL_ARRAY,
 } EChannelType;
+
+typedef enum _EMulticastCommunicationType {
+	MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY,
+	MULTICAST_COMMUNICATION_TYPE_UDP,
+}EMulticastCommunicationType;
 
 typedef enum _ELoopType {
 	LOOP_TYPE_CONVERGENT,

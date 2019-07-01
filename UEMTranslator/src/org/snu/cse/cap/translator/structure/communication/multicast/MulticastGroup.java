@@ -1,22 +1,24 @@
 package org.snu.cse.cap.translator.structure.communication.multicast;
 
 import java.util.ArrayList;
-import org.snu.cse.cap.translator.Constants;
-import org.snu.cse.cap.translator.structure.communication.InMemoryAccessType;
 
 public class MulticastGroup implements Cloneable {
-	private int index;
+	private int muticastGroupId;
 	private String groupName;
 	private int size;
-	private ArrayList<MulticastPort> inputPortList; // the most input port is set here
-	private ArrayList<MulticastPort> outputPortList; // the most outer port is set here
-	private int nextMulticastGroupIndex;
+	private ArrayList<MulticastPort> inputPortList; 
+	private int inputPortNum;
+	private ArrayList<MulticastCommunicationType> inputCommunicationTypeList;
+	private ArrayList<MulticastPort> outputPortList; 
+	private int outputPortNum;
+	private ArrayList<MulticastCommunicationType> outputCommunicationTypeList;
 
 	public MulticastGroup(int index, String groupName, int size) {
 		this.size = size;
-		this.index = index;
+		this.muticastGroupId = index;
 		this.groupName = groupName;
-		this.nextMulticastGroupIndex = Constants.INVALID_ID_VALUE;
+		this.inputPortNum = 0;
+		this.outputPortNum = 0;
 	}
 	
 	// Does not need to clone inputPort and outputPort  
@@ -24,10 +26,8 @@ public class MulticastGroup implements Cloneable {
 		MulticastGroup multicastGroup;
 		
 		multicastGroup = (MulticastGroup) super.clone();
-		multicastGroup.index = this.index;
+		multicastGroup.muticastGroupId = this.muticastGroupId;
 		multicastGroup.size = this.size;
-		
-		multicastGroup.nextMulticastGroupIndex = this.nextMulticastGroupIndex;
 		
 		// Shallow copy for these two objects
 		multicastGroup.inputPortList = this.inputPortList;
@@ -36,8 +36,8 @@ public class MulticastGroup implements Cloneable {
 		return multicastGroup;
 	}
 	
-	public int getIndex() {
-		return index;
+	public int getMulticastGroupId() {
+		return muticastGroupId;
 	}
 	
 	public int getSize() {
@@ -76,19 +76,39 @@ public class MulticastGroup implements Cloneable {
 		this.outputPortList = outputPortList;
 	}
 
-	public int getNextMulticastGroupIndex() {
-		return nextMulticastGroupIndex;
-	}
-
-	public void setNextMulticastGroupIndex(int nextMulticastGroupIndex) {
-		this.nextMulticastGroupIndex = nextMulticastGroupIndex;
-	}
-
 	public void clearInputPort() {
 		this.inputPortList.clear();
 	}
 	
 	public void clearOutputPort() {
 		this.outputPortList.clear();
+	}
+	
+	public void setInputCommunicationTypeList(ArrayList<MulticastCommunicationType> inputCommunicationTypeList) {
+		this.inputCommunicationTypeList = inputCommunicationTypeList;
+		this.inputPortNum = this.inputCommunicationTypeList.size();
+	}
+	
+	public void putInputCommunicationType(MulticastCommunicationType inputCommunicationType) {
+		this.inputCommunicationTypeList.add(inputCommunicationType);
+		this.inputPortNum += 1;
+	}
+	
+	public ArrayList<MulticastCommunicationType> getInputCommunicationTypeList() {
+		return this.inputCommunicationTypeList;
+	}
+	
+	public void putOutputCommunicationType(MulticastCommunicationType outputCommunicationType) {
+		this.outputCommunicationTypeList.add(outputCommunicationType);
+		this.outputPortNum += 1;
+	}
+
+	public void setOutputCommunicationTypeList(ArrayList<MulticastCommunicationType> outputCommunicationTypeList) {
+		this.outputCommunicationTypeList = outputCommunicationTypeList;
+		this.outputPortNum = this.outputCommunicationTypeList.size();
+	}
+	
+	public ArrayList<MulticastCommunicationType> getOutputCommunicationTypeList() {
+		return this.outputCommunicationTypeList;
 	}
 }

@@ -16,6 +16,7 @@
 #include <uem_enum.h>
 #include <uem_callbacks.h>
 #include <uem_channel_data.h>
+#include <uem_multicast_data.h>
 #include <uem_common_struct.h>
 
 #ifdef __cplusplus

@@ -10,7 +10,6 @@ import java.util.List;
 import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.ExecutionTime;
 import org.snu.cse.cap.translator.structure.communication.InMemoryAccessType;
-import org.snu.cse.cap.translator.structure.communication.Port;
 import org.snu.cse.cap.translator.structure.communication.PortDirection;
 import org.snu.cse.cap.translator.structure.communication.channel.Channel;
 import org.snu.cse.cap.translator.structure.communication.channel.ChannelArrayType;
@@ -24,6 +23,7 @@ import org.snu.cse.cap.translator.structure.communication.multicast.MulticastCom
 import org.snu.cse.cap.translator.structure.communication.multicast.MulticastPort;
 import org.snu.cse.cap.translator.structure.communication.channel.RemoteCommunicationMethodType;
 import org.snu.cse.cap.translator.structure.device.Device;
+import org.snu.cse.cap.translator.structure.device.DeviceCommunicationType;
 import org.snu.cse.cap.translator.structure.device.EnvironmentVariable;
 import org.snu.cse.cap.translator.structure.device.HWCategory;
 import org.snu.cse.cap.translator.structure.device.HWElementType;
@@ -96,7 +96,6 @@ import mocgraph.sched.ScheduleElement;
 public class Application {
 	// Overall metadata information
 	private ArrayList<Channel> channelList;
-	private ArrayList<MulticastGroup> multicastGroupList;
 	private HashMap<String, Task> taskMap; // Task name : Task class
 	private HashMap<String, TaskGraph> fullTaskGraphMap; // Task name : Task class
 	private HashMap<String, ChannelPort> portInfo; // Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
@@ -1371,29 +1370,87 @@ public class Application {
 		setIterationCount(this.fullTaskGraphMap);
 	}
 
-	public void setMulticastCommunicationType(ArrayList<String> deviceListMappedWithPort, ArrayList<MulticastPort> portList) throws InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
+	public void setMulticastPortMemoryAccessType(ArrayList<MulticastPort> portList, String deviceName) throws InvalidDataInMetadataFileException
 	{
-		for(int i = 0 ; i < portList.size() ; i++) 
+		Device device = this.deviceInfo.get(deviceName);
+		int procId;
+		int index = 0;
+		
+		for(index = 0; index<portList.size() ; index++) 
 		{
-			String deviceName = findMappingInfoByTaskName(portList.get(i).getTaskName()).getMappedDeviceName();
-			if(deviceListMappedWithPort.contains(deviceName) == true)
+			MappingInfo taskMappingInfo = findMappingInfoByTaskName(portList.get(index).getTaskName());
+			procId = taskMappingInfo.getMappedProcessorList().get(0).getProcessorId();
+			for(Processor processor : device.getProcessorList()) 
 			{
-				if(deviceListMappedWithPort.size()>=2)
+				if(procId == processor.getId()) 
 				{
-					portList.get(i).setCommunicationType(MulticastCommunicationType.SHARED_MEMORY_UDP);
+					if(processor.getIsCPU() == true)
+					{
+						portList.get(index).setMemoryAccessType(InMemoryAccessType.CPU_ONLY);
+					}
+					else
+					{
+						portList.get(index).setMemoryAccessType(InMemoryAccessType.GPU_ONLY);
+					}
+					break;
 				}
-				else
+			}
+		}	
+	}
+	
+	public void setMulticastCommunicationType(MulticastGroup multicastGroup, String deviceName, ArrayList<String> deviceListMappedWithCounterPorts, PortDirection portDirection) throws InvalidDeviceConnectionException
+	{
+		Device device = this.deviceInfo.get(deviceName);
+
+		if(deviceListMappedWithCounterPorts.contains(deviceName) == true) 
+		{
+			if(portDirection == PortDirection.INPUT)
+			{
+				if(!multicastGroup.getInputCommunicationTypeList().contains(MulticastCommunicationType.MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY)) 
 				{
-					portList.get(i).setCommunicationType(MulticastCommunicationType.SHARED_MEMORY);
+					multicastGroup.putInputCommunicationType(MulticastCommunicationType.MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY);
 				}
 			}
 			else
 			{
-				if(deviceListMappedWithPort.size()>=1)
+				if(!multicastGroup.getOutputCommunicationTypeList().contains(MulticastCommunicationType.MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY)) 
 				{
-					portList.get(i).setCommunicationType(MulticastCommunicationType.UDP);
+					multicastGroup.putOutputCommunicationType(MulticastCommunicationType.MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY);
 				}
-				else
+			}
+		}
+		if((deviceListMappedWithCounterPorts.contains(deviceName) && deviceListMappedWithCounterPorts.size()>=2) ||
+				(!deviceListMappedWithCounterPorts.contains(deviceName) && deviceListMappedWithCounterPorts.size()>=1)) 
+		{
+			for(String counterDeviceName : deviceListMappedWithCounterPorts) 
+			{
+				Device counterDevice = this.deviceInfo.get(counterDeviceName);
+				boolean connectionSearched = false;
+				for (DeviceCommunicationType communicationType : device.getRequiredCommunicationSet()) 
+				{
+					if (MulticastCommunicationType.getMulticastAvailableCommnicationTypeList().contains(communicationType)) 
+					{
+						if (counterDevice.getRequiredCommunicationSet().contains(communicationType)) 
+						{
+							connectionSearched = true;
+							if(portDirection == PortDirection.INPUT)
+							{
+								if (!multicastGroup.getInputCommunicationTypeList().contains(MulticastCommunicationType.getMulticastCommunicationTypeByDeviceCommunicationType(communicationType))) 
+								{
+									multicastGroup.putInputCommunicationType(MulticastCommunicationType.getMulticastCommunicationTypeByDeviceCommunicationType(communicationType));
+								}
+							}
+							else 
+							{
+								if (!multicastGroup.getOutputCommunicationTypeList().contains(MulticastCommunicationType.getMulticastCommunicationTypeByDeviceCommunicationType(communicationType)))
+								{
+									multicastGroup.putOutputCommunicationType(MulticastCommunicationType.getMulticastCommunicationTypeByDeviceCommunicationType(communicationType));
+								}
+							}
+						}
+					}
+				}
+				if (connectionSearched == false) 
 				{
 					throw new InvalidDeviceConnectionException();
 				}
@@ -1401,56 +1458,15 @@ public class Application {
 		}
 	}
 	
-	public void addMulticastGroupAndMulticastPortInfoToDevice(MulticastGroup multicastGroup) throws InvalidDataInMetadataFileException, CloneNotSupportedException
+	public void addMulticastGroupToDevice(MulticastGroup multicastGroup, String deviceName) throws InvalidDataInMetadataFileException, CloneNotSupportedException
 	{
-		ArrayList<MulticastPort> inputPortList = multicastGroup.getInputPortList();
-		MulticastGroup multicastGroupForSpecificDevice = null;
-		for(MulticastPort inputPort : inputPortList)
-		{
-			Device device = this.deviceInfo.get(findMappingInfoByTaskName(inputPort.getTaskName()).getMappedDeviceName());
-			
-			if(device.getMulticastGroupList().containsKey(inputPort.getGroupName()) == true)
-			{
-				device.putMulticastPort(inputPort);
-			}
-			else
-			{
-				multicastGroupForSpecificDevice = multicastGroup.clone();
-				
-				multicastGroupForSpecificDevice.clearInputPort();
-				multicastGroupForSpecificDevice.clearOutputPort();
-				
-				multicastGroupForSpecificDevice.putInputPort(inputPort);
-				
-				device.putMulticastGroup(multicastGroupForSpecificDevice);
-			}
-		}
-		ArrayList<MulticastPort> outputPortList = multicastGroup.getOutputPortList();
-		for(MulticastPort outputPort : outputPortList)
-		{
-			Device device = this.deviceInfo.get(findMappingInfoByTaskName(outputPort.getTaskName()).getMappedDeviceName());
-			
-			if(device.getMulticastGroupList().containsKey(outputPort.getGroupName()) == true)
-			{
-				device.putMulticastPort(outputPort);
-			}
-			else
-			{
-				multicastGroupForSpecificDevice = multicastGroup.clone();
-				
-				multicastGroupForSpecificDevice.clearInputPort();
-				multicastGroupForSpecificDevice.clearOutputPort();
-				
-				multicastGroupForSpecificDevice.putOutputPort(outputPort);
-				
-				device.putMulticastGroup(multicastGroupForSpecificDevice);
-			}
-		}
+		Device device = this.deviceInfo.get(deviceName);
+		device.putMulticastGroup(multicastGroup);
 	}
 	
 	public void makeMulticastGroupInformation(CICAlgorithmType algorithm_metadata) throws InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
 	{
-		int index = 0;
+		int groupId = 0;
 		
 		if(algorithm_metadata.getMulticastGroups() == null)
 		{
@@ -1461,25 +1477,32 @@ public class Application {
 		{ 
 			ArrayList<String> deviceListMappedWithInputPort = new ArrayList<String>();
 			ArrayList<String> deviceListMappedWithOutputPort = new ArrayList<String>();
-			MulticastGroup multicastGroup = new MulticastGroup(index, multicastMetadata.getGroupName(), multicastMetadata.getSize().intValue());
+			int portId = 0;
+			
+			HashMap<String, MulticastGroup> multicastGroups = new HashMap<String, MulticastGroup>();
 			
 			for(MulticastPort multicastPort : this.multicastPortInfo.values())
 			{
-				if(multicastGroup.getGroupName().equals(multicastPort.getGroupName()) == true)
+				if(multicastMetadata.getGroupName().equals(multicastPort.getGroupName()) == true)
 				{
 					String deviceName = findMappingInfoByTaskName(multicastPort.getTaskName()).getMappedDeviceName();
+					if(!multicastGroups.containsKey(deviceName))
+					{
+						multicastGroups.put(deviceName, new MulticastGroup(groupId, multicastMetadata.getGroupName(), multicastMetadata.getSize().intValue()));
+					}
+					multicastPort.setPortId(portId);
 					
 					switch(multicastPort.getDirection())
 					{
 					case INPUT:
-						multicastGroup.putInputPort(multicastPort);
+						multicastGroups.get(deviceName).putInputPort(multicastPort);
 						if (deviceListMappedWithInputPort.contains(deviceName) == false)
 						{
 							deviceListMappedWithInputPort.add(deviceName);
 						}
 						break;
 					case OUTPUT:
-						multicastGroup.putOutputPort(multicastPort);
+						multicastGroups.get(deviceName).putOutputPort(multicastPort);
 						if (deviceListMappedWithOutputPort.contains(deviceName) == false)
 						{
 							deviceListMappedWithOutputPort.add(deviceName);
@@ -1488,18 +1511,25 @@ public class Application {
 					default:
 						throw new InvalidDeviceConnectionException();
 					}
-				} // end of if(multicastGroup.getGroupName().equals(multicastPort.getGroupName()) == true)
+					portId++;
+				} // end of if(multicastMetadata.getGroupName().equals(multicastPort.getGroupName()) == true)
 			} // end of for(MulticastPort multicastPort : this.multicastPortInfo.values())
-			ArrayList<MulticastPort> inputPortList = multicastGroup.getInputPortList();
-			setMulticastCommunicationType(deviceListMappedWithOutputPort, inputPortList);
-			
-			ArrayList<MulticastPort> outputPortList = multicastGroup.getOutputPortList();
-			setMulticastCommunicationType(deviceListMappedWithInputPort, outputPortList);
-			
-			addMulticastGroupAndMulticastPortInfoToDevice(multicastGroup);
-			
-			this.multicastGroupList.add(multicastGroup);
-			index++;
+			for(String deviceName : multicastGroups.keySet())
+			{
+				MulticastGroup multicastGroup = multicastGroups.get(deviceName);
+				
+				ArrayList<MulticastPort> inputPortList = multicastGroup.getInputPortList();
+				setMulticastCommunicationType(multicastGroup, deviceName, deviceListMappedWithOutputPort, PortDirection.INPUT);
+				setMulticastPortMemoryAccessType(inputPortList, deviceName);
+				
+				ArrayList<MulticastPort> outputPortList = multicastGroup.getOutputPortList();
+				setMulticastCommunicationType(multicastGroup, deviceName, deviceListMappedWithInputPort, PortDirection.OUTPUT);
+				setMulticastPortMemoryAccessType(outputPortList, deviceName);
+				
+				addMulticastGroupToDevice(multicastGroup, deviceName);
+			}
+
+			groupId++;
 		} // end of for(MulticastGroupType multicastMetadata: algorithm_metadata.getMulticastGroups().getMulticastGroup())
 	}	
 	
