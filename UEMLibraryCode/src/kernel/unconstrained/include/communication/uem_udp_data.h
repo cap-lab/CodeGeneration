@@ -17,26 +17,23 @@
 
 #include <uem_enum.h>
 
-#include <uem_multicast_data.h>
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
 typedef struct _SUDPInfo{
+	char *pszIP;
 	int nPort;
 } SUDPInfo;
 
 typedef struct _SUDPSocket {
-	HThread hManagementThread; // for Reader
-	char *pBuffer; // temporary buffer for writing data to shared memory channel (for Reader)
-	int nBufLen; // temporary buffer length (for Reader)
+	char *pHeader;
+	char *pBuffer;
+	int nHeaderLen;
+	int nBufLen;
 	HThreadMutex hMutex;
-	uem_bool bExit;
-	void *pstMulticastManager;
-	SGenericMemoryAccess *pstReaderAccess; // for READER channel
-	HSocket *hSocket;
+	HSocket hSocket;
 } SUDPSocket;
 
 #ifdef __cplusplus

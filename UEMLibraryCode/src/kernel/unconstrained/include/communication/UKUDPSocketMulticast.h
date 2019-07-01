@@ -20,8 +20,23 @@ extern "C"
 {
 #endif
 
-uem_result UKUDPSocketMulticast_Initialize(SMulticastGroup *pstMulticastGroup);
-uem_result UKUDPSocket_Finalize(SMulticastGroup *pstMulticastGroup);
+#define CONNECT_TIMEOUT (3)
+#define CONNECT_RETRY_COUNT (100)
+#define SECOND_IN_MILLISECOND (1000)
+
+#define MULTICAST_UDP_HEADER_GROUP_ID_SIZE (1)
+#define MULTICAST_UDP_HEADER_SIZE (MULTICAST_UDP_HEADER_GROUP_ID_SIZE)
+
+typedef struct _SUDPMulticast{
+	SUDPSocket *pstSocket;
+	HThread hManagementThread; // for Reader
+	uem_bool bExit;
+	void *pstMulticastManager;
+}SUDPMulticast;
+
+uem_result UKUDPSocketMulticast_Initialize(IN SMulticastGroup *pstMulticastGroup);
+uem_result UKUDPSocketMulticast_WriteToBuffer(IN SMulticastPort *pstMulticastPort, IN unsigned char *pData, IN int nDataToWrite, OUT int *pnDataWritten);
+uem_result UKUDPSocketMulticast_Finalize(IN SMulticastGroup *pstMulticastGroup);
 
 #ifdef __cplusplus
 }

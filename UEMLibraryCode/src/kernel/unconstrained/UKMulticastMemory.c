@@ -15,6 +15,8 @@
 #include <UCAlloc.h>
 #include <UCThreadMutex.h>
 
+#include <UKHostSystem.h>
+
 #include <uem_data.h>
 
 uem_result UKMulticastMemory_Clear(SMulticastGroup *pstMulticastGroup, SSharedMemoryMulticast *pstSharedMemoryMulticast)
@@ -47,7 +49,7 @@ uem_result UKMulticastMemory_Initialize(SMulticastGroup *pstMulticastGroup, SSha
 	// If not set, initialize those things, // pBuffer => is NULL => alloc
 	if(pstSharedMemoryMulticast->pBuffer == NULL)
 	{
-		result = pstSharedMemoryMulticast->pstMemoryAccessAPI->fnCreateMemory(pstMulticastGroup->nBufSize, 0 /* processor ID don't need for creating memory */, &(pstSharedMemoryMulticast->pBuffer));
+		result = UKHostSystem_CreateMemory(pstMulticastGroup->nBufSize, 0 /* processor ID don't need for creating memory */, &(pstSharedMemoryMulticast->pBuffer));
 		ERRIFGOTO(result, _EXIT);
 	}
 
@@ -153,7 +155,7 @@ uem_result UKMulticastMemory_Finalize(SMulticastGroup *pstMulticastGroup, SShare
 
 	if(pstSharedMemoryMulticast->pBuffer != NULL)
 	{
-		pstSharedMemoryMulticast->pstMemoryAccessAPI->fnDestroyMemory(&(pstSharedMemoryMulticast->pBuffer));
+		pUKHostSystem_DestroyMemory(&(pstSharedMemoryMulticast->pBuffer));
 	}
 
 	result = ERR_UEM_NOERROR;

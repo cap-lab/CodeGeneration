@@ -22,6 +22,7 @@
 extern "C"
 {
 #endif
+/***************************************************************************************************/
 
 typedef struct _SSharedMemoryMulticast {
 	void *pBuffer;
@@ -31,8 +32,9 @@ typedef struct _SSharedMemoryMulticast {
 	int nReadReferenceCount;
 	int nWriteReferenceCount;
 	HThreadMutex hMutex; // Multicast global mutex
-	SGenericMemoryAccess *pstMemoryAccessAPI;
 } SSharedMemoryMulticast;
+
+/***************************************************************************************************/
 
 typedef struct _SMulticastPort SMulticastPort;
 typedef struct _SMulticastGroup SMulticastGroup;

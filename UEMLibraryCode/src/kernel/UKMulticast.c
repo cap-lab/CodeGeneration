@@ -25,8 +25,6 @@ uem_result UKMulticast_Initialize()
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nLoop = 0;
-	SMulticastAPI *pstMulticastAPI[g_nMulticastAPINum];
-	int nAPINum = 0;
 	int nAPIIndex = 0;
 	int nPortNum = 0;
 
@@ -44,23 +42,11 @@ uem_result UKMulticast_Initialize()
 
 	for(nLoop = 0; nLoop < g_nMulticastGroupNum; nLoop++)
 	{
-        result = MulticastAPI_GetAPIStructureFromCommunicationType(&g_astMulticastGroups[nLoop], PORT_DIRECTION_INPUT,  pstMulticastAPI, &nAPINum);
-		ERRIFGOTO(result, _EXIT);
-
-		for(nAPIIndex = 0 ; nAPIIndex < nAPINum ; nAPIIndex++)
+		for(nAPIIndex = 0 ; nAPIIndex < g_nMulticastAPINum ; nAPIIndex++)
 		{
-			if (pstMulticastAPI[nAPIIndex]->fnInitialize != NULL) {
-				result = pstMulticastAPI[nAPIIndex]->fnInitialize(&(g_astMulticastGroups[nLoop]));
-				ERRIFGOTO(result, _EXIT);
-			}
-		}
-        result = MulticastAPI_GetAPIStructureFromCommunicationType(&g_astMulticastGroups[nLoop], PORT_DIRECTION_OUTPUT,  pstMulticastAPI, &nAPINum);
-		ERRIFGOTO(result, _EXIT);
-
-		for(nAPIIndex = 0 ; nAPIIndex < nAPINum ; nAPIIndex++)
-		{
-			if (pstMulticastAPI[nAPIIndex]->fnInitialize != NULL) {
-				result = pstMulticastAPI[nAPIIndex]->fnInitialize(&(g_astMulticastGroups[nLoop]));
+			if(g_astMulticastAPIList[nAPIIndex]->fnInitialize != NULL)
+			{
+				result = g_astMulticastAPIList[nAPIIndex]->fnInitialize(&(g_astMulticastGroups[nLoop]));
 				ERRIFGOTO(result, _EXIT);
 			}
 		}
@@ -317,6 +303,7 @@ uem_result UKMulticast_WriteToBuffer(IN int nMulticastGroupId, IN int nMulticast
 
 	result = MulticastAPI_GetAPIStructureFromCommunicationType(&(g_astMulticastGroups[nMulticastGroupIndex]), PORT_DIRECTION_OUTPUT, pstMulticastAPI, &nAPINum);
 	ERRIFGOTO(result, _EXIT);
+
 	for(nAPIIndex = 0 ; nAPIIndex < nAPINum ; nAPIIndex++)
 	{
 		if (pstMulticastAPI[nAPIIndex]->fnWriteToBuffer == NULL) {
