@@ -7,7 +7,7 @@ import org.snu.cse.cap.translator.structure.communication.InMemoryAccessType;
 public class MulticastPort extends Port {
 	private String groupName;
 	private int portId;
-	private InMemoryAccessType accessType;
+	private InMemoryAccessType inMemoryAccessType;
 		
 	public MulticastPort(int taskId, String taskName, String portName, String groupName, PortDirection direction) {
 		super(taskId, taskName, portName, direction);
@@ -27,10 +27,10 @@ public class MulticastPort extends Port {
 	}
 	
 	public void setMemoryAccessType(InMemoryAccessType accessType) {
-		this.accessType = accessType;
+		this.inMemoryAccessType = accessType;
 	}
 	
-	public InMemoryAccessType getMemoryAccessType(InMemoryAccessType accessType) {
-		return this.accessType;
+	public InMemoryAccessType getInMemoryAccessType() {
+		return this.inMemoryAccessType;
 	}
 }

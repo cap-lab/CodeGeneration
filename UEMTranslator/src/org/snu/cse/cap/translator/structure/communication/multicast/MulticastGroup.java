@@ -3,7 +3,7 @@ package org.snu.cse.cap.translator.structure.communication.multicast;
 import java.util.ArrayList;
 
 public class MulticastGroup implements Cloneable {
-	private int muticastGroupId;
+	private int multicastGroupId;
 	private String groupName;
 	private int size;
 	private ArrayList<MulticastPort> inputPortList; 
@@ -15,8 +15,12 @@ public class MulticastGroup implements Cloneable {
 
 	public MulticastGroup(int index, String groupName, int size) {
 		this.size = size;
-		this.muticastGroupId = index;
+		this.multicastGroupId = index;
 		this.groupName = groupName;
+		this.inputPortList = new ArrayList<MulticastPort>();
+		this.outputPortList = new ArrayList<MulticastPort>();
+		this.inputCommunicationTypeList = new ArrayList<MulticastCommunicationType> ();
+		this.outputCommunicationTypeList = new ArrayList<MulticastCommunicationType> ();
 		this.inputPortNum = 0;
 		this.outputPortNum = 0;
 	}
@@ -26,7 +30,7 @@ public class MulticastGroup implements Cloneable {
 		MulticastGroup multicastGroup;
 		
 		multicastGroup = (MulticastGroup) super.clone();
-		multicastGroup.muticastGroupId = this.muticastGroupId;
+		multicastGroup.multicastGroupId = this.multicastGroupId;
 		multicastGroup.size = this.size;
 		
 		// Shallow copy for these two objects
@@ -37,15 +41,15 @@ public class MulticastGroup implements Cloneable {
 	}
 	
 	public int getMulticastGroupId() {
-		return muticastGroupId;
+		return this.multicastGroupId;
 	}
 	
 	public int getSize() {
-		return size;
+		return this.size;
 	}
 	
 	public String getGroupName() {
-		return groupName;
+		return this.groupName;
 	}
 	
 	public void setSize(int size) {
@@ -53,27 +57,39 @@ public class MulticastGroup implements Cloneable {
 	}
 
 	public ArrayList<MulticastPort> getInputPortList() {
-		return inputPortList;
+		return this.inputPortList;
 	}
 
 	public ArrayList<MulticastPort> getOutputPortList() {
-		return outputPortList;
+		return this.outputPortList;
+	}
+	
+	public int getInputPortNum() {
+		return this.inputPortNum;
+	}
+	
+	public int getOutputPortNum() {
+		return this.outputPortNum;
 	}
 
 	public void setInputPortList(ArrayList<MulticastPort> inputPortList) {
 		this.inputPortList = inputPortList;
+		this.inputPortNum = this.inputPortList.size();
 	}
 	
 	public void putInputPort(MulticastPort inputPort) {
 		this.inputPortList.add(inputPort);
+		this.inputPortNum++;
 	}
 	
 	public void putOutputPort(MulticastPort outputPort) {
 		this.outputPortList.add(outputPort);
+		this.outputPortNum++;
 	}
 
 	public void setOutputPortList(ArrayList<MulticastPort> outputPortList) {
 		this.outputPortList = outputPortList;
+		this.outputPortNum = this.outputPortList.size();
 	}
 
 	public void clearInputPort() {
@@ -91,7 +107,6 @@ public class MulticastGroup implements Cloneable {
 	
 	public void putInputCommunicationType(MulticastCommunicationType inputCommunicationType) {
 		this.inputCommunicationTypeList.add(inputCommunicationType);
-		this.inputPortNum += 1;
 	}
 	
 	public ArrayList<MulticastCommunicationType> getInputCommunicationTypeList() {
@@ -100,7 +115,6 @@ public class MulticastGroup implements Cloneable {
 	
 	public void putOutputCommunicationType(MulticastCommunicationType outputCommunicationType) {
 		this.outputCommunicationTypeList.add(outputCommunicationType);
-		this.outputPortNum += 1;
 	}
 
 	public void setOutputCommunicationTypeList(ArrayList<MulticastCommunicationType> outputCommunicationTypeList) {

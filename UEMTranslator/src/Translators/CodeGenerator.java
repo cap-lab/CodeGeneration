@@ -256,7 +256,7 @@ public class CodeGenerator
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_DEVICE_INFO, this.uemDatamodel.getApplication().getDeviceInfo());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_MAPPING_INFO, device.getGeneralMappingInfo());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_STATIC_SCHEDULE_INFO, device.getStaticScheduleMappingInfo());
-		uemDataRootHash.put(Constants.TEMPLATE_TAG_MULTICAST_GROUP_INFO, device.getMulticastGroupList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_MULTICAST_GROUP_LIST, device.getMulticastGroupList().values());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_PORT_INFO, device.getPortList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_PORT_KEY_TO_INDEX, device.getPortKeyToIndex());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_EXECUTION_TIME, this.uemDatamodel.getApplication().getExecutionTime());

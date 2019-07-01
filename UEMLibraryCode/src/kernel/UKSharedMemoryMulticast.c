@@ -41,7 +41,6 @@ uem_result UKSharedMemoryMulticast_Initialize(SMulticastGroup *pstMulticastGroup
 
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	SMulticastPort *pstMulticastPort = NULL;
 	SSharedMemoryMulticast *pstSharedMemoryMulticast = NULL;
 
 	pstSharedMemoryMulticast = (SSharedMemoryMulticast *) pstMulticastGroup->pMulticastStruct;
