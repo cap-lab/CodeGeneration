@@ -153,7 +153,7 @@ uem_result UKMulticast_Clear(IN int nMulticastGroupId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nIndex = 0;
-	SMulticastAPI *pstMulticastAPI[g_nMulticastAPINum] = NULL;
+	SMulticastAPI *pstMulticastAPI[g_nMulticastAPINum];
 	int nAPINum = 0;
 	int nAPIIndex = 0;
 

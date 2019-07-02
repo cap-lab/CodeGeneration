@@ -155,7 +155,7 @@ uem_result UKMulticastMemory_Finalize(SMulticastGroup *pstMulticastGroup, SShare
 
 	if(pstSharedMemoryMulticast->pBuffer != NULL)
 	{
-		pUKHostSystem_DestroyMemory(&(pstSharedMemoryMulticast->pBuffer));
+		UKHostSystem_DestroyMemory(&(pstSharedMemoryMulticast->pBuffer));
 	}
 
 	result = ERR_UEM_NOERROR;
