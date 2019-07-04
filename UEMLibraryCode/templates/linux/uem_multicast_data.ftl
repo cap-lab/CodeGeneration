@@ -321,6 +321,56 @@ _EXIT:
 </#if>
     return result;
 }
+uem_result MulticastAPI_GetAPIStructure(IN SMulticastGroup *pstMulticastGroup, OUT SMulticastAPI **pstMulticastAPI, OUT int *pnAPINum)
+{
+    EMulticastCommunicationType aeCommunicationTypeList[g_nMulticastAPINum];
+    int nAPINum = 0;
+    int nLoop = 0;
+    int nInerLoop = 0;
+
+    for(nAPINum = 0, nLoop = 0 ; nLoop < pstMulticastGroup->nInputCommunicationTypeNum ; nAPINum++, nLoop = 0)
+    {
+        aeCommunicationTypeList[nAPINum] = pstMulticastGroup->nInputCommunicationTypeNum[nLoop].eCommunicationType;
+    }
+    for(nLoop = 0 ; nLoop < pstMulticastGroup->nOutputCommunicationTypeNum ; nLoop++)
+    {
+        for(nInerLoop = 0 ; nInerLoop < nAPINum ; nInerLoop++)
+        {
+            if(aeCommunicationTypeList[nInerLoop] == pstMulticastGroup->nOutputCommunicationTypeNum[nLoop].eCommunicationType)
+            {
+                break;
+            }
+        }
+        if(nInerLoop != nAPINum)
+        {
+            aeCommunicationTypeList[nAPINum] = pstMulticastGroup->nOutputCommunicationTypeNum[nLoop].eCommunicationType;
+            nAPINum++;
+        }
+    }
+    for(nLoop = 0 ; nLoop < nAPINum ; nLoop++)
+    {
+        switch(aeCommunicationTypeList[nLoop])
+        {
+            case MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY:
+                pstMulticastAPI[nAPINum] = &g_stSharedMemoryMulticast;
+                break;
+            case MULTICAST_COMMUNICATION_TYPE_UDP:
+<#if used_communication_list?seq_contains("udp")>
+                pstMulticastAPI[nAPINum] = &g_stUDPSocketMulticast;
+<#else>
+                ERRIFGOTO(result, _EXIT);
+</#if>
+                break;
+            default:
+                ERRIFGOTO(result, _EXIT);
+        }
+    }
+    *pnAPINum = nAPINum;
+
+    result = ERR_UEM_NOERROR;
+_EXIT:
+    return result;
+}
 
 uem_result MulticastAPI_GetAPIStructureFromCommunicationType(IN SMulticastGroup *pstMulticastGroup, IN EPortDirection eDirection, OUT SMulticastAPI **pstMulticastAPI, OUT int *pnAPINum)
 {
@@ -334,7 +384,7 @@ uem_result MulticastAPI_GetAPIStructureFromCommunicationType(IN SMulticastGroup 
         pstCommunicationInfo = pstMulticastGroup->pstInputCommunicationInfo;
     	nCommunicationTypeNum = pstMulticastGroup->nInputCommunicationTypeNum;
     }
-    else
+    else if(eDirection == PORT_DIRECTION_OUTPUT)
     {
     	pstCommunicationInfo = pstMulticastGroup->pstOutputCommunicationInfo;
     	nCommunicationTypeNum = pstMulticastGroup->nOutputCommunicationTypeNum;

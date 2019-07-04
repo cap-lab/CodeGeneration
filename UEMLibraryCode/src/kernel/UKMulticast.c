@@ -39,15 +39,15 @@ uem_result UKMulticast_Initialize()
 			ERRIFGOTO(result, _EXIT);
 		}
 	}
-
+    
 	for(nLoop = 0; nLoop < g_nMulticastGroupNum; nLoop++)
 	{
-		for(nAPIIndex = 0 ; nAPIIndex < g_nMulticastAPINum ; nAPIIndex++)
-		{
-			if(g_astMulticastAPIList[nAPIIndex]->fnInitialize != NULL)
-			{
-				result = g_astMulticastAPIList[nAPIIndex]->fnInitialize(&(g_astMulticastGroups[nLoop]));
-				ERRIFGOTO(result, _EXIT);
+		result = MulticastAPI_GetAPIStructure(&(g_astMulticastGroups[nLoop]), pstMulticastAPI, &nAPINum);
+		if (result == ERR_UEM_NOERROR) {
+			for (nAPIIndex = 0; nAPIIndex < nAPINum; nAPIIndex++) {
+				if (pstMulticastAPI[nAPIIndex]->fnInitialize != NULL) {
+					pstMulticastAPI[nAPIIndex]->fnInitialize(&(g_astMulticastGroups[nLoop]));
+				}
 			}
 		}
 	}
@@ -391,15 +391,7 @@ uem_result UKMulticast_Finalize()
 
 	for(nLoop = 0; nLoop < g_nMulticastGroupNum; nLoop++)
 	{
-		result = MulticastAPI_GetAPIStructureFromCommunicationType(&(g_astMulticastGroups[nLoop]), PORT_DIRECTION_INPUT, pstMulticastAPI, &nAPINum);
-		if (result == ERR_UEM_NOERROR) {
-			for (nAPIIndex = 0; nAPIIndex < nAPINum; nAPIIndex++) {
-				if (pstMulticastAPI[nAPIIndex]->fnFinalize != NULL) {
-					pstMulticastAPI[nAPIIndex]->fnFinalize(&(g_astMulticastGroups[nLoop]));
-				}
-			}
-		}
-		result = MulticastAPI_GetAPIStructureFromCommunicationType(&(g_astMulticastGroups[nLoop]), PORT_DIRECTION_OUTPUT, pstMulticastAPI, &nAPINum);
+		result = MulticastAPI_GetAPIStructure(&(g_astMulticastGroups[nLoop]), pstMulticastAPI, &nAPINum);
 		if (result == ERR_UEM_NOERROR) {
 			for (nAPIIndex = 0; nAPIIndex < nAPINum; nAPIIndex++) {
 				if (pstMulticastAPI[nAPIIndex]->fnFinalize != NULL) {
