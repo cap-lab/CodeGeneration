@@ -180,7 +180,7 @@ public class CodeGenerator
     {
     	Template makefileTemplate = this.templateConfig.getTemplate(codeOrganizer.getPlatform() + Constants.TEMPLATE_PATH_SEPARATOR + Constants.TEMPLATE_FILE_MAKEFILE);
 		// Create the root hash
-		Map<String, Object> makefileRootHash = new HashMap<>();
+		Map<String, Object> makefileRootHash = new HashMap<String, Object>();
 		String outputFilePath = topDirPath + File.separator;
 		
 		switch(codeOrganizer.getBuildType())
@@ -211,7 +211,7 @@ public class CodeGenerator
     {
     	Template doxyFileTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_DOXYFILE);
     	// Create the root hash
-    	Map<String, Object> doxyfileRootHash = new HashMap<>();
+    	Map<String, Object> doxyfileRootHash = new HashMap<String, Object>();
     	String outputFilePath = topDirPath + File.separator;
     	
     	outputFilePath += Constants.DEFAULT_DOXYFILE;
@@ -227,7 +227,7 @@ public class CodeGenerator
     {
     	Template doxygenManualTemplate = this.templateConfig.getTemplate(Constants.DEFAULT_DOXYGEN_MANUAL+Constants.TEMPLATE_FILE_EXTENSION);
     	// Create the root hash
-    	Map<String, Object> doxygenManualRootHash = new HashMap<>();
+    	Map<String, Object> doxygenManualRootHash = new HashMap<String, Object>();
     	String outputFilePath = topDirPath + File.separator + CodeOrganizer.KERNEL_GENERATED_DIR + File.separator;
     	
     	outputFilePath += Constants.DEFAULT_DOXYGEN_MANUAL + Constants.HEADER_FILE_EXTENSION;
@@ -247,7 +247,7 @@ public class CodeGenerator
     private void generateKernelDataCode(CodeOrganizer codeOrganizer, Device device, String topDirPath, ArrayList<EnvironmentVariable> envVarList, ProgrammingLanguage language) throws TemplateNotFoundException, MalformedTemplateNameException, 
 	freemarker.core.ParseException, IOException, TemplateException
     {
-    	Map<String, Object> uemDataRootHash = new HashMap<>();
+    	Map<String, Object> uemDataRootHash = new HashMap<String, Object>();
     	
 		// Put UEM data model
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TASK_MAP, device.getTaskMap());
@@ -312,7 +312,7 @@ public class CodeGenerator
 			if(task.getChildTaskGraphName() == null)
 			{
 				// Create the root hash
-	    		Map<String, Object> taskCodeRootHash = new HashMap<>();
+	    		Map<String, Object> taskCodeRootHash = new HashMap<String, Object>();
 	    		
 	    		taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_INFO, task);
 				taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_GPU_MAPPING_INFO, device.getGpuSetupInfo().get(task.getName()));
@@ -361,7 +361,7 @@ public class CodeGenerator
 			String outputHeaderPath = topDirPath + File.separator + CodeOrganizer.APPLICATION_DIR + File.separator + 
 										library.getHeader();
 			// Create the root hash
-			Map<String, Object> libraryRootHash = new HashMap<>();
+			Map<String, Object> libraryRootHash = new HashMap<String, Object>();
 			
 			if(library.getLanguage() == ProgrammingLanguage.CPP) {
 				outputSourcePath += Constants.CPP_FILE_EXTENSION;
