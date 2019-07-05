@@ -97,6 +97,7 @@ static void *multicastHandlingThread(void *pData)
 	int nReceivedDataLength;
 	int nCommunicationTypeIndex = 0;
 	int nBufSize = 0;
+    int nGroupNum = 0;
 
 	pstMulticastGroup = (SMulticastGroup *) pData;
 
@@ -118,7 +119,7 @@ static void *multicastHandlingThread(void *pData)
 		ERRIFGOTO(result, _EXIT);
 
 		// check the groupName
-		result = checkMessageOwner(pstMulticastGroup, pstUDPMulticastSocket->pstSocket->pHeader, nReceivedDataLength);
+		result = checkMessageOwner(pstMulticastGroup, pstUDPMulticastSocket->pstSocket->pHeader, nReceivedDataLength, &nGroupNum);
 		if(result == ERR_UEM_SKIP_THIS)
 		{
 			continue;
@@ -126,15 +127,15 @@ static void *multicastHandlingThread(void *pData)
 		ERRIFGOTO(result, _EXIT);
 
 		// write  pstSharedMemoryMulticast->pDataStart, pBuffer, nDataToWrite
-	    result = UCThreadMutex_Lock(g_astMulticastGroups[nLoop].pMulticastStruct->hMutex);
+	    result = UCThreadMutex_Lock(g_astMulticastGroups[nGroupNum].pMulticastStruct->hMutex);
 	    ERRIFGOTO(result, _EXIT);
 
-		result = UKHostSystem_CopyToMemory(g_astMulticastGroups[nLoop].pMulticastStruct->pDataStart, pstUDPMulticastSocket->pstSocket->pBuffer, nReceivedDataLength);
+		result = UKHostSystem_CopyToMemory(g_astMulticastGroups[nGroupNum].pMulticastStruct->pDataStart, pstUDPMulticastSocket->pstSocket->pBuffer, nReceivedDataLength, );
 		ERRIFGOTO(result, _EXIT_LOCK);
 		pstMulticastGroup->pMulticastStruct->nDataLen = nReceivedDataLength;
 
 _EXIT_LOCK:
-	    UCThreadMutex_Unlock(g_astMulticastGroups[nLoop].pMulticastStruct->hMutex);
+	    UCThreadMutex_Unlock(g_astMulticastGroups[nGroupNum].pMulticastStruct->hMutex);
 		ERRIFGOTO(result, _EXIT);
 	}
 
