@@ -45,14 +45,6 @@ uem_result UKMulticastMemory_Initialize(SMulticastGroup *pstMulticastGroup, SSha
 
 	IFVARERRASSIGNGOTO(pstSharedMemoryMulticast, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	// initialize buffer
-	// If not set, initialize those things, // pBuffer => is NULL => alloc
-	if(pstSharedMemoryMulticast->pBuffer == NULL)
-	{
-		result = UKHostSystem_CreateMemory(pstMulticastGroup->nBufSize, 0 /* processor ID don't need for creating memory */, &(pstSharedMemoryMulticast->pBuffer));
-		ERRIFGOTO(result, _EXIT);
-	}
-
 	// hMutex => initialize/create
 	if(pstSharedMemoryMulticast->hMutex == NULL)
 	{
@@ -152,11 +144,6 @@ uem_result UKMulticastMemory_Finalize(SMulticastGroup *pstMulticastGroup, SShare
 
 	// ignore error
 	UCThreadMutex_Destroy(&(pstSharedMemoryMulticast->hMutex));
-
-	if(pstSharedMemoryMulticast->pBuffer != NULL)
-	{
-		UKHostSystem_DestroyMemory(&(pstSharedMemoryMulticast->pBuffer));
-	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

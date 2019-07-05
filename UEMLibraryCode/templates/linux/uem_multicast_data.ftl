@@ -323,27 +323,28 @@ _EXIT:
 }
 uem_result MulticastAPI_GetAPIStructure(IN SMulticastGroup *pstMulticastGroup, OUT SMulticastAPI **pstMulticastAPI, OUT int *pnAPINum)
 {
+    uem_result result = ERR_UEM_UNKNOWN;
     EMulticastCommunicationType aeCommunicationTypeList[g_nMulticastAPINum];
     int nAPINum = 0;
     int nLoop = 0;
     int nInerLoop = 0;
 
-    for(nAPINum = 0, nLoop = 0 ; nLoop < pstMulticastGroup->nInputCommunicationTypeNum ; nAPINum++, nLoop = 0)
+    for(nAPINum = 0, nLoop = 0 ; nLoop < pstMulticastGroup->nInputCommunicationTypeNum ; nAPINum++, nLoop++)
     {
-        aeCommunicationTypeList[nAPINum] = pstMulticastGroup->nInputCommunicationTypeNum[nLoop].eCommunicationType;
+        aeCommunicationTypeList[nAPINum] = pstMulticastGroup->pstInputCommunicationInfo[nLoop].eCommunicationType;
     }
     for(nLoop = 0 ; nLoop < pstMulticastGroup->nOutputCommunicationTypeNum ; nLoop++)
     {
         for(nInerLoop = 0 ; nInerLoop < nAPINum ; nInerLoop++)
         {
-            if(aeCommunicationTypeList[nInerLoop] == pstMulticastGroup->nOutputCommunicationTypeNum[nLoop].eCommunicationType)
+            if(aeCommunicationTypeList[nInerLoop] == pstMulticastGroup->pstInputCommunicationInfo[nLoop].eCommunicationType)
             {
                 break;
             }
         }
         if(nInerLoop == nAPINum)
         {
-            aeCommunicationTypeList[nAPINum] = pstMulticastGroup->nOutputCommunicationTypeNum[nLoop].eCommunicationType;
+            aeCommunicationTypeList[nAPINum] = pstMulticastGroup->pstInputCommunicationInfo[nLoop].eCommunicationType;
             nAPINum++;
         }
     }
@@ -352,11 +353,11 @@ uem_result MulticastAPI_GetAPIStructure(IN SMulticastGroup *pstMulticastGroup, O
         switch(aeCommunicationTypeList[nLoop])
         {
             case MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY:
-                pstMulticastAPI[nAPINum] = &g_stSharedMemoryMulticast;
+                pstMulticastAPI[nLoop] = &g_stSharedMemoryMulticast;
                 break;
             case MULTICAST_COMMUNICATION_TYPE_UDP:
 <#if used_communication_list?seq_contains("udp")>
-                pstMulticastAPI[nAPINum] = &g_stUDPSocketMulticast;
+                pstMulticastAPI[nLoop] = &g_stUDPSocketMulticast;
 <#else>
                 ERRIFGOTO(result, _EXIT);
 </#if>
@@ -459,4 +460,4 @@ _EXIT:
 #endif
 
 int g_nMulticastGroupNum = ARRAYLEN(g_astMulticastGroups);
-nt g_nMulticastAPINum = ARRAYLEN(g_astMulticastAPIList);
+int g_nMulticastAPINum = ARRAYLEN(g_astMulticastAPIList);

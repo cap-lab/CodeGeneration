@@ -72,10 +72,9 @@ static uem_result checkMessageOwner(SMulticastGroup *pstMulticastGroup, char *pH
             *pnGroupNum = nLoop;
             break;
         }
-
     }
 
-	if (nLoop == g_nMulticastGroupNum)
+	if (nLoop != g_nMulticastGroupNum)
 	{
 		result = ERR_UEM_NOERROR;
 	}
@@ -93,7 +92,6 @@ static void *multicastHandlingThread(void *pData)
 	uem_result result = ERR_UEM_UNKNOWN;
 	SMulticastGroup *pstMulticastGroup = NULL;
 	SUDPMulticast *pstUDPMulticastSocket = NULL;
-	SUDPSocket *pstUDPSocket = NULL;
 	int nReceivedDataLength;
 	int nCommunicationTypeIndex = 0;
 	int nBufSize = 0;
@@ -111,7 +109,7 @@ static void *multicastHandlingThread(void *pData)
 	while(pstUDPMulticastSocket->bExit == FALSE)
 	{
 		// recieve
-		result = UCUDPSocket_RecvFrom(pstUDPMulticastSocket->pstSocket->hSocket, "255.255.255.255", 10, nBufSize, pstUDPMulticastSocket->pstSocket->pHeader, &nReceivedDataLength);
+		result = UCUDPSocket_RecvFrom(pstUDPMulticastSocket->pstSocket->hSocket, "255.255.255.255", 1, nBufSize, pstUDPMulticastSocket->pstSocket->pHeader, &nReceivedDataLength);
 		if(result == ERR_UEM_NET_TIMEOUT)
 		{
 			continue;
@@ -130,9 +128,9 @@ static void *multicastHandlingThread(void *pData)
 	    result = UCThreadMutex_Lock(g_astMulticastGroups[nGroupNum].pMulticastStruct->hMutex);
 	    ERRIFGOTO(result, _EXIT);
 
-		result = UKHostSystem_CopyToMemory(g_astMulticastGroups[nGroupNum].pMulticastStruct->pDataStart, pstUDPMulticastSocket->pstSocket->pBuffer, nReceivedDataLength, );
+		result = UKHostSystem_CopyToMemory(g_astMulticastGroups[nGroupNum].pMulticastStruct->pDataStart, pstUDPMulticastSocket->pstSocket->pBuffer, nReceivedDataLength);
 		ERRIFGOTO(result, _EXIT_LOCK);
-		pstMulticastGroup->pMulticastStruct->nDataLen = nReceivedDataLength;
+		pstMulticastGroup->pMulticastStruct->nDataLen = nReceivedDataLength - MULTICAST_UDP_HEADER_SIZE;
 
 _EXIT_LOCK:
 	    UCThreadMutex_Unlock(g_astMulticastGroups[nGroupNum].pMulticastStruct->hMutex);
@@ -319,16 +317,14 @@ uem_result UKUDPSocketMulticast_Finalize(IN SMulticastGroup *pstMulticastGroup)
 	{
 		pstUDPMulticastSocket = (SUDPMulticast *) pstMulticastGroup->pMulticastRecvGateList[nCommunicationTypeIndex];
 
-		pstUDPMulticastSocket->bExit = EXIT_FLAG_READ | EXIT_FLAG_WRITE;
-
+		pstUDPMulticastSocket->bExit = TRUE;
 		if (pstUDPMulticastSocket->hManagementThread != NULL)
 		{
 			result = destroyMulticastReceiverThread(pstUDPMulticastSocket);
 			ERRIFGOTO(result, _EXIT);
 		}
-
-		UCAlloc_free(pstUDPMulticastSocket->pstSocket->hSocket);
-		UCAlloc_free(pstUDPMulticastSocket->pstSocket);
+		SAFEMEMFREE(pstUDPMulticastSocket->pstSocket->hSocket);
+		SAFEMEMFREE(pstUDPMulticastSocket->pstSocket);
 	}
 
 	result = MulticastAPI_GetMulticastCommunicationTypeIndex(pstMulticastGroup, PORT_DIRECTION_OUTPUT, MULTICAST_COMMUNICATION_TYPE_UDP, &nCommunicationTypeIndex);
@@ -340,10 +336,9 @@ uem_result UKUDPSocketMulticast_Finalize(IN SMulticastGroup *pstMulticastGroup)
 			pstUDPMulticastSocket = (SUDPMulticast *) pstMulticastGroup->pstOutputPort[nLoop].pMulticastSendGateList[nCommunicationTypeIndex];
 			ERRIFGOTO(result, _EXIT);
 
-			pstUDPMulticastSocket->bExit = EXIT_FLAG_READ | EXIT_FLAG_WRITE;
-
-			UCAlloc_free(pstUDPMulticastSocket->pstSocket->hSocket);
-			UCAlloc_free(pstUDPMulticastSocket->pstSocket);
+			pstUDPMulticastSocket->bExit = TRUE;
+			SAFEMEMFREE(pstUDPMulticastSocket->pstSocket->hSocket);
+			SAFEMEMFREE(pstUDPMulticastSocket->pstSocket);
 		}
 	}
 

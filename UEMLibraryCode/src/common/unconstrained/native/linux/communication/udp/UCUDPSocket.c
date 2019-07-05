@@ -55,8 +55,8 @@ static uem_result selectTimeout(int portfd, fd_set *pstReadSet, fd_set *pstWrite
        FD_SET(portfd, pstExceptSet);
    }
 
-    stTimeVal.tv_sec = nTimeout;
-    stTimeVal.tv_usec = 0;
+    stTimeVal.tv_sec = 0;
+    stTimeVal.tv_usec = nTimeout;
 
     nRet = select(portfd+1, pstReadSet, pstWriteSet, pstExceptSet, &stTimeVal);
     if(nRet < 0)
