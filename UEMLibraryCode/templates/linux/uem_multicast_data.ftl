@@ -341,7 +341,7 @@ uem_result MulticastAPI_GetAPIStructure(IN SMulticastGroup *pstMulticastGroup, O
                 break;
             }
         }
-        if(nInerLoop != nAPINum)
+        if(nInerLoop == nAPINum)
         {
             aeCommunicationTypeList[nAPINum] = pstMulticastGroup->nOutputCommunicationTypeNum[nLoop].eCommunicationType;
             nAPINum++;
@@ -459,4 +459,4 @@ _EXIT:
 #endif
 
 int g_nMulticastGroupNum = ARRAYLEN(g_astMulticastGroups);
-int g_nMulticastAPINum = ARRAYLEN(g_astMulticastAPIList);
+nt g_nMulticastAPINum = ARRAYLEN(g_astMulticastAPIList);
