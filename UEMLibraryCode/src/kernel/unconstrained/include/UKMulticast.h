@@ -5,8 +5,8 @@
  *      Author: wecracy
  */
 
-#ifndef SRC_KERNEL_INCLUDE_UKMULTICAST_H_
-#define SRC_KERNEL_INCLUDE_UKMULTICAST_H_
+#ifndef SRC_KERNEL_UNCONSTRAINED_INCLUDE_UKMULTICAST_H_
+#define SRC_KERNEL_UNCONSTRAINED_INCLUDE_UKMULTICAST_H_
 
 #include <uem_common.h>
 
@@ -30,4 +30,4 @@ uem_result UKMulticast_Finalize();
 }
 #endif
 
-#endif /* SRC_KERNEL_INCLUDE_UKMULTICAST_H_ */
+#endif /* SRC_KERNEL_UNCONSTRAINED_INCLUDE_UKMULTICAST_H_ */

@@ -13,7 +13,7 @@
 
 #include <uem_data.h>
 
-#include <UKMulticastMemory.h>
+#include "unconstrained/include/UKMulticastMemory.h"
 
 uem_result UKSharedMemoryMulticast_Clear(SMulticastGroup *pstMulticastGroup)
 {

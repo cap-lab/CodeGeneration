@@ -5,8 +5,8 @@
  *      Author: wecracy
  */
 
-#ifndef SRC_KERNEL_INCLUDE_UKMULTICASTMEMORY_H_
-#define SRC_KERNEL_INCLUDE_UKMULTICASTMEMORY_H_
+#ifndef SRC_KERNEL_UNCONSTRAINED_INCLUDE_UKMULTICASTMEMORY_H_
+#define SRC_KERNEL_UNCONSTRAINED_INCLUDE_UKMULTICASTMEMORY_H_
 
 #include <uem_common.h>
 
@@ -27,4 +27,4 @@ uem_result UKMulticastMemory_Finalize(SMulticastGroup *pstMulticastGroup, SShare
 }
 #endif
 
-#endif /* SRC_KERNEL_INCLUDE_UKMULTICASTMEMORY_H_ */
+#endif /* SRC_KERNEL_UNCONSTRAINED_INCLUDE_UKMULTICASTMEMORY_H_ */
