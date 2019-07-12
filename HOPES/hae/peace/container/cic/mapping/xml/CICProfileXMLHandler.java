@@ -31,11 +31,11 @@ import hopes.cic.xml.MappingTaskType;
 import hopes.cic.xml.ProfileTaskType;
 import hopes.cic.xml.TaskType;
 
-public class CICProfileXMLHandler {
+public class CICProfileXMLHandler extends CICXMLHandler{
 	private CICProfileTypeLoader loader;
 	private CICProfileType profile;
 	
-	public CICProfileXMLHandler(CICManualDSEPanel cicManualDSEPanel) {
+	public CICProfileXMLHandler() {
 		loader = new CICProfileTypeLoader();
 	}
 	
@@ -55,15 +55,14 @@ public class CICProfileXMLHandler {
 		}
 	}
 	
-	public CICProfileType getProfile( String xmlString )
+	public void setXMLString(String xmlString) throws CICXMLException
 	{
 		ByteArrayInputStream is = new ByteArrayInputStream(xmlString.getBytes());
-		try {
-			profile = loader.loadResource(is);
-		} catch (CICXMLException e) {
-			e.printStackTrace();
-		}
-			
+		profile = loader.loadResource(is);
+	}
+	
+	public CICProfileType getProfile() 
+	{
 		return profile;		
 	}
 	

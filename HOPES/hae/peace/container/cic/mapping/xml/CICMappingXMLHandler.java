@@ -1,7 +1,10 @@
 package hae.peace.container.cic.mapping.xml;
 
 import hae.kernel.util.ObjectList;
+import hae.peace.container.PeacePanel;
+import hae.peace.container.PeaceTargetPanel;
 import hae.peace.container.cic.mapping.CICManualDSEPanel;
+import hae.peace.container.cic.mapping.CICPerformanceEstimationPanel;
 import hae.peace.container.cic.mapping.MappingTask;
 import hae.peace.container.cic.mapping.Processor;
 import hopes.cic.exception.CICXMLException;
@@ -19,13 +22,12 @@ import java.math.BigInteger;
 import java.util.Enumeration;
 import java.util.List;
 
-public class CICMappingXMLHandler {
+public class CICMappingXMLHandler extends CICXMLHandler {
 	private CICMappingTypeLoader loader;
 	private CICMappingType mapping;
-	private CICManualDSEPanel panel;
-	public CICMappingXMLHandler(CICManualDSEPanel panel) {
+	
+	public CICMappingXMLHandler() {
 		loader = new CICMappingTypeLoader();
-		this.panel = panel;
 	}
 
 	public CICMappingType getMapping() {
@@ -39,8 +41,7 @@ public class CICMappingXMLHandler {
 	public void setXMLString(String xmlString) throws CICXMLException {
 		ByteArrayInputStream is = new ByteArrayInputStream(xmlString.getBytes());
 		mapping = loader.loadResource(is);
-		processed = false;
-		getTaskList();
+		processed = false;		
 	}
 
 	public String getXMLString() throws CICXMLException {
@@ -53,7 +54,7 @@ public class CICMappingXMLHandler {
 
 	private ObjectList taskList = new ObjectList();
 	private boolean processed = false;
-	public ObjectList getTaskList() {
+	public void setTaskList(CICArchitectureXMLHandler architectureHandler) {
 		if (!processed && mapping != null) {
 			taskList.clear();
 			for(MappingTaskType taskType: mapping.getTask()) {
@@ -66,26 +67,25 @@ public class CICMappingXMLHandler {
 					String poolName = processorType.getPool();
 					BigInteger localId = processorType.getLocalId();
 
-					Processor processor = panel.getArchitectureHandler().getProcessor(poolName, localId);
+					Processor processor = architectureHandler.getProcessor(poolName, localId);
 					if (processor == null) {
 						System.out.println("cannot find processor[" + poolName + ":" + localId + "]");
 						continue;
 					}
 					task.addProcessorForce(processor);
 				}
-
 				taskList.add(task);
-			}
-			
+			}			
 			//delete 2017.8.17
 			//The taskList doesn't need to add LibararyTask. Because I don't want to display Librarytask on the mapping table.
 			/*for( MappingLibraryType libraryType: mapping.getLibrary() ) {
 				taskList.add(libraryType);
 			}*/
-
 			processed = true;
 		}
-
+	}
+	
+	public ObjectList getTaskList() {
 		return taskList;
 	}
 	
@@ -137,7 +137,8 @@ public class CICMappingXMLHandler {
 		}
 	}
 	
-	public MappingTask findTaskByName(String taskName) {
+	public MappingTask findTaskByName(String taskName, CICArchitectureXMLHandler architectureHandler) {
+		setTaskList(architectureHandler);
 		Enumeration tasks = getTaskList().elements();
 		while(tasks.hasMoreElements()){
 			Object next = tasks.nextElement();
@@ -151,7 +152,8 @@ public class CICMappingXMLHandler {
 		return null;
 	}
 
-	public MappingLibraryType findLibraryByName(String libraryName) {
+	public MappingLibraryType findLibraryByName(String libraryName, CICArchitectureXMLHandler architectureHandler) {
+		setTaskList(architectureHandler);
 		Enumeration nodes = getTaskList().elements();
 		while(nodes.hasMoreElements()){
 			Object next = nodes.nextElement();
@@ -164,8 +166,5 @@ public class CICMappingXMLHandler {
 		}
 		return null;
 	}
-	
-	public String getFileName() {
-		return panel.getParentPanel().getNickName() + "_mapping.xml";
-	}
+
 }

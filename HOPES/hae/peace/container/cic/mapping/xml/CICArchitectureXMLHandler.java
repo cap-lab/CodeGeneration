@@ -20,7 +20,7 @@ import hopes.cic.xml.ArchitectureElementTypeType;
 import hopes.cic.xml.CICArchitectureType;
 import hopes.cic.xml.CICArchitectureTypeLoader;
 
-public class CICArchitectureXMLHandler {
+public class CICArchitectureXMLHandler extends CICXMLHandler {
 	private CICArchitectureTypeLoader loader;
 	private CICArchitectureType architecture;
 //	private CICManualDSEPanel panel;
@@ -205,7 +205,7 @@ public class CICArchitectureXMLHandler {
 	public void setTarget(String target) {
 		architecture.setTarget(target);
 	}
-	
+
 //	public String getFileName() {
 //		return panel.getParentPanel().getNickName() + "_architecture.xml";
 //	}

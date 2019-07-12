@@ -11,11 +11,11 @@ import hopes.cic.xml.CICGPUSetupType;
 import hopes.cic.xml.CICGPUSetupTypeLoader;
 
 
-public class CICGPUSetupXMLHandler {
+public class CICGPUSetupXMLHandler{
 	private CICGPUSetupTypeLoader loader;
 	private CICGPUSetupType gpuSetup;
 	
-	public CICGPUSetupXMLHandler(CICManualDSEPanel panel) {
+	public CICGPUSetupXMLHandler() {
 		loader = new CICGPUSetupTypeLoader();
 	}
 	

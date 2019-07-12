@@ -15,7 +15,7 @@ import hopes.cic.xml.DataParallelType;
 import hopes.cic.xml.LoopStructureTypeType;
 import hopes.cic.xml.TaskType;
 
-public class CICAlgorithmXMLHandler {
+public class CICAlgorithmXMLHandler extends CICXMLHandler {
 	private CICAlgorithmTypeLoader loader;
 	private CICAlgorithmType algorithm;
 	
@@ -23,10 +23,10 @@ public class CICAlgorithmXMLHandler {
 		loader = new CICAlgorithmTypeLoader();
 	}
 	
-	public void setXMLString(String xmlString, ObjectList taskList) throws CICXMLException {
+	@Override
+	public void setXMLString(String xmlString) throws CICXMLException {
 		ByteArrayInputStream is = new ByteArrayInputStream(xmlString.getBytes());
 		algorithm = loader.loadResource(is);
-		updateTaskList(taskList);
 	}
 	
 	private HashMap<String, TaskType> getFullTaskMap(List<TaskType> taskList)
