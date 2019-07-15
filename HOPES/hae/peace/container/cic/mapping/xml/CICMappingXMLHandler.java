@@ -4,7 +4,6 @@ import hae.kernel.util.ObjectList;
 import hae.peace.container.PeacePanel;
 import hae.peace.container.PeaceTargetPanel;
 import hae.peace.container.cic.mapping.CICManualDSEPanel;
-import hae.peace.container.cic.mapping.CICPerformanceEstimationPanel;
 import hae.peace.container.cic.mapping.MappingTask;
 import hae.peace.container.cic.mapping.Processor;
 import hopes.cic.exception.CICXMLException;
