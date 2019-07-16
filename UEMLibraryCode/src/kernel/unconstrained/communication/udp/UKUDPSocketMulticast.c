@@ -40,7 +40,7 @@ static uem_result UKUDPSocketMulticast_AllocBuffer(SUDPSocket *pstUDPSocket, int
 		ERRASSIGNGOTO(result, ERR_UEM_REALLOCATE_BUFFER, _EXIT);
 	}
 
-	pstUDPSocket->pHeader = UCAlloc_malloc(nBufSize + MULTICAST_UDP_HEADER_SIZE);
+	pstUDPSocket->pHeader = UCAlloc_calloc(nBufSize + MULTICAST_UDP_HEADER_SIZE, sizeof(unsigned char));
 	ERRMEMGOTO(pstUDPSocket->pHeader, result, _EXIT);
 
 	pstUDPSocket->nHeaderLen = MULTICAST_UDP_HEADER_SIZE;
@@ -256,7 +256,7 @@ uem_result UKUDPSocketMulticast_Initialize(IN SMulticastGroup *pstMulticastGroup
 	{
 		pstUDPMulticastSocket = (SUDPMulticast *) pstMulticastGroup->pMulticastRecvGateList[nCommunicationTypeIndex];
 
-		pstUDPMulticastSocket->pstSocket =(SUDPSocket *) UCAlloc_malloc(sizeof(SUDPSocket));
+		pstUDPMulticastSocket->pstSocket =(SUDPSocket *) UCAlloc_calloc(1, sizeof(SUDPSocket));
 
 		pstUDPSocket = pstUDPMulticastSocket->pstSocket;
 
@@ -285,7 +285,7 @@ uem_result UKUDPSocketMulticast_Initialize(IN SMulticastGroup *pstMulticastGroup
 		{
 			pstUDPMulticastSocket = (SUDPMulticast *) pstMulticastGroup->pstOutputPort[nLoop].pMulticastSendGateList[nCommunicationTypeIndex];
 
-			pstUDPMulticastSocket->pstSocket =(SUDPSocket *) UCAlloc_malloc(sizeof(SUDPSocket));
+			pstUDPMulticastSocket->pstSocket =(SUDPSocket *) UCAlloc_calloc(1, sizeof(SUDPSocket));
 
 			pstUDPSocket = pstUDPMulticastSocket->pstSocket;
 
