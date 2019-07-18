@@ -746,16 +746,38 @@ public class Application {
 		return dstTaskConnectionRoleType;
 	}
 	
-	private void setSocketIndexFromTCPConnection(Channel channel, Device targetDevice, ConnectionPair connectionPair)
+	private void setSocketIndexFromTCPConnection(Channel channel, Device targetDevice, ConnectionPair connectionPair) throws InvalidDeviceConnectionException
 	{
 		int index = 0;
-		Connection connection = null;
+		TCPConnection connection = null;
+		ArrayList<TCPConnection> connectionList = null;
 		
-		connection = (TCPConnection) connectionPair.getSlaveConnection();
-		
-		for(index = 0 ; index < targetDevice.getTcpClientList().size(); index++)
+		switch(channel.getRemoteMethodType())
 		{
-			TCPConnection tcpConnection = targetDevice.getTcpClientList().get(index);
+		case TCP:
+			switch(channel.getConnectionRoleType())
+			{
+			case SERVER:
+				connectionList = targetDevice.getTcpServerList();
+				connection = (TCPConnection) connectionPair.getMasterConnection();
+				break;
+			case CLIENT:
+				connectionList = targetDevice.getTcpClientList();
+				connection = (TCPConnection) connectionPair.getSlaveConnection();
+				break;
+			default:
+				throw new InvalidDeviceConnectionException();
+			}
+			break;
+		default:
+			throw new InvalidDeviceConnectionException();
+		}
+		
+		connection.incrementChannelAccessNum();
+		
+		for(index = 0 ; index < connectionList.size(); index++)
+		{
+			TCPConnection tcpConnection = connectionList.get(index);
 			
 			if(tcpConnection.getName().equals(connection.getName()) == true)
 			{
@@ -874,6 +896,7 @@ public class Application {
 		case MASTER:
 		case SLAVE:
 		case CLIENT:
+		case SERVER: 
 			switch(channel.getCommunicationType())
 			{
 			case REMOTE_READER:
@@ -888,8 +911,6 @@ public class Application {
 				throw new InvalidDeviceConnectionException();	
 			}
 			break;
-		case SERVER: // do nothing with server
-			return;
 		case NONE:
 			return;
 		default:

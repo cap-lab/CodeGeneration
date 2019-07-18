@@ -133,6 +133,14 @@ static uem_result passRequestItemToChannel(SSerialCommunicationManager *pstManag
 		break;
 	}
 
+	if(enMessageType == MESSAGE_TYPE_READ_QUEUE || enMessageType == MESSAGE_TYPE_READ_BUFFER)
+	{
+		if(stItem.uDetailItem.stRequest.nRequestDataSize < 0)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		}
+	}
+
 	result = findChannelQueue(pstManager, nChannelId, &hChannelQueue);
 	ERRIFGOTO(result, _EXIT);
 
