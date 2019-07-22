@@ -42,15 +42,15 @@ public class UEMMetaDataModel {
     
     private Application application = null;
     
-    public UEMMetaDataModel(String uemXMLPath, String scheduleFileFolderPath) throws CICXMLException, InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
+    public UEMMetaDataModel(String translatorRootDir, String uemXMLPath, String scheduleFileFolderPath) throws CICXMLException, InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
     {
     	this.moduleMap = new HashMap<String, Module>();
     	this.schedulePath = scheduleFileFolderPath;
-    	parseXMLFile(uemXMLPath);
+    	parseXMLFile(translatorRootDir, uemXMLPath);
     	makeApplicationDataModel();
     }
 	
-    private void parseXMLFile(String uemXMLPath) throws CICXMLException
+    private void parseXMLFile(String translatorRootDir, String uemXMLPath) throws CICXMLException
     {
     	CICModuleType moduleMetadata;
     	
@@ -94,9 +94,9 @@ public class UEMMetaDataModel {
         		gpusetupMetadata = gpusetupLoader.loadResource(uemXMLPath + Constants.UEMXML_GPUSETUP_PREFIX);
         	}
         	
-        	if(new File(Constants.DEFAULT_MODULE_XML_PATH).isFile() == true) 
+        	if(new File(translatorRootDir + File.separator + Constants.DEFAULT_MODULE_XML_PATH).isFile() == true) 
         	{
-        		moduleMetadata = moduleLoader.loadResource(Constants.DEFAULT_MODULE_XML_PATH);
+        		moduleMetadata = moduleLoader.loadResource(translatorRootDir + File.separator + Constants.DEFAULT_MODULE_XML_PATH);
         		insertSupportedModuleInfo(moduleMetadata);
         	}
         }
