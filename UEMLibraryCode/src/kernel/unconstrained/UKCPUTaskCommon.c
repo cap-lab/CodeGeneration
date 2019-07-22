@@ -67,7 +67,7 @@ _EXIT:
 }
 
 
-static uem_result callFunctionsInHierarchicalTaskGraph(STask *pstParentTask, FnTaskTraverse fnCallback, HStack hStack, void *pUserData)
+static uem_result callFunctionsInHierarchicalTaskGraph(STaskGraph *pstTaskGraph, FnTaskTraverse fnCallback, HStack hStack, void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nCurrentIndex = 0;
@@ -77,8 +77,8 @@ static uem_result callFunctionsInHierarchicalTaskGraph(STask *pstParentTask, FnT
 	STask *pstCurTask = NULL;
 	int nNumOfTasks = 0;
 
-	nNumOfTasks = pstParentTask->pstSubGraph->nNumOfTasks;
-	pstCurrentTaskGraph = pstParentTask->pstSubGraph;
+	nNumOfTasks = pstTaskGraph->nNumOfTasks;
+	pstCurrentTaskGraph = pstTaskGraph;
 
 	while(nCurrentIndex < nNumOfTasks || nStackNum > 0)
 	{
@@ -136,20 +136,22 @@ uem_result UKCPUTaskCommon_TraverseSubGraphTasks(STask *pstParentTask, FnTaskTra
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	HStack hStack = NULL;
+	STaskGraph* pstTaskGraph;
+
+	result = UCDynamicStack_Create(&hStack);
+	ERRIFGOTO(result, _EXIT);
 
 	if(pstParentTask != NULL)
 	{
-		result = UCDynamicStack_Create(&hStack);
-		ERRIFGOTO(result, _EXIT);
-
-		result = callFunctionsInHierarchicalTaskGraph(pstParentTask, fnCallback, hStack, pUserData);
-		ERRIFGOTO(result, _EXIT);
+		pstTaskGraph = pstParentTask->pstSubGraph;
 	}
-	else
+	else // when the whole task graph is a composite task.
 	{
-		result = UKTask_TraverseAllTasks(fnCallback, pUserData);
-		ERRIFGOTO(result, _EXIT);
+		pstTaskGraph = &g_stGraph_top;
 	}
+
+	result = callFunctionsInHierarchicalTaskGraph(pstTaskGraph, fnCallback, hStack, pUserData);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

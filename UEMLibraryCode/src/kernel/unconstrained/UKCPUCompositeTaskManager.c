@@ -623,6 +623,8 @@ static uem_result changeCompositeTaskState(SCompositeTask *pstCompositeTask, ECP
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _SCompositeTaskStateChangeData stCompositeTaskData;
 	STask *pstTask = NULL;
+	int nTimeValue;
+	ETimeMetric enTimeMetric;
 
 	stCompositeTaskData.enTaskState = enTargetState;
 	stCompositeTaskData.pstCompositeTask = pstCompositeTask;
@@ -653,9 +655,15 @@ static uem_result changeCompositeTaskState(SCompositeTask *pstCompositeTask, ECP
 
 	if(enTargetState == TASK_STATE_STOPPING)
 	{
-		// release channel block related to the task to be stopped
-		result = UKCPUTaskCommon_TraverseSubGraphTasks(pstCompositeTask->pstParentTask, setChannelExitFlags, NULL);
+		result = UKTime_GetProgramExecutionTime(&nTimeValue, &enTimeMetric);
 		ERRIFGOTO(result, _EXIT);
+
+		if(enTimeMetric != TIME_METRIC_COUNT) //ProcessNetwork
+		{
+			// release channel block related to the task to be stopped
+			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstCompositeTask->pstParentTask, setChannelExitFlags, NULL);
+			ERRIFGOTO(result, _EXIT);
+		}
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -1231,12 +1239,12 @@ static uem_result callInitFunction(STask *pstLeafTask, void *pUserData)
 	int nLoop = 0;
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	for(nLoop = 0; nLoop < pstLeafTask->nTaskThreadSetNum ; nLoop++)
-	{
-		pstLeafTask->astTaskThreadFunctions[nLoop].fnInit(pstLeafTask->nTaskId);
+		for(nLoop = 0; nLoop < pstLeafTask->nTaskThreadSetNum ; nLoop++)
+		{
+			pstLeafTask->astTaskThreadFunctions[nLoop].fnInit(pstLeafTask->nTaskId);
 
-		result = UKChannel_FillInitialDataBySourceTaskId(pstLeafTask->nTaskId);
-		ERRIFGOTO(result, _EXIT);
+			result = UKChannel_FillInitialDataBySourceTaskId(pstLeafTask->nTaskId);
+			ERRIFGOTO(result, _EXIT);
 	}
 _EXIT:
 	return result;
