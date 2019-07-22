@@ -96,7 +96,7 @@ public class CodeGenerator
 			System.exit(-1);
 		}
 		
-		initMetaData(args);
+		initMetaData(translatorRootDir, args);
     }
     
     private void changeAllPathSeparator() 
@@ -110,7 +110,7 @@ public class CodeGenerator
     	mOutputPath = mOutputPath.replace('/', File.separatorChar);
     }
     
-    private void initMetaData(String[] args) 
+    private void initMetaData(String translatorRootDir, String[] args) 
     {
     	Options options = new Options();
     	HelpFormatter formatter = new HelpFormatter();
@@ -154,7 +154,7 @@ public class CodeGenerator
     		
     		System.out.println("mTranslatorPath: " + mTranslatorPath + ", mCICXMLPath: " + mUEMXMLPath + ", mOutputPath: " + mOutputPath);
     		
-    		this.uemDatamodel = new UEMMetaDataModel(mUEMXMLPath, mOutputPath + File.separator + Constants.SCHEDULE_FOLDER_NAME + File.separator);
+    		this.uemDatamodel = new UEMMetaDataModel(translatorRootDir, mUEMXMLPath, mOutputPath + File.separator + Constants.SCHEDULE_FOLDER_NAME + File.separator);
     	} 
     	catch(ParseException e) {
     		System.out.println("ERROR: " + e.getMessage());
