@@ -140,13 +140,16 @@ ${innerspace}}
 		
 		<#if device_constrained_info == "unconstrained">
 ${innerspace}{
-${innerspace}	STask *pstTask = (STask *)NULL;
-${innerspace}	uem_result result;
-${innerspace}
-${innerspace}	result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
-${innerspace}	if(result == ERR_UEM_NOERROR)
+${innerspace}	if(nTaskId != INVALID_TASK_ID) //ignore setting nCurRunIndex operation when given nTaskId is INVALID_TASK_ID. 
 ${innerspace}	{
-${innerspace}		pstTask->astThreadContext[${scheduleItem.taskFuncId}].nCurRunIndex = pstTask->nCurIteration;
+${innerspace}		STask *pstTask = (STask *)NULL;
+${innerspace}		uem_result result;
+${innerspace}	
+${innerspace}		result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
+${innerspace}		if(result == ERR_UEM_NOERROR)
+${innerspace}		{
+${innerspace}			pstTask->astThreadContext[${scheduleItem.taskFuncId}].nCurRunIndex = pstTask->nCurIteration;
+${innerspace}		}
 ${innerspace}	}
 ${innerspace}}
 		</#if>
