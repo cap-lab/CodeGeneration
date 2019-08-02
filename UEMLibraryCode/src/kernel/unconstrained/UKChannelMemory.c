@@ -882,7 +882,7 @@ static uem_result writeToArrayQueue(SChannel *pstChannel, SSharedMemoryChannel *
 		{
 			nSegmentLen = pNewEnd - (pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize);
 			pNewEnd = pstSharedMemoryChannel->pBuffer + nSegmentLen;
-		}		
+		}
 		pstSharedMemoryChannel->nDataLen += (  pstSharedMemoryChannel->stOutputPortChunk.nChunkLen * pstSharedMemoryChannel->stOutputPortChunk.nChunkNum ) ;
 		pstSharedMemoryChannel->pDataEnd = pNewEnd;
 	}
@@ -1220,7 +1220,7 @@ static uem_result fillInitialData(SChannel *pstChannel, SSharedMemoryChannel *ps
 	result = copyAndMovePointerToRoundedQueue(pstChannel, pstSharedMemoryChannel, pBuffer, nDataToFill, 0, pstMemoryAPI->fnCopyInMemory);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstChannel->enChannelType == CHANNEL_TYPE_INPUT_ARRAY && pstSharedMemoryChannel->pstAvailableInputChunkHead == NULL)
+    if((pstChannel->enChannelType == CHANNEL_TYPE_FULL_ARRAY || pstChannel->enChannelType == CHANNEL_TYPE_INPUT_ARRAY) && pstSharedMemoryChannel->pstAvailableInputChunkHead == NULL)
 	{
 		nCurrentSampleRateIndex = pstChannel->pstInputPort->nCurrentSampleRateIndex;
 		nExpectedConsumeSize = pstChannel->pstInputPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstChannel->pstInputPort->nSampleSize;
