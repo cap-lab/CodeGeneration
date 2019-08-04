@@ -5,7 +5,9 @@ import java.util.HashMap;
 
 import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.structure.communication.InMemoryAccessType;
+import org.snu.cse.cap.translator.structure.mapping.MappingInfo;
 import org.snu.cse.cap.translator.structure.task.Task;
+import org.snu.cse.cap.translator.structure.task.TaskLoopType;
 
 public class Channel implements Cloneable {
 	private int index;
@@ -168,11 +170,95 @@ public class Channel implements Cloneable {
 	public int getOutputPortIndex() {
 		return outputPortIndex;
 	}
-
-	public void setMaximumChunkNum(HashMap<String, Task> taskMap)
+	
+	public boolean isSubTaskofDTypeLoopTask(HashMap<String, Task> taskMap, String taskName)
 	{
-		this.inputPort.setMaximumParallelNumber(taskMap);
-		this.outputPort.setMaximumParallelNumber(taskMap);
+		Task task = taskMap.get(taskName);	
+		Task parentTask = taskMap.get(task.getParentTaskGraphName());
+		boolean isSubTaskofDTypeLoopTask = false;
+		
+		while(parentTask != null)
+		{
+			if(parentTask.getLoopStruct() != null && parentTask.getLoopStruct().getLoopType() == TaskLoopType.DATA)
+			{
+				isSubTaskofDTypeLoopTask = true;
+				break;
+			}			
+			parentTask = taskMap.get(parentTask.getParentTaskGraphName());
+		}
+		return isSubTaskofDTypeLoopTask;		
+	}
+	
+	public boolean hasSameDTypeLoopParentTask(HashMap<String, Task> taskMap, String dstTaskName, String srcTaskName)
+	{		
+		//Find the nearest ancestor DType Loop task for each of the two tasks.
+		//if one of two tasks are not in DTypeLoopTask, return false.
+
+		Task dstTask = taskMap.get(dstTaskName);
+		Task dstParentTask = taskMap.get(dstTask.getParentTaskGraphName());
+		Task srcTask = taskMap.get(srcTaskName);
+		Task srcParentTask = taskMap.get(srcTask.getParentTaskGraphName());
+		boolean isDstTaskSubTaskofDTypeLoopTask = false;
+		boolean isSrcTaskSubTaskofDTypeLoopTask = false;
+		
+		while(dstParentTask != null)
+		{
+			if(dstParentTask.getLoopStruct() != null && dstParentTask.getLoopStruct().getLoopType() == TaskLoopType.DATA)
+			{
+				isDstTaskSubTaskofDTypeLoopTask = true;
+				break;
+			}			
+			dstParentTask = taskMap.get(dstParentTask.getParentTaskGraphName());
+		}
+		
+		while(srcParentTask != null)
+		{
+			if(srcParentTask.getLoopStruct() != null && srcParentTask.getLoopStruct().getLoopType() == TaskLoopType.DATA)
+			{
+				isSrcTaskSubTaskofDTypeLoopTask = true;
+				break;
+			}			
+			srcParentTask = taskMap.get(srcParentTask.getParentTaskGraphName());
+		}
+		
+		if(!isDstTaskSubTaskofDTypeLoopTask || !isSrcTaskSubTaskofDTypeLoopTask) 
+		{
+			return false;
+		}
+		else if(!dstParentTask.getName().equals(srcParentTask.getName())) 
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+
+	public void setMaximumChunkNum(HashMap<String, Task> taskMap, String srcTaskName, String dstTaskName, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo)
+	{
+		//inputPort for dstTask, srcTask for outputPort.
+		if(hasSameDTypeLoopParentTask(taskMap, dstTaskName, srcTaskName))
+		{
+			this.inputPort.setMaximumParallelNumberInDTypeLoopTask(taskMap, dstTaskName, dstTaskMappingInfo);
+			this.outputPort.setMaximumParallelNumberInDTypeLoopTask(taskMap, srcTaskName, srcTaskMappingInfo);			
+		}		
+		else if(isSubTaskofDTypeLoopTask(taskMap, dstTaskName) && !isSubTaskofDTypeLoopTask(taskMap, srcTaskName))
+		{
+			this.inputPort.setMaximumParallelNumberInBorderLine(taskMap, dstTaskName);
+			this.outputPort.setMaximumParallelNumberInBorderLine(taskMap, srcTaskName);
+		}
+				
+		else if(isSubTaskofDTypeLoopTask(taskMap, srcTaskName) && !isSubTaskofDTypeLoopTask(taskMap, dstTaskName))
+		{
+			this.inputPort.setMaximumParallelNumberInBorderLine(taskMap, dstTaskName);
+			this.outputPort.setMaximumParallelNumberInBorderLine(taskMap, srcTaskName);
+		}
+		else 
+		{
+			this.inputPort.setMaximumChunkNum(1);
+			this.outputPort.setMaximumChunkNum(1);			
+		}		
 	}
 
 	public void setOutputPort(ChannelPort outputPort) {

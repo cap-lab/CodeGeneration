@@ -21,12 +21,12 @@
 #include <UKTask_internal.h>
 #include <UKChannel_internal.h>
 
-static uem_result setChunkNumAndLen(SPort *pstPort, SChunkInfo *pstChunkInfo)
+static uem_result setChunkNumAndLen(SPort *pstPort, SChunkInfo *pstChunkInfo, EChannelType enChannelType)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nLoop = 0;
 
-	result = UKChannel_GetChunkNumAndLen(pstPort, &(pstChunkInfo->nChunkNum), &(pstChunkInfo->nChunkLen));
+	result = UKChannel_GetChunkNumAndLen(pstPort, &(pstChunkInfo->nChunkNum), &(pstChunkInfo->nChunkLen), enChannelType);
 	ERRIFGOTO(result, _EXIT);
 
 	// clear chunk information
@@ -61,10 +61,10 @@ uem_result UKChannelMemory_Clear(SChannel *pstChannel, SSharedMemoryChannel *pst
 	pstSharedMemoryChannel->nWriteReferenceCount = 0;
 
 	// the chunk num and chunk length is dependent to sample rate of mode transition
-	result = setChunkNumAndLen(pstChannel->pstInputPort, &(pstSharedMemoryChannel->stInputPortChunk));
+	result = setChunkNumAndLen(pstChannel->pstInputPort, &(pstSharedMemoryChannel->stInputPortChunk), pstChannel->enChannelType);
 	ERRIFGOTO(result, _EXIT);
 
-	result = setChunkNumAndLen(pstChannel->pstOutputPort, &(pstSharedMemoryChannel->stOutputPortChunk));
+	result = setChunkNumAndLen(pstChannel->pstOutputPort, &(pstSharedMemoryChannel->stOutputPortChunk), pstChannel->enChannelType);
 	ERRIFGOTO(result, _EXIT);
 
 	pstSharedMemoryChannel->nWrittenOutputChunkNum = CHUNK_NUM_NOT_INITIALIZED;

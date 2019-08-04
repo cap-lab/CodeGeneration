@@ -115,7 +115,7 @@ uem_result UKChannel_FillInitialDataBySourceTaskId(int nTaskId);
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
  */
-uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT int *pnChunkLen);
+uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT int *pnChunkLen, IN EChannelType enChannelType);
 
 /**
  * @brief Pop data from queue when the task is loop task and port is broadcasting port.

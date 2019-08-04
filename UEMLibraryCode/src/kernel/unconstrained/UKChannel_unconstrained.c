@@ -25,13 +25,14 @@
 uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType enType, OUT SChannelAPI **ppstChannelAPI);
 
 
-uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT int *pnChunkLen)
+uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT int *pnChunkLen, IN EChannelType enChannelType)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nCurrentSampleRateIndex = 0;
 	SPort *pstMostInnerPort = NULL;
 	int nOuterMostSampleRate = 0;
 	STask *pstCurTask = NULL;
+	STask *pstParentTask = NULL;
 	int nChunkNum = 0;
 	int nChunkLen = 0;
 
@@ -81,6 +82,40 @@ uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT 
 		{
 			nChunkNum = 1;
 			nChunkLen = nOuterMostSampleRate * pstPort->nSampleSize;
+		}
+
+		//Iterate if ancester task of D-Type Loop task exists.
+		uem_bool bIsSubTaskofDTypeLoopTask = FALSE;
+		if(pstCurTask != NULL)
+		{
+
+			pstParentTask = pstCurTask->pstParentGraph->pstParentTask;
+			while(pstParentTask != NULL)
+			{
+				//if parent task is looptype task
+				if(pstParentTask->pstLoopInfo != NULL && pstParentTask->pstLoopInfo->enType == LOOP_TYPE_DATA)
+				{
+					//nChunkNum *= pstParentTask->pstLoopInfo->nLoopCount;
+					bIsSubTaskofDTypeLoopTask = TRUE;
+					break;
+				}
+				pstParentTask = pstParentTask->pstParentGraph->pstParentTask;
+			}
+			if(bIsSubTaskofDTypeLoopTask == TRUE)
+			{
+				if(enChannelType == CHANNEL_TYPE_FULL_ARRAY)
+				{
+				nChunkNum = pstCurTask->nTaskThreadSetNum;
+			}
+				else if(enChannelType == CHANNEL_TYPE_INPUT_ARRAY || enChannelType == CHANNEL_TYPE_OUTPUT_ARRAY)
+				{
+					nChunkNum = pstParentTask->pstLoopInfo->nLoopCount;
+				}
+				else //channel connected with task inside DTypeLoopTask cannnot be CHANNEL_TYPE_GENERAL.
+				{					
+					ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+				}
+			}
 		}
 	}
 
@@ -316,7 +351,7 @@ static uem_result popDataFromQueue(SChannel *pstChannel, SChannelAPI *pstChannel
 	int nDataCanRead = 0;
 	int nBroadcastNum = 0;
 
-	result = UKChannel_GetChunkNumAndLen(pstChannel->pstInputPort, &nChunkNum, &nChunkLen);
+	result = UKChannel_GetChunkNumAndLen(pstChannel->pstInputPort, &nChunkNum, &nChunkLen, pstChannel->enType);
 	ERRIFGOTO(result, _EXIT);
 
 	nBroadcastNum = nNumOfDataToPop / nChunkNum;
