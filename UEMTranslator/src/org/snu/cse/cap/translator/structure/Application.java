@@ -687,8 +687,9 @@ public class Application {
 		isSrcDataLoop = isDataLoopTask(srcTask);
 		isDstDistributing = dstPort.isDistributingPort();
 		isDstBroadcasting = dstPort.isBroadcastingPort();
-		
-		if(isSrcDataLoop == true && isDstDataLoop == true && isDstDistributing == true)
+				
+		//2019.07.31 make channel connecting two tasks inside D-typeloop tasks as CHANNEL_TYPE_FULL_ARRAY.
+		if(isSrcDataLoop == true && isDstDataLoop == true)
 		{
 			channel.setChannelType(ChannelArrayType.FULL_ARRAY);
 		} // even a task uses broadcasting it needs to be input_array type to manage available number
@@ -1561,8 +1562,8 @@ public class Application {
 	
 		for(ChannelType channelMetadata: algorithm_metadata.getChannels().getChannel())
 		{
-			Channel channel = new Channel(index, channelMetadata.getSize().intValue() * channelMetadata.getSampleSize().intValue(), 
-										channelMetadata.getInitialDataSize().intValue() * channelMetadata.getSampleSize().intValue(), channelMetadata.getSampleSize().intValue());
+			Channel channel = new Channel(index, channelMetadata.getSize().intValue() * channelMetadata.getSampleSize().intValue(), 		
+					channelMetadata.getInitialDataSize().intValue() * channelMetadata.getSampleSize().intValue(), channelMetadata.getSampleSize().intValue());
 			
 			// index 0 is only used
 			// TODO: src element in XML schema file must be single occurrence.
@@ -1573,7 +1574,7 @@ public class Application {
 			
 			ChannelPort srcPort = this.portInfo.get(channelSrcPort.getTask() + Constants.NAME_SPLITER + channelSrcPort.getPort() + Constants.NAME_SPLITER + PortDirection.OUTPUT);
 			ChannelPort dstPort = this.portInfo.get(channelDstPort.getTask() + Constants.NAME_SPLITER + channelDstPort.getPort() + Constants.NAME_SPLITER + PortDirection.INPUT);
-
+			
 			// This information is used for single port multiple channel connection cases
 			setNextChannelId(portToChannelConnection, srcPort, channel);
 			
@@ -1583,11 +1584,12 @@ public class Application {
 			// input/output port (port information)
 			channel.setOutputPort(srcPort.getMostUpperPort());
 			channel.setInputPort(dstPort.getMostUpperPort());
-			// maximum chunk number
-			channel.setMaximumChunkNum(this.taskMap);
 
 			srcTaskMappingInfo = findMappingInfoByTaskName(channelSrcPort.getTask());
-			dstTaskMappingInfo = findMappingInfoByTaskName(channelDstPort.getTask());
+			dstTaskMappingInfo = findMappingInfoByTaskName(channelDstPort.getTask());			
+					
+			// maximum chunk number
+			channel.setMaximumChunkNum(this.taskMap, channelSrcPort.getTask(), channelDstPort.getTask(), srcTaskMappingInfo, dstTaskMappingInfo);
 			
 			// communication type (device information)
 			setChannelCommunicationType(channel, srcTaskMappingInfo, dstTaskMappingInfo);

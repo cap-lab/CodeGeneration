@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import org.snu.cse.cap.translator.structure.communication.Port;
 import org.snu.cse.cap.translator.structure.communication.PortDirection;
+import org.snu.cse.cap.translator.structure.mapping.MappingInfo;
 import org.snu.cse.cap.translator.structure.task.Task;
 import org.snu.cse.cap.translator.structure.task.TaskLoopType;
 
@@ -17,7 +18,6 @@ public class ChannelPort extends Port {
 	private ChannelPort subgraphPort;
 	private ChannelPort upperGraphPort;
 	private LoopPortType loopPortType;
-	
 	private int maximumChunkNum;
 	private String description;
 	
@@ -85,80 +85,54 @@ public class ChannelPort extends Port {
 		return innerPort;
 	}
 	
-	private int setOutputMaximumParallelNumber(HashMap<String, Task> taskMap) {
-		int maxParallel = 1;
-		ChannelPort port;
-		Task task;
+	public void setMaximumParallelNumberInDTypeLoopTask(HashMap<String, Task> taskMap, String taskName, MappingInfo taskMappingInfo) {
+		//maxParallel : tasks' coreNum.
+		int maxParallel = 1;						
+		Task task = null;
+		Task parentTask = null;
+		boolean isSubTaskofDTypeLoopTask = false;
 		
-		port = this;
-		while(port != null)
+		task = taskMap.get(taskName);		
+		parentTask = taskMap.get(task.getParentTaskGraphName());		
+		
+		while(parentTask != null)
 		{
-			task = taskMap.get(port.getTaskName());
-			if(task.getLoopStruct() != null && task.getLoopStruct().getLoopType() == TaskLoopType.DATA)
+			//if parentTask is DType Loop task
+			if(parentTask.getLoopStruct() != null && parentTask.getLoopStruct().getLoopType() == TaskLoopType.DATA)
 			{
-				maxParallel *= task.getLoopStruct().getLoopCount();
-			}
-			port = port.getUpperGraphPort();
+				isSubTaskofDTypeLoopTask = true;
+				break;
+			}			
+			parentTask = taskMap.get(parentTask.getParentTaskGraphName());
 		}
-		
-		port = this.getSubgraphPort();
-		while(port != null)
-		{
-			task = taskMap.get(port.getTaskName());
-			if(task.getLoopStruct() != null && task.getLoopStruct().getLoopType() == TaskLoopType.DATA)
-			{
-				maxParallel *= task.getLoopStruct().getLoopCount();
-			}
-			port = port.getSubgraphPort();
-		}
-		
-		return maxParallel;
+			
+		//if task of this port is SubTaskofDTypeLoopTask.
+		if(isSubTaskofDTypeLoopTask) 
+		{			
+			maxParallel = taskMappingInfo.getMappedProcessorList().size();									
+		}				
+		this.maximumChunkNum = maxParallel;		
 	}
 	
-	private int setInputMaximumParallelNumber(HashMap<String, Task> taskMap) {
-		int maxParallel = 1;
-		ChannelPort port;
-		Task task;
-		
-		port = this;
-		while(port != null)
-		{
-			if(port.getPortType() == PortType.QUEUE && port.getLoopPortType() == LoopPortType.DISTRIBUTING)
-			{
-				task = taskMap.get(port.getTaskName());
-				maxParallel *= task.getLoopStruct().getLoopCount();
-			}
-			port = port.getUpperGraphPort();
-		}
-		
-		port = this.getSubgraphPort();
-		while(port != null)
-		{
-			if(port.getPortType() == PortType.QUEUE && port.getLoopPortType() == LoopPortType.DISTRIBUTING)
-			{
-				task = taskMap.get(port.getTaskName());
-				maxParallel *= task.getLoopStruct().getLoopCount();
-			}
-			port = port.getSubgraphPort();
-		}
-		
-		return maxParallel;
-	}
 	
-	public void setMaximumParallelNumber(HashMap<String, Task> taskMap) {
-		int maxParallel = 1;
+	public void setMaximumParallelNumberInBorderLine(HashMap<String, Task> taskMap, String taskName) {		
+		//maxParallel : multiple of all parent DTypeLoopTasks' nLoopCount.
+		int maxParallel = 1;						
+		Task task;
+		Task parentTask = null;
 		
-		if(super.direction == PortDirection.INPUT)
-		{
-			maxParallel = setInputMaximumParallelNumber(taskMap);
-		}
-		else
-		{
-			maxParallel = setOutputMaximumParallelNumber(taskMap);
-		}
-
+		task = taskMap.get(taskName);	
+		parentTask = taskMap.get(task.getParentTaskGraphName());
 		
-		this.maximumChunkNum = maxParallel;
+		while(parentTask != null)
+		{
+			if(parentTask.getLoopStruct() != null && parentTask.getLoopStruct().getLoopType() == TaskLoopType.DATA)
+			{
+				maxParallel *= parentTask.getLoopStruct().getLoopCount(); //multiple of parent LoopCount.
+			}			
+			parentTask = taskMap.get(parentTask.getParentTaskGraphName());
+		}		
+		this.maximumChunkNum = maxParallel;		
 	}
 	
 	private boolean checkPort(LoopPortType checkPortType)
@@ -276,6 +250,10 @@ public class ChannelPort extends Port {
 
 	public int getMaximumChunkNum() {
 		return maximumChunkNum;
+	}
+	
+	public void setMaximumChunkNum(int maximumChunkNum) {
+		this.maximumChunkNum = maximumChunkNum;
 	}
 
 	public String getDescription() {
