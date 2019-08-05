@@ -171,20 +171,19 @@ public class Channel implements Cloneable {
 		return outputPortIndex;
 	}
 	
-	public boolean isSubTaskofDTypeLoopTask(HashMap<String, Task> taskMap, String taskName)
+	public boolean isDTypeLoopTaskorSubTaskofDTypeLoopTask(HashMap<String, Task> taskMap, String taskName)
 	{
 		Task task = taskMap.get(taskName);	
-		Task parentTask = taskMap.get(task.getParentTaskGraphName());
 		boolean isSubTaskofDTypeLoopTask = false;
 		
-		while(parentTask != null)
+		while(task != null)
 		{
-			if(parentTask.getLoopStruct() != null && parentTask.getLoopStruct().getLoopType() == TaskLoopType.DATA)
+			if(task.getLoopStruct() != null && task.getLoopStruct().getLoopType() == TaskLoopType.DATA)
 			{
 				isSubTaskofDTypeLoopTask = true;
 				break;
 			}			
-			parentTask = taskMap.get(parentTask.getParentTaskGraphName());
+			task = taskMap.get(task.getParentTaskGraphName());
 		}
 		return isSubTaskofDTypeLoopTask;		
 	}
@@ -242,14 +241,14 @@ public class Channel implements Cloneable {
 		{
 			this.inputPort.setMaximumParallelNumberInDTypeLoopTask(taskMap, dstTaskName, dstTaskMappingInfo);
 			this.outputPort.setMaximumParallelNumberInDTypeLoopTask(taskMap, srcTaskName, srcTaskMappingInfo);			
-		}		
-		else if(isSubTaskofDTypeLoopTask(taskMap, dstTaskName) && !isSubTaskofDTypeLoopTask(taskMap, srcTaskName))
+		}
+		else if(isDTypeLoopTaskorSubTaskofDTypeLoopTask(taskMap, dstTaskName) && !isDTypeLoopTaskorSubTaskofDTypeLoopTask(taskMap, srcTaskName))
 		{
 			this.inputPort.setMaximumParallelNumberInBorderLine(taskMap, dstTaskName);
 			this.outputPort.setMaximumParallelNumberInBorderLine(taskMap, srcTaskName);
 		}
 				
-		else if(isSubTaskofDTypeLoopTask(taskMap, srcTaskName) && !isSubTaskofDTypeLoopTask(taskMap, dstTaskName))
+		else if(isDTypeLoopTaskorSubTaskofDTypeLoopTask(taskMap, srcTaskName) && !isDTypeLoopTaskorSubTaskofDTypeLoopTask(taskMap, dstTaskName))
 		{
 			this.inputPort.setMaximumParallelNumberInBorderLine(taskMap, dstTaskName);
 			this.outputPort.setMaximumParallelNumberInBorderLine(taskMap, srcTaskName);
