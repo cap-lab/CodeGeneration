@@ -682,38 +682,3 @@ uem_result UCDynamicSocket_RecvFrom(HSocket hSocket, IN char *pszClientAddress, 
 _EXIT:
 	return result;
 }
-
-uem_result UCDynamicSocket_SetOption(IN HSocket hSocket, IN int nSocketLevel, IN int nSocketOption, IN socklen_t unSize, IN OUT void *pOptVal)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	SUCSocket *pstSocket = NULL;
-	int nRet = 0;
-#ifdef ARGUMENT_CHECK
-	if (IS_VALID_HANDLE(hSocket, ID_UEM_SOCKET) == FALSE) {
-		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
-	}
-
-	if (nSocketLevel != SOL_SOCKET && nSocketLevel != IPPROTO_IP && nSocketLevel != IPPROTO_TCP)
-	{
-		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
-	}
-
-	IFVARERRASSIGNGOTO(pOptVal, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-
-	if(unSize == 0)
-	{
-		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
-	}
-#endif
-	pstSocket = (SUCSocket *) hSocket;
-
-	nRet = setsockopt(pstSocket->nSocketfd, nSocketLevel, nSocketOption, pOptVal, unSize);
-	if(nRet != 0)
-	{
-	   ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
-	}
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}

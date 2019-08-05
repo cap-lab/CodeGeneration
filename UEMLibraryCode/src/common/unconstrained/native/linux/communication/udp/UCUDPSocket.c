@@ -35,6 +35,8 @@ uem_result UCUDPSocket_Create(HSocket hSocket, SSocketInfo *pstSocketInfo, uem_b
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SUCSocket *pstSocket = NULL;
+	int nRet;
+	int nOptVal;
 
 	pstSocket = (SUCSocket *) hSocket;
 
@@ -42,6 +44,19 @@ uem_result UCUDPSocket_Create(HSocket hSocket, SSocketInfo *pstSocketInfo, uem_b
 	if(pstSocket->nSocketfd < 0)
 	{
 	    ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
+	}
+
+	nOptVal = TRUE;
+	nRet = setsockopt(pstSocket->nSocketfd, SOL_SOCKET, SO_BROADCAST, &nOptVal, (socklen_t) sizeof(nOptVal));
+	if(nRet != 0)
+	{
+	   ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
+	}
+
+	nRet = setsockopt(pstSocket->nSocketfd, SOL_SOCKET, SO_REUSEPORT, &nOptVal, (socklen_t) sizeof(nOptVal));
+	if(nRet != 0)
+	{
+	   ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
 	}
 
 	result = ERR_UEM_NOERROR;
