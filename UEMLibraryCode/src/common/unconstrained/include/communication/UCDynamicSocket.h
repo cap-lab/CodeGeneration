@@ -262,6 +262,11 @@ uem_result UCDynamicSocket_Send(HSocket hSocket, IN int nTimeout, IN char *pData
  */
 uem_result UCDynamicSocket_Receive(HSocket hSocket, IN int nTimeout, IN OUT char *pBuffer, IN int nBufferLen, OUT int *pnReceivedSize);
 
+uem_result UCDynamicSocket_Sendto(HSocket hSocket, IN char *unClientAddress, IN int nTimeout, IN unsigned char *pData, IN int nDataLen, OUT int *pnSentSize);
+uem_result UCDynamicSocket_RecvFrom(HSocket hSocket, IN char *pszClientAddress,  IN int nTimeout, IN int nBufferLen, OUT char *pBuffer, OUT int *pnRecvSize);
+
+uem_result UCDynamicSocket_SetOption(IN HSocket hSocket, IN int nSocketLevel, IN int nSocketOption, IN socklen_t nOptLen, IN OUT void *pOptVal);
+
 #ifdef __cplusplus
 }
 #endif

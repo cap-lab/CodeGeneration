@@ -1,5 +1,7 @@
 package org.snu.cse.cap.translator.structure.device;
 
+import java.util.ArrayList;
+
 public enum DeviceCommunicationType {
 	BLUETOOTH("bluetooth"),
 	TCP("tcp"),

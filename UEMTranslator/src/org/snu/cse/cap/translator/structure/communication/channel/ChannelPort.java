@@ -17,7 +17,7 @@ public class ChannelPort extends Port {
 	private ChannelPort subgraphPort;
 	private ChannelPort upperGraphPort;
 	private LoopPortType loopPortType;
-	private PortDirection direction;
+	
 	private int maximumChunkNum;
 	private String description;
 	
@@ -148,7 +148,7 @@ public class ChannelPort extends Port {
 	public void setMaximumParallelNumber(HashMap<String, Task> taskMap) {
 		int maxParallel = 1;
 		
-		if(this.direction == PortDirection.INPUT)
+		if(super.direction == PortDirection.INPUT)
 		{
 			maxParallel = setInputMaximumParallelNumber(taskMap);
 		}

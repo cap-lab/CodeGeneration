@@ -54,6 +54,8 @@ public class Constants {
 	public static final String TEMPLATE_TAG_CHANNEL_LIST = "channel_list";
 	public static final String TEMPLATE_TAG_MULTICAST_GROUP_LIST = "multicast_group_list";
 	public static final String TEMPLATE_TAG_DEVICE_INFO = "device_info";
+	public static final String TEMPLATE_TAG_DEVICE_ID = "device_id";
+	
 	public static final String TEMPLATE_TAG_MAPPING_INFO = "mapping_info";
 	public static final String TEMPLATE_TAG_STATIC_SCHEDULE_INFO = "schedule_info";
 	public static final String TEMPLATE_TAG_PORT_INFO = "port_info";

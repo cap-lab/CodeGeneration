@@ -4,6 +4,7 @@ package org.snu.cse.cap.translator.structure;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -401,14 +402,18 @@ public class Application {
 	public void makeDeviceInformation(CICArchitectureType architecture_metadata, HashMap<String, Module> moduleMap)
 	{	
 		makeHardwareElementInformation(architecture_metadata);
-		int id = 0;
+		int processId = 0;
+		int deviceId = 0;
 		
 		if(architecture_metadata.getDevices() != null)
 		{
 			for(ArchitectureDeviceType device_metadata: architecture_metadata.getDevices().getDevice())
 			{
-				Device device = new Device(device_metadata.getName(), device_metadata.getArchitecture(), 
+				
+				Device device = new Device(device_metadata.getName(), deviceId, device_metadata.getArchitecture(), 
 											device_metadata.getPlatform(), device_metadata.getRuntime());
+				
+				deviceId++;
 
 				for(ArchitectureElementType elementType: device_metadata.getElements().getElement())
 				{
@@ -416,8 +421,8 @@ public class Application {
 					if(this.elementTypeHash.containsKey(elementType.getType()) == true)
 					{
 						ProcessorElementType elementInfo = (ProcessorElementType) this.elementTypeHash.get(elementType.getType());
-						device.putProcessingElement(id, elementType.getName(), elementInfo.getSubcategory(), elementType.getPoolSize().intValue());
-						id++;
+						device.putProcessingElement(processId, elementType.getName(), elementInfo.getSubcategory(), elementType.getPoolSize().intValue());
+						processId++;
 					}
 				}
 				
@@ -1387,11 +1392,10 @@ public class Application {
 	
 	private void makeSDFTaskIterationCount()
 	{
-		makeFullTaskGraph();
 		setIterationCount(this.fullTaskGraphMap);
 	}
 
-	public void setMulticastPortMemoryAccessType(ArrayList<MulticastPort> portList, String deviceName) throws InvalidDataInMetadataFileException
+	private void setMulticastPortMemoryAccessType(ArrayList<MulticastPort> portList, String deviceName, PortDirection direction) throws InvalidDataInMetadataFileException
 	{
 		Device device = this.deviceInfo.get(deviceName);
 		int procId;
@@ -1411,7 +1415,14 @@ public class Application {
 					}
 					else
 					{
-						portList.get(index).setMemoryAccessType(InMemoryAccessType.GPU_ONLY);
+						if(direction == PortDirection.INPUT)
+						{
+							portList.get(index).setMemoryAccessType(InMemoryAccessType.CPU_GPU);
+						}
+						else
+						{
+							portList.get(index).setMemoryAccessType(InMemoryAccessType.GPU_CPU);
+						}
 					}
 					break;
 				}
@@ -1419,7 +1430,7 @@ public class Application {
 		}	
 	}
 	
-	public void setMulticastCommunicationType(MulticastGroup multicastGroup, String deviceName, ArrayList<String> deviceListMappedWithCounterPorts, PortDirection portDirection) throws InvalidDeviceConnectionException
+	private void setMulticastCommunicationType(MulticastGroup multicastGroup, String deviceName, HashSet<String> deviceListMappedWithCounterPorts, PortDirection portDirection) throws InvalidDeviceConnectionException
 	{
 		Device device = this.deviceInfo.get(deviceName);
 
@@ -1427,59 +1438,47 @@ public class Application {
 		{
 			if(portDirection == PortDirection.INPUT)
 			{
-				if(!multicastGroup.getInputCommunicationTypeList().contains(MulticastCommunicationType.MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY)) 
-				{
-					multicastGroup.putInputCommunicationType(MulticastCommunicationType.MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY);
-				}
+				multicastGroup.putInputCommunicationType(MulticastCommunicationType.MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY);
 			}
 			else
 			{
-				if(!multicastGroup.getOutputCommunicationTypeList().contains(MulticastCommunicationType.MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY)) 
-				{
-					multicastGroup.putOutputCommunicationType(MulticastCommunicationType.MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY);
-				}
+				multicastGroup.putOutputCommunicationType(MulticastCommunicationType.MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY);
 			}
 		}
-		if((deviceListMappedWithCounterPorts.contains(deviceName) && deviceListMappedWithCounterPorts.size()>=2) ||
-				(!deviceListMappedWithCounterPorts.contains(deviceName) && deviceListMappedWithCounterPorts.size()>=1)) 
+		for(String counterDeviceName : deviceListMappedWithCounterPorts) 
 		{
-			for(String counterDeviceName : deviceListMappedWithCounterPorts) 
+			Device counterDevice = this.deviceInfo.get(counterDeviceName);
+			boolean connectionSearched = false;
+			if(deviceName.equals(counterDeviceName))
 			{
-				Device counterDevice = this.deviceInfo.get(counterDeviceName);
-				boolean connectionSearched = false;
-				for (DeviceCommunicationType communicationType : device.getRequiredCommunicationSet()) 
+				continue;
+			}
+			for (DeviceCommunicationType communicationType : device.getRequiredCommunicationSet()) 
+			{
+				if (MulticastCommunicationType.getMulticastAvailableCommunicationTypeList().contains(communicationType)) 
 				{
-					if (MulticastCommunicationType.getMulticastAvailableCommnicationTypeList().contains(communicationType)) 
+					if (counterDevice.getRequiredCommunicationSet().contains(communicationType)) 
 					{
-						if (counterDevice.getRequiredCommunicationSet().contains(communicationType)) 
+						connectionSearched = true;
+						if(portDirection == PortDirection.INPUT)
 						{
-							connectionSearched = true;
-							if(portDirection == PortDirection.INPUT)
-							{
-								if (!multicastGroup.getInputCommunicationTypeList().contains(MulticastCommunicationType.getMulticastCommunicationTypeByDeviceCommunicationType(communicationType))) 
-								{
-									multicastGroup.putInputCommunicationType(MulticastCommunicationType.getMulticastCommunicationTypeByDeviceCommunicationType(communicationType));
-								}
-							}
-							else 
-							{
-								if (!multicastGroup.getOutputCommunicationTypeList().contains(MulticastCommunicationType.getMulticastCommunicationTypeByDeviceCommunicationType(communicationType)))
-								{
-									multicastGroup.putOutputCommunicationType(MulticastCommunicationType.getMulticastCommunicationTypeByDeviceCommunicationType(communicationType));
-								}
-							}
+							multicastGroup.putInputCommunicationType(MulticastCommunicationType.getMulticastCommunicationTypeByDeviceCommunicationType(communicationType));
+						}
+						else 
+						{
+							multicastGroup.putOutputCommunicationType(MulticastCommunicationType.getMulticastCommunicationTypeByDeviceCommunicationType(communicationType));
 						}
 					}
 				}
-				if (connectionSearched == false) 
-				{
-					throw new InvalidDeviceConnectionException();
-				}
+			}
+			if (connectionSearched == false) 
+			{
+				throw new InvalidDeviceConnectionException();
 			}
 		}
 	}
 	
-	public void addMulticastGroupToDevice(MulticastGroup multicastGroup, String deviceName) throws InvalidDataInMetadataFileException, CloneNotSupportedException
+	private void addMulticastGroupToDevice(MulticastGroup multicastGroup, String deviceName) throws InvalidDataInMetadataFileException, CloneNotSupportedException
 	{
 		Device device = this.deviceInfo.get(deviceName);
 		device.putMulticastGroup(multicastGroup);
@@ -1496,8 +1495,8 @@ public class Application {
 		
 		for(MulticastGroupType multicastMetadata: algorithm_metadata.getMulticastGroups().getMulticastGroup())
 		{ 
-			ArrayList<String> deviceListMappedWithInputPort = new ArrayList<String>();
-			ArrayList<String> deviceListMappedWithOutputPort = new ArrayList<String>();
+			HashSet<String> deviceListMappedWithInputPort = new HashSet<String>();
+			HashSet<String> deviceListMappedWithOutputPort = new HashSet<String>();
 			int portId = 0;
 			
 			HashMap<String, MulticastGroup> multicastGroups = new HashMap<String, MulticastGroup>();
@@ -1517,17 +1516,11 @@ public class Application {
 					{
 					case INPUT:
 						multicastGroups.get(deviceName).putInputPort(multicastPort);
-						if (deviceListMappedWithInputPort.contains(deviceName) == false)
-						{
-							deviceListMappedWithInputPort.add(deviceName);
-						}
+						deviceListMappedWithInputPort.add(deviceName);
 						break;
 					case OUTPUT:
 						multicastGroups.get(deviceName).putOutputPort(multicastPort);
-						if (deviceListMappedWithOutputPort.contains(deviceName) == false)
-						{
-							deviceListMappedWithOutputPort.add(deviceName);
-						}
+						deviceListMappedWithOutputPort.add(deviceName);
 						break;
 					default:
 						throw new InvalidDeviceConnectionException();
@@ -1541,11 +1534,11 @@ public class Application {
 				
 				ArrayList<MulticastPort> inputPortList = multicastGroup.getInputPortList();
 				setMulticastCommunicationType(multicastGroup, deviceName, deviceListMappedWithOutputPort, PortDirection.INPUT);
-				setMulticastPortMemoryAccessType(inputPortList, deviceName);
+				setMulticastPortMemoryAccessType(inputPortList, deviceName, PortDirection.INPUT);
 				
 				ArrayList<MulticastPort> outputPortList = multicastGroup.getOutputPortList();
 				setMulticastCommunicationType(multicastGroup, deviceName, deviceListMappedWithInputPort, PortDirection.OUTPUT);
-				setMulticastPortMemoryAccessType(outputPortList, deviceName);
+				setMulticastPortMemoryAccessType(outputPortList, deviceName, PortDirection.OUTPUT);
 				
 				addMulticastGroupToDevice(multicastGroup, deviceName);
 			}
@@ -1558,6 +1551,8 @@ public class Application {
 	{
 		int index = 0;
 		HashMap<String, ArrayList<Channel>> portToChannelConnection = new HashMap<String, ArrayList<Channel>>();
+		
+		makeFullTaskGraph();
 		
 		if(algorithm_metadata.getChannels() == null)
 		{

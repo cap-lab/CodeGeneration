@@ -65,6 +65,7 @@ import hopes.cic.xml.TaskGroupForScheduleType;
 
 public class Device {
 	private String name;
+	private int id;
 	private ArrayList<Processor> processorList;
 	private HashMap<String, Connection> connectionList;
 	private ArchitectureType architecture;
@@ -97,9 +98,10 @@ public class Device {
 	private ArrayList<UnconstrainedSerialConnection> serialUnconstrainedSlaveList;
 
 	
-	public Device(String name, String architecture, String platform, String runtime) 
+	public Device(String name, int id, String architecture, String platform, String runtime) 
 	{
 		this.name = name;
+		this.id = id;
 		this.architecture = ArchitectureType.fromValue(architecture);
 		this.platform = SoftwarePlatformType.fromValue(platform);
 		this.runtime = RuntimeType.fromValue(runtime);
@@ -162,6 +164,10 @@ public class Device {
 	
 	public String getName() {
 		return name;
+	}
+	
+	public int getId() {
+		return this.id;
 	}
 	
 	public boolean isGPUMapped()
@@ -1222,7 +1228,17 @@ public class Device {
 	}
 	
 	public void putMulticastPort(MulticastPort multicastPort) {
-		MulticastGroup multicastGroup = this.multicastGroupList.get(multicastPort.getGroupName());
+		MulticastGroup multicastGroup;
+		
+		if(this.multicastGroupList.containsKey(multicastPort.getGroupName()))
+		{
+			multicastGroup = this.multicastGroupList.get(multicastPort.getGroupName());
+		}
+		else
+		{
+			throw new IllegalArgumentException();
+		}
+		
 		switch(multicastPort.getDirection())
 		{
 		case INPUT:

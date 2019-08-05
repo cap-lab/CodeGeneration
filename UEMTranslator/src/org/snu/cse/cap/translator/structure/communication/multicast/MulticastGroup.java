@@ -1,6 +1,7 @@
 package org.snu.cse.cap.translator.structure.communication.multicast;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class MulticastGroup implements Cloneable {
 	private int multicastGroupId;
@@ -8,10 +9,10 @@ public class MulticastGroup implements Cloneable {
 	private int size;
 	private ArrayList<MulticastPort> inputPortList; 
 	private int inputPortNum;
-	private ArrayList<MulticastCommunicationType> inputCommunicationTypeList;
+	private HashSet<MulticastCommunicationType> inputCommunicationTypeList;
 	private ArrayList<MulticastPort> outputPortList; 
 	private int outputPortNum;
-	private ArrayList<MulticastCommunicationType> outputCommunicationTypeList;
+	private HashSet<MulticastCommunicationType> outputCommunicationTypeList;
 
 	public MulticastGroup(int index, String groupName, int size) {
 		this.size = size;
@@ -19,8 +20,8 @@ public class MulticastGroup implements Cloneable {
 		this.groupName = groupName;
 		this.inputPortList = new ArrayList<MulticastPort>();
 		this.outputPortList = new ArrayList<MulticastPort>();
-		this.inputCommunicationTypeList = new ArrayList<MulticastCommunicationType> ();
-		this.outputCommunicationTypeList = new ArrayList<MulticastCommunicationType> ();
+		this.inputCommunicationTypeList = new HashSet<MulticastCommunicationType> ();
+		this.outputCommunicationTypeList = new HashSet<MulticastCommunicationType> ();
 		this.inputPortNum = 0;
 		this.outputPortNum = 0;
 	}
@@ -100,7 +101,7 @@ public class MulticastGroup implements Cloneable {
 		this.outputPortList.clear();
 	}
 	
-	public void setInputCommunicationTypeList(ArrayList<MulticastCommunicationType> inputCommunicationTypeList) {
+	public void setInputCommunicationTypeList(HashSet<MulticastCommunicationType> inputCommunicationTypeList) {
 		this.inputCommunicationTypeList = inputCommunicationTypeList;
 		this.inputPortNum = this.inputCommunicationTypeList.size();
 	}
@@ -109,7 +110,7 @@ public class MulticastGroup implements Cloneable {
 		this.inputCommunicationTypeList.add(inputCommunicationType);
 	}
 	
-	public ArrayList<MulticastCommunicationType> getInputCommunicationTypeList() {
+	public HashSet<MulticastCommunicationType> getInputCommunicationTypeList() {
 		return this.inputCommunicationTypeList;
 	}
 	
@@ -117,12 +118,12 @@ public class MulticastGroup implements Cloneable {
 		this.outputCommunicationTypeList.add(outputCommunicationType);
 	}
 
-	public void setOutputCommunicationTypeList(ArrayList<MulticastCommunicationType> outputCommunicationTypeList) {
+	public void setOutputCommunicationTypeList(HashSet<MulticastCommunicationType> outputCommunicationTypeList) {
 		this.outputCommunicationTypeList = outputCommunicationTypeList;
 		this.outputPortNum = this.outputCommunicationTypeList.size();
 	}
 	
-	public ArrayList<MulticastCommunicationType> getOutputCommunicationTypeList() {
+	public HashSet<MulticastCommunicationType> getOutputCommunicationTypeList() {
 		return this.outputCommunicationTypeList;
 	}
 }

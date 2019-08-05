@@ -18,6 +18,8 @@
 #ifndef WIN32
 #include <unistd.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #else
 #include <winsock.h>
 #endif
@@ -597,4 +599,121 @@ _EXIT:
 }
 
 
+uem_result UCDynamicSocket_Sendto(HSocket hSocket, IN char *pszClientAddress, IN int nTimeout, IN unsigned char *pData, IN int nDataLen, OUT int *pnSentSize) {
+	uem_result result = ERR_UEM_UNKNOWN;
+	SUCSocket *pstSocket = NULL;
+	struct sockaddr_in stUDPServerAddr;
+	fd_set stWriteSet;
+	int nDataSent = 0;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(pData, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
+	if (IS_VALID_HANDLE(hSocket, ID_UEM_SOCKET) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+
+	if (nTimeout <= 0 || nDataLen <= 0) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+#endif
+	pstSocket = (SUCSocket *) hSocket;
+#ifdef ARGUMENT_CHECK
+	if (pstSocket->bIsServer == TRUE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_SOCKET, _EXIT);
+	}
+#endif
+
+	result = selectTimeout(pstSocket->nSocketfd, NULL, &stWriteSet, NULL, nTimeout);
+	ERRIFGOTO(result, _EXIT);
+
+	stUDPServerAddr.sin_family = AF_INET;
+	stUDPServerAddr.sin_addr.s_addr = inet_addr(pszClientAddress);
+	stUDPServerAddr.sin_port = htons(pstSocket->nPort);
+	nDataSent = sendto(pstSocket->nSocketfd, pData, nDataLen, 0, (struct sockaddr *) &stUDPServerAddr, sizeof(stUDPServerAddr));
+	if (nDataSent < 0) {
+		ERRASSIGNGOTO(result, ERR_UEM_NET_SEND_ERROR, _EXIT);
+	}
+
+	if (pnSentSize != NULL) {
+		*pnSentSize = nDataSent;
+	}
+
+	result = ERR_UEM_NOERROR;
+	_EXIT: return result;
+}
+
+uem_result UCDynamicSocket_RecvFrom(HSocket hSocket, IN char *pszClientAddress, IN int nTimeout, IN int nBufferLen, OUT char *pBuffer, OUT int *pnRecvSize) {
+	uem_result result = ERR_UEM_UNKNOWN;
+	SUCSocket *pstSocket = NULL;
+	struct sockaddr_in stUDPClientAddr;
+	fd_set stReadSet;
+	unsigned int nAddrLen = 0;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(pBuffer, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	if (IS_VALID_HANDLE(hSocket, ID_UEM_SOCKET) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+
+	if (nTimeout < 0 || nBufferLen <= 0) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+#endif
+	pstSocket = (SUCSocket *) hSocket;
+#ifdef ARGUMENT_CHECK
+	if (pstSocket->bIsServer == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_SOCKET, _EXIT);
+	}
+#endif
+
+	result = selectTimeout(pstSocket->nSocketfd, &stReadSet, NULL, NULL, nTimeout);
+	ERRIFGOTO(result, _EXIT);
+
+	stUDPClientAddr.sin_family = AF_INET;
+	stUDPClientAddr.sin_addr.s_addr = inet_addr(pszClientAddress);
+	stUDPClientAddr.sin_port = htons(pstSocket->nPort);
+	nAddrLen = sizeof(stUDPClientAddr);
+	*pnRecvSize = recvfrom(pstSocket->nSocketfd, pBuffer, nBufferLen, 0, (struct sockaddr *) &stUDPClientAddr, &nAddrLen);
+	if (*pnRecvSize < 0) {
+		ERRASSIGNGOTO(result, ERR_UEM_NET_RECEIVE_ERROR, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+uem_result UCDynamicSocket_SetOption(IN HSocket hSocket, IN int nSocketLevel, IN int nSocketOption, IN socklen_t unSize, IN OUT void *pOptVal)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SUCSocket *pstSocket = NULL;
+	int nRet = 0;
+#ifdef ARGUMENT_CHECK
+	if (IS_VALID_HANDLE(hSocket, ID_UEM_SOCKET) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+
+	if (nSocketLevel != SOL_SOCKET && nSocketLevel != IPPROTO_IP && nSocketLevel != IPPROTO_TCP)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+
+	IFVARERRASSIGNGOTO(pOptVal, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	if(unSize == 0)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+#endif
+	pstSocket = (SUCSocket *) hSocket;
+
+	nRet = setsockopt(pstSocket->nSocketfd, nSocketLevel, nSocketOption, pOptVal, unSize);
+	if(nRet != 0)
+	{
+	   ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}

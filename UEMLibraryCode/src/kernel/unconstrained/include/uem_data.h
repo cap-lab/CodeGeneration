@@ -227,6 +227,8 @@ extern int g_nTimerSlotNum;
 
 extern uem_bool g_bSystemExit;
 
+extern int g_nDeviceId;
+
 #ifdef __cplusplus
 }
 #endif

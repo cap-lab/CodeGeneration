@@ -10,6 +10,13 @@
 #include <config.h>
 #endif
 
+#ifndef WIN32
+#include <sys/socket.h>
+#else
+#include <winsock.h>
+#endif
+
+
 #include <uem_common.h>
 
 #include <UCTime.h>
@@ -17,6 +24,7 @@
 #include <UCAlloc.h>
 #include <UCUDPSocket.h>
 #include <UCThreadMutex.h>
+#include <UCEndian.h>
 
 #include <uem_data.h>
 
@@ -44,7 +52,7 @@ static uem_result UKUDPSocketMulticast_AllocBuffer(SUDPSocket *pstUDPSocket, int
 	ERRMEMGOTO(pstUDPSocket->pHeader, result, _EXIT);
 
 	pstUDPSocket->nHeaderLen = MULTICAST_UDP_HEADER_SIZE;
-	pstUDPSocket->pBuffer = pstUDPSocket->pHeader + MULTICAST_UDP_HEADER_SIZE;
+	pstUDPSocket->pBuffer = pstUDPSocket->pHeader + MULTICAST_UDP_BODY_START;
 	pstUDPSocket->nBufLen = nBufSize;
 
 	result = ERR_UEM_NOERROR;
@@ -55,7 +63,8 @@ _EXIT:
 static uem_result checkMessageOwner(SMulticastGroup *pstMulticastGroup, char *pHeader, int nReceivedDataLength, int *pnGroupNum)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	unsigned char ucGroupIndex;
+	int nDeviceId;
+	int nGroupId;
     int nLoop = 0;
 
 	if(nReceivedDataLength <= 0)
@@ -63,24 +72,37 @@ static uem_result checkMessageOwner(SMulticastGroup *pstMulticastGroup, char *pH
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 	}
 
-	UC_memcpy(&ucGroupIndex, pHeader, MULTICAST_UDP_HEADER_GROUP_ID_SIZE);
+	UCEndian_LittleEndianCharToSystemInt(
+			(char *)&pHeader[MULTICAST_UDP_HEADER_DEVICE_ID_START],
+			MULTICAST_UDP_HEADER_DEVICE_ID_SIZE, &nDeviceId);
 
-    for(nLoop = 0 ; nLoop < g_nMulticastGroupNum ; nLoop++)
-    {
-	    if (g_astMulticastGroups[nLoop].nMulticastGroupId == (int)ucGroupIndex)
-        {
-            *pnGroupNum = nLoop;
-            break;
-        }
-    }
-
-	if (nLoop != g_nMulticastGroupNum)
-	{
-		result = ERR_UEM_NOERROR;
-	}
-	else
+	if (nDeviceId == g_nDeviceId)
 	{
 		result = ERR_UEM_SKIP_THIS;
+	}
+
+	if (result != ERR_UEM_SKIP_THIS)
+	{
+		UCEndian_LittleEndianCharToSystemInt(
+				(char *)&pHeader[MULTICAST_UDP_HEADER_GROUP_ID_START],
+				MULTICAST_UDP_HEADER_GROUP_ID_SIZE, &nGroupId);
+		for (nLoop = 0; nLoop < g_nMulticastGroupNum; nLoop++)
+		{
+			if (g_astMulticastGroups[nLoop].nMulticastGroupId == nGroupId)
+			{
+				*pnGroupNum = nLoop;
+				break;
+			}
+		}
+
+		if (nLoop != g_nMulticastGroupNum)
+		{
+			result = ERR_UEM_NOERROR;
+		}
+		else
+		{
+			result = ERR_UEM_SKIP_THIS;
+		}
 	}
 
 _EXIT:
@@ -109,7 +131,7 @@ static void *multicastHandlingThread(void *pData)
 	while(pstUDPMulticastSocket->bExit == FALSE)
 	{
 		// recieve
-		result = UCUDPSocket_RecvFrom(pstUDPMulticastSocket->pstSocket->hSocket, "255.255.255.255", 1, nBufSize, pstUDPMulticastSocket->pstSocket->pHeader, &nReceivedDataLength);
+		result = UCDynamicSocket_RecvFrom(pstUDPMulticastSocket->pstSocket->hSocket, "255.255.255.255", 1, nBufSize, pstUDPMulticastSocket->pstSocket->pHeader, &nReceivedDataLength);
 		if(result == ERR_UEM_NET_TIMEOUT)
 		{
 			continue;
@@ -181,6 +203,7 @@ uem_result UKUDPSocketMulticast_SocketInitialize(SUDPSocket *pstUDPSocket, int n
 {
 	SSocketInfo stSocketInfo;
 	uem_result result = ERR_UEM_UNKNOWN;
+	int nOptVal = 0;
 
 	if (pstUDPSocket->hSocket == NULL)
 	{
@@ -188,6 +211,12 @@ uem_result UKUDPSocketMulticast_SocketInitialize(SUDPSocket *pstUDPSocket, int n
 		stSocketInfo.nPort = nPort;
 		stSocketInfo.pszSocketPath = NULL;
 		result = UCDynamicSocket_Create(&stSocketInfo, bIsServer, &pstUDPSocket->hSocket);
+		ERRIFGOTO(result, _EXIT);
+
+		nOptVal = TRUE;
+		result = UCDynamicSocket_SetOption(pstUDPSocket->hSocket, SOL_SOCKET, SO_BROADCAST, sizeof(nOptVal), &nOptVal);
+		ERRIFGOTO(result, _EXIT);
+		result = UCDynamicSocket_SetOption(pstUDPSocket->hSocket, SOL_SOCKET, SO_REUSEPORT, sizeof(nOptVal), &nOptVal);
 		ERRIFGOTO(result, _EXIT);
 	}
 
@@ -203,7 +232,11 @@ uem_result UKUDPSocketMulticast_MakeHeader(IN SMulticastPort *pstMulticastPort, 
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	pHeader[0] = pstMulticastPort->pMulticastGroup->nMulticastGroupId;
+	UCEndian_SystemIntToLittleEndianChar(g_nDeviceId,
+			(char *)&pHeader[MULTICAST_UDP_HEADER_DEVICE_ID_START], MULTICAST_UDP_HEADER_DEVICE_ID_SIZE);
+
+	UCEndian_SystemIntToLittleEndianChar(pstMulticastPort->pMulticastGroup->nMulticastGroupId,
+			(char *)&pHeader[MULTICAST_UDP_HEADER_GROUP_ID_START], MULTICAST_UDP_HEADER_GROUP_ID_SIZE);
 
 	result = ERR_UEM_NOERROR;
 
@@ -232,7 +265,7 @@ uem_result UKUDPSocketMulticast_WriteToBuffer(IN SMulticastPort *pstMulticastPor
 	result = pstMulticastPort->pstMemoryAccessAPI->fnCopyToMemory(pBuffer, pData, nDataToWrite);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UCUDPSocket_Sendto(pstUDPSocket->hSocket, "255.255.255.255", 10, pHeader, MULTICAST_UDP_HEADER_SIZE + nDataToWrite, pnDataWritten);
+	result = UCDynamicSocket_Sendto(pstUDPSocket->hSocket, "255.255.255.255", 10, pHeader, MULTICAST_UDP_HEADER_SIZE + nDataToWrite, pnDataWritten);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;

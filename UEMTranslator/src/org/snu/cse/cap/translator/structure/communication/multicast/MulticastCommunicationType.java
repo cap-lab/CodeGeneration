@@ -9,7 +9,7 @@ public enum MulticastCommunicationType {
 	MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY,
 	MULTICAST_COMMUNICATION_TYPE_UDP,
 	;
-	static public ArrayList<DeviceCommunicationType> getMulticastAvailableCommnicationTypeList()
+	static public ArrayList<DeviceCommunicationType> getMulticastAvailableCommunicationTypeList()
 	{
 		ArrayList<DeviceCommunicationType> multicastAvailableConnectionTypeList = new ArrayList<DeviceCommunicationType>();
 		multicastAvailableConnectionTypeList.add(DeviceCommunicationType.UDP);

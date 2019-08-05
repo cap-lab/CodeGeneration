@@ -139,7 +139,7 @@ SMulticastPort g_astMulticastInputPortList_${multicast.groupName}[] = {
         	<#case "CPU_ONLY">
         &g_stMulticastHostMemory, // pstMemoryAccessAPI
         	<#break>
-        	<#case "GPU_ONLY">
+        	<#case "CPU_GPU">
         &g_stMulticastDeviceMemory, // pstMemoryAccessAPI
         	<#break>
         	<#default>
@@ -221,7 +221,7 @@ SMulticastPort g_astMulticastOutputPortList_${multicast.groupName}[] = {
         	<#case "CPU_ONLY">
         &g_stMulticastHostMemory, // pstMemoryAccessAPI
         	<#break>
-        	<#case "GPU_ONLY">
+        	<#case "GPU_CPU">
         &g_stMulticastDeviceMemory, // pstMemoryAccessAPI
         	<#break>
         	<#default>

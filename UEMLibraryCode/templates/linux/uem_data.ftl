@@ -365,4 +365,5 @@ int g_nTaskIdToTaskNum = ARRAYLEN(g_astTaskIdToTask);
 int g_nProcessorInfoNum = ARRAYLEN(g_astProcessorInfo);
 int g_nLibraryInfoNum = <#if (library_info?size > 0)>ARRAYLEN(g_stLibraryInfo)<#else>0</#if>;
 int g_nTimerSlotNum = MAX_TIMER_SLOT_SIZE;
+int g_nDeviceId = ${device_id};
 
