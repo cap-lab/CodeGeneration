@@ -2,6 +2,7 @@
 package hae.peace.container.cic.mapping.xml;
 
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,4 +102,68 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 			}
 		}
 	}
+	
+	private TaskType getTaskTypebyTaskName(String taskName)
+	{
+		for(TaskType task : algorithm.getTasks().getTask())
+		{
+			if(task.getName().contentEquals(taskName))
+			{
+				return task;
+			}
+		}
+		
+		for(TaskType task : algorithm.getTasks().getTask())
+		{
+			System.out.println(task.getName());
+		}
+		return null;		
+	}
+	
+	private HashMap<String, ArrayList<String>> makeHierarchicalTaskMap()
+	{
+		HashMap<String, ArrayList<String>> hierarchicalTaskMap = new HashMap<String, ArrayList<String>>();
+		//make hierarchicalTaskMap.
+		for(TaskType task : algorithm.getTasks().getTask())
+		{
+			String subTaskName = task.getName();
+			TaskType currentTaskType = task;
+			while(!currentTaskType.getParentTask().equals(currentTaskType.getName())) //while task has parent task.
+			{
+				TaskType parentTaskTaskType = getTaskTypebyTaskName(currentTaskType.getParentTask());				
+
+				if(hierarchicalTaskMap.containsKey(parentTaskTaskType.getName()))
+				{
+					hierarchicalTaskMap.get(parentTaskTaskType.getName()).add(subTaskName);
+				}
+				else
+				{
+					ArrayList<String> newSubTasksList = new ArrayList<String>();
+					newSubTasksList.add(subTaskName);
+					hierarchicalTaskMap.put(parentTaskTaskType.getName(), newSubTasksList);
+				}
+				currentTaskType = parentTaskTaskType;
+			}
+		}
+		
+		return hierarchicalTaskMap;
+	}		
+	
+	public HashMap<String, ArrayList<String>> getHierarchicalDATALoopAndSubTasksMap() 
+	{		
+		HashMap<String, ArrayList<String>> hierarchicalTaskMap = makeHierarchicalTaskMap();				
+		HashMap<String, ArrayList<String>> hierarchicalDATALoopAndSubTasksMap = new HashMap<String, ArrayList<String>>();
+			
+		for(String hierarchicalTaskName : hierarchicalTaskMap.keySet())
+		{
+			TaskType hierarchicalTaskType = getTaskTypebyTaskName(hierarchicalTaskName);
+			if(hierarchicalTaskType.getLoopStructure() != null && hierarchicalTaskType.getLoopStructure().getType() == LoopStructureTypeType.DATA)
+			{
+				hierarchicalDATALoopAndSubTasksMap.put(hierarchicalTaskName, hierarchicalTaskMap.get(hierarchicalTaskName));
+			}
+		}	
+		
+		return hierarchicalDATALoopAndSubTasksMap;
+	}
 }
+	

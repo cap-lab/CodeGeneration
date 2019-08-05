@@ -44,7 +44,6 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 	}
 
 	public String getXMLString() throws CICXMLException {
-		update();
 		StringWriter writer = new StringWriter();
 		loader.storeResource(mapping, writer);
 		writer.flush();
@@ -114,7 +113,7 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 		return null;
 	}
 	
-	private void update() {
+	public void update() {
 		clearMap();
 		for (Object obj : taskList) {
 			if( obj instanceof MappingTask ) {
