@@ -721,6 +721,38 @@ _EXIT:
 	return result;
 }
 
+static uem_result setMaximumTaskIterationInSubGraph(HCPUTaskManager hCPUTaskManager, STask* pstTask)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCPUTaskManager *pstManager = NULL;
+	int nLoop = 0 ;
+	int nMaxIteration = 0;
+	SMaxIterationSetCallback stIterationSet;
+
+	pstManager = hCPUTaskManager;
+
+	result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, suspendDataflowSubgraphTask, pstManager->hGeneralManager);
+	ERRIFGOTO(result, _EXIT);
+
+	for(nLoop = 0 ; nLoop < pstTask->pstSubGraph->nNumOfTasks ; nLoop++)
+	{
+		if(nMaxIteration < pstTask->pstSubGraph->astTasks[nLoop].nCurIteration)
+		{
+			nMaxIteration = pstTask->pstSubGraph->astTasks[nLoop].nCurIteration;
+			UEM_DEBUG_PRINT("Max iteration: %d, task name: %s\n", nMaxIteration, pstTask->pstSubGraph->astTasks[nLoop].pszTaskName);
+		}
+	}
+
+	stIterationSet.nBaseTaskId = pstTask->nTaskId;
+	stIterationSet.nMaxIteration = nMaxIteration;
+
+	result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, setMaximumTaskIteration, &stIterationSet);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
 
 uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUTaskManager, int nTaskId)
 {
@@ -756,6 +788,10 @@ uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUTaskManager, int nTaskI
 		}
 		else
 		{
+
+			result = setMaximumTaskIterationInSubGraph(hCPUTaskManager, pstTask);
+			ERRIFGOTO(result, _EXIT);
+
 			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, stoppingDataflowSubgraphTask, pstManager->hGeneralManager);
 			ERRIFGOTO(result, _EXIT);
 
@@ -977,26 +1013,7 @@ uem_result UKCPUTaskManager_StoppingTask(HCPUTaskManager hCPUTaskManager, int nT
 		}
 		else
 		{
-			int nLoop = 0 ;
-			int nMaxIteration = 0;
-			SMaxIterationSetCallback stIterationSet;
-
-			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, suspendDataflowSubgraphTask, pstManager->hGeneralManager);
-			ERRIFGOTO(result, _EXIT);
-
-			for(nLoop = 0 ; nLoop < pstTask->pstSubGraph->nNumOfTasks ; nLoop++)
-			{
-				if(nMaxIteration < pstTask->pstSubGraph->astTasks[nLoop].nCurIteration)
-				{
-					nMaxIteration = pstTask->pstSubGraph->astTasks[nLoop].nCurIteration;
-					UEM_DEBUG_PRINT("Max iteration: %d, task name: %s\n", nMaxIteration, pstTask->pstSubGraph->astTasks[nLoop].pszTaskName);
-				}
-			}
-
-			stIterationSet.nBaseTaskId = nTaskId;
-			stIterationSet.nMaxIteration = nMaxIteration;
-
-			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, setMaximumTaskIteration, &stIterationSet);
+			result = setMaximumTaskIterationInSubGraph(hCPUTaskManager, pstTask);
 			ERRIFGOTO(result, _EXIT);
 
 			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, stoppingDataflowSubgraphTask, pstManager->hGeneralManager);
