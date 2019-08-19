@@ -181,7 +181,7 @@ _EXIT:
 }
 
 
-uem_result UKMulticast_GetMulticastGroupIdByTaskAndPortName(IN int nTaskId, IN char *szPortName, OUT int *pnMulticastGroupId)
+uem_result UKMulticast_GetMulticastGroupIdByTaskAndPortName(IN int nTaskId, IN const char *szPortName, OUT int *pnMulticastGroupId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nLoop = 0;
@@ -191,7 +191,7 @@ uem_result UKMulticast_GetMulticastGroupIdByTaskAndPortName(IN int nTaskId, IN c
 
 	*pnMulticastGroupId = INVALID_MULTICAST_GROUP_ID;
 
-	result = UCString_New(&stArgPortName, szPortName, UEMSTRING_CONST);
+	result = UCString_New(&stArgPortName, (char*)szPortName, UEMSTRING_CONST);
 	ERRIFGOTO(result, _EXIT);
 
 	for(nLoop = 0; nLoop < g_nMulticastGroupNum; nLoop++)
@@ -233,7 +233,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKMulticast_GetMulticastPortIdByTaskAndPortName(IN int nTaskId, IN char *szPortName, OUT int *pnMulticastPortId)
+uem_result UKMulticast_GetMulticastPortIdByTaskAndPortName(IN int nTaskId, IN const char *szPortName, OUT int *pnMulticastPortId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nLoop = 0;
@@ -243,7 +243,7 @@ uem_result UKMulticast_GetMulticastPortIdByTaskAndPortName(IN int nTaskId, IN ch
 
 	*pnMulticastPortId = INVALID_MULTICAST_GROUP_ID;
 
-	result = UCString_New(&stArgPortName, szPortName, UEMSTRING_CONST);
+	result = UCString_New(&stArgPortName, (char *)szPortName, UEMSTRING_CONST);
 	ERRIFGOTO(result, _EXIT);
 
 	for(nLoop = 0; nLoop < g_nMulticastGroupNum; nLoop++)

@@ -166,9 +166,11 @@ static void *multicastHandlingThread(void *pData)
 	    result = UCThreadMutex_Lock(g_astMulticastGroups[nGroupNum].pMulticastStruct->hMutex);
 	    ERRIFGOTO(result, _EXIT);
 
-		result = UKHostSystem_CopyToMemory(g_astMulticastGroups[nGroupNum].pMulticastStruct->pDataStart, pstUDPMulticastSocket->pstSocket->pBuffer, nReceivedDataLength);
+	    pstMulticastGroup->pMulticastStruct->nDataLen = nReceivedDataLength - MULTICAST_UDP_HEADER_SIZE;
+
+		result = UKHostSystem_CopyToMemory(g_astMulticastGroups[nGroupNum].pMulticastStruct->pDataStart, pstUDPMulticastSocket->pstSocket->pBuffer, pstMulticastGroup->pMulticastStruct->nDataLen);
 		ERRIFGOTO(result, _EXIT_LOCK);
-		pstMulticastGroup->pMulticastStruct->nDataLen = nReceivedDataLength - MULTICAST_UDP_HEADER_SIZE;
+
 
 _EXIT_LOCK:
 	    UCThreadMutex_Unlock(g_astMulticastGroups[nGroupNum].pMulticastStruct->hMutex);

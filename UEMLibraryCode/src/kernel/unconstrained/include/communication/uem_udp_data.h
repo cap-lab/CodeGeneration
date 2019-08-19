@@ -23,7 +23,7 @@ extern "C"
 #endif
 
 typedef struct _SUDPInfo{
-	char *pszIP;
+	const char *pszIP;
 	int nPort;
 } SUDPInfo;
 
