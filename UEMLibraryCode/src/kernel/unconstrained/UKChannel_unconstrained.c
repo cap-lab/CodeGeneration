@@ -109,6 +109,14 @@ uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT 
 		pstMostInnerPort = pstMostInnerPort->pstSubGraphPort;
 	}
 
+
+	result = UKTask_GetTaskFromTaskId(pstMostInnerPort->nTaskId, &pstCurTask);
+	if(result == ERR_UEM_NO_DATA)
+	{
+		result = ERR_UEM_NOERROR;
+	}
+	ERRIFGOTO(result, _EXIT);
+
 	if(pstPort != pstMostInnerPort)
 	{
 		nCurrentSampleRateIndex = pstMostInnerPort->nCurrentSampleRateIndex;
@@ -138,13 +146,6 @@ uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT 
 			nChunkLen = nOuterMostSampleRate * pstPort->nSampleSize;
 		}
 	}
-
-	result = UKTask_GetTaskFromTaskId(pstMostInnerPort->nTaskId, &pstCurTask);
-	if(result == ERR_UEM_NO_DATA)
-	{
-		result = ERR_UEM_NOERROR;
-	}
-	ERRIFGOTO(result, _EXIT);
 
 	if(pstCurTask != NULL) //Task care only for tasks in current device.
 	{
