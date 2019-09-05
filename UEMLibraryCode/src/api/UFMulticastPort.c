@@ -15,7 +15,7 @@
 #include <UFMulticastPort.h>
 #include <UKMulticast.h>
 
-uem_result UFMulticastPort_Initialize(IN int nTaskId, IN char *szPortName, OUT int *pnMulticastGroupId, OUT int *pnMulticastPortId)
+uem_result UFMulticastPort_Initialize(IN int nTaskId, IN const char *szPortName, OUT int *pnMulticastGroupId, OUT int *pnMulticastPortId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
