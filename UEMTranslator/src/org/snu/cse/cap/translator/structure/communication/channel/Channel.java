@@ -26,7 +26,7 @@ public class Channel implements Cloneable {
 	private int channelSampleSize;
 	private int socketInfoIndex;
 	private int processerId;
-	
+
 	public int getProcesserId() {
 		return processerId;
 	}
@@ -47,62 +47,63 @@ public class Channel implements Cloneable {
 		this.outputPortIndex = Constants.INVALID_VALUE;
 		this.remoteMethodType = RemoteCommunicationMethodType.NONE;
 		this.connectionRoleType = ConnectionRoleType.NONE;
-		
+
 	}
-	
-	// Does not need to clone inputPort and outputPort  
+
+	// Does not need to clone inputPort and outputPort
+	@Override
 	public Channel clone() throws CloneNotSupportedException {
 		Channel channel;
-		
+
 		channel = (Channel) super.clone();
 		channel.index = this.index;
 		channel.communicationType = this.communicationType;
 		channel.accessType = this.accessType;
 		channel.channelType = this.channelType;
 		channel.size = this.size;
-		
+
 		channel.initialDataLen = this.initialDataLen;
 		channel.nextChannelIndex = this.nextChannelIndex;
 		channel.channelSampleSize = this.channelSampleSize;
 		channel.socketInfoIndex = this.socketInfoIndex;
 		channel.remoteMethodType = this.remoteMethodType;
 		channel.connectionRoleType = this.connectionRoleType;
-		
+
 		// Shallow copy for these two objects
 		channel.inputPort = this.inputPort;
 		channel.outputPort = this.outputPort;
-		
+
 		return channel;
 	}
-	
+
 	public int getIndex() {
 		return index;
 	}
-	
+
 	public ChannelCommunicationType getCommunicationType() {
 		return communicationType;
 	}
-	
+
 	public ChannelArrayType getChannelType() {
 		return channelType;
 	}
-	
+
 	public int getSize() {
 		return size;
 	}
-		
+
 	public void setIndex(int channelIndex) {
 		this.index = channelIndex;
 	}
-	
+
 	public void setCommunicationType(ChannelCommunicationType communicationType) {
 		this.communicationType = communicationType;
 	}
-	
+
 	public void setChannelType(ChannelArrayType channelType) {
 		this.channelType = channelType;
 	}
-	
+
 	public void setSize(int channelSize) {
 		this.size = channelSize;
 	}
@@ -117,12 +118,12 @@ public class Channel implements Cloneable {
 
 	public void setInputPort(ChannelPort inputPort) {
 		this.inputPort = inputPort;
-		
+
 		// update initial data length depending on port sample rate
 		/*
 		if(inputPort.getPortSampleRateType() == PortSampleRateType.FIXED)
 		{
-			this.initialDataLen = this.initialDataLen * inputPort.getPortSampleRateList().get(0).getSampleRate();	
+			this.initialDataLen = this.initialDataLen * inputPort.getPortSampleRateList().get(0).getSampleRate();
 		}
 		else if(inputPort.getPortSampleRateType() == PortSampleRateType.MULTIPLE)
 		{
@@ -136,7 +137,7 @@ public class Channel implements Cloneable {
 		}
 		*/
 	}
-	
+
 	public void setPortIndexByPortList(ArrayList<ChannelPort> portList)
 	{
 		int index = 0;
@@ -148,21 +149,21 @@ public class Channel implements Cloneable {
 			{
 				break;
 			}
-			
+
 			port = portList.get(index);
-			if(port.getTaskId() == this.inputPort.getTaskId() && 
+			if(port.getTaskId() == this.inputPort.getTaskId() &&
 					port.getPortName().equals(this.inputPort.getPortName()) == true)
 			{
 				this.inputPortIndex = index;
-			}				
-			else if(port.getTaskId() == this.outputPort.getTaskId() && 
+			}
+			else if(port.getTaskId() == this.outputPort.getTaskId() &&
 					port.getPortName().equals(this.outputPort.getPortName()) == true)
 			{
 				this.outputPortIndex = index;
 			}
 		}
 	}
-	
+
 	public int getInputPortIndex() {
 		return inputPortIndex;
 	}
@@ -170,26 +171,26 @@ public class Channel implements Cloneable {
 	public int getOutputPortIndex() {
 		return outputPortIndex;
 	}
-	
+
 	public boolean isDTypeLoopTaskorSubTaskofDTypeLoopTask(HashMap<String, Task> taskMap, String taskName)
 	{
-		Task task = taskMap.get(taskName);	
+		Task task = taskMap.get(taskName);
 		boolean isSubTaskofDTypeLoopTask = false;
-		
+
 		while(task != null)
 		{
 			if(task.getLoopStruct() != null && task.getLoopStruct().getLoopType() == TaskLoopType.DATA)
 			{
 				isSubTaskofDTypeLoopTask = true;
 				break;
-			}			
+			}
 			task = taskMap.get(task.getParentTaskGraphName());
 		}
-		return isSubTaskofDTypeLoopTask;		
+		return isSubTaskofDTypeLoopTask;
 	}
-	
+
 	public boolean hasSameDTypeLoopParentTask(HashMap<String, Task> taskMap, String dstTaskName, String srcTaskName)
-	{		
+	{
 		//Find the nearest ancestor DType Loop task for each of the two tasks.
 		//if one of two tasks are not in DTypeLoopTask, return false.
 
@@ -199,32 +200,32 @@ public class Channel implements Cloneable {
 		Task srcParentTask = taskMap.get(srcTask.getParentTaskGraphName());
 		boolean isDstTaskSubTaskofDTypeLoopTask = false;
 		boolean isSrcTaskSubTaskofDTypeLoopTask = false;
-		
+
 		while(dstParentTask != null)
 		{
 			if(dstParentTask.getLoopStruct() != null && dstParentTask.getLoopStruct().getLoopType() == TaskLoopType.DATA)
 			{
 				isDstTaskSubTaskofDTypeLoopTask = true;
 				break;
-			}			
+			}
 			dstParentTask = taskMap.get(dstParentTask.getParentTaskGraphName());
 		}
-		
+
 		while(srcParentTask != null)
 		{
 			if(srcParentTask.getLoopStruct() != null && srcParentTask.getLoopStruct().getLoopType() == TaskLoopType.DATA)
 			{
 				isSrcTaskSubTaskofDTypeLoopTask = true;
 				break;
-			}			
+			}
 			srcParentTask = taskMap.get(srcParentTask.getParentTaskGraphName());
 		}
-		
-		if(!isDstTaskSubTaskofDTypeLoopTask || !isSrcTaskSubTaskofDTypeLoopTask) 
+
+		if(!isDstTaskSubTaskofDTypeLoopTask || !isSrcTaskSubTaskofDTypeLoopTask)
 		{
 			return false;
 		}
-		else if(!dstParentTask.getName().equals(srcParentTask.getName())) 
+		else if(!dstParentTask.getName().equals(srcParentTask.getName()))
 		{
 			return false;
 		}
@@ -236,28 +237,29 @@ public class Channel implements Cloneable {
 
 	public void setMaximumChunkNum(HashMap<String, Task> taskMap, String srcTaskName, String dstTaskName, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo)
 	{
-		//inputPort for dstTask, srcTask for outputPort.
+		//Two tasks on both sides of the channel are in common loop task.
 		if(hasSameDTypeLoopParentTask(taskMap, dstTaskName, srcTaskName))
 		{
 			this.inputPort.setMaximumParallelNumberInDTypeLoopTask(taskMap, dstTaskName, dstTaskMappingInfo);
-			this.outputPort.setMaximumParallelNumberInDTypeLoopTask(taskMap, srcTaskName, srcTaskMappingInfo);			
+			this.outputPort.setMaximumParallelNumberInDTypeLoopTask(taskMap, srcTaskName, srcTaskMappingInfo);
 		}
+		//dstTask of the channel is in DTypeLoopTask and srcTask is in outside of DTypeLoopTask(the channel is crossing the boundary).
 		else if(isDTypeLoopTaskorSubTaskofDTypeLoopTask(taskMap, dstTaskName) && !isDTypeLoopTaskorSubTaskofDTypeLoopTask(taskMap, srcTaskName))
 		{
 			this.inputPort.setMaximumParallelNumberInBorderLine(taskMap, dstTaskName);
 			this.outputPort.setMaximumParallelNumberInBorderLine(taskMap, srcTaskName);
 		}
-				
+		//srcTask of the channel is in DTypeLoopTask and dstTask is in outside of DTypeLoopTask(the channel is crossing the boundary).
 		else if(isDTypeLoopTaskorSubTaskofDTypeLoopTask(taskMap, srcTaskName) && !isDTypeLoopTaskorSubTaskofDTypeLoopTask(taskMap, dstTaskName))
 		{
 			this.inputPort.setMaximumParallelNumberInBorderLine(taskMap, dstTaskName);
 			this.outputPort.setMaximumParallelNumberInBorderLine(taskMap, srcTaskName);
 		}
-		else 
+		else
 		{
 			this.inputPort.setMaximumChunkNum(1);
-			this.outputPort.setMaximumChunkNum(1);			
-		}		
+			this.outputPort.setMaximumChunkNum(1);
+		}
 	}
 
 	public void setOutputPort(ChannelPort outputPort) {
