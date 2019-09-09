@@ -101,7 +101,12 @@ uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT 
 
 	nCurrentSampleRateIndex = pstPort->nCurrentSampleRateIndex;
 
-	nOuterMostSampleRate = pstPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
+	if(pstPort->nNumOfSampleRates > 0)
+	{
+		nOuterMostSampleRate = pstPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
+	}
+
+	result = UKTask_GetTaskFromTaskId(pstPort->nTaskId, &pstCurTask);
 
 	pstMostInnerPort = pstPort;
 	while(pstMostInnerPort->pstSubGraphPort != NULL)
@@ -109,23 +114,31 @@ uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT 
 		pstMostInnerPort = pstMostInnerPort->pstSubGraphPort;
 	}
 
-
-	result = UKTask_GetTaskFromTaskId(pstMostInnerPort->nTaskId, &pstCurTask);
-	if(result == ERR_UEM_NO_DATA)
-	{
-		result = ERR_UEM_NOERROR;
-	}
-	ERRIFGOTO(result, _EXIT);
-
 	if(pstPort != pstMostInnerPort)
 	{
 		nCurrentSampleRateIndex = pstMostInnerPort->nCurrentSampleRateIndex;
 
-		nChunkNum = nOuterMostSampleRate / pstMostInnerPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
-		nChunkLen = pstMostInnerPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstMostInnerPort->nSampleSize;
+		if(pstMostInnerPort->nNumOfSampleRates > 0)
+		{
+			nChunkNum = nOuterMostSampleRate / pstMostInnerPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
+			nChunkLen = pstMostInnerPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstMostInnerPort->nSampleSize;
+		}
+		else
+		{
+			//not used.
+			nChunkNum = 1;
+			nChunkLen = nOuterMostSampleRate * pstPort->nSampleSize;
+		}
 	}
 	else
 	{
+		result = UKTask_GetTaskFromTaskId(pstPort->nTaskId, &pstCurTask);
+		if(result == ERR_UEM_NO_DATA)
+		{
+			result = ERR_UEM_NOERROR;
+		}
+		ERRIFGOTO(result, _EXIT);
+
 		// If the task id cannot be obtained by "UKTask_GetTaskFromTaskId",
 		// it means the information is missing because of remote communication, so set as a general task information
 

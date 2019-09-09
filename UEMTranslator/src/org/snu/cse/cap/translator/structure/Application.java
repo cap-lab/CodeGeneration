@@ -1033,7 +1033,7 @@ public class Application {
 		int dstRate = 0;
 		srcTask = this.taskMap.get(channel.getOutputPort().getTaskName());
 		dstTask = this.taskMap.get(channel.getInputPort().getTaskName());
-		
+
 		if(channel.getOutputPort().getPortSampleRateList().size() == 1 || mode == null)
 		{
 			srcRate = channel.getOutputPort().getPortSampleRateList().get(0).getSampleRate();
@@ -1306,16 +1306,17 @@ public class Application {
 
 				for(Channel channel : this.channelList)
 				{
-					ChannelPort inputPort = channel.getInputPort();
-					ChannelPort outputPort = channel.getOutputPort();
 					boolean findSrcTask = false;
 					boolean findDstTask = false;
 
 					for (Task task : taskGraph.getTaskList())
 					{
-						Task srcTask;
-						Task dstTask;
-						while(outputPort != null)
+						Task srcTask = null;
+						Task dstTask = null;
+						ChannelPort inputPort = channel.getInputPort();
+						ChannelPort outputPort = channel.getOutputPort();
+
+						while(outputPort != null && findSrcTask == false)
 						{
 							srcTask = this.taskMap.get(outputPort.getTaskName());
 							if(srcTask.getName().equals(task.getName()))
@@ -1326,7 +1327,7 @@ public class Application {
 							outputPort = outputPort.getSubgraphPort();
 						}
 
-						while(inputPort != null)
+						while(inputPort != null && findDstTask == false)
 						{
 							dstTask = this.taskMap.get(inputPort.getTaskName());
 							if(dstTask.getName().equals(task.getName()))
@@ -1576,7 +1577,7 @@ public class Application {
 		{
 			Channel channel = new Channel(index, channelMetadata.getSize().intValue() * channelMetadata.getSampleSize().intValue(),
 					channelMetadata.getInitialDataSize().intValue() * channelMetadata.getSampleSize().intValue(), channelMetadata.getSampleSize().intValue());
-			
+
 			// index 0 is only used
 			// TODO: src element in XML schema file must be single occurrence.
 			ChannelPortType channelSrcPort = channelMetadata.getSrc().get(0);
