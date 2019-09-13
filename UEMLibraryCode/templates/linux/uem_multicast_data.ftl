@@ -26,17 +26,15 @@
 
 // ##MULTICAST_GROUP_SIZE_DEFINITION_TEMPLATE::START
 <#list multicast_group_list as multicast>
-    <#if multicast.inputPortNum gt 0>
 #define MULTICAST_${multicast.groupName}_SIZE (${multicast.size?c})
-    </#if>
 </#list>
 // ##MULTICAST_GROUP_SIZE_DEFINITION_TEMPLATE::END
 
 // ##MULTICAST_GROUP_BUFFER_DEFINITION_TEMPLATE::START
 <#list multicast_group_list as multicast>
-    <#if multicast.inputPortNum gt 0>
+	<#if multicast.inputPortNum gt 0>
 char s_pMulticastGroup_${multicast.groupName}_buffer[MULTICAST_${multicast.groupName}_SIZE];
-    </#if>
+	</#if>
 </#list>
 // ##MULTICAST_GROUP_BUFFER_DEFINITION_TEMPLATE::END
 
