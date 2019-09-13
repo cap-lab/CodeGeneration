@@ -454,8 +454,9 @@
 
   <xs:simpleType name="PortMapTypeType">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="distributing" />
-      <xs:enumeration value="broadcasting" />
+    <xs:enumeration value="normal" />       
+    <xs:enumeration value="distributing" />
+    <xs:enumeration value="broadcasting" />
     </xs:restriction>
   </xs:simpleType>
   

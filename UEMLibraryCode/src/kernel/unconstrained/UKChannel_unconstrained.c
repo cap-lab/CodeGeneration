@@ -24,6 +24,67 @@
 
 uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType enType, OUT SChannelAPI **ppstChannelAPI);
 
+static uem_result getClosestParentDTypeLoopTask(IN STask* pstCurTask, OUT STask** ppstParentTask)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask *pstTask = NULL;
+
+	IFVARERRASSIGNGOTO(ppstParentTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	pstTask = pstCurTask->pstParentGraph->pstParentTask;
+	while(pstTask != NULL)
+	{
+		if(pstTask->pstLoopInfo != NULL && pstTask->pstLoopInfo->enType == LOOP_TYPE_DATA)//if parent task is looptype task
+		{
+			break;
+		}
+		else
+		{
+			pstTask = pstTask->pstParentGraph->pstParentTask;
+		}
+	}
+
+	if(pstTask == NULL || pstTask->pstLoopInfo == NULL || pstTask->pstLoopInfo->enType != LOOP_TYPE_DATA)
+	{
+		*ppstParentTask = NULL;
+	}
+	else
+	{
+		*ppstParentTask = pstTask;
+	}
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+static uem_result calculateNChunkNumInsideDTypeLoopTask(STask* pstCurTask, EChannelType enChannelType, OUT int *pnChunkNum)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask* pstParentTask = NULL;
+
+	result = getClosestParentDTypeLoopTask(pstCurTask, &pstParentTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstParentTask != NULL)
+	{
+		if(enChannelType == CHANNEL_TYPE_FULL_ARRAY)
+		{
+			*pnChunkNum = pstCurTask->nTaskThreadSetNum;
+		}
+		else if(enChannelType == CHANNEL_TYPE_INPUT_ARRAY || enChannelType == CHANNEL_TYPE_OUTPUT_ARRAY)
+		{
+			*pnChunkNum = pstParentTask->pstLoopInfo->nLoopCount;
+		}
+		else //channel connected with task inside DTypeLoopTask cannnot be CHANNEL_TYPE_GENERAL.
+		{				
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		}
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
 
 uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT int *pnChunkLen, IN EChannelType enChannelType)
 {
@@ -32,7 +93,6 @@ uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT 
 	SPort *pstMostInnerPort = NULL;
 	int nOuterMostSampleRate = 0;
 	STask *pstCurTask = NULL;
-	STask *pstParentTask = NULL;
 	int nChunkNum = 0;
 	int nChunkLen = 0;
 
@@ -41,7 +101,12 @@ uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT 
 
 	nCurrentSampleRateIndex = pstPort->nCurrentSampleRateIndex;
 
-	nOuterMostSampleRate = pstPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
+	if(pstPort->nNumOfSampleRates > 0)
+	{
+		nOuterMostSampleRate = pstPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
+	}
+
+	result = UKTask_GetTaskFromTaskId(pstPort->nTaskId, &pstCurTask);
 
 	pstMostInnerPort = pstPort;
 	while(pstMostInnerPort->pstSubGraphPort != NULL)
@@ -53,8 +118,17 @@ uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT 
 	{
 		nCurrentSampleRateIndex = pstMostInnerPort->nCurrentSampleRateIndex;
 
-		nChunkNum = nOuterMostSampleRate / pstMostInnerPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
-		nChunkLen = pstMostInnerPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstMostInnerPort->nSampleSize;
+		if(pstMostInnerPort->nNumOfSampleRates > 0)
+		{
+			nChunkNum = nOuterMostSampleRate / pstMostInnerPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
+			nChunkLen = pstMostInnerPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate * pstMostInnerPort->nSampleSize;
+		}
+		else
+		{
+			//not used.
+			nChunkNum = 1;
+			nChunkLen = nOuterMostSampleRate * pstPort->nSampleSize;
+		}
 	}
 	else
 	{
@@ -67,6 +141,7 @@ uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT 
 
 		// If the task id cannot be obtained by "UKTask_GetTaskFromTaskId",
 		// it means the information is missing because of remote communication, so set as a general task information
+
 		if(pstCurTask == NULL || pstCurTask->pstLoopInfo == NULL) // general task
 		{
 			nChunkNum = 1;
@@ -83,51 +158,20 @@ uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT 
 			nChunkNum = 1;
 			nChunkLen = nOuterMostSampleRate * pstPort->nSampleSize;
 		}
+	}
 
-		//Iterate if ancester task of D-Type Loop task exists.
-		uem_bool bIsSubTaskofDTypeLoopTask = FALSE;
-		if(pstCurTask != NULL)
-		{
-
-			pstParentTask = pstCurTask->pstParentGraph->pstParentTask;
-			while(pstParentTask != NULL)
-			{
-				//if parent task is looptype task
-				if(pstParentTask->pstLoopInfo != NULL && pstParentTask->pstLoopInfo->enType == LOOP_TYPE_DATA)
-				{
-					//nChunkNum *= pstParentTask->pstLoopInfo->nLoopCount;
-					bIsSubTaskofDTypeLoopTask = TRUE;
-					break;
-				}
-				pstParentTask = pstParentTask->pstParentGraph->pstParentTask;
-			}
-			if(bIsSubTaskofDTypeLoopTask == TRUE)
-			{
-				if(enChannelType == CHANNEL_TYPE_FULL_ARRAY)
-				{
-				nChunkNum = pstCurTask->nTaskThreadSetNum;
-			}
-				else if(enChannelType == CHANNEL_TYPE_INPUT_ARRAY || enChannelType == CHANNEL_TYPE_OUTPUT_ARRAY)
-				{
-					nChunkNum = pstParentTask->pstLoopInfo->nLoopCount;
-				}
-				else //channel connected with task inside DTypeLoopTask cannnot be CHANNEL_TYPE_GENERAL.
-				{					
-					ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
-				}
-			}
-		}
+	if(pstCurTask != NULL) //Task care only for tasks in current device.
+	{
+		calculateNChunkNumInsideDTypeLoopTask(pstCurTask, enChannelType, &nChunkNum);
 	}
 
 	*pnChunkNum = nChunkNum;
 	*pnChunkLen = nChunkLen;
 
-
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
 }
-
 
 uem_result UKChannel_SetExit()
 {
