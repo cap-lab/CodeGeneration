@@ -1447,17 +1447,14 @@ public class Application {
 	private void setMulticastCommunicationType(MulticastGroup multicastGroup, String deviceName, HashSet<String> deviceListMappedWithCounterPorts, PortDirection portDirection) throws InvalidDeviceConnectionException
 	{
 		Device device = this.deviceInfo.get(deviceName);
-
-		if(deviceListMappedWithCounterPorts.contains(deviceName) == true)
+		
+		if(portDirection == PortDirection.INPUT)
 		{
-			if(portDirection == PortDirection.INPUT)
-			{
-				multicastGroup.putInputCommunicationType(MulticastCommunicationType.MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY);
-			}
-			else
-			{
-				multicastGroup.putOutputCommunicationType(MulticastCommunicationType.MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY);
-			}
+			multicastGroup.putInputCommunicationType(MulticastCommunicationType.MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY);
+		}
+		else if(deviceListMappedWithCounterPorts.contains(deviceName) == true)
+		{
+			multicastGroup.putOutputCommunicationType(MulticastCommunicationType.MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY);
 		}
 		for(String counterDeviceName : deviceListMappedWithCounterPorts)
 		{
@@ -1547,12 +1544,18 @@ public class Application {
 				MulticastGroup multicastGroup = multicastGroups.get(deviceName);
 
 				ArrayList<MulticastPort> inputPortList = multicastGroup.getInputPortList();
-				setMulticastCommunicationType(multicastGroup, deviceName, deviceListMappedWithOutputPort, PortDirection.INPUT);
-				setMulticastPortMemoryAccessType(inputPortList, deviceName, PortDirection.INPUT);
+				if(inputPortList.isEmpty() != true)
+				{
+					setMulticastCommunicationType(multicastGroup, deviceName, deviceListMappedWithOutputPort, PortDirection.INPUT);
+					setMulticastPortMemoryAccessType(inputPortList, deviceName, PortDirection.INPUT);
+				}
 
 				ArrayList<MulticastPort> outputPortList = multicastGroup.getOutputPortList();
-				setMulticastCommunicationType(multicastGroup, deviceName, deviceListMappedWithInputPort, PortDirection.OUTPUT);
-				setMulticastPortMemoryAccessType(outputPortList, deviceName, PortDirection.OUTPUT);
+				if(outputPortList.isEmpty() != true)
+				{
+					setMulticastCommunicationType(multicastGroup, deviceName, deviceListMappedWithInputPort, PortDirection.OUTPUT);
+					setMulticastPortMemoryAccessType(outputPortList, deviceName, PortDirection.OUTPUT);
+				}
 
 				addMulticastGroupToDevice(multicastGroup, deviceName);
 			}
