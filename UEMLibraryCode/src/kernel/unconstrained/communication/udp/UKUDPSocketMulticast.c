@@ -339,7 +339,7 @@ uem_result UKUDPSocketMulticast_Initialize(IN SMulticastGroup *pstMulticastGroup
 
 			pstUDPMulticastSocket->pstMulticastManager = &(pstMulticastGroup->pstOutputPort[nLoop]);
 
-			result = UKUDPSocketMulticast_SocketInitialize(pstUDPSocket, ((SUDPInfo*)pstMulticastGroup->pstInputCommunicationInfo[nCommunicationTypeIndex].pAdditionalCommunicationInfo)->nPort, FALSE);
+			result = UKUDPSocketMulticast_SocketInitialize(pstUDPSocket, ((SUDPInfo*)pstMulticastGroup->pstOutputCommunicationInfo[nCommunicationTypeIndex].pAdditionalCommunicationInfo)->nPort, FALSE);
 			ERRIFGOTO(result, _EXIT);
 		}
 	}
