@@ -179,8 +179,8 @@ typedef enum _EUemModuleId {
 }
 #endif
 
-#define _DEBUG
-#define DEBUG_PRINT
+//#define _DEBUG
+//#define DEBUG_PRINT
 
 
 #ifdef DEBUG_PRINT

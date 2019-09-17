@@ -84,6 +84,7 @@ typedef enum _EChannelType {
 typedef enum _EMulticastCommunicationType {
 	MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY,
 	MULTICAST_COMMUNICATION_TYPE_UDP,
+	MULTICAST_COMMUNICATION_TYPE_END,
 }EMulticastCommunicationType;
 
 typedef enum _ELoopType {

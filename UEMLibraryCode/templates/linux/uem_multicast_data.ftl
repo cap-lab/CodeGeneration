@@ -21,6 +21,7 @@
 #include <UKHostSystem.h>
 #include <UKSharedMemoryMulticast.h>
 #include <UKMulticast.h>
+#include <UCBasic.h>
 
 #include <uem_data.h>
 
@@ -322,40 +323,38 @@ _EXIT:
 uem_result MulticastAPI_GetAPIStructure(IN SMulticastGroup *pstMulticastGroup, OUT SMulticastAPI **pstMulticastAPI, OUT int *pnAPINum)
 {
     uem_result result = ERR_UEM_UNKNOWN;
-    EMulticastCommunicationType aeCommunicationTypeList[g_nMulticastAPINum];
+    int arrCommunicationTypeList[MULTICAST_COMMUNICATION_TYPE_END];
     int nAPINum = 0;
     int nLoop = 0;
     int nInerLoop = 0;
+    
+    UC_memset(arrCommunicationTypeList, 0, MULTICAST_COMMUNICATION_TYPE_END);
 
-    for(nAPINum = 0, nLoop = 0 ; nLoop < pstMulticastGroup->nInputCommunicationTypeNum ; nAPINum++, nLoop++)
+    for(nLoop = 0 ; nLoop < pstMulticastGroup->nInputCommunicationTypeNum ; nLoop++)
     {
-        aeCommunicationTypeList[nAPINum] = pstMulticastGroup->pstInputCommunicationInfo[nLoop].eCommunicationType;
+        arrCommunicationTypeList[pstMulticastGroup->pstInputCommunicationInfo[nLoop].eCommunicationType] = 1;
     }
     for(nLoop = 0 ; nLoop < pstMulticastGroup->nOutputCommunicationTypeNum ; nLoop++)
     {
-        for(nInerLoop = 0 ; nInerLoop < nAPINum ; nInerLoop++)
-        {
-            if(aeCommunicationTypeList[nInerLoop] == pstMulticastGroup->pstInputCommunicationInfo[nLoop].eCommunicationType)
-            {
-                break;
-            }
-        }
-        if(nInerLoop == nAPINum)
-        {
-            aeCommunicationTypeList[nAPINum] = pstMulticastGroup->pstInputCommunicationInfo[nLoop].eCommunicationType;
-            nAPINum++;
-        }
+        arrCommunicationTypeList[pstMulticastGroup->pstOutputCommunicationInfo[nLoop].eCommunicationType] = 1;
     }
-    for(nLoop = 0 ; nLoop < nAPINum ; nLoop++)
+    
+    for(nLoop = 0 ; nLoop < MULTICAST_COMMUNICATION_TYPE_END ; nLoop++)
     {
-        switch(aeCommunicationTypeList[nLoop])
+    	if(arrCommunicationTypeList[nLoop]==0)
+    	{
+    		continue;
+    	}
+        switch(nLoop)
         {
             case MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY:
                 pstMulticastAPI[nLoop] = &g_stSharedMemoryMulticast;
+                nAPINum++;
                 break;
             case MULTICAST_COMMUNICATION_TYPE_UDP:
 <#if used_communication_list?seq_contains("udp")>
                 pstMulticastAPI[nLoop] = &g_stUDPSocketMulticast;
+                nAPINum++;
 <#else>
                 ERRIFGOTO(result, _EXIT);
 </#if>
