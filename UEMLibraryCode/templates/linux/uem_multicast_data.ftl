@@ -442,10 +442,8 @@ uem_result MulticastAPI_GetMulticastCommunicationTypeIndex(IN SMulticastGroup *p
 			break;
 		}
 	}
-	if(bFound == FALSE)
-	{
-		ERRIFGOTO(result, _EXIT);
-	}
+	
+	IFVARERRASSIGNGOTO(bFound, FALSE, result, ERR_UEM_NOT_FOUND, _EXIT);
 	
 	result = ERR_UEM_NOERROR;
 _EXIT:

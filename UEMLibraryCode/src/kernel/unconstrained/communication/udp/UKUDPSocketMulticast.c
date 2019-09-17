@@ -297,9 +297,8 @@ uem_result UKUDPSocketMulticast_Initialize(IN SMulticastGroup *pstMulticastGroup
 	int nCommunicationTypeIndex = 0;
 
 	result = MulticastAPI_GetMulticastCommunicationTypeIndex(pstMulticastGroup, PORT_DIRECTION_INPUT, MULTICAST_COMMUNICATION_TYPE_UDP, &nCommunicationTypeIndex);
-	ERRIFGOTO(result, _EXIT);
 
-	if(nCommunicationTypeIndex >= 0)
+	if(result != ERR_UEM_NOT_FOUND)
 	{
 		pstUDPMulticastSocket = (SUDPMulticast *) pstMulticastGroup->pMulticastRecvGateList[nCommunicationTypeIndex];
 
@@ -325,8 +324,8 @@ uem_result UKUDPSocketMulticast_Initialize(IN SMulticastGroup *pstMulticastGroup
 	}
 
 	result = MulticastAPI_GetMulticastCommunicationTypeIndex(pstMulticastGroup, PORT_DIRECTION_OUTPUT, MULTICAST_COMMUNICATION_TYPE_UDP, &nCommunicationTypeIndex);
-	ERRIFGOTO(result, _EXIT);
-	if(nCommunicationTypeIndex >= 0)
+
+	if(result != ERR_UEM_NOT_FOUND)
 	{
 		for(nLoop = 0 ; nLoop < pstMulticastGroup->nOutputPortNum ; nLoop++)
 		{
@@ -358,9 +357,8 @@ uem_result UKUDPSocketMulticast_Finalize(IN SMulticastGroup *pstMulticastGroup)
 	SUDPMulticast *pstUDPMulticastSocket = NULL;
 
 	result = MulticastAPI_GetMulticastCommunicationTypeIndex(pstMulticastGroup, PORT_DIRECTION_INPUT, MULTICAST_COMMUNICATION_TYPE_UDP, &nCommunicationTypeIndex);
-	ERRIFGOTO(result, _EXIT);
 
-	if (nCommunicationTypeIndex >= 0)
+	if (result != ERR_UEM_NOT_FOUND)
 	{
 		pstUDPMulticastSocket = (SUDPMulticast *) pstMulticastGroup->pMulticastRecvGateList[nCommunicationTypeIndex];
 
@@ -375,8 +373,8 @@ uem_result UKUDPSocketMulticast_Finalize(IN SMulticastGroup *pstMulticastGroup)
 	}
 
 	result = MulticastAPI_GetMulticastCommunicationTypeIndex(pstMulticastGroup, PORT_DIRECTION_OUTPUT, MULTICAST_COMMUNICATION_TYPE_UDP, &nCommunicationTypeIndex);
-	ERRIFGOTO(result, _EXIT);
-	if (nCommunicationTypeIndex >= 0)
+
+	if (result != ERR_UEM_NOT_FOUND)
 	{
 		for (nLoop = 0; nLoop < pstMulticastGroup->nOutputPortNum; nLoop++)
 		{
