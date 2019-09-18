@@ -73,7 +73,7 @@ _EXIT:
 	return result;
 }
 
-static uem_result checkMessageOwner(SMulticastGroup *pstMulticastGroup, char *pHeader, int nReceivedDataLength, int *pnGroupNum)
+static uem_result checkMessageOwner(char *pHeader, int nReceivedDataLength, int *pnGroupNum)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	uem_bool bRet = FALSE;
@@ -124,7 +124,7 @@ static uem_result checkMessageOwner(SMulticastGroup *pstMulticastGroup, char *pH
 _EXIT:
 	return result;
 }
-
+/* TODO nBufSize must make error, should be implemented differently */
 static void *multicastHandlingThread(void *pData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -155,7 +155,7 @@ static void *multicastHandlingThread(void *pData)
 		ERRIFGOTO(result, _EXIT);
 
 		// check the groupName
-		result = checkMessageOwner(pstMulticastGroup, pstUDPMulticastSocket->pstSocket->pHeader, nReceivedDataLength, &nGroupNum);
+		result = checkMessageOwner(pstUDPMulticastSocket->pstSocket->pHeader, nReceivedDataLength, &nGroupNum);
 		if(result == ERR_UEM_SKIP_THIS)
 		{
 			continue;
@@ -166,9 +166,9 @@ static void *multicastHandlingThread(void *pData)
 	    result = UCThreadMutex_Lock(g_astMulticastGroups[nGroupNum].pMulticastStruct->hMutex);
 	    ERRIFGOTO(result, _EXIT);
 
-	    pstMulticastGroup->pMulticastStruct->nDataLen = nReceivedDataLength - MULTICAST_UDP_HEADER_SIZE;
+	    g_astMulticastGroups[nGroupNum].pMulticastStruct->nDataLen = nReceivedDataLength - MULTICAST_UDP_HEADER_SIZE;
 
-		result = UKHostSystem_CopyToMemory(g_astMulticastGroups[nGroupNum].pMulticastStruct->pDataStart, pstUDPMulticastSocket->pstSocket->pBuffer, pstMulticastGroup->pMulticastStruct->nDataLen);
+		result = UKHostSystem_CopyToMemory(g_astMulticastGroups[nGroupNum].pMulticastStruct->pDataStart, pstUDPMulticastSocket->pstSocket->pBuffer, g_astMulticastGroups[nGroupNum].pMulticastStruct->nDataLen);
 		ERRIFGOTO(result, _EXIT_LOCK);
 
 
