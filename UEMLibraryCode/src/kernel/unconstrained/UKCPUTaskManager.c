@@ -844,6 +844,12 @@ uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUTaskManager, int nTaskId
 		result = UKChannel_ClearChannelInSubgraph(pstTask->nTaskId);
 		ERRIFGOTO(result, _EXIT);
 
+		if(pstTask->pstMTMInfo != NULL)
+		{
+			result = UKModeTransition_Clear(pstTask->pstMTMInfo);
+			ERRIFGOTO(result, _EXIT);
+		}
+
 		result = UKCPUCompositeTaskManager_CreateThread(pstManager->hCompositeManager, pstTask);
 		ERRIFGOTO(result, _EXIT);
 

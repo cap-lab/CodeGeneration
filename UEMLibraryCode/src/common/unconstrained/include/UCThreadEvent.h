@@ -89,6 +89,9 @@ uem_result UCThreadEvent_WaitTimeEvent(HThreadEvent hEvent, long long llSleepTim
  */
 uem_result UCThreadEvent_Destroy(IN OUT HThreadEvent *phEvent);
 
+
+uem_result UCThreadEvent_ClearEvent(HThreadEvent hEvent);
+
 #ifdef __cplusplus
 }
 #endif

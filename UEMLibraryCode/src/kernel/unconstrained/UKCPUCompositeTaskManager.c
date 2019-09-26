@@ -58,6 +58,8 @@ typedef struct _SCompositeTask {
 	uem_bool bIterationCountFixed;
 	int nTargetIteration;
 	uem_bool bIsModeTransition;
+	ECPUTaskState enNewTaskState;
+	uem_bool bNewStateRequest;
 } SCompositeTask;
 
 
@@ -268,6 +270,8 @@ static uem_result createCompositeTaskStruct(HCPUCompositeTaskManager hCPUTaskMan
 	pstCompositeTask->bIsModeTransition = isModeTransitionTask(pstCompositeTask->pstParentTask);
 	pstCompositeTask->nCurrentThroughputConstraint = 0;
 	pstCompositeTask->bIterationCountFixed = FALSE;
+	pstCompositeTask->enNewTaskState = TASK_STATE_STOP;
+	pstCompositeTask->bNewStateRequest = FALSE;
 
 	if(pstMappedInfo->pstScheduledTasks->pstParentTask == NULL)
 	{
@@ -449,9 +453,6 @@ static uem_result traverseAndChangeTaskState(IN int nOffset, IN void *pData, IN 
 	// For MTM task
 	nCurModeId = getCurrentTaskModeId(pstCompositeTask->pstParentTask);
 
-	result = UCThreadMutex_Lock(pstCompositeTask->hMutex);
-	ERRIFGOTO(result, _EXIT);
-
 	if(pstUserData->enTaskState == TASK_STATE_STOP)
 	{
 		if(pstTaskThread->enTaskState == TASK_STATE_RUNNING ||
@@ -463,12 +464,12 @@ static uem_result traverseAndChangeTaskState(IN int nOffset, IN void *pData, IN 
 			if(pstTaskThread->bSuspended == TRUE)
 			{
 				result = UCThreadEvent_SetEvent(pstTaskThread->hEvent);
-				ERRIFGOTO(result, _EXIT_LOCK);
+				ERRIFGOTO(result, _EXIT);
 			}
 		}
 		else
 		{
-			UEMASSIGNGOTO(result, ERR_UEM_ALREADY_DONE, _EXIT_LOCK);
+			UEMASSIGNGOTO(result, ERR_UEM_ALREADY_DONE, _EXIT);
 		}
 	}
 	else if(pstCompositeTask->nCurrentThroughputConstraint != pstTaskThread->nThroughputConstraint)
@@ -500,8 +501,6 @@ static uem_result traverseAndChangeTaskState(IN int nOffset, IN void *pData, IN 
 	}
 
 	result = ERR_UEM_NOERROR;
-_EXIT_LOCK:
-	UCThreadMutex_Unlock(pstCompositeTask->hMutex);
 _EXIT:
 	return result;
 }
@@ -533,9 +532,6 @@ static uem_result traverseAndRunModeTransittingState(IN int nOffset, IN void *pD
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 	}
 
-	result = UCThreadMutex_Lock(pstCompositeTask->hMutex);
-	ERRIFGOTO(result, _EXIT);
-
 	if(pstCompositeTask->nCurrentThroughputConstraint != pstTaskThread->nThroughputConstraint)
 	{
 		pstTaskThread->enTaskState = TASK_STATE_STOP;
@@ -553,7 +549,6 @@ static uem_result traverseAndRunModeTransittingState(IN int nOffset, IN void *pD
 
 	result = ERR_UEM_NOERROR;
 
-	UCThreadMutex_Unlock(pstCompositeTask->hMutex);
 _EXIT:
 	return result;
 }
@@ -645,13 +640,7 @@ static uem_result changeCompositeTaskState(SCompositeTask *pstCompositeTask, ECP
 		ERRIFGOTO(result, _EXIT);
 	}
 
-	result = UCThreadMutex_Lock(pstCompositeTask->hMutex);
-	ERRIFGOTO(result, _EXIT);
-
 	pstCompositeTask->enTaskState = enTargetState;
-
-	result = UCThreadMutex_Unlock(pstCompositeTask->hMutex);
-	ERRIFGOTO(result, _EXIT);
 
 	if(enTargetState == TASK_STATE_STOPPING)
 	{
@@ -724,8 +713,22 @@ static uem_result handleCompositeTaskModeTransition(SCompositeTaskThread *pstTas
 
 			result = UCDynamicLinkedList_Traverse(pstTask->hThreadList, traverseAndSetEventToTemporarySuspendedTask, &stNewModeData);
 			ERRIFGOTO(result, _EXIT);
+		}		
+
+		if(pstTask->bNewStateRequest == TRUE)
+		{
+			result = UCThreadMutex_Unlock(pstCurrentTask->hMutex);
+			ERRIFGOTO(result, _EXIT);
+
+			result = changeCompositeTaskState(pstTask, pstTask->enNewTaskState, pstTask->hThreadList);
+			ERRIFGOTO(result, _EXIT);
+
+			result = UCThreadMutex_Lock(pstCurrentTask->hMutex);
+			ERRIFGOTO(result, _EXIT);
+
+			pstTask->bNewStateRequest = FALSE;
 		}
-		//UEM_DEBUG_PRINT("mode state: MODE_STATE_TRANSITING to MODE_STATE_NORMAL\n");
+
 	}
 	else
 	{
@@ -755,9 +758,22 @@ static uem_result handleCompositeTaskModeTransition(SCompositeTaskThread *pstTas
 
 				result = UCDynamicLinkedList_Traverse(pstTask->hThreadList, traverseAndSetEventToTaskThread, NULL);
 				ERRIFGOTO(result, _EXIT);
+			}		
+
+			if(pstTask->bNewStateRequest == TRUE)
+			{
+				result = UCThreadMutex_Unlock(pstCurrentTask->hMutex);
+				ERRIFGOTO(result, _EXIT);
+
+				result = changeCompositeTaskState(pstTask, pstTask->enNewTaskState, pstTask->hThreadList);
+				ERRIFGOTO(result, _EXIT);
+
+				result = UCThreadMutex_Lock(pstCurrentTask->hMutex);
+				ERRIFGOTO(result, _EXIT);
+
+				pstTask->bNewStateRequest = FALSE;
 			}
 
-			//UEM_DEBUG_PRINT("mode state: MODE_STATE_NORMAL to MODE_STATE_TRANSITING\n");
 		}
 	}
 
@@ -783,16 +799,11 @@ static uem_result checkTargetIteration(SCompositeTask *pstCompositeTask, SCompos
 	}
 	else // for infinite or time-based program execution
 	{
-		result = UCThreadMutex_Lock(pstCompositeTask->hMutex);
-		ERRIFGOTO(result, _EXIT);
 
 		if(pstCompositeTask->nTargetIteration < pstTaskThread->nIteration)
 		{
 			pstCompositeTask->nTargetIteration = pstTaskThread->nIteration;
 		}
-
-		result = UCThreadMutex_Unlock(pstCompositeTask->hMutex);
-		ERRIFGOTO(result, _EXIT);
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -841,11 +852,18 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 		UEM_DEBUG_PRINT("Composite task initial state : %s (Proc: %d, Mode: %d, State: %d)\n", pstCompositeTask->pstParentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nModeId, pstTaskThread->enTaskState);
 	}
 
+	result = UCThreadMutex_Lock(pstCompositeTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
 	while(pstTaskThread->enTaskState != TASK_STATE_STOP)
 	{
 		switch(pstTaskThread->enTaskState)
 		{
 		case TASK_STATE_RUNNING:
+
+			result = UCThreadMutex_Unlock(pstCompositeTask->hMutex);
+			ERRIFGOTO(result, _EXIT);
+
 			switch(enRunCondition)
 			{
 			case RUN_CONDITION_TIME_DRIVEN:
@@ -881,25 +899,36 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 				ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 				break;
 			}
-
-			if(pstCompositeTask->enTaskState == TASK_STATE_RUNNING)
+			result = UCThreadMutex_Lock(pstCompositeTask->hMutex);
+			ERRIFGOTO(result, _EXIT);
+						
+			if(pstCompositeTask->bIsModeTransition == TRUE)
 			{
-				if(pstCompositeTask->bIsModeTransition == TRUE)
+				if(bFunctionCalled == TRUE)
 				{
-					if(bFunctionCalled == TRUE)
-					{
-						result = handleCompositeTaskModeTransition(pstTaskThread, pstCompositeTask);
-						ERRIFGOTO(result, _EXIT);
-					}
-				}
-				else
-				{
-					result = checkTargetIteration(pstCompositeTask, pstTaskThread);
+					result = handleCompositeTaskModeTransition(pstTaskThread, pstCompositeTask);
 					ERRIFGOTO(result, _EXIT);
+				}
+			}
+			else
+			{
+				result = checkTargetIteration(pstCompositeTask, pstTaskThread);
+				ERRIFGOTO(result, _EXIT);
+
+				if(pstCompositeTask->bNewStateRequest == TRUE)
+				{
+					result = changeCompositeTaskState(pstCompositeTask, pstCompositeTask->enNewTaskState, pstCompositeTask->hThreadList);
+					ERRIFGOTO(result, _EXIT);
+
+					pstCompositeTask->bNewStateRequest = FALSE;
 				}
 			}
 			break;
 		case TASK_STATE_STOPPING:
+
+			result = UCThreadMutex_Unlock(pstCompositeTask->hMutex);
+			ERRIFGOTO(result, _EXIT);
+
 			if(pstCompositeTask->bIsModeTransition == FALSE)
 			{
 				while(pstTaskThread->nIteration < pstCompositeTask->nTargetIteration)
@@ -915,15 +944,16 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 					pstTaskThread->nIteration++;
 				}
 			}
+
+			result = UCThreadMutex_Lock(pstCompositeTask->hMutex);
+			ERRIFGOTO(result, _EXIT);
+
 			UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
 			break;
 		case TASK_STATE_STOP:
 			// do nothing
 			break;
 		case TASK_STATE_SUSPEND:
-			result = UCThreadMutex_Lock(pstCompositeTask->hMutex);
-			ERRIFGOTO(result, _EXIT);
-
 			pstTaskThread->bSuspended = TRUE;
 
 			result = UCThreadMutex_Unlock(pstCompositeTask->hMutex);
@@ -931,6 +961,10 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 
 			result = waitRunSignal(pstCompositeTask, pstTaskThread, FALSE, &llNextTime, &nMaxRunCount);
 			ERRIFGOTO(result, _EXIT);
+
+			result = UCThreadMutex_Lock(pstCompositeTask->hMutex);
+			ERRIFGOTO(result, _EXIT);
+
 			break;
 		default:
 			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
@@ -940,6 +974,9 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
+	if(pstCompositeTask != NULL)
+		UCThreadMutex_Unlock(pstCompositeTask->hMutex);
+
 	if(pstCompositeTask->pstParentTask != NULL)
 	{
 		UEM_DEBUG_PRINT("Composite task out : %s, %d (%d), mode: %d\n", pstCompositeTask->pstParentTask->pszTaskName, pstTaskThread->nIteration, pstTaskThread->bHasSourceTask, pstTaskThread->nModeId);
@@ -1010,6 +1047,8 @@ static uem_result createCompositeTaskThread(IN int nOffset, IN void *pData, IN v
 
 		pstTaskThreadData->pstCompositeTask = pstCreateData->pstCompositeTask;
 		pstTaskThreadData->pstTaskThread = pstTaskThread;
+
+		UCThreadEvent_ClearEvent(pstTaskThread->hEvent);
 
 		result = UCThread_Create(compositeTaskThreadRoutine, pstTaskThreadData, &(pstTaskThread->hThread));
 		ERRIFGOTO(result, _EXIT);
@@ -1359,8 +1398,21 @@ uem_result UKCPUCompositeTaskManager_ChangeState(HCPUCompositeTaskManager hManag
 	result = findMatchingCompositeTask(pstTaskManager, nTaskId, &pstCompositeTask);
 	ERRIFGOTO(result, _EXIT_LOCK);
 
-	result = changeCompositeTaskState(pstCompositeTask, enTaskState, pstCompositeTask->hThreadList);
-	ERRIFGOTO(result, _EXIT_LOCK);
+	result = UCThreadMutex_Lock(pstCompositeTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	if(enTaskState == TASK_STATE_SUSPEND)
+	{
+		pstCompositeTask->enNewTaskState = enTaskState;
+		pstCompositeTask->bNewStateRequest = TRUE;
+	}
+	else 
+	{
+		result = changeCompositeTaskState(pstCompositeTask, enTaskState, pstCompositeTask->hThreadList);
+		ERRIFGOTO(result, _EXIT_LOCK);
+	}
+	result = UCThreadMutex_Unlock(pstCompositeTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
@@ -1582,7 +1634,13 @@ static uem_result destroyCompositeTaskThread(SCompositeTask *pstCompositeTask, S
 		stUserData.enTaskState = TASK_STATE_STOP;
 		stUserData.pstCompositeTask = pstCompositeTask;
 
+		result = UCThreadMutex_Lock(pstCompositeTask->hMutex);
+		ERRIFGOTO(result, _EXIT);
+
 		result = UCDynamicLinkedList_Traverse(pstCompositeTask->hThreadList, traverseAndChangeTaskState, &stUserData);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UCThreadMutex_Unlock(pstCompositeTask->hMutex);
 		ERRIFGOTO(result, _EXIT);
 
 		// set channel block free
