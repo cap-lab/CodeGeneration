@@ -89,7 +89,16 @@ uem_result UCThreadEvent_WaitTimeEvent(HThreadEvent hEvent, long long llSleepTim
  */
 uem_result UCThreadEvent_Destroy(IN OUT HThreadEvent *phEvent);
 
-
+/**
+ * @brief Clear an event.
+ *
+ * This function clears an event.
+ *
+ * @param hEvent an event handle to be cleared.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_HANDLE.
+ */
 uem_result UCThreadEvent_ClearEvent(HThreadEvent hEvent);
 
 #ifdef __cplusplus
