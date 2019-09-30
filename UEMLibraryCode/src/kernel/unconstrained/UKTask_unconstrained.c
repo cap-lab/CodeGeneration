@@ -27,6 +27,7 @@ uem_result UKTask_Initialize()
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nLoop = 0;
+	SModelControllerCommon *pstCommonController = NULL;
 
 	for(nLoop = 0 ; nLoop < g_nTaskIdToTaskNum ; nLoop++)
 	{
@@ -35,6 +36,17 @@ uem_result UKTask_Initialize()
 
 		result = UCThreadEvent_Create(&(g_astTaskIdToTask[nLoop].pstTask->hEvent));
 		ERRIFGOTO(result, _EXIT);
+
+		if(g_astTaskIdToTask[nLoop].pstTask->pstParentGraph->pController != NULL)
+		{
+			pstCommonController = (SModelControllerCommon *) g_astTaskIdToTask[nLoop].pstTask->pstParentGraph->pController;
+
+			if(pstCommonController->hMutex == NULL)
+			{
+				result = UCThreadMutex_Create(&(pstCommonController->hMutex));
+				ERRIFGOTO(result, _EXIT);
+			}
+		}
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -50,6 +62,7 @@ _EXIT:
 void UKTask_Finalize()
 {
 	int nLoop = 0;
+	SModelControllerCommon *pstCommonController = NULL;
 
 	for(nLoop = 0 ; nLoop < g_nTaskIdToTaskNum ; nLoop++)
 	{
@@ -61,6 +74,16 @@ void UKTask_Finalize()
 		if(g_astTaskIdToTask[nLoop].pstTask->hEvent != NULL)
 		{
 			UCThreadEvent_Destroy(&(g_astTaskIdToTask[nLoop].pstTask->hEvent));
+		}
+
+		if(g_astTaskIdToTask[nLoop].pstTask->pstParentGraph->pController != NULL)
+		{
+			pstCommonController = (SModelControllerCommon *) g_astTaskIdToTask[nLoop].pstTask->pstParentGraph->pController;
+
+			if(pstCommonController->hMutex != NULL)
+			{
+				UCThreadMutex_Destroy(&(pstCommonController->hMutex));
+			}
 		}
 	}
 }

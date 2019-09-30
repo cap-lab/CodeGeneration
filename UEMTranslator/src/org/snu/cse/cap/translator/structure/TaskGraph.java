@@ -8,6 +8,7 @@ public class TaskGraph {
 	private String name;
 	private ArrayList<Task> taskList;
 	private TaskGraphType taskGraphType;
+	private TaskGraphController controllerType;
 	private Task parentTask;
 	
 	public TaskGraph(String graphName) {
@@ -15,6 +16,7 @@ public class TaskGraph {
 		this.name = graphName;
 		this.parentTask = null;
 		this.taskGraphType = TaskGraphType.PROCESS_NETWORK;
+		this.controllerType = TaskGraphController.VOID;
 	}
 	
 	public TaskGraph(String graphName, String taskGraphType) {
@@ -29,6 +31,7 @@ public class TaskGraph {
 		{
 			this.taskGraphType = TaskGraphType.PROCESS_NETWORK;
 		}
+		this.controllerType = TaskGraphController.VOID;
 	}
 	
 	public void putTask(Task task) {
@@ -78,6 +81,7 @@ public class TaskGraph {
 		clonedGraph = new TaskGraph(this.name);
 		clonedGraph.setTaskGraphType(this.taskGraphType);
 		clonedGraph.setParentTask(this.parentTask);
+		clonedGraph.setControllerType(this.controllerType);
 		
 		for(Task task : this.taskList)
 		{
@@ -104,5 +108,13 @@ public class TaskGraph {
 		{
 			this.taskList.add(subgraphTask);
 		}
+	}
+	
+	public TaskGraphController getControllerType() {
+		return controllerType;
+	}
+
+	public void setControllerType(TaskGraphController controllerType) {
+		this.controllerType = controllerType;
 	}
 }

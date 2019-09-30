@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 import org.snu.cse.cap.translator.structure.TaskGraph;
+import org.snu.cse.cap.translator.structure.TaskGraphController;
 import org.snu.cse.cap.translator.structure.TaskGraphType;
 import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.structure.ExecutionPolicy;
@@ -44,6 +45,7 @@ import org.snu.cse.cap.translator.structure.mapping.ScheduleLoop;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleTask;
 import org.snu.cse.cap.translator.structure.module.Module;
 import org.snu.cse.cap.translator.structure.task.Task;
+import org.snu.cse.cap.translator.structure.task.TaskLoopType;
 import org.snu.cse.cap.translator.structure.task.TaskMode;
 import org.snu.cse.cap.translator.structure.task.TaskModeTransition;
 import org.snu.cse.cap.translator.structure.task.TaskShapeType;
@@ -202,8 +204,7 @@ public class Device {
 		
 		for(ScheduleElementType scheduleElement: scheduleElementList)
 		{
-			if(scheduleElement.getLoop() != null)
-			{
+			if(scheduleElement.getLoop() != null) {
 				scheduleInloop = new ScheduleLoop(scheduleElement.getLoop().getRepetition().intValue(), depth);
 				if(scheduleInloop.getRepetition() > 1)
 					nextDepth = depth + 1;
@@ -213,14 +214,12 @@ public class Device {
 														nextDepth, maxDepth, globalTaskMap);
 				scheduleItemList.add(scheduleInloop);
 			}
-			else if(scheduleElement.getTask() != null) 
-			{
+			else if(scheduleElement.getTask() != null) 	{
 				scheduleTask = new ScheduleTask(scheduleElement.getTask().getName(), scheduleElement.getTask().getRepetition().intValue(), depth);
 				scheduleItemList.add(scheduleTask);
 				putTaskHierarchicallyToTaskMap(scheduleTask.getTaskName(), globalTaskMap);
 			}
-			else
-			{
+			else {
 				// do nothing
 			}			
 		}
@@ -337,6 +336,87 @@ public class Device {
 		}
 					
 		return processorNameFound;
+	}
+	
+	private boolean containsStaticScheduleTask(ArrayList<Task> taskList)
+	{
+		boolean staticScheduledTaskFound = false;
+		
+		for(Task task : taskList)
+		{
+			if(task.isStaticScheduled() == true)
+			{
+				staticScheduledTaskFound = true;
+				break;
+			}
+		}
+		
+		return staticScheduledTaskFound;
+	}
+	
+	private boolean containsControlTask(ArrayList<Task> taskList)
+	{
+		boolean controlTaskFound = false;
+		
+		for(Task task : taskList)
+		{
+			if(task.getType() == TaskShapeType.CONTROL)
+			{
+				controlTaskFound = true;
+				break;
+			}
+		}
+		
+		return controlTaskFound;
+	}
+	
+	private void setTaskGraphControllerType()
+	{
+		for(TaskGraph taskGraph: this.taskGraphMap.values())
+		{
+			switch(taskGraph.getTaskGraphType())
+			{
+			case DATAFLOW:
+				if(taskGraph.getParentTask() != null) {
+					if(taskGraph.getParentTask().getModeTransition() != null && 
+						taskGraph.getParentTask().getModeTransition().getModeMap().size() > 1) {
+						if(containsStaticScheduleTask(taskGraph.getTaskList()) == true) {
+							taskGraph.setControllerType(TaskGraphController.STATIC_MODE_TRANSITION);
+						}
+						else {
+							taskGraph.setControllerType(TaskGraphController.DYNAMIC_MODE_TRANSITION);
+						}
+					}
+					else if(taskGraph.getParentTask().getLoopStruct() != null) {
+						if(containsStaticScheduleTask(taskGraph.getTaskList()) == true) {
+							if(taskGraph.getParentTask().getLoopStruct().getLoopType() == TaskLoopType.DATA) {
+								taskGraph.setControllerType(TaskGraphController.STATIC_DATA_LOOP);
+							}
+							else {
+								taskGraph.setControllerType(TaskGraphController.STATIC_CONVERGENT_LOOP);
+							}
+						}
+						else {
+							if(taskGraph.getParentTask().getLoopStruct().getLoopType() == TaskLoopType.DATA) {
+								taskGraph.setControllerType(TaskGraphController.DYNAMIC_DATA_LOOP);
+							}
+							else {
+								taskGraph.setControllerType(TaskGraphController.DYNAMIC_CONVERGENT_LOOP);
+							}
+						}
+					}
+				}
+				break;
+			case PROCESS_NETWORK:
+				if(containsControlTask(taskGraph.getTaskList()) == true) {
+					taskGraph.setControllerType(TaskGraphController.CONTROL_TASK_INCLUDED);
+				}
+				break;
+			default:
+				// skip HYBRID (TODO: remove HYBRID?)
+				break;
+			}
+		}
 	}
 	
 	private void putTaskHierarchicallyToTaskMap(String taskName, HashMap<String, Task> globalTaskMap)
@@ -953,6 +1033,7 @@ public class Device {
 		case STATIC_ASSIGNMENT: // Need mapping only (needed file: mapping)
 			setGeneralTaskMappingInfo( mapping_metadata, globalTaskMap);
 			setParentTaskOfTaskGraph();
+			setTaskGraphControllerType();
 			setNumOfProcsOfTasks();
 			break;
 		// TODO: fully dynamic is not supported now
@@ -961,6 +1042,8 @@ public class Device {
 			setParentTaskOfTaskGraph();
 			break;
 		}
+		
+		setTaskGraphControllerType();
 		
 		if(gpusetup_metadata != null){
 			setupGPUInfoPerTask(gpusetup_metadata,globalTaskMap);

@@ -8,6 +8,7 @@
 #include <UKTask.h>
 #include <UKModeTransition.h>
 #include <UKHostSystem.h>
+#include <UKModeTransitionModelController.h>
 
 <#if gpu_used == true>
 #include <UKGPUSystem.h>
@@ -227,10 +228,79 @@ STask g_astTasks_${task_graph.name}[] = {
 
 // ##TASK_LIST_TEMPLATE::END
 
+
+SModelControllerFunctionSet g_stDynamicModeTransitionFunctions = {
+
+};
+
+SModelControllerFunctionSet g_stStaticModeTransitionFunctions = {
+	UKModeTransitionMachineController_HandleModelComposite,
+	UKModeTransitionMachineController_GetTaskIterationIndex,
+	UKModeTransitionMachineController_Clear,
+	UKModeTransitionMachineController_ChangeTaskThreadState,
+};
+
+SModelControllerFunctionSet g_stDynamicConvergentLoopFunctions = {
+ 
+};
+
+SModelControllerFunctionSet g_stDynamicDataLoopFunctions = {
+ 
+};
+
+SModelControllerFunctionSet g_stStaticConvergentLoopFunctions = {
+ 
+};
+
+SModelControllerFunctionSet g_stStaticDataLoopFunctions = {
+ 
+};
+
+
 // ##TASK_GRAPH_TEMPLATE::START
 <#list task_graph as graph_name, task_graph_element>
+	<#switch task_graph_element.controllerType>
+		<#case "VOID">
+			<#break>
+		<#case "CONTROL_TASK_INCLUDED">
+SModelControllerCommon g_stController_${task_graph_element.name} = {
+	(HThreadMutex) NULL,
+	0,
+	(SModelControllerFunctionSet *) NULL,
+};
+
+			<#break>
+		<#case "DYNAMIC_MODE_TRANSITION">
+		<#case "STATIC_MODE_TRANSITION">
+SModeTransitionController g_stController_${task_graph_element.name} = {
+	{
+		(HThreadMutex) NULL,
+		0,
+		&g_stStaticModeTransitionFunctions,
+	},
+	(SModeTransitionMachine *) NULL,
+};
+
+			<#break>
+		<#case "DYNAMIC_CONVERGENT_LOOP">
+		<#case "STATIC_CONVERGENT_LOOP">
+		<#case "DYNAMIC_DATA_LOOP">
+		<#case "STATIC_DATA_LOOP">
+SLoopController g_stController_${task_graph_element.name} = {
+	{
+		(HThreadMutex) NULL,
+		0,
+		&g_stStaticModeTransitionFunctions,
+	},
+	(SModeTransitionMachine *) NULL,
+};
+
+			<#break>
+	</#switch>
 STaskGraph g_stGraph_${task_graph_element.name} = {
 		GRAPH_TYPE_${task_graph_element.taskGraphType}, // Task graph type
+		CONTROLLER_TYPE_${task_graph_element.controllerType}, // graph controller type
+		<#if task_graph_element.controllerType == "VOID">(void *) NULL<#else>&g_stController_${task_graph_element.name}</#if>, // task graph controller
 		g_astTasks_${task_graph_element.name}, // current task graph's task list
 		${task_graph_element.taskList?size}, // number of tasks
 		<#if task_graph_element.parentTask??>&g_astTasks_${task_graph_element.parentTask.parentTaskGraphName}[${task_graph_element.parentTask.inGraphIndex}]<#else>(STask *) NULL</#if>, // parent task
@@ -288,7 +358,7 @@ SScheduleList g_astScheduleList_${scheduled_task.parentTaskName}_${compositeMapp
 SScheduledTasks g_astScheduledTaskList[] = {
 <#list schedule_info as task_name, mapped_schedule>
 	<#list mapped_schedule.mappedProcessorList as compositeMappedProcessor>
-	{	<#if mapped_schedule.parentTaskId == -1>(STask *) NULL<#else>&g_astTasks_${flat_task[task_name].parentTaskGraphName}[${flat_task[task_name].inGraphIndex}]</#if>, // Parent Task Structure
+	{	<#if mapped_schedule.parentTaskId == -1>(STaskGraph *) &g_stGraph_top<#else>&g_stGraph_${task_name}</#if>, // Parent Task Structure
 		${compositeMappedProcessor.modeId}, // Mode transition mode ID
 		g_astScheduleList_${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}, // schedule list per throughput constraint
 		${compositeMappedProcessor.compositeTaskScheduleList?size}, // The number of schedules in the schedule list
