@@ -14,6 +14,8 @@ import hopes.cic.xml.CICAlgorithmType;
 import hopes.cic.xml.CICAlgorithmTypeLoader;
 import hopes.cic.xml.DataParallelType;
 import hopes.cic.xml.LoopStructureTypeType;
+import hopes.cic.xml.ModeTaskType;
+import hopes.cic.xml.ModeType;
 import hopes.cic.xml.TaskType;
 
 public class CICAlgorithmXMLHandler extends CICXMLHandler {
@@ -164,6 +166,30 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 		}	
 		
 		return hierarchicalDATALoopAndSubTasksMap;
+	}
+
+	public int getPriorityByTaskName(String taskName)
+	{
+		for(ModeType modeType : algorithm.getModes().getMode())
+		{
+			for(ModeTaskType modeTaskType : modeType.getTask())
+			{
+				if(modeTaskType.getName().equals(taskName))
+				{
+					return modeTaskType.getPriority().intValue();
+				}
+			}
+		}
+
+		try {
+			throw new Exception("error : no task exists " + taskName);
+		}catch(Exception e)
+		{
+				e.printStackTrace();
+		}
+		return -1;
+
+
 	}
 }
 	
