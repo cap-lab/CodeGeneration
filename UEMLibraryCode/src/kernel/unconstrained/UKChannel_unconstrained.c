@@ -106,13 +106,20 @@ uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT 
 		nOuterMostSampleRate = pstPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
 	}
 
-	result = UKTask_GetTaskFromTaskId(pstPort->nTaskId, &pstCurTask);
-
 	pstMostInnerPort = pstPort;
+
 	while(pstMostInnerPort->pstSubGraphPort != NULL)
 	{
 		pstMostInnerPort = pstMostInnerPort->pstSubGraphPort;
 	}
+
+	result = UKTask_GetTaskFromTaskId(pstMostInnerPort->nTaskId, &pstCurTask);
+	if(result == ERR_UEM_NO_DATA)
+	{
+		result = ERR_UEM_NOERROR;
+	}
+	ERRIFGOTO(result, _EXIT);
+
 
 	if(pstPort != pstMostInnerPort)
 	{
@@ -132,13 +139,6 @@ uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT 
 	}
 	else
 	{
-		result = UKTask_GetTaskFromTaskId(pstPort->nTaskId, &pstCurTask);
-		if(result == ERR_UEM_NO_DATA)
-		{
-			result = ERR_UEM_NOERROR;
-		}
-		ERRIFGOTO(result, _EXIT);
-
 		// If the task id cannot be obtained by "UKTask_GetTaskFromTaskId",
 		// it means the information is missing because of remote communication, so set as a general task information
 
