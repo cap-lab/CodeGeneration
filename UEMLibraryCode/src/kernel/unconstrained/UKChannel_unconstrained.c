@@ -73,7 +73,7 @@ static uem_result calculateNChunkNumInsideDTypeLoopTask(STask* pstCurTask, EChan
 		}
 		else if(enChannelType == CHANNEL_TYPE_INPUT_ARRAY || enChannelType == CHANNEL_TYPE_OUTPUT_ARRAY)
 		{
-			*pnChunkNum = pstParentTask->pstLoopInfo->nLoopCount;
+			// do nothing
 		}
 		else //channel connected with task inside DTypeLoopTask cannnot be CHANNEL_TYPE_GENERAL.
 		{				
@@ -162,7 +162,8 @@ uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT 
 
 	if(pstCurTask != NULL) //Task care only for tasks in current device.
 	{
-		calculateNChunkNumInsideDTypeLoopTask(pstCurTask, enChannelType, &nChunkNum);
+		result = calculateNChunkNumInsideDTypeLoopTask(pstCurTask, enChannelType, &nChunkNum);
+		ERRIFGOTO(result, _EXIT);
 	}
 
 	*pnChunkNum = nChunkNum;
