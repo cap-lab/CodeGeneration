@@ -396,7 +396,7 @@ static uem_result popDataFromQueue(SChannel *pstChannel, SChannelAPI *pstChannel
 	int nDataCanRead = 0;
 	int nBroadcastNum = 0;
 
-	result = UKChannel_GetChunkNumAndLen(pstChannel->pstInputPort, &nChunkNum, &nChunkLen, pstChannel->enType);
+	result = UKChannel_GetChunkNumAndLen(pstChannel->pstInputPort, &nChunkNum, &nChunkLen, pstChannel->enChannelType);
 	ERRIFGOTO(result, _EXIT);
 
 	nBroadcastNum = nNumOfDataToPop / nChunkNum;
