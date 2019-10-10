@@ -233,8 +233,6 @@ _EXIT:
 }
 
 
-
-
 static uem_result traverseAndSetEventToStopTask(STask *pstTask, void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;

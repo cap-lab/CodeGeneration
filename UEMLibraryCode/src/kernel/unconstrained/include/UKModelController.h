@@ -24,6 +24,7 @@ typedef uem_result (*FnTraverseModelControllerFunctions)(STaskGraph *pstCurrentT
 uem_result UKModelController_TraverseAndCallFunctions(STaskGraph *pstLeafTaskGraph, HThreadMutex hTaskGraphLock, FnTraverseModelControllerFunctions fnFunction,
 													void *pUserData);
 uem_result UKModelController_GetTopLevelLockHandle(STaskGraph *pstLeafTaskGraph, OUT HThreadMutex *phMutex);
+uem_result UKModelController_CallSubGraphClearFunctions(STaskGraph *pstTaskGraph);
 
 #ifdef __cplusplus
 }

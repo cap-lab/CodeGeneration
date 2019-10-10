@@ -15,6 +15,7 @@
 #include <UCThreadMutex.h>
 
 #include <UKModelController.h>
+#include <UKCPUTaskCommon.h>
 
 
 uem_result UKModelController_GetTopLevelLockHandle(STaskGraph *pstLeafTaskGraph, OUT HThreadMutex *phMutex)
@@ -63,6 +64,65 @@ uem_result UKModelController_GetTopLevelLockHandle(STaskGraph *pstLeafTaskGraph,
 	*phMutex = hCurrentHighestLock;
 
 	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result callClearFunction(STask *pstTask, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STaskGraph *pstCurrentTaskGraph = NULL;
+	SModelControllerCommon *pstCommon = NULL;
+
+	if(pstTask->pstSubGraph != NULL)
+	{
+		pstCurrentTaskGraph = pstTask->pstSubGraph;
+
+		if(pstCurrentTaskGraph->pController != NULL)
+		{
+			pstCommon = (SModelControllerCommon *) pstCurrentTaskGraph->pController;
+
+			if(pstCommon->pstFunctionSet != NULL && pstCommon->pstFunctionSet->fnClear != NULL)
+			{
+				result = pstCommon->pstFunctionSet->fnClear(pstCurrentTaskGraph);
+				ERRIFGOTO(result, _EXIT);
+			}
+		}
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+uem_result UKModelController_CallSubGraphClearFunctions(STaskGraph *pstTaskGraph)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	HThreadMutex hTaskGraphLock = NULL;
+
+	result = UKModelController_GetTopLevelLockHandle(pstTaskGraph, &hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
+
+	if(hTaskGraphLock != NULL)
+	{
+		result = UCThreadMutex_Lock(hTaskGraphLock);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTaskGraph->pstParentTask, callClearFunction, NULL);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	result = callClearFunction(pstTaskGraph->pstParentTask, NULL);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	if(hTaskGraphLock != NULL)
+	{
+		UCThreadMutex_Unlock(hTaskGraphLock);
+	}
 _EXIT:
 	return result;
 }

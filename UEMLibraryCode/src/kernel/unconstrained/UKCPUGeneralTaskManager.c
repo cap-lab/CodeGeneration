@@ -29,8 +29,6 @@
 
 #include <UKCPUGeneralTaskManager.h>
 #include <UKModelController.h>
-#include <UKLoopModelController.h>
-#include <UKModeTransitionModelController.h>
 
 #define THREAD_DESTROY_TIMEOUT (3000)
 #define CHECK_MODE_ARGUMENT
@@ -55,7 +53,7 @@ typedef struct _SGeneralTask {
 	int nProcessorId;
 	SGenericMapProcessor *pstMapProcessorAPI;
 	HCPUGeneralTaskManager hManager;
-	int nCurLoopIndex;
+	int nCurLoopIndex; // modified
 	HThreadMutex hTaskGraphLock;
 } SGeneralTask;
 
@@ -116,13 +114,6 @@ struct _STraverseChangeSubgraphState {
 	ECPUTaskState enNewState;
 };
 
-struct _SModeTransitionSetEventCheck {
-	SGeneralTask *pstCallerTask;
-	int nNewStartIteration;
-	int nPrevModeIndex;
-	int nNewModeIndex;
-	uem_bool bModeChanged;
-};
 
 uem_result UKCPUGeneralTaskManager_Create(IN OUT HCPUGeneralTaskManager *phManager)
 {

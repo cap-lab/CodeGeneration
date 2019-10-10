@@ -75,7 +75,7 @@ static uem_result calculateNChunkNumInsideDTypeLoopTask(STask* pstCurTask, EChan
 		{
 			// do nothing
 		}
-		else //channel connected with task inside DTypeLoopTask cannnot be CHANNEL_TYPE_GENERAL.
+		else //channel connected with task inside DTypeLoopTask cannot be CHANNEL_TYPE_GENERAL.
 		{				
 			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 		}
