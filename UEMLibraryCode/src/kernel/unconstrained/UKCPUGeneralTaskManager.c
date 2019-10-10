@@ -51,14 +51,7 @@ typedef struct _SGeneralTask {
 	HThreadMutex hMutex;
 	ECPUTaskState enTaskState; // modified
 	uem_bool bCreated;
-	uem_bool bIsModeTransition;
-	STask *pstMTMParentTask;
 	uem_bool bIsTaskGraphSourceTask;
-	uem_bool bIsSubLoop;
-	uem_bool bIsSubConvergentLoop;
-	STask *pstLoopParentTask;
-	STask *pstLoopDirectParentTask;
-	uem_bool bLoopDesignatedTask;
 	int nProcessorId;
 	SGenericMapProcessor *pstMapProcessorAPI;
 	HCPUGeneralTaskManager hManager;
@@ -87,6 +80,12 @@ struct _SGeneralTaskSearchData {
 struct _SGeneralTaskThreadData {
 	SGeneralTaskThread *pstTaskThread;
 	SGeneralTask *pstGeneralTask;
+};
+
+struct _SGeneralTaskThreadDataDuringStopping {
+	SGeneralTaskThread *pstTaskThread;
+	SGeneralTask *pstGeneralTask;
+	uem_bool bNeedToStop;
 };
 
 struct _SGeneralTaskStopCheck {
@@ -292,87 +291,6 @@ static uem_result destroyGeneralTaskStruct(IN OUT SGeneralTask **ppstGeneralTask
 	return result;
 }
 
-static uem_bool isModeTransitionTask(STask *pstTask, OUT STask **ppstMTMTask)
-{
-	STask *pstCurrentTask = NULL;
-	uem_bool bIsModeTransition = FALSE;
-
-	pstCurrentTask = pstTask->pstParentGraph->pstParentTask;
-
-	while(pstCurrentTask != NULL)
-	{
-		if(pstCurrentTask->pstMTMInfo != NULL && pstCurrentTask->pstMTMInfo->nNumOfModes > 1)
-		{
-			*ppstMTMTask = pstCurrentTask;
-			bIsModeTransition = TRUE;
-			break;
-		}
-
-		pstCurrentTask = pstCurrentTask->pstParentGraph->pstParentTask;
-	}
-
-	if(bIsModeTransition == FALSE)
-	{
-		*ppstMTMTask = NULL;
-	}
-
-	return bIsModeTransition;
-}
-
-static uem_bool isSubLoopTask(STask *pstTask, OUT STask **ppstLoopTask)
-{
-	STask *pstCurrentTask = NULL;
-	uem_bool bIsSubLoop = FALSE;
-
-	pstCurrentTask = pstTask->pstParentGraph->pstParentTask;
-
-	while(pstCurrentTask != NULL)
-	{
-		if(pstCurrentTask->pstLoopInfo != NULL)
-		{
-			*ppstLoopTask = pstCurrentTask;
-			bIsSubLoop = TRUE;
-			break;
-		}
-
-		pstCurrentTask = pstCurrentTask->pstParentGraph->pstParentTask;
-	}
-
-	if(bIsSubLoop == FALSE)
-	{
-		*ppstLoopTask = NULL;
-	}
-
-	return bIsSubLoop;
-}
-
-static uem_bool isSubConvergentLoopTask(STask *pstTask, OUT STask **ppstLoopTask)
-{
-	STask *pstCurrentTask = NULL;
-	uem_bool bIsSubLoop = FALSE;
-
-	pstCurrentTask = pstTask->pstParentGraph->pstParentTask;
-
-	while(pstCurrentTask != NULL)
-	{
-		if(pstCurrentTask->pstLoopInfo != NULL && pstCurrentTask->pstLoopInfo->enType == LOOP_TYPE_CONVERGENT)
-		{
-			*ppstLoopTask = pstCurrentTask;
-			bIsSubLoop = TRUE;
-			break;
-		}
-
-		pstCurrentTask = pstCurrentTask->pstParentGraph->pstParentTask;
-	}
-
-	if(bIsSubLoop == FALSE)
-	{
-		*ppstLoopTask = NULL;
-	}
-
-	return bIsSubLoop;
-}
-
 
 static uem_result createGeneralTaskStruct(HCPUGeneralTaskManager hCPUTaskManager, SMappedGeneralTaskInfo *pstMappedInfo, OUT SGeneralTask **ppstGeneralTask)
 {
@@ -386,10 +304,6 @@ static uem_result createGeneralTaskStruct(HCPUGeneralTaskManager hCPUTaskManager
 	pstGeneralTask->hThreadList = NULL;
 	pstGeneralTask->enTaskState = TASK_STATE_STOP;
 	pstGeneralTask->bCreated = FALSE;
-	pstGeneralTask->pstMTMParentTask = NULL;
-	pstGeneralTask->bIsModeTransition = isModeTransitionTask(pstMappedInfo->pstTask, &(pstGeneralTask->pstMTMParentTask));
-	pstGeneralTask->bIsSubLoop = isSubLoopTask(pstMappedInfo->pstTask, &(pstGeneralTask->pstLoopDirectParentTask));
-	pstGeneralTask->bIsSubConvergentLoop = isSubConvergentLoopTask(pstMappedInfo->pstTask, &(pstGeneralTask->pstLoopParentTask));
 	pstGeneralTask->pstTask = pstMappedInfo->pstTask;
 	pstGeneralTask->nProcessorId = pstMappedInfo->nProcessorId;
 	pstGeneralTask->pstMapProcessorAPI = pstMappedInfo->pstMapProcessorAPI;
@@ -398,22 +312,7 @@ static uem_result createGeneralTaskStruct(HCPUGeneralTaskManager hCPUTaskManager
 	result = UKModelController_GetTopLevelLockHandle(pstMappedInfo->pstTask->pstParentGraph, &(pstGeneralTask->hTaskGraphLock));
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstGeneralTask->bIsModeTransition == TRUE)
-	{
-		pstGeneralTask->bIsTaskGraphSourceTask = UKChannel_IsTaskSourceTask(pstGeneralTask->pstTask->nTaskId);
-	}
-	else
-	{
-		pstGeneralTask->bIsTaskGraphSourceTask = FALSE;
-	}
-
-	if(pstGeneralTask->bIsSubLoop == TRUE && pstGeneralTask->pstTask->nTaskId == pstGeneralTask->pstLoopParentTask->pstLoopInfo->nDesignatedTaskId){
-		pstGeneralTask->bLoopDesignatedTask = TRUE;
-	}
-	else
-	{
-		pstGeneralTask->bLoopDesignatedTask = FALSE;
-	}
+	pstGeneralTask->bIsTaskGraphSourceTask = UKChannel_IsTaskSourceTask(pstGeneralTask->pstTask->nTaskId);
 
 	if(pstMappedInfo->pstTask->enRunCondition == RUN_CONDITION_DATA_DRIVEN ||
 		pstMappedInfo->pstTask->enRunCondition == RUN_CONDITION_TIME_DRIVEN)
@@ -858,6 +757,73 @@ _EXIT:
 }
 
 
+static uem_result traverseAndCallHandleModelDuringStopping(STaskGraph *pstCurrentTaskGraph, ETaskControllerType enControllerType,
+											SModelControllerFunctionSet *pstFunctionSet, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	struct _SGeneralTaskThreadDataDuringStopping *pstUserData = NULL;
+
+	pstUserData = (struct _SGeneralTaskThreadDataDuringStopping *) pUserData;
+
+	switch(enControllerType)
+	{
+	case CONTROLLER_TYPE_VOID:
+	case CONTROLLER_TYPE_CONTROL_TASK_INCLUDED:
+		// skip
+		break;
+	case CONTROLLER_TYPE_STATIC_MODE_TRANSITION:
+	case CONTROLLER_TYPE_STATIC_CONVERGENT_LOOP:
+	case CONTROLLER_TYPE_STATIC_DATA_LOOP:
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+		break;
+	case CONTROLLER_TYPE_DYNAMIC_MODE_TRANSITION:
+	case CONTROLLER_TYPE_DYNAMIC_CONVERGENT_LOOP:
+	case CONTROLLER_TYPE_DYNAMIC_DATA_LOOP:
+		if(pstFunctionSet->fnHandleStopping != NULL)
+		{
+			result = pstFunctionSet->fnHandleStopping(pstCurrentTaskGraph, (void *) pstUserData->pstGeneralTask,
+												(void *) pstUserData->pstTaskThread);
+			ERRIFGOTO(result, _EXIT);
+			if(result == ERR_UEM_ALREADY_DONE)
+			{
+				pstUserData->bNeedToStop = TRUE;
+			}
+		}
+		break;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result handleTaskGraphControllerDuringStopping(SGeneralTask *pstTask, SGeneralTaskThread *pstTaskThread)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	struct _SGeneralTaskThreadDataDuringStopping stUserData;
+
+	stUserData.pstGeneralTask = pstTask;
+	stUserData.pstTaskThread = pstTaskThread;
+	stUserData.bNeedToStop = FALSE;
+
+	result = UKModelController_TraverseAndCallFunctions(pstTask->pstTask->pstParentGraph, pstTask->hTaskGraphLock, traverseAndCallHandleModelDuringStopping, &stUserData);
+	ERRIFGOTO(result, _EXIT);
+
+	if(stUserData.bNeedToStop == TRUE)
+	{
+		result = ERR_UEM_ALREADY_DONE;
+	}
+	else
+	{
+		result = ERR_UEM_NOERROR;
+	}
+_EXIT:
+	return result;
+}
+
+
+
 static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTaskThread *pstTaskThread, FnUemTaskGo fnGo)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -969,17 +935,14 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			// run until iteration count;
 			while(bTargetIterationReached == FALSE)
 			{
-				if(pstGeneralTask->bIsModeTransition == TRUE)
-				{
-					result = UKModeTransitionMachineController_HandleModelGeneralDuringStopping(pstGeneralTask->pstMTMParentTask->pstSubGraph,
-							(void *) pstGeneralTask, (void *) pstTaskThread);
-					ERRIFGOTO(result, _EXIT_ERROR_LOCK);
+				result = handleTaskGraphControllerDuringStopping(pstGeneralTask, pstTaskThread);
+				ERRIFGOTO(result, _EXIT_ERROR_LOCK);
 
-					if(result == ERR_UEM_ALREADY_DONE)
-					{
-						break;
-					}
+				if(result == ERR_UEM_ALREADY_DONE)
+				{
+					break;
 				}
+
 				// skip bNeedSuspended here
 				result = setTaskThreadIteration(pstGeneralTask, pstTaskThread, &bNeedSuspended);
 				ERRIFGOTO(result, _EXIT_ERROR_LOCK);
