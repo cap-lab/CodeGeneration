@@ -214,6 +214,7 @@ uem_result UKCPUGeneralTaskManagerCB_GetCurrentTaskStructure(void *pTaskHandle, 
 uem_result UKCPUGeneralTaskManagerCB_ChangeTaskState(void *pTaskHandle, ECPUTaskState enState);
 uem_result UKCPUGeneralTaskManagerCB_GetCurrentTaskState(void *pTaskHandle, OUT ECPUTaskState *penState);
 uem_result UKCPUGeneralTaskManagerCB_GetManagerHandle(void *pTaskHandle, OUT HCPUGeneralTaskManager *phManager);
+uem_result UKCPUGeneralTaskManagerCB_ActivateTask(void *pTaskHandle);
 
 uem_result UKCPUGeneralTaskManagerCB_ClearLoopIndex(void *pTaskHandle);
 uem_result UKCPUGeneralTaskManagerCB_GetLoopIndex(void *pTaskHandle, OUT int *pnLoopIndex);

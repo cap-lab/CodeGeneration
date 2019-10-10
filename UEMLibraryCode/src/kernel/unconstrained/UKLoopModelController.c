@@ -150,13 +150,23 @@ static uem_result setLoopTaskCurrentIterationIfSuspended(STask *pstTask, void *p
 	ECPUTaskState enState;
 	HCPUGeneralTaskManager hManager = NULL;
 	struct _STaskHandleAndTaskGraph *pstUserData;
+	HThreadMutex hTaskGraphLock = NULL;
 
 	pstUserData = (struct _STaskHandleAndTaskGraph *) pUserData;
 
 	result = UKCPUGeneralTaskManagerCB_GetManagerHandle(pstUserData->pTaskHandle, &hManager);
 	ERRIFGOTO(result, _EXIT);
 
+	result = UKCPUGeneralTaskManagerCB_GetTaskGraphLock(pstUserData->pTaskHandle, &hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadMutex_Unlock(hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
+
 	result = UKCPUGeneralTaskManager_GetTaskState(hManager, pstTask, &enState);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadMutex_Lock(hTaskGraphLock);
 	ERRIFGOTO(result, _EXIT);
 
 	if(enState == TASK_STATE_SUSPEND)
@@ -170,50 +180,20 @@ _EXIT:
 	return result;
 }
 
-
-static uem_result traverseAndSetEventToStopTask(STask *pstTask, void *pUserData)
+static uem_result changeOwnTaskState(void *pCurrentTaskHandle, ECPUTaskState enTaskStateToChange)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	HCPUGeneralTaskManager hManager = NULL;
 	ECPUTaskState enState;
-	struct _STaskHandleAndTaskGraph *pstUserData;
-	STask *pstCallerTask = NULL;
-	HThreadMutex hTaskGraphLock = NULL;
 
-	pstUserData = (struct _STaskHandleAndTaskGraph *) pUserData;
-
-	result = UKCPUGeneralTaskManagerCB_GetManagerHandle(pstUserData->pTaskHandle, &hManager);
+	result = UKCPUGeneralTaskManagerCB_GetCurrentTaskState(pCurrentTaskHandle, &enState);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UKCPUGeneralTaskManagerCB_GetCurrentTaskStructure(pstUserData->pTaskHandle, &pstCallerTask);
-	ERRIFGOTO(result, _EXIT);
-
-	result = UKCPUGeneralTaskManager_GetTaskState(hManager, pstTask, &enState);
-	ERRIFGOTO(result, _EXIT);
-
-	if(pstTask->nCurIteration >= pstTask->nTargetIteration && enState == TASK_STATE_SUSPEND)
+	if(enState == TASK_STATE_SUSPEND)
 	{
-		if(pstCallerTask->nTaskId == pstTask->nTaskId) //callerTask(=Designated Task) already holds lock, so avoid lock.
-		{
-			result = UKCPUGeneralTaskManagerCB_ChangeTaskState(pstUserData->pTaskHandle, TASK_STATE_STOP);
-			ERRIFGOTO(result, _EXIT);
-		}
-		else
-		{
-			result = UKCPUGeneralTaskManagerCB_GetTaskGraphLock(pstUserData->pTaskHandle, &hTaskGraphLock);
-			ERRIFGOTO(result, _EXIT);
+		result = UKCPUGeneralTaskManagerCB_ChangeTaskState(pCurrentTaskHandle, enTaskStateToChange);
+		ERRIFGOTO(result, _EXIT);
 
-			result = UCThreadMutex_Unlock(hTaskGraphLock);
-			ERRIFGOTO(result, _EXIT);
-
-			result = UKCPUGeneralTaskManager_ChangeState(hManager, pstTask, TASK_STATE_STOP);
-			ERRIFGOTO(result, _EXIT);
-
-			result = UCThreadMutex_Lock(hTaskGraphLock);
-			ERRIFGOTO(result, _EXIT);
-		}
-
-		result = UKCPUGeneralTaskManager_ActivateThread(hManager, pstTask);
+		result = UKCPUGeneralTaskManagerCB_ActivateTask(pCurrentTaskHandle);
 		ERRIFGOTO(result, _EXIT);
 	}
 
@@ -223,11 +203,82 @@ _EXIT:
 }
 
 
+static uem_result changeOtherTaskState(HCPUGeneralTaskManager hManager, STask *pstTask, HThreadMutex hTaskGraphLock,
+										ECPUTaskState enTaskStateToChange)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	ECPUTaskState enState;
+
+	result = UCThreadMutex_Unlock(hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKCPUGeneralTaskManager_GetTaskState(hManager, pstTask, &enState);
+	ERRIFGOTO(result, _EXIT);
+
+	if(enState == TASK_STATE_SUSPEND)
+	{
+		result = UKCPUGeneralTaskManager_ChangeState(hManager, pstTask, enTaskStateToChange);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UKCPUGeneralTaskManager_ActivateThread(hManager, pstTask);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = UCThreadMutex_Lock(hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+
+
+static uem_result traverseAndSetEventToStopTask(STask *pstTask, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	HCPUGeneralTaskManager hManager = NULL;
+	struct _STaskHandleAndTaskGraph *pstUserData;
+	STask *pstCallerTask = NULL;
+	HThreadMutex hTaskGraphLock = NULL;
+
+	pstUserData = (struct _STaskHandleAndTaskGraph *) pUserData;
+
+	result = UKCPUGeneralTaskManagerCB_GetManagerHandle(pstUserData->pTaskHandle, &hManager);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKCPUGeneralTaskManagerCB_GetCurrentTaskStructure(pstUserData->pTaskHandle, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKCPUGeneralTaskManagerCB_GetTaskGraphLock(pstUserData->pTaskHandle, &hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstTask->nCurIteration >= pstTask->nTargetIteration)
+	{
+		if(pstCallerTask->nTaskId == pstTask->nTaskId)
+		{
+			result = changeOwnTaskState(pstUserData->pTaskHandle, TASK_STATE_STOP);
+			ERRIFGOTO(result, _EXIT);
+		}
+		else
+		{
+			result = changeOtherTaskState(hManager, pstTask, hTaskGraphLock, TASK_STATE_STOP);
+			ERRIFGOTO(result, _EXIT);
+		}
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+
 static uem_result traverseAndSetEventToTemporarySuspendedTask(STask *pstTask, void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	HCPUGeneralTaskManager hManager = NULL;
-	ECPUTaskState enState;
 	struct _STaskHandleAndTaskGraph *pstUserData;
 	STask *pstCallerTask = NULL;
 	HThreadMutex hTaskGraphLock = NULL;
@@ -240,32 +291,17 @@ static uem_result traverseAndSetEventToTemporarySuspendedTask(STask *pstTask, vo
 	result = UKCPUGeneralTaskManagerCB_GetManagerHandle(pstUserData->pTaskHandle, &hManager);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UKCPUGeneralTaskManager_GetTaskState(hManager, pstTask, &enState);
+	result = UKCPUGeneralTaskManagerCB_GetTaskGraphLock(pstUserData->pTaskHandle, &hTaskGraphLock);
 	ERRIFGOTO(result, _EXIT);
 
-	if(enState == TASK_STATE_SUSPEND)
+	if(pstCallerTask->nTaskId == pstTask->nTaskId)
 	{
-		if(pstCallerTask->nTaskId == pstTask->nTaskId)
-		{
-			result = UKCPUGeneralTaskManagerCB_ChangeTaskState(pstUserData->pTaskHandle, TASK_STATE_RUNNING);
-			ERRIFGOTO(result, _EXIT);
-		}
-		else
-		{
-			result = UKCPUGeneralTaskManagerCB_GetTaskGraphLock(pstUserData->pTaskHandle, &hTaskGraphLock);
-			ERRIFGOTO(result, _EXIT);
-
-			result = UCThreadMutex_Unlock(hTaskGraphLock);
-			ERRIFGOTO(result, _EXIT);
-
-			result = UKCPUGeneralTaskManager_ChangeState(hManager, pstTask, TASK_STATE_RUNNING);
-			ERRIFGOTO(result, _EXIT);
-
-			result = UCThreadMutex_Lock(hTaskGraphLock);
-			ERRIFGOTO(result, _EXIT);
-		}
-
-		result = UKCPUGeneralTaskManager_ActivateThread(hManager, pstTask);
+		result = changeOwnTaskState(pstUserData->pTaskHandle, TASK_STATE_RUNNING);
+		ERRIFGOTO(result, _EXIT);
+	}
+	else
+	{
+		result = changeOtherTaskState(hManager, pstTask, hTaskGraphLock, TASK_STATE_RUNNING);
 		ERRIFGOTO(result, _EXIT);
 	}
 

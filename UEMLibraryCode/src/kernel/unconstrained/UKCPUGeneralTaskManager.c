@@ -1784,6 +1784,24 @@ _EXIT:
 }
 
 
+uem_result UKCPUGeneralTaskManagerCB_ActivateTask(void *pTaskHandle)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SGeneralTask *pstGeneralTask = NULL;
+#if defined(ARGUMENT_CHECK) && defined(CHECK_MODE_ARGUMENT)
+	IFVARERRASSIGNGOTO(pTaskHandle, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+#endif
+	pstGeneralTask = (SGeneralTask *) pTaskHandle;
+
+	result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, traverseAndSetEventToTaskThread, NULL);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 
 uem_result UKCPUGeneralTaskManagerCB_GetCurrentTaskState(void *pTaskHandle, OUT ECPUTaskState *penState)
 {
