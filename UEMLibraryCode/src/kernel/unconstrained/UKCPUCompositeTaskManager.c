@@ -604,8 +604,8 @@ static uem_result changeCompositeTaskStateWithTaskGraphLock(SCompositeTask *pstC
 		result = UCThreadMutex_Lock(pstCompositeTask->hTaskGraphLock);
 		ERRIFGOTO(result, _EXIT);
 	}
-	result = changeCompositeTaskState(pstCompositeTask, enTargetState, pstCompositeTask->hThreadList);
 
+	result = changeCompositeTaskState(pstCompositeTask, enTargetState, pstCompositeTask->hThreadList);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;

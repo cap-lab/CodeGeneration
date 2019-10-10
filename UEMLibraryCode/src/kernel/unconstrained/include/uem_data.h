@@ -130,6 +130,7 @@ typedef struct _SModelControllerFunctionSet {
 	FnGetTaskIterationIndex fnGetTaskIterationIndex;
 	FnControllerClear fnClear;
 	FnChangeTaskThreadState fnChangeThreadState;
+	FnHandleModel fnHandleStopping;
 } SModelControllerFunctionSet;
 
 typedef struct _SModelControllerCommon {

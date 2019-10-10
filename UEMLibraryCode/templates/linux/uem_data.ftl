@@ -8,6 +8,7 @@
 #include <UKTask.h>
 #include <UKModeTransition.h>
 #include <UKHostSystem.h>
+#include <UKLoopModelController.h>
 #include <UKModeTransitionModelController.h>
 
 <#if gpu_used == true>
@@ -230,7 +231,11 @@ STask g_astTasks_${task_graph.name}[] = {
 
 
 SModelControllerFunctionSet g_stDynamicModeTransitionFunctions = {
-
+	UKModeTransitionMachineController_HandleModelGeneral,
+	UKModeTransitionMachineController_GetTaskIterationIndex,
+	UKModeTransitionMachineController_Clear,
+	UKModeTransitionMachineController_ChangeSubGraphTaskState,
+	UKModeTransitionMachineController_HandleModelGeneralDuringStopping,
 };
 
 SModelControllerFunctionSet g_stStaticModeTransitionFunctions = {
@@ -238,22 +243,39 @@ SModelControllerFunctionSet g_stStaticModeTransitionFunctions = {
 	UKModeTransitionMachineController_GetTaskIterationIndex,
 	UKModeTransitionMachineController_Clear,
 	UKModeTransitionMachineController_ChangeTaskThreadState,
+	(FnHandleModel) NULL,
 };
 
 SModelControllerFunctionSet g_stDynamicConvergentLoopFunctions = {
- 
+	(FnHandleModel ) UKLoopModelController_HandleConvergentLoop,
+	(FnGetTaskIterationIndex) NULL,
+	(FnControllerClear) NULL,
+	(FnChangeTaskThreadState) NULL,
+	(FnHandleModel) NULL,
 };
 
 SModelControllerFunctionSet g_stDynamicDataLoopFunctions = {
- 
+	(FnHandleModel ) NULL,
+	(FnGetTaskIterationIndex) NULL,
+	(FnControllerClear) NULL,
+	(FnChangeTaskThreadState) NULL,
+	(FnHandleModel) NULL,
 };
 
 SModelControllerFunctionSet g_stStaticConvergentLoopFunctions = {
- 
+	(FnHandleModel ) NULL,
+	(FnGetTaskIterationIndex) NULL,
+	(FnControllerClear) NULL,
+	(FnChangeTaskThreadState) NULL,
+	(FnHandleModel) NULL,
 };
 
 SModelControllerFunctionSet g_stStaticDataLoopFunctions = {
- 
+	(FnHandleModel ) NULL,
+	(FnGetTaskIterationIndex) NULL,
+	(FnControllerClear) NULL,
+	(FnChangeTaskThreadState) NULL,
+	(FnHandleModel) NULL,
 };
 
 
@@ -271,6 +293,16 @@ SModelControllerCommon g_stController_${task_graph_element.name} = {
 
 			<#break>
 		<#case "DYNAMIC_MODE_TRANSITION">
+SModeTransitionController g_stController_${task_graph_element.name} = {
+	{
+		(HThreadMutex) NULL,
+		0,
+		&g_stDynamicModeTransitionFunctions,
+	},
+	(SModeTransitionMachine *) NULL,
+};
+
+			<#break>
 		<#case "STATIC_MODE_TRANSITION">
 SModeTransitionController g_stController_${task_graph_element.name} = {
 	{
@@ -282,17 +314,31 @@ SModeTransitionController g_stController_${task_graph_element.name} = {
 };
 
 			<#break>
-		<#case "DYNAMIC_CONVERGENT_LOOP">
 		<#case "STATIC_CONVERGENT_LOOP">
-		<#case "DYNAMIC_DATA_LOOP">
-		<#case "STATIC_DATA_LOOP">
+// Static convergent loop not implemented
+			<#break>
+		<#case "DYNAMIC_CONVERGENT_LOOP">
 SLoopController g_stController_${task_graph_element.name} = {
 	{
 		(HThreadMutex) NULL,
 		0,
-		&g_stStaticModeTransitionFunctions,
+		&g_stDynamicConvergentLoopFunctions,
 	},
-	(SModeTransitionMachine *) NULL,
+	(SLoopInfo *) NULL,
+};
+
+			<#break>
+		<#case "STATIC_DATA_LOOP">
+// Static data loop not implemented 
+			<#break>
+		<#case "DYNAMIC_DATA_LOOP">
+SLoopController g_stController_${task_graph_element.name} = {
+	{
+		(HThreadMutex) NULL,
+		0,
+		&g_stDynamicDataLoopFunctions,
+	},
+	(SLoopInfo *) NULL,
 };
 
 			<#break>

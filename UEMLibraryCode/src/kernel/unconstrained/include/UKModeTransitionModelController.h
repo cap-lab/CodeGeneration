@@ -22,6 +22,10 @@ uem_result UKModeTransitionMachineController_GetTaskIterationIndex(STask *pstMTM
 uem_result UKModeTransitionMachineController_Clear(STaskGraph *pstTaskGraph);
 uem_result UKModeTransitionMachineController_ChangeTaskThreadState(STaskGraph *pstGraph, void *pCurrentTaskHandle, void *pCurrentThreadHandle, ECPUTaskState enTargetState, OUT ECPUTaskState *penState);
 
+uem_result UKModeTransitionMachineController_HandleModelGeneral(STaskGraph *pstGraph, void *pCurrentTaskHandle, void *pCurrentThreadHandle);
+uem_result UKModeTransitionMachineController_ChangeSubGraphTaskState(STaskGraph *pstGraph, void *pCurrentTaskHandle, void *pCurrentThreadHandle, ECPUTaskState enTargetState, OUT ECPUTaskState *penState);
+uem_result UKModeTransitionMachineController_HandleModelGeneralDuringStopping(STaskGraph *pstGraph, void *pCurrentTaskHandle, void *pCurrentThreadHandle);
+
 #ifdef __cplusplus
 }
 #endif

@@ -44,7 +44,9 @@ uem_result UKModelController_GetTopLevelLockHandle(STaskGraph *pstLeafTaskGraph,
 		case CONTROLLER_TYPE_DYNAMIC_MODE_TRANSITION:
 		case CONTROLLER_TYPE_DYNAMIC_CONVERGENT_LOOP:
 		case CONTROLLER_TYPE_DYNAMIC_DATA_LOOP:
-			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+			pstCommon = (SModelControllerCommon *) pstTaskGraph->pController;
+			IFVARERRASSIGNGOTO(pstCommon, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+			hCurrentHighestLock = pstCommon->hMutex;
 			break;
 		}
 
