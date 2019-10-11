@@ -422,6 +422,22 @@ uem_result UKTask_SetTargetIteration(STask *pstTask, int nTargetIteration, int n
 	nCurrentIteration = pstTask->nCurIteration;
 
 	pstCurrentTask = pstTask;
+
+	while(pstCurrentTask != NULL)
+	{
+		if(pstCurrentTask->pstParentGraph->pstParentTask != NULL && pstCurrentTask->pstParentGraph->pstParentTask->pstLoopInfo != NULL)
+		{
+			nNewIteration = nNewIteration * pstCurrentTask->pstParentGraph->pstParentTask->pstLoopInfo->nLoopCount;
+		}
+
+		if(nTargetTaskId == pstCurrentTask->nTaskId)
+		{
+			break;
+		}
+		pstCurrentTask = pstCurrentTask->pstParentGraph->pstParentTask;
+	}
+
+	pstCurrentTask = pstTask;
 	while(pstCurrentTask != NULL)
 	{
 		if(pstCurrentTask->nTaskId == nTargetTaskId ||
@@ -502,10 +518,6 @@ uem_result UKTask_SetAllTargetIteration(int nTargetIteration)
 		pstTopParentTask = pstTask;
 		while(pstTopParentTask->pstParentGraph->pstParentTask != NULL)
 		{
-			if(pstTopParentTask->pstParentGraph->pstParentTask->pstLoopInfo != NULL)
-			{
-				nCurTargetIteration = nCurTargetIteration * pstTopParentTask->pstParentGraph->pstParentTask->pstLoopInfo->nLoopCount;
-			}
 			pstTopParentTask = pstTopParentTask->pstParentGraph->pstParentTask;
 		}
 		result = UKTask_SetTargetIteration(pstTask, nCurTargetIteration, pstTopParentTask->nTaskId);

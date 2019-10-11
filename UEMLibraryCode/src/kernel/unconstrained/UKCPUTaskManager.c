@@ -586,9 +586,6 @@ static uem_result setMaximumTaskIteration(STask *pstTask, void *pUserData)
 	pstParentTask = pstTask;
 	while(pstParentTask->pstParentGraph->pstParentTask != NULL)
 	{
-		if(pstParentTask->pstParentGraph->pstParentTask->pstLoopInfo != NULL) {
-			nCurMaxIteration = nCurMaxIteration * pstParentTask->pstParentGraph->pstParentTask->pstLoopInfo->nLoopCount;
-		}
 		pstParentTask = pstParentTask->pstParentGraph->pstParentTask;
 	}
 
