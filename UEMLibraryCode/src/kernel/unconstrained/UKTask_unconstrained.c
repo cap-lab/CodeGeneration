@@ -353,7 +353,8 @@ _EXIT:
 }
 
 
-static uem_result getTaskIterationIndex(STask *pstTask, int nCurrentIteration, int *pbIndex)
+
+uem_result UKTask_GetTaskIteration(STask *pstTask, int nCurrentIteration, OUT int *pnTaskIteration)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nModeNum;
@@ -399,7 +400,7 @@ static uem_result getTaskIterationIndex(STask *pstTask, int nCurrentIteration, i
 		nIndex = 0;
 	}
 
-	*pbIndex = nIndex;
+	*pnTaskIteration = pstTask->astTaskIteration[nIndex].nRunInIteration;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -414,53 +415,38 @@ uem_result UKTask_SetTargetIteration(STask *pstTask, int nTargetIteration, int n
 	int nNewIteration = 1;
 	STask *pstCurrentTask = NULL;
 	uem_bool bFound = FALSE;
-	int nCurrentIteration;
 
 	result = UCThreadMutex_Lock(pstTask->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	nCurrentIteration = pstTask->nCurIteration;
-
 	pstCurrentTask = pstTask;
 
 	while(pstCurrentTask != NULL)
 	{
-		if(pstCurrentTask->pstParentGraph->pstParentTask != NULL && pstCurrentTask->pstParentGraph->pstParentTask->pstLoopInfo != NULL)
+		if(pstCurrentTask->pstParentGraph->pstParentTask != NULL)
 		{
-			nNewIteration = nNewIteration * pstCurrentTask->pstParentGraph->pstParentTask->pstLoopInfo->nLoopCount;
+			switch(pstCurrentTask->pstParentGraph->enControllerType)
+			{
+			case CONTROLLER_TYPE_DYNAMIC_CONVERGENT_LOOP:
+			case CONTROLLER_TYPE_DYNAMIC_DATA_LOOP:
+				nNewIteration = nNewIteration * pstCurrentTask->pstParentGraph->pstParentTask->astTaskIteration[nIndex].nRunInIteration;
+				nNewIteration = nNewIteration * pstCurrentTask->pstParentGraph->pstParentTask->pstLoopInfo->nLoopCount;
+				break;
+			case CONTROLLER_TYPE_DYNAMIC_MODE_TRANSITION:
+				nNewIteration = nNewIteration * pstCurrentTask->pstParentGraph->pstParentTask->astTaskIteration[nIndex].nRunInIteration;
+				break;
+			default:
+				// do nothing
+				break;
+			}
 		}
 
 		if(nTargetTaskId == pstCurrentTask->nTaskId)
 		{
-			break;
-		}
-		pstCurrentTask = pstCurrentTask->pstParentGraph->pstParentTask;
-	}
-
-	pstCurrentTask = pstTask;
-	while(pstCurrentTask != NULL)
-	{
-		if(pstCurrentTask->nTaskId == nTargetTaskId ||
-			(pstCurrentTask->pstParentGraph->pstParentTask != NULL &&
-			pstCurrentTask->pstParentGraph->pstParentTask->nTaskId == nTargetTaskId))
-		{
-			if(pstCurrentTask->pstParentGraph->pstParentTask != NULL && pstCurrentTask->pstParentGraph->pstParentTask->pstLoopInfo != NULL)
-			{
-				result = getTaskIterationIndex(pstCurrentTask->pstParentGraph->pstParentTask, nCurrentIteration, &nIndex);
-				ERRIFGOTO(result, _EXIT_LOCK);
-
-				nNewIteration = nNewIteration * pstCurrentTask->pstParentGraph->pstParentTask->astTaskIteration[nIndex].nRunInIteration;
-			}
 			nNewIteration = nNewIteration * nTargetIteration;
 			bFound = TRUE;
 			break;
 		}
-		result = getTaskIterationIndex(pstCurrentTask, nCurrentIteration, &nIndex);
-		ERRIFGOTO(result, _EXIT_LOCK);
-
-		nNewIteration = nNewIteration * pstCurrentTask->astTaskIteration[nIndex].nRunInIteration;
-		nCurrentIteration = nCurrentIteration / pstCurrentTask->astTaskIteration[nIndex].nRunInIteration;
-
 		pstCurrentTask = pstCurrentTask->pstParentGraph->pstParentTask;
 	}
 

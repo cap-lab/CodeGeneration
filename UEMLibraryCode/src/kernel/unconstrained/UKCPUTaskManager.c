@@ -874,10 +874,7 @@ uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUTaskManager, int nTaskId
 
 				result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, setMaximumTaskIteration, &stIterationSet);
 				ERRIFGOTO(result, _EXIT);
-			}
 
-			if(pstTask->enRunCondition == RUN_CONDITION_CONTROL_DRIVEN)
-			{
 				result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, runOnceDataflowSubgraphTask, pstManager->hGeneralManager);
 				ERRIFGOTO(result, _EXIT);
 			}

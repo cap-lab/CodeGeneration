@@ -659,6 +659,7 @@ static uem_result setTaskThreadIteration(SGeneralTask *pstGeneralTask, SGeneralT
 	STask *pstCurrentTask = NULL;
 	int nIndex = 0;
 	int nCurIteration;
+	int nTaskIterationNumber;
 
 	nIndex = pstTaskThread->nTaskFuncId;
 	pstCurrentTask = pstGeneralTask->pstTask;
@@ -668,27 +669,28 @@ static uem_result setTaskThreadIteration(SGeneralTask *pstGeneralTask, SGeneralT
 
 	nCurIteration = pstCurrentTask->nCurIteration;
 
-	if(pstGeneralTask->nCurLoopIndex < nCurIteration)
+	result = UKTask_GetTaskIteration(pstCurrentTask, nCurIteration, &nTaskIterationNumber);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	if(pstGeneralTask->nCurLoopIndex < nCurIteration * nTaskIterationNumber)
 	{
-		pstGeneralTask->nCurLoopIndex = nCurIteration;
+		pstGeneralTask->nCurLoopIndex = nCurIteration * nTaskIterationNumber;
 	}
 
-    if(pstCurrentTask->nTargetIteration > 0 && pstGeneralTask->nCurLoopIndex  >= pstCurrentTask->nTargetIteration)
+    if(pstCurrentTask->nTargetIteration > 0 && pstGeneralTask->nCurLoopIndex  >= pstCurrentTask->nTargetIteration * nTaskIterationNumber)
     {
         *pbSuspended = TRUE;
     }
     else
     {
         *pbSuspended = FALSE;
-        pstCurrentTask->astThreadContext[nIndex].nCurRunIndex = pstGeneralTask->nCurLoopIndex;
-
+        pstCurrentTask->astThreadContext[nIndex].nCurRunIndex = pstGeneralTask->nCurLoopIndex / nTaskIterationNumber;
         pstGeneralTask->nCurLoopIndex++;
     }
 
-	result = UCThreadMutex_Unlock(pstCurrentTask->hMutex);
-	ERRIFGOTO(result, _EXIT);
-
 	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstCurrentTask->hMutex);
 _EXIT:
 	return result;
 }
