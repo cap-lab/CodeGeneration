@@ -16,6 +16,7 @@
 #include <uem_data.h>
 
 #include <UKTask_internal.h>
+#include <UKModelController.h>
 
 
 static int findIndexByIteration(SModeTransitionMachine *pstModeTransition, int nCurrentIteration, OUT int *pnHistoryEnd)
@@ -165,6 +166,7 @@ uem_result UKModeTransition_GetCurrentModeName (IN int nCallerTaskId, IN char *p
 	int nCurrentIteration;
 	SModeTransitionController *pstController = NULL;
 	STaskGraph *pstMTMGraph = NULL;
+	HThreadMutex hTaskGraphLock = NULL;
 
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
@@ -176,7 +178,10 @@ uem_result UKModeTransition_GetCurrentModeName (IN int nCallerTaskId, IN char *p
 
 	pstController = (SModeTransitionController *) pstMTMGraph->pController;
 
-	result = UCThreadMutex_Lock(pstController->stCommon.hMutex);
+	result = UKModelController_GetTopLevelLockHandle(pstMTMGraph, &hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadMutex_Lock(hTaskGraphLock);
 	ERRIFGOTO(result, _EXIT);
 
 	if(pstMTMGraph->enControllerType == CONTROLLER_TYPE_STATIC_MODE_TRANSITION)
@@ -194,7 +199,7 @@ uem_result UKModeTransition_GetCurrentModeName (IN int nCallerTaskId, IN char *p
 		// ignore error check here to unlock the lock
 	}
 
-	UCThreadMutex_Unlock(pstController->stCommon.hMutex);
+	result = UCThreadMutex_Unlock(hTaskGraphLock);
 	ERRIFGOTO(result, _EXIT);
 
 	*ppszModeName = pstController->pstMTMInfo->astModeMap[nCurModeIndex].pszModeName;
@@ -256,6 +261,7 @@ EModeState UKModeTransition_GetModeState(int nTaskId)
 	STask *pstTask = NULL;
 	EModeState enModeState = MODE_STATE_TRANSITING;
 	SModeTransitionController *pstController = NULL;
+	HThreadMutex hTaskGraphLock = NULL;
 
 	result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
 	ERRIFGOTO(result, _EXIT);
@@ -268,12 +274,15 @@ EModeState UKModeTransition_GetModeState(int nTaskId)
 
 	pstController = (SModeTransitionController *) pstTask->pstSubGraph->pController;
 
-	result = UCThreadMutex_Lock(pstController->stCommon.hMutex);
+	result = UKModelController_GetTopLevelLockHandle(pstTask->pstSubGraph, &hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadMutex_Lock(hTaskGraphLock);
 	ERRIFGOTO(result, _EXIT);
 
 	enModeState = pstController->pstMTMInfo->enModeState;
 
-	result = UCThreadMutex_Unlock(pstController->stCommon.hMutex);
+	result = UCThreadMutex_Unlock(hTaskGraphLock);
 	ERRIFGOTO(result, _EXIT);
 _EXIT:
 	return enModeState;
@@ -357,6 +366,7 @@ uem_result UKModeTransition_SetModeIntegerParameter (IN int nCallerTaskId, IN ch
 	uem_string_struct strParamName;
 	SModeTransitionController *pstController = NULL;
 	STaskGraph *pstMTMGraph = NULL;
+	HThreadMutex hTaskGraphLock = NULL;
 
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
@@ -368,6 +378,10 @@ uem_result UKModeTransition_SetModeIntegerParameter (IN int nCallerTaskId, IN ch
 
 	nLen = pstController->pstMTMInfo->nNumOfIntVariables;
 
+
+	result = UKModelController_GetTopLevelLockHandle(pstMTMGraph, &hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
+
 	result = UCString_New(&strTargetParamName, pszParamName, UEMSTRING_CONST);
 	ERRIFGOTO(result, _EXIT);
 
@@ -378,12 +392,12 @@ uem_result UKModeTransition_SetModeIntegerParameter (IN int nCallerTaskId, IN ch
 
 		if(UCString_IsEqual(&strTargetParamName, &strParamName) == TRUE)
 		{
-			result = UCThreadMutex_Lock(pstController->stCommon.hMutex);
+			result = UCThreadMutex_Lock(hTaskGraphLock);
 			ERRIFGOTO(result, _EXIT);
 
 			pstController->pstMTMInfo->astVarIntMap[nLoop].nValue = nParamVal;
 
-			result = UCThreadMutex_Unlock(pstController->stCommon.hMutex);
+			result = UCThreadMutex_Unlock(hTaskGraphLock);
 			ERRIFGOTO(result, _EXIT);
 			break;
 		}
@@ -401,6 +415,7 @@ uem_result UKModeTransition_UpdateMode (IN int nCallerTaskId, IN char *pszTaskNa
 	STask *pstTask = NULL;
 	SModeTransitionController *pstController = NULL;
 	STaskGraph *pstMTMGraph = NULL;
+	HThreadMutex hTaskGraphLock = NULL;
 
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
@@ -410,12 +425,15 @@ uem_result UKModeTransition_UpdateMode (IN int nCallerTaskId, IN char *pszTaskNa
 
 	pstController = (SModeTransitionController *) pstMTMGraph->pController;
 
-	result = UCThreadMutex_Lock(pstController->stCommon.hMutex);
+	result = UKModelController_GetTopLevelLockHandle(pstMTMGraph, &hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadMutex_Lock(hTaskGraphLock);
 	ERRIFGOTO(result, _EXIT);
 
 	pstController->pstMTMInfo->fnTransition(pstController->pstMTMInfo);
 
-	result = UCThreadMutex_Unlock(pstController->stCommon.hMutex);
+	result = UCThreadMutex_Unlock(hTaskGraphLock);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;

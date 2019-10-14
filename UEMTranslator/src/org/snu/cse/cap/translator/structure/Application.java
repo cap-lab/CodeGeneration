@@ -1112,13 +1112,11 @@ public class Application {
 					if(graph.getName(node).equals(srcTask.getName()) == true) {
 						srcNode = node;
 						unconnectedSDFTaskMap.remove(srcTask.getName());
-						System.out.println("srcNode: " + srcTask.getName());
 					}
 
 					if(graph.getName(node).equals(dstTask.getName()) == true) {
 						dstNode = node;
 						unconnectedSDFTaskMap.remove(dstTask.getName());
-						System.out.println("dstNode: " + dstTask.getName());
 					}
 				}
 

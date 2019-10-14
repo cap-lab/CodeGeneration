@@ -17,6 +17,7 @@
 #include <UKChannel_internal.h>
 #include <UKTask_internal.h>
 #include <UKModeTransition.h>
+#include <UKModelController.h>
 #include <UKCPUGeneralTaskManager.h>
 #include <UKCPUCompositeTaskManager.h>
 

@@ -16,8 +16,8 @@
 
 #include <UKChannel_internal.h>
 #include <UKTask_internal.h>
+#include <UKModelController.h>
 #include <UKCPUGeneralTaskManager.h>
-
 
 struct _STaskHandleAndTaskGraph {
 	STaskGraph *pstTaskGraph;

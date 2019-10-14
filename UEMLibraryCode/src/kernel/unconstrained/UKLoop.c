@@ -18,6 +18,7 @@
 #include <UKLoop.h>
 #include <UKTask_internal.h>
 
+#include <UKModelController.h>
 #include <UKLoopModelController.h>
 
 
@@ -60,6 +61,7 @@ uem_result UKLoop_GetLoopTaskIteration(IN int nCallerTaskId, IN int nTaskThreadI
 	STaskGraph *pstTaskGraph = NULL;
 	STask *pstCallerTask = NULL;
 	SLoopController *pstLoopController = NULL;
+	HThreadMutex hTaskGraphLock = NULL;
 
 	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
 	ERRIFGOTO(result, _EXIT);
@@ -69,7 +71,16 @@ uem_result UKLoop_GetLoopTaskIteration(IN int nCallerTaskId, IN int nTaskThreadI
 
 	pstLoopController = (SLoopController *)pstTaskGraph->pController;
 
+	result = UKModelController_GetTopLevelLockHandle(pstTaskGraph, &hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadMutex_Lock(hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
+
 	*pnTaskIteration = pstCallerTask->astThreadContext[nTaskThreadId].nCurRunIndex % pstLoopController->pstLoopInfo->nLoopCount;
+
+	result = UCThreadMutex_Unlock(hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -83,6 +94,7 @@ uem_result UKLoop_StopNextIteration(IN int nCallerTaskId)
 	STask *pstCallerTask = NULL;
 	STaskGraph *pstParentTaskGraph = NULL;
 	SLoopController *pstLoopController = NULL;
+	HThreadMutex hTaskGraphLock = NULL;
 
 	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
 	ERRIFGOTO(result, _EXIT);
@@ -103,7 +115,16 @@ uem_result UKLoop_StopNextIteration(IN int nCallerTaskId)
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 	}
 
+	result = UKModelController_GetTopLevelLockHandle(pstParentTaskGraph, &hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadMutex_Lock(hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
+
 	pstLoopController->pstLoopInfo->bDesignatedTaskState = TRUE;
+
+	result = UCThreadMutex_Unlock(hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
