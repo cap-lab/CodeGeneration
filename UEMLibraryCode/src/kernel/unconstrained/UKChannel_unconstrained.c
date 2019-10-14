@@ -27,22 +27,23 @@ uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType
 static uem_result getClosestParentDTypeLoopTask(IN STask* pstCurTask, OUT STask** ppstParentTask)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	STask *pstTask = NULL;
 	STask *pstParentLoopTask = NULL;
+	STaskGraph *pstTaskGraph = NULL;
 
 	IFVARERRASSIGNGOTO(ppstParentTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	pstTask = pstCurTask->pstParentGraph->pstParentTask;
-	while(pstTask != NULL)
+	pstTaskGraph = pstCurTask->pstParentGraph;
+	while(pstTaskGraph->pstParentTask != NULL)
 	{
-		if(pstTask->pstLoopInfo != NULL && pstTask->pstLoopInfo->enType == LOOP_TYPE_DATA)//if parent task is looptype task
+		if(pstTaskGraph->enControllerType == CONTROLLER_TYPE_DYNAMIC_DATA_LOOP ||
+			pstTaskGraph->enControllerType == CONTROLLER_TYPE_STATIC_DATA_LOOP)
 		{
-			pstParentLoopTask = pstTask;
+			pstParentLoopTask = pstTaskGraph->pstParentTask;
 			break;
 		}
 		else
 		{
-			pstTask = pstTask->pstParentGraph->pstParentTask;
+			pstTaskGraph = pstTaskGraph->pstParentTask->pstParentGraph;
 		}
 	}
 

@@ -18,25 +18,30 @@
 #include <UKLoop.h>
 #include <UKTask_internal.h>
 
+#include <UKLoopModelController.h>
 
-static uem_result getParentLoopTaskByCallerTask(STask *pstCallerTask, OUT STask **ppstTask)
+
+static uem_result getParentLoopTaskGraphByCallerTask(STask *pstCallerTask, OUT STaskGraph **ppstTaskGraph)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	STask *pstParentTask = NULL;
+	STaskGraph *pstParentTaskGraph = NULL;
 
-	pstParentTask = pstCallerTask;
+	pstParentTaskGraph = pstCallerTask->pstParentGraph;
 
-	while(pstParentTask != NULL)
+	while(pstParentTaskGraph->pstParentTask != NULL)
 	{
-		if(pstParentTask->pstLoopInfo != NULL)
+		if(pstParentTaskGraph->enControllerType == CONTROLLER_TYPE_DYNAMIC_CONVERGENT_LOOP ||
+			pstParentTaskGraph->enControllerType == CONTROLLER_TYPE_STATIC_CONVERGENT_LOOP ||
+			pstParentTaskGraph->enControllerType == CONTROLLER_TYPE_DYNAMIC_DATA_LOOP ||
+			pstParentTaskGraph->enControllerType == CONTROLLER_TYPE_STATIC_DATA_LOOP)
 		{
-			*ppstTask = pstParentTask;
+			*ppstTaskGraph = pstParentTaskGraph;
 			break;
 		}
 
-		if(pstParentTask->pstParentGraph->pstParentTask != NULL)
+		if(pstParentTaskGraph->pstParentTask != NULL)
 		{
-			pstParentTask = pstParentTask->pstParentGraph->pstParentTask;
+			pstParentTaskGraph = pstParentTaskGraph->pstParentTask->pstParentGraph;
 		}
 		else // pstCallerTask->pstParentGraph->pstParentTask == NULL -> top-level graph
 		{
@@ -52,16 +57,19 @@ _EXIT:
 uem_result UKLoop_GetLoopTaskIteration(IN int nCallerTaskId, IN int nTaskThreadId, OUT int *pnTaskIteration)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	STask *pstTask = NULL;
+	STaskGraph *pstTaskGraph = NULL;
 	STask *pstCallerTask = NULL;
+	SLoopController *pstLoopController = NULL;
 
 	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
 	ERRIFGOTO(result, _EXIT);
 
-	result = getParentLoopTaskByCallerTask(pstCallerTask, &pstTask);
+	result = getParentLoopTaskGraphByCallerTask(pstCallerTask, &pstTaskGraph);
 	ERRIFGOTO(result, _EXIT);
 
-	*pnTaskIteration = pstCallerTask->astThreadContext[nTaskThreadId].nCurRunIndex % pstTask->pstLoopInfo->nLoopCount;
+	pstLoopController = (SLoopController *)pstTaskGraph->pController;
+
+	*pnTaskIteration = pstCallerTask->astThreadContext[nTaskThreadId].nCurRunIndex % pstLoopController->pstLoopInfo->nLoopCount;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -73,24 +81,29 @@ uem_result UKLoop_StopNextIteration(IN int nCallerTaskId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstCallerTask = NULL;
-	STask *pstParentTask = NULL;
+	STaskGraph *pstParentTaskGraph = NULL;
+	SLoopController *pstLoopController = NULL;
 
 	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
 	ERRIFGOTO(result, _EXIT);
 
 	IFVARERRASSIGNGOTO(pstCallerTask->pstParentGraph->pstParentTask, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
-	IFVARERRASSIGNGOTO(pstCallerTask->pstParentGraph->pstParentTask->pstLoopInfo, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 
-	pstParentTask = pstCallerTask->pstParentGraph->pstParentTask;
+	pstParentTaskGraph = pstCallerTask->pstParentGraph;
 
-	if (pstParentTask->pstLoopInfo->enType != LOOP_TYPE_CONVERGENT) {
-		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
-	}
-	if (pstParentTask->pstLoopInfo->nDesignatedTaskId != pstCallerTask->nTaskId) {
-		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	if(pstParentTaskGraph->enControllerType != CONTROLLER_TYPE_DYNAMIC_CONVERGENT_LOOP &&
+	pstParentTaskGraph->enControllerType != CONTROLLER_TYPE_STATIC_CONVERGENT_LOOP)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 	}
 
-	pstParentTask->pstLoopInfo->bDesignatedTaskState = TRUE;
+	pstLoopController =  (SLoopController *) pstParentTaskGraph->pController;
+
+	if (pstLoopController->pstLoopInfo->nDesignatedTaskId != pstCallerTask->nTaskId) {
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
+
+	pstLoopController->pstLoopInfo->bDesignatedTaskState = TRUE;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

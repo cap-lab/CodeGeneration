@@ -167,13 +167,10 @@ typedef struct _STask {
 	STaskThreadContext *astThreadContext;
 	int nTaskThreadSetNum;
 	ERunCondition enRunCondition;
-	int nRunRate; // WILL BE REMOVED
 	int nPeriod;
 	ETimeMetric enPeriodMetric;
 	STaskGraph *pstSubGraph;
 	STaskGraph *pstParentGraph;
-	SModeTransitionMachine *pstMTMInfo; // WILL BE REMOVED
-	SLoopInfo *pstLoopInfo; // WILL BE REMOVED
 	STaskParameter *astTaskParam;
 	int nTaskParamNum;
 	uem_bool bStaticScheduled; // WILL BE REMOVED

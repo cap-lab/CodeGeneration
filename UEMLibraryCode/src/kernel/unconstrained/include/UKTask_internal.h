@@ -156,7 +156,7 @@ uem_result UKTask_SetTargetIteration(STask *pstTask, int nTargetIteration, int n
  */
 uem_result UKTask_SetAllTargetIteration(int nTargetIteration);
 
-uem_result UKTask_GetTaskIteration(STask *pstTask, int nCurrentIteration, OUT int *pnTaskIteration);
+uem_result UKTask_GetTaskIteration(STask *pstTask, OUT int *pnTaskIteration);
 
 #ifdef __cplusplus
 }

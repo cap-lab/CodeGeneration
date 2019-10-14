@@ -669,7 +669,7 @@ static uem_result setTaskThreadIteration(SGeneralTask *pstGeneralTask, SGeneralT
 
 	nCurIteration = pstCurrentTask->nCurIteration;
 
-	result = UKTask_GetTaskIteration(pstCurrentTask, nCurIteration, &nTaskIterationNumber);
+	result = UKTask_GetTaskIteration(pstCurrentTask, &nTaskIterationNumber);
 	ERRIFGOTO(result, _EXIT_LOCK);
 
 	if(pstGeneralTask->nCurLoopIndex < nCurIteration * nTaskIterationNumber)

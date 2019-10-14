@@ -203,13 +203,10 @@ STask g_astTasks_${task_graph.name}[] = {
 		g_ast_${task.name}_thread_context, // Task thread context
 		${task.taskFuncNum}, // Task function array number
 		RUN_CONDITION_${task.runCondition}, // Run condition
-		1, // Run rate
 		${task.period?c}, // Period
 		TIME_METRIC_${task.periodMetric}, // Period metric
 		<#if task.childTaskGraphName??>&g_stGraph_${task.childTaskGraphName}<#else>(STaskGraph *) NULL</#if>, // Subgraph
 		&g_stGraph_${task.parentTaskGraphName}, // Parent task graph
-		<#if task.modeTransition??>&g_stModeTransition_${task.name}<#else>(SModeTransitionMachine *) NULL</#if>, // MTM information
-		<#if task.loopStruct??>&g_stLoopStruct_${task.name}<#else>(SLoopInfo *) NULL</#if>, // Loop information
 		<#if (task.taskParamList?size > 0)>g_astTaskParameter_${task.name}<#else>(STaskParameter *) NULL</#if>, // Task parameter information
 		${task.taskParamList?size}, // Task parameter number
 		<#if task.staticScheduled == true>TRUE<#else>FALSE</#if>, // Statically scheduled or not
@@ -299,7 +296,7 @@ SModeTransitionController g_stController_${task_graph_element.name} = {
 		0,
 		&g_stDynamicModeTransitionFunctions,
 	},
-	(SModeTransitionMachine *) NULL,
+	<#if flat_task[task_graph_element.name].modeTransition??>&g_stModeTransition_${task_graph_element.name}<#else>(SModeTransitionMachine *) NULL</#if>, // MTM information
 };
 
 			<#break>
@@ -310,7 +307,7 @@ SModeTransitionController g_stController_${task_graph_element.name} = {
 		0,
 		&g_stStaticModeTransitionFunctions,
 	},
-	(SModeTransitionMachine *) NULL,
+	<#if flat_task[task_graph_element.name].modeTransition??>&g_stModeTransition_${task_graph_element.name}<#else>(SModeTransitionMachine *) NULL</#if>, // MTM information
 };
 
 			<#break>
@@ -324,7 +321,7 @@ SLoopController g_stController_${task_graph_element.name} = {
 		0,
 		&g_stDynamicConvergentLoopFunctions,
 	},
-	(SLoopInfo *) NULL,
+	<#if flat_task[task_graph_element.name].loopStruct??>&g_stLoopStruct_${task_graph_element.name}<#else>(SLoopInfo *) NULL</#if>, // Loop information
 };
 
 			<#break>
@@ -338,7 +335,7 @@ SLoopController g_stController_${task_graph_element.name} = {
 		0,
 		&g_stDynamicDataLoopFunctions,
 	},
-	(SLoopInfo *) NULL,
+	<#if flat_task[task_graph_element.name].loopStruct??>&g_stLoopStruct_${task_graph_element.name}<#else>(SLoopInfo *) NULL</#if>, // Loop information
 };
 
 			<#break>
@@ -346,7 +343,7 @@ SLoopController g_stController_${task_graph_element.name} = {
 STaskGraph g_stGraph_${task_graph_element.name} = {
 		GRAPH_TYPE_${task_graph_element.taskGraphType}, // Task graph type
 		CONTROLLER_TYPE_${task_graph_element.controllerType}, // graph controller type
-		<#if task_graph_element.controllerType == "VOID">(void *) NULL<#else>&g_stController_${task_graph_element.name}</#if>, // task graph controller
+		<#if task_graph_element.controllerType == "VOID">(void *) NULL<#else>&g_stController_${task_graph_element.name}</#if>, // task graph controller (SLoopController, SModeTransitionController, or SModelControllerCommon)
 		g_astTasks_${task_graph_element.name}, // current task graph's task list
 		${task_graph_element.taskList?size}, // number of tasks
 		<#if task_graph_element.parentTask??>&g_astTasks_${task_graph_element.parentTask.parentTaskGraphName}[${task_graph_element.parentTask.inGraphIndex}]<#else>(STask *) NULL</#if>, // parent task

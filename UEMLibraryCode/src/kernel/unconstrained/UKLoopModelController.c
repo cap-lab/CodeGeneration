@@ -24,7 +24,7 @@ struct _STaskHandleAndTaskGraph {
 	void *pTaskHandle;
 };
 
-static uem_result updateLoopIterationHistory(STask *pstParentTask, STask *pstCurrentTask)
+static uem_result updateLoopIterationHistory(STaskGraph *pstGraph, STask *pstCurrentTask)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SLoopInfo *pstLoopInfo = NULL;
@@ -33,7 +33,11 @@ static uem_result updateLoopIterationHistory(STask *pstParentTask, STask *pstCur
 	int nCurIteration = 0;
 	int nTargetIteration = 0;
 
-	pstLoopInfo = pstParentTask->pstLoopInfo;
+	SLoopController *pstController = NULL;
+
+	pstController = (SLoopController *) pstGraph->pController;
+
+	pstLoopInfo = pstController->pstLoopInfo;
 	nCurIteration = pstLoopInfo->nCurrentIteration;
 	nTargetIteration = pstCurrentTask->nTargetIteration;
 	nLoopCount = pstLoopInfo->nLoopCount;
@@ -73,25 +77,29 @@ _EXIT:
 static uem_result setLoopTaskCurrentIteration(STask *pstTask, void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	STask *pstParentTask = NULL;
 	SLoopInfo *pstLoopInfo = NULL;
 	int nSavedIteration = 1;
 	int nLoop = 0;
 	int nHistoryEnd;
 	int nCheckNum = 0;
 	STask *pstParentLoopTask = NULL;
+	STaskGraph *pstParentTaskGraph;
 	int nNumOfDataToPop = 0;
+	SLoopController *pstLoopController = NULL;
 
-	pstParentTask = pstTask->pstParentGraph->pstParentTask;
+	pstParentTaskGraph = pstTask->pstParentGraph;
 	pstParentLoopTask = (STask *) pUserData;
 
-	while(pstParentTask != NULL )
+	while(pstParentTaskGraph->pstParentTask != NULL )
 	{
-		if(pstParentTask->pstLoopInfo != NULL)
+		if(pstParentTaskGraph->enControllerType == CONTROLLER_TYPE_DYNAMIC_CONVERGENT_LOOP ||
+			pstParentTaskGraph->enControllerType == CONTROLLER_TYPE_DYNAMIC_DATA_LOOP)
 		{
-			if(pstParentTask->pstLoopInfo->enType == LOOP_TYPE_CONVERGENT)
+			pstLoopController = (SLoopController *) pstParentTaskGraph->pController;
+
+			if(pstLoopController->pstLoopInfo->enType == LOOP_TYPE_CONVERGENT)
 			{
-				pstLoopInfo = pstParentTask->pstLoopInfo;
+				pstLoopInfo = pstLoopController->pstLoopInfo;
 
 				nHistoryEnd = pstLoopInfo->nCurHistoryStartIndex + pstLoopInfo->nCurHistoryLen - 1;
 
@@ -127,9 +135,9 @@ static uem_result setLoopTaskCurrentIteration(STask *pstTask, void *pUserData)
 				ERRIFGOTO(result, _EXIT);
 
 			}
-			nSavedIteration = nSavedIteration * pstParentTask->pstLoopInfo->nLoopCount;
+			nSavedIteration = nSavedIteration * pstLoopController->pstLoopInfo->nLoopCount;
 		}
-		pstParentTask = pstParentTask->pstParentGraph->pstParentTask;
+		pstParentTaskGraph = pstParentTaskGraph->pstParentTask->pstParentGraph;
 	}
 
 	if(pstParentLoopTask->nTaskId != pstTask->nTaskId && nNumOfDataToPop > 0)
@@ -318,27 +326,29 @@ static uem_result handleLoopTaskIteration(STaskGraph *pstGraph, void *pCurrentTa
 	int nCurIteration = 0;
 	struct _STaskHandleAndTaskGraph stUserData;
 	ECPUTaskState enState;
+	SLoopController *pstController = NULL;
 
+	pstController = (SLoopController *) pstGraph->pController;
 	pstParentTask = pstGraph->pstParentTask;
 
 	result = UKCPUGeneralTaskManagerCB_GetCurrentTaskStructure(pCurrentTaskHandle, &pstCurrentTask);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstParentTask->pstLoopInfo->enType == LOOP_TYPE_CONVERGENT && pstParentTask->pstLoopInfo->nDesignatedTaskId == pstCurrentTask->nTaskId)
+	if(pstController->pstLoopInfo->enType == LOOP_TYPE_CONVERGENT && pstController->pstLoopInfo->nDesignatedTaskId == pstCurrentTask->nTaskId)
 	{
-		if(pstParentTask->pstLoopInfo->bDesignatedTaskState == TRUE)
+		if(pstController->pstLoopInfo->bDesignatedTaskState == TRUE)
 		{
 			//stop loop task iteration
 			//set iteration to target iteration
 			result = UKCPUGeneralTaskManagerCB_ChangeTaskState(pCurrentTaskHandle, TASK_STATE_SUSPEND);
 			ERRIFGOTO(result, _EXIT);
 
-			result = updateLoopIterationHistory(pstParentTask, pstCurrentTask);
+			result = updateLoopIterationHistory(pstGraph, pstCurrentTask);
 			ERRIFGOTO(result, _EXIT);
 
-			nCurIteration = pstParentTask->pstLoopInfo->nCurrentIteration;
-			nLoopCount = pstParentTask->pstLoopInfo->nLoopCount;
-			pstParentTask->pstLoopInfo->nCurrentIteration = nCurIteration - (nCurIteration % nLoopCount) + nLoopCount;
+			nCurIteration = pstController->pstLoopInfo->nCurrentIteration;
+			nLoopCount = pstController->pstLoopInfo->nLoopCount;
+			pstController->pstLoopInfo->nCurrentIteration = nCurIteration - (nCurIteration % nLoopCount) + nLoopCount;
 
 			stUserData.pTaskHandle = pCurrentTaskHandle;
 			stUserData.pstTaskGraph = pstGraph;
@@ -350,7 +360,7 @@ static uem_result handleLoopTaskIteration(STaskGraph *pstGraph, void *pCurrentTa
 			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstParentTask, traverseAndSetEventToStopTask, &stUserData);
 			ERRIFGOTO(result, _EXIT);
 
-			pstParentTask->pstLoopInfo->bDesignatedTaskState = FALSE;
+			pstController->pstLoopInfo->bDesignatedTaskState = FALSE;
 
 			result = UKCPUGeneralTaskManagerCB_ClearLoopIndex(pCurrentTaskHandle);
 			ERRIFGOTO(result, _EXIT);
@@ -358,7 +368,7 @@ static uem_result handleLoopTaskIteration(STaskGraph *pstGraph, void *pCurrentTa
 		else
 		{
 			//run next iteration
-			pstParentTask->pstLoopInfo->nCurrentIteration++;
+			pstController->pstLoopInfo->nCurrentIteration++;
 			//pstParentTask->pstLoopInfo->nCurrentIteration = pstGeneralTask->pstTask->nCurIteration + 1;
 		}
 
@@ -387,25 +397,33 @@ _EXIT:
 
 static uem_bool compareIterationtoAllParentLoopTask(STask *pstTask, int nLoopIndex)
 {
-	STask *pstCurrentTask = NULL;
+	STaskGraph *pstCurrentTaskGraph = NULL;
 	uem_bool bNeedtoSuspend = FALSE;
 	int nCurIteration = 0;
+	SLoopController *pstController = NULL;
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nTaskIterationNumber = 0;
 
-	pstCurrentTask = pstTask;
+	pstCurrentTaskGraph = pstTask->pstParentGraph;
 	nCurIteration = pstTask->nCurIteration;
 
-	while(pstCurrentTask != NULL)
+	result = UKTask_GetTaskIteration(pstTask, &nTaskIterationNumber);
+	ERRIFGOTO(result, _EXIT);
+
+	while(pstCurrentTaskGraph->pstParentTask != NULL)
 	{
-		if(pstCurrentTask->pstLoopInfo != NULL)
+		if(pstCurrentTaskGraph->enControllerType == CONTROLLER_TYPE_DYNAMIC_CONVERGENT_LOOP ||
+			pstCurrentTaskGraph->enControllerType == CONTROLLER_TYPE_DYNAMIC_DATA_LOOP)
 		{
-			if(pstCurrentTask->pstLoopInfo->enType == LOOP_TYPE_CONVERGENT)
+			pstController = (SLoopController *) pstCurrentTaskGraph->pController;
+			if(pstController->pstLoopInfo->enType == LOOP_TYPE_CONVERGENT)
 			{
-				if(pstCurrentTask->pstLoopInfo->nCurrentIteration < nCurIteration)
+				if(pstController->pstLoopInfo->nCurrentIteration < nCurIteration)
 				{
 					bNeedtoSuspend = TRUE;
 					break;
 				}
-				else if(pstCurrentTask->pstLoopInfo->nCurrentIteration < nLoopIndex)
+				else if(pstController->pstLoopInfo->nCurrentIteration * nTaskIterationNumber < nLoopIndex)
 				{
 					bNeedtoSuspend = TRUE;
 					break;
@@ -416,22 +434,18 @@ static uem_bool compareIterationtoAllParentLoopTask(STask *pstTask, int nLoopInd
 
 			}
 
-			if(pstTask != pstCurrentTask)
-			{
-				nCurIteration = nCurIteration / pstCurrentTask->pstLoopInfo->nLoopCount;
-			}
-
-			nLoopIndex = nLoopIndex / pstCurrentTask->pstLoopInfo->nLoopCount;
+			nCurIteration = nCurIteration / pstController->pstLoopInfo->nLoopCount;
+			nLoopIndex = nLoopIndex / pstController->pstLoopInfo->nLoopCount;
 		}
 
-		pstCurrentTask = pstCurrentTask->pstParentGraph->pstParentTask;
+		pstCurrentTaskGraph = pstCurrentTaskGraph->pstParentTask->pstParentGraph;
 	}
-
+_EXIT:
 	return bNeedtoSuspend;
 }
 
 
-static uem_result updateTaskThreadIterationInConvergentLoop(STask *pstParentTask, void *pTaskHandle, void *pThreadHandle)
+static uem_result updateTaskThreadIterationInConvergentLoop(STaskGraph *pstParentTaskGraph, void *pTaskHandle, void *pThreadHandle)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstCurrentTask = NULL;
@@ -439,6 +453,11 @@ static uem_result updateTaskThreadIterationInConvergentLoop(STask *pstParentTask
 	int nCurIteration;
 	int nCurLoopIndex = 0;
 	STaskGraph *pstIntermediateGraph = NULL;
+	SLoopController *pstController = NULL;
+	SLoopController *pstIntermediateController = NULL;
+	int nTaskIterationNumber = 0;
+
+	pstController = (SLoopController *) pstParentTaskGraph->pController;
 
 	result = UKCPUGeneralTaskManagerCB_GetThreadIndex(pThreadHandle, &nIndex);
 	ERRIFGOTO(result, _EXIT);
@@ -452,29 +471,27 @@ static uem_result updateTaskThreadIterationInConvergentLoop(STask *pstParentTask
 	result = UKCPUGeneralTaskManagerCB_GetLoopIndex(pTaskHandle, &nCurLoopIndex);
 	ERRIFGOTO(result, _EXIT_LOCK);
 
-    if(pstParentTask != NULL && pstParentTask->pstLoopInfo != NULL)
-    {
-        nCurIteration = pstParentTask->pstLoopInfo->nCurrentIteration;
-        pstIntermediateGraph = pstCurrentTask->pstParentGraph;
+	nCurIteration = pstController->pstLoopInfo->nCurrentIteration;
+	pstIntermediateGraph = pstCurrentTask->pstParentGraph;
 
-        while(pstIntermediateGraph->pstParentTask != NULL && pstParentTask != pstIntermediateGraph->pstParentTask)
-        {
-            if(pstIntermediateGraph->pstParentTask->pstLoopInfo != NULL)
-            {
-                nCurIteration = nCurIteration * pstIntermediateGraph->pstParentTask->pstLoopInfo->nLoopCount;
-            }
-
-            pstIntermediateGraph = pstIntermediateGraph->pstParentTask->pstParentGraph;
-        }
-    }
-	else
+	while(pstIntermediateGraph->pstParentTask != NULL && pstParentTaskGraph != pstIntermediateGraph)
 	{
-		nCurIteration = pstCurrentTask->nCurIteration;
+		if(pstIntermediateGraph->enControllerType == CONTROLLER_TYPE_DYNAMIC_DATA_LOOP ||
+			pstIntermediateGraph->enControllerType == CONTROLLER_TYPE_DYNAMIC_CONVERGENT_LOOP)
+		{
+			pstIntermediateController = (SLoopController *) pstIntermediateGraph->pController;
+			nCurIteration = nCurIteration * pstIntermediateController->pstLoopInfo->nLoopCount;
+		}
+
+		pstIntermediateGraph = pstIntermediateGraph->pstParentTask->pstParentGraph;
 	}
 
-	if(nCurLoopIndex < nCurIteration)
+	result = UKTask_GetTaskIteration(pstCurrentTask, &nTaskIterationNumber);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	if(nCurLoopIndex < nCurIteration * nTaskIterationNumber)
 	{
-		nCurLoopIndex = nCurIteration;
+		nCurLoopIndex = nCurIteration * nTaskIterationNumber;
 	}
 
 	result = UKCPUGeneralTaskManagerCB_SetLoopIndex(pTaskHandle, nCurLoopIndex);
@@ -531,7 +548,7 @@ uem_result UKLoopModelController_HandleConvergentLoop(STaskGraph *pstGraph, void
 		(pstCurrentTask->enRunCondition != RUN_CONDITION_TIME_DRIVEN ||
 		(pstCurrentTask->enRunCondition == RUN_CONDITION_TIME_DRIVEN && bFunctionCalled == TRUE)))
 	{
-		result = updateTaskThreadIterationInConvergentLoop(pstGraph->pstParentTask, pCurrentTaskHandle, pCurrentThreadHandle);
+		result = updateTaskThreadIterationInConvergentLoop(pstGraph, pCurrentTaskHandle, pCurrentThreadHandle);
 		ERRIFGOTO(result, _EXIT);
 	}
 
