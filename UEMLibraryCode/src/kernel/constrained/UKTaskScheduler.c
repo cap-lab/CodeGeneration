@@ -123,7 +123,7 @@ static void initializeCompositeTasks(int nTaskNum, SCompositeTaskRuntimeInfo ast
 
 	for(nLoop = 0 ; nLoop < nTaskNum ; nLoop++)
 	{
-		pstParentTask = astRuntimeInfo[nLoop].pstCompositeTaskSchedule->pstParentTask;
+		pstParentTask = astRuntimeInfo[nLoop].pstCompositeTaskSchedule->pstParentTaskGraph->pstParentTask;
 
 		if(pstParentTask == NULL)
 		{
@@ -269,9 +269,9 @@ static uem_result runCompositeTasks(int nTaskNum, SCompositeTaskRuntimeInfo astR
 	{
 		if(astRuntimeInfo[nLoop].bRunning == TRUE)
 		{
-			if(astRuntimeInfo[nLoop].pstCompositeTaskSchedule->pstParentTask != NULL)
+			if(astRuntimeInfo[nLoop].pstCompositeTaskSchedule->pstParentTaskGraph->pstParentTask != NULL)
 			{
-				pstParentTask = astRuntimeInfo[nLoop].pstCompositeTaskSchedule->pstParentTask;
+				pstParentTask = astRuntimeInfo[nLoop].pstCompositeTaskSchedule->pstParentTaskGraph->pstParentTask;
 				nTaskId = pstParentTask->nTaskId;
 
 				if(pstParentTask->enRunCondition == RUN_CONDITION_CONTROL_DRIVEN)

@@ -1036,6 +1036,25 @@ public class Application {
 			graph.setName(node, nodeName);
 		}
 	}
+	private Task getTaskOfMergedGraph(ChannelPort port)
+	{
+		Task task = null;
+		ChannelPort currentPort = null;
+		
+		currentPort = port;
+		task = this.taskMap.get(currentPort.getTaskName());
+		
+		while(currentPort != null) {
+			
+			if(task.getLoopStruct() != null || task.getModeTransition() != null) {
+				break;
+			}
+			task = this.taskMap.get(currentPort.getTaskName());
+			currentPort = currentPort.getSubgraphPort();
+		}
+		
+		return task;
+	}
 
 	private boolean addEdge(SDFGraph graph, TaskMode mode, Channel channel, HashMap<String, Node> unconnectedSDFTaskMap)
 	{
@@ -1043,39 +1062,31 @@ public class Application {
 		Task srcTask;
 		Task dstTask;
 		int srcRate = 0;
-		int dstRate = 0;
-		srcTask = this.taskMap.get(channel.getOutputPort().getTaskName());
-		dstTask = this.taskMap.get(channel.getInputPort().getTaskName());
+		int dstRate = 0;		
+		
+		srcTask = getTaskOfMergedGraph(channel.getOutputPort());
+		dstTask = getTaskOfMergedGraph(channel.getInputPort());
 
-		if(channel.getOutputPort().getPortSampleRateList().size() == 1 || mode == null)
-		{
+		if(channel.getOutputPort().getPortSampleRateList().size() == 1 || mode == null) {
 			srcRate = channel.getOutputPort().getPortSampleRateList().get(0).getSampleRate();
 		}
-		else
-		{
+		else {
 			srcRate = Constants.INVALID_VALUE;
-			for(PortSampleRate rate: channel.getOutputPort().getPortSampleRateList())
-			{
-				if(mode.getName().equals(rate.getModeName()) == true)
-				{
+			for(PortSampleRate rate: channel.getOutputPort().getPortSampleRateList()) {
+				if(mode.getName().equals(rate.getModeName()) == true) {
 					srcRate = rate.getSampleRate();
 					break;
 				}
 			}
 		}
 
-
-		if(channel.getInputPort().getPortSampleRateList().size() == 1 || mode == null)
-		{
+		if(channel.getInputPort().getPortSampleRateList().size() == 1 || mode == null) {
 			dstRate = channel.getInputPort().getPortSampleRateList().get(0).getSampleRate();
 		}
-		else
-		{
+		else {
 			dstRate = Constants.INVALID_VALUE;
-			for(PortSampleRate rate: channel.getInputPort().getPortSampleRateList())
-			{
-				if(mode.getName().equals(rate.getModeName()) == true)
-				{
+			for(PortSampleRate rate: channel.getInputPort().getPortSampleRateList()) {
+				if(mode.getName().equals(rate.getModeName()) == true) {
 					dstRate = rate.getSampleRate();
 					break;
 				}
@@ -1088,43 +1099,35 @@ public class Application {
 			Node dstNode = null;
 			int initialData = channel.getInitialDataLen()/channel.getChannelSampleSize();
 
-			if(srcTask.getLoopStruct() != null && srcTask.getChildTaskGraphName() == null)
-			{
+			if(srcTask.getLoopStruct() != null && srcTask.getChildTaskGraphName() == null) {
 				srcRate = srcRate / srcTask.getLoopStruct().getLoopCount();
 			}
 
 			if(dstTask.getLoopStruct() != null && dstTask.getLoopStruct().getLoopType() == TaskLoopType.DATA &&
-				dstTask.getChildTaskGraphName() == null && channel.getInputPort().getLoopPortType() == LoopPortType.DISTRIBUTING)
-			{
+				dstTask.getChildTaskGraphName() == null && 
+				channel.getInputPort().getLoopPortType() == LoopPortType.DISTRIBUTING) {
 				dstRate = dstRate / dstTask.getLoopStruct().getLoopCount();
 			}
 			else if(dstTask.getLoopStruct() != null &&
-				dstTask.getChildTaskGraphName() == null)
-			{
-				if(dstRate / dstTask.getLoopStruct().getLoopCount() == 0)
-				{
+				dstTask.getChildTaskGraphName() == null) {
+				if(dstRate / dstTask.getLoopStruct().getLoopCount() == 0) {
 					srcRate = srcRate * dstTask.getLoopStruct().getLoopCount();
 					initialData = initialData * dstTask.getLoopStruct().getLoopCount();
 				}
-				else
-				{
+				else {
 					dstRate = dstRate / dstTask.getLoopStruct().getLoopCount();
 				}
 			}
 
-			if(initialData == 0)
-			{
-				for(Object nodeObj : graph.nodes())
-				{
+			if(initialData == 0) {
+				for(Object nodeObj : graph.nodes()) {
 					Node node = (Node) nodeObj;
-					if(graph.getName(node).equals(srcTask.getName()) == true)
-					{
+					if(graph.getName(node).equals(srcTask.getName()) == true) {
 						srcNode = node;
 						unconnectedSDFTaskMap.remove(srcTask.getName());
 					}
 
-					if(graph.getName(node).equals(dstTask.getName()) == true)
-					{
+					if(graph.getName(node).equals(dstTask.getName()) == true) {
 						dstNode = node;
 						unconnectedSDFTaskMap.remove(dstTask.getName());
 					}
@@ -1135,6 +1138,7 @@ public class Application {
 
 				Edge edge = new Edge(srcNode, dstNode);
 				edge.setWeight(weight);
+				
 				graph.addEdge(edge);
 				graph.setName(edge, channel.getOutputPort().getPortName() + "to" + channel.getInputPort().getPortName());
 			}

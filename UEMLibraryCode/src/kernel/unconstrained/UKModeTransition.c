@@ -16,6 +16,7 @@
 #include <uem_data.h>
 
 #include <UKTask_internal.h>
+#include <UKModelController.h>
 
 
 static int findIndexByIteration(SModeTransitionMachine *pstModeTransition, int nCurrentIteration, OUT int *pnHistoryEnd)
@@ -126,6 +127,36 @@ _EXIT:
 	return result;
 }
 
+static uem_result getMTMTaskGraph(STask *pstTask, OUT STaskGraph **ppstMTMGraph)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STaskGraph *pstMTMGraph = NULL;
+
+	pstMTMGraph = pstTask->pstSubGraph;
+
+	if(pstMTMGraph == NULL ||
+		(pstMTMGraph != NULL && pstMTMGraph->enControllerType != CONTROLLER_TYPE_DYNAMIC_MODE_TRANSITION &&
+				pstMTMGraph->enControllerType != CONTROLLER_TYPE_STATIC_MODE_TRANSITION))
+	{
+		// if the parent task is also not a MTM task graph, it is an error.
+		if(pstMTMGraph != NULL && pstMTMGraph->pstParentTask != NULL &&
+		pstMTMGraph->pstParentTask->pstParentGraph->enControllerType != CONTROLLER_TYPE_DYNAMIC_MODE_TRANSITION &&
+		pstMTMGraph->pstParentTask->pstParentGraph->enControllerType != CONTROLLER_TYPE_STATIC_MODE_TRANSITION)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		}
+
+		pstMTMGraph = pstTask->pstParentGraph;
+	}
+
+	*ppstMTMGraph = pstMTMGraph;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
 
 uem_result UKModeTransition_GetCurrentModeName (IN int nCallerTaskId, IN char *pszTaskName, OUT char **ppszModeName)
 {
@@ -133,49 +164,45 @@ uem_result UKModeTransition_GetCurrentModeName (IN int nCallerTaskId, IN char *p
 	STask *pstTask = NULL;
 	int nCurModeIndex = INVALID_ARRAY_INDEX;
 	int nCurrentIteration;
-	/*STask *pstCallerTask = NULL;
-
-	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
-	ERRIFGOTO(result, _EXIT);
-
-	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
-	ERRIFGOTO(result, _EXIT);*/
+	SModeTransitionController *pstController = NULL;
+	STaskGraph *pstMTMGraph = NULL;
+	HThreadMutex hTaskGraphLock = NULL;
 
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
 	nCurrentIteration = pstTask->nCurIteration;
 
-	if(pstTask->pstMTMInfo == NULL)
-	{
-		IFVARERRASSIGNGOTO(pstTask->pstParentGraph->pstParentTask, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
-		IFVARERRASSIGNGOTO(pstTask->pstParentGraph->pstParentTask->pstMTMInfo, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
-
-		pstTask = pstTask->pstParentGraph->pstParentTask;
-	}
-
-	result = UCThreadMutex_Lock(pstTask->hMutex);
+	result = getMTMTaskGraph(pstTask, &pstMTMGraph);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstTask->bStaticScheduled == TRUE)
+	pstController = (SModeTransitionController *) pstMTMGraph->pController;
+
+	result = UKModelController_GetTopLevelLockHandle(pstMTMGraph, &hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadMutex_Lock(hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstMTMGraph->enControllerType == CONTROLLER_TYPE_STATIC_MODE_TRANSITION)
 	{
-		nCurModeIndex = pstTask->pstMTMInfo->nCurModeIndex;
+		nCurModeIndex = pstController->pstMTMInfo->nCurModeIndex;
 	}
 	else
 	{
-		result = UKModeTransition_GetCurrentModeIndexByIteration(pstTask->pstMTMInfo, nCurrentIteration, &nCurModeIndex);
+		result = UKModeTransition_GetCurrentModeIndexByIteration(pstController->pstMTMInfo, nCurrentIteration, &nCurModeIndex);
 		if(result == ERR_UEM_NOT_FOUND && nCurrentIteration == 0)
 		{
-			nCurModeIndex = pstTask->pstMTMInfo->nCurModeIndex;
+			nCurModeIndex = pstController->pstMTMInfo->nCurModeIndex;
 			result = ERR_UEM_NOERROR;
 		}
 		// ignore error check here to unlock the lock
 	}
 
-	UCThreadMutex_Unlock(pstTask->hMutex);
+	result = UCThreadMutex_Unlock(hTaskGraphLock);
 	ERRIFGOTO(result, _EXIT);
 
-	*ppszModeName = pstTask->pstMTMInfo->astModeMap[nCurModeIndex].pszModeName;
+	*ppszModeName = pstController->pstMTMInfo->astModeMap[nCurModeIndex].pszModeName;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -233,18 +260,29 @@ EModeState UKModeTransition_GetModeState(int nTaskId)
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
 	EModeState enModeState = MODE_STATE_TRANSITING;
+	SModeTransitionController *pstController = NULL;
+	HThreadMutex hTaskGraphLock = NULL;
 
 	result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
-	IFVARERRASSIGNGOTO(pstTask->pstMTMInfo, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+	if(pstTask->pstSubGraph->enControllerType != CONTROLLER_TYPE_DYNAMIC_MODE_TRANSITION &&
+	pstTask->pstSubGraph->enControllerType != CONTROLLER_TYPE_STATIC_MODE_TRANSITION)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
 
-	result = UCThreadMutex_Lock(pstTask->hMutex);
+	pstController = (SModeTransitionController *) pstTask->pstSubGraph->pController;
+
+	result = UKModelController_GetTopLevelLockHandle(pstTask->pstSubGraph, &hTaskGraphLock);
 	ERRIFGOTO(result, _EXIT);
 
-	enModeState = pstTask->pstMTMInfo->enModeState;
+	result = UCThreadMutex_Lock(hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
 
-	result = UCThreadMutex_Unlock(pstTask->hMutex);
+	enModeState = pstController->pstMTMInfo->enModeState;
+
+	result = UCThreadMutex_Unlock(hTaskGraphLock);
 	ERRIFGOTO(result, _EXIT);
 _EXIT:
 	return enModeState;
@@ -326,43 +364,40 @@ uem_result UKModeTransition_SetModeIntegerParameter (IN int nCallerTaskId, IN ch
 	int nLen = 0;
 	uem_string_struct strTargetParamName;
 	uem_string_struct strParamName;
-	/*STask *pstCallerTask = NULL;
-
-	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
-	ERRIFGOTO(result, _EXIT);
-
-	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
-	ERRIFGOTO(result, _EXIT);*/
+	SModeTransitionController *pstController = NULL;
+	STaskGraph *pstMTMGraph = NULL;
+	HThreadMutex hTaskGraphLock = NULL;
 
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstTask->pstMTMInfo == NULL)
-	{
-		IFVARERRASSIGNGOTO(pstTask->pstParentGraph->pstParentTask, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
-		IFVARERRASSIGNGOTO(pstTask->pstParentGraph->pstParentTask->pstMTMInfo, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+	result = getMTMTaskGraph(pstTask, &pstMTMGraph);
+	ERRIFGOTO(result, _EXIT);
 
-		pstTask = pstTask->pstParentGraph->pstParentTask;
-	}
+	pstController = (SModeTransitionController *) pstMTMGraph->pController;
 
-	nLen = pstTask->pstMTMInfo->nNumOfIntVariables;
+	nLen = pstController->pstMTMInfo->nNumOfIntVariables;
+
+
+	result = UKModelController_GetTopLevelLockHandle(pstMTMGraph, &hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
 
 	result = UCString_New(&strTargetParamName, pszParamName, UEMSTRING_CONST);
 	ERRIFGOTO(result, _EXIT);
 
 	for(nLoop = 0 ; nLoop < nLen; nLoop++)
 	{
-		result = UCString_New(&strParamName, pstTask->pstMTMInfo->astVarIntMap[nLoop].pszVariableName, UEMSTRING_CONST);
+		result = UCString_New(&strParamName, pstController->pstMTMInfo->astVarIntMap[nLoop].pszVariableName, UEMSTRING_CONST);
 		ERRIFGOTO(result, _EXIT);
 
 		if(UCString_IsEqual(&strTargetParamName, &strParamName) == TRUE)
 		{
-			result = UCThreadMutex_Lock(pstTask->hMutex);
+			result = UCThreadMutex_Lock(hTaskGraphLock);
 			ERRIFGOTO(result, _EXIT);
 
-			pstTask->pstMTMInfo->astVarIntMap[nLoop].nValue = nParamVal;
+			pstController->pstMTMInfo->astVarIntMap[nLoop].nValue = nParamVal;
 
-			result = UCThreadMutex_Unlock(pstTask->hMutex);
+			result = UCThreadMutex_Unlock(hTaskGraphLock);
 			ERRIFGOTO(result, _EXIT);
 			break;
 		}
@@ -378,31 +413,27 @@ uem_result UKModeTransition_UpdateMode (IN int nCallerTaskId, IN char *pszTaskNa
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
-	/*STask *pstCallerTask = NULL;
-
-	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
-	ERRIFGOTO(result, _EXIT);
-
-	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
-	ERRIFGOTO(result, _EXIT);*/
+	SModeTransitionController *pstController = NULL;
+	STaskGraph *pstMTMGraph = NULL;
+	HThreadMutex hTaskGraphLock = NULL;
 
 	result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstTask->pstMTMInfo == NULL)
-	{
-		IFVARERRASSIGNGOTO(pstTask->pstParentGraph->pstParentTask, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
-		IFVARERRASSIGNGOTO(pstTask->pstParentGraph->pstParentTask->pstMTMInfo, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
-
-		pstTask = pstTask->pstParentGraph->pstParentTask;
-	}
-
-	result = UCThreadMutex_Lock(pstTask->hMutex);
+	result = getMTMTaskGraph(pstTask, &pstMTMGraph);
 	ERRIFGOTO(result, _EXIT);
 
-	pstTask->pstMTMInfo->fnTransition(pstTask->pstMTMInfo);
+	pstController = (SModeTransitionController *) pstMTMGraph->pController;
 
-	result = UCThreadMutex_Unlock(pstTask->hMutex);
+	result = UKModelController_GetTopLevelLockHandle(pstMTMGraph, &hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadMutex_Lock(hTaskGraphLock);
+	ERRIFGOTO(result, _EXIT);
+
+	pstController->pstMTMInfo->fnTransition(pstController->pstMTMInfo);
+
+	result = UCThreadMutex_Unlock(hTaskGraphLock);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;

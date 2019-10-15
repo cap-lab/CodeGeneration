@@ -1,0 +1,12 @@
+package org.snu.cse.cap.translator.structure;
+
+public enum TaskGraphController {
+	VOID,
+	CONTROL_TASK_INCLUDED,
+	DYNAMIC_MODE_TRANSITION,
+	STATIC_MODE_TRANSITION,
+	DYNAMIC_CONVERGENT_LOOP,
+	STATIC_CONVERGENT_LOOP,
+	DYNAMIC_DATA_LOOP,
+	STATIC_DATA_LOOP,
+}

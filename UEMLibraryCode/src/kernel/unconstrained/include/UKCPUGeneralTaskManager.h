@@ -208,6 +208,21 @@ uem_result UKCPUGeneralTaskManager_DestroyThread(HCPUGeneralTaskManager hManager
  */
 uem_result UKCPUGeneralTaskManager_Destroy(IN OUT HCPUGeneralTaskManager *phManager);
 
+
+uem_result UKCPUGeneralTaskManagerCB_IsSourceTask(void *pTaskHandle, OUT uem_bool *pbIsSourceTask);
+uem_result UKCPUGeneralTaskManagerCB_GetCurrentTaskStructure(void *pTaskHandle, OUT STask **ppstTask);
+uem_result UKCPUGeneralTaskManagerCB_ChangeTaskState(void *pTaskHandle, ECPUTaskState enState);
+uem_result UKCPUGeneralTaskManagerCB_GetCurrentTaskState(void *pTaskHandle, OUT ECPUTaskState *penState);
+uem_result UKCPUGeneralTaskManagerCB_GetManagerHandle(void *pTaskHandle, OUT HCPUGeneralTaskManager *phManager);
+uem_result UKCPUGeneralTaskManagerCB_ActivateTask(void *pTaskHandle);
+
+uem_result UKCPUGeneralTaskManagerCB_ClearLoopIndex(void *pTaskHandle);
+uem_result UKCPUGeneralTaskManagerCB_GetLoopIndex(void *pTaskHandle, OUT int *pnLoopIndex);
+uem_result UKCPUGeneralTaskManagerCB_SetLoopIndex(void *pTaskHandle, OUT int nLoopIndex);
+uem_result UKCPUGeneralTaskManagerCB_GetFunctionCalled(void *pThreadHandle, OUT uem_bool *pbFunctionCalled);
+uem_result UKCPUGeneralTaskManagerCB_GetThreadIndex(void *pThreadHandle, OUT int *pnThreadIndex);
+uem_result UKCPUGeneralTaskManagerCB_GetTaskGraphLock(void *pTaskHandle, OUT HThreadMutex *phMutex);
+
 #ifdef __cplusplus
 }
 #endif

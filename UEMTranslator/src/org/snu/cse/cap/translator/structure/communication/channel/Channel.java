@@ -248,14 +248,14 @@ public class Channel implements Cloneable {
 		//dstTask of the channel is in DTypeLoopTask and srcTask is in outside of DTypeLoopTask(the channel is crossing the boundary).
 		else if(isDTypeLoopTaskorSubTaskofDTypeLoopTask(taskMap, dstTaskName) && !isDTypeLoopTaskorSubTaskofDTypeLoopTask(taskMap, srcTaskName))
 		{
-			this.inputPort.setMaximumParallelNumberInBorderLine(taskMap, dstTaskName);
-			this.outputPort.setMaximumParallelNumberInBorderLine(taskMap, srcTaskName);
+			this.inputPort.setMaximumParallelNumberInBorderLine(taskMap);
+			this.outputPort.setMaximumParallelNumberInBorderLine(taskMap);
 		}
 		//srcTask of the channel is in DTypeLoopTask and dstTask is in outside of DTypeLoopTask(the channel is crossing the boundary).
 		else if(isDTypeLoopTaskorSubTaskofDTypeLoopTask(taskMap, srcTaskName) && !isDTypeLoopTaskorSubTaskofDTypeLoopTask(taskMap, dstTaskName))
 		{
-			this.inputPort.setMaximumParallelNumberInBorderLine(taskMap, dstTaskName);
-			this.outputPort.setMaximumParallelNumberInBorderLine(taskMap, srcTaskName);
+			this.inputPort.setMaximumParallelNumberInBorderLine(taskMap);
+			this.outputPort.setMaximumParallelNumberInBorderLine(taskMap);
 		}
 		else
 		{

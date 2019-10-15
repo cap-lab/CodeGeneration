@@ -115,20 +115,24 @@ public class ChannelPort extends Port {
 	}
 	
 	
-	public void setMaximumParallelNumberInBorderLine(HashMap<String, Task> taskMap, String taskName) {
+	public void setMaximumParallelNumberInBorderLine(HashMap<String, Task> taskMap) {
 		//set maxParallel value of channel connecting one : DTypeLoopTask, other : non-DTypeLoopTask.
 		//maxParallel : multiple of all parent DTypeLoopTasks' nLoopCount.
 		int maxParallel = 1;						
-		Task task = taskMap.get(taskName);			
-	
-		while(task != null)
+		Task task = null;			
+		ChannelPort port = this;
+		
+		while(port != null)
 		{
-			if(task.getLoopStruct() != null && task.getLoopStruct().getLoopType() == TaskLoopType.DATA)
+			task = taskMap.get(port.getTaskName());
+			if((port.getDirection() == PortDirection.OUTPUT || port.getLoopPortType() == LoopPortType.DISTRIBUTING) && 
+				task.getLoopStruct() != null && task.getLoopStruct().getLoopType() == TaskLoopType.DATA)
 			{
 				maxParallel *= task.getLoopStruct().getLoopCount(); //multiple of parent LoopCount.
-			}			
-			task = taskMap.get(task.getParentTaskGraphName());
-		}		
+			}
+			port = port.getSubgraphPort();
+		}
+		
 		this.maximumChunkNum = maxParallel;		
 	}
 	

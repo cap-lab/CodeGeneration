@@ -8,6 +8,8 @@
 #include <UKTask.h>
 #include <UKModeTransition.h>
 #include <UKHostSystem.h>
+#include <UKLoopModelController.h>
+#include <UKModeTransitionModelController.h>
 
 <#if gpu_used == true>
 #include <UKGPUSystem.h>
@@ -201,13 +203,10 @@ STask g_astTasks_${task_graph.name}[] = {
 		g_ast_${task.name}_thread_context, // Task thread context
 		${task.taskFuncNum}, // Task function array number
 		RUN_CONDITION_${task.runCondition}, // Run condition
-		1, // Run rate
 		${task.period?c}, // Period
 		TIME_METRIC_${task.periodMetric}, // Period metric
 		<#if task.childTaskGraphName??>&g_stGraph_${task.childTaskGraphName}<#else>(STaskGraph *) NULL</#if>, // Subgraph
 		&g_stGraph_${task.parentTaskGraphName}, // Parent task graph
-		<#if task.modeTransition??>&g_stModeTransition_${task.name}<#else>(SModeTransitionMachine *) NULL</#if>, // MTM information
-		<#if task.loopStruct??>&g_stLoopStruct_${task.name}<#else>(SLoopInfo *) NULL</#if>, // Loop information
 		<#if (task.taskParamList?size > 0)>g_astTaskParameter_${task.name}<#else>(STaskParameter *) NULL</#if>, // Task parameter information
 		${task.taskParamList?size}, // Task parameter number
 		<#if task.staticScheduled == true>TRUE<#else>FALSE</#if>, // Statically scheduled or not
@@ -227,10 +226,124 @@ STask g_astTasks_${task_graph.name}[] = {
 
 // ##TASK_LIST_TEMPLATE::END
 
+
+SModelControllerFunctionSet g_stDynamicModeTransitionFunctions = {
+	UKModeTransitionMachineController_HandleModelGeneral,
+	UKModeTransitionMachineController_GetTaskIterationIndex,
+	UKModeTransitionMachineController_Clear,
+	UKModeTransitionMachineController_ChangeSubGraphTaskState,
+	UKModeTransitionMachineController_HandleModelGeneralDuringStopping,
+};
+
+SModelControllerFunctionSet g_stStaticModeTransitionFunctions = {
+	UKModeTransitionMachineController_HandleModelComposite,
+	UKModeTransitionMachineController_GetTaskIterationIndex,
+	UKModeTransitionMachineController_Clear,
+	UKModeTransitionMachineController_ChangeTaskThreadState,
+	(FnHandleModel) NULL,
+};
+
+SModelControllerFunctionSet g_stDynamicConvergentLoopFunctions = {
+	(FnHandleModel ) UKLoopModelController_HandleConvergentLoop,
+	(FnGetTaskIterationIndex) NULL,
+	(FnControllerClear) NULL,
+	(FnChangeTaskThreadState) NULL,
+	(FnHandleModel) NULL,
+};
+
+SModelControllerFunctionSet g_stDynamicDataLoopFunctions = {
+	(FnHandleModel ) NULL,
+	(FnGetTaskIterationIndex) NULL,
+	(FnControllerClear) NULL,
+	(FnChangeTaskThreadState) NULL,
+	(FnHandleModel) NULL,
+};
+
+SModelControllerFunctionSet g_stStaticConvergentLoopFunctions = {
+	(FnHandleModel ) NULL,
+	(FnGetTaskIterationIndex) NULL,
+	(FnControllerClear) NULL,
+	(FnChangeTaskThreadState) NULL,
+	(FnHandleModel) NULL,
+};
+
+SModelControllerFunctionSet g_stStaticDataLoopFunctions = {
+	(FnHandleModel ) NULL,
+	(FnGetTaskIterationIndex) NULL,
+	(FnControllerClear) NULL,
+	(FnChangeTaskThreadState) NULL,
+	(FnHandleModel) NULL,
+};
+
+
 // ##TASK_GRAPH_TEMPLATE::START
 <#list task_graph as graph_name, task_graph_element>
+	<#switch task_graph_element.controllerType>
+		<#case "VOID">
+			<#break>
+		<#case "CONTROL_TASK_INCLUDED">
+SModelControllerCommon g_stController_${task_graph_element.name} = {
+	(HThreadMutex) NULL,
+	0,
+	(SModelControllerFunctionSet *) NULL,
+};
+
+			<#break>
+		<#case "DYNAMIC_MODE_TRANSITION">
+SModeTransitionController g_stController_${task_graph_element.name} = {
+	{
+		(HThreadMutex) NULL,
+		0,
+		&g_stDynamicModeTransitionFunctions,
+	},
+	<#if flat_task[task_graph_element.name].modeTransition??>&g_stModeTransition_${task_graph_element.name}<#else>(SModeTransitionMachine *) NULL</#if>, // MTM information
+};
+
+			<#break>
+		<#case "STATIC_MODE_TRANSITION">
+SModeTransitionController g_stController_${task_graph_element.name} = {
+	{
+		(HThreadMutex) NULL,
+		0,
+		&g_stStaticModeTransitionFunctions,
+	},
+	<#if flat_task[task_graph_element.name].modeTransition??>&g_stModeTransition_${task_graph_element.name}<#else>(SModeTransitionMachine *) NULL</#if>, // MTM information
+};
+
+			<#break>
+		<#case "STATIC_CONVERGENT_LOOP">
+// Static convergent loop not implemented
+			<#break>
+		<#case "DYNAMIC_CONVERGENT_LOOP">
+SLoopController g_stController_${task_graph_element.name} = {
+	{
+		(HThreadMutex) NULL,
+		0,
+		&g_stDynamicConvergentLoopFunctions,
+	},
+	<#if flat_task[task_graph_element.name].loopStruct??>&g_stLoopStruct_${task_graph_element.name}<#else>(SLoopInfo *) NULL</#if>, // Loop information
+};
+
+			<#break>
+		<#case "STATIC_DATA_LOOP">
+// Static data loop not implemented 
+			<#break>
+		<#case "DYNAMIC_DATA_LOOP">
+SLoopController g_stController_${task_graph_element.name} = {
+	{
+		(HThreadMutex) NULL,
+		0,
+		&g_stDynamicDataLoopFunctions,
+	},
+	<#if flat_task[task_graph_element.name].loopStruct??>&g_stLoopStruct_${task_graph_element.name}<#else>(SLoopInfo *) NULL</#if>, // Loop information
+};
+
+			<#break>
+	</#switch>
 STaskGraph g_stGraph_${task_graph_element.name} = {
 		GRAPH_TYPE_${task_graph_element.taskGraphType}, // Task graph type
+		CONTROLLER_TYPE_${task_graph_element.controllerType}, // graph controller type
+		<#if task_graph_element.controllerType == "VOID">(void *) NULL<#else>&g_stController_${task_graph_element.name}</#if>, // task graph controller (SLoopController, SModeTransitionController, or SModelControllerCommon)
 		g_astTasks_${task_graph_element.name}, // current task graph's task list
 		${task_graph_element.taskList?size}, // number of tasks
 		<#if task_graph_element.parentTask??>&g_astTasks_${task_graph_element.parentTask.parentTaskGraphName}[${task_graph_element.parentTask.inGraphIndex}]<#else>(STask *) NULL</#if>, // parent task
@@ -288,7 +401,7 @@ SScheduleList g_astScheduleList_${scheduled_task.parentTaskName}_${compositeMapp
 SScheduledTasks g_astScheduledTaskList[] = {
 <#list schedule_info as task_name, mapped_schedule>
 	<#list mapped_schedule.mappedProcessorList as compositeMappedProcessor>
-	{	<#if mapped_schedule.parentTaskId == -1>(STask *) NULL<#else>&g_astTasks_${flat_task[task_name].parentTaskGraphName}[${flat_task[task_name].inGraphIndex}]</#if>, // Parent Task Structure
+	{	<#if mapped_schedule.parentTaskId == -1>(STaskGraph *) &g_stGraph_top<#else>&g_stGraph_${task_name}</#if>, // Parent Task Structure
 		${compositeMappedProcessor.modeId}, // Mode transition mode ID
 		g_astScheduleList_${mapped_schedule.parentTaskName}_${compositeMappedProcessor.modeId}_${compositeMappedProcessor.processorId}_${compositeMappedProcessor.processorLocalId}, // schedule list per throughput constraint
 		${compositeMappedProcessor.compositeTaskScheduleList?size}, // The number of schedules in the schedule list

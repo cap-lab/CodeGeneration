@@ -24,10 +24,10 @@
 #include <UKTask_internal.h>
 
 #include <UKChannel_internal.h>
-#include <UKModeTransition.h>
 #include <UKCPUTaskManager.h>
 #include <UKCPUCompositeTaskManager.h>
 #include <UKCPUGeneralTaskManager.h>
+#include <UKModelController.h>
 
 #define THREAD_DESTROY_TIMEOUT (5000)
 #define CONTROL_WAIT_TIMEOUT (3000)
@@ -586,9 +586,6 @@ static uem_result setMaximumTaskIteration(STask *pstTask, void *pUserData)
 	pstParentTask = pstTask;
 	while(pstParentTask->pstParentGraph->pstParentTask != NULL)
 	{
-		if(pstParentTask->pstParentGraph->pstParentTask->pstLoopInfo != NULL) {
-			nCurMaxIteration = nCurMaxIteration * pstParentTask->pstParentGraph->pstParentTask->pstLoopInfo->nLoopCount;
-		}
 		pstParentTask = pstParentTask->pstParentGraph->pstParentTask;
 	}
 
@@ -839,44 +836,32 @@ uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUTaskManager, int nTaskId
 	result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstTask->bStaticScheduled == TRUE && pstTask->pstSubGraph != NULL)
+	if(pstTask->pstSubGraph != NULL)
 	{
-		result = UKChannel_ClearChannelInSubgraph(pstTask->nTaskId);
-		ERRIFGOTO(result, _EXIT);
-
-		if(pstTask->pstMTMInfo != NULL)
-		{
-			result = UKModeTransition_Clear(pstTask->pstMTMInfo);
-			ERRIFGOTO(result, _EXIT);
-		}
-
-		result = UKCPUCompositeTaskManager_CreateThread(pstManager->hCompositeManager, pstTask);
-		ERRIFGOTO(result, _EXIT);
-
-		result = UKCPUCompositeTaskManager_ChangeState(pstManager->hCompositeManager, pstTask, TASK_STATE_RUNNING);
-		ERRIFGOTO(result, _EXIT);
-
-		result = UKCPUCompositeTaskManager_ActivateThread(pstManager->hCompositeManager, pstTask);
-		ERRIFGOTO(result, _EXIT);
-	}
-	else if(pstTask->pstSubGraph != NULL)
-	{
-		// task with subgraph which is not SDF cannot be controlled
 		if(pstTask->pstSubGraph->enType == GRAPH_TYPE_PROCESS_NETWORK)
 		{
 			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 		}
-		else
+
+		result = UKChannel_ClearChannelInSubgraph(pstTask->nTaskId);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UKModelController_CallSubGraphClearFunctions(pstTask->pstSubGraph);
+		ERRIFGOTO(result, _EXIT);
+
+		if(pstTask->bStaticScheduled == TRUE)
 		{
-			result = UKChannel_ClearChannelInSubgraph(pstTask->nTaskId);
+			result = UKCPUCompositeTaskManager_CreateThread(pstManager->hCompositeManager, pstTask);
 			ERRIFGOTO(result, _EXIT);
 
-			if(pstTask->pstMTMInfo != NULL)
-			{
-				result = UKModeTransition_Clear(pstTask->pstMTMInfo);
-				ERRIFGOTO(result, _EXIT);
-			}
+			result = UKCPUCompositeTaskManager_ChangeState(pstManager->hCompositeManager, pstTask, TASK_STATE_RUNNING);
+			ERRIFGOTO(result, _EXIT);
 
+			result = UKCPUCompositeTaskManager_ActivateThread(pstManager->hCompositeManager, pstTask);
+			ERRIFGOTO(result, _EXIT);
+		}
+		else
+		{
 			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, clearTaskIteration, NULL);
 			ERRIFGOTO(result, _EXIT);
 
@@ -889,10 +874,7 @@ uem_result UKCPUTaskManager_RunTask(HCPUTaskManager hCPUTaskManager, int nTaskId
 
 				result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, setMaximumTaskIteration, &stIterationSet);
 				ERRIFGOTO(result, _EXIT);
-			}
 
-			if(pstTask->enRunCondition == RUN_CONDITION_CONTROL_DRIVEN)
-			{
 				result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, runOnceDataflowSubgraphTask, pstManager->hGeneralManager);
 				ERRIFGOTO(result, _EXIT);
 			}

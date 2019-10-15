@@ -27,37 +27,34 @@ uem_result ChannelAPI_GetAPIStructureFromCommunicationType(IN ECommunicationType
 static uem_result getClosestParentDTypeLoopTask(IN STask* pstCurTask, OUT STask** ppstParentTask)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	STask *pstTask = NULL;
+	STask *pstParentLoopTask = NULL;
+	STaskGraph *pstTaskGraph = NULL;
 
 	IFVARERRASSIGNGOTO(ppstParentTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 
-	pstTask = pstCurTask->pstParentGraph->pstParentTask;
-	while(pstTask != NULL)
+	pstTaskGraph = pstCurTask->pstParentGraph;
+	while(pstTaskGraph->pstParentTask != NULL)
 	{
-		if(pstTask->pstLoopInfo != NULL && pstTask->pstLoopInfo->enType == LOOP_TYPE_DATA)//if parent task is looptype task
+		if(pstTaskGraph->enControllerType == CONTROLLER_TYPE_DYNAMIC_DATA_LOOP ||
+			pstTaskGraph->enControllerType == CONTROLLER_TYPE_STATIC_DATA_LOOP)
 		{
+			pstParentLoopTask = pstTaskGraph->pstParentTask;
 			break;
 		}
 		else
 		{
-			pstTask = pstTask->pstParentGraph->pstParentTask;
+			pstTaskGraph = pstTaskGraph->pstParentTask->pstParentGraph;
 		}
 	}
 
-	if(pstTask == NULL || pstTask->pstLoopInfo == NULL || pstTask->pstLoopInfo->enType != LOOP_TYPE_DATA)
-	{
-		*ppstParentTask = NULL;
-	}
-	else
-	{
-		*ppstParentTask = pstTask;
-	}
+	*ppstParentTask = pstParentLoopTask;
+
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
 }
 
-static uem_result calculateNChunkNumInsideDTypeLoopTask(STask* pstCurTask, EChannelType enChannelType, OUT int *pnChunkNum)
+static uem_result calculateChunkNumInsideDTypeLoopTask(STask* pstCurTask, EChannelType enChannelType, OUT int *pnChunkNum)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask* pstParentTask = NULL;
@@ -73,9 +70,9 @@ static uem_result calculateNChunkNumInsideDTypeLoopTask(STask* pstCurTask, EChan
 		}
 		else if(enChannelType == CHANNEL_TYPE_INPUT_ARRAY || enChannelType == CHANNEL_TYPE_OUTPUT_ARRAY)
 		{
-			*pnChunkNum = pstParentTask->pstLoopInfo->nLoopCount;
+			// do nothing
 		}
-		else //channel connected with task inside DTypeLoopTask cannnot be CHANNEL_TYPE_GENERAL.
+		else //channel connected with task inside DTypeLoopTask cannot be CHANNEL_TYPE_GENERAL.
 		{				
 			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 		}
@@ -106,9 +103,8 @@ uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT 
 		nOuterMostSampleRate = pstPort->astSampleRates[nCurrentSampleRateIndex].nSampleRate;
 	}
 
-	result = UKTask_GetTaskFromTaskId(pstPort->nTaskId, &pstCurTask);
-
 	pstMostInnerPort = pstPort;
+
 	while(pstMostInnerPort->pstSubGraphPort != NULL)
 	{
 		pstMostInnerPort = pstMostInnerPort->pstSubGraphPort;
@@ -132,38 +128,23 @@ uem_result UKChannel_GetChunkNumAndLen(SPort *pstPort, OUT int *pnChunkNum, OUT 
 	}
 	else
 	{
-		result = UKTask_GetTaskFromTaskId(pstPort->nTaskId, &pstCurTask);
-		if(result == ERR_UEM_NO_DATA)
-		{
-			result = ERR_UEM_NOERROR;
-		}
-		ERRIFGOTO(result, _EXIT);
-
 		// If the task id cannot be obtained by "UKTask_GetTaskFromTaskId",
 		// it means the information is missing because of remote communication, so set as a general task information
-
-		if(pstCurTask == NULL || pstCurTask->pstLoopInfo == NULL) // general task
-		{
-			nChunkNum = 1;
-			nChunkLen = nOuterMostSampleRate * pstPort->nSampleSize;
-		}
-		else if(pstCurTask->pstLoopInfo->enType == LOOP_TYPE_DATA &&
-			pstPort->astSampleRates[nCurrentSampleRateIndex].nMaxAvailableDataNum == 1)
-		{
-			nChunkNum = nOuterMostSampleRate / (nOuterMostSampleRate / pstCurTask->pstLoopInfo->nLoopCount);
-			nChunkLen = (nOuterMostSampleRate * pstPort->nSampleSize) / nChunkNum;
-		}
-		else // broadcasting or convergent
-		{
-			nChunkNum = 1;
-			nChunkLen = nOuterMostSampleRate * pstPort->nSampleSize;
-		}
+		nChunkNum = 1;
+		nChunkLen = nOuterMostSampleRate * pstPort->nSampleSize;
 	}
 
-	if(pstCurTask != NULL) //Task care only for tasks in current device.
+	result = UKTask_GetTaskFromTaskId(pstMostInnerPort->nTaskId, &pstCurTask);
+	if(result == ERR_UEM_NOERROR)
 	{
-		calculateNChunkNumInsideDTypeLoopTask(pstCurTask, enChannelType, &nChunkNum);
+		result = calculateChunkNumInsideDTypeLoopTask(pstCurTask, enChannelType, &nChunkNum);
+		ERRIFGOTO(result, _EXIT);
 	}
+	else if(result == ERR_UEM_NO_DATA)
+	{
+		result = ERR_UEM_NOERROR;
+	}
+	ERRIFGOTO(result, _EXIT);
 
 	*pnChunkNum = nChunkNum;
 	*pnChunkLen = nChunkLen;
@@ -395,7 +376,7 @@ static uem_result popDataFromQueue(SChannel *pstChannel, SChannelAPI *pstChannel
 	int nDataCanRead = 0;
 	int nBroadcastNum = 0;
 
-	result = UKChannel_GetChunkNumAndLen(pstChannel->pstInputPort, &nChunkNum, &nChunkLen, pstChannel->enType);
+	result = UKChannel_GetChunkNumAndLen(pstChannel->pstInputPort, &nChunkNum, &nChunkLen, pstChannel->enChannelType);
 	ERRIFGOTO(result, _EXIT);
 
 	nBroadcastNum = nNumOfDataToPop / nChunkNum;

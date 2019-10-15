@@ -21,6 +21,8 @@
 #include <uem_multicast_data.h>
 #include <uem_common_struct.h>
 
+#include <UKCPUTaskCommon.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -98,6 +100,64 @@ typedef struct _STaskIteration {
 	int nRunInIteration;
 } STaskIteration;
 
+typedef enum _ETaskControllerType {
+	CONTROLLER_TYPE_VOID,
+	CONTROLLER_TYPE_CONTROL_TASK_INCLUDED,
+	CONTROLLER_TYPE_DYNAMIC_MODE_TRANSITION,
+	CONTROLLER_TYPE_STATIC_MODE_TRANSITION,
+	CONTROLLER_TYPE_DYNAMIC_CONVERGENT_LOOP,
+	CONTROLLER_TYPE_DYNAMIC_DATA_LOOP,
+	CONTROLLER_TYPE_STATIC_CONVERGENT_LOOP,
+	CONTROLLER_TYPE_STATIC_DATA_LOOP,
+} ETaskControllerType;
+
+typedef enum _EModelControllerFunction {
+	FUNC_HANDLE_MODEL,
+	FUNC_GET_ITERATION_INDEX,
+	FUNC_CLEAR,
+	FUNC_CHANGE_THREAD_STATE,
+} EModelControllerFunction;
+
+
+typedef uem_result (*FnHandleModel)(STaskGraph *pstGraph, void *pCurrentTaskHandle, void *pCurrentThreadHandle);
+typedef uem_result (*FnGetTaskIterationIndex)(STask *pstTask, int nCurrentIteration, int OUT *pnIndex);
+typedef uem_result (*FnControllerClear)(STaskGraph *pstTaskGraph);
+typedef uem_result (*FnChangeTaskThreadState)(STaskGraph *pstGraph, void *pCurrentTaskHandle, void *pCurrentThreadHandle, ECPUTaskState enTargetState, OUT ECPUTaskState *penState);
+
+
+typedef struct _SModelControllerFunctionSet {
+	FnHandleModel fnHandleModel;
+	FnGetTaskIterationIndex fnGetTaskIterationIndex;
+	FnControllerClear fnClear;
+	FnChangeTaskThreadState fnChangeThreadState;
+	FnHandleModel fnHandleStopping;
+} SModelControllerFunctionSet;
+
+typedef struct _SModelControllerCommon {
+	HThreadMutex hMutex;
+	int nThroughputConstraint; // Only used for composite schedule
+	SModelControllerFunctionSet *pstFunctionSet;
+} SModelControllerCommon;
+
+typedef struct _SModeTransitionController {
+	SModelControllerCommon stCommon;
+	SModeTransitionMachine *pstMTMInfo;
+} SModeTransitionController;
+
+typedef struct _SLoopController {
+	SModelControllerCommon stCommon;
+	SLoopInfo *pstLoopInfo;
+} SLoopController;
+
+typedef struct _STaskGraph {
+	ETaskGraphType enType;
+	ETaskControllerType enControllerType;
+	void *pController; // SLoopController (SDF/L) or SModeTransitionController (MTM) or STaskControllerCommon (Control-task-included)
+	STask *astTasks;
+	int nNumOfTasks;
+	STask *pstParentTask;
+} STaskGraph;
+
 
 typedef struct _STask {
 	int nTaskId;
@@ -107,17 +167,14 @@ typedef struct _STask {
 	STaskThreadContext *astThreadContext;
 	int nTaskThreadSetNum;
 	ERunCondition enRunCondition;
-	int nRunRate;
 	int nPeriod;
 	ETimeMetric enPeriodMetric;
 	STaskGraph *pstSubGraph;
 	STaskGraph *pstParentGraph;
-	SModeTransitionMachine *pstMTMInfo;
-	SLoopInfo *pstLoopInfo;
 	STaskParameter *astTaskParam;
 	int nTaskParamNum;
-	uem_bool bStaticScheduled;
-	int nThroughputConstraint;
+	uem_bool bStaticScheduled; // WILL BE REMOVED
+	int nThroughputConstraint; // WILL BE REMOVED
 	HThreadMutex hMutex;
 	HThreadEvent hEvent;
 	STaskIteration *astTaskIteration;
@@ -150,7 +207,7 @@ typedef struct _SScheduleList {
 
 // SScheduledTasks can be existed per each task mode
 typedef struct _SScheduledTasks {
-	STask *pstParentTask;
+	STaskGraph *pstParentTaskGraph;
 	int nModeId; // mode ID
 	SScheduleList *astScheduleList;
 	int nScheduleNum; // number of schedules which satisfies throughput constraint

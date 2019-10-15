@@ -173,6 +173,23 @@ uem_result UKCPUCompositeTaskManager_Destroy(IN OUT HCPUCompositeTaskManager *ph
  */
 uem_result UKCPUCompositeTaskManager_CheckAllTaskStopped(HCPUCompositeTaskManager hManager, OUT uem_bool *pbStopped);
 
+
+// TODO: Need to be documented soon
+typedef uem_result (*FnTaskThreadTraverse)(void *pCurrentTaskHandle, void *pCurrentThreadHandle, void *pUserData, OUT uem_bool *pbActivateThread);
+
+uem_result UKCPUCompositeTaskManagerCB_GetTaskState(void *pTaskHandle, OUT ECPUTaskState *penState);
+uem_result UKCPUCompositeTaskManagerCB_ChangeTaskState(void *pTaskHandle, ECPUTaskState enState);
+uem_result UKCPUCompositeTaskManagerCB_HandleControlRequest(void *pTaskHandle);
+uem_result UKCPUCompositeTaskManagerCB_TraverseThreadsInTask(void *pTaskHandle, FnTaskThreadTraverse fnCallback, void *pUserData);
+uem_result UKCPUCompositeTaskManagerCB_WakeUpTask(void *pTaskHandle);
+uem_result UKCPUCompositeTaskManagerCB_GetThreadState(void *pThreadHandle, OUT ECPUTaskState *penState);
+uem_result UKCPUCompositeTaskManagerCB_SetThreadState(void *pThreadHandle, ECPUTaskState enState);
+uem_result UKCPUCompositeTaskManagerCB_GetThreadModeId(void *pThreadHandle, OUT int *pnModeId);
+uem_result UKCPUCompositeTaskManagerCB_GetThreadTargetThroughput(void *pThreadHandle, int *pnTargetThroughput);
+uem_result UKCPUCompositeTaskManagerCB_GetThreadIteration(void *pThreadHandle, OUT int *pnThreadIteration);
+uem_result UKCPUCompositeTaskManagerCB_HasSourceTask(void *pThreadHandle, OUT uem_bool *pbHasSourceTask);
+
+
 #ifdef __cplusplus
 }
 #endif
