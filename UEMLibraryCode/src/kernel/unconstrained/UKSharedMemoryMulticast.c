@@ -15,32 +15,15 @@
 
 #include <UKMulticastMemory.h>
 
-uem_result UKSharedMemoryMulticast_Clear(SMulticastGroup *pstMulticastGroup)
+uem_result UKSharedMemoryMulticastGroup_Initialize(SMulticastGroup *pstMulticastGroup)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	SMulticastCommunicationGate *pstCommunicationGate = NULL;
 
-	SSharedMemoryMulticast *pstSharedMemoryMulticast = NULL;
-
-	pstSharedMemoryMulticast = (SSharedMemoryMulticast *) pstMulticastGroup->pMulticastStruct;
-
-	result = UKMulticastMemory_Clear(pstMulticastGroup, pstSharedMemoryMulticast);
-
+	result = UKMulticast_GetCommunicationGate(pstMulticastGroup->astMulticastGateList, pstMulticastGroup->nCommunicationTypeNum, SHARED_MEMORY, &pstCommunicationGate);
 	ERRIFGOTO(result, _EXIT);
 
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-uem_result UKSharedMemoryMulticast_Initialize(SMulticastGroup *pstMulticastGroup)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-
-	SSharedMemoryMulticast *pstSharedMemoryMulticast = NULL;
-
-	pstSharedMemoryMulticast = (SSharedMemoryMulticast *) pstMulticastGroup->pMulticastStruct;
-
-	result = UKMulticastMemory_Initialize(pstMulticastGroup, pstSharedMemoryMulticast);
+	result = UKMulticastMemory_Initialize(pstMulticastGroup, (SSharedMemoryMulticast *) pstCommunicationGate->pstSocket);
 
 	ERRIFGOTO(result, _EXIT);
 
@@ -52,11 +35,12 @@ _EXIT:
 uem_result UKSharedMemoryMulticast_ReadFromBuffer(SMulticastPort *pstMulticastPort, IN OUT unsigned char *pBuffer, IN int nDataToRead, OUT int *pnDataRead)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	SSharedMemoryMulticast *pstSharedMemoryMulticast = NULL;
+	SMulticastCommunicationGate *pstCommunicationGate = NULL;
 
-	pstSharedMemoryMulticast = (SSharedMemoryMulticast *) pstMulticastPort->pMulticastGroup->pMulticastStruct;
+	result = UKMulticast_GetCommunicationGate(pstMulticastPort->astMulticastGateList, pstMulticastPort->nCommunicationTypeNum, SHARED_MEMORY, &pstCommunicationGate);
+	ERRIFGOTO(result, _EXIT);
 
-	result = UKMulticastMemory_ReadFromBuffer(pstMulticastPort, pstSharedMemoryMulticast, pBuffer, nDataToRead, pnDataRead);
+	result = UKMulticastMemory_ReadFromBuffer(pstMulticastPort, (SSharedMemoryMulticast *) pstCommunicationGate->pstSocket, pBuffer, nDataToRead, pnDataRead);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -67,11 +51,12 @@ _EXIT:
 uem_result UKSharedMemoryMulticast_WriteToBuffer(SMulticastPort *pstMulticastPort, IN unsigned char *pBuffer, IN int nDataToWrite, OUT int *pnDataWritten)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	SSharedMemoryMulticast *pstSharedMemoryMulticast = NULL;
+	SMulticastCommunicationGate *pstCommunicationGate = NULL;
 
-	pstSharedMemoryMulticast = (SSharedMemoryMulticast *) pstMulticastPort->pMulticastGroup->pMulticastStruct;
+	result = UKMulticast_GetCommunicationGate(pstMulticastPort->astMulticastGateList, pstMulticastPort->nCommunicationTypeNum, SHARED_MEMORY, &pstCommunicationGate);
+	ERRIFGOTO(result, _EXIT);
 
-	result = UKMulticastMemory_WriteToBuffer(pstMulticastPort, pstSharedMemoryMulticast, pBuffer, nDataToWrite, pnDataWritten);
+	result = UKMulticastMemory_WriteToBuffer(pstMulticastPort, (SSharedMemoryMulticast *) pstCommunicationGate->pstSocket, pBuffer, nDataToWrite, pnDataWritten);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -79,15 +64,15 @@ _EXIT:
 	return result;
 }
 
-uem_result UKSharedMemoryMulticast_Finalize(SMulticastGroup *pstMulticastGroup)
+uem_result UKSharedMemoryMulticastGroup_Finalize(SMulticastGroup *pstMulticastGroup)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	SMulticastCommunicationGate *pstCommunicationGate = NULL;
 
-	SSharedMemoryMulticast *pstSharedMemoryMulticast = NULL;
+	result = UKMulticast_GetCommunicationGate(pstMulticastGroup->astMulticastGateList, pstMulticastGroup->nCommunicationTypeNum, SHARED_MEMORY, &pstCommunicationGate);
+	ERRIFGOTO(result, _EXIT);
 
-	pstSharedMemoryMulticast = (SSharedMemoryMulticast *) pstMulticastGroup->pMulticastStruct;
-
-	result = UKMulticastMemory_Finalize(pstMulticastGroup, pstSharedMemoryMulticast);
+	result = UKMulticastMemory_Finalize(pstMulticastGroup, (SSharedMemoryMulticast *) pstCommunicationGate->pstSocket);
 
 	ERRIFGOTO(result, _EXIT);
 

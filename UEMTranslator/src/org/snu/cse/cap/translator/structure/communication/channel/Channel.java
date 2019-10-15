@@ -4,16 +4,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.snu.cse.cap.translator.Constants;
+import org.snu.cse.cap.translator.structure.communication.CommunicationType;
 import org.snu.cse.cap.translator.structure.communication.InMemoryAccessType;
+import org.snu.cse.cap.translator.structure.device.DeviceCommunicationType;
 import org.snu.cse.cap.translator.structure.mapping.MappingInfo;
 import org.snu.cse.cap.translator.structure.task.Task;
 import org.snu.cse.cap.translator.structure.task.TaskLoopType;
 
 public class Channel implements Cloneable {
 	private int index;
-	private ChannelCommunicationType communicationType;
+	private CommunicationType communicationType;
 	private ConnectionRoleType connectionRoleType;
-	private RemoteCommunicationMethodType remoteMethodType;
+	private DeviceCommunicationType remoteMethodType;
 	private InMemoryAccessType accessType;
 	private ChannelArrayType channelType;
 	private int size;
@@ -45,7 +47,7 @@ public class Channel implements Cloneable {
 		this.socketInfoIndex = Constants.INVALID_ID_VALUE;
 		this.inputPortIndex = Constants.INVALID_VALUE;
 		this.outputPortIndex = Constants.INVALID_VALUE;
-		this.remoteMethodType = RemoteCommunicationMethodType.NONE;
+		this.remoteMethodType = DeviceCommunicationType.NONE;
 		this.connectionRoleType = ConnectionRoleType.NONE;
 
 	}
@@ -80,7 +82,7 @@ public class Channel implements Cloneable {
 		return index;
 	}
 
-	public ChannelCommunicationType getCommunicationType() {
+	public CommunicationType getCommunicationType() {
 		return communicationType;
 	}
 
@@ -96,7 +98,7 @@ public class Channel implements Cloneable {
 		this.index = channelIndex;
 	}
 
-	public void setCommunicationType(ChannelCommunicationType communicationType) {
+	public void setCommunicationType(CommunicationType communicationType) {
 		this.communicationType = communicationType;
 	}
 
@@ -306,7 +308,7 @@ public class Channel implements Cloneable {
 		return connectionRoleType;
 	}
 
-	public RemoteCommunicationMethodType getRemoteMethodType() {
+	public DeviceCommunicationType getRemoteMethodType() {
 		return remoteMethodType;
 	}
 
@@ -314,7 +316,7 @@ public class Channel implements Cloneable {
 		this.connectionRoleType = connectionRoleType;
 	}
 
-	public void setRemoteMethodType(RemoteCommunicationMethodType remoteMethodType) {
+	public void setRemoteMethodType(DeviceCommunicationType remoteMethodType) {
 		this.remoteMethodType = remoteMethodType;
 	}
 }

@@ -17,6 +17,8 @@ import hopes.cic.xml.CICConfigurationType;
 import hopes.cic.xml.CICConfigurationTypeLoader;
 import hopes.cic.xml.CICControlType;
 import hopes.cic.xml.CICControlTypeLoader;
+import hopes.cic.xml.CICGPUSetupType;
+import hopes.cic.xml.CICGPUSetupTypeLoader;
 import hopes.cic.xml.CICMappingType;
 import hopes.cic.xml.CICMappingTypeLoader;
 import hopes.cic.xml.CICModuleType;
@@ -25,8 +27,6 @@ import hopes.cic.xml.CICProfileType;
 import hopes.cic.xml.CICProfileTypeLoader;
 import hopes.cic.xml.FileSourceType;
 import hopes.cic.xml.SoftwareModuleType;
-import hopes.cic.xml.CICGPUSetupType;
-import hopes.cic.xml.CICGPUSetupTypeLoader;
 
 public class UEMMetaDataModel {
     private CICAlgorithmType algorithmMetadata = null;
@@ -138,6 +138,7 @@ public class UEMMetaDataModel {
     	this.application.makeMulticastGroupInformation(algorithmMetadata);
     	this.application.makeChannelInformation(algorithmMetadata);
     	this.application.makeLibraryInformation(algorithmMetadata);
+    	this.application.makeConnectionMappingInfo(mappingMetadata);
     	this.application.makeConfigurationInformation(configurationMetadata);
     }
 

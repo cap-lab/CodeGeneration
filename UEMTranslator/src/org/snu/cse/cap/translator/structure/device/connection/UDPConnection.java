@@ -5,4 +5,12 @@ public class UDPConnection extends IPConnection {
 	{
 		super(name, role, IP, port, ProtocolType.UDP);
 	}
+	public UDPConnection() 
+	{
+		super(null, null, null, -1, ProtocolType.UDP);
+	}
+	
+	public String getUDPId() {
+		return IP.replaceAll("[.]", "_") + "_" + port;
+	}
 }

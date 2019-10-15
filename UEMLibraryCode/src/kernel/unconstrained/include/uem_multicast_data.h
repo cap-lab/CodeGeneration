@@ -22,70 +22,58 @@
 extern "C"
 {
 #endif
-/***************************************************************************************************/
-
-typedef struct _SSharedMemoryMulticast {
-	void *pBuffer;
-	void *pDataStart;
-	void *pDataEnd;
-	int nDataLen;
-	int nReadReferenceCount;
-	int nWriteReferenceCount;
-	HThreadMutex hMutex; // Multicast global mutex
-} SSharedMemoryMulticast;
-
-/***************************************************************************************************/
 
 typedef struct _SMulticastPort SMulticastPort;
 typedef struct _SMulticastGroup SMulticastGroup;
+typedef struct _SMulticastAPI SMulticastAPI;
+
+typedef struct _SMulticastCommunicationGate{
+	EMulticastCommunicationType enCommunicationType;
+	SMulticastAPI *pstMulticastAPI;
+	void *pstSocket;
+}SMulticastCommunicationGate;
 
 typedef struct _SMulticastPort {
 	int nTaskId;
 	int nMulticastPortId;
 	const char *pszPortName;
-    EPortDirection eDirection;
+    EPortDirection enDirection;
 	SGenericMemoryAccess *pstMemoryAccessAPI; // in GPU or CPU?
-	SMulticastGroup *pMulticastGroup;
-	void **pMulticastSendGateList; // only for Output Port
+	SMulticastGroup *pstMulticastGroup;
+	SMulticastCommunicationGate *astMulticastGateList;
+	int nCommunicationTypeNum;
 } SMulticastPort;
-
-typedef struct _SMulticastCommunicationInfo {
-	EMulticastCommunicationType eCommunicationType;
-	void *pAdditionalCommunicationInfo;
-}SMulticastCommunicationInfo;
 
 typedef struct _SMulticastGroup {
 	int nMulticastGroupId;
 	const char *pszGroupName;
 	int nBufSize;
-	SMulticastPort *pstInputPort;
+	SMulticastPort *astInputPort;
 	int nInputPortNum;
-	SMulticastCommunicationInfo *pstInputCommunicationInfo;
-    int nInputCommunicationTypeNum;
-	SMulticastPort *pstOutputPort;
+	SMulticastPort *astOutputPort;
 	int nOutputPortNum;
-	SMulticastCommunicationInfo *pstOutputCommunicationInfo;
-    int nOutputCommunicationTypeNum;
-	SSharedMemoryMulticast *pMulticastStruct;
-	void **pMulticastRecvGateList;
+	SMulticastCommunicationGate *astMulticastGateList;
+    int nCommunicationTypeNum;
 } SMulticastGroup;
 
-typedef uem_result (*FnMulticastInitialize)(SMulticastGroup *pstMulticastGroup);
-typedef uem_result (*FnMulticastReadFromBuffer)(SMulticastPort *pstMulticastPort, IN OUT unsigned char *pBuffer, IN int nDataToRead, OUT int *pnDataRead);
-typedef uem_result (*FnMulticastWriteToBuffer)(SMulticastPort *pstMulticastPort, IN unsigned char *pBuffer, IN int nDataToWrite, OUT int *pnDataWritten);
-typedef uem_result (*FnMulticastClear)(SMulticastGroup *pstMulticastGroup);
-typedef uem_result (*FnMulticastFinalize)(SMulticastGroup *pstMulticastGroup);
 typedef uem_result (*FnMulticastAPIInitialize)();
 typedef uem_result (*FnMulticastAPIFinalize)();
+typedef uem_result (*FnMulticastGroupInitialize)(SMulticastGroup *pstMulticastGroup);
+typedef uem_result (*FnMulticastGroupFinalize)(SMulticastGroup *pstMulticastGroup);
+typedef uem_result (*FnMulticastPortInitialize)(SMulticastPort *pstMulticastPort);
+typedef uem_result (*FnMulticastPortFinalize)(SMulticastPort *pstMulticastPort);
+typedef uem_result (*FnMulticastReadFromBuffer)(SMulticastPort *pstMulticastPort, IN OUT unsigned char *pBuffer, IN int nDataToRead, OUT int *pnDataRead);
+typedef uem_result (*FnMulticastWriteToBuffer)(SMulticastPort *pstMulticastPort, IN unsigned char *pBuffer, IN int nDataToWrite, OUT int *pnDataWritten);
 
 typedef struct _SMulticastAPI {
-	FnMulticastInitialize fnInitialize;
-	FnMulticastReadFromBuffer fnReadFromBuffer;
-	FnMulticastWriteToBuffer fnWriteToBuffer;
-	FnMulticastClear fnClear;
-	FnMulticastFinalize fnFinalize;
 	FnMulticastAPIInitialize fnAPIInitialize;
 	FnMulticastAPIFinalize fnAPIFinalize;
+	FnMulticastGroupInitialize fnGroupInitialize;
+	FnMulticastGroupFinalize fnGroupFinalize;
+	FnMulticastPortInitialize fnPortInitialize;
+	FnMulticastPortFinalize fnPortFinalize;
+	FnMulticastReadFromBuffer fnReadFromBuffer;
+	FnMulticastWriteToBuffer fnWriteToBuffer;
 } SMulticastAPI;
 
 extern SMulticastGroup g_astMulticastGroups[];

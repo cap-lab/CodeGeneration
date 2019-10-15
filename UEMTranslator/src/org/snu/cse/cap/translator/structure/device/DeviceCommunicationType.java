@@ -1,8 +1,8 @@
 package org.snu.cse.cap.translator.structure.device;
 
-import java.util.ArrayList;
-
 public enum DeviceCommunicationType {
+	NONE("none"),
+	SHARED_MEMORY("shared_memory"),
 	BLUETOOTH("bluetooth"),
 	TCP("tcp"),
 	UDP("udp"),

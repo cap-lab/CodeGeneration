@@ -12,16 +12,23 @@
 
 #include <uem_data.h>
 
+#include <UKMulticast.h>
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-uem_result UKSharedMemoryMulticast_Initialize(SMulticastGroup *pstMulticastGroup);
+typedef struct _SSharedMemoryMulticast {
+	void *pData;
+	int nDataLen;
+	HThreadMutex hMutex; // Multicast global mutex
+} SSharedMemoryMulticast;
+
+uem_result UKSharedMemoryMulticastGroup_Initialize(SMulticastGroup *pstMulticastGroup);
 uem_result UKSharedMemoryMulticast_ReadFromBuffer(SMulticastPort *pstMulticastPort, IN OUT unsigned char *pBuffer, IN int nDataToRead, OUT int *pnDataRead);
 uem_result UKSharedMemoryMulticast_WriteToBuffer(SMulticastPort *pstMulticastPort, IN unsigned char *pBuffer, IN int nDataToWrite, OUT int *pnDataWritten);
-uem_result UKSharedMemoryMulticast_Clear(SMulticastGroup *pstMulticastGroup);
-uem_result UKSharedMemoryMulticast_Finalize(SMulticastGroup *pstMulticastGroup);
+uem_result UKSharedMemoryMulticastGroup_Finalize(SMulticastGroup *pstMulticastGroup);
 
 #ifdef __cplusplus
 }

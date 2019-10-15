@@ -3,58 +3,60 @@ package org.snu.cse.cap.translator.structure.communication.multicast;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-public class MulticastGroup implements Cloneable {
+import org.snu.cse.cap.translator.structure.communication.PortDirection;
+import org.snu.cse.cap.translator.structure.device.DeviceCommunicationType;
+
+public class MulticastGroup{
 	private int multicastGroupId;
 	private String groupName;
-	private int size;
+	private int bufferSize;
 	private ArrayList<MulticastPort> inputPortList; 
-	private int inputPortNum;
-	private HashSet<MulticastCommunicationType> inputCommunicationTypeList;
-	private ArrayList<MulticastPort> outputPortList; 
-	private int outputPortNum;
-	private HashSet<MulticastCommunicationType> outputCommunicationTypeList;
+	private ArrayList<MulticastPort> outputPortList;
+	private HashSet<DeviceCommunicationType> inputCommunicationTypeList;
+	private HashSet<DeviceCommunicationType> outputCommunicationTypeList;
 
-	public MulticastGroup(int index, String groupName, int size) {
-		this.size = size;
+	public MulticastGroup(int index, String groupName, int bufferSize) {
+		this.bufferSize = bufferSize;
 		this.multicastGroupId = index;
 		this.groupName = groupName;
 		this.inputPortList = new ArrayList<MulticastPort>();
 		this.outputPortList = new ArrayList<MulticastPort>();
-		this.inputCommunicationTypeList = new HashSet<MulticastCommunicationType> ();
-		this.outputCommunicationTypeList = new HashSet<MulticastCommunicationType> ();
-		this.inputPortNum = 0;
-		this.outputPortNum = 0;
-	}
-	
-	// Does not need to clone inputPort and outputPort  
-	public MulticastGroup clone() throws CloneNotSupportedException {
-		MulticastGroup multicastGroup;
-		
-		multicastGroup = (MulticastGroup) super.clone();
-		multicastGroup.multicastGroupId = this.multicastGroupId;
-		multicastGroup.size = this.size;
-		
-		// Shallow copy for these two objects
-		multicastGroup.inputPortList = this.inputPortList;
-		multicastGroup.outputPortList = this.outputPortList;
-		
-		return multicastGroup;
+		this.inputCommunicationTypeList = new HashSet<DeviceCommunicationType>();
+		this.outputCommunicationTypeList = new HashSet<DeviceCommunicationType>();
 	}
 	
 	public int getMulticastGroupId() {
 		return this.multicastGroupId;
 	}
 	
-	public int getSize() {
-		return this.size;
+	public int getBufferSize() {
+		return this.bufferSize;
 	}
 	
 	public String getGroupName() {
 		return this.groupName;
 	}
 	
-	public void setSize(int size) {
-		this.size = size;
+	public void setBufferSize(int bufferSize) {
+		this.bufferSize = bufferSize;
+	}
+	
+	public ArrayList<MulticastPort> getPortList(PortDirection direction) {
+		ArrayList<MulticastPort> portList = null;
+		switch(direction) {
+		case INPUT:
+			portList = this.inputPortList;
+		case OUTPUT:
+			portList = this.outputPortList;
+		}
+		return portList;
+	}
+	
+	public ArrayList<MulticastPort> getPortList() {
+		ArrayList<MulticastPort> portList = new ArrayList<MulticastPort>();
+		portList.addAll(inputPortList);
+		portList.addAll(outputPortList);
+		return portList;
 	}
 
 	public ArrayList<MulticastPort> getInputPortList() {
@@ -66,31 +68,38 @@ public class MulticastGroup implements Cloneable {
 	}
 	
 	public int getInputPortNum() {
-		return this.inputPortNum;
+		return inputPortList.size();
 	}
 	
 	public int getOutputPortNum() {
-		return this.outputPortNum;
+		return outputPortList.size();
 	}
 
 	public void setInputPortList(ArrayList<MulticastPort> inputPortList) {
 		this.inputPortList = inputPortList;
-		this.inputPortNum = this.inputPortList.size();
 	}
 	
 	public void putInputPort(MulticastPort inputPort) {
 		this.inputPortList.add(inputPort);
-		this.inputPortNum++;
 	}
 	
 	public void putOutputPort(MulticastPort outputPort) {
 		this.outputPortList.add(outputPort);
-		this.outputPortNum++;
+	}
+	
+	public void putPort(PortDirection direction, MulticastPort port) {
+		switch(direction) {
+		case INPUT:
+			this.putInputPort(port);
+			break;
+		case OUTPUT:
+			this.putOutputPort(port);
+			break;
+		}
 	}
 
 	public void setOutputPortList(ArrayList<MulticastPort> outputPortList) {
 		this.outputPortList = outputPortList;
-		this.outputPortNum = this.outputPortList.size();
 	}
 
 	public void clearInputPort() {
@@ -101,29 +110,26 @@ public class MulticastGroup implements Cloneable {
 		this.outputPortList.clear();
 	}
 	
-	public void setInputCommunicationTypeList(HashSet<MulticastCommunicationType> inputCommunicationTypeList) {
-		this.inputCommunicationTypeList = inputCommunicationTypeList;
-		this.inputPortNum = this.inputCommunicationTypeList.size();
+	public void putInputCommunicationType(DeviceCommunicationType communicationType) {
+		inputCommunicationTypeList.add(communicationType);
 	}
 	
-	public void putInputCommunicationType(MulticastCommunicationType inputCommunicationType) {
-		this.inputCommunicationTypeList.add(inputCommunicationType);
+	public void putOutputCommunicationType(DeviceCommunicationType communicationType) {
+		outputCommunicationTypeList.add(communicationType);
 	}
 	
-	public HashSet<MulticastCommunicationType> getInputCommunicationTypeList() {
-		return this.inputCommunicationTypeList;
+	public HashSet<DeviceCommunicationType> getInputCommunicationType() {
+		return inputCommunicationTypeList;
 	}
 	
-	public void putOutputCommunicationType(MulticastCommunicationType outputCommunicationType) {
-		this.outputCommunicationTypeList.add(outputCommunicationType);
-	}
-
-	public void setOutputCommunicationTypeList(HashSet<MulticastCommunicationType> outputCommunicationTypeList) {
-		this.outputCommunicationTypeList = outputCommunicationTypeList;
-		this.outputPortNum = this.outputCommunicationTypeList.size();
+	public HashSet<DeviceCommunicationType> getOutputCommunicationType() {
+		return outputCommunicationTypeList;
 	}
 	
-	public HashSet<MulticastCommunicationType> getOutputCommunicationTypeList() {
-		return this.outputCommunicationTypeList;
+	public HashSet<DeviceCommunicationType> getCommunicationTypeList() {
+		HashSet<DeviceCommunicationType> communicationTypeList = new HashSet<DeviceCommunicationType>();
+		communicationTypeList.addAll(inputCommunicationTypeList);
+		communicationTypeList.addAll(outputCommunicationTypeList);
+		return communicationTypeList;
 	}
 }

@@ -64,13 +64,13 @@ public class Constants {
 	public static final String TEMPLATE_TAG_LIBRARY_INFO = "library_info";
 	public static final String TEMPLATE_TAG_DEVICE_CONSTRAINED_INFO = "device_constrained_info";
 	public static final String TEMPLATE_TAG_USED_COMMUNICATION_LIST = "used_communication_list";
+	public static final String TEMPLATE_TAG_SUPPORTED_COMMUNICATION_LIST = "supported_communication_list";
 	
 	public static final String TEMPLATE_TAG_GPU_USED = "gpu_used";
 	public static final String TEMPLATE_TAG_COMMUNICATION_USED = "communication_used";
 	public static final String TEMPLATE_TAG_TCP_SERVER_LIST = "tcp_server_list";
 	public static final String TEMPLATE_TAG_TCP_CLIENT_LIST = "tcp_client_list";
-	public static final String TEMPLATE_TAG_UDP_SERVER_LIST = "udp_server_list";
-	public static final String TEMPLATE_TAG_UDP_CLIENT_LIST = "udp_client_list";
+	public static final String TEMPLATE_TAG_UDP_LIST = "udp_list";
 	public static final String TEMPLATE_TAG_MODULE_LIST = "module_list";
 	public static final String TEMPLATE_TAG_BLUETOOTH_MASTER_LIST = "bluetooth_master_list";
 	public static final String TEMPLATE_TAG_BLUETOOTH_SLAVE_LIST = "bluetooth_slave_list";

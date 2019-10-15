@@ -55,7 +55,6 @@ typedef enum _ETimeMetric {
 	TIME_METRIC_HOUR,
 } ETimeMetric;
 
-
 typedef enum _EPortDirection {
 	PORT_DIRECTION_OUTPUT,
 	PORT_DIRECTION_INPUT,
@@ -66,7 +65,6 @@ typedef enum _EPortSampleRateType {
 	PORT_SAMPLE_RATE_VARIABLE,
 	PORT_SAMPLE_RATE_MULTIPLE,
 } EPortSampleRateType;
-
 
 typedef enum _ECommunicationType {
 	COMMUNICATION_TYPE_SHARED_MEMORY,
@@ -82,9 +80,8 @@ typedef enum _EChannelType {
 } EChannelType;
 
 typedef enum _EMulticastCommunicationType {
-	MULTICAST_COMMUNICATION_TYPE_SHARED_MEMORY,
-	MULTICAST_COMMUNICATION_TYPE_UDP,
-	MULTICAST_COMMUNICATION_TYPE_END,
+	SHARED_MEMORY,
+	UDP,
 }EMulticastCommunicationType;
 
 typedef enum _ELoopType {

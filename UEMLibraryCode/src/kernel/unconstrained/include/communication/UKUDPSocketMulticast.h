@@ -20,16 +20,60 @@ extern "C"
 {
 #endif
 
+typedef struct _SUDPMulticastReceiver SUDPMulticastReceiver;
+
 typedef struct _SUDPMulticast{
-	SUDPSocket *pstSocket;
-	HThread hManagementThread; // for Reader
-	uem_bool bExit;
-	void *pstMulticastManager;
+	SUDPInfo stUDPInfo;
+	int *anReceivers;
+	int nReceiverNum;
+	int *anSenders;
+	int nSenderNum;
+	SUDPMulticastReceiver *pstUDPMulticastReceiver;
 }SUDPMulticast;
 
-uem_result UKUDPSocketMulticast_Initialize(IN SMulticastGroup *pstMulticastGroup);
+typedef struct _SUDPMulticastReceiver{
+	SUDPMulticast *pstUDPMulticast;
+	SUDPSocket stReceiverSocket;
+	HThread hManagementThread;
+	uem_bool bExit;
+}SUDPMulticastReceiver;
+
+typedef struct _SUDPMulticastSender{
+	SUDPMulticast *pstUDPMulticast;
+	SUDPSocket stSenderSocket;
+}SUDPMulticastSender;
+
+/**
+ * @brief Initialize Multicast UDP Receivers.
+ *
+ * This function initializes Multicast UDP Receivers. \n
+ * This function loads a server and accept clients from different devices.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_OUT_OF_MEMORY, and \n
+ *         errors corresponding to @ref SVirtualCommunicationAPI fnCreate() and fnListen().
+ */
+uem_result UKUDPSocketMulticastAPI_Initialize();
+
+/**
+ * @brief Initialize a Multicast UDP sender.
+ *
+ * This function initializes a Multicast UDP sender. \n
+ * This function loads a server and accept clients from different devices.
+ *
+ * @param pstMulticastPort sender of the UDP
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_OUT_OF_MEMORY, and \n
+ *         errors corresponding to @ref SVirtualCommunicationAPI fnCreate() and fnListen().
+ */
+uem_result UKUDPSocketMulticastPort_Initialize(IN SMulticastPort *pstMulticastPort);
 uem_result UKUDPSocketMulticast_WriteToBuffer(IN SMulticastPort *pstMulticastPort, IN unsigned char *pData, IN int nDataToWrite, OUT int *pnDataWritten);
-uem_result UKUDPSocketMulticast_Finalize(IN SMulticastGroup *pstMulticastGroup);
+uem_result UKUDPSocketMulticastPort_Finalize(IN SMulticastPort *pstMulticastPort);
+uem_result UKUDPSocketMulticastAPI_Finalize();
+
+extern SUDPMulticast g_astMulticastUDPList[];
+extern int g_nMulticastUDPNum;
 
 #ifdef __cplusplus
 }

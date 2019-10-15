@@ -1,8 +1,8 @@
 package org.snu.cse.cap.translator.structure.communication.multicast;
 
+import org.snu.cse.cap.translator.structure.communication.InMemoryAccessType;
 import org.snu.cse.cap.translator.structure.communication.Port;
 import org.snu.cse.cap.translator.structure.communication.PortDirection;
-import org.snu.cse.cap.translator.structure.communication.InMemoryAccessType;
 
 public class MulticastPort extends Port {
 	private String groupName;

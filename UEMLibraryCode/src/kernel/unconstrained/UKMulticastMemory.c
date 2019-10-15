@@ -17,27 +17,9 @@
 
 #include <UKHostSystem.h>
 
+#include <UKMulticastMemory.h>
+
 #include <uem_data.h>
-
-uem_result UKMulticastMemory_Clear(SMulticastGroup *pstMulticastGroup, SSharedMemoryMulticast *pstSharedMemoryMulticast)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-
-	IFVARERRASSIGNGOTO(pstSharedMemoryMulticast, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-
-	// information clear
-	// pDataStart => clear (pBuffer)
-	// nDataLen => clear (0)
-	pstSharedMemoryMulticast->pDataStart = pstSharedMemoryMulticast->pBuffer;
-	pstSharedMemoryMulticast->pDataEnd = pstSharedMemoryMulticast->pBuffer;
-	pstSharedMemoryMulticast->nDataLen = 0;
-	pstSharedMemoryMulticast->nReadReferenceCount = 0;
-	pstSharedMemoryMulticast->nWriteReferenceCount = 0;
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
 
 uem_result UKMulticastMemory_Initialize(SMulticastGroup *pstMulticastGroup, SSharedMemoryMulticast *pstSharedMemoryMulticast)
 {
@@ -51,9 +33,6 @@ uem_result UKMulticastMemory_Initialize(SMulticastGroup *pstMulticastGroup, SSha
 		result = UCThreadMutex_Create(&(pstSharedMemoryMulticast->hMutex));
 		ERRIFGOTO(result, _EXIT);
 	}
-
-	result = UKMulticastMemory_Clear(pstMulticastGroup, pstSharedMemoryMulticast);
-	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -76,7 +55,7 @@ uem_result UKMulticastMemory_ReadFromBuffer(SMulticastPort *pstMulticastPort, SS
 	{
 		if(pstSharedMemoryMulticast->nDataLen > 0)
 		{
-			result = pstMemoryAPI->fnCopyFromMemory(pBuffer, pstSharedMemoryMulticast->pDataStart, pstSharedMemoryMulticast->nDataLen);
+			result = pstMemoryAPI->fnCopyFromMemory(pBuffer, pstSharedMemoryMulticast->pData, pstSharedMemoryMulticast->nDataLen);
 			ERRIFGOTO(result, _EXIT_LOCK);
 		}
 
@@ -84,7 +63,7 @@ uem_result UKMulticastMemory_ReadFromBuffer(SMulticastPort *pstMulticastPort, SS
 	}
 	else // pstChannel->nDataLen >= nDataToRead
 	{
-		result = pstMemoryAPI->fnCopyFromMemory(pBuffer, pstSharedMemoryMulticast->pDataStart, nDataToRead);
+		result = pstMemoryAPI->fnCopyFromMemory(pBuffer, pstSharedMemoryMulticast->pData, nDataToRead);
 		ERRIFGOTO(result, _EXIT_LOCK);
 
 		*pnDataRead = nDataToRead;
@@ -97,7 +76,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKMulticastMemory_WriteToBuffer (SMulticastPort *pstMulticastPort, SSharedMemoryMulticast *pstSharedMemoryMulticast, IN unsigned char *pBuffer, IN int nDataToWrite, OUT int *pnDataWritten)
+uem_result UKMulticastMemory_WriteToBuffer(SMulticastPort *pstMulticastPort, SSharedMemoryMulticast *pstSharedMemoryMulticast, IN unsigned char *pBuffer, IN int nDataToWrite, OUT int *pnDataWritten)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SGenericMemoryAccess *pstMemoryAPI = NULL;
@@ -109,11 +88,11 @@ uem_result UKMulticastMemory_WriteToBuffer (SMulticastPort *pstMulticastPort, SS
 	result = UCThreadMutex_Lock(pstSharedMemoryMulticast->hMutex);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstMulticastPort->pMulticastGroup->nBufSize >= nDataToWrite)
+	if(pstMulticastPort->pstMulticastGroup->nBufSize >= nDataToWrite)
 	{
 		if (nDataToWrite > 0)
 		{
-			result = pstMemoryAPI->fnCopyToMemory(pstSharedMemoryMulticast->pDataStart, pBuffer, nDataToWrite);
+			result = pstMemoryAPI->fnCopyToMemory(pstSharedMemoryMulticast->pData, pBuffer, nDataToWrite);
 			ERRIFGOTO(result, _EXIT_LOCK);
 		}
 
@@ -121,10 +100,10 @@ uem_result UKMulticastMemory_WriteToBuffer (SMulticastPort *pstMulticastPort, SS
 	}
 	else // pstChannel->nBufSize < nDataToWrite
 	{
-		result = pstMemoryAPI->fnCopyToMemory(pstSharedMemoryMulticast->pDataStart, pBuffer, pstMulticastPort->pMulticastGroup->nBufSize);
+		result = pstMemoryAPI->fnCopyToMemory(pstSharedMemoryMulticast->pData, pBuffer, pstMulticastPort->pstMulticastGroup->nBufSize);
 		ERRIFGOTO(result, _EXIT_LOCK);
 
-		*pnDataWritten = pstMulticastPort->pMulticastGroup->nBufSize;
+		*pnDataWritten = pstMulticastPort->pstMulticastGroup->nBufSize;
 	}
 
 	pstSharedMemoryMulticast->nDataLen = *pnDataWritten;

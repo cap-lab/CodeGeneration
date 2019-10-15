@@ -599,7 +599,7 @@ _EXIT:
 }
 
 
-uem_result UCDynamicSocket_Sendto(HSocket hSocket, IN char *pszClientAddress, IN int nTimeout, IN unsigned char *pData, IN int nDataLen, OUT int *pnSentSize) {
+uem_result UCDynamicSocket_Sendto(HSocket hSocket, IN const char *pszClientAddress, IN int nTimeout, IN unsigned char *pData, IN int nDataLen, OUT int *pnSentSize) {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SUCSocket *pstSocket = NULL;
 	struct sockaddr_in stUDPServerAddr;
@@ -642,7 +642,7 @@ uem_result UCDynamicSocket_Sendto(HSocket hSocket, IN char *pszClientAddress, IN
 	_EXIT: return result;
 }
 
-uem_result UCDynamicSocket_RecvFrom(HSocket hSocket, IN char *pszClientAddress, IN int nTimeout, IN int nBufferLen, OUT char *pBuffer, OUT int *pnRecvSize) {
+uem_result UCDynamicSocket_RecvFrom(HSocket hSocket, IN const char *pszClientAddress, IN int nTimeout, IN int nBufferLen, OUT char *pBuffer, OUT int *pnRecvSize) {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SUCSocket *pstSocket = NULL;
 	struct sockaddr_in stUDPClientAddr;

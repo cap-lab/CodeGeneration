@@ -1,5 +1,8 @@
 package org.snu.cse.cap.translator.structure.device.connection;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import hopes.cic.xml.NetworkType;
 
 public abstract class Connection {
@@ -7,6 +10,7 @@ public abstract class Connection {
 	protected ProtocolType protocol;
 	protected String name;
 	protected String role;
+	protected HashMap<String, ArrayList<Integer>> user;
 	
 	public Connection(String name, String role, NetworkType network, ProtocolType protocol) 
 	{
@@ -14,6 +18,7 @@ public abstract class Connection {
 		this.role = role;
 		this.network = network;
 		this.protocol = protocol;
+		userListInit();
 	}
 	
 	public String getName() {
@@ -23,7 +28,6 @@ public abstract class Connection {
 	public String getRole() {
 		return role;
 	}
-	
 	
 	public void setName(String name) {
 		this.name = name;
@@ -39,5 +43,27 @@ public abstract class Connection {
 
 	public ProtocolType getProtocol() {
 		return protocol;
+	}
+	
+	public void putMulticastReceiver(Integer groupId) {
+		user.get("multicastInput").add(groupId);
+	}
+	
+	public ArrayList<Integer> getMulticastReceivers() {
+		return user.get("multicastInput");
+	}
+	
+	public void putMulticastSender(Integer groupId) {
+		user.get("multicastOutput").add(groupId);
+	}
+	
+	public ArrayList<Integer> getMulticastSenders() {
+		return user.get("multicastOutput");
+	}
+	
+	private void userListInit() {
+		user = new HashMap<String, ArrayList<Integer>>();
+		user.put("multicastInput", new ArrayList<Integer>());
+		user.put("multicastOutput", new ArrayList<Integer>());
 	}
 }

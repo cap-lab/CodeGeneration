@@ -29,9 +29,9 @@ typedef struct _SUDPInfo{
 
 typedef struct _SUDPSocket {
 	char *pHeader;
-	char *pBuffer;
+	char *pData;
 	int nHeaderLen;
-	int nBufLen;
+	int nDataLen;
 	HThreadMutex hMutex;
 	HSocket hSocket;
 } SUDPSocket;

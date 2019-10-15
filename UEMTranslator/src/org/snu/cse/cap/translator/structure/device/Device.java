@@ -7,22 +7,21 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import org.snu.cse.cap.translator.Constants;
+import org.snu.cse.cap.translator.structure.ExecutionPolicy;
 import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 import org.snu.cse.cap.translator.structure.TaskGraph;
 import org.snu.cse.cap.translator.structure.TaskGraphType;
-import org.snu.cse.cap.translator.Constants;
-import org.snu.cse.cap.translator.structure.ExecutionPolicy;
-import org.snu.cse.cap.translator.structure.communication.Port;
 import org.snu.cse.cap.translator.structure.communication.channel.Channel;
 import org.snu.cse.cap.translator.structure.communication.channel.ChannelPort;
 import org.snu.cse.cap.translator.structure.communication.multicast.MulticastGroup;
 import org.snu.cse.cap.translator.structure.communication.multicast.MulticastPort;
 import org.snu.cse.cap.translator.structure.device.connection.Connection;
 import org.snu.cse.cap.translator.structure.device.connection.ConstrainedSerialConnection;
+import org.snu.cse.cap.translator.structure.device.connection.IPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
 import org.snu.cse.cap.translator.structure.device.connection.ProtocolType;
 import org.snu.cse.cap.translator.structure.device.connection.SerialConnection;
-import org.snu.cse.cap.translator.structure.device.connection.IPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.TCPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.UDPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.UnconstrainedSerialConnection;
@@ -45,9 +44,9 @@ import org.snu.cse.cap.translator.structure.mapping.ScheduleTask;
 import org.snu.cse.cap.translator.structure.module.Module;
 import org.snu.cse.cap.translator.structure.task.Task;
 import org.snu.cse.cap.translator.structure.task.TaskMode;
+import org.snu.cse.cap.translator.structure.task.TaskMode.ChildTaskTraverseCallback;
 import org.snu.cse.cap.translator.structure.task.TaskModeTransition;
 import org.snu.cse.cap.translator.structure.task.TaskShapeType;
-import org.snu.cse.cap.translator.structure.task.TaskMode.ChildTaskTraverseCallback;
 
 import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICGPUSetupType;
@@ -89,13 +88,14 @@ public class Device {
 	private HashMap<String, Integer> portKeyToIndex;  //Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
 	private ArrayList<TCPConnection> tcpServerList;
 	private ArrayList<TCPConnection> tcpClientList;
-	private ArrayList<UDPConnection> udpServerList;
-	private ArrayList<UDPConnection> udpClientList;
+	private HashMap<String, UDPConnection> udpList;
 	private ArrayList<UnconstrainedSerialConnection> bluetoothMasterList;
 	private ArrayList<UnconstrainedSerialConnection> bluetoothUnconstrainedSlaveList;
 	private ArrayList<ConstrainedSerialConnection> serialConstrainedSlaveList;
 	private ArrayList<UnconstrainedSerialConnection> serialMasterList;
 	private ArrayList<UnconstrainedSerialConnection> serialUnconstrainedSlaveList;
+	
+	private HashSet<DeviceCommunicationType> supportedConnectionTypeList;
 
 	
 	public Device(String name, int id, String architecture, String platform, String runtime) 
@@ -124,14 +124,14 @@ public class Device {
 		this.portKeyToIndex = new HashMap<String, Integer>();
 		this.tcpServerList = new ArrayList<TCPConnection>();
 		this.tcpClientList = new ArrayList<TCPConnection>();
-		this.udpServerList = new ArrayList<UDPConnection>();
-		this.udpClientList = new ArrayList<UDPConnection>();
-		
+		this.udpList = new HashMap<String, UDPConnection>();
 		this.bluetoothMasterList = new ArrayList<UnconstrainedSerialConnection>();
 		this.bluetoothUnconstrainedSlaveList = new ArrayList<UnconstrainedSerialConnection>();
 		this.serialConstrainedSlaveList = new ArrayList<ConstrainedSerialConnection>();
 		this.serialMasterList = new ArrayList<UnconstrainedSerialConnection>();
 		this.serialUnconstrainedSlaveList = new ArrayList<UnconstrainedSerialConnection>();
+		
+		this.supportedConnectionTypeList = new HashSet<DeviceCommunicationType>();
 	}
 	
 	private class TaskFuncIdChecker 
@@ -182,7 +182,7 @@ public class Device {
 	
 	public boolean useCommunication()
 	{
-		if (this.connectionList.size() == 0)
+		if (this.connectionList.size() == 0 && this.supportedConnectionTypeList.size() == 0)
 		{
 			return false;
 		}
@@ -1047,6 +1047,16 @@ public class Device {
 		this.processorList.add(processor);
 	}
 	
+	public void putSupportedConnectionType(DeviceCommunicationType connectionType)
+	{
+		this.supportedConnectionTypeList.add(connectionType);
+	}
+	
+	public HashSet<DeviceCommunicationType> getSupportedConnectionType()
+	{
+		return this.supportedConnectionTypeList;
+	}
+	
 	public HashSet<DeviceCommunicationType> getRequiredCommunicationSet()
 	{
 		HashSet<DeviceCommunicationType> communicationSet = new HashSet<DeviceCommunicationType>();
@@ -1075,7 +1085,30 @@ public class Device {
 			}
 		}
 		
+		for(DeviceCommunicationType connectionType : getSupportedConnectionType())
+		{
+			communicationSet.add(connectionType);
+		}
+		
 		return communicationSet;
+	}
+	
+	public void putUDPConnection(String connectionId, UDPConnection udpConnection) 
+	{
+		this.udpList.put(connectionId, udpConnection);
+	}
+	
+	public UDPConnection getUDPConnection(String connectionId)
+	{
+		return this.udpList.get(connectionId);
+	}
+	public ArrayList<UDPConnection> getUDPConnectionList()
+	{
+		return new ArrayList<UDPConnection>(this.udpList.values());
+	}
+	
+	public boolean checkUDPConnectionIsCreated(String connectionId) {
+		return this.udpList.containsKey(connectionId);
 	}
 	
 	public void putConnection(Connection connection) 
@@ -1090,14 +1123,6 @@ public class Device {
 			}
 			else {
 				this.tcpClientList.add((TCPConnection) connection);	
-			}
-			break;
-		case UDP:
-			if(connection.getRole().equalsIgnoreCase(IPConnection.ROLE_SERVER) == true) {
-				this.udpServerList.add((UDPConnection) connection);
-			}
-			else {
-				this.udpClientList.add((UDPConnection) connection);	
 			}
 			break;
 		case SERIAL:
@@ -1219,7 +1244,7 @@ public class Device {
 		return portList;
 	}
 
-	public HashMap<String, MulticastGroup> getMulticastGroupList() {
+	public HashMap<String, MulticastGroup> getMulticastGroupMap() {
 		return multicastGroupList;
 	}
 	
@@ -1270,14 +1295,6 @@ public class Device {
 
 	public ArrayList<TCPConnection> getTcpClientList() {
 		return tcpClientList;
-	}
-
-	public ArrayList<UDPConnection> getUdpServerList() {
-		return udpServerList;
-	}
-
-	public ArrayList<UDPConnection> getUdpClientList() {
-		return udpClientList;
 	}
 	
 	public ArrayList<Module> getModuleList() {
