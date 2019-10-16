@@ -58,18 +58,50 @@ uem_result UKUDPSocketMulticastAPI_Initialize();
 /**
  * @brief Initialize a Multicast UDP sender.
  *
- * This function initializes a Multicast UDP sender. \n
- * This function loads a server and accept clients from different devices.
+ * This function initializes a Multicast UDP sender.
  *
- * @param pstMulticastPort sender of the UDP
+ * @param pstMulticastPort sender
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_OUT_OF_MEMORY, and \n
  *         errors corresponding to @ref SVirtualCommunicationAPI fnCreate() and fnListen().
  */
 uem_result UKUDPSocketMulticastPort_Initialize(IN SMulticastPort *pstMulticastPort);
+
+/**
+ * @brief Initialize a Multicast UDP sender.
+ *
+ * This function initializes a Multicast UDP sender.
+ *
+ * @param pstMulticastPort sender
+ * @param pData data to send
+ * @param nDataToWrite data length to send
+ * @param[out] pnDataWritten actual sent data length
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_OUT_OF_MEMORY, and \n
+ *         errors corresponding to @ref SVirtualCommunicationAPI fnCreate() and fnListen().
+ */
 uem_result UKUDPSocketMulticast_WriteToBuffer(IN SMulticastPort *pstMulticastPort, IN unsigned char *pData, IN int nDataToWrite, OUT int *pnDataWritten);
+
+/**
+ * @brief Finalize a Multicast UDP sender.
+ *
+ * This function finalize a Multicast UDP sender. \n
+ *
+ * @param pstMulticastPort sender
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error.
+ */
 uem_result UKUDPSocketMulticastPort_Finalize(IN SMulticastPort *pstMulticastPort);
+
+/**
+ * @brief Finalize Multicast UDP Receivers.
+ *
+ * This function finalize Multicast UDP Receivers.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error.
+ */
 uem_result UKUDPSocketMulticastAPI_Finalize();
 
 extern SUDPMulticast g_astMulticastUDPList[];

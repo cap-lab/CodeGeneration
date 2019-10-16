@@ -172,11 +172,11 @@ static void *multicastHandlingThread(void *pData)
 				pstUDPMulticastReceiver->pstUDPMulticast->stUDPInfo.pszIP, 1, UDP_MAX, pstUDPMulticastReceiver->stReceiverSocket.pHeader,
 				&nReceivedDataLength);
 		IFVARERRASSIGNGOTO(result, ERR_UEM_NET_TIMEOUT, result, ERR_UEM_NOERROR, _EXIT_CONTINUE);
+		ERRIFGOTO(result, _EXIT);
 		if(nReceivedDataLength < MULTICAST_UDP_HEADER_SIZE)
 		{
 			continue;
 		}
-		ERRIFGOTO(result, _EXIT);
 
 		result = checkDeviceId(pstUDPMulticastReceiver);
 		IFVARERRASSIGNGOTO(result, ERR_UEM_SKIP_THIS, result, ERR_UEM_NOERROR, _EXIT_CONTINUE);
@@ -252,7 +252,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKUDPSocketMulticast_SocketInitialize(SUDPSocket *pstUDPSocket, int nPort, IN uem_bool bIsServer)
+uem_result UKUDPSocketMulticast_SocketInitialize(SUDPSocket *pstUDPSocket, SUDPInfo *pstUDPInfo, IN uem_bool bIsServer)
 {
 	SSocketInfo stSocketInfo;
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -260,8 +260,8 @@ uem_result UKUDPSocketMulticast_SocketInitialize(SUDPSocket *pstUDPSocket, int n
 	if (pstUDPSocket->hSocket == NULL)
 	{
 		stSocketInfo.enSocketType = SOCKET_TYPE_UDP;
-		stSocketInfo.nPort = nPort;
-		stSocketInfo.pszSocketPath = NULL;
+		stSocketInfo.nPort = pstUDPInfo->nPort;
+		stSocketInfo.pszSocketPath = pstUDPInfo->pszIP;
 		result = UCDynamicSocket_Create(&stSocketInfo, bIsServer, &pstUDPSocket->hSocket);
 		ERRIFGOTO(result, _EXIT);
 	}
@@ -305,7 +305,7 @@ static uem_result UKUDPSocketMulticast_MakeData(IN SMulticastPort *pstMulticastP
 		nDataToWrite = UDP_MAX-MULTICAST_UDP_HEADER_SIZE;
 	}
 
-	pstMulticastPort->pstMemoryAccessAPI->fnCopyToMemory(pBuffer, pData, nDataToWrite);
+	result = pstMulticastPort->pstMemoryAccessAPI->fnCopyToMemory(pBuffer, pData, nDataToWrite);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -321,11 +321,14 @@ uem_result UKUDPSocketMulticast_WriteToBuffer(IN SMulticastPort *pstMulticastPor
 	SUDPMulticastSender *pstUDPMulticastSender = NULL;
 	SMulticastCommunicationGate *pstCommunicationGate = NULL;
 	int nChunk = 0;
+	int nDataWritten = 0;
 
 	result = UKMulticast_GetCommunicationGate(pstMulticastPort->astMulticastGateList, pstMulticastPort->nCommunicationTypeNum, UDP, &pstCommunicationGate);
 	ERRIFGOTO(result, _EXIT);
 
 	pstUDPMulticastSender = (SUDPMulticastSender *)pstCommunicationGate->pstSocket;
+
+	*pnDataWritten = 0;
 
 	for(nChunk = 0 ; nDataToWrite > 0 ; nDataToWrite-=(UDP_MAX - MULTICAST_UDP_HEADER_SIZE), nChunk++)
 	{
@@ -337,8 +340,10 @@ uem_result UKUDPSocketMulticast_WriteToBuffer(IN SMulticastPort *pstMulticastPor
 
 		result = UCDynamicSocket_Sendto(pstUDPMulticastSender->stSenderSocket.hSocket, pstUDPMulticastSender->pstUDPMulticast->stUDPInfo.pszIP, 1,
 				(unsigned char *)pstUDPMulticastSender->stSenderSocket.pHeader, MULTICAST_UDP_HEADER_SIZE + (nDataToWrite > (UDP_MAX - MULTICAST_UDP_HEADER_SIZE)? UDP_MAX - MULTICAST_UDP_HEADER_SIZE: nDataToWrite),
-				pnDataWritten);
+				&nDataWritten);
 		ERRIFGOTO(result, _EXIT);
+
+		*pnDataWritten+=(nDataWritten -MULTICAST_UDP_HEADER_SIZE);
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -379,7 +384,7 @@ uem_result UKUDPSocketMulticastPort_Initialize(IN SMulticastPort *pstMulticastPo
 		result = UKUDPSocketMulticast_AllocBuffer(&((SUDPMulticastSender *)pstCommunicationGate->pstSocket)->stSenderSocket, pstMulticastPort->pstMulticastGroup->nBufSize);
 		ERRIFGOTO(result, _EXIT);
 
-		result = UKUDPSocketMulticast_SocketInitialize(&((SUDPMulticastSender *)pstCommunicationGate->pstSocket)->stSenderSocket, ((SUDPMulticastSender *)pstCommunicationGate->pstSocket)->pstUDPMulticast->stUDPInfo.nPort, FALSE);
+		result = UKUDPSocketMulticast_SocketInitialize(&((SUDPMulticastSender *)pstCommunicationGate->pstSocket)->stSenderSocket, &((SUDPMulticastSender *)pstCommunicationGate->pstSocket)->pstUDPMulticast->stUDPInfo, FALSE);
 		ERRIFGOTO(result, _EXIT);
 	}
 
@@ -427,7 +432,7 @@ uem_result UKUDPSocketMulticastAPI_Initialize()
 		result = UKUDPSocketMulticast_AllocBuffer(&g_astMulticastUDPList[nLoop].pstUDPMulticastReceiver->stReceiverSocket, UDP_MAX);
 		ERRIFGOTO(result, _EXIT);
 
-		result = UKUDPSocketMulticast_SocketInitialize(&g_astMulticastUDPList[nLoop].pstUDPMulticastReceiver->stReceiverSocket, g_astMulticastUDPList[nLoop].pstUDPMulticastReceiver->pstUDPMulticast->stUDPInfo.nPort, TRUE);
+		result = UKUDPSocketMulticast_SocketInitialize(&g_astMulticastUDPList[nLoop].pstUDPMulticastReceiver->stReceiverSocket, &g_astMulticastUDPList[nLoop].pstUDPMulticastReceiver->pstUDPMulticast->stUDPInfo, TRUE);
 		ERRIFGOTO(result, _EXIT);
 
 		result = UCDynamicSocket_Bind(g_astMulticastUDPList[nLoop].pstUDPMulticastReceiver->stReceiverSocket.hSocket);
