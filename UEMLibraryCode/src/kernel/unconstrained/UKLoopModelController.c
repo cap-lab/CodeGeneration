@@ -60,7 +60,7 @@ static uem_result updateLoopIterationHistory(STaskGraph *pstGraph, STask *pstCur
 	pstLoopInfo->astLoopIteration[nHistoryEnd].nPrevIteration = nCurIteration;
 	pstLoopInfo->astLoopIteration[nHistoryEnd].nNextIteration = nCurIteration - (nCurIteration % nLoopCount) + nLoopCount;
 
-	if(pstLoopInfo->astLoopIteration[nHistoryEnd].nNextIteration > nTargetIteration)
+	if(nTargetIteration > 0 && pstLoopInfo->astLoopIteration[nHistoryEnd].nNextIteration > nTargetIteration)
 	{
 		pstLoopInfo->astLoopIteration[nHistoryEnd].nNextIteration = nTargetIteration;
 	}
@@ -260,7 +260,7 @@ static uem_result traverseAndSetEventToStopTask(STask *pstTask, void *pUserData)
 	result = UKCPUGeneralTaskManagerCB_GetTaskGraphLock(pstUserData->pTaskHandle, &hTaskGraphLock);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstTask->nCurIteration >= pstTask->nTargetIteration)
+	if(pstTask->nTargetIteration > 0 && pstTask->nCurIteration >= pstTask->nTargetIteration)
 	{
 		if(pstCallerTask->nTaskId == pstTask->nTaskId)
 		{
