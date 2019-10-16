@@ -61,26 +61,27 @@
 
   <xs:complexType name="DeviceConnectionListType">
     <xs:sequence>
-      <xs:element name="IPConnection" type="IPConnectionType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="TCPConnection" type="TCPConnectionType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="UDPConnection" type="UDPConnectionType" minOccurs="0" maxOccurs="1" />
 	  <xs:element name="SerialConnection" type="SerialConnectionType" minOccurs="0" maxOccurs="unbounded" />
 	</xs:sequence>
   </xs:complexType>
 
-  <xs:complexType name="IPConnectionType">
+  <xs:complexType name="TCPConnectionType">
 	<xs:attribute name="name" type="NameType" use="required" />
 	<xs:attribute name="network" type="NetworkType" use="optional" />
-	<xs:attribute name="protocol" type="IPProtocolType" use="required" />
 	<xs:attribute name="role" type="ServerClientRoleType" use="required" />
-	<xs:attribute name="ip" type="xs:string" use="optional" />
+	<xs:attribute name="ip" type="xs:string" use="required" />
 	<xs:attribute name="port" type="xs:nonNegativeInteger" use="required" />
   </xs:complexType>
   
-  <xs:simpleType name="IPProtocolType">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="TCP" />
-      <xs:enumeration value="UDP" />
-    </xs:restriction>
-  </xs:simpleType>
+  <xs:complexType name="UDPConnectionType">
+	<xs:attribute name="name" type="NameType" use="optional" />
+	<xs:attribute name="network" type="NetworkType" use="optional" />
+	<xs:attribute name="role" type="ServerClientRoleType" use="optional" />
+	<xs:attribute name="ip" type="xs:string" use="optional" />
+	<xs:attribute name="port" type="xs:nonNegativeInteger" use="optional" />
+  </xs:complexType>
     
   <xs:complexType name="SerialConnectionType">
 	<xs:attribute name="name" type="NameType" use="required" />
