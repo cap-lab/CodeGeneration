@@ -352,12 +352,105 @@ _EXIT:
 	return result;
 }
 
+static uem_result convertIterationToUpperTaskGraphBase(STask *pstTask, STaskGraph *pstTaskGraph, OUT int *pnConvertedIteration)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nCurIteration = 0;
+	STaskGraph *pstParentGraph = NULL;
+	SLoopController *pstLoopController = NULL;
+	SModeTransitionController *pstMTMController = NULL;
+	int nCurModeIndex = 0;
+	int nLoop = 0;
+	int nModeId = 0;
+	int nIndex = 0;
+	STask *pstChildTask = NULL;
+	uem_bool bStop = FALSE;
+
+	if(pstTaskGraph == pstTask->pstParentGraph)
+	{
+		*pnConvertedIteration = pstTask->nCurIteration;
+	}
+	else
+	{
+		pstParentGraph = pstTask->pstParentGraph;
+		nCurIteration = pstTask->nCurIteration;
+
+		while(pstParentGraph != pstTaskGraph && pstParentGraph->pstParentTask != NULL && bStop == FALSE)
+		{
+			switch(pstParentGraph->enControllerType)
+			{
+			case CONTROLLER_TYPE_VOID:
+				// do nothing
+				break;
+			case CONTROLLER_TYPE_CONTROL_TASK_INCLUDED:
+				bStop = TRUE;
+				break;
+			case CONTROLLER_TYPE_DYNAMIC_CONVERGENT_LOOP:
+			case CONTROLLER_TYPE_DYNAMIC_DATA_LOOP:
+			case CONTROLLER_TYPE_STATIC_CONVERGENT_LOOP:
+			case CONTROLLER_TYPE_STATIC_DATA_LOOP:
+				// divided by loop count
+				pstLoopController = (SLoopController *) pstParentGraph->pController;
+				nCurIteration = nCurIteration / pstLoopController->pstLoopInfo->nLoopCount;
+				break;
+			case CONTROLLER_TYPE_DYNAMIC_MODE_TRANSITION:
+			case CONTROLLER_TYPE_STATIC_MODE_TRANSITION:
+				// divided by this task iteration number
+				pstMTMController = (SModeTransitionController *) pstParentGraph->pController;
+				if(pstTask != pstChildTask)
+				{
+					result = UKModeTransition_GetCurrentModeIndexByIteration(pstMTMController->pstMTMInfo, nCurIteration, &nCurModeIndex);
+					ERRIFGOTO(result, _EXIT);
+
+					nModeId = pstMTMController->pstMTMInfo->astModeMap[nCurModeIndex].nModeId;
+
+					for(nLoop  = 0 ; nLoop < pstChildTask->nTaskIterationArrayNum ; nLoop++)
+					{
+						if(pstChildTask->astTaskIteration[nLoop].nModeId == nModeId)
+						{
+							nIndex = nLoop;
+							break;
+						}
+					}
+
+					if(nLoop == pstChildTask->nTaskIterationArrayNum)
+					{
+						ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+					}
+
+					nCurIteration = nCurIteration / pstChildTask->astTaskIteration[nIndex].nRunInIteration;
+				}
+				break;
+			}
+
+			pstChildTask = pstParentGraph->pstParentTask;
+			pstParentGraph = pstParentGraph->pstParentTask->pstParentGraph;
+		}
+
+		*pnConvertedIteration = nCurIteration;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+uem_result UKTask_ConvertIterationToUpperTaskGraphBase(STask *pstTask, STaskGraph *pstTaskGraph, OUT int *pnConvertedIteration)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	result = convertIterationToUpperTaskGraphBase(pstTask, pstTaskGraph, pnConvertedIteration);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
 
 
 uem_result UKTask_GetTaskIteration(STask *pstTask, OUT int *pnTaskIteration)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	int nModeNum;
 	int nModeId;
 	int nCurModeIndex = INVALID_ARRAY_INDEX;
 	int nLoop = 0;
@@ -365,6 +458,7 @@ uem_result UKTask_GetTaskIteration(STask *pstTask, OUT int *pnTaskIteration)
 	STaskGraph *pstMTMTaskGraph = NULL;
 	STaskGraph *pstTaskGraph = NULL;
 	SModeTransitionController *pstController = NULL;
+	int nCurrentIteration = 0;
 
 	if(pstTask->pstSubGraph != NULL)
 	{
@@ -387,10 +481,9 @@ uem_result UKTask_GetTaskIteration(STask *pstTask, OUT int *pnTaskIteration)
 		pstTaskGraph = pstTaskGraph->pstParentTask->pstParentGraph;
 	}
 
-	if(pstMTMTaskGraph != NULL/* && pstParentTask->pstMTMInfo->nNumOfModes > 1*/)
+	if(pstMTMTaskGraph != NULL && pstTask->nTaskIterationArrayNum > 1)
 	{
 		pstController = (SModeTransitionController *) pstMTMTaskGraph->pController;
-		nModeNum = pstController->pstMTMInfo->nNumOfModes;
 
 		if(pstMTMTaskGraph->enControllerType == CONTROLLER_TYPE_STATIC_MODE_TRANSITION)
 		{
@@ -398,7 +491,9 @@ uem_result UKTask_GetTaskIteration(STask *pstTask, OUT int *pnTaskIteration)
 		}
 		else
 		{
-			result = UKModeTransition_GetCurrentModeIndexByIteration(pstController->pstMTMInfo, pstTask->nCurIteration, &nCurModeIndex);
+			result = convertIterationToUpperTaskGraphBase(pstTask, pstMTMTaskGraph, &nCurrentIteration);
+			ERRIFGOTO(result, _EXIT);
+			result = UKModeTransition_GetCurrentModeIndexByIteration(pstController->pstMTMInfo, nCurrentIteration, &nCurModeIndex);
 			ERRIFGOTO(result, _EXIT);
 		}
 
@@ -406,7 +501,7 @@ uem_result UKTask_GetTaskIteration(STask *pstTask, OUT int *pnTaskIteration)
 
 		nModeId = pstController->pstMTMInfo->astModeMap[nCurModeIndex].nModeId;
 
-		for(nLoop  = 0 ; nLoop < nModeNum ; nLoop++)
+		for(nLoop  = 0 ; nLoop < pstTask->nTaskIterationArrayNum ; nLoop++)
 		{
 			if(pstTask->astTaskIteration[nLoop].nModeId == nModeId)
 			{
@@ -415,7 +510,7 @@ uem_result UKTask_GetTaskIteration(STask *pstTask, OUT int *pnTaskIteration)
 			}
 		}
 
-		if(nLoop == nModeNum)
+		if(nLoop == pstTask->nTaskIterationArrayNum)
 		{
 			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 		}
@@ -433,16 +528,13 @@ _EXIT:
 }
 
 
-uem_result UKTask_SetTargetIteration(STask *pstTask, int nTargetIteration, int nTargetTaskId)
+static uem_result getIterationNumberBasedOnTargetTaskId(STask *pstTask, int nIterationNumber, int nTargetTaskId, OUT int *pnConvertedIterationNumber)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nIndex = 0;
 	int nNewIteration = 1;
 	STask *pstCurrentTask = NULL;
 	uem_bool bFound = FALSE;
-
-	result = UCThreadMutex_Lock(pstTask->hMutex);
-	ERRIFGOTO(result, _EXIT);
 
 	pstCurrentTask = pstTask;
 
@@ -472,42 +564,132 @@ uem_result UKTask_SetTargetIteration(STask *pstTask, int nTargetIteration, int n
 
 		if(nTargetTaskId == pstCurrentTask->nTaskId)
 		{
-			nNewIteration = nNewIteration * nTargetIteration;
+			nNewIteration = nNewIteration * nIterationNumber;
 			bFound = TRUE;
 			break;
 		}
 		pstCurrentTask = pstCurrentTask->pstParentGraph->pstParentTask;
 	}
 
-	if(bFound == TRUE)
+	if(bFound == FALSE)
 	{
-		int nRemainder = 0;
-		int nLoop = 0;
-		pstTask->nTargetIteration = nNewIteration;
-
-		if(pstTask->nTaskThreadSetNum > 1) // This is used only when the task is mapped to multiple processors
-		{
-			nRemainder =  (pstTask->astTaskIteration[nIndex].nRunInIteration * pstTask->nTargetIteration) % pstTask->nTaskThreadSetNum;
-
-			for(nLoop = 0 ; nLoop < pstTask->nTaskThreadSetNum ; nLoop++)
-			{
-				pstTask->astThreadContext[nLoop].nTargetThreadIteration = (pstTask->astTaskIteration[nIndex].nRunInIteration * pstTask->nTargetIteration) / pstTask->nTaskThreadSetNum;
-
-				if(nLoop < nRemainder)
-				{
-					pstTask->astThreadContext[nLoop].nTargetThreadIteration++;
-				}
-			}
-		}
+		ERRASSIGNGOTO(result, ERR_UEM_NOT_FOUND, _EXIT);
 	}
-	else
+
+	*pnConvertedIterationNumber = nNewIteration;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+uem_result UKTask_GetIterationNumberBasedOnTargetParentTaskId(STask *pstTask, int nIterationNumber, int nTargetTaskId, OUT int *pnConvertedIterationNumber)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	result = getIterationNumberBasedOnTargetTaskId(pstTask, nIterationNumber, nTargetTaskId, pnConvertedIterationNumber);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+
+uem_result UKTask_UpdateAllSubGraphCurrentIteration(STaskGraph *pstTaskGraph, STask *pstLeafTask, int nNewIterationNumber)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STaskGraph *pstCurrentGraph = NULL;
+	int nConvertedIterationNumber = 0;
+	SModelControllerCommon *pstCommon = NULL;
+	STask *pstChildTask = NULL;
+
+	pstCurrentGraph = pstLeafTask->pstParentGraph;
+	pstChildTask = pstLeafTask;
+
+	while(pstCurrentGraph != pstTaskGraph)
 	{
-		ERRASSIGNGOTO(result, ERR_UEM_NOT_FOUND, _EXIT_LOCK);
+		switch(pstCurrentGraph->enControllerType)
+		{
+		case CONTROLLER_TYPE_VOID:
+			// skip
+			break;
+		case CONTROLLER_TYPE_CONTROL_TASK_INCLUDED:
+			// skip
+			break;
+		case CONTROLLER_TYPE_DYNAMIC_MODE_TRANSITION:
+		case CONTROLLER_TYPE_STATIC_MODE_TRANSITION:
+		case CONTROLLER_TYPE_DYNAMIC_CONVERGENT_LOOP:
+		case CONTROLLER_TYPE_DYNAMIC_DATA_LOOP:
+		case CONTROLLER_TYPE_STATIC_CONVERGENT_LOOP:
+		case CONTROLLER_TYPE_STATIC_DATA_LOOP:
+			pstCommon = (SModelControllerCommon *) pstCurrentGraph->pController;
+
+			result = getIterationNumberBasedOnTargetTaskId(pstChildTask, nNewIterationNumber, pstTaskGraph->pstParentTask->nTaskId, &nConvertedIterationNumber);
+			ERRIFGOTO(result, _EXIT);
+
+			if(pstCommon->nCurrentIteration < nConvertedIterationNumber)
+			{
+				pstCommon->nCurrentIteration = nConvertedIterationNumber;
+			}
+			break;
+		default:
+			ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+			break;
+		}
+
+		if(pstCurrentGraph->pstParentTask == NULL)
+		{
+			break;
+		}
+
+		pstChildTask = pstCurrentGraph->pstParentTask;
+		pstCurrentGraph = pstCurrentGraph->pstParentTask->pstParentGraph;
 	}
 
 	result = ERR_UEM_NOERROR;
-_EXIT_LOCK:
-	UCThreadMutex_Unlock(pstTask->hMutex);
+_EXIT:
+	return result;
+}
+
+
+uem_result UKTask_SetTargetIteration(STask *pstTask, int nTargetIteration, int nTargetTaskId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nIndex = 0;
+	int nNewIteration = 1;
+	int nRemainder = 0;
+	int nLoop = 0;
+
+	result = getIterationNumberBasedOnTargetTaskId(pstTask, nTargetIteration, nTargetTaskId, &nNewIteration);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadMutex_Lock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	pstTask->nTargetIteration = nNewIteration;
+
+	if(pstTask->nTaskThreadSetNum > 1) // This is used only when the task is mapped to multiple processors
+	{
+		nRemainder =  (pstTask->astTaskIteration[nIndex].nRunInIteration * pstTask->nTargetIteration) % pstTask->nTaskThreadSetNum;
+
+		for(nLoop = 0 ; nLoop < pstTask->nTaskThreadSetNum ; nLoop++)
+		{
+			pstTask->astThreadContext[nLoop].nTargetThreadIteration = (pstTask->astTaskIteration[nIndex].nRunInIteration * pstTask->nTargetIteration) / pstTask->nTaskThreadSetNum;
+
+			if(nLoop < nRemainder)
+			{
+				pstTask->astThreadContext[nLoop].nTargetThreadIteration++;
+			}
+		}
+	}
+
+	result = UCThreadMutex_Unlock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
 }

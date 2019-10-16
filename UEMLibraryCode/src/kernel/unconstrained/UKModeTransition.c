@@ -307,7 +307,6 @@ uem_result UKModeTransition_Clear(SModeTransitionMachine *pstModeTransition)
 	pstModeTransition->nCurModeIndex = 0;
 	pstModeTransition->enModeState = MODE_STATE_TRANSITING;
 	pstModeTransition->nCurHistoryLen = 0;
-	pstModeTransition->nCurrentIteration = 0;
 	pstModeTransition->nNextModeIndex = 0;
 
 	result = ERR_UEM_NOERROR;
