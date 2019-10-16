@@ -157,6 +157,9 @@ uem_result UKTask_SetTargetIteration(STask *pstTask, int nTargetIteration, int n
 uem_result UKTask_SetAllTargetIteration(int nTargetIteration);
 
 uem_result UKTask_GetTaskIteration(STask *pstTask, OUT int *pnTaskIteration);
+uem_result UKTask_GetIterationNumberBasedOnTargetParentTaskId(STask *pstTask, int nIterationNumber, int nTargetTaskId, OUT int *pnConvertedIterationNumber);
+uem_result UKTask_ConvertIterationToUpperTaskGraphBase(STask *pstTask, STaskGraph *pstTaskGraph, OUT int *pnConvertedIteration);
+uem_result UKTask_UpdateAllSubGraphCurrentIteration(STaskGraph *pstTaskGraph, STask *pstLeafTask, int nNewIterationNumber);
 
 #ifdef __cplusplus
 }

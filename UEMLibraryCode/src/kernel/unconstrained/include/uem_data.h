@@ -67,7 +67,6 @@ typedef struct _SModeTransitionMachine {
 	SModeTransitionHistory astModeTransition[MODE_TRANSITION_ARRAY_SIZE];
 	int nCurHistoryStartIndex;
 	int nCurHistoryLen;
-	int nCurrentIteration;
 } SModeTransitionMachine;
 
 
@@ -83,7 +82,6 @@ typedef struct _SLoopInfo {
 	int nLoopCount;
 	int nDesignatedTaskId;
 	uem_bool bDesignatedTaskState; //flag to check whether the task should be terminated.
-	int nCurrentIteration;
 	SLoopIterationHistory astLoopIteration[LOOP_HISTORY_ARRAY_SIZE];
 	int nCurHistoryStartIndex;
 	int nCurHistoryLen;
@@ -136,6 +134,7 @@ typedef struct _SModelControllerFunctionSet {
 typedef struct _SModelControllerCommon {
 	HThreadMutex hMutex;
 	int nThroughputConstraint; // Only used for composite schedule
+	int nCurrentIteration;
 	SModelControllerFunctionSet *pstFunctionSet;
 } SModelControllerCommon;
 
@@ -178,6 +177,7 @@ typedef struct _STask {
 	HThreadMutex hMutex;
 	HThreadEvent hEvent;
 	STaskIteration *astTaskIteration;
+	int nTaskIterationArrayNum;
 	int nCurRunInIteration;
 	int nCurIteration;
 	int nTargetIteration;

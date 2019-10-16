@@ -276,6 +276,9 @@ uem_bool UKChannel_IsTaskSourceTask(int nTaskId)
 	int nLoop = 0;
 	uem_bool bIsLocatedInSameTaskGraph = FALSE;
 	uem_bool bIsSourceTask = TRUE;
+	STask *pstInputPortTask = NULL;
+	STask *pstOutputPortTask = NULL;
+	uem_result result;
 
 	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
 	{
@@ -288,6 +291,16 @@ uem_bool UKChannel_IsTaskSourceTask(int nTaskId)
 				bIsSourceTask = FALSE;
 				break;
 			}
+			result = UKTask_GetTaskFromTaskId(g_astChannels[nLoop].pstInputPort->nTaskId, &pstInputPortTask);
+			result = UKTask_GetTaskFromTaskId(g_astChannels[nLoop].pstOutputPort->nTaskId, &pstOutputPortTask);
+
+
+			if(pstInputPortTask->pstParentGraph == pstOutputPortTask->pstParentGraph)
+			{
+				bIsSourceTask = FALSE;
+				break;
+			}
+
 		}
 	}
 

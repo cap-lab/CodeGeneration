@@ -87,6 +87,8 @@ static uem_result callClearFunction(STask *pstTask, void *pUserData)
 			{
 				result = pstCommon->pstFunctionSet->fnClear(pstCurrentTaskGraph);
 				ERRIFGOTO(result, _EXIT);
+
+				pstCommon->nCurrentIteration = 0;
 			}
 		}
 	}

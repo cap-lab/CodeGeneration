@@ -214,6 +214,7 @@ STask g_astTasks_${task_graph.name}[] = {
 		(HThreadMutex) NULL, // Mutex
 		(HThreadEvent) NULL, // Conditional variable
 		g_astTaskIteration_${task.name}, // Task iteration count (only used when the parent task graph is data flow)
+		${task.iterationCountList?size}, // Array size of task iteration count
 		0, // current run count in iteration
 		0, // current iteration
 		0, // target iteration (this variable is used for calling delayed stop task)
@@ -284,7 +285,8 @@ SModelControllerFunctionSet g_stStaticDataLoopFunctions = {
 		<#case "CONTROL_TASK_INCLUDED">
 SModelControllerCommon g_stController_${task_graph_element.name} = {
 	(HThreadMutex) NULL,
-	0,
+	0, // throughput constraint
+	0, // current iteration number
 	(SModelControllerFunctionSet *) NULL,
 };
 
@@ -293,7 +295,8 @@ SModelControllerCommon g_stController_${task_graph_element.name} = {
 SModeTransitionController g_stController_${task_graph_element.name} = {
 	{
 		(HThreadMutex) NULL,
-		0,
+		0, // throughput constraint
+		0, // current iteration number
 		&g_stDynamicModeTransitionFunctions,
 	},
 	<#if flat_task[task_graph_element.name].modeTransition??>&g_stModeTransition_${task_graph_element.name}<#else>(SModeTransitionMachine *) NULL</#if>, // MTM information
@@ -304,7 +307,8 @@ SModeTransitionController g_stController_${task_graph_element.name} = {
 SModeTransitionController g_stController_${task_graph_element.name} = {
 	{
 		(HThreadMutex) NULL,
-		0,
+		0, // throughput constraint
+		0, // current iteration number
 		&g_stStaticModeTransitionFunctions,
 	},
 	<#if flat_task[task_graph_element.name].modeTransition??>&g_stModeTransition_${task_graph_element.name}<#else>(SModeTransitionMachine *) NULL</#if>, // MTM information
@@ -318,7 +322,8 @@ SModeTransitionController g_stController_${task_graph_element.name} = {
 SLoopController g_stController_${task_graph_element.name} = {
 	{
 		(HThreadMutex) NULL,
-		0,
+		0, // throughput constraint
+		0, // current iteration number
 		&g_stDynamicConvergentLoopFunctions,
 	},
 	<#if flat_task[task_graph_element.name].loopStruct??>&g_stLoopStruct_${task_graph_element.name}<#else>(SLoopInfo *) NULL</#if>, // Loop information
@@ -332,7 +337,8 @@ SLoopController g_stController_${task_graph_element.name} = {
 SLoopController g_stController_${task_graph_element.name} = {
 	{
 		(HThreadMutex) NULL,
-		0,
+		0, // throughput constraint
+		0, // current iteration number
 		&g_stDynamicDataLoopFunctions,
 	},
 	<#if flat_task[task_graph_element.name].loopStruct??>&g_stLoopStruct_${task_graph_element.name}<#else>(SLoopInfo *) NULL</#if>, // Loop information
