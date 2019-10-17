@@ -641,11 +641,8 @@ uem_result UKModeTransitionMachineController_HandleModelGeneral(STaskGraph *pstG
 	uem_result result = ERR_UEM_UNKNOWN;
 	uem_bool bFunctionCalled = FALSE;
 	ECPUTaskState enTaskState = TASK_STATE_STOP;
-	STask *pstCurrentTask = NULL;
-	SModeTransitionController *pstController = NULL;
-	int nConvertedIteration = 0;
 	uem_bool bRestarted = FALSE;
-	uem_bool bNeedSuspend = FALSE;
+
 
 	result = UKCPUGeneralTaskManagerCB_GetFunctionCalled(pCurrentThreadHandle, &bFunctionCalled);
 	ERRIFGOTO(result, _EXIT);
@@ -653,49 +650,13 @@ uem_result UKModeTransitionMachineController_HandleModelGeneral(STaskGraph *pstG
 	result = UKCPUGeneralTaskManagerCB_GetCurrentTaskState(pCurrentTaskHandle, &enTaskState);
 	ERRIFGOTO(result, _EXIT);
 
-	UKCPUGeneralTaskManagerCB_GetRestarted(pCurrentThreadHandle, &bRestarted);
+	result = UKCPUGeneralTaskManagerCB_GetRestarted(pCurrentThreadHandle, &bRestarted);
+	ERRIFGOTO(result, _EXIT);
 
-	if(bFunctionCalled == TRUE && enTaskState == TASK_STATE_RUNNING)
+	if((bFunctionCalled == TRUE || bRestarted == TRUE) && enTaskState == TASK_STATE_RUNNING)
 	{
 		result = handleModeTransitionInGeneralTasks(pstGraph, pCurrentTaskHandle, pCurrentThreadHandle);
 		ERRIFGOTO(result, _EXIT);
-	}
-	else if(enTaskState == TASK_STATE_RUNNING && bRestarted == TRUE)
-	{
-		pstController = (SModeTransitionController *) pstGraph->pController;
-
-		result = UKCPUGeneralTaskManagerCB_GetCurrentTaskStructure(pCurrentTaskHandle, &pstCurrentTask);
-		ERRIFGOTO(result, _EXIT);
-
-		result = UKTask_ConvertIterationToUpperTaskGraphBase(pstCurrentTask, pstGraph, &nConvertedIteration);
-		ERRIFGOTO(result, _EXIT);
-
-		if(pstCurrentTask->nTaskId == 10)
-			UEM_DEBUG_PRINT("task11: %s, mtm iter: %d, converted iter: %d !!!\n", pstCurrentTask->pszTaskName, pstController->stCommon.nCurrentIteration, nConvertedIteration);
-
-		if(pstController->stCommon.nCurrentIteration <= nConvertedIteration)
-		{
-
-			result = UKCPUGeneralTaskManagerCB_ChangeTaskState(pCurrentTaskHandle, TASK_STATE_SUSPEND);
-			ERRIFGOTO(result, _EXIT);
-		}
-		else
-		{
-			result = updateCurrentIteration(pstGraph, pstController->pstMTMInfo, pstController->stCommon.nCurrentIteration, pstCurrentTask, &bNeedSuspend);
-			ERRIFGOTO(result, _EXIT);
-
-			if(pstCurrentTask->nTaskId == 10)
-				UEM_DEBUG_PRINT("task22: %s, mtm iter: %d, converted iter: %d !!!\n", pstCurrentTask->pszTaskName, pstController->stCommon.nCurrentIteration, nConvertedIteration);
-
-			result = UKTask_ConvertIterationToUpperTaskGraphBase(pstCurrentTask, pstGraph, &nConvertedIteration);
-			ERRIFGOTO(result, _EXIT);
-
-			if(pstController->stCommon.nCurrentIteration <= nConvertedIteration || bNeedSuspend == TRUE)
-			{
-				result = UKCPUGeneralTaskManagerCB_ChangeTaskState(pCurrentTaskHandle, TASK_STATE_SUSPEND);
-				ERRIFGOTO(result, _EXIT);
-			}
-		}
 	}
 
 	result = ERR_UEM_NOERROR;
