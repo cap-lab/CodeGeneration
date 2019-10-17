@@ -41,6 +41,7 @@ typedef struct _SGeneralTaskThread {
 	HThreadEvent hEvent;
 	uem_bool bSuspended; // modified
 	uem_bool bFunctionCalled; // modified
+	uem_bool bRestarted;
 } SGeneralTaskThread;
 
 typedef struct _SGeneralTask {
@@ -861,7 +862,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 
 			if(pstGeneralTask->enTaskState == TASK_STATE_RUNNING &&
 				(enRunCondition != RUN_CONDITION_TIME_DRIVEN ||
-				(enRunCondition == RUN_CONDITION_TIME_DRIVEN && pstTaskThread->bFunctionCalled == TRUE)))
+				(enRunCondition == RUN_CONDITION_TIME_DRIVEN && (pstTaskThread->bFunctionCalled == TRUE || pstTaskThread->bRestarted == TRUE))))
 			{
 				result = setTaskThreadIteration(pstGeneralTask, pstTaskThread, &bNeedSuspended);
 				ERRIFGOTO(result, _EXIT_ERROR_LOCK);
@@ -873,6 +874,8 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 				}
 			}
 		}
+
+		pstTaskThread->bRestarted = FALSE;
 
 		switch(pstGeneralTask->enTaskState)
 		{
@@ -964,7 +967,9 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			result = waitRunSignal(pstGeneralTask, pstTaskThread, FALSE, &llNextTime, &nMaxRunCount);
 			ERRIFGOTO(result, _EXIT);
 
-			pstTaskThread->bFunctionCalled = TRUE;
+			pstTaskThread->bFunctionCalled = FALSE;
+
+			pstTaskThread->bRestarted = TRUE;
 
 			result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
 			ERRIFGOTO(result, _EXIT);
@@ -1921,6 +1926,26 @@ _EXIT:
 	return result;
 }
 
+
+uem_result UKCPUGeneralTaskManagerCB_GetRestarted(void *pThreadHandle, OUT uem_bool *pbRestarted)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SGeneralTaskThread *pstTaskThread = NULL;
+#if defined(ARGUMENT_CHECK) && defined(CHECK_MODE_ARGUMENT)
+	IFVARERRASSIGNGOTO(pThreadHandle, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+	IFVARERRASSIGNGOTO(pbRestarted, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+#endif
+	pstTaskThread = (SGeneralTaskThread *) pThreadHandle;
+
+	*pbRestarted = pstTaskThread->bRestarted;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+
 uem_result UKCPUGeneralTaskManagerCB_GetThreadIndex(void *pThreadHandle, OUT int *pnThreadIndex)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -1939,30 +1964,5 @@ _EXIT:
 }
 
 
-/*typedef uem_result (*FnTaskThreadTraverse)(void *pCurrentTaskHandle, void *pUserData, OUT uem_bool *pbActivateThread);
-
-uem_result UKCPUGeneralTaskManagerCB_TraverseSubGraphTasks(void *pTaskHandle, FnTaskThreadTraverse fnCallback, void *pUserData)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	SGeneralTask *pstCompositeTask = NULL;
-	struct _SCompositeTaskThreadTraverse stTraverseData;
-
-#if defined(ARGUMENT_CHECK) && defined(CHECK_MODE_ARGUMENT)
-	IFVARERRASSIGNGOTO(pTaskHandle, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-	IFVARERRASSIGNGOTO(fnCallback, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-#endif
-	pstCompositeTask = (SGeneralTask *) pTaskHandle;
-
-	stTraverseData.fnTraverse = fnCallback;
-	stTraverseData.pstCompositeTask = pstCompositeTask;
-	stTraverseData.pUserData = pUserData;
-
-	result = UCDynamicLinkedList_Traverse(pstCompositeTask->hThreadList, traverseTaskThreadFromCallback, &stTraverseData);
-	ERRIFGOTO(result, _EXIT);
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}*/
 
 
