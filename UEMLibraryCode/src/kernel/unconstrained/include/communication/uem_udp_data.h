@@ -30,7 +30,6 @@ typedef struct _SUDPInfo{
 typedef struct _SUDPSocket {
 	char *pHeader;
 	char *pData;
-	int nHeaderLen;
 	int nDataLen;
 	HThreadMutex hMutex;
 	HSocket hSocket;

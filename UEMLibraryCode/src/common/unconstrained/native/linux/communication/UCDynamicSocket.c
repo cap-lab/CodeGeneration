@@ -626,9 +626,11 @@ uem_result UCDynamicSocket_Sendto(HSocket hSocket, IN const char *pszClientAddre
 	result = selectTimeout(pstSocket->nSocketfd, NULL, &stWriteSet, NULL, nTimeout);
 	ERRIFGOTO(result, _EXIT);
 
+	UC_memset(&stUDPServerAddr, 0, sizeof(stUDPServerAddr));
 	stUDPServerAddr.sin_family = AF_INET;
 	stUDPServerAddr.sin_addr.s_addr = inet_addr(pszClientAddress);
 	stUDPServerAddr.sin_port = htons(pstSocket->nPort);
+
 	nDataSent = sendto(pstSocket->nSocketfd, pData, nDataLen, 0, (struct sockaddr *) &stUDPServerAddr, sizeof(stUDPServerAddr));
 	if (nDataSent < 0) {
 		ERRASSIGNGOTO(result, ERR_UEM_NET_SEND_ERROR, _EXIT);
@@ -669,12 +671,9 @@ uem_result UCDynamicSocket_RecvFrom(HSocket hSocket, IN const char *pszClientAdd
 	result = selectTimeout(pstSocket->nSocketfd, &stReadSet, NULL, NULL, nTimeout);
 	ERRIFGOTO(result, _EXIT);
 
-	stUDPClientAddr.sin_family = AF_INET;
-	stUDPClientAddr.sin_addr.s_addr = inet_addr(pszClientAddress);
-	stUDPClientAddr.sin_port = htons(pstSocket->nPort);
-	nAddrLen = sizeof(stUDPClientAddr);
 	*pnRecvSize = recvfrom(pstSocket->nSocketfd, pBuffer, nBufferLen, 0, (struct sockaddr *) &stUDPClientAddr, &nAddrLen);
-	if (*pnRecvSize < 0) {
+	if(*pnRecvSize < 0)
+	{
 		ERRASSIGNGOTO(result, ERR_UEM_NET_RECEIVE_ERROR, _EXIT);
 	}
 
