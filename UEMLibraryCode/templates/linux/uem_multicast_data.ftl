@@ -153,12 +153,12 @@ SMulticastCommunicationGate g_astMulticastInputCommunicationGate_${multicast.gro
 	<#list multicast.getInputCommunicationType() as inputCommunicationType>
 	{
 		<#switch inputCommunicationType>
-			<#case "shared_memory">
+			<#case "SHARED_MEMORY">
 		SHARED_MEMORY,
 		&g_stSharedMemoryMulticast,
 		&g_stSharedMemoryMulticast_${multicast.groupName},
 				<#break>
-			<#case "udp">
+			<#case "UDP">
 		UDP,
 		&g_stUDPSocketMulticast,
 		(void *) NULL,
@@ -200,12 +200,12 @@ SMulticastCommunicationGate g_astMulticastOutputCommunicationGate_${multicast.gr
 	 <#list multicast.getOutputCommunicationType() as outputCommunicationType>
 	{
 		<#switch outputCommunicationType>
-			<#case "shared_memory">
+			<#case "SHARED_MEMORY">
 		SHARED_MEMORY,
 		&g_stSharedMemoryMulticast,
 		&g_stSharedMemoryMulticast_${multicast.groupName},
 				<#break>
-			<#case "udp">
+			<#case "UDP">
 		UDP,
 		&g_stUDPSocketMulticast,
 		(void *) NULL,
@@ -247,12 +247,12 @@ SMulticastCommunicationGate g_astMulticastCommunicationGate_${multicast.groupNam
 	 <#list multicast.getCommunicationTypeList() as communicationType>
 	{
 		<#switch communicationType>
-			<#case "shared_memory">
+			<#case "SHARED_MEMORY">
 		SHARED_MEMORY,
 		&g_stSharedMemoryMulticast,
 		&g_stSharedMemoryMulticast_${multicast.groupName},
 				<#break>
-			<#case "udp">
+			<#case "UDP">
 		UDP,
 		&g_stUDPSocketMulticast,
 		(void *) NULL,
