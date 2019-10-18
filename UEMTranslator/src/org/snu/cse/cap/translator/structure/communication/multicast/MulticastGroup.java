@@ -37,10 +37,6 @@ public class MulticastGroup{
 		return this.groupName;
 	}
 	
-	public void setBufferSize(int bufferSize) {
-		this.bufferSize = bufferSize;
-	}
-	
 	public ArrayList<MulticastPort> getPortList(PortDirection direction) {
 		ArrayList<MulticastPort> portList = null;
 		switch(direction) {
@@ -74,42 +70,11 @@ public class MulticastGroup{
 	public int getOutputPortNum() {
 		return outputPortList.size();
 	}
-
-	public void setInputPortList(ArrayList<MulticastPort> inputPortList) {
-		this.inputPortList = inputPortList;
-	}
-	
-	public void putInputPort(MulticastPort inputPort) {
-		this.inputPortList.add(inputPort);
-	}
-	
-	public void putOutputPort(MulticastPort outputPort) {
-		this.outputPortList.add(outputPort);
-	}
 	
 	public void putPort(PortDirection direction, MulticastPort port) {
-		switch(direction) {
-		case INPUT:
-			this.putInputPort(port);
-			break;
-		case OUTPUT:
-			this.putOutputPort(port);
-			break;
-		}
+		getPortList(direction).add(port);
 	}
 
-	public void setOutputPortList(ArrayList<MulticastPort> outputPortList) {
-		this.outputPortList = outputPortList;
-	}
-
-	public void clearInputPort() {
-		this.inputPortList.clear();
-	}
-	
-	public void clearOutputPort() {
-		this.outputPortList.clear();
-	}
-	
 	public void putInputCommunicationType(MulticastCommunicationType communicationType) {
 		inputCommunicationTypeList.add(communicationType);
 	}

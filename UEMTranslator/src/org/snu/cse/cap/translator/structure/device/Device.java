@@ -13,6 +13,7 @@ import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
 import org.snu.cse.cap.translator.structure.TaskGraph;
 import org.snu.cse.cap.translator.structure.TaskGraphController;
 import org.snu.cse.cap.translator.structure.TaskGraphType;
+import org.snu.cse.cap.translator.structure.communication.PortDirection;
 import org.snu.cse.cap.translator.structure.communication.channel.Channel;
 import org.snu.cse.cap.translator.structure.communication.channel.ChannelPort;
 import org.snu.cse.cap.translator.structure.communication.multicast.MulticastGroup;
@@ -1347,17 +1348,8 @@ public class Device {
 			throw new IllegalArgumentException();
 		}
 		
-		switch(multicastPort.getDirection())
-		{
-		case INPUT:
-			multicastGroup.putInputPort(multicastPort);
-			break;
-		case OUTPUT:
-			multicastGroup.putOutputPort(multicastPort);
-			break;
-		default:
-			throw new IllegalArgumentException();
-		}
+		multicastGroup.putPort(multicastPort.getDirection(), multicastPort);
+		
 	}
 	
 	public HashMap<String, Integer> getPortKeyToIndex() {
