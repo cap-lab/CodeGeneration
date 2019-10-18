@@ -259,7 +259,7 @@ SIndividualConnectionInfo g_astIndividualConnectionInfo[] = {
 		PAIR_TYPE_CLIENT,
 					<#break>
 				<#case "SERVER">
-		NULL,
+		(void *) NULL,
 		PAIR_TYPE_SERVER,
 					<#break>
 			</#switch>

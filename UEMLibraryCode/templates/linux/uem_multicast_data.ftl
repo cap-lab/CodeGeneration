@@ -33,8 +33,8 @@
 
 // ##MULTICAST_API_DEFINITION_TEMPLATE::START
 SMulticastAPI g_stSharedMemoryMulticast = {
-	(FnMulticastAPIInitialize) NULL,
-	(FnMulticastAPIFinalize) NULL,
+	(FnMulticastAPIInitialize) NULL, // fnAPIInitialize
+	(FnMulticastAPIFinalize) NULL, // fnAPIFinalize
 	UKSharedMemoryMulticastGroup_Initialize, // fnGroupInitialize
 	UKSharedMemoryMulticastGroup_Finalize, // fnGroupFinalize
 	(FnMulticastPortInitialize) NULL, // fnPortInitialize
@@ -45,8 +45,8 @@ SMulticastAPI g_stSharedMemoryMulticast = {
 
 <#if used_communication_list?seq_contains("udp")>
 SMulticastAPI g_stUDPSocketMulticast = {
-	UKUDPSocketMulticastAPI_Initialize,
-	UKUDPSocketMulticastAPI_Finalize,
+	UKUDPSocketMulticastAPI_Initialize, // fnAPIInitialize
+	UKUDPSocketMulticastAPI_Finalize, // fnAPIFinalize
 	(FnMulticastGroupInitialize) NULL, // fnInitialize
 	(FnMulticastGroupFinalize) NULL, // fnFinalize
 	UKUDPSocketMulticastPort_Initialize, // fnInitialize
@@ -127,7 +127,7 @@ SUDPMulticast g_astMulticastUDPList[] = {
 		${udp.getMulticastReceivers()?size},
 		g_anMulticastUDPSenders_${udp.getUDPId()},
 		${udp.getMulticastSenders()?size},
-		NULL,
+		(SUDPMulticastReceiver *) NULL,
 	},
 	</#list>
 };
@@ -159,7 +159,7 @@ SMulticastCommunicationGate g_astMulticastInputCommunicationGate_${multicast.gro
 			<#case "udp">
 		UDP,
 		&g_stUDPSocketMulticast,
-		NULL,
+		(void *) NULL,
 				<#break>
 			<#default>  
 		</#switch>
@@ -184,7 +184,7 @@ SMulticastPort g_astMulticastInputPortList_${multicast.groupName}[] = {
 			<#default>
 		</#switch>
 		(SMulticastGroup *) NULL, // pMulticastGroup
-		g_astMulticastInputCommunicationGate_${multicast.groupName},
+		g_astMulticastInputCommunicationGate_${multicast.groupName}, // astMulticastGateList
 		${multicast.getInputCommunicationType()?size}, // nCommunicationTypeNum
 	},
 	</#list>
@@ -206,7 +206,7 @@ SMulticastCommunicationGate g_astMulticastOutputCommunicationGate_${multicast.gr
 			<#case "udp">
 		UDP,
 		&g_stUDPSocketMulticast,
-		NULL,
+		(void *) NULL,
 				<#break>
 			<#default>  
 		</#switch>
@@ -231,7 +231,7 @@ SMulticastPort g_astMulticastOutputPortList_${multicast.groupName}[] = {
 			<#default>
 		</#switch>
 		(SMulticastGroup *) NULL, // pMulticastGroup
-		g_astMulticastOutputCommunicationGate_${multicast.groupName},
+		g_astMulticastOutputCommunicationGate_${multicast.groupName}, // astMulticastGateList
 		${multicast.getOutputCommunicationType()?size}, // nCommunicationTypeNum
 	},
 	</#list>
@@ -253,7 +253,7 @@ SMulticastCommunicationGate g_astMulticastCommunicationGate_${multicast.groupNam
 			<#case "udp">
 		UDP,
 		&g_stUDPSocketMulticast,
-		NULL,
+		(void *) NULL,
 				<#break>
 			<#default>  
 		</#switch>
@@ -271,7 +271,7 @@ SMulticastGroup g_astMulticastGroups[] = {
 		${multicast.inputPortList?size}, // nInputPortNum
 		g_astMulticastOutputPortList_${multicast.groupName}, // pstOutputPort
 		${multicast.outputPortList?size}, // nOutputPortNum
-		g_astMulticastCommunicationGate_${multicast.groupName},
+		g_astMulticastCommunicationGate_${multicast.groupName}, // astMulticastGateList
 		${multicast.getCommunicationTypeList()?size}, // nCommunicationTypeNum
 	},
 </#list>
