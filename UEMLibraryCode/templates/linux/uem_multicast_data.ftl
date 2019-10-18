@@ -103,6 +103,7 @@ char s_pMulticastGroup_${multicast.groupName}_buffer[MULTICAST_${multicast.group
 // ##MULTICAST_GROUP_BUFFER_DEFINITION_TEMPLATE::END
 
 // ##MULTICAST_CONNECTION_TEMPLATE::START
+<#if used_communication_list?seq_contains("udp")>
 <#list udp_list as udp>
 int g_anMulticastUDPReceivers_${udp.getUDPId()}[] = {
 	<#list udp.getMulticastReceivers() as receiver>
@@ -131,6 +132,7 @@ SUDPMulticast g_astMulticastUDPList[] = {
 	},
 	</#list>
 };
+</#if>
 // ##MULTICAST_CONNECTION_TEMPLATE::END
 
 // ##MULTICAST_SHARED_MEMORY_TEMPLATE::START
