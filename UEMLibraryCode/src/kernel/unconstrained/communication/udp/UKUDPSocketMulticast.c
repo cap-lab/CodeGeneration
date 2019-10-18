@@ -158,10 +158,10 @@ static void *multicastHandlingThread(void *pData)
 	SUDPMulticastReceiver *pstUDPMulticastReceiver = NULL;
 	SMulticastCommunicationGate *pstMulticastCommunicationGate = NULL;
 	int nGroupId = 0;
-    int nGroupIndex = 0;
-    int nChunkIndex = 0;
+	int nGroupIndex = 0;
+	int nChunkIndex = 0;
 
-    pstUDPMulticastReceiver = pData;
+	pstUDPMulticastReceiver = pData;
 
 	while(pstUDPMulticastReceiver->bExit == FALSE)
 	{

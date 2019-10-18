@@ -16,7 +16,7 @@ extern "C"
 #endif
 
 #ifndef IN
-    #define IN
+#    define IN
 #endif
 
 #ifndef OUT
@@ -71,7 +71,7 @@ extern "C"
 #define UEM_MODULE_KERNEL 0x1000
 
 typedef enum _EUemResult {
-    ERR_UEM_NOERROR            = 0,
+	ERR_UEM_NOERROR            = 0,
 
 	ERR_UEM_INFORMATION        = UEM_RESULT_CATEGORY_INFO,
 	// Insert information here

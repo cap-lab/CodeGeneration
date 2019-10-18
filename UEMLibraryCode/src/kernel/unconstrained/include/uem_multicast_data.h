@@ -37,7 +37,7 @@ typedef struct _SMulticastPort {
 	int nTaskId;
 	int nMulticastPortId;
 	const char *pszPortName;
-    EPortDirection enDirection;
+	EPortDirection enDirection;
 	SGenericMemoryAccess *pstMemoryAccessAPI; // in GPU or CPU?
 	SMulticastGroup *pstMulticastGroup;
 	SMulticastCommunicationGate *astMulticastGateList;
@@ -53,7 +53,7 @@ typedef struct _SMulticastGroup {
 	SMulticastPort *astOutputPort;
 	int nOutputPortNum;
 	SMulticastCommunicationGate *astMulticastGateList;
-    int nCommunicationTypeNum;
+	int nCommunicationTypeNum;
 } SMulticastGroup;
 
 typedef uem_result (*FnMulticastAPIInitialize)();
