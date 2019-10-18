@@ -307,6 +307,8 @@ _EXIT:
 }
 #endif
 
+<#if used_communication_list?seq_contains("udp")>
 int g_nMulticastUDPNum = ARRAYLEN(g_astMulticastUDPList);
+</#if>
 int g_nMulticastGroupNum = ARRAYLEN(g_astMulticastGroups);
 int g_nMulticastAPINum = ARRAYLEN(g_astMulticastAPIList);
