@@ -149,7 +149,7 @@ SSharedMemoryMulticast g_stSharedMemoryMulticast_${multicast.groupName} = {
 
 // ##MULTICAST_INPUT_PORT_LIST_TEMPLATE::START
 <#list multicast_group_list as multicast>
-SMulticastCommunicationGate g_astMulticastInputCommunicationGate_${multicast.groupName}[] = {
+SMulticastCommunication g_astMulticastInputCommunicationList_${multicast.groupName}[] = {
 	<#list multicast.getInputCommunicationType() as inputCommunicationType>
 	{
 		<#switch inputCommunicationType>
@@ -186,7 +186,7 @@ SMulticastPort g_astMulticastInputPortList_${multicast.groupName}[] = {
 			<#default>
 		</#switch>
 		(SMulticastGroup *) NULL, // pMulticastGroup
-		g_astMulticastInputCommunicationGate_${multicast.groupName}, // astMulticastGateList
+		g_astMulticastInputCommunicationList_${multicast.groupName}, // astCommunicationList
 		${multicast.getInputCommunicationType()?size}, // nCommunicationTypeNum
 	},
 	</#list>
@@ -196,7 +196,7 @@ SMulticastPort g_astMulticastInputPortList_${multicast.groupName}[] = {
 
 // ##MULTICAST_OUTPUT_PORT_LIST_TEMPLATE::START
 <#list multicast_group_list as multicast>
-SMulticastCommunicationGate g_astMulticastOutputCommunicationGate_${multicast.groupName}[] = {
+SMulticastCommunication g_astMulticastOutputCommunicationList_${multicast.groupName}[] = {
 	 <#list multicast.getOutputCommunicationType() as outputCommunicationType>
 	{
 		<#switch outputCommunicationType>
@@ -233,7 +233,7 @@ SMulticastPort g_astMulticastOutputPortList_${multicast.groupName}[] = {
 			<#default>
 		</#switch>
 		(SMulticastGroup *) NULL, // pMulticastGroup
-		g_astMulticastOutputCommunicationGate_${multicast.groupName}, // astMulticastGateList
+		g_astMulticastOutputCommunicationList_${multicast.groupName}, // astCommunicationList
 		${multicast.getOutputCommunicationType()?size}, // nCommunicationTypeNum
 	},
 	</#list>
@@ -243,7 +243,7 @@ SMulticastPort g_astMulticastOutputPortList_${multicast.groupName}[] = {
 
 // ##MULTICAST_GROUP_LIST_TEMPLATE::START
 <#list multicast_group_list as multicast>
-SMulticastCommunicationGate g_astMulticastCommunicationGate_${multicast.groupName}[] = {
+SMulticastCommunication g_astMulticastCommunicationList_${multicast.groupName}[] = {
 	 <#list multicast.getCommunicationTypeList() as communicationType>
 	{
 		<#switch communicationType>
@@ -273,7 +273,7 @@ SMulticastGroup g_astMulticastGroups[] = {
 		${multicast.inputPortList?size}, // nInputPortNum
 		g_astMulticastOutputPortList_${multicast.groupName}, // pstOutputPort
 		${multicast.outputPortList?size}, // nOutputPortNum
-		g_astMulticastCommunicationGate_${multicast.groupName}, // astMulticastGateList
+		g_astMulticastCommunicationList_${multicast.groupName}, // astCommunicationList
 		${multicast.getCommunicationTypeList()?size}, // nCommunicationTypeNum
 	},
 </#list>

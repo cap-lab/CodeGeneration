@@ -39,9 +39,9 @@ uem_result UKMulticast_Initialize()
 	{
 		for(nAPIIndex = 0; nAPIIndex < g_astMulticastGroups[nGroupIndex].nCommunicationTypeNum ; nAPIIndex++)
 		{
-			if(g_astMulticastGroups[nGroupIndex].astMulticastGateList[nAPIIndex].pstMulticastAPI->fnGroupInitialize != NULL)
+			if(g_astMulticastGroups[nGroupIndex].astCommunicationList[nAPIIndex].pstMulticastAPI->fnGroupInitialize != NULL)
 			{
-				g_astMulticastGroups[nGroupIndex].astMulticastGateList[nAPIIndex].pstMulticastAPI->fnGroupInitialize(&(g_astMulticastGroups[nGroupIndex]));
+				g_astMulticastGroups[nGroupIndex].astCommunicationList[nAPIIndex].pstMulticastAPI->fnGroupInitialize(&(g_astMulticastGroups[nGroupIndex]));
 				ERRIFGOTO(result, _EXIT);
 			}
 		}
@@ -55,9 +55,9 @@ uem_result UKMulticast_Initialize()
 			pstInputPort->pstMulticastGroup = &g_astMulticastGroups[nGroupIndex];
 			for(nAPIIndex = 0; nAPIIndex < pstInputPort->nCommunicationTypeNum ; nAPIIndex++)
 			{
-				if(pstInputPort->astMulticastGateList[nAPIIndex].pstMulticastAPI->fnPortInitialize != NULL)
+				if(pstInputPort->astCommunicationList[nAPIIndex].pstMulticastAPI->fnPortInitialize != NULL)
 				{
-					pstInputPort->astMulticastGateList[nAPIIndex].pstMulticastAPI->fnPortInitialize(pstInputPort);
+					pstInputPort->astCommunicationList[nAPIIndex].pstMulticastAPI->fnPortInitialize(pstInputPort);
 					ERRIFGOTO(result, _EXIT);
 				}
 			}
@@ -69,9 +69,9 @@ uem_result UKMulticast_Initialize()
 			pstOutputPort->pstMulticastGroup = &g_astMulticastGroups[nGroupIndex];
 			for(nAPIIndex = 0; nAPIIndex < pstOutputPort->nCommunicationTypeNum ; nAPIIndex++)
 			{
-				if(pstOutputPort->astMulticastGateList[nAPIIndex].pstMulticastAPI->fnPortInitialize != NULL)
+				if(pstOutputPort->astCommunicationList[nAPIIndex].pstMulticastAPI->fnPortInitialize != NULL)
 				{
-					pstOutputPort->astMulticastGateList[nAPIIndex].pstMulticastAPI->fnPortInitialize(pstOutputPort);
+					pstOutputPort->astCommunicationList[nAPIIndex].pstMulticastAPI->fnPortInitialize(pstOutputPort);
 					ERRIFGOTO(result, _EXIT);
 				}
 			}
@@ -262,16 +262,16 @@ _EXIT:
 	return result;
 }
 
-uem_result UKMulticast_GetCommunicationGate(IN SMulticastCommunicationGate *astMulticastGateList, IN int nCommunicationTypeNum, IN EMulticastCommunicationType enCommunicationType, OUT SMulticastCommunicationGate **pstCommunicationGate)
+uem_result UKMulticast_GetCommunication(IN SMulticastCommunication *astCommunicationList, IN int nCommunicationTypeNum, IN EMulticastCommunicationType enCommunicationType, OUT SMulticastCommunication **pstCommunication)
 {
 	uem_result result = ERR_UEM_NOT_FOUND;
 	int nLoop = 0;
 #ifdef ARGUMENT_CHECK
-	if(astMulticastGateList == NULL)
+	if(astCommunicationList == NULL)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
 	}
-	if(pstCommunicationGate == NULL)
+	if(pstCommunication == NULL)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
 	}
@@ -279,9 +279,9 @@ uem_result UKMulticast_GetCommunicationGate(IN SMulticastCommunicationGate *astM
 
 	for(nLoop = 0 ; nLoop < nCommunicationTypeNum ; nLoop++)
 	{
-		if(astMulticastGateList[nLoop].enCommunicationType == enCommunicationType)
+		if(astCommunicationList[nLoop].enCommunicationType == enCommunicationType)
 		{
-			*pstCommunicationGate = &astMulticastGateList[nLoop];
+			*pstCommunication = &astCommunicationList[nLoop];
 			result = ERR_UEM_NOERROR;
 			break;
 		}
@@ -312,9 +312,9 @@ uem_result UKMulticast_WriteToBuffer(IN int nMulticastGroupId, IN int nMulticast
 
 	for(nAPIIndex = 0 ; nAPIIndex < pstMulticastPort->nCommunicationTypeNum ; nAPIIndex++)
 	{
-		if(pstMulticastPort->astMulticastGateList[nAPIIndex].pstMulticastAPI->fnWriteToBuffer != NULL)
+		if(pstMulticastPort->astCommunicationList[nAPIIndex].pstMulticastAPI->fnWriteToBuffer != NULL)
 		{
-			result = pstMulticastPort->astMulticastGateList[nAPIIndex].pstMulticastAPI->fnWriteToBuffer(pstMulticastPort, pBuffer, nDataToWrite, pnDataWritten);
+			result = pstMulticastPort->astCommunicationList[nAPIIndex].pstMulticastAPI->fnWriteToBuffer(pstMulticastPort, pBuffer, nDataToWrite, pnDataWritten);
 			ERRIFGOTO(result, _EXIT);
 		}
 	}
@@ -340,9 +340,9 @@ uem_result UKMulticast_ReadFromBuffer(IN int nMulticastGroupId, IN int nMulticas
 
 	for(nAPIIndex = 0 ; nAPIIndex < pstMulticastPort->nCommunicationTypeNum ; nAPIIndex++)
 	{
-		if(pstMulticastPort->astMulticastGateList[nAPIIndex].pstMulticastAPI->fnReadFromBuffer != NULL)
+		if(pstMulticastPort->astCommunicationList[nAPIIndex].pstMulticastAPI->fnReadFromBuffer != NULL)
 		{
-			result = pstMulticastPort->astMulticastGateList[nAPIIndex].pstMulticastAPI->fnReadFromBuffer(pstMulticastPort, pBuffer, nDataToRead, pnDataRead);
+			result = pstMulticastPort->astCommunicationList[nAPIIndex].pstMulticastAPI->fnReadFromBuffer(pstMulticastPort, pBuffer, nDataToRead, pnDataRead);
 			ERRIFGOTO(result, _EXIT);
 		}
 	}
@@ -382,9 +382,9 @@ uem_result UKMulticast_Finalize()
 			SMulticastPort *pstInputPort = &g_astMulticastGroups[nGroupIndex].astInputPort[nPortIndex];
 			for(nAPIIndex = 0; nAPIIndex < pstInputPort->nCommunicationTypeNum ; nAPIIndex++)
 			{
-				if(pstInputPort->astMulticastGateList[nAPIIndex].pstMulticastAPI->fnPortFinalize != NULL)
+				if(pstInputPort->astCommunicationList[nAPIIndex].pstMulticastAPI->fnPortFinalize != NULL)
 				{
-					pstInputPort->astMulticastGateList[nAPIIndex].pstMulticastAPI->fnPortFinalize(pstInputPort);
+					pstInputPort->astCommunicationList[nAPIIndex].pstMulticastAPI->fnPortFinalize(pstInputPort);
 				}
 			}
 		}
@@ -393,9 +393,9 @@ uem_result UKMulticast_Finalize()
 			SMulticastPort *pstOutputPort = &g_astMulticastGroups[nGroupIndex].astOutputPort[nPortIndex];
 			for(nAPIIndex = 0; nAPIIndex < pstOutputPort->nCommunicationTypeNum ; nAPIIndex++)
 			{
-				if(pstOutputPort->astMulticastGateList[nAPIIndex].pstMulticastAPI->fnPortFinalize != NULL)
+				if(pstOutputPort->astCommunicationList[nAPIIndex].pstMulticastAPI->fnPortFinalize != NULL)
 				{
-					pstOutputPort->astMulticastGateList[nAPIIndex].pstMulticastAPI->fnPortFinalize(pstOutputPort);
+					pstOutputPort->astCommunicationList[nAPIIndex].pstMulticastAPI->fnPortFinalize(pstOutputPort);
 				}
 			}
 		}
@@ -405,9 +405,9 @@ uem_result UKMulticast_Finalize()
 	{
 		for(nAPIIndex = 0; nAPIIndex < g_astMulticastGroups[nGroupIndex].nCommunicationTypeNum ; nAPIIndex++)
 		{
-			if(g_astMulticastGroups[nGroupIndex].astMulticastGateList[nAPIIndex].pstMulticastAPI->fnGroupFinalize != NULL)
+			if(g_astMulticastGroups[nGroupIndex].astCommunicationList[nAPIIndex].pstMulticastAPI->fnGroupFinalize != NULL)
 			{
-				g_astMulticastGroups[nGroupIndex].astMulticastGateList[nAPIIndex].pstMulticastAPI->fnGroupFinalize(&(g_astMulticastGroups[nGroupIndex]));
+				g_astMulticastGroups[nGroupIndex].astCommunicationList[nAPIIndex].pstMulticastAPI->fnGroupFinalize(&(g_astMulticastGroups[nGroupIndex]));
 			}
 		}
 	}

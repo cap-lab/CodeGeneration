@@ -27,11 +27,11 @@ typedef struct _SMulticastPort SMulticastPort;
 typedef struct _SMulticastGroup SMulticastGroup;
 typedef struct _SMulticastAPI SMulticastAPI;
 
-typedef struct _SMulticastCommunicationGate{
+typedef struct _SMulticastCommunication{
 	EMulticastCommunicationType enCommunicationType;
 	SMulticastAPI *pstMulticastAPI;
 	void *pstSocket;
-}SMulticastCommunicationGate;
+}SMulticastCommunication;
 
 typedef struct _SMulticastPort {
 	int nTaskId;
@@ -40,7 +40,7 @@ typedef struct _SMulticastPort {
 	EPortDirection enDirection;
 	SGenericMemoryAccess *pstMemoryAccessAPI; // in GPU or CPU?
 	SMulticastGroup *pstMulticastGroup;
-	SMulticastCommunicationGate *astMulticastGateList;
+	SMulticastCommunication *astCommunicationList;
 	int nCommunicationTypeNum;
 } SMulticastPort;
 
@@ -52,7 +52,7 @@ typedef struct _SMulticastGroup {
 	int nInputPortNum;
 	SMulticastPort *astOutputPort;
 	int nOutputPortNum;
-	SMulticastCommunicationGate *astMulticastGateList;
+	SMulticastCommunication *astCommunicationList;
 	int nCommunicationTypeNum;
 } SMulticastGroup;
 

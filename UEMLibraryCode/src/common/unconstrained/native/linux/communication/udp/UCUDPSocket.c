@@ -23,10 +23,10 @@
 #ifndef WIN32
 	#ifdef DEBUG_PRINT
 #include <errno.h>
-#include <string.h>
 	#endif
 #endif
 
+#include <string.h>
 #include <UCBasic.h>
 
 #include <UCDynamicSocket.h>
