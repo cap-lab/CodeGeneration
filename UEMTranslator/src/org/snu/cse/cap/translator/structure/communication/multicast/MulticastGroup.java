@@ -12,8 +12,8 @@ public class MulticastGroup{
 	private int bufferSize;
 	private ArrayList<MulticastPort> inputPortList; 
 	private ArrayList<MulticastPort> outputPortList;
-	private HashSet<DeviceCommunicationType> inputCommunicationTypeList;
-	private HashSet<DeviceCommunicationType> outputCommunicationTypeList;
+	private HashSet<MulticastCommunicationType> inputCommunicationTypeList;
+	private HashSet<MulticastCommunicationType> outputCommunicationTypeList;
 
 	public MulticastGroup(int index, String groupName, int bufferSize) {
 		this.bufferSize = bufferSize;
@@ -21,8 +21,8 @@ public class MulticastGroup{
 		this.groupName = groupName;
 		this.inputPortList = new ArrayList<MulticastPort>();
 		this.outputPortList = new ArrayList<MulticastPort>();
-		this.inputCommunicationTypeList = new HashSet<DeviceCommunicationType>();
-		this.outputCommunicationTypeList = new HashSet<DeviceCommunicationType>();
+		this.inputCommunicationTypeList = new HashSet<MulticastCommunicationType>();
+		this.outputCommunicationTypeList = new HashSet<MulticastCommunicationType>();
 	}
 	
 	public int getMulticastGroupId() {
@@ -110,24 +110,24 @@ public class MulticastGroup{
 		this.outputPortList.clear();
 	}
 	
-	public void putInputCommunicationType(DeviceCommunicationType communicationType) {
+	public void putInputCommunicationType(MulticastCommunicationType communicationType) {
 		inputCommunicationTypeList.add(communicationType);
 	}
 	
-	public void putOutputCommunicationType(DeviceCommunicationType communicationType) {
+	public void putOutputCommunicationType(MulticastCommunicationType communicationType) {
 		outputCommunicationTypeList.add(communicationType);
 	}
 	
-	public HashSet<DeviceCommunicationType> getInputCommunicationType() {
+	public HashSet<MulticastCommunicationType> getInputCommunicationType() {
 		return inputCommunicationTypeList;
 	}
 	
-	public HashSet<DeviceCommunicationType> getOutputCommunicationType() {
+	public HashSet<MulticastCommunicationType> getOutputCommunicationType() {
 		return outputCommunicationTypeList;
 	}
 	
-	public HashSet<DeviceCommunicationType> getCommunicationTypeList() {
-		HashSet<DeviceCommunicationType> communicationTypeList = new HashSet<DeviceCommunicationType>();
+	public HashSet<MulticastCommunicationType> getCommunicationTypeList() {
+		HashSet<MulticastCommunicationType> communicationTypeList = new HashSet<MulticastCommunicationType>();
 		communicationTypeList.addAll(inputCommunicationTypeList);
 		communicationTypeList.addAll(outputCommunicationTypeList);
 		return communicationTypeList;

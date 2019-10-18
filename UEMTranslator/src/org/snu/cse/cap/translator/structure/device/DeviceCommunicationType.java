@@ -1,8 +1,6 @@
 package org.snu.cse.cap.translator.structure.device;
 
 public enum DeviceCommunicationType {
-	NONE("none"),
-	SHARED_MEMORY("shared_memory"),
 	BLUETOOTH("bluetooth"),
 	TCP("tcp"),
 	UDP("udp"),

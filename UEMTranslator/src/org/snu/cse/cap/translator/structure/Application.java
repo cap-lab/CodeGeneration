@@ -10,15 +10,17 @@ import java.util.List;
 
 import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.ExecutionTime;
-import org.snu.cse.cap.translator.structure.communication.CommunicationType;
 import org.snu.cse.cap.translator.structure.communication.InMemoryAccessType;
 import org.snu.cse.cap.translator.structure.communication.PortDirection;
 import org.snu.cse.cap.translator.structure.communication.channel.Channel;
 import org.snu.cse.cap.translator.structure.communication.channel.ChannelArrayType;
 import org.snu.cse.cap.translator.structure.communication.channel.ChannelPort;
+import org.snu.cse.cap.translator.structure.communication.channel.CommunicationType;
 import org.snu.cse.cap.translator.structure.communication.channel.ConnectionRoleType;
 import org.snu.cse.cap.translator.structure.communication.channel.LoopPortType;
 import org.snu.cse.cap.translator.structure.communication.channel.PortSampleRate;
+import org.snu.cse.cap.translator.structure.communication.channel.RemoteCommunicationType;
+import org.snu.cse.cap.translator.structure.communication.multicast.MulticastCommunicationType;
 import org.snu.cse.cap.translator.structure.communication.multicast.MulticastGroup;
 import org.snu.cse.cap.translator.structure.communication.multicast.MulticastPort;
 import org.snu.cse.cap.translator.structure.device.Device;
@@ -507,11 +509,11 @@ public class Application {
 			switch(connectionPair.getMasterConnection().getNetwork())
 			{
 			case BLUETOOTH:
-				channel.setRemoteMethodType(DeviceCommunicationType.BLUETOOTH);
+				channel.setRemoteMethodType(RemoteCommunicationType.BLUETOOTH);
 				break;
 			case USB:
 			case WIRE:
-				channel.setRemoteMethodType(DeviceCommunicationType.SERIAL);
+				channel.setRemoteMethodType(RemoteCommunicationType.SERIAL);
 				break;
 			case ETHERNET_WI_FI:
 			default:
@@ -519,7 +521,7 @@ public class Application {
 			}
 			break;
 		case TCP:
-			channel.setRemoteMethodType(DeviceCommunicationType.TCP);
+			channel.setRemoteMethodType(RemoteCommunicationType.TCP);
 
 			break;
 		default:
@@ -1606,15 +1608,15 @@ public class Application {
 	{
 		if(multicastGroup.getInputPortNum() > 0)
 		{
-			multicastGroup.putInputCommunicationType(DeviceCommunicationType.SHARED_MEMORY);
+			multicastGroup.putInputCommunicationType(MulticastCommunicationType.SHARED_MEMORY);
 			if(multicastGroup.getOutputPortNum() > 0)
 			{
-				multicastGroup.putOutputCommunicationType(DeviceCommunicationType.SHARED_MEMORY);
+				multicastGroup.putOutputCommunicationType(MulticastCommunicationType.SHARED_MEMORY);
 			}
 		}
 	}
 	
-	private void putCommunicationTypeOfMulticast(MulticastGroup multicastGroup, Connection connection, DeviceCommunicationType communicationType) 
+	private void putCommunicationTypeOfMulticast(MulticastGroup multicastGroup, Connection connection, MulticastCommunicationType communicationType) 
 	{
 		if(multicastGroup.getOutputPortNum() > 0)
 		{
@@ -1639,7 +1641,7 @@ public class Application {
 			{
 				device.putUDPConnection(connectionTypeList.getUDP().getIp(), new UDPConnection(null, null, connectionTypeList.getUDP().getIp(), connectionTypeList.getUDP().getPort().intValue()));
 			}
-			putCommunicationTypeOfMulticast(multicastGroup, device.getUDPConnection(connectionTypeList.getUDP().getIp()), DeviceCommunicationType.UDP);
+			putCommunicationTypeOfMulticast(multicastGroup, device.getUDPConnection(connectionTypeList.getUDP().getIp()), MulticastCommunicationType.UDP);
 		}
 	}
 	
