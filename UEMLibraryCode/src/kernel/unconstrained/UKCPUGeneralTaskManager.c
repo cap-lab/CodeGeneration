@@ -927,12 +927,12 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			// check one more time to handle suspended tasks
 			result = UKTask_CheckIterationRunCount(pstCurrentTask, pstTaskThread->nTaskFuncId, &bTargetIterationReached);
 			ERRIFGOTO(result, _EXIT_ERROR_LOCK);
+
+			result = handleTaskGraphControllerDuringStopping(pstGeneralTask, pstTaskThread);
+			ERRIFGOTO(result, _EXIT_ERROR_LOCK);
 			// run until iteration count;
 			while(bTargetIterationReached == FALSE)
 			{
-				result = handleTaskGraphControllerDuringStopping(pstGeneralTask, pstTaskThread);
-				ERRIFGOTO(result, _EXIT_ERROR_LOCK);
-
 				if(result == ERR_UEM_ALREADY_DONE)
 				{
 					break;
@@ -950,6 +950,9 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 				//UEM_DEBUG_PRINT("%s (stopping-driven, Proc: %d, func_id: %d, current iteration: %d)\n", pstCurrentTask->pszTaskName, pstTaskThread->nProcId, pstTaskThread->nTaskFuncId, pstCurrentTask->nCurIteration);
 				nExecutionCount++;
 				result = UKTask_IncreaseRunCount(pstCurrentTask, pstTaskThread->nTaskFuncId, &bTargetIterationReached);
+				ERRIFGOTO(result, _EXIT_ERROR_LOCK);
+
+				result = handleTaskGraphControllerDuringStopping(pstGeneralTask, pstTaskThread);
 				ERRIFGOTO(result, _EXIT_ERROR_LOCK);
 			}
 			UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);

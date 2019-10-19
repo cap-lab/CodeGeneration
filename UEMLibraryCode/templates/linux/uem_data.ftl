@@ -249,7 +249,7 @@ SModelControllerFunctionSet g_stDynamicConvergentLoopFunctions = {
 	(FnGetTaskIterationIndex) NULL,
 	(FnControllerClear) NULL,
 	(FnChangeTaskThreadState) NULL,
-	(FnHandleModel) NULL,
+	(FnHandleModel) UKLoopModelController_HandleConvergentLoopDuringStopping,
 };
 
 SModelControllerFunctionSet g_stDynamicDataLoopFunctions = {

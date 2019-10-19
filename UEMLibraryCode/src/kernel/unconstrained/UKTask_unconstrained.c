@@ -540,6 +540,15 @@ static uem_result getIterationNumberBasedOnTargetTaskId(STask *pstTask, int nIte
 
 	while(pstCurrentTask != NULL)
 	{
+
+		if(nTargetTaskId == pstCurrentTask->nTaskId)
+		{
+			nNewIteration = nNewIteration * nIterationNumber;
+
+			bFound = TRUE;
+			break;
+		}
+
 		if(pstCurrentTask->pstParentGraph->pstParentTask != NULL)
 		{
 			switch(pstCurrentTask->pstParentGraph->enControllerType)
@@ -562,12 +571,6 @@ static uem_result getIterationNumberBasedOnTargetTaskId(STask *pstTask, int nIte
 			}
 		}
 
-		if(nTargetTaskId == pstCurrentTask->nTaskId)
-		{
-			nNewIteration = nNewIteration * nIterationNumber;
-			bFound = TRUE;
-			break;
-		}
 		pstCurrentTask = pstCurrentTask->pstParentGraph->pstParentTask;
 	}
 

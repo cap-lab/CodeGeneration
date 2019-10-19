@@ -90,6 +90,11 @@ static uem_result setLoopTaskCurrentIteration(STask *pstTask, void *pUserData)
 	pstParentTaskGraph = pstTask->pstParentGraph;
 	pstParentLoopTask = (STask *) pUserData;
 
+	pstLoopController = (SLoopController *) pstParentLoopTask->pstSubGraph->pController;
+
+	result = UKTask_UpdateAllSubGraphCurrentIteration(pstParentLoopTask->pstSubGraph, pstTask, pstLoopController->stCommon.nCurrentIteration / pstLoopController->pstLoopInfo->nLoopCount);
+	ERRIFGOTO(result, _EXIT);
+
 	while(pstParentTaskGraph->pstParentTask != NULL )
 	{
 		if(pstParentTaskGraph->enControllerType == CONTROLLER_TYPE_DYNAMIC_CONVERGENT_LOOP ||
@@ -264,12 +269,12 @@ static uem_result traverseAndSetEventToStopTask(STask *pstTask, void *pUserData)
 	{
 		if(pstCallerTask->nTaskId == pstTask->nTaskId)
 		{
-			result = changeOwnTaskState(pstUserData->pTaskHandle, TASK_STATE_STOP);
+			result = changeOwnTaskState(pstUserData->pTaskHandle, TASK_STATE_STOPPING);
 			ERRIFGOTO(result, _EXIT);
 		}
 		else
 		{
-			result = changeOtherTaskState(hManager, pstTask, hTaskGraphLock, TASK_STATE_STOP);
+			result = changeOtherTaskState(hManager, pstTask, hTaskGraphLock, TASK_STATE_STOPPING);
 			ERRIFGOTO(result, _EXIT);
 		}
 	}
@@ -500,6 +505,53 @@ static uem_result updateTaskThreadIterationInConvergentLoop(STaskGraph *pstParen
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
 	UCThreadMutex_Unlock(pstCurrentTask->hMutex);
+_EXIT:
+	return result;
+}
+
+uem_result UKLoopModelController_HandleConvergentLoopDuringStopping(STaskGraph *pstGraph, void *pCurrentTaskHandle, void *pCurrentThreadHandle)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask *pstCurrentTask = NULL;
+	STask *pstParentTask = NULL;
+	int nLoopCount = 0;
+	int nCurIteration = 0;
+	SLoopController *pstController = NULL;
+
+	pstController = (SLoopController *) pstGraph->pController;
+	pstParentTask = pstGraph->pstParentTask;
+
+	result = UKCPUGeneralTaskManagerCB_GetCurrentTaskStructure(pCurrentTaskHandle, &pstCurrentTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstController->pstLoopInfo->enType == LOOP_TYPE_CONVERGENT && pstController->pstLoopInfo->nDesignatedTaskId == pstCurrentTask->nTaskId)
+	{
+		if(pstController->pstLoopInfo->bDesignatedTaskState == TRUE)
+		{
+			result = updateLoopIterationHistory(pstGraph, pstCurrentTask);
+			ERRIFGOTO(result, _EXIT);
+
+			nCurIteration = pstController->stCommon.nCurrentIteration;
+			nLoopCount = pstController->pstLoopInfo->nLoopCount;
+			pstController->stCommon.nCurrentIteration = nCurIteration - (nCurIteration % nLoopCount) + nLoopCount;
+
+			pstController->pstLoopInfo->bDesignatedTaskState = FALSE;
+		}
+		else
+		{
+			pstController->stCommon.nCurrentIteration++;
+		}
+	}
+
+	result = setLoopTaskCurrentIteration(pstCurrentTask, pstParentTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstCurrentTask->nTargetIteration > 0 && pstCurrentTask->nCurIteration >= pstCurrentTask->nTargetIteration)
+	{
+		UEMASSIGNGOTO(result, ERR_UEM_ALREADY_DONE, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
 }

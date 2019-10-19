@@ -196,31 +196,44 @@ static uem_bool matchTaskIdInPort(SPort *pstPort, int nTaskId)
 	return bIsMatched;
 }
 
+
 static uem_bool isChannelLocatedInSameTaskGraph(SChannel *pstChannel)
 {
 	SPort *pstInputPort = NULL;
 	SPort *pstOutputPort = NULL;
 	uem_bool bShareSameTaskGraph = FALSE;
+	STask *pstInputPortTask = NULL;
+	STask *pstOutputPortTask = NULL;
+	uem_result result;
 
 	pstInputPort = pstChannel->pstInputPort;
 	pstOutputPort = pstChannel->pstOutputPort;
 
-	while (pstInputPort != NULL && pstOutputPort != NULL)
+	while (pstInputPort->pstSubGraphPort != NULL)
 	{
-		if(pstInputPort->nTaskId != pstOutputPort->nTaskId) // input and output task is different
-		{
-			// last node?
-			if(pstInputPort->pstSubGraphPort == NULL && pstOutputPort->pstSubGraphPort == NULL)
-			{
-				bShareSameTaskGraph = TRUE;
-			}
-			break;
-		}
-
 		pstInputPort = pstInputPort->pstSubGraphPort;
-		pstOutputPort = pstOutputPort->pstSubGraphPort;
 	}
 
+	result = UKTask_GetTaskFromTaskId(pstInputPort->nTaskId, &pstInputPortTask);
+	if(result == ERR_UEM_NO_DATA)
+	{
+		UEMASSIGNGOTO(bShareSameTaskGraph, FALSE, _EXIT);
+	}
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKTask_GetTaskFromTaskId(pstOutputPort->nTaskId, &pstOutputPortTask);
+	if(result == ERR_UEM_NO_DATA)
+	{
+		UEMASSIGNGOTO(bShareSameTaskGraph, FALSE, _EXIT);
+	}
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstInputPortTask->pstParentGraph == pstOutputPortTask->pstParentGraph)
+	{
+		bShareSameTaskGraph = TRUE;
+	}
+
+_EXIT:
 	return bShareSameTaskGraph;
 }
 
@@ -276,9 +289,6 @@ uem_bool UKChannel_IsTaskSourceTask(int nTaskId)
 	int nLoop = 0;
 	uem_bool bIsLocatedInSameTaskGraph = FALSE;
 	uem_bool bIsSourceTask = TRUE;
-	STask *pstInputPortTask = NULL;
-	STask *pstOutputPortTask = NULL;
-	uem_result result;
 
 	for(nLoop = 0; nLoop < g_nChannelNum; nLoop++)
 	{
@@ -291,16 +301,6 @@ uem_bool UKChannel_IsTaskSourceTask(int nTaskId)
 				bIsSourceTask = FALSE;
 				break;
 			}
-			result = UKTask_GetTaskFromTaskId(g_astChannels[nLoop].pstInputPort->nTaskId, &pstInputPortTask);
-			result = UKTask_GetTaskFromTaskId(g_astChannels[nLoop].pstOutputPort->nTaskId, &pstOutputPortTask);
-
-
-			if(pstInputPortTask->pstParentGraph == pstOutputPortTask->pstParentGraph)
-			{
-				bIsSourceTask = FALSE;
-				break;
-			}
-
 		}
 	}
 

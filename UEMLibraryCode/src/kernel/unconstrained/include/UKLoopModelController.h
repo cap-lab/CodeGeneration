@@ -20,6 +20,7 @@ extern "C"
 #endif
 
 uem_result UKLoopModelController_HandleConvergentLoop(STaskGraph *pstGraph, void *pCurrentTaskHandle, void *pCurrentThreadHandle);
+uem_result UKLoopModelController_HandleConvergentLoopDuringStopping(STaskGraph *pstGraph, void *pCurrentTaskHandle, void *pCurrentThreadHandle);
 
 #ifdef __cplusplus
 }
