@@ -397,7 +397,7 @@ static uem_result convertIterationToUpperTaskGraphBase(STask *pstTask, STaskGrap
 			case CONTROLLER_TYPE_STATIC_MODE_TRANSITION:
 				// divided by this task iteration number
 				pstMTMController = (SModeTransitionController *) pstParentGraph->pController;
-				if(pstTask != pstChildTask)
+				if(pstTask != pstChildTask && pstChildTask != NULL)
 				{
 					result = UKModeTransition_GetCurrentModeIndexByIteration(pstMTMController->pstMTMInfo, nCurIteration, &nCurModeIndex);
 					ERRIFGOTO(result, _EXIT);

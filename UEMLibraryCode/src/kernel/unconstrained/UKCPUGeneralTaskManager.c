@@ -350,6 +350,7 @@ static uem_result createGeneralTaskThreadStructs(SMappedGeneralTaskInfo *pstMapp
 	pstGeneralTaskThread->bSuspended = FALSE;
 	pstGeneralTaskThread->nTaskFuncId = 0;
 	pstGeneralTaskThread->bFunctionCalled = FALSE;
+	pstGeneralTaskThread->bRestarted = FALSE;
 
 	*ppstGeneralTaskThread = pstGeneralTaskThread;
 
