@@ -994,10 +994,13 @@ static uem_result readFromBufferThroughAggregator(int nChannelId, SRemoteReaderC
 	result = UKSerialCommunicationManager_PutItemToSend(pstServiceInfo->hManager, &stItem);
 	ERRIFGOTO(result, _EXIT);
 
-	// blocking happened here
-	do {
-		result = UCFixedSizeQueue_GetItem(pstConnectionInfo->uQueue.hResponseQueue, &stResponseItem, &nElementSize);
-	}while(result == ERR_UEM_TIME_EXPIRED && pstRemoteChannel->stCommonInfo.bChannelExit == FALSE);
+	result = UCFixedSizeQueue_GetItem(pstConnectionInfo->uQueue.hResponseQueue, &stResponseItem, &nElementSize);
+	if(result == ERR_UEM_TIME_EXPIRED)
+	{
+		*ppDataPointer = NULL;
+		*pnDataRead = 0;
+		UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
+	}
 	ERRIFGOTO(result, _EXIT);
 
 	if(stResponseItem.enMessageType != MESSAGE_TYPE_RESULT ||
@@ -1046,8 +1049,10 @@ uem_result UKRemoteChannel_ReadFromBuffer(SChannel *pstChannel, IN OUT unsigned 
 		break;
 	}
 
-	result = pstReaderChannel->pstReaderAccess->fnCopyFromMemory(pBuffer, pData, nDataRead);
-	ERRIFGOTO(result, _EXIT);
+	if(pData != NULL) {
+		result = pstReaderChannel->pstReaderAccess->fnCopyFromMemory(pBuffer, pData, nDataRead);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	*pnDataRead = nDataRead;
 
