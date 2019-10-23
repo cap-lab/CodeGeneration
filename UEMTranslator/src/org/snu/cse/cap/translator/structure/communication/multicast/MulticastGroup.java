@@ -42,8 +42,10 @@ public class MulticastGroup{
 		switch(direction) {
 		case INPUT:
 			portList = this.inputPortList;
+			break;
 		case OUTPUT:
 			portList = this.outputPortList;
+			break;
 		}
 		return portList;
 	}

@@ -134,6 +134,8 @@ uem_result UKMulticast_GetMulticastPortByMulticastGroupIdAndMulticastPortId(IN i
 	result = UKMulticast_GetMulticastGroupById(nMulticastGroupId, &pstMulticastGroup);
 	ERRIFGOTO(result, _EXIT);
 
+	result = ERR_UEM_NOT_FOUND;
+
 	if(eDirection == PORT_DIRECTION_INPUT)
 	{
 		pstMulticastPortList = pstMulticastGroup->astInputPort;
