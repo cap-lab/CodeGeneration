@@ -397,7 +397,7 @@ static uem_result convertIterationToUpperTaskGraphBase(STask *pstTask, STaskGrap
 			case CONTROLLER_TYPE_STATIC_MODE_TRANSITION:
 				// divided by this task iteration number
 				pstMTMController = (SModeTransitionController *) pstParentGraph->pController;
-				if(pstTask != pstChildTask && pstChildTask != NULL)
+				if(pstTask != pstChildTask  && pstChildTask != NULL)
 				{
 					result = UKModeTransition_GetCurrentModeIndexByIteration(pstMTMController->pstMTMInfo, nCurIteration, &nCurModeIndex);
 					ERRIFGOTO(result, _EXIT);
@@ -413,12 +413,16 @@ static uem_result convertIterationToUpperTaskGraphBase(STask *pstTask, STaskGrap
 						}
 					}
 
-					if(nLoop == pstChildTask->nTaskIterationArrayNum)
+					if(nLoop == pstChildTask->nTaskIterationArrayNum || pstChildTask->astTaskIteration[nIndex].nRunInIteration == 0)
 					{
-						ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+						//printf("FAIL: task: %s, mode index: %d, mode ID: %d \n", pstChildTask->pszTaskName, nCurModeIndex, nModeId);
+						//UEM_DEBUG_PRINT("iteration number is not found, set default to 1\n");
+						//ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 					}
-
-					nCurIteration = nCurIteration / pstChildTask->astTaskIteration[nIndex].nRunInIteration;
+					else
+					{
+						nCurIteration = nCurIteration / pstChildTask->astTaskIteration[nIndex].nRunInIteration;
+					}
 				}
 				break;
 			}
@@ -599,6 +603,127 @@ _EXIT:
 	return result;
 }
 
+uem_result UKTask_CheckTaskToBeControlled(STaskGraph *pstControlledTaskGraph, STask *pstTask, OUT uem_bool *pbControlled)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STaskGraph *pstParentGraph = NULL;
+	uem_bool bControlled = TRUE;
+
+	pstParentGraph = pstTask->pstParentGraph;
+
+	while(pstParentGraph != pstControlledTaskGraph)
+	{
+		switch(pstParentGraph->enControllerType)
+		{
+		case CONTROLLER_TYPE_VOID:
+			// skip
+			break;
+		case CONTROLLER_TYPE_CONTROL_TASK_INCLUDED:
+			// skip
+			break;
+		case CONTROLLER_TYPE_DYNAMIC_MODE_TRANSITION:
+		case CONTROLLER_TYPE_STATIC_MODE_TRANSITION:
+			if(pstParentGraph->pstParentTask->pstParentGraph != pstControlledTaskGraph)
+			{
+				bControlled = FALSE;
+			}
+			else
+			{
+				if(pstParentGraph == pstTask->pstParentGraph)
+				{
+					bControlled = TRUE;
+				}
+				else
+				{
+					bControlled = FALSE;
+				}
+			}
+			break;
+		case CONTROLLER_TYPE_DYNAMIC_CONVERGENT_LOOP:
+		case CONTROLLER_TYPE_DYNAMIC_DATA_LOOP:
+		case CONTROLLER_TYPE_STATIC_CONVERGENT_LOOP:
+		case CONTROLLER_TYPE_STATIC_DATA_LOOP:
+			break;
+		default:
+			ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+			break;
+		}
+
+		if(bControlled == FALSE)
+		{
+			break;
+		}
+
+		pstParentGraph = pstParentGraph->pstParentTask->pstParentGraph;
+	}
+
+	*pbControlled = bControlled;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+
+static uem_result updateNewLoopIterationHistory(STaskGraph *pstGraph, STask *pstCurrentTask, int nNewIterationNumber)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SLoopInfo *pstLoopInfo = NULL;
+	int nHistoryEnd;
+	int nCurIteration = 0;
+	int nTargetIteration = 0;
+
+	SLoopController *pstController = NULL;
+
+	pstController = (SLoopController *) pstGraph->pController;
+
+	pstLoopInfo = pstController->pstLoopInfo;
+	nCurIteration = pstController->stCommon.nCurrentIteration;
+	nTargetIteration = pstCurrentTask->nTargetIteration;
+
+	nHistoryEnd = pstLoopInfo->nCurHistoryStartIndex + pstLoopInfo->nCurHistoryLen - 1;
+
+	if(nHistoryEnd >= LOOP_HISTORY_ARRAY_SIZE)
+	{
+		nHistoryEnd = nHistoryEnd - LOOP_HISTORY_ARRAY_SIZE;
+	}
+
+	if(pstLoopInfo->astLoopIteration[nHistoryEnd].nNextIteration >= nNewIterationNumber)
+	{
+		UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
+	}
+
+	if (pstLoopInfo->nCurHistoryLen < LOOP_HISTORY_ARRAY_SIZE) {
+		pstLoopInfo->nCurHistoryLen++;
+	}
+	else {
+		pstLoopInfo->nCurHistoryStartIndex++;
+		if (pstLoopInfo->nCurHistoryStartIndex >= LOOP_HISTORY_ARRAY_SIZE) {
+			pstLoopInfo->nCurHistoryStartIndex = 0;
+		}
+	}
+
+	nHistoryEnd = pstLoopInfo->nCurHistoryStartIndex + pstLoopInfo->nCurHistoryLen - 1;
+	if (nHistoryEnd >= LOOP_HISTORY_ARRAY_SIZE) {
+		nHistoryEnd -= LOOP_HISTORY_ARRAY_SIZE;
+	}
+
+	pstLoopInfo->astLoopIteration[nHistoryEnd].nPrevIteration = nCurIteration;
+	pstLoopInfo->astLoopIteration[nHistoryEnd].nNextIteration = nNewIterationNumber;
+
+	if(nTargetIteration > 0 && pstLoopInfo->astLoopIteration[nHistoryEnd].nNextIteration > nTargetIteration)
+	{
+		pstLoopInfo->astLoopIteration[nHistoryEnd].nNextIteration = nTargetIteration;
+	}
+
+	if(pstLoopInfo->astLoopIteration[nHistoryEnd].nPrevIteration > pstLoopInfo->astLoopIteration[nHistoryEnd].nNextIteration)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+	}
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
 
 
 uem_result UKTask_UpdateAllSubGraphCurrentIteration(STaskGraph *pstTaskGraph, STask *pstLeafTask, int nNewIterationNumber)
@@ -608,6 +733,7 @@ uem_result UKTask_UpdateAllSubGraphCurrentIteration(STaskGraph *pstTaskGraph, ST
 	int nConvertedIterationNumber = 0;
 	SModelControllerCommon *pstCommon = NULL;
 	STask *pstChildTask = NULL;
+	SModeTransitionController *pstModeController = NULL;
 
 	pstCurrentGraph = pstLeafTask->pstParentGraph;
 	pstChildTask = pstLeafTask;
@@ -624,6 +750,16 @@ uem_result UKTask_UpdateAllSubGraphCurrentIteration(STaskGraph *pstTaskGraph, ST
 			break;
 		case CONTROLLER_TYPE_DYNAMIC_MODE_TRANSITION:
 		case CONTROLLER_TYPE_STATIC_MODE_TRANSITION:
+			pstModeController = (SModeTransitionController *) pstCurrentGraph->pController;
+
+			result = getIterationNumberBasedOnTargetTaskId(pstChildTask, nNewIterationNumber, pstTaskGraph->pstParentTask->nTaskId, &nConvertedIterationNumber);
+			ERRIFGOTO(result, _EXIT);
+
+			if(pstModeController->stCommon.nCurrentIteration < nConvertedIterationNumber)
+			{
+				UKModeTransition_UpdateModeStateInternal(pstModeController->pstMTMInfo, MODE_STATE_TRANSITING, nConvertedIterationNumber-1);
+			}
+			break;
 		case CONTROLLER_TYPE_DYNAMIC_CONVERGENT_LOOP:
 		case CONTROLLER_TYPE_DYNAMIC_DATA_LOOP:
 		case CONTROLLER_TYPE_STATIC_CONVERGENT_LOOP:
@@ -635,7 +771,8 @@ uem_result UKTask_UpdateAllSubGraphCurrentIteration(STaskGraph *pstTaskGraph, ST
 
 			if(pstCommon->nCurrentIteration < nConvertedIterationNumber)
 			{
-				pstCommon->nCurrentIteration = nConvertedIterationNumber;
+				result = updateNewLoopIterationHistory(pstCurrentGraph, pstChildTask, nConvertedIterationNumber);
+				ERRIFGOTO(result, _EXIT);
 			}
 			break;
 		default:
@@ -790,6 +927,7 @@ uem_result UKTask_IncreaseRunCount(STask *pstTask, int nThreadId, OUT uem_bool *
 	{
 		pstTask->nCurRunInIteration = 0;
 		pstTask->nCurIteration++;
+
 		if(pstTask->nTargetIteration > 0 && pstTask->nCurIteration >= pstTask->nTargetIteration)
 		{
 			//UEM_DEBUG_PRINT("Task2: %s => nTargetIteration: %d, current: %d\n", pstTask->pszTaskName, pstTask->nTargetIteration, pstTask->nCurIteration);

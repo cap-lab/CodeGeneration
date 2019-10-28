@@ -18,6 +18,56 @@
 #include <UKCPUTaskCommon.h>
 
 
+uem_result UKModelController_GetTopLevelGraph(STaskGraph *pstLeafTaskGraph, OUT STaskGraph **ppstGraph)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STaskGraph *pstHighestGraph = NULL;
+	STaskGraph *pstTaskGraph = NULL;
+	SModelControllerCommon *pstCommon = NULL;
+
+	pstTaskGraph = pstLeafTaskGraph;
+
+	while(pstTaskGraph != NULL)
+	{
+		switch(pstTaskGraph->enControllerType)
+		{
+		case CONTROLLER_TYPE_VOID:
+			// skip
+			break;
+		case CONTROLLER_TYPE_CONTROL_TASK_INCLUDED:
+		case CONTROLLER_TYPE_STATIC_MODE_TRANSITION:
+		case CONTROLLER_TYPE_STATIC_CONVERGENT_LOOP:
+		case CONTROLLER_TYPE_STATIC_DATA_LOOP:
+			pstCommon = (SModelControllerCommon *) pstTaskGraph->pController;
+			IFVARERRASSIGNGOTO(pstCommon, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+			pstHighestGraph = pstTaskGraph;
+			break;
+		case CONTROLLER_TYPE_DYNAMIC_MODE_TRANSITION:
+		case CONTROLLER_TYPE_DYNAMIC_CONVERGENT_LOOP:
+		case CONTROLLER_TYPE_DYNAMIC_DATA_LOOP:
+			pstCommon = (SModelControllerCommon *) pstTaskGraph->pController;
+			IFVARERRASSIGNGOTO(pstCommon, NULL, result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+			pstHighestGraph = pstTaskGraph;
+			break;
+		}
+
+		if(pstTaskGraph->pstParentTask != NULL)
+		{
+			pstTaskGraph = pstTaskGraph->pstParentTask->pstParentGraph;
+		}
+		else
+		{
+			pstTaskGraph = NULL;
+		}
+	}
+
+	*ppstGraph = pstHighestGraph;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 uem_result UKModelController_GetTopLevelLockHandle(STaskGraph *pstLeafTaskGraph, OUT HThreadMutex *phMutex)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -148,7 +198,7 @@ uem_result UKModelController_TraverseAndCallFunctions(STaskGraph *pstLeafTaskGra
 	while(pstTaskGraph != NULL)
 	{
 		pstCommon = (SModelControllerCommon *) pstTaskGraph->pController;
-		if(pstCommon != NULL && pstCommon->pstFunctionSet != NULL)
+		if(pstCommon != NULL)
 		{
 			result = fnFunction(pstTaskGraph, pstTaskGraph->enControllerType, pstCommon->pstFunctionSet, pUserData);
 			ERRIFGOTO(result, _EXIT);

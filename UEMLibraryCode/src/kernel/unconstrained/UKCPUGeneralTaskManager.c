@@ -56,6 +56,8 @@ typedef struct _SGeneralTask {
 	HCPUGeneralTaskManager hManager;
 	int nCurLoopIndex; // modified
 	HThreadMutex hTaskGraphLock;
+	STaskGraph *pstTaskGraphLockGraph;
+	ECPUTaskState enRequestState;
 } SGeneralTask;
 
 typedef struct _SCPUGeneralTaskManager {
@@ -79,6 +81,7 @@ struct _SGeneralTaskSearchData {
 struct _SGeneralTaskThreadData {
 	SGeneralTaskThread *pstTaskThread;
 	SGeneralTask *pstGeneralTask;
+	uem_bool bActivate;
 };
 
 struct _SGeneralTaskThreadDataDuringStopping {
@@ -299,6 +302,10 @@ static uem_result createGeneralTaskStruct(HCPUGeneralTaskManager hCPUTaskManager
 	pstGeneralTask->nProcessorId = pstMappedInfo->nProcessorId;
 	pstGeneralTask->pstMapProcessorAPI = pstMappedInfo->pstMapProcessorAPI;
 	pstGeneralTask->nCurLoopIndex = 0;
+	pstGeneralTask->enRequestState = TASK_STATE_NONE;
+
+	result = UKModelController_GetTopLevelGraph(pstMappedInfo->pstTask->pstParentGraph, &(pstGeneralTask->pstTaskGraphLockGraph));
+	ERRIFGOTO(result, _EXIT);
 
 	result = UKModelController_GetTopLevelLockHandle(pstMappedInfo->pstTask->pstParentGraph, &(pstGeneralTask->hTaskGraphLock));
 	ERRIFGOTO(result, _EXIT);
@@ -647,6 +654,7 @@ static uem_result clearGeneralTaskData(SGeneralTask *pstGeneralTask)
 	uem_result result = ERR_UEM_UNKNOWN;
 
 	pstGeneralTask->nCurLoopIndex = 0;
+	pstGeneralTask->enRequestState = TASK_STATE_NONE;
 
 	result = ERR_UEM_NOERROR;
 
@@ -696,6 +704,28 @@ _EXIT:
 	return result;
 }
 
+static uem_result activateRequest(STask *pstTask, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	struct _SGeneralTaskThreadData *pstUserData = NULL;
+
+	pstUserData = (struct _SGeneralTaskThreadData *) pUserData;
+
+	if(pstTask->nTaskId != pstUserData->pstGeneralTask->pstTask->nTaskId)
+	{
+		result = UCThreadMutex_Unlock(pstUserData->pstGeneralTask->hTaskGraphLock);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UKCPUGeneralTaskManager_ActivateThread(pstUserData->pstGeneralTask->hManager, pstTask);
+		UCThreadMutex_Lock(pstUserData->pstGeneralTask->hTaskGraphLock);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 
 static uem_result traverseAndCallHandleModel(STaskGraph *pstCurrentTaskGraph, ETaskControllerType enControllerType,
 											SModelControllerFunctionSet *pstFunctionSet, void *pUserData)
@@ -724,8 +754,18 @@ static uem_result traverseAndCallHandleModel(STaskGraph *pstCurrentTaskGraph, ET
 			result = pstFunctionSet->fnHandleModel(pstCurrentTaskGraph, (void *) pstUserData->pstGeneralTask,
 												(void *) pstUserData->pstTaskThread);
 			ERRIFGOTO(result, _EXIT);
+			if(result == ERR_UEM_FOUND_DATA)
+			{
+				pstUserData->bActivate = TRUE;
+			}
 		}
 		break;
+	}
+
+	if( pstCurrentTaskGraph == pstUserData->pstGeneralTask->pstTaskGraphLockGraph && pstUserData->bActivate == TRUE)
+	{
+		result = UKCPUTaskCommon_TraverseSubGraphTasks(pstUserData->pstGeneralTask->pstTask->pstParentGraph->pstParentTask, activateRequest, pstUserData);
+		ERRIFGOTO(result, _EXIT);
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -739,14 +779,34 @@ static uem_result handleTaskGraphController(SGeneralTask *pstTask, SGeneralTaskT
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _SGeneralTaskThreadData stUserData;
 
+	if(pstTask->hTaskGraphLock != NULL)
+	{
+		result = UCThreadMutex_Lock(pstTask->hTaskGraphLock);
+		ERRIFGOTO(result, _EXIT);
+	}
+	
+	if(pstTask->enRequestState != TASK_STATE_NONE)
+	{
+		result = changeTaskStateInLock(pstTask, pstTask->enRequestState);
+		ERRIFGOTO(result, _EXIT);
+		pstTask->enRequestState = TASK_STATE_NONE;
+	}
+
 	stUserData.pstGeneralTask = pstTask;
 	stUserData.pstTaskThread = pstTaskThread;
-
-	result = UKModelController_TraverseAndCallFunctions(pstTask->pstTask->pstParentGraph, pstTask->hTaskGraphLock, traverseAndCallHandleModel, &stUserData);
-	ERRIFGOTO(result, _EXIT);
+	stUserData.bActivate = FALSE;
+	if(pstTask->enTaskState == TASK_STATE_RUNNING || pstTask->enTaskState == TASK_STATE_SUSPEND)
+	{
+		result = UKModelController_TraverseAndCallFunctions(pstTask->pstTask->pstParentGraph, NULL, traverseAndCallHandleModel, &stUserData);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
+	if(pstTask->hTaskGraphLock != NULL)
+	{
+		UCThreadMutex_Unlock(pstTask->hTaskGraphLock);
+	}
 	return result;
 }
 
@@ -1257,6 +1317,36 @@ uem_result UKCPUGeneralTaskManager_ChangeState(HCPUGeneralTaskManager hManager, 
 _EXIT:
 	return result;
 }
+
+
+uem_result UKCPUGeneralTaskManager_RequestTaskState(HCPUGeneralTaskManager hManager, STask *pstTargetTask, ECPUTaskState enTaskState)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCPUGeneralTaskManager *pstTaskManager = NULL;
+	SGeneralTask *pstGeneralTask = NULL;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(pstTargetTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	if (IS_VALID_HANDLE(hManager, ID_UEM_CPU_GENERAL_TASK_MANAGER) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+#endif
+	pstTaskManager = hManager;
+
+	result = UCThreadMutex_Lock(pstTaskManager->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
+	UCThreadMutex_Unlock(pstTaskManager->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	pstGeneralTask->enRequestState = enTaskState;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 
 
 static uem_result traverseAndSetEventToTaskThread(IN int nOffset, IN void *pData, IN void *pUserData)

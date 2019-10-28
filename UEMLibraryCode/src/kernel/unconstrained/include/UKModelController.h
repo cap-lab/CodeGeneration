@@ -25,6 +25,7 @@ uem_result UKModelController_TraverseAndCallFunctions(STaskGraph *pstLeafTaskGra
 													void *pUserData);
 uem_result UKModelController_GetTopLevelLockHandle(STaskGraph *pstLeafTaskGraph, OUT HThreadMutex *phMutex);
 uem_result UKModelController_CallSubGraphClearFunctions(STaskGraph *pstTaskGraph);
+uem_result UKModelController_GetTopLevelGraph(STaskGraph *pstLeafTaskGraph, OUT STaskGraph **ppstGraph);
 
 #ifdef __cplusplus
 }

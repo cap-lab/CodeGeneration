@@ -208,6 +208,7 @@ uem_result UKCPUGeneralTaskManager_DestroyThread(HCPUGeneralTaskManager hManager
  */
 uem_result UKCPUGeneralTaskManager_Destroy(IN OUT HCPUGeneralTaskManager *phManager);
 
+uem_result UKCPUGeneralTaskManager_RequestTaskState(HCPUGeneralTaskManager hManager, STask *pstTargetTask, ECPUTaskState enTaskState);
 
 uem_result UKCPUGeneralTaskManagerCB_IsSourceTask(void *pTaskHandle, OUT uem_bool *pbIsSourceTask);
 uem_result UKCPUGeneralTaskManagerCB_GetCurrentTaskStructure(void *pTaskHandle, OUT STask **ppstTask);

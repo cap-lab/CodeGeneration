@@ -338,24 +338,12 @@ static uem_result traverseAndSetEventToStoppingTasks(STask *pstTask, void *pUser
 
 	if(pstTask->nTaskId != pstCallerTask->nTaskId)
 	{
-		result = UCThreadMutex_Unlock(hTaskGraphLock);
-		ERRIFGOTO(result, _EXIT);
-
-		result = UKCPUGeneralTaskManager_ChangeState(hManager, pstTask, TASK_STATE_STOPPING);
-		ERRIFGOTO(result, _EXIT_LOCK);
-
-		result = UKCPUGeneralTaskManager_ActivateThread(hManager, pstTask);
-		ERRIFGOTO(result, _EXIT_LOCK);
-
-		result = UCThreadMutex_Lock(hTaskGraphLock);
+		result = UKCPUGeneralTaskManager_RequestTaskState(hManager, pstTask, TASK_STATE_STOPPING);
 		ERRIFGOTO(result, _EXIT);
 	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
-	return result;
-_EXIT_LOCK:
-	UCThreadMutex_Lock(hTaskGraphLock);
 	return result;
 }
 
@@ -390,13 +378,7 @@ static uem_result traverseAndSetEventToTemporarySuspendedMTMTask(STask *pstTask,
 
 	if(pstCallerTask->nTaskId != pstTask->nTaskId)
 	{
-		result = UCThreadMutex_Unlock(hTaskGraphLock);
-		ERRIFGOTO(result, _EXIT);
-
 		result = UKCPUGeneralTaskManager_GetTaskState(hManager, pstTask, &enState);
-		ERRIFGOTO(result, _EXIT);
-
-		result = UCThreadMutex_Lock(hTaskGraphLock);
 		ERRIFGOTO(result, _EXIT);
 
 		if(enState == TASK_STATE_SUSPEND)
@@ -426,25 +408,26 @@ static uem_result traverseAndSetEventToTemporarySuspendedMTMTask(STask *pstTask,
 														pstNewModeData->pstParentTaskGraph->pstParentTask->nTaskId,
 														&nConvertedStartIteration);
 					ERRIFGOTO(result, _EXIT);
+
+					result = UCThreadMutex_Lock(pstTask->hMutex);
+					ERRIFGOTO(result, _EXIT);
+
 					pstTask->nCurIteration = nConvertedStartIteration;
 
 					result = UKTask_UpdateAllSubGraphCurrentIteration(pstNewModeData->pstParentTaskGraph, pstTask, pstNewModeData->nNewStartIteration);
+					UCThreadMutex_Unlock(pstTask->hMutex);
 					ERRIFGOTO(result, _EXIT);
 				}
 			}
 
 			if(bCurrentPortAvailable == TRUE)
 			{
-				result = UCThreadMutex_Unlock(hTaskGraphLock);
+				result = UKCPUGeneralTaskManager_RequestTaskState(hManager, pstTask, TASK_STATE_RUNNING);
 				ERRIFGOTO(result, _EXIT);
-
-				result = UKCPUGeneralTaskManager_ChangeState(hManager, pstTask, TASK_STATE_RUNNING);
-				ERRIFGOTO(result, _EXIT);
-
-				result = UKCPUGeneralTaskManager_ActivateThread(hManager, pstTask);
-				ERRIFGOTO(result, _EXIT);
-
-				result = UCThreadMutex_Lock(hTaskGraphLock);
+			}
+			else
+			{
+				result = UKCPUGeneralTaskManager_RequestTaskState(hManager, pstTask, TASK_STATE_NONE);
 				ERRIFGOTO(result, _EXIT);
 			}
 		}
@@ -493,7 +476,11 @@ uem_result UKModeTransitionMachineController_ChangeSubGraphTaskState(STaskGraph 
 		ERRIFGOTO(result, _EXIT);
 
 		result = UKModeTransition_GetCurrentModeIndexByIteration(pstController->pstMTMInfo, nConvertedIteration, &nCurModeIndex);
-		if(result == ERR_UEM_NOT_FOUND)
+		if(result == ERR_UEM_NOT_FOUND || nCurModeIndex == INVALID_MODE_ID)
+		{
+			pstCurrentTask->nCurIteration = pstCurrentTask->nTargetIteration;
+		}
+		else if(result == ERR_UEM_NOERROR)
 		{
 			pszModeName = pstController->pstMTMInfo->astModeMap[nCurModeIndex].pszModeName;
 			if(UKChannel_IsPortRateAvailableTask(pstCurrentTask->nTaskId, pszModeName) == FALSE)
@@ -521,6 +508,7 @@ static uem_result updateCurrentIteration(STaskGraph *pstGraph, SModeTransitionMa
 	int nNewIterationNumber = 0;
 	STask *pstMTMSubTask = NULL;
 	uem_bool bNeedSuspended = FALSE;
+	int nNewIteration = 0;
 
 	result = UKTask_ConvertIterationToUpperTaskGraphBase(pstTask,  pstGraph, &nConvertedIteration);
 	ERRIFGOTO(result, _EXIT);
@@ -552,9 +540,14 @@ static uem_result updateCurrentIteration(STaskGraph *pstGraph, SModeTransitionMa
 			ERRIFGOTO(result, _EXIT);
 
 			result = UKTask_GetIterationNumberBasedOnTargetParentTaskId(pstTask, nNewIterationNumber,
-																	pstGraph->pstParentTask->nTaskId, &(pstTask->nCurIteration));
+																	pstGraph->pstParentTask->nTaskId, &nNewIteration);
 			ERRIFGOTO(result, _EXIT);
+
+			result = UCThreadMutex_Lock(pstTask->hMutex);
+			ERRIFGOTO(result, _EXIT);
+			pstTask->nCurIteration = nNewIteration;
 			result = UKTask_UpdateAllSubGraphCurrentIteration(pstGraph, pstTask, nNewIterationNumber);
+			UCThreadMutex_Unlock(pstTask->hMutex);
 			ERRIFGOTO(result, _EXIT);
 		}
 	}
@@ -617,7 +610,7 @@ _EXIT:
 }
 
 
-static uem_result handleModeTransitionInGeneralTasks(STaskGraph *pstGraph, void *pCurrentTaskHandle, void *pCurrentThreadHandle)
+static uem_result handleModeTransitionInGeneralTasks(STaskGraph *pstGraph, void *pCurrentTaskHandle, void *pCurrentThreadHandle, uem_bool *pbActivated)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	struct _SModeTransitionGeneralSetEventCheck stNewModeData;
@@ -628,6 +621,7 @@ static uem_result handleModeTransitionInGeneralTasks(STaskGraph *pstGraph, void 
 	int nConvertedIteration = 0;
 	uem_bool bNeedSuspend = FALSE;
 	ECPUTaskState enTaskState = TASK_STATE_STOP;
+	uem_bool bRestarted = FALSE;
 
 	pstController = (SModeTransitionController *) pstGraph->pController;
 
@@ -640,34 +634,42 @@ static uem_result handleModeTransitionInGeneralTasks(STaskGraph *pstGraph, void 
 	result = UKTask_ConvertIterationToUpperTaskGraphBase(pstCurrentTask, pstGraph, &nConvertedIteration);
 	ERRIFGOTO(result, _EXIT);
 
+	result = UKCPUGeneralTaskManagerCB_GetRestarted(pCurrentThreadHandle, &bRestarted);
+	ERRIFGOTO(result, _EXIT);
+
 	if(bIsSourceTask == TRUE && pstCurrentTask->pstParentGraph == pstGraph)
 	{
-		pstController->pstMTMInfo->fnTransition(pstController->pstMTMInfo);
-
-		enModeState = UKModeTransition_GetModeStateInternal(pstController->pstMTMInfo);
-
-		stNewModeData.nPrevModeIndex = pstController->pstMTMInfo->nCurModeIndex;
-
-		if(enModeState == MODE_STATE_TRANSITING)
+		if(bRestarted == FALSE) 
 		{
-			enModeState = UKModeTransition_UpdateModeStateInternal(pstController->pstMTMInfo, MODE_STATE_NORMAL, nConvertedIteration-1);
-			stNewModeData.bModeChanged = TRUE;
+			pstController->pstMTMInfo->fnTransition(pstController->pstMTMInfo);
+
+			enModeState = UKModeTransition_GetModeStateInternal(pstController->pstMTMInfo);
+
+			stNewModeData.nPrevModeIndex = pstController->pstMTMInfo->nCurModeIndex;
+
+			if(enModeState == MODE_STATE_TRANSITING)
+			{
+				enModeState = UKModeTransition_UpdateModeStateInternal(pstController->pstMTMInfo, MODE_STATE_NORMAL, nConvertedIteration-1);
+				stNewModeData.bModeChanged = TRUE;
+			}
+			else
+			{
+				stNewModeData.bModeChanged = FALSE;
+			}
+
+			stNewModeData.nNewModeIndex = pstController->pstMTMInfo->nCurModeIndex;
+
+			stNewModeData.pCallerTask = pCurrentTaskHandle;
+			stNewModeData.nNewStartIteration = nConvertedIteration-1;
+			stNewModeData.pstParentTaskGraph = pstGraph;
+
+			pstController->stCommon.nCurrentIteration = nConvertedIteration;
+
+			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstGraph->pstParentTask, traverseAndSetEventToTemporarySuspendedMTMTask, &stNewModeData);
+			ERRIFGOTO(result, _EXIT);
+
+			*pbActivated = TRUE;
 		}
-		else
-		{
-			stNewModeData.bModeChanged = FALSE;
-		}
-
-		stNewModeData.nNewModeIndex = pstController->pstMTMInfo->nCurModeIndex;
-
-		stNewModeData.pCallerTask = pCurrentTaskHandle;
-		stNewModeData.nNewStartIteration = nConvertedIteration-1;
-		stNewModeData.pstParentTaskGraph = pstGraph;
-
-		pstController->stCommon.nCurrentIteration = nConvertedIteration;
-
-		result = UKCPUTaskCommon_TraverseSubGraphTasks(pstGraph->pstParentTask, traverseAndSetEventToTemporarySuspendedMTMTask, &stNewModeData);
-		ERRIFGOTO(result, _EXIT);
 	}
 	else
 	{
@@ -712,6 +714,7 @@ uem_result UKModeTransitionMachineController_HandleModelGeneral(STaskGraph *pstG
 	uem_bool bFunctionCalled = FALSE;
 	ECPUTaskState enTaskState = TASK_STATE_STOP;
 	uem_bool bRestarted = FALSE;
+	uem_bool bActivated = FALSE;
 
 
 	result = UKCPUGeneralTaskManagerCB_GetFunctionCalled(pCurrentThreadHandle, &bFunctionCalled);
@@ -725,11 +728,18 @@ uem_result UKModeTransitionMachineController_HandleModelGeneral(STaskGraph *pstG
 
 	if((bFunctionCalled == TRUE || bRestarted == TRUE) && enTaskState == TASK_STATE_RUNNING)
 	{
-		result = handleModeTransitionInGeneralTasks(pstGraph, pCurrentTaskHandle, pCurrentThreadHandle);
+		result = handleModeTransitionInGeneralTasks(pstGraph, pCurrentTaskHandle, pCurrentThreadHandle, &bActivated);
 		ERRIFGOTO(result, _EXIT);
 	}
 
-	result = ERR_UEM_NOERROR;
+	if(bActivated == TRUE)
+	{
+		result = ERR_UEM_FOUND_DATA;
+	}
+	else
+	{
+		result = ERR_UEM_NOERROR;
+	}
 
 _EXIT:
 	return result;

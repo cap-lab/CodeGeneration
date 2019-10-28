@@ -127,9 +127,11 @@ ${innerspace}		${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}(${flat_task
 ${innerspace}		result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
 ${innerspace}		if(result == ERR_UEM_NOERROR)
 ${innerspace}		{
+${innerspace}			SModeTransitionController *pstController = NULL;
+${innerspace}			pstController = (SModeTransitionController *) g_stGraph_${parentTaskName}.pController;
 ${innerspace}			result = UCThreadMutex_Lock(pstTask->hMutex);
 ${innerspace}			if(result == ERR_UEM_NOERROR){
-${innerspace}				transitMode_${parentTaskName}(g_astTasks_${flat_task[parentTaskName].parentTaskGraphName}[${flat_task[parentTaskName].inGraphIndex}].pstMTMInfo);
+${innerspace}				transitMode_${parentTaskName}(pstController->pstMTMInfo);
 ${innerspace}				UCThreadMutex_Unlock(pstTask->hMutex);
 ${innerspace}			}	
 ${innerspace}			return; // exit when the mode is MODE_STATE_TRANSITING
