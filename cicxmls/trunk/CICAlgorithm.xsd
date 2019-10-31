@@ -47,7 +47,7 @@
   
   <xs:complexType name="MulticastGroupListType">
     <xs:sequence>
-      <xs:element name="multicastGroup" type="MulticastGroupType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="multicastGroup" type="MulticastGroupType" minOccurs="1" maxOccurs="unbounded" />
     </xs:sequence>
   </xs:complexType>
   

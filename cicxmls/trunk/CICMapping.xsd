@@ -16,7 +16,6 @@
     <xs:sequence>
       <xs:element name="task" type="MappingTaskType" minOccurs="1" maxOccurs="unbounded" />
       <xs:element name="library" type="MappingLibraryType" minOccurs="0" maxOccurs="unbounded" />
-      <xs:element name="channel" type="MappingChannelType" minOccurs="0" maxOccurs="unbounded" />
       <xs:element name="multicast" type="MappingMulticastType" minOccurs="0" maxOccurs="unbounded" />
     </xs:sequence>
   </xs:complexType>
@@ -62,9 +61,6 @@
   <xs:complexType name="MappingProcessorIdType">
     <xs:attribute name="pool" type="NameType" use="required" />
     <xs:attribute name="localId" type="xs:nonNegativeInteger" use="required" />
-  </xs:complexType>
-  
-  <xs:complexType name="MappingChannelType">
   </xs:complexType>
   
   <xs:complexType name="MappingMulticastType">
