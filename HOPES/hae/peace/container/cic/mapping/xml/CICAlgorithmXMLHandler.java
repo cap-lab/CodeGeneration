@@ -32,6 +32,16 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 		algorithm = loader.loadResource(is);
 	}
 	
+	public CICAlgorithmType getAlgorithm()
+	{
+		return algorithm;
+	}
+	
+	public CICAlgorithmTypeLoader getLoader()
+	{
+		return loader;
+	}
+	
 	private HashMap<String, TaskType> getFullTaskMap(List<TaskType> taskList)
 	{
 		HashMap<String, TaskType> taskMap = new HashMap<String, TaskType>();
