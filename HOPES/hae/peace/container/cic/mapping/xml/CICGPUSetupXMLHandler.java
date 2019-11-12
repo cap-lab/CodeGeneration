@@ -4,14 +4,14 @@ import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
 import java.io.StringWriter;
 
-import hae.peace.container.cic.mapping.CICDSEPanel;
-import hae.peace.container.cic.mapping.CICManualDSEPanel;
 import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICGPUSetupType;
 import hopes.cic.xml.CICGPUSetupTypeLoader;
+import hopes.cic.xml.GPUTaskListType;
+import hopes.cic.xml.GPUTaskType;
 
 
-public class CICGPUSetupXMLHandler{
+public class CICGPUSetupXMLHandler extends CICXMLHandler{
 	private CICGPUSetupTypeLoader loader;
 	private CICGPUSetupType gpuSetup;
 	
@@ -19,31 +19,43 @@ public class CICGPUSetupXMLHandler{
 		loader = new CICGPUSetupTypeLoader();
 	}
 	
-	public void storeXMLString(String fileName, CICGPUSetupType gpuSetup) throws CICXMLException {
-		StringWriter writer = new StringWriter();
+	protected void storeResource(StringWriter writer) throws CICXMLException {
 		loader.storeResource(gpuSetup, writer);
-		writer.flush();
+	}
+	
+	protected void loadResource(ByteArrayInputStream is) throws CICXMLException {
+		gpuSetup = loader.loadResource(is);
+	}
+	
+	public void makeGpuSetup() {
+		gpuSetup = new CICGPUSetupType();
+	}
 		
-		FileOutputStream os;
-		try {
-			os = new FileOutputStream(fileName);
-			byte[] abContents = writer.toString().getBytes();
-			os.write(abContents, 0, abContents.length);
-			os.close();
-		} catch (Exception e) {
-			e.printStackTrace();
+	public void clearDevice() throws CICXMLException
+	{
+		for (Object obj : gpuSetup.getTasks().getTask()) {
+			GPUTaskType gpuTask = (GPUTaskType) obj;
+			gpuTask.getDevice().clear();
 		}
 	}
 	
-	public CICGPUSetupType getGPUSetup( String xmlString )
+	public boolean containTask(String taskName)
 	{
-		ByteArrayInputStream is = new ByteArrayInputStream(xmlString.getBytes());
-		try {
-			gpuSetup = loader.loadResource(is);
-		} catch (CICXMLException e) {
-			e.printStackTrace();
+		for (Object obj : gpuSetup.getTasks().getTask()) {
+			GPUTaskType gpuTask = (GPUTaskType) obj;
+			if (taskName.equalsIgnoreCase(gpuTask.getName())) {
+				return true;
+			}
 		}
-			
-		return gpuSetup;		
+		return false;
+	}
+	
+	public void setTasks(GPUTaskListType taskList) 
+	{
+		gpuSetup.setTasks(taskList);
+	}
+	
+	public int getTaskSize() {
+		return gpuSetup.getTasks().getTask().size();
 	}
 }

@@ -16,16 +16,11 @@ public class CICConfigurationXMLHandler extends CICXMLHandler {
 		loader = new CICConfigurationTypeLoader();
 	}
 	
-	public String getXMLString() throws CICXMLException {
-		StringWriter writer = new StringWriter();
+	protected void storeResource(StringWriter writer) throws CICXMLException {
 		loader.storeResource(configuration, writer);
-		writer.flush();
-		return writer.toString();		
 	}
 	
-	public void setXMLString(String xmlString) throws CICXMLException
-	{
-		ByteArrayInputStream is = new ByteArrayInputStream(xmlString.getBytes());
+	protected void loadResource(ByteArrayInputStream is) throws CICXMLException {
 		configuration = loader.loadResource(is);
 	}
 	

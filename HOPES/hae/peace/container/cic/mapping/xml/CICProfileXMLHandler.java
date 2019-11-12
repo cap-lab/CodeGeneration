@@ -39,28 +39,13 @@ public class CICProfileXMLHandler extends CICXMLHandler{
 		loader = new CICProfileTypeLoader();
 	}
 	
-	public void storeXMLString(String fileName, CICProfileType profile) throws CICXMLException {
-		StringWriter writer = new StringWriter();
+	protected void storeResource(StringWriter writer) throws CICXMLException {
 		loader.storeResource(profile, writer);
-		writer.flush();
-		
-		FileOutputStream os;
-		try {
-			os = new FileOutputStream(fileName);
-			byte[] abContents = writer.toString().getBytes();
-			os.write(abContents, 0, abContents.length);
-			os.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
-	
-	public void setXMLString(String xmlString) throws CICXMLException
-	{
-		ByteArrayInputStream is = new ByteArrayInputStream(xmlString.getBytes());
+	protected void loadResource(ByteArrayInputStream is) throws CICXMLException {
 		profile = loader.loadResource(is);
 	}
-	
+		
 	public CICProfileType getProfile() 
 	{
 		return profile;		

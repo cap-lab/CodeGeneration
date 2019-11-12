@@ -2,6 +2,7 @@
 package hae.peace.container.cic.mapping.xml;
 
 import java.io.ByteArrayInputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,9 +27,11 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 		loader = new CICAlgorithmTypeLoader();
 	}
 	
-	@Override
-	public void setXMLString(String xmlString) throws CICXMLException {
-		ByteArrayInputStream is = new ByteArrayInputStream(xmlString.getBytes());
+	protected void storeResource(StringWriter writer) throws CICXMLException {
+		loader.storeResource(algorithm, writer);
+	}
+	
+	protected void loadResource(ByteArrayInputStream is) throws CICXMLException {
 		algorithm = loader.loadResource(is);
 	}
 	

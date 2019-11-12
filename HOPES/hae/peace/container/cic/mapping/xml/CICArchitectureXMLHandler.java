@@ -29,6 +29,26 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 //		this.panel = cicManualDSEPanel;
 	}
 	
+	protected void storeResource(StringWriter writer) throws CICXMLException {
+		loader.storeResource(architecture, writer);
+	}
+	protected void loadResource(ByteArrayInputStream is) throws CICXMLException {
+		architecture = loader.loadResource(is);
+	}
+	
+	@Override
+	public void setXMLString(String xmlString) throws CICXMLException {
+		super.setXMLString(xmlString);
+		processed = false;
+		getProcessorList();
+	}
+	
+	@Override
+	public String getXMLString() throws CICXMLException {
+		update();
+		return super.getXMLString();
+	}
+	
 	public CICArchitectureType getArchitecture() {
 		return architecture;
 	}
@@ -36,22 +56,7 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 	public void setArchitecture(CICArchitectureType architecture) {
 		this.architecture = architecture;
 	}
-	
-	public void setXMLString(String xmlString) throws CICXMLException {
-		ByteArrayInputStream is = new ByteArrayInputStream(xmlString.getBytes());
-		architecture = loader.loadResource(is);
-		processed = false;
-		getProcessorList();
-	}
-	
-	public String getXMLString() throws CICXMLException {
-		update();
-		StringWriter writer = new StringWriter();
-		loader.storeResource(architecture, writer);
-		writer.flush();
-		return writer.toString();
-	}
-	
+
 	private ObjectList procList = new ObjectList();
 	private boolean processed = false;
 	public ObjectList getProcessorList() {
@@ -59,12 +64,12 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 			procList.clear();
 			makeProcessorList();
 			makeMemoryRegionMap();
-			// * [hshong, 2014/06/27] : ÀÓ½Ã·Î Àá½Ã ¾ÈÇÔ! (xml)setMaps ¶§¹®
-			// * [hshong, 2014/07/01]: deleted: architecture.xml º¯°æ¿¡ µû¸¥ map »èÁ¦
+			// * [hshong, 2014/06/27] : ï¿½Ó½Ã·ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! (xml)setMaps ï¿½ï¿½ï¿½ï¿½
+			// * [hshong, 2014/07/01]: deleted: architecture.xml ï¿½ï¿½ï¿½æ¿¡ ï¿½ï¿½ï¿½ï¿½ map ï¿½ï¿½ï¿½ï¿½
 			//updateMemoryRegionMap();
 			processed = true;
-			// * [hshong, 2014/06/27] : ÀÓ½Ã·Î Àá½Ã ¾ÈÇÔ! (xml)setMaps ¶§¹®
-			// * [hshong, 2014/07/01]: deleted: architecture.xml º¯°æ¿¡ µû¸¥ map »èÁ¦
+			// * [hshong, 2014/06/27] : ï¿½Ó½Ã·ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½! (xml)setMaps ï¿½ï¿½ï¿½ï¿½
+			// * [hshong, 2014/07/01]: deleted: architecture.xml ï¿½ï¿½ï¿½æ¿¡ ï¿½ï¿½ï¿½ï¿½ map ï¿½ï¿½ï¿½ï¿½
 			//addMemoryRegionListToProcessor();
 		}
 		
@@ -85,7 +90,7 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 			for (ArchitectureElementType element : device.getElements().getElement()) {
 				ArchitectureElementTypeType elementType = getElementType(ArchitectureElementCategoryType.PROCESSOR,
 						element.getType());
-				if (elementType == null) // processor°¡ ¾Æ´Ï°Å³ª invalidÇÑ °æ¿ìÀÓ
+				if (elementType == null) // processorï¿½ï¿½ ï¿½Æ´Ï°Å³ï¿½ invalidï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 					continue;
 
 				int poolSize = element.getPoolSize() != null ? element.getPoolSize().intValue() : 1;
@@ -93,12 +98,12 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 				if (os == null)
 					os = "NONE";
 
-				// deleted for release (2015/12) - ´õÀÌ»ó processor ¿¡¼­´Â allow Data
-				// ParallelMappingÀÌ ¾²ÀÌÁö ¾ÊÀ½
+				// deleted for release (2015/12) - ï¿½ï¿½ï¿½Ì»ï¿½ processor ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ allow Data
+				// ParallelMappingï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				// boolean bParallel = element.isAllowDataParallelMapping();
 				for (int i = 0; i < poolSize; i++) {
-					// deleted for release (2015/12) - ´õÀÌ»ó processor ¿¡¼­´Â allow
-					// Data ParallelMappingÀÌ ¾²ÀÌÁö ¾ÊÀ½
+					// deleted for release (2015/12) - ï¿½ï¿½ï¿½Ì»ï¿½ processor ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ allow
+					// Data ParallelMappingï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					Processor proc = new Processor(i, element.getName(), /* bParallel, */os, element.getType(), elementType.getSubcategory(), device.getName());
 					procList.add(proc);
 				}
@@ -113,7 +118,7 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 			for (ArchitectureElementType element : device.getElements().getElement()) {
 				ArchitectureElementTypeType elementType = getElementType(ArchitectureElementCategoryType.MEMORY,
 						element.getType());
-				if (elementType == null) // memory°¡ ¾Æ´Ï°Å³ª invalidÇÑ °æ¿ìÀÓ
+				if (elementType == null) // memoryï¿½ï¿½ ï¿½Æ´Ï°Å³ï¿½ invalidï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 					continue;
 
 				ArchitectureElementSlavePortType slavePort = elementType.getSlavePort().get(0);
@@ -142,7 +147,7 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 		return BigInteger.ZERO;
 	}
 	
-	// * [hshong, 2014/07/01]: deleted: architecture.xml º¯°æ¿¡ µû¸¥ map »èÁ¦
+	// * [hshong, 2014/07/01]: deleted: architecture.xml ï¿½ï¿½ï¿½æ¿¡ ï¿½ï¿½ï¿½ï¿½ map ï¿½ï¿½ï¿½ï¿½
 //	private void updateMemoryRegionMap() {
 //		for (ArchitectureMapType master : architecture.getMaps().getMaster()) {
 //			for (ArchitectureMapSlaveType slave : master.getSlave()) {
@@ -153,7 +158,7 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 //		}
 //	}
 	
-// * [hshong, 2014/07/01]: deleted: architecture.xml º¯°æ¿¡ µû¸¥ map »èÁ¦
+// * [hshong, 2014/07/01]: deleted: architecture.xml ï¿½ï¿½ï¿½æ¿¡ ï¿½ï¿½ï¿½ï¿½ map ï¿½ï¿½ï¿½ï¿½
 //	private void addMemoryRegionListToProcessor() {
 //		for (ArchitectureMapType master : architecture.getMaps().getMaster()) {
 //			for (ArchitectureMapSlaveType slave : master.getSlave()) {
@@ -164,7 +169,7 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 //				memoryRegion = memoryRegion.clone();
 //				memoryRegion.setBaseAddress(slave.getBaseAddress());
 //				
-//				// TODO localId°¡ optionalÀÎµ¥ ¾øÀ» °æ¿ì ¾î¶»°Ô Ã³¸®ÇØ¾ß ÇÏ³ª?
+//				// TODO localIdï¿½ï¿½ optionalï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½î¶»ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ø¾ï¿½ ï¿½Ï³ï¿½?
 //				Processor proc = getProcessor(master.getName(), master.getLocalId());
 //				if (proc == null)
 //					continue;
@@ -179,7 +184,7 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 			for (ArchitectureElementType element : device.getElements().getElement()) {
 				ArchitectureElementTypeType elementType = getElementType(ArchitectureElementCategoryType.PROCESSOR,
 						element.getType());
-				if (elementType == null) // processor°¡ ¾Æ´Ï°Å³ª invalidÇÑ °æ¿ìÀÓ
+				if (elementType == null) // processorï¿½ï¿½ ï¿½Æ´Ï°Å³ï¿½ invalidï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 					continue;
 
 				Processor processor = getProcessor(element.getName(), BigInteger.ZERO);

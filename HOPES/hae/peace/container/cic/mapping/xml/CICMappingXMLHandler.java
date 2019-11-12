@@ -28,6 +28,20 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 	public CICMappingXMLHandler() {
 		loader = new CICMappingTypeLoader();
 	}
+	
+	protected void storeResource(StringWriter writer) throws CICXMLException {
+		loader.storeResource(mapping, writer);
+	}
+	
+	protected void loadResource(ByteArrayInputStream is) throws CICXMLException {
+		mapping = loader.loadResource(is);
+	}
+	
+	@Override
+	public void setXMLString(String xmlString) throws CICXMLException {
+		super.setXMLString(xmlString);
+		processed = false;		
+	}
 
 	public CICMappingType getMapping() {
 		return mapping;
@@ -35,19 +49,6 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 
 	public void setMapping(CICMappingType mapping) {
 		this.mapping = mapping;
-	}
-
-	public void setXMLString(String xmlString) throws CICXMLException {
-		ByteArrayInputStream is = new ByteArrayInputStream(xmlString.getBytes());
-		mapping = loader.loadResource(is);
-		processed = false;		
-	}
-
-	public String getXMLString() throws CICXMLException {
-		StringWriter writer = new StringWriter();
-		loader.storeResource(mapping, writer);
-		writer.flush();
-		return writer.toString();
 	}
 
 	private ObjectList taskList = new ObjectList();
