@@ -576,19 +576,6 @@ static uem_result changeCompositeTaskState(SCompositeTask *pstCompositeTask, ECP
 
 	pstCompositeTask->enTaskState = enTargetState;
 
-	if(enTargetState == TASK_STATE_STOPPING)
-	{
-		result = UKTime_GetProgramExecutionTime(&nTimeValue, &enTimeMetric);
-		ERRIFGOTO(result, _EXIT);
-
-		if(enTimeMetric != TIME_METRIC_COUNT) //ProcessNetwork
-		{
-			// release channel block related to the task to be stopped
-			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstCompositeTask->pstParentTask, setChannelExitFlags, NULL);
-			ERRIFGOTO(result, _EXIT);
-		}
-	}
-
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
@@ -865,7 +852,8 @@ static uem_result checkTargetIteration(SCompositeTask *pstCompositeTask, SCompos
 	else // for infinite or time-based program execution
 	{
 
-		if(pstCompositeTask->nTargetIteration < pstTaskThread->nIteration)
+		if(pstCompositeTask->nTargetIteration < pstTaskThread->nIteration &&
+			pstCompositeTask->enTaskState != TASK_STATE_STOPPING)
 		{
 			pstCompositeTask->nTargetIteration = pstTaskThread->nIteration;
 		}
@@ -1078,6 +1066,9 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 			result = UCThreadMutex_Lock(pstCompositeTask->hMutex);
 			ERRIFGOTO(result, _EXIT);
 
+			result = checkAndSetChannelExit(pstCompositeTask);
+			ERRIFGOTO(result, _EXIT);
+
 			UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
 			break;
 		case TASK_STATE_STOP:
@@ -1105,7 +1096,9 @@ static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompo
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	if(pstCompositeTask != NULL)
+	{
 		UCThreadMutex_Unlock(pstCompositeTask->hMutex);
+	}
 
 	if(pstCompositeTask->pstParentTask != NULL)
 	{
@@ -1208,6 +1201,7 @@ _EXIT:
 	SAFEMEMFREE(pstTaskThreadData);
     return result;
 }
+
 
 static uem_result findCompositeTask(IN int nOffset, IN void *pData, IN void *pUserData)
 {
@@ -1540,7 +1534,6 @@ uem_result UKCPUCompositeTaskManager_ChangeState(HCPUCompositeTaskManager hManag
 	else 
 	{
 		result = changeCompositeTaskStateWithTaskGraphLock(pstCompositeTask, enTaskState, pstCompositeTask->hThreadList);
-		ERRIFGOTO(result, _EXIT);
 	}
 	ERRIFGOTO(result, _EXIT_LOCK);
 
