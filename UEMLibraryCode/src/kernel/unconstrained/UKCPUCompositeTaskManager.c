@@ -949,6 +949,56 @@ _EXIT:
 	return result;
 }
 
+static uem_result checkAllTaskThreadReachTargetIteration(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCompositeTaskThread *pstTaskThread = NULL;
+	SCompositeTask *pstCompositeTask = NULL;
+	struct _SCompositeTaskStopCheck *pstStopCheckData = NULL;
+	// int nModeId = INVALID_MODE_ID;
+
+	pstTaskThread = (SCompositeTaskThread *) pData;
+	pstStopCheckData = (struct _SCompositeTaskStopCheck *) pUserData;
+	pstCompositeTask = pstStopCheckData->pstCompositeTask;
+
+	if(pstTaskThread->nIteration < pstCompositeTask->nTargetIteration &&
+		pstTaskThread->enTaskState == TASK_STATE_STOPPING)
+	{
+		pstStopCheckData->bAllStop = FALSE;
+		result = ERR_UEM_USER_CANCELED;
+	}
+	else
+	{
+		result = ERR_UEM_NOERROR;
+	}
+
+_EXIT:
+    return result;
+}
+
+static uem_result checkAndSetChannelExit(SCompositeTask *pstCompositeTask)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	struct _SCompositeTaskStopCheck stStopCheckData;
+
+	stStopCheckData.bAllStop = TRUE;
+	stStopCheckData.pstCompositeTask = pstCompositeTask;
+
+	// release channel block related to the task to be stopped
+	result = UCDynamicLinkedList_Traverse(pstCompositeTask->hThreadList, checkAllTaskThreadReachTargetIteration, &stStopCheckData);
+	ERRIFGOTO(result, _EXIT);
+
+	if(stStopCheckData.bAllStop == TRUE)
+	{
+		result = UKCPUTaskCommon_TraverseSubGraphTasks(pstCompositeTask->pstParentTask, setChannelExitFlags, NULL);
+		ERRIFGOTO(result, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
 
 static uem_result handleTaskMainRoutine(SCompositeTask *pstCompositeTask, SCompositeTaskThread *pstTaskThread, FnUemTaskGo fnGo)
 {
