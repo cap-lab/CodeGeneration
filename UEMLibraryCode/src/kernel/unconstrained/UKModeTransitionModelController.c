@@ -622,6 +622,7 @@ static uem_result handleModeTransitionInGeneralTasks(STaskGraph *pstGraph, void 
 	uem_bool bNeedSuspend = FALSE;
 	ECPUTaskState enTaskState = TASK_STATE_STOP;
 	uem_bool bRestarted = FALSE;
+	uem_bool bResumedByControl = FALSE;
 
 	pstController = (SModeTransitionController *) pstGraph->pController;
 
@@ -634,12 +635,15 @@ static uem_result handleModeTransitionInGeneralTasks(STaskGraph *pstGraph, void 
 	result = UKTask_ConvertIterationToUpperTaskGraphBase(pstCurrentTask, pstGraph, &nConvertedIteration);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UKCPUGeneralTaskManagerCB_GetRestarted(pCurrentThreadHandle, &bRestarted);
-	ERRIFGOTO(result, _EXIT);
-
 	if(bIsSourceTask == TRUE && pstCurrentTask->pstParentGraph == pstGraph)
 	{
-		if(bRestarted == FALSE) 
+		result = UKCPUGeneralTaskManagerCB_GetRestarted(pCurrentThreadHandle, &bRestarted);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UKCPUGeneralTaskManagerCB_IsResumedByControl(pCurrentTaskHandle, &bResumedByControl);
+		ERRIFGOTO(result, _EXIT);
+
+		if(bRestarted == FALSE || bResumedByControl == TRUE)
 		{
 			pstController->pstMTMInfo->fnTransition(pstController->pstMTMInfo);
 

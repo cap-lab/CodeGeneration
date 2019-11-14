@@ -223,6 +223,7 @@ uem_result UKCPUGeneralTaskManagerCB_SetLoopIndex(void *pTaskHandle, OUT int nLo
 uem_result UKCPUGeneralTaskManagerCB_GetFunctionCalled(void *pThreadHandle, OUT uem_bool *pbFunctionCalled);
 uem_result UKCPUGeneralTaskManagerCB_GetThreadIndex(void *pThreadHandle, OUT int *pnThreadIndex);
 uem_result UKCPUGeneralTaskManagerCB_GetTaskGraphLock(void *pTaskHandle, OUT HThreadMutex *phMutex);
+uem_result UKCPUGeneralTaskManagerCB_IsResumedByControl(void *pTaskHandle, OUT uem_bool *pbResumedByControl);
 uem_result UKCPUGeneralTaskManagerCB_GetRestarted(void *pThreadHandle, OUT uem_bool *pbRestarted);
 
 #ifdef __cplusplus

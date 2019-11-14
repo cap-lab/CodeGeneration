@@ -58,6 +58,7 @@ typedef struct _SGeneralTask {
 	HThreadMutex hTaskGraphLock;
 	STaskGraph *pstTaskGraphLockGraph;
 	ECPUTaskState enRequestState;
+	uem_bool bResumedByControl;
 } SGeneralTask;
 
 typedef struct _SCPUGeneralTaskManager {
@@ -303,6 +304,7 @@ static uem_result createGeneralTaskStruct(HCPUGeneralTaskManager hCPUTaskManager
 	pstGeneralTask->pstMapProcessorAPI = pstMappedInfo->pstMapProcessorAPI;
 	pstGeneralTask->nCurLoopIndex = 0;
 	pstGeneralTask->enRequestState = TASK_STATE_NONE;
+	pstGeneralTask->bResumedByControl = FALSE;
 
 	result = UKModelController_GetTopLevelGraph(pstMappedInfo->pstTask->pstParentGraph, &(pstGeneralTask->pstTaskGraphLockGraph));
 	ERRIFGOTO(result, _EXIT);
@@ -966,6 +968,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			ERRIFGOTO(result, _EXIT);
 			if(pstTaskThread->bFunctionCalled == TRUE)
 			{
+				pstGeneralTask->bResumedByControl = FALSE;
 				nExecutionCount++;
 
 				result = UKTask_IncreaseRunCount(pstCurrentTask, pstTaskThread->nTaskFuncId, &bTargetIterationReached);
@@ -1279,6 +1282,10 @@ uem_result UKCPUGeneralTaskManager_CreateThread(HCPUGeneralTaskManager hManager,
 		ERRIFGOTO(result, _EXIT_LOCK);
 
 		pstGeneralTask->bCreated = TRUE;
+	}
+	else
+	{
+		pstGeneralTask->bResumedByControl = TRUE;
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -2038,6 +2045,22 @@ _EXIT:
 	return result;
 }
 
+uem_result UKCPUGeneralTaskManagerCB_IsResumedByControl(void *pTaskHandle, OUT uem_bool *pbResumedByControl)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SGeneralTask *pstGeneralTask = NULL;
+#if defined(ARGUMENT_CHECK) && defined(CHECK_MODE_ARGUMENT)
+	IFVARERRASSIGNGOTO(pTaskHandle, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+	IFVARERRASSIGNGOTO(pbResumedByControl, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+#endif
+	pstGeneralTask = (SGeneralTask *) pTaskHandle;
+
+	*pbResumedByControl = pstGeneralTask->bResumedByControl;
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
 
 
 uem_result UKCPUGeneralTaskManagerCB_GetThreadIndex(void *pThreadHandle, OUT int *pnThreadIndex)
