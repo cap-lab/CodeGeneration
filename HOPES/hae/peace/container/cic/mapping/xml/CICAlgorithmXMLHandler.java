@@ -17,6 +17,7 @@ import hopes.cic.xml.DataParallelType;
 import hopes.cic.xml.LoopStructureTypeType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.ModeType;
+import hopes.cic.xml.MulticastGroupType;
 import hopes.cic.xml.TaskType;
 
 public class CICAlgorithmXMLHandler extends CICXMLHandler {

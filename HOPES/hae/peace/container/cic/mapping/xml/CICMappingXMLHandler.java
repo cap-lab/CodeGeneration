@@ -3,21 +3,25 @@ package hae.peace.container.cic.mapping.xml;
 import hae.kernel.util.ObjectList;
 import hae.peace.container.PeacePanel;
 import hae.peace.container.PeaceTargetPanel;
-import hae.peace.container.cic.mapping.CICManualDSEPanel;
 import hae.peace.container.cic.mapping.MappingTask;
 import hae.peace.container.cic.mapping.Processor;
+import hae.peace.container.cic.mapping.ManualDSE.CICManualDSEBasePanel;
 import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICMappingType;
 import hopes.cic.xml.CICMappingTypeLoader;
 import hopes.cic.xml.DataParallelType;
 import hopes.cic.xml.MappingDeviceType;
 import hopes.cic.xml.MappingLibraryType;
+import hopes.cic.xml.MappingMulticastType;
+import hopes.cic.xml.MappingMulticastUDPType;
 import hopes.cic.xml.MappingProcessorIdType;
 import hopes.cic.xml.MappingTaskType;
+import hopes.cic.xml.MulticastGroupType;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -166,4 +170,76 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 		return null;
 	}
 
+	
+	public ArrayList<String> getGroupList() {
+		ArrayList<String> multicastGroups = new ArrayList<String>();
+		for(MappingMulticastType group : mapping.getMulticast()) {
+			multicastGroups.add(group.getGroupName());
+		}
+		return multicastGroups;
+	}
+	
+	private MappingMulticastType findGroup(String groupName) {
+		for(MappingMulticastType group : mapping.getMulticast()) {
+			if(group.getGroupName().equals(groupName)) {
+				return group;
+			}
+		}
+		return null;
+	}
+	
+	public ArrayList<String> getChoosedConnectionList(String groupName) {
+		ArrayList<String> choosedConnections = new ArrayList<String>();
+		MappingMulticastType selectedGroup = findGroup(groupName);
+		
+		if(selectedGroup == null) {
+			return choosedConnections;
+		}
+		if(selectedGroup.getConnectionType().getUDP() != null) {
+			choosedConnections.add("UDP");
+		}
+		return choosedConnections;
+	}
+	
+	public void addMulticastConnection(String groupName, String connection) {
+		MappingMulticastType selectedGroup = findGroup(groupName);
+		if(selectedGroup == null) {
+			return;
+		}
+		if(connection.equals("UDP")) {
+			MappingMulticastUDPType udp = new MappingMulticastUDPType();
+			udp.setIp("255.255.255.255");
+			udp.setPort(new BigInteger("8080"));
+			selectedGroup.getConnectionType().setUDP(udp);
+		}
+	}
+	
+	public void removeMulticastConnection(String groupName, String connection) {
+		MappingMulticastType selectedGroup = findGroup(groupName);
+		if(selectedGroup == null) {
+			return;
+		}
+		if(connection.equals("UDP")) {
+			selectedGroup.getConnectionType().setUDP(null);;
+		}
+	}
+	
+	public  MappingMulticastUDPType getUDPConnectionInfo(String groupName) {
+		MappingMulticastType selectedGroup = findGroup(groupName);
+		if(selectedGroup == null) {
+			return null;
+		}
+		return selectedGroup.getConnectionType().getUDP();
+	}
+	
+	public void xmlMulticastUpdated(String groupName, String connection, String infoType, String Content) {
+		MappingMulticastType selectedGroup = findGroup(groupName);
+		if(connection.equals("UDP")) {
+			if(infoType.equals("ip")){
+				selectedGroup.getConnectionType().getUDP().setIp(Content);
+			} else {
+				selectedGroup.getConnectionType().getUDP().setPort(new BigInteger(Content));
+			}
+		}
+	}
 }
