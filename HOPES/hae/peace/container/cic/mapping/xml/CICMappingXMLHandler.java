@@ -140,6 +140,31 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 		}
 	}
 	
+	public String getXMLString(CICMappingType xmlData) throws CICXMLException{
+		StringWriter writer = new StringWriter();
+		loader.storeResource(xmlData, writer);
+		writer.flush();
+		return writer.toString();	
+	}
+	
+	public boolean updateXMLFile(String fileName, String element) throws CICXMLException {
+		CICMappingType originData = loader.loadResource(new ByteArrayInputStream(getLocalFile(fileName).getBytes()));
+		if(element.equals("task")) {
+			originData.getTask().clear();
+			originData.getTask().addAll(mapping.getTask());
+		} else if(element.equals("library")) {
+			originData.getLibrary().clear();
+			originData.getLibrary().addAll(mapping.getLibrary());
+		} else if(element.equals("multicast")) {
+			originData.getMulticast().clear();
+			originData.getMulticast().addAll(mapping.getMulticast());
+		} else {
+			return false;
+		}
+		
+		return putLocalFile(fileName, getXMLString(originData));
+	}
+	
 	public MappingTask findTaskByName(String taskName, CICArchitectureXMLHandler architectureHandler) {
 		setTaskList(architectureHandler);
 		Enumeration tasks = getTaskList().elements();
