@@ -671,6 +671,9 @@ static uem_result getTaskStateDataflowSubgraphTask(STask *pstTask, void *pUserDa
 	case TASK_STATE_SUSPEND:
 		pstUserData->nTaskStateSuspend++;
 		break;
+	default:
+		ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+		break;
 	}
 
 	result = ERR_UEM_NOERROR;

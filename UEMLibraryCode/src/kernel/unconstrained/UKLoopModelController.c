@@ -669,16 +669,3 @@ _EXIT:
 	return result;
 }
 
-
-uem_result UKLoopModelController_HandleDataLoop(STaskGraph *pstGraph, void *pCurrentTaskHandle, void *pCurrentThreadHandle)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-
-
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-

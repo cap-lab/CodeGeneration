@@ -208,22 +208,183 @@ uem_result UKCPUGeneralTaskManager_DestroyThread(HCPUGeneralTaskManager hManager
  */
 uem_result UKCPUGeneralTaskManager_Destroy(IN OUT HCPUGeneralTaskManager *phManager);
 
+/**
+ * @brief Request to change a task state. (Model controller callback function)
+ *
+ * This function requests to change a task state. \n
+ * This function does not directly changes a task state, but set a flag to change a task state. \n
+ * When the target task is called, it will change the requested task state. \n
+ * This function is used to change a state of other tasks
+ *
+ * @param hManager a general task manager handle.
+ * @param pstTargetTask a target task to change a state.
+ * @param enTaskState a task state to be changed.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_NOT_FOUND.
+ *         @ref ERR_UEM_NOT_FOUND is returned when the target task is not available.
+ */
 uem_result UKCPUGeneralTaskManager_RequestTaskState(HCPUGeneralTaskManager hManager, STask *pstTargetTask, ECPUTaskState enTaskState);
 
+/**
+ * @brief Check that a task is a source task. (Model controller callback function)
+ *
+ * This function checks a current task is a source task.
+ *
+ * @param pTaskHandle a general task handle.
+ * @param[out] pbIsSourceTask a boolean value whether the task is a source task or not.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
+ */
 uem_result UKCPUGeneralTaskManagerCB_IsSourceTask(void *pTaskHandle, OUT uem_bool *pbIsSourceTask);
+
+/**
+ * @brief Retrieve @ref STask structure of a current task. (Model controller callback function)
+ *
+ * This function retrieves @ref STask structure of a current task.
+ *
+ * @param pTaskHandle a general task handle.
+ * @param[out] ppstTask retrieved @ref STask structure.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
+ */
 uem_result UKCPUGeneralTaskManagerCB_GetCurrentTaskStructure(void *pTaskHandle, OUT STask **ppstTask);
+
+/**
+ * @brief Changes a current task's state. (Model controller callback function)
+ *
+ * This function changes a current task state.
+ *
+ * @param pTaskHandle a general task handle.
+ * @param enState a state value to be changed.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, errors occurred from FnTraverseModelControllerFunctions callback function.
+ */
 uem_result UKCPUGeneralTaskManagerCB_ChangeTaskState(void *pTaskHandle, ECPUTaskState enState);
+
+/**
+ * @brief Get task state. (Model controller callback function)
+ *
+ * This function retrieves a state of a current task.
+ *
+ * @param pTaskHandle a general task handle.
+ * @param[out] penState retrieved task state.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
+ */
 uem_result UKCPUGeneralTaskManagerCB_GetCurrentTaskState(void *pTaskHandle, OUT ECPUTaskState *penState);
+
+/**
+ * @brief Retrieve a manager handle. (Model controller callback function)
+ *
+ * This function retrieves a general task manager handle. \n
+ * This function is used to utilize functions provided by a general task manager handle.
+ *
+ * @param pTaskHandle a general task handle.
+ * @param[out] phManager a retrieved general task manager handle.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
+ */
 uem_result UKCPUGeneralTaskManagerCB_GetManagerHandle(void *pTaskHandle, OUT HCPUGeneralTaskManager *phManager);
+
+/**
+ * @brief Activate a current task. (Model controller callback function)
+ *
+ * This function activates all the threads which belong to a current task.
+ *
+ * @param pTaskHandle a general task handle.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
+ */
 uem_result UKCPUGeneralTaskManagerCB_ActivateTask(void *pTaskHandle);
 
-uem_result UKCPUGeneralTaskManagerCB_ClearLoopIndex(void *pTaskHandle);
+/**
+ * @brief Retrieve loop index value. (Model controller callback function)
+ *
+ * This function retrieves a loop index value which is managed for counting a iteration number \n
+ * of each thread in a current task.
+ *
+ * @param pTaskHandle a general task handle.
+ * @param[out] pnLoopIndex retrieved loop index value.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
+ */
 uem_result UKCPUGeneralTaskManagerCB_GetLoopIndex(void *pTaskHandle, OUT int *pnLoopIndex);
+
+/**
+ * @brief Set loop index value. (Model controller callback function)
+ *
+ * This function sets a new loop index value.
+ *
+ * @param pTaskHandle a general task handle.
+ * @param nLoopIndex a loop index value to be set.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
+ */
 uem_result UKCPUGeneralTaskManagerCB_SetLoopIndex(void *pTaskHandle, OUT int nLoopIndex);
-uem_result UKCPUGeneralTaskManagerCB_GetFunctionCalled(void *pThreadHandle, OUT uem_bool *pbFunctionCalled);
-uem_result UKCPUGeneralTaskManagerCB_GetThreadIndex(void *pThreadHandle, OUT int *pnThreadIndex);
+
+
+/**
+ * @brief Retrieve a task graph lock handle. (Model controller callback function)
+ *
+ * This function retrieves a highest task graph lock handle based on a current task.
+ *
+ * @param pTaskHandle a general task handle.
+ * @param[out] phMutex a retrieved lock handle.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
+ */
 uem_result UKCPUGeneralTaskManagerCB_GetTaskGraphLock(void *pTaskHandle, OUT HThreadMutex *phMutex);
+
+/**
+ * @brief Check whether a current task function is called (Model controller callback function)
+ *
+ * This function checks whether a current task function is called or not. \n
+ * A retrieved value is TRUE if go() function is called before calling the model controller function.
+ *
+ * @param pThreadHandle a general task thread handle.
+ * @param[out] pbFunctionCalled a retrieved boolean value whether go() function is called or not.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
+ */
+uem_result UKCPUGeneralTaskManagerCB_GetFunctionCalled(void *pThreadHandle, OUT uem_bool *pbFunctionCalled);
+
+/**
+ * @brief Check whether a task is resumed by external control command. (Model controller callback function)
+ *
+ * This function checks whether a task is resumed by external control command or not.
+ * A retrieved value is TRUE if a suspended task is resumed by calling \ref UKCPUTaskManager_ResumeTask.
+ *
+ * @param pTaskHandle a general task handle.
+ * @param[out] pbResumedByControl a retrieved boolean value whether a task is resumed by external control or not.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
+ */
 uem_result UKCPUGeneralTaskManagerCB_IsResumedByControl(void *pTaskHandle, OUT uem_bool *pbResumedByControl);
+
+/**
+ * @brief Check whether a task is awaken from a suspend state. (Model controller callback function)
+ *
+ * This function checks whether a task is awaken from a suspend state.
+ * A retrieved value is TRUE if a model controller is called after changing from TASK_STATE_SUSPEND to TASK_STATE_RUNNING.
+ *
+ * @param pThreadHandle a general task thread handle.
+ * @param[out] pbRestarted a retrieved boolean value whether a task is awaken from a suspend state or not.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
+ */
 uem_result UKCPUGeneralTaskManagerCB_GetRestarted(void *pThreadHandle, OUT uem_bool *pbRestarted);
 
 #ifdef __cplusplus

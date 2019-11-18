@@ -230,7 +230,6 @@ STask g_astTasks_${task_graph.name}[] = {
 
 SModelControllerFunctionSet g_stDynamicModeTransitionFunctions = {
 	UKModeTransitionMachineController_HandleModelGeneral,
-	UKModeTransitionMachineController_GetTaskIterationIndex,
 	UKModeTransitionMachineController_Clear,
 	UKModeTransitionMachineController_ChangeSubGraphTaskState,
 	UKModeTransitionMachineController_HandleModelGeneralDuringStopping,
@@ -238,7 +237,6 @@ SModelControllerFunctionSet g_stDynamicModeTransitionFunctions = {
 
 SModelControllerFunctionSet g_stStaticModeTransitionFunctions = {
 	UKModeTransitionMachineController_HandleModelComposite,
-	UKModeTransitionMachineController_GetTaskIterationIndex,
 	UKModeTransitionMachineController_Clear,
 	UKModeTransitionMachineController_ChangeTaskThreadState,
 	(FnHandleModel) NULL,
@@ -246,7 +244,6 @@ SModelControllerFunctionSet g_stStaticModeTransitionFunctions = {
 
 SModelControllerFunctionSet g_stDynamicConvergentLoopFunctions = {
 	(FnHandleModel ) UKLoopModelController_HandleConvergentLoop,
-	(FnGetTaskIterationIndex) NULL,
 	(FnControllerClear) NULL,
 	(FnChangeTaskThreadState) NULL,
 	(FnHandleModel) UKLoopModelController_HandleConvergentLoopDuringStopping,
@@ -254,7 +251,6 @@ SModelControllerFunctionSet g_stDynamicConvergentLoopFunctions = {
 
 SModelControllerFunctionSet g_stDynamicDataLoopFunctions = {
 	(FnHandleModel ) NULL,
-	(FnGetTaskIterationIndex) NULL,
 	(FnControllerClear) NULL,
 	(FnChangeTaskThreadState) NULL,
 	(FnHandleModel) NULL,
@@ -262,7 +258,6 @@ SModelControllerFunctionSet g_stDynamicDataLoopFunctions = {
 
 SModelControllerFunctionSet g_stStaticConvergentLoopFunctions = {
 	(FnHandleModel ) NULL,
-	(FnGetTaskIterationIndex) NULL,
 	(FnControllerClear) NULL,
 	(FnChangeTaskThreadState) NULL,
 	(FnHandleModel) NULL,
@@ -270,7 +265,6 @@ SModelControllerFunctionSet g_stStaticConvergentLoopFunctions = {
 
 SModelControllerFunctionSet g_stStaticDataLoopFunctions = {
 	(FnHandleModel ) NULL,
-	(FnGetTaskIterationIndex) NULL,
 	(FnControllerClear) NULL,
 	(FnChangeTaskThreadState) NULL,
 	(FnHandleModel) NULL,

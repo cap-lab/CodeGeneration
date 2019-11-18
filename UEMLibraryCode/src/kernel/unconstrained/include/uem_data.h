@@ -118,14 +118,12 @@ typedef enum _EModelControllerFunction {
 
 
 typedef uem_result (*FnHandleModel)(STaskGraph *pstGraph, void *pCurrentTaskHandle, void *pCurrentThreadHandle);
-typedef uem_result (*FnGetTaskIterationIndex)(STask *pstTask, int nCurrentIteration, int OUT *pnIndex);
 typedef uem_result (*FnControllerClear)(STaskGraph *pstTaskGraph);
 typedef uem_result (*FnChangeTaskThreadState)(STaskGraph *pstGraph, void *pCurrentTaskHandle, void *pCurrentThreadHandle, ECPUTaskState enTargetState, OUT ECPUTaskState *penState);
 
 
 typedef struct _SModelControllerFunctionSet {
 	FnHandleModel fnHandleModel;
-	FnGetTaskIterationIndex fnGetTaskIterationIndex;
 	FnControllerClear fnClear;
 	FnChangeTaskThreadState fnChangeThreadState;
 	FnHandleModel fnHandleStopping;

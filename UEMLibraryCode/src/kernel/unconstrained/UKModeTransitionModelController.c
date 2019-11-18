@@ -217,16 +217,6 @@ _EXIT:
 	return result;
 }
 
-uem_result UKModeTransitionMachineController_GetTaskIterationIndex(STask *pstMTMTask, int nCurrentIteration, int OUT *pnIndex)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
 
 uem_result UKModeTransitionMachineController_Clear(STaskGraph *pstTaskGraph)
 {

@@ -156,10 +156,75 @@ uem_result UKTask_SetTargetIteration(STask *pstTask, int nTargetIteration, int n
  */
 uem_result UKTask_SetAllTargetIteration(int nTargetIteration);
 
+/**
+ * @brief Retrieve the number of calls to be executed in one iteration.
+ *
+ * This function retrieves the number of calls to be executed in a single iteration.
+ *
+ * @param pstTask target task structure to get the number of calls per iteration.
+ * @param[out] pnTaskIteration the number of calls for current task iteration.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ */
 uem_result UKTask_GetTaskIteration(STask *pstTask, OUT int *pnTaskIteration);
+
+/**
+ * @brief Convert an iteration number based on the ancestor task graph.
+ *
+ * This function converts an iteration number to a parent task graph base with task ID @a nTargetTaskId. \n
+ * @a nTargetTaskId must be located as an ancestor of @a pstTask.
+ *
+ * @param pstTask target task structure to get upper task iteration number.
+ * @param nIterationNumber an iteration number to be converted.
+ * @param nTargetTaskId target parent task ID.
+ * @param[out] pnConvertedIterationNumber converted iteration number.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ */
 uem_result UKTask_GetIterationNumberBasedOnTargetParentTaskId(STask *pstTask, int nIterationNumber, int nTargetTaskId, OUT int *pnConvertedIterationNumber);
+
+/**
+ * @brief Convert a current iteration number to an ancestor task graph base iteration number.
+ *
+ * This function converts a current iteration number of a task to an upper task graph base iteration number.
+ *
+ * @param pstTask target task structure to get upper task iteration number.
+ * @param pstTaskGraph target ancestor task graph structure.
+ * @param[out] pnConvertedIteration converted iteration number.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ */
 uem_result UKTask_ConvertIterationToUpperTaskGraphBase(STask *pstTask, STaskGraph *pstTaskGraph, OUT int *pnConvertedIteration);
+
+/**
+ * @brief Update an iteration number of subgraphs.
+ *
+ * This function updates child task graphs' iteration number. \n
+ * @a pstLeafTask is used as a start point of traversing upper task graphs located under @a pstTaskGraph.
+ *
+ * @warning This function only updates an iteration number managed in a task graph and not affect on tasks.
+ *
+ * @param pstTaskGraph target task graph structure.
+ * @param pstLeafTask task structure which is a start point to traverse.
+ * @param nNewIterationNumber base iteration number to be updated under @a pstTaskGraph.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ */
 uem_result UKTask_UpdateAllSubGraphCurrentIteration(STaskGraph *pstTaskGraph, STask *pstLeafTask, int nNewIterationNumber);
+
+/**
+ * @brief
+ *
+ * This function checks @a pstTask can be controlled by @a pstControlledTaskGraph. \n
+ * This function avoids control of MTM tasks when the MTM tasks are not located directly under @a pstControlledTaskGraph.
+ * MTM tasks are only controlled by the parent task graph. (not by grandparent or ancestor task graphs)
+ *
+ * @param pstControlledTaskGraph a base task graph to perform control.
+ * @param pstTask a target task to control.
+ * @param[out] pbControlled boolean value whether a task can be controlled or not.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ */
 uem_result UKTask_CheckTaskToBeControlled(STaskGraph *pstControlledTaskGraph, STask *pstTask, OUT uem_bool *pbControlled);
 
 #ifdef __cplusplus
