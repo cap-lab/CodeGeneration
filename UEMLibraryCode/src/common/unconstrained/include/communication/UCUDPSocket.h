@@ -45,7 +45,8 @@ uem_result UCUDPSocket_Bind(HSocket hSocket);
  * @param bIsServer unused parameter (for API format)
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
- *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_OUT_OF_MEMORY.
+ *         Errors to be returned - @ref ERR_UEM_SOCKET_ERROR. \n
+ *         @ref ERR_UEM_SOCKET_ERROR can be occurred when creating socket is failed or setting option is failed.
  */
 uem_result UCUDPSocket_Create(HSocket hSocket, SSocketInfo *pstSocketInfo, uem_bool bIsServer);
 

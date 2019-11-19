@@ -268,7 +268,7 @@ uem_result UCDynamicSocket_Receive(HSocket hSocket, IN int nTimeout, IN OUT char
  * This function sends data to UDP.
  *
  * @param hSocket a socket handle.
- * @param unClientAddress address of receiver.
+ * @param pszClientAddress address of receiver.
  * @param nTimeout a maximum time to wait for sending data.
  * @param pData data to send.
  * @param nDataLen amount of data to send.
@@ -294,14 +294,13 @@ uem_result UCDynamicSocket_Sendto(HSocket hSocket, IN const char *pszClientAddre
  * @param hSocket a socket handle
  * @param pszClientAddress address of sender
  * @param nTimeout a maximum time to wait for receiving data.
- * @param pBuffer buffer to receive data.
  * @param nBufferLen size of buffer.
- * @param[out] pnReceivedSize amount of data received.
+ * @param pBuffer buffer to receive data.
+ * @param[out] pnRecvSize amount of data received.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_SOCKET, @ref ERR_UEM_INVALID_PARAM, \n
  *         @ref ERR_UEM_SELECT_ERROR, @ref ERR_UEM_NET_TIMEOUT, @ref ERR_UEM_NET_RECEIVE_ERROR. \n
- *         @ref ERR_UEM_SELECT_ERROR, @ref ERR_UEM_NET_TIMEOUT, @ref ERR_UEM_NET_SEND_ERROR. \n
  *         @ref ERR_UEM_INVALID_HANDLE can be occurred if the handle is not a socket handle.\n
  *         @ref ERR_UEM_INVALID_SOCKET can be occurred if the @a hSocket is a server socket. \n
  *         @ref ERR_UEM_INVALID_PARAM can be occurred if the parameters are invalid. \n

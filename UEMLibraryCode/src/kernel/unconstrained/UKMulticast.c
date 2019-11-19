@@ -122,7 +122,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKMulticast_GetMulticastPortByMulticastGroupIdAndMulticastPortId(IN int nMulticastGroupId, IN int nMulticastPortId, IN EPortDirection eDirection, OUT SMulticastPort **pstMulticastPort)
+static uem_result UKMulticast_GetMulticastPortByMulticastGroupIdAndMulticastPortId(IN int nMulticastGroupId, IN int nMulticastPortId, IN EPortDirection eDirection, OUT SMulticastPort **pstMulticastPort)
 {
 	uem_result result = ERR_UEM_NOT_FOUND;
 	SMulticastGroup *pstMulticastGroup = NULL;
