@@ -1136,45 +1136,9 @@ public class Device {
 		this.supportedConnectionTypeList.add(connectionType);
 	}
 	
-	public HashSet<DeviceCommunicationType> getSupportedConnectionType()
-	{
-		return this.supportedConnectionTypeList;
-	}
-	
 	public HashSet<DeviceCommunicationType> getRequiredCommunicationSet()
 	{
-		HashSet<DeviceCommunicationType> communicationSet = new HashSet<DeviceCommunicationType>();
-		
-		for(Connection connection : this.connectionList.values())
-		{
-			if(connection.getProtocol().equals(ProtocolType.TCP))
-			{
-				communicationSet.add(DeviceCommunicationType.TCP);
-			}
-			else if(connection.getNetwork().equals(NetworkType.BLUETOOTH))
-			{
-				communicationSet.add(DeviceCommunicationType.BLUETOOTH);
-			}
-			else if(connection.getProtocol().equals(ProtocolType.SERIAL))
-			{
-				communicationSet.add(DeviceCommunicationType.SERIAL);
-			}
-			else if (connection.getProtocol().equals(ProtocolType.UDP))
-			{
-				communicationSet.add(DeviceCommunicationType.UDP);
-			}
-			else
-			{
-				throw new IllegalArgumentException();
-			}
-		}
-		
-		for(DeviceCommunicationType connectionType : getSupportedConnectionType())
-		{
-			communicationSet.add(connectionType);
-		}
-		
-		return communicationSet;
+		return this.supportedConnectionTypeList;
 	}
 	
 	public void putUDPConnection(String connectionId, UDPConnection udpConnection) 

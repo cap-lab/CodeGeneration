@@ -79,6 +79,7 @@ import hopes.cic.xml.ModeType;
 import hopes.cic.xml.ModuleType;
 import hopes.cic.xml.MulticastGroupType;
 import hopes.cic.xml.MulticastPortType;
+import hopes.cic.xml.NetworkType;
 import hopes.cic.xml.PortMapType;
 import hopes.cic.xml.SerialConnectionType;
 import hopes.cic.xml.TCPConnectionType;
@@ -324,7 +325,14 @@ public class Application {
 	{
 		if(connectionList.getSerialConnection() == null)
 		{
-			device.putSupportedConnectionType(DeviceCommunicationType.SERIAL);
+			if(connectionList.getSerialConnection().stream().filter(x -> x.getNetwork().equals(NetworkType.BLUETOOTH)).count() > 0) 
+			{
+				device.putSupportedConnectionType(DeviceCommunicationType.BLUETOOTH);
+			}
+			if(connectionList.getSerialConnection().stream().filter(x -> x.getNetwork().equals(NetworkType.WIRE)).count() > 0) 
+			{
+				device.putSupportedConnectionType(DeviceCommunicationType.SERIAL);
+			}
 		}
 		if(connectionList.getTCPConnection() != null)
 		{
@@ -1630,10 +1638,9 @@ public class Application {
 		}
 	}
 	
-	
 	private void checkRemoteCommunicationIsUsedAndSet(MulticastGroup multicastGroup, Device device, MappingMulticastConnectionType connectionTypeList) 
 	{
-		HashSet<DeviceCommunicationType> supportedConnectionType = device.getSupportedConnectionType();
+		HashSet<DeviceCommunicationType> supportedConnectionType = device.getRequiredCommunicationSet();
 		
 		if(connectionTypeList.getUDP() != null && supportedConnectionType.contains(DeviceCommunicationType.UDP))
 		{
