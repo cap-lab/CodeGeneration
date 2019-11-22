@@ -111,6 +111,7 @@ uem_result UKChannel_FillInitialDataBySourceTaskId(int nTaskId);
  * @param pstPort a target port.
  * @param[out] pnChunkNum number of chunk.
  * @param[out] pnChunkLen length of chunk.
+ * @param enChannelType channel type (full array, input/output array, general).
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.

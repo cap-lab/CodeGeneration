@@ -50,10 +50,12 @@ typedef struct _SUDPMulticastSender{
  * This function loads a server and accept clients from different devices.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         @ref ERR_UEM_REALLOCATE_BUFFER is returned when reallocate buffer. \n
+ *         @ref ERR_UEM_OUT_OF_MEMORY is returned when there is no memory. \n
  *         It propagates the errors of \n
- *         @ref UKUDPSocketMulticast_AllocBuffer \n
- *         @ref UKUDPSocketMulticast_SocketInitialize \n
  *         @ref UCDynamicSocket_Bind \n
+ *         @ref UCDynamicSocket_Create \n
+ *         @ref UCThreadMutex_Create \n
  *         @ref UCThread_Create.
  */
 uem_result UKUDPSocketMulticastAPI_Initialize();
@@ -66,10 +68,12 @@ uem_result UKUDPSocketMulticastAPI_Initialize();
  * @param pstMulticastPort sender
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         @ref ERR_UEM_REALLOCATE_BUFFER is returned when reallocate buffer. \n
+ *         @ref ERR_UEM_OUT_OF_MEMORY is returned when there is no memory. \n
  *         It propagates the errors of \n
  *         @ref UKMulticast_GetCommunication \n
- *         @ref UKUDPSocketMulticast_AllocBuffer \n
- *         @ref UKUDPSocketMulticast_SocketInitialize.
+ *         @ref UCDynamicSocket_Create \n
+ *         @ref UCThreadMutex_Create.
  */
 uem_result UKUDPSocketMulticastPort_Initialize(IN SMulticastPort *pstMulticastPort);
 
@@ -89,7 +93,7 @@ uem_result UKUDPSocketMulticastPort_Initialize(IN SMulticastPort *pstMulticastPo
  * It propagates the errors of \n
  * @ref UKMulticast_GetCommunication \n
  * @ref UCDynamicSocket_Sendto \n
- * @ref fnCopyToMemory, which is UKGPUSystem_CopyDeviceToHostMemory (for port located in GPU) or UKHostSystem_CopyToMemory (for port located in CPU).
+ * fnCopyToMemory, which is @ref UKGPUSystem_CopyDeviceToHostMemory (for port located in GPU) or @ref UKHostSystem_CopyToMemory (for port located in CPU).
  */
 uem_result UKUDPSocketMulticast_WriteToBuffer(IN SMulticastPort *pstMulticastPort, IN unsigned char *pData, IN int nDataToWrite, OUT int *pnDataWritten);
 
@@ -101,7 +105,7 @@ uem_result UKUDPSocketMulticast_WriteToBuffer(IN SMulticastPort *pstMulticastPor
  * @param pstMulticastPort sender
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error.
- *         error could be propagated from UKMulticast_GetCommunication.
+ *         error could be propagated from @ref UKMulticast_GetCommunication.
  */
 uem_result UKUDPSocketMulticastPort_Finalize(IN SMulticastPort *pstMulticastPort);
 
@@ -111,7 +115,7 @@ uem_result UKUDPSocketMulticastPort_Finalize(IN SMulticastPort *pstMulticastPort
  * This function finalize Multicast UDP Receivers.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error.
- *         error could be propagated from UCThread_Destroy.
+ *         error could be propagated from @ref UCThread_Destroy.
  */
 uem_result UKUDPSocketMulticastAPI_Finalize();
 

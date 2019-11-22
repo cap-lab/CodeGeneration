@@ -62,7 +62,7 @@ uem_result UKSharedMemoryMulticast_ReadFromBuffer(SMulticastPort *pstMulticastPo
  * This function sends data to the shared memory, multicast.
  *
  * @param pstMulticastPort sender.
- * @param pData buffer to send data.
+ * @param pBuffer buffer to send data.
  * @param nDataToWrite buffer size.
  * @param[out] pnDataWritten sent data size.
  *

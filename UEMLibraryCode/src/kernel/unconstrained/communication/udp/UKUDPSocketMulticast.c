@@ -254,7 +254,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKUDPSocketMulticast_SocketInitialize(SUDPSocket *pstUDPSocket, SUDPInfo *pstUDPInfo, IN uem_bool bIsServer)
+static uem_result UKUDPSocketMulticast_SocketInitialize(SUDPSocket *pstUDPSocket, SUDPInfo *pstUDPInfo, IN uem_bool bIsServer)
 {
 	SSocketInfo stSocketInfo;
 	uem_result result = ERR_UEM_UNKNOWN;

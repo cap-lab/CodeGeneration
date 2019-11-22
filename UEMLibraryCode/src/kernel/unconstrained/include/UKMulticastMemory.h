@@ -29,7 +29,7 @@ extern "C"
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         @ref ERR_UEM_INVALID_PARAM is returned if pstSharedMemoryMulticast is null. \n
- *         error could be propagated from UCThreadMutex_Create.
+ *         error could be propagated from @ref UCThreadMutex_Create.
  */
 uem_result UKMulticastMemory_Initialize(SMulticastGroup *pstMulticastGroup, SSharedMemoryMulticast *pstSharedMemoryMulticast);
 
@@ -48,7 +48,7 @@ uem_result UKMulticastMemory_Initialize(SMulticastGroup *pstMulticastGroup, SSha
  *         @ref ERR_UEM_INVALID_PARAM is returned if pstSharedMemoryMulticast is null. \n
  *         It propagates the errors of \n
  *         @ref UCThreadMutex_Lock \n
- *         @ref fnCopyFromMemory, which is UKGPUSystem_CopyHostToDeviceMemory (for port located in GPU) or UKHostSystem_CopyFromMemory (for port located in CPU).
+ *         fnCopyFromMemory, which is @ref UKGPUSystem_CopyHostToDeviceMemory (for port located in GPU) or @ref UKHostSystem_CopyFromMemory (for port located in CPU).
  */
 uem_result UKMulticastMemory_ReadFromBuffer(SMulticastPort *pstMulticastPort, SSharedMemoryMulticast *pstSharedMemoryMulticast, IN OUT unsigned char *pBuffer, IN int nDataToRead, OUT int *pnDataRead);
 
@@ -58,7 +58,8 @@ uem_result UKMulticastMemory_ReadFromBuffer(SMulticastPort *pstMulticastPort, SS
  * This function sends data to the shared memory, multicast.
  *
  * @param pstMulticastPort sender.
- * @param pData buffer to send data.
+ * @param pstSharedMemoryMulticast shared memory socket for target group.
+ * @param pBuffer buffer to send data.
  * @param nDataToWrite buffer size.
  * @param[out] pnDataWritten sent data size.
  *
@@ -66,7 +67,7 @@ uem_result UKMulticastMemory_ReadFromBuffer(SMulticastPort *pstMulticastPort, SS
  *         @ref ERR_UEM_INVALID_PARAM is returned if pstSharedMemoryMulticast is null. \n
  *         It propagates the errors of \n
  *         @ref UCThreadMutex_Lock \n
- *         @ref fnCopyToMemory, which is UKGPUSystem_CopyDeviceToHostMemory (for port located in GPU) or UKHostSystem_CopyToMemory (for port located in CPU).
+ *         fnCopyToMemory, which is @ref UKGPUSystem_CopyDeviceToHostMemory (for port located in GPU) or @ref UKHostSystem_CopyToMemory (for port located in CPU).
  */
 uem_result UKMulticastMemory_WriteToBuffer(SMulticastPort *pstMulticastPort, SSharedMemoryMulticast *pstSharedMemoryMulticast, IN unsigned char *pBuffer, IN int nDataToWrite, OUT int *pnDataWritten);
 
@@ -80,7 +81,7 @@ uem_result UKMulticastMemory_WriteToBuffer(SMulticastPort *pstMulticastPort, SSh
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         @ref ERR_UEM_INVALID_PARAM is returned if pstSharedMemoryMulticast is null. \n
- *         error could be propagated from UCThreadMutex_Destroy.
+ *         error could be propagated from @ref UCThreadMutex_Destroy.
  */
 uem_result UKMulticastMemory_Finalize(SMulticastGroup *pstMulticastGroup, SSharedMemoryMulticast *pstSharedMemoryMulticast);
 
