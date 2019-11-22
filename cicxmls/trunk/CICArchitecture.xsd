@@ -73,12 +73,14 @@
 	<xs:attribute name="role" type="ServerClientRoleType" use="required" />
 	<xs:attribute name="ip" type="xs:string" use="required" />
 	<xs:attribute name="port" type="xs:nonNegativeInteger" use="required" />
+	<xs:attribute name="multicast" type="xs:boolean" use="required" />
   </xs:complexType>
   
   <xs:complexType name="UDPConnectionType">
 	<xs:attribute name="name" type="NameType" use="optional" />
 	<xs:attribute name="network" type="NetworkType" use="optional" />
 	<xs:attribute name="role" type="ServerClientRoleType" use="optional" />
+	<xs:attribute name="multicast" type="xs:boolean" use="required" />
 	<xs:attribute name="ip" type="xs:string" use="optional" />
 	<xs:attribute name="port" type="xs:nonNegativeInteger" use="optional" />
   </xs:complexType>
@@ -90,6 +92,7 @@
 	<xs:attribute name="boardTXPinNumber" type="xs:nonNegativeInteger" use="optional" />
 	<xs:attribute name="boardRXPinNumber" type="xs:nonNegativeInteger" use="optional" />
 	<xs:attribute name="portAddress" type="xs:string" use="optional" /> <!--for wire/USB connection, it becomes serial port path. For BLUETOOTH, it becomes MAC address -->
+	<xs:attribute name="multicast" type="xs:boolean" use="required" />
   </xs:complexType>
   
   <xs:complexType name="ModuleListType">
