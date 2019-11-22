@@ -50,8 +50,11 @@ typedef struct _SUDPMulticastSender{
  * This function loads a server and accept clients from different devices.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
- *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_OUT_OF_MEMORY, and \n
- *         errors corresponding to @ref SVirtualCommunicationAPI fnCreate() and fnListen().
+ *         It propagates the errors of \n
+ *         @ref UKUDPSocketMulticast_AllocBuffer \n
+ *         @ref UKUDPSocketMulticast_SocketInitialize \n
+ *         @ref UCDynamicSocket_Bind \n
+ *         @ref UCThread_Create.
  */
 uem_result UKUDPSocketMulticastAPI_Initialize();
 
@@ -63,24 +66,30 @@ uem_result UKUDPSocketMulticastAPI_Initialize();
  * @param pstMulticastPort sender
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
- *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_OUT_OF_MEMORY, and \n
- *         errors corresponding to @ref SVirtualCommunicationAPI fnCreate() and fnListen().
+ *         It propagates the errors of \n
+ *         @ref UKMulticast_GetCommunication \n
+ *         @ref UKUDPSocketMulticast_AllocBuffer \n
+ *         @ref UKUDPSocketMulticast_SocketInitialize.
  */
 uem_result UKUDPSocketMulticastPort_Initialize(IN SMulticastPort *pstMulticastPort);
 
 /**
- * @brief Initialize a Multicast UDP sender.
+ * @brief Send data to UDP, multicast
  *
- * This function initializes a Multicast UDP sender.
+ * This function sends data to the UDP, multicast.
  *
- * @param pstMulticastPort sender
- * @param pData data to send
- * @param nDataToWrite data length to send
- * @param[out] pnDataWritten actual sent data length
+ * @param pstMulticastPort sender.
+ * @param pData buffer to send data.
+ * @param nDataToWrite buffer size.
+ * @param[out] pnDataWritten sent data size.
  *
- * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
- *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_OUT_OF_MEMORY, and \n
- *         errors corresponding to @ref SVirtualCommunicationAPI fnCreate() and fnListen().
+ * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * @ref ERR_UEM_CONVERSION_ERROR is returned when fail to convert the header data to little endian. \n
+ * It propagates the errors of \n
+ * @ref UKMulticast_GetCommunication \n
+ * @ref UCDynamicSocket_Sendto \n
+ * @ref fnCopyToMemory, which is UKGPUSystem_CopyDeviceToHostMemory (for port located in GPU) or UKHostSystem_CopyToMemory (for port located in CPU).
  */
 uem_result UKUDPSocketMulticast_WriteToBuffer(IN SMulticastPort *pstMulticastPort, IN unsigned char *pData, IN int nDataToWrite, OUT int *pnDataWritten);
 
@@ -92,6 +101,7 @@ uem_result UKUDPSocketMulticast_WriteToBuffer(IN SMulticastPort *pstMulticastPor
  * @param pstMulticastPort sender
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error.
+ *         error could be propagated from UKMulticast_GetCommunication.
  */
 uem_result UKUDPSocketMulticastPort_Finalize(IN SMulticastPort *pstMulticastPort);
 
@@ -101,6 +111,7 @@ uem_result UKUDPSocketMulticastPort_Finalize(IN SMulticastPort *pstMulticastPort
  * This function finalize Multicast UDP Receivers.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error.
+ *         error could be propagated from UCThread_Destroy.
  */
 uem_result UKUDPSocketMulticastAPI_Finalize();
 
