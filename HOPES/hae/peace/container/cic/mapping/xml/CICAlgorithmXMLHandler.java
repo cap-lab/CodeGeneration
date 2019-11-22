@@ -7,17 +7,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import hae.kernel.util.ObjectList;
 import hae.peace.container.cic.mapping.MappingTask;
+import hae.peace.container.cic.task.optionpage.TaskOptionsDialog;
 import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICAlgorithmType;
 import hopes.cic.xml.CICAlgorithmTypeLoader;
 import hopes.cic.xml.DataParallelType;
+import hopes.cic.xml.LoopStructureType;
 import hopes.cic.xml.LoopStructureTypeType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.ModeType;
-import hopes.cic.xml.MulticastGroupType;
 import hopes.cic.xml.TaskType;
 
 public class CICAlgorithmXMLHandler extends CICXMLHandler {
@@ -202,8 +204,12 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 				e.printStackTrace();
 		}
 		return -1;
+	}
 
-
+    public Map<String, LoopStructureType> getLoopTasksInformation() {
+	return algorithm.getTasks().getTask().stream()
+		.filter(task -> task.getTaskType().equals(TaskOptionsDialog.TaskType.LOOP.name))
+		.collect(Collectors.toMap(TaskType::getName, TaskType::getLoopStructure));
 	}
 }
 	
