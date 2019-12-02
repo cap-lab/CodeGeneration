@@ -145,8 +145,8 @@ STaskParameter g_astTaskParameter_${task.name}[] = {
 
 // ##TASK_FUNCTION_LIST::START
 <#list flat_task as task_name, task>
-STaskFunctions g_ast_${task.name}_functions[] = {
 	<#if !task.childTaskGraphName??>
+STaskFunctions g_ast_${task.name}_functions[] = {
 		<#list 0..(task.taskFuncNum-1) as task_func_id>
 	{
 		${task.name}_Init${task_func_id}, // Task init function
@@ -154,16 +154,16 @@ STaskFunctions g_ast_${task.name}_functions[] = {
 		${task.name}_Wrapup${task_func_id}, // Task wrapup function
 	},
 		</#list>
-	</#if>
 };
 
+	</#if>
 </#list>
 // ##TASK_FUNCTION_LIST::END
 
 // ##TASK_THREAD_CONTEXT_LIST::START
 <#list flat_task as task_name, task>
-STaskThreadContext g_ast_${task.name}_thread_context[] = {
 	<#if !task.childTaskGraphName??>
+STaskThreadContext g_ast_${task.name}_thread_context[] = {
 		<#list 0..(task.taskFuncNum-1) as task_func_id>
 	{
 		0, // current run index used for getting loop task iteration
@@ -171,9 +171,9 @@ STaskThreadContext g_ast_${task.name}_thread_context[] = {
 		0, // target run count of thread
 	},
 		</#list>
-	</#if>
 };
 
+	</#if>
 </#list>
 // ##TASK_THREAD_CONTEXT_LIST::END
 
@@ -199,8 +199,8 @@ STask g_astTasks_${task_graph.name}[] = {
 	{ 	${task.id}, // Task ID
 		"${task.name}", // Task name
 		TASK_TYPE_${task.type}, // Task Type
-		g_ast_${task.name}_functions, // Task function array
-		g_ast_${task.name}_thread_context, // Task thread context
+		<#if !task.childTaskGraphName??>g_ast_${task.name}_functions<#else>(STaskFunctions *) NULL</#if>, // Task function array
+		<#if !task.childTaskGraphName??>g_ast_${task.name}_thread_context<#else>(STaskThreadContext *) NULL</#if>, // Task thread context
 		${task.taskFuncNum}, // Task function array number
 		RUN_CONDITION_${task.runCondition}, // Run condition
 		${task.period?c}, // Period

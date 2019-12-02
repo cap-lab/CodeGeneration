@@ -1937,25 +1937,6 @@ _EXIT:
 	return result;
 }
 
-
-// temporary function
-uem_result UKCPUGeneralTaskManagerCB_ClearLoopIndex(void *pTaskHandle)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	SGeneralTask *pstGeneralTask = NULL;
-#if defined(ARGUMENT_CHECK) && defined(CHECK_MODE_ARGUMENT)
-	IFVARERRASSIGNGOTO(pTaskHandle, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-#endif
-	pstGeneralTask = (SGeneralTask *) pTaskHandle;
-
-	pstGeneralTask->nCurLoopIndex = 0;
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-
 // temporary function
 uem_result UKCPUGeneralTaskManagerCB_GetLoopIndex(void *pTaskHandle, OUT int *pnLoopIndex)
 {
@@ -2061,25 +2042,5 @@ uem_result UKCPUGeneralTaskManagerCB_IsResumedByControl(void *pTaskHandle, OUT u
 _EXIT:
 	return result;
 }
-
-
-uem_result UKCPUGeneralTaskManagerCB_GetThreadIndex(void *pThreadHandle, OUT int *pnThreadIndex)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-	SGeneralTaskThread *pstTaskThread = NULL;
-#if defined(ARGUMENT_CHECK) && defined(CHECK_MODE_ARGUMENT)
-	IFVARERRASSIGNGOTO(pThreadHandle, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-	IFVARERRASSIGNGOTO(pnThreadIndex, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-#endif
-	pstTaskThread = (SGeneralTaskThread *) pThreadHandle;
-
-	*pnThreadIndex = pstTaskThread->nTaskFuncId;
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
-
 
 
