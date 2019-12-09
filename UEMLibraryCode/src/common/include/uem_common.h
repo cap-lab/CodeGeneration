@@ -3,6 +3,8 @@
  *
  *  Created on: 2017. 8. 5.
  *      Author: jej
+ *      Changed :
+ *  	    1. 2019. 06. 20. wecracy
  */
 
 #ifndef SRC_COMMON_INCLUDE_UEM_COMMON_H_
@@ -14,7 +16,7 @@ extern "C"
 #endif
 
 #ifndef IN
-    #define IN
+#    define IN
 #endif
 
 #ifndef OUT
@@ -47,6 +49,8 @@ extern "C"
 #define INVALID_SCHEDULE_ID (-1)
 #define INVALID_MODE_ID (-1)
 #define INVALID_CHANNEL_ID (-1)
+#define INVALID_MULTICAST_GROUP_ID (-1)
+#define INVALID_MULTICAST_PORT_ID (-1)
 #define INVALID_CHUNK_INDEX (-1)
 #define INVALID_TIMER_SLOT_ID (-1)
 #define INVALID_TIME_VALUE (0)
@@ -67,7 +71,7 @@ extern "C"
 #define UEM_MODULE_KERNEL 0x1000
 
 typedef enum _EUemResult {
-    ERR_UEM_NOERROR            = 0,
+	ERR_UEM_NOERROR            = 0,
 
 	ERR_UEM_INFORMATION        = UEM_RESULT_CATEGORY_INFO,
 	// Insert information here
@@ -124,6 +128,7 @@ typedef enum _EUemResult {
 	ERR_UEM_READ_BLOCK,
 	ERR_UEM_WRITE_BLOCK,
 
+	ERR_UEM_REALLOCATE_BUFFER,
 } uem_result;
 
 
@@ -174,8 +179,8 @@ typedef enum _EUemModuleId {
 }
 #endif
 
-#define _DEBUG
-#define DEBUG_PRINT
+//#define _DEBUG
+//#define DEBUG_PRINT
 
 
 #ifdef DEBUG_PRINT

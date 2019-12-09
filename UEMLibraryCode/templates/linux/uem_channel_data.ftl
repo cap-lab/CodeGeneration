@@ -165,6 +165,8 @@ SVirtualCommunicationAPI g_stSerialCommunication = {
 
 
 <#if used_communication_list?seq_contains("tcp")>
+// #TCP_COMMUNICATION_GENERATION_TEMPLATE::START
+#ifndef AGGREGATE_TCP_CONNECTION
 // ##TCP_CLIENT_GENERATION_TEMPLATE::START
 STCPInfo g_astTCPClientInfo[] = {
 	<#list tcp_client_list as client>
@@ -176,7 +178,6 @@ STCPInfo g_astTCPClientInfo[] = {
 	</#list>
 };
 // ##TCP_CLIENT_GENERATION_TEMPLATE::END
-
 
 // ##TCP_SERVER_GENERATION_TEMPLATE::START
 STCPServerInfo g_astTCPServerInfo[] = {
@@ -197,12 +198,55 @@ STCPServerInfo g_astTCPServerInfo[] = {
 };
 // ##TCP_SERVER_GENERATION_TEMPLATE::END
 
+#else
+STCPAggregatedServiceInfo g_astTCPAggregateClientInfo[] = {
+	<#list tcp_client_list as client>
+	{
+		{
+			${client.port?c},
+			"${client.IP}",
+			PAIR_TYPE_CLIENT,
+		},
+		{
+			(HThread) NULL, // thread handle
+			${client.channelAccessNum}, // max channel access number
+			(HVirtualSocket) NULL, // socket handle
+			&g_stTCPCommunication, // bluetooth communication API
+			(HSerialCommunicationManager) NULL, // Serial communication manager handle
+			FALSE, // initialized or not
+		},
+	},
+	</#list>
+};
+
+STCPAggregatedServiceInfo g_astTCPAggregateServerInfo[] = {
+	<#list tcp_server_list as server>
+	{
+		{
+			${server.port?c},
+			(char *) NULL,
+			PAIR_TYPE_SERVER,
+		},
+		{
+			(HThread) NULL, // thread handle
+			${server.channelAccessNum}, // max channel access number
+			(HVirtualSocket) NULL, // socket handle
+			&g_stTCPCommunication, // bluetooth communication API
+			(HSerialCommunicationManager) NULL, // Serial communication manager handle
+			FALSE, // initialized or not
+		},
+	},
+	</#list>
+};
+#endif
+// ##TCP_COMMUNICATION_GENERATION_TEMPLATE::END
 </#if>
 
 
 <#if communication_used == true>
 // ##INDIVIDUAL_CONNECTION_GENERATION_TEMPLATE::START
 SIndividualConnectionInfo g_astIndividualConnectionInfo[] = {
+#ifndef AGGREGATE_TCP_CONNECTION
 	<#list channel_list as channel>
 		<#switch channel.remoteMethodType>
 			<#case "TCP">
@@ -215,7 +259,7 @@ SIndividualConnectionInfo g_astIndividualConnectionInfo[] = {
 		PAIR_TYPE_CLIENT,
 					<#break>
 				<#case "SERVER">
-		NULL,
+		(void *) NULL,
 		PAIR_TYPE_SERVER,
 					<#break>
 			</#switch>
@@ -226,6 +270,7 @@ SIndividualConnectionInfo g_astIndividualConnectionInfo[] = {
 				<#break>
 		</#switch>
 	</#list>
+#endif
 };
 // ##INDIVIDUAL_CONNECTION_GENERATION_TEMPLATE::END
 </#if>
@@ -318,42 +363,60 @@ SSerialInfo g_astSerialSlaveInfo[] = {
 
 <#if communication_used == true>
 SAggregateConnectionInfo g_astAggregateConnectionInfo[] = {
-	<#if used_communication_list?seq_contains("bluetooth") || used_communication_list?seq_contains("serial")>
-		<#list channel_list as channel>
+	<#list channel_list as channel>
+		<#switch channel.remoteMethodType>
+			<#case "BLUETOOTH">
 	{
-			<#switch channel.remoteMethodType>
-				<#case "BLUETOOTH">
 		${channel.index},
 		{
 			(HFixedSizeQueue) NULL,
 		},
-					<#switch channel.connectionRoleType>
-						<#case "MASTER">
+				<#switch channel.connectionRoleType>
+					<#case "MASTER">
 		&(g_astBluetoothMasterInfo[${channel.socketInfoIndex}].stAggregateInfo),
-							<#break>
-						<#case "SLAVE">
+						<#break>
+					<#case "SLAVE">
 		&(g_astBluetoothSlaveInfo[${channel.socketInfoIndex}].stAggregateInfo),
-							<#break>
-					</#switch>
+						<#break>
+				</#switch>
+	},
 					<#break>
-				<#case "SERIAL">
+			<#case "SERIAL">
+	{
 		${channel.index},
 		{
 			(HFixedSizeQueue) NULL,
 		},			
-					<#switch channel.connectionRoleType>
-						<#case "MASTER">
+				<#switch channel.connectionRoleType>
+					<#case "MASTER">
 		&(g_astSerialMasterInfo[${channel.socketInfoIndex}].stAggregateInfo),
-							<#break>
-						<#case "SLAVE">
+						<#break>
+					<#case "SLAVE">
 		&(g_astSerialSlaveInfo[${channel.socketInfoIndex}].stAggregateInfo),
-							<#break>
-					</#switch>
-					<#break>
-			</#switch>
+						<#break>
+				</#switch>
 	},
-		</#list>
-	</#if>
+				<#break>
+			<#case "TCP">
+#ifdef AGGREGATE_TCP_CONNECTION
+	{
+		${channel.index},
+		{
+			(HFixedSizeQueue) NULL,
+		},
+				<#switch channel.connectionRoleType>
+					<#case "CLIENT">
+		&(g_astTCPAggregateClientInfo[${channel.socketInfoIndex}].stServiceInfo),
+						<#break>
+					<#case "SERVER">
+		&(g_astTCPAggregateServerInfo[${channel.socketInfoIndex}].stServiceInfo),
+						<#break>
+				</#switch>	
+	},
+#endif				
+				<#break>
+		</#switch>
+	</#list>
 };
 </#if>
 
@@ -405,7 +468,11 @@ SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 	{ 
 			<#switch channel.remoteMethodType>
 				<#case "TCP">
+#ifndef AGGREGATE_TCP_CONNECTION
 		CONNECTION_METHOD_INDIVIDUAL,
+#else
+		CONNECTION_METHOD_AGGREGATE,
+#endif
 					<#break>
 				<#case "BLUETOOTH">
 				<#case "SERIAL">
@@ -744,23 +811,45 @@ _EXIT:
 int g_nChannelNum = ARRAYLEN(g_astChannels);
 int g_nChannelAPINum = ARRAYLEN(g_astChannelAPIList);
 <#if communication_used == true>
+#ifndef AGGREGATE_TCP_CONNECTION
 	<#if used_communication_list?seq_contains("tcp")>
 int g_nIndividualConnectionInfoNum = ARRAYLEN(g_astIndividualConnectionInfo);
 	<#else>
 int g_nIndividualConnectionInfoNum = 0;
 	</#if>
-	
+#else 
+int g_nIndividualConnectionInfoNum = 0;
+#endif
+
+#ifdef AGGREGATE_TCP_CONNECTION
+int g_nAggregateConnectionInfoNum = ARRAYLEN(g_astAggregateConnectionInfo);
+#else
 	<#if used_communication_list?seq_contains("bluetooth") || used_communication_list?seq_contains("serial")>
 int g_nAggregateConnectionInfoNum = ARRAYLEN(g_astAggregateConnectionInfo);
 	<#else>
 int g_nAggregateConnectionInfoNum = 0;
 	</#if>
+#endif
 	
+#ifndef AGGREGATE_TCP_CONNECTION
 	<#if (tcp_server_list?size > 0) >
 int g_nTCPServerInfoNum = ARRAYLEN(g_astTCPServerInfo);
 	<#else>
 int g_nTCPServerInfoNum = 0;
 	</#if>
+#else
+	<#if (tcp_server_list?size > 0) >
+int g_nTCPAggregateServerInfoNum = ARRAYLEN(g_astTCPAggregateServerInfo);
+	<#else>
+int g_nTCPAggregateServerInfoNum = 0;
+	</#if>
+	
+	<#if (tcp_client_list?size > 0) >
+int g_nTCPAggregateClientInfoNum = ARRAYLEN(g_astTCPAggregateClientInfo);
+	<#else>
+int g_nTCPAggregateClientInfoNum = 0;
+	</#if>
+#endif
 	
 	<#if (bluetooth_master_list?size > 0) >
 int g_nBluetoothMasterNum = ARRAYLEN(g_astBluetoothMasterInfo);	

@@ -3,6 +3,8 @@
  *
  *  Created on: 2017. 9. 7.
  *      Author: jej
+ *      Changed :
+ *  	    1. 2019. 06. 20. wecracy
  */
 
 #ifdef HAVE_CONFIG_H
@@ -22,6 +24,7 @@
 
 #include <UKTask.h>
 #include <UKChannel.h>
+#include <UKMulticast.h>
 #include <UKCPUTaskManager.h>
 #include <UKProcessor.h>
 #include <UKLibrary.h>
@@ -258,12 +261,17 @@ int main(int argc, char *argv[])
 	result = UKChannel_Initialize();
 	ERRIFGOTO(result, _EXIT);
 
+	// Multicast initialization
+	result = UKMulticast_Initialize();
+	ERRIFGOTO(result, _EXIT);
+
 	// Execute tasks
 	executeTasks();
 
 	// Set stop flag (set TRUE to escape block of all tasks)
 	UFSystem_Stop(0);
 
+	UKMulticast_Finalize();
 	// Channel finalization
 	UKChannel_Finalize();
 	UKLibrary_Finalize();

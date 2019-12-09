@@ -5,8 +5,8 @@
  *      Author: jej
  */
 
-#ifndef SRC_COMMON_INCLUDE_UCTIME_H_
-#define SRC_COMMON_INCLUDE_UCTIME_H_
+#ifndef SRC_COMMON_UNCONSTRAINED_INCLUDE_UCTIME_H_
+#define SRC_COMMON_UNCONSTRAINED_INCLUDE_UCTIME_H_
 
 #include "uem_common.h"
 
@@ -60,4 +60,4 @@ uem_result UCTime_Sleep(int nMillisec);
 }
 #endif
 
-#endif /* SRC_COMMON_INCLUDE_UCTIME_H_ */
+#endif /* SRC_COMMON_UNCONSTRAINED_INCLUDE_UCTIME_H_ */

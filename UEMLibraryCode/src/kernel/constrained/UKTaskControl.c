@@ -62,7 +62,7 @@ static uem_result setRunningInCompositeTask(SCompositeTaskRuntimeInfo *pstRuntim
 	pstRuntimeInfo->tNextTime = tCurTime;
 	pstRuntimeInfo->nRunCount = 1;
 
-	callHierarchicalInitOrWrapupFunctions(pstRuntimeInfo->pstCompositeTaskSchedule->pstParentTask, TRUE);
+	callHierarchicalInitOrWrapupFunctions(pstRuntimeInfo->pstCompositeTaskSchedule->pstParentTaskGraph->pstParentTask, TRUE);
 _EXIT:
 	return result;
 }
@@ -87,7 +87,7 @@ _EXIT:
 static uem_result setStopInCompositeTask(SCompositeTaskRuntimeInfo *pstRuntimeInfo, void *pUserData)
 {
 	pstRuntimeInfo->bRunning = FALSE;
-	callHierarchicalInitOrWrapupFunctions(pstRuntimeInfo->pstCompositeTaskSchedule->pstParentTask, FALSE);
+	callHierarchicalInitOrWrapupFunctions(pstRuntimeInfo->pstCompositeTaskSchedule->pstParentTaskGraph->pstParentTask, FALSE);
 
 	return ERR_UEM_NOERROR;
 }
@@ -137,7 +137,7 @@ static uem_result findCompositeTask(STask *pstTargetTask, FnCompositeTaskFindCal
 
 	for(nLoop = 0 ; nLoop < nTaskNum ; nLoop++)
 	{
-		pstTask = astRuntimeInfo[nLoop].pstCompositeTaskSchedule->pstParentTask;
+		pstTask = astRuntimeInfo[nLoop].pstCompositeTaskSchedule->pstParentTaskGraph->pstParentTask;
 		if(pstTargetTask->nTaskId == pstTask->nTaskId)
 		{
 			result = fnCallback(&(astRuntimeInfo[nLoop]), pUserData);

@@ -21,6 +21,13 @@ extern "C"
 {
 #endif
 
+typedef struct _STaskGraph {
+	ETaskGraphType enType;
+	STask *astTasks;
+	int nNumOfTasks;
+	STask *pstParentTask;
+} STaskGraph;
+
 typedef struct _STask {
 	int nTaskId;
 	const char *pszTaskName;
@@ -51,7 +58,7 @@ typedef struct _STaskIdToTaskMap {
 
 
 typedef struct _SScheduledTasks {
-	STask *pstParentTask;
+	STaskGraph *pstParentTaskGraph;
 	FnUemTaskGo fnCompositeGo;
 } SScheduledTasks;
 

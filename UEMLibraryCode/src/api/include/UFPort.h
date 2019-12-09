@@ -29,7 +29,7 @@ extern "C"
  * @return
  *
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
- * @ref ERR_UEM_INVALID_PARAM for invalid nDataToRead, pBuffer, pnDataRead argument.
+ * @ref ERR_UEM_INVALID_PARAM for invalid szPortName, pnChannelId arguments.
  */
 uem_result UFPort_Initialize(IN int nTaskId, IN char *szPortName, OUT int *pnChannelId);
 
@@ -46,7 +46,7 @@ uem_result UFPort_Initialize(IN int nTaskId, IN char *szPortName, OUT int *pnCha
  *
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
- * @ref ERR_UEM_INVALID_PARAM for invalid channel id, nDataToRead, pBuffer, pnDataRead, nChunkIndex argument. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid channel id, nDataToRead, pBuffer, pnDataRead, nChunkIndex arguments. \n
  * @ref ERR_UEM_ILLEGAL_CONTROL if Channel API does not have readFromQueue handler.
  *
  * \n
@@ -70,7 +70,7 @@ uem_result UFPort_ReadFromQueue (IN int nChannelId, IN OUT unsigned char *pBuffe
  *
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
- * @ref ERR_UEM_INVALID_PARAM for invalid channel id, nDataToRead, pBuffer, pnDataRead, nChunkIndex argument. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid channel id, nDataToRead, pBuffer, pnDataRead, nChunkIndex arguments. \n
  * @ref ERR_UEM_ILLEGAL_CONTROL if Channel API does not have readFromBuffer handler. \n
  *
  * \n
@@ -94,7 +94,7 @@ uem_result UFPort_ReadFromBuffer (IN int nChannelId, IN OUT unsigned char *pBuff
  *
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
- * @ref ERR_UEM_INVALID_PARAM for invalid  channel id, nDataToRead, pBuffer, pnDataRead, nChunkIndex argument. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid  channel id, nDataToWrite, pBuffer, pnDataWritten, nChunkIndex arguments. \n
  * @ref ERR_UEM_ILLEGAL_CONTROL if Channel API does not have writeToQueue handler. \n
  *
  *  \n
@@ -116,7 +116,7 @@ uem_result UFPort_WriteToQueue (IN int nChannelId, IN unsigned char *pBuffer, IN
  *
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
- * @ref ERR_UEM_INVALID_PARAM for invalid channel id, nDataToRead, pBuffer, pnDataRead, nChunkIndex argument. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid channel id, nDataToWrite, pBuffer, pnDataWritten, nChunkIndex arguments. \n
  * @ref ERR_UEM_ILLEGAL_CONTROL if Channel API does not have writeToBuffer handler .\n
  *
  *  \n

@@ -17,6 +17,8 @@ import hopes.cic.xml.CICConfigurationType;
 import hopes.cic.xml.CICConfigurationTypeLoader;
 import hopes.cic.xml.CICControlType;
 import hopes.cic.xml.CICControlTypeLoader;
+import hopes.cic.xml.CICGPUSetupType;
+import hopes.cic.xml.CICGPUSetupTypeLoader;
 import hopes.cic.xml.CICMappingType;
 import hopes.cic.xml.CICMappingTypeLoader;
 import hopes.cic.xml.CICModuleType;
@@ -25,8 +27,6 @@ import hopes.cic.xml.CICProfileType;
 import hopes.cic.xml.CICProfileTypeLoader;
 import hopes.cic.xml.FileSourceType;
 import hopes.cic.xml.SoftwareModuleType;
-import hopes.cic.xml.CICGPUSetupType;
-import hopes.cic.xml.CICGPUSetupTypeLoader;
 
 public class UEMMetaDataModel {
     private CICAlgorithmType algorithmMetadata = null;
@@ -42,15 +42,15 @@ public class UEMMetaDataModel {
     
     private Application application = null;
     
-    public UEMMetaDataModel(String uemXMLPath, String scheduleFileFolderPath) throws CICXMLException, InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
+    public UEMMetaDataModel(String translatorRootDir, String uemXMLPath, String scheduleFileFolderPath) throws CICXMLException, InvalidDataInMetadataFileException, InvalidDeviceConnectionException, CloneNotSupportedException
     {
     	this.moduleMap = new HashMap<String, Module>();
     	this.schedulePath = scheduleFileFolderPath;
-    	parseXMLFile(uemXMLPath);
+    	parseXMLFile(translatorRootDir, uemXMLPath);
     	makeApplicationDataModel();
     }
 	
-    private void parseXMLFile(String uemXMLPath) throws CICXMLException
+    private void parseXMLFile(String translatorRootDir, String uemXMLPath) throws CICXMLException
     {
     	CICModuleType moduleMetadata;
     	
@@ -94,9 +94,9 @@ public class UEMMetaDataModel {
         		gpusetupMetadata = gpusetupLoader.loadResource(uemXMLPath + Constants.UEMXML_GPUSETUP_PREFIX);
         	}
         	
-        	if(new File(Constants.DEFAULT_MODULE_XML_PATH).isFile() == true) 
+        	if(new File(translatorRootDir + File.separator + Constants.DEFAULT_MODULE_XML_PATH).isFile() == true) 
         	{
-        		moduleMetadata = moduleLoader.loadResource(Constants.DEFAULT_MODULE_XML_PATH);
+        		moduleMetadata = moduleLoader.loadResource(translatorRootDir + File.separator + Constants.DEFAULT_MODULE_XML_PATH);
         		insertSupportedModuleInfo(moduleMetadata);
         	}
         }
@@ -135,8 +135,10 @@ public class UEMMetaDataModel {
     	
     	this.application.makeTaskInformation(algorithmMetadata);
     	this.application.makeMappingAndTaskInformationPerDevices(mappingMetadata, profileMetadata, configurationMetadata, this.schedulePath, gpusetupMetadata);
+    	this.application.makeMulticastGroupInformation(algorithmMetadata);
     	this.application.makeChannelInformation(algorithmMetadata);
     	this.application.makeLibraryInformation(algorithmMetadata);
+    	this.application.makeConnectionMappingInfo(mappingMetadata);
     	this.application.makeConfigurationInformation(configurationMetadata);
     }
 

@@ -3,6 +3,7 @@ package org.snu.cse.cap.translator.structure.device;
 public enum DeviceCommunicationType {
 	BLUETOOTH("bluetooth"),
 	TCP("tcp"),
+	UDP("udp"),
 	SERIAL("serial"),
 	;
 

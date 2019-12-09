@@ -96,7 +96,7 @@ public class CodeGenerator
 			System.exit(-1);
 		}
 		
-		initMetaData(args);
+		initMetaData(translatorRootDir, args);
     }
     
     private void changeAllPathSeparator() 
@@ -110,7 +110,7 @@ public class CodeGenerator
     	mOutputPath = mOutputPath.replace('/', File.separatorChar);
     }
     
-    private void initMetaData(String[] args) 
+    private void initMetaData(String translatorRootDir, String[] args) 
     {
     	Options options = new Options();
     	HelpFormatter formatter = new HelpFormatter();
@@ -154,7 +154,7 @@ public class CodeGenerator
     		
     		System.out.println("mTranslatorPath: " + mTranslatorPath + ", mCICXMLPath: " + mUEMXMLPath + ", mOutputPath: " + mOutputPath);
     		
-    		this.uemDatamodel = new UEMMetaDataModel(mUEMXMLPath, mOutputPath + File.separator + Constants.SCHEDULE_FOLDER_NAME + File.separator);
+    		this.uemDatamodel = new UEMMetaDataModel(translatorRootDir, mUEMXMLPath, mOutputPath + File.separator + Constants.SCHEDULE_FOLDER_NAME + File.separator);
     	} 
     	catch(ParseException e) {
     		System.out.println("ERROR: " + e.getMessage());
@@ -180,7 +180,7 @@ public class CodeGenerator
     {
     	Template makefileTemplate = this.templateConfig.getTemplate(codeOrganizer.getPlatform() + Constants.TEMPLATE_PATH_SEPARATOR + Constants.TEMPLATE_FILE_MAKEFILE);
 		// Create the root hash
-		Map<String, Object> makefileRootHash = new HashMap<>();
+		Map<String, Object> makefileRootHash = new HashMap<String, Object>();
 		String outputFilePath = topDirPath + File.separator;
 		
 		switch(codeOrganizer.getBuildType())
@@ -211,7 +211,7 @@ public class CodeGenerator
     {
     	Template doxyFileTemplate = this.templateConfig.getTemplate(Constants.TEMPLATE_FILE_DOXYFILE);
     	// Create the root hash
-    	Map<String, Object> doxyfileRootHash = new HashMap<>();
+    	Map<String, Object> doxyfileRootHash = new HashMap<String, Object>();
     	String outputFilePath = topDirPath + File.separator;
     	
     	outputFilePath += Constants.DEFAULT_DOXYFILE;
@@ -227,7 +227,7 @@ public class CodeGenerator
     {
     	Template doxygenManualTemplate = this.templateConfig.getTemplate(Constants.DEFAULT_DOXYGEN_MANUAL+Constants.TEMPLATE_FILE_EXTENSION);
     	// Create the root hash
-    	Map<String, Object> doxygenManualRootHash = new HashMap<>();
+    	Map<String, Object> doxygenManualRootHash = new HashMap<String, Object>();
     	String outputFilePath = topDirPath + File.separator + CodeOrganizer.KERNEL_GENERATED_DIR + File.separator;
     	
     	outputFilePath += Constants.DEFAULT_DOXYGEN_MANUAL + Constants.HEADER_FILE_EXTENSION;
@@ -247,15 +247,17 @@ public class CodeGenerator
     private void generateKernelDataCode(CodeOrganizer codeOrganizer, Device device, String topDirPath, ArrayList<EnvironmentVariable> envVarList, ProgrammingLanguage language) throws TemplateNotFoundException, MalformedTemplateNameException, 
 	freemarker.core.ParseException, IOException, TemplateException
     {
-    	Map<String, Object> uemDataRootHash = new HashMap<>();
+    	Map<String, Object> uemDataRootHash = new HashMap<String, Object>();
     	
 		// Put UEM data model
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TASK_MAP, device.getTaskMap());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TASK_GRAPH, device.getTaskGraphMap());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_CHANNEL_LIST, device.getChannelList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_DEVICE_INFO, this.uemDatamodel.getApplication().getDeviceInfo());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_DEVICE_ID, device.getId());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_MAPPING_INFO, device.getGeneralMappingInfo());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_STATIC_SCHEDULE_INFO, device.getStaticScheduleMappingInfo());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_MULTICAST_GROUP_LIST, device.getMulticastGroupMap().values());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_PORT_INFO, device.getPortList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_PORT_KEY_TO_INDEX, device.getPortKeyToIndex());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_EXECUTION_TIME, this.uemDatamodel.getApplication().getExecutionTime());
@@ -264,6 +266,7 @@ public class CodeGenerator
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_COMMUNICATION_USED, device.useCommunication());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TCP_CLIENT_LIST, device.getTcpClientList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TCP_SERVER_LIST, device.getTcpServerList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_UDP_LIST, device.getUDPConnectionList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_BLUETOOTH_MASTER_LIST, device.getBluetoothMasterList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_BLUETOOTH_SLAVE_LIST, device.getBluetoothUnconstrainedSlaveList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_MASTER_LIST, device.getSerialMasterList());
@@ -309,7 +312,7 @@ public class CodeGenerator
 			if(task.getChildTaskGraphName() == null)
 			{
 				// Create the root hash
-	    		Map<String, Object> taskCodeRootHash = new HashMap<>();
+	    		Map<String, Object> taskCodeRootHash = new HashMap<String, Object>();
 	    		
 	    		taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_INFO, task);
 				taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_GPU_MAPPING_INFO, device.getGpuSetupInfo().get(task.getName()));
@@ -358,7 +361,7 @@ public class CodeGenerator
 			String outputHeaderPath = topDirPath + File.separator + CodeOrganizer.APPLICATION_DIR + File.separator + 
 										library.getHeader();
 			// Create the root hash
-			Map<String, Object> libraryRootHash = new HashMap<>();
+			Map<String, Object> libraryRootHash = new HashMap<String, Object>();
 			
 			if(library.getLanguage() == ProgrammingLanguage.CPP) {
 				outputSourcePath += Constants.CPP_FILE_EXTENSION;

@@ -7,19 +7,25 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
-import org.snu.cse.cap.translator.structure.TaskGraph;
-import org.snu.cse.cap.translator.structure.TaskGraphType;
 import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.structure.ExecutionPolicy;
-import org.snu.cse.cap.translator.structure.channel.Channel;
-import org.snu.cse.cap.translator.structure.channel.Port;
+import org.snu.cse.cap.translator.structure.InvalidDataInMetadataFileException;
+import org.snu.cse.cap.translator.structure.TaskGraph;
+import org.snu.cse.cap.translator.structure.TaskGraphController;
+import org.snu.cse.cap.translator.structure.TaskGraphType;
+import org.snu.cse.cap.translator.structure.communication.PortDirection;
+import org.snu.cse.cap.translator.structure.communication.channel.Channel;
+import org.snu.cse.cap.translator.structure.communication.channel.ChannelPort;
+import org.snu.cse.cap.translator.structure.communication.multicast.MulticastGroup;
+import org.snu.cse.cap.translator.structure.communication.multicast.MulticastPort;
 import org.snu.cse.cap.translator.structure.device.connection.Connection;
 import org.snu.cse.cap.translator.structure.device.connection.ConstrainedSerialConnection;
+import org.snu.cse.cap.translator.structure.device.connection.IPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
 import org.snu.cse.cap.translator.structure.device.connection.ProtocolType;
 import org.snu.cse.cap.translator.structure.device.connection.SerialConnection;
 import org.snu.cse.cap.translator.structure.device.connection.TCPConnection;
+import org.snu.cse.cap.translator.structure.device.connection.UDPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.UnconstrainedSerialConnection;
 import org.snu.cse.cap.translator.structure.gpu.TaskGPUSetupInfo;
 import org.snu.cse.cap.translator.structure.library.Library;
@@ -39,10 +45,11 @@ import org.snu.cse.cap.translator.structure.mapping.ScheduleLoop;
 import org.snu.cse.cap.translator.structure.mapping.ScheduleTask;
 import org.snu.cse.cap.translator.structure.module.Module;
 import org.snu.cse.cap.translator.structure.task.Task;
+import org.snu.cse.cap.translator.structure.task.TaskLoopType;
 import org.snu.cse.cap.translator.structure.task.TaskMode;
+import org.snu.cse.cap.translator.structure.task.TaskMode.ChildTaskTraverseCallback;
 import org.snu.cse.cap.translator.structure.task.TaskModeTransition;
 import org.snu.cse.cap.translator.structure.task.TaskShapeType;
-import org.snu.cse.cap.translator.structure.task.TaskMode.ChildTaskTraverseCallback;
 
 import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICGPUSetupType;
@@ -60,6 +67,7 @@ import hopes.cic.xml.TaskGroupForScheduleType;
 
 public class Device {
 	private String name;
+	private int id;
 	private ArrayList<Processor> processorList;
 	private HashMap<String, Connection> connectionList;
 	private ArchitectureType architecture;
@@ -68,12 +76,13 @@ public class Device {
 	
 	// in-device metadata information
 	private ArrayList<Channel> channelList;
+	private HashMap<String, MulticastGroup> multicastGroupList; // Group name : MulticastGroup class
 	private HashMap<String, Task> taskMap; // Task name : Task class
 	private HashMap<String, TaskGraph> taskGraphMap; // Task graph name : TaskGraph class
 	private HashMap<String, GeneralTaskMappingInfo> generalMappingInfo; // Task name : GeneralTaskMappingInfo class
 	private HashMap<String, TaskGPUSetupInfo> gpuSetupInfo; // Task name : TaskGPUSetupInfo class
 	private HashMap<String, CompositeTaskMappingInfo> staticScheduleMappingInfo; // Parent task Name : CompositeTaskMappingInfo class
-	private ArrayList<Port> portList;
+	private ArrayList<ChannelPort> portList;
 	private HashMap<String, Library> libraryMap;
 	
 	private ArrayList<Module> moduleList;
@@ -82,16 +91,20 @@ public class Device {
 	private HashMap<String, Integer> portKeyToIndex;  //Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
 	private ArrayList<TCPConnection> tcpServerList;
 	private ArrayList<TCPConnection> tcpClientList;
+	private HashMap<String, UDPConnection> udpList;
 	private ArrayList<UnconstrainedSerialConnection> bluetoothMasterList;
 	private ArrayList<UnconstrainedSerialConnection> bluetoothUnconstrainedSlaveList;
 	private ArrayList<ConstrainedSerialConnection> serialConstrainedSlaveList;
 	private ArrayList<UnconstrainedSerialConnection> serialMasterList;
 	private ArrayList<UnconstrainedSerialConnection> serialUnconstrainedSlaveList;
+	
+	private HashSet<DeviceCommunicationType> supportedConnectionTypeList;
 
 	
-	public Device(String name, String architecture, String platform, String runtime) 
+	public Device(String name, int id, String architecture, String platform, String runtime) 
 	{
 		this.name = name;
+		this.id = id;
 		this.architecture = ArchitectureType.fromValue(architecture);
 		this.platform = SoftwarePlatformType.fromValue(platform);
 		this.runtime = RuntimeType.fromValue(runtime);
@@ -106,19 +119,22 @@ public class Device {
 		this.gpuSetupInfo = new HashMap<String, TaskGPUSetupInfo>();
 		this.staticScheduleMappingInfo = new HashMap<String, CompositeTaskMappingInfo>();
 		this.libraryMap = new HashMap<String, Library>();
-		this.portList = new ArrayList<Port>();
+		this.portList = new ArrayList<ChannelPort>();
+		this.multicastGroupList = new HashMap<String, MulticastGroup>();
 		
 		this.moduleList = new ArrayList<Module>();
 		
 		this.portKeyToIndex = new HashMap<String, Integer>();
 		this.tcpServerList = new ArrayList<TCPConnection>();
 		this.tcpClientList = new ArrayList<TCPConnection>();
-		
+		this.udpList = new HashMap<String, UDPConnection>();
 		this.bluetoothMasterList = new ArrayList<UnconstrainedSerialConnection>();
 		this.bluetoothUnconstrainedSlaveList = new ArrayList<UnconstrainedSerialConnection>();
 		this.serialConstrainedSlaveList = new ArrayList<ConstrainedSerialConnection>();
 		this.serialMasterList = new ArrayList<UnconstrainedSerialConnection>();
 		this.serialUnconstrainedSlaveList = new ArrayList<UnconstrainedSerialConnection>();
+		
+		this.supportedConnectionTypeList = new HashSet<DeviceCommunicationType>();
 	}
 	
 	private class TaskFuncIdChecker 
@@ -153,6 +169,10 @@ public class Device {
 		return name;
 	}
 	
+	public int getId() {
+		return this.id;
+	}
+	
 	public boolean isGPUMapped()
 	{
 		if (this.gpuSetupInfo.size() == 0)
@@ -165,7 +185,7 @@ public class Device {
 	
 	public boolean useCommunication()
 	{
-		if (this.connectionList.size() == 0)
+		if (this.connectionList.size() == 0 && this.supportedConnectionTypeList.size() == 0)
 		{
 			return false;
 		}
@@ -185,8 +205,7 @@ public class Device {
 		
 		for(ScheduleElementType scheduleElement: scheduleElementList)
 		{
-			if(scheduleElement.getLoop() != null)
-			{
+			if(scheduleElement.getLoop() != null) {
 				scheduleInloop = new ScheduleLoop(scheduleElement.getLoop().getRepetition().intValue(), depth);
 				if(scheduleInloop.getRepetition() > 1)
 					nextDepth = depth + 1;
@@ -196,14 +215,12 @@ public class Device {
 														nextDepth, maxDepth, globalTaskMap);
 				scheduleItemList.add(scheduleInloop);
 			}
-			else if(scheduleElement.getTask() != null) 
-			{
+			else if(scheduleElement.getTask() != null) 	{
 				scheduleTask = new ScheduleTask(scheduleElement.getTask().getName(), scheduleElement.getTask().getRepetition().intValue(), depth);
 				scheduleItemList.add(scheduleTask);
 				putTaskHierarchicallyToTaskMap(scheduleTask.getTaskName(), globalTaskMap);
 			}
-			else
-			{
+			else {
 				// do nothing
 			}			
 		}
@@ -320,6 +337,87 @@ public class Device {
 		}
 					
 		return processorNameFound;
+	}
+	
+	private boolean containsStaticScheduleTask(ArrayList<Task> taskList)
+	{
+		boolean staticScheduledTaskFound = false;
+		
+		for(Task task : taskList)
+		{
+			if(task.isStaticScheduled() == true)
+			{
+				staticScheduledTaskFound = true;
+				break;
+			}
+		}
+		
+		return staticScheduledTaskFound;
+	}
+	
+	private boolean containsControlTask(ArrayList<Task> taskList)
+	{
+		boolean controlTaskFound = false;
+		
+		for(Task task : taskList)
+		{
+			if(task.getType() == TaskShapeType.CONTROL)
+			{
+				controlTaskFound = true;
+				break;
+			}
+		}
+		
+		return controlTaskFound;
+	}
+	
+	private void setTaskGraphControllerType()
+	{
+		for(TaskGraph taskGraph: this.taskGraphMap.values())
+		{
+			switch(taskGraph.getTaskGraphType())
+			{
+			case DATAFLOW:
+				if(taskGraph.getParentTask() != null) {
+					if(taskGraph.getParentTask().getModeTransition() != null && 
+						taskGraph.getParentTask().getModeTransition().getModeMap().size() > 1) {
+						if(containsStaticScheduleTask(taskGraph.getTaskList()) == true) {
+							taskGraph.setControllerType(TaskGraphController.STATIC_MODE_TRANSITION);
+						}
+						else {
+							taskGraph.setControllerType(TaskGraphController.DYNAMIC_MODE_TRANSITION);
+						}
+					}
+					else if(taskGraph.getParentTask().getLoopStruct() != null) {
+						if(containsStaticScheduleTask(taskGraph.getTaskList()) == true) {
+							if(taskGraph.getParentTask().getLoopStruct().getLoopType() == TaskLoopType.DATA) {
+								taskGraph.setControllerType(TaskGraphController.STATIC_DATA_LOOP);
+							}
+							else {
+								taskGraph.setControllerType(TaskGraphController.STATIC_CONVERGENT_LOOP);
+							}
+						}
+						else {
+							if(taskGraph.getParentTask().getLoopStruct().getLoopType() == TaskLoopType.DATA) {
+								taskGraph.setControllerType(TaskGraphController.DYNAMIC_DATA_LOOP);
+							}
+							else {
+								taskGraph.setControllerType(TaskGraphController.DYNAMIC_CONVERGENT_LOOP);
+							}
+						}
+					}
+				}
+				break;
+			case PROCESS_NETWORK:
+				if(containsControlTask(taskGraph.getTaskList()) == true) {
+					taskGraph.setControllerType(TaskGraphController.CONTROL_TASK_INCLUDED);
+				}
+				break;
+			default:
+				// skip HYBRID (TODO: remove HYBRID?)
+				break;
+			}
+		}
 	}
 	
 	private void putTaskHierarchicallyToTaskMap(String taskName, HashMap<String, Task> globalTaskMap)
@@ -802,10 +900,10 @@ public class Device {
 		}
 	}
 	
-	private boolean matchTaskIdInPort(Port inputPort, String taskName)
+	private boolean matchTaskIdInPort(ChannelPort inputPort, String taskName)
 	{
 		boolean matched = false;
-		Port port;
+		ChannelPort port;
 		
 		port = inputPort;
 		
@@ -826,8 +924,8 @@ public class Device {
 	private boolean isChannelLocatedInSameTaskGraph(Channel channel)
 	{
 		boolean sameGraph = false;
-		Port inputPort = channel.getInputPort();
-		Port outputPort = channel.getOutputPort();
+		ChannelPort inputPort = channel.getInputPort();
+		ChannelPort outputPort = channel.getOutputPort();
 		
 		while(inputPort != null && outputPort != null)
 		{
@@ -936,6 +1034,7 @@ public class Device {
 		case STATIC_ASSIGNMENT: // Need mapping only (needed file: mapping)
 			setGeneralTaskMappingInfo( mapping_metadata, globalTaskMap);
 			setParentTaskOfTaskGraph();
+			setTaskGraphControllerType();
 			setNumOfProcsOfTasks();
 			break;
 		// TODO: fully dynamic is not supported now
@@ -944,6 +1043,8 @@ public class Device {
 			setParentTaskOfTaskGraph();
 			break;
 		}
+		
+		setTaskGraphControllerType();
 		
 		if(gpusetup_metadata != null){
 			setupGPUInfoPerTask(gpusetup_metadata,globalTaskMap);
@@ -1030,31 +1131,32 @@ public class Device {
 		this.processorList.add(processor);
 	}
 	
+	public void putSupportedConnectionType(DeviceCommunicationType connectionType)
+	{
+		this.supportedConnectionTypeList.add(connectionType);
+	}
+	
 	public HashSet<DeviceCommunicationType> getRequiredCommunicationSet()
 	{
-		HashSet<DeviceCommunicationType> communicationSet = new HashSet<DeviceCommunicationType>();
-		
-		for(Connection connection : this.connectionList.values())
-		{
-			if(connection.getProtocol().equals(ProtocolType.TCP))
-			{
-				communicationSet.add(DeviceCommunicationType.TCP);
-			}
-			else if(connection.getNetwork().equals(NetworkType.BLUETOOTH))
-			{
-				communicationSet.add(DeviceCommunicationType.BLUETOOTH);
-			}
-			else if(connection.getProtocol().equals(ProtocolType.SERIAL))
-			{
-				communicationSet.add(DeviceCommunicationType.SERIAL);
-			}
-			else
-			{
-				throw new IllegalArgumentException();
-			}
-		}
-		
-		return communicationSet;
+		return this.supportedConnectionTypeList;
+	}
+	
+	public void putUDPConnection(String connectionId, UDPConnection udpConnection) 
+	{
+		this.udpList.put(connectionId, udpConnection);
+	}
+	
+	public UDPConnection getUDPConnection(String connectionId)
+	{
+		return this.udpList.get(connectionId);
+	}
+	public ArrayList<UDPConnection> getUDPConnectionList()
+	{
+		return new ArrayList<UDPConnection>(this.udpList.values());
+	}
+	
+	public boolean checkUDPConnectionIsCreated(String connectionId) {
+		return this.udpList.containsKey(connectionId);
 	}
 	
 	public void putConnection(Connection connection) 
@@ -1064,7 +1166,7 @@ public class Device {
 		switch(connection.getProtocol())
 		{
 		case TCP:
-			if(connection.getRole().equalsIgnoreCase(TCPConnection.ROLE_SERVER) == true) {
+			if(connection.getRole().equalsIgnoreCase(IPConnection.ROLE_SERVER) == true) {
 				this.tcpServerList.add((TCPConnection) connection);
 			}
 			else {
@@ -1186,10 +1288,34 @@ public class Device {
 		return libraryMap;
 	}
 
-	public ArrayList<Port> getPortList() {
+	public ArrayList<ChannelPort> getPortList() {
 		return portList;
 	}
 
+	public HashMap<String, MulticastGroup> getMulticastGroupMap() {
+		return multicastGroupList;
+	}
+	
+	public void putMulticastGroup(MulticastGroup multicastGroup) {
+		this.multicastGroupList.put(multicastGroup.getGroupName(), multicastGroup);
+	}
+	
+	public void putMulticastPort(MulticastPort multicastPort) {
+		MulticastGroup multicastGroup;
+		
+		if(this.multicastGroupList.containsKey(multicastPort.getGroupName()))
+		{
+			multicastGroup = this.multicastGroupList.get(multicastPort.getGroupName());
+		}
+		else
+		{
+			throw new IllegalArgumentException();
+		}
+		
+		multicastGroup.putPort(multicastPort.getDirection(), multicastPort);
+		
+	}
+	
 	public HashMap<String, Integer> getPortKeyToIndex() {
 		return portKeyToIndex;
 	}
@@ -1209,7 +1335,7 @@ public class Device {
 	public ArrayList<TCPConnection> getTcpClientList() {
 		return tcpClientList;
 	}
-
+	
 	public ArrayList<Module> getModuleList() {
 		return moduleList;
 	}

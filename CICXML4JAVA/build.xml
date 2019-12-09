@@ -25,7 +25,9 @@ Build file for CIC XML - for use with Jakarta Ant-->
     <property name="target.dir" value="classes" />
 	<property name="lib.dir" value="../JavaLibraries/jars" />
 	<property name="dist.dir" value="dist" />
-    
+ 	<property name="target" value="1.8"/>
+	<property name="source" value="1.8"/>
+   
     <property name="schemas.dir" value="xsd" />
     <property name="main.src.dir" value="${src.dir}/main" />
     <property name="schemas.src.dir" value="${src.dir}/schemas" />
@@ -37,7 +39,7 @@ Build file for CIC XML - for use with Jakarta Ant-->
 	</path>
 
     <path id="jaxb.classpath">
-        <fileset dir="${lib.dir}" includes="jaxb*.jar"/>
+        <fileset dir="${lib.dir}" includes="ja*.jar"/>
     </path>
 
     <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
@@ -90,8 +92,7 @@ Build file for CIC XML - for use with Jakarta Ant-->
 	<!-- Compile Engine Library                                              -->
 	<!-- =================================================================== -->
     <target name="compile" depends="prepare, schemas.binding">
-        <javac destdir="${target.dir}" includes="**/*.java" deprecation="on" debug="on" optimize="off" source="1.6" compiler="extJavac">
-            <compilerarg value="-J-Djava.endorsed.dirs=${as.endorsed.lib.dir}" />
+		<javac destdir="${target.dir}" includes="**/*.java" deprecation="on" debug="on" optimize="off" source="${source}" target="${target}" compiler="extJavac">
             <src>
                 <pathelement location="${main.src.dir}" />
                 <pathelement location="${schemas.src.dir}" />

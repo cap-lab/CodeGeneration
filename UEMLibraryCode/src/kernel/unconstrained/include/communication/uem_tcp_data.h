@@ -30,16 +30,28 @@ typedef struct _STCPInfo {
 	EServerClientPairType enType;
 } STCPInfo;
 
+#ifndef AGGREGATE_TCP_CONNECTION
 typedef struct _STCPServerInfo {
 	STCPInfo stTCPInfo;
 	SIndividualServiceInfo stServiceInfo;
 } STCPServerInfo;
+#else
+typedef struct _STCPAggregatedServiceInfo {
+	STCPInfo stTCPInfo;
+	SAggregateServiceInfo stServiceInfo;
+} STCPAggregatedServiceInfo;
+#endif
 
-
-
+#ifndef AGGREGATE_TCP_CONNECTION
 extern STCPServerInfo g_astTCPServerInfo[];
 extern int g_nTCPServerInfoNum;
+#else
+extern STCPAggregatedServiceInfo g_astTCPAggregateServerInfo[];
+extern int g_nTCPAggregateServerInfoNum;
 
+extern STCPAggregatedServiceInfo g_astTCPAggregateClientInfo[];
+extern int g_nTCPAggregateClientInfoNum;
+#endif
 
 #ifdef __cplusplus
 }

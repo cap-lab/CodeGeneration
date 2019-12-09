@@ -32,7 +32,7 @@ public class Constants {
 	public static final String DEFAULT_PROPERTIES_FILE_NAME = "translator.properties";
 	public static final String DEFAULT_MODULE_XML_FILE_NAME = "module.xml";
 	public static final String DEFAULT_PROPERTIES_FILE_PATH = "config" + File.separator + DEFAULT_PROPERTIES_FILE_NAME;
-	public static final String DEFAULT_MODULE_XML_PATH = ".." + File.separator + "UEMTranslator" + File.separator + "config" + File.separator + DEFAULT_MODULE_XML_FILE_NAME;
+	public static final String DEFAULT_MODULE_XML_PATH = "config" + File.separator + DEFAULT_MODULE_XML_FILE_NAME;
 	public static final String DEFAULT_TEMPLATE_DIR = "templates";
 	public static final String DEFAULT_TRANSLATED_CODE_TEMPLATE_DIR = ".." + File.separator + "UEMLibraryCode";
 	public static final String DEFAULT_MAKEFILE_AM = "Makefile.am";
@@ -52,7 +52,10 @@ public class Constants {
 	public static final String TEMPLATE_TAG_TASK_MAP = "flat_task";
 	public static final String TEMPLATE_TAG_TASK_GRAPH = "task_graph";
 	public static final String TEMPLATE_TAG_CHANNEL_LIST = "channel_list";
+	public static final String TEMPLATE_TAG_MULTICAST_GROUP_LIST = "multicast_group_list";
 	public static final String TEMPLATE_TAG_DEVICE_INFO = "device_info";
+	public static final String TEMPLATE_TAG_DEVICE_ID = "device_id";
+	
 	public static final String TEMPLATE_TAG_MAPPING_INFO = "mapping_info";
 	public static final String TEMPLATE_TAG_STATIC_SCHEDULE_INFO = "schedule_info";
 	public static final String TEMPLATE_TAG_PORT_INFO = "port_info";
@@ -61,11 +64,13 @@ public class Constants {
 	public static final String TEMPLATE_TAG_LIBRARY_INFO = "library_info";
 	public static final String TEMPLATE_TAG_DEVICE_CONSTRAINED_INFO = "device_constrained_info";
 	public static final String TEMPLATE_TAG_USED_COMMUNICATION_LIST = "used_communication_list";
+	public static final String TEMPLATE_TAG_SUPPORTED_COMMUNICATION_LIST = "supported_communication_list";
 	
 	public static final String TEMPLATE_TAG_GPU_USED = "gpu_used";
 	public static final String TEMPLATE_TAG_COMMUNICATION_USED = "communication_used";
 	public static final String TEMPLATE_TAG_TCP_SERVER_LIST = "tcp_server_list";
 	public static final String TEMPLATE_TAG_TCP_CLIENT_LIST = "tcp_client_list";
+	public static final String TEMPLATE_TAG_UDP_LIST = "udp_list";
 	public static final String TEMPLATE_TAG_MODULE_LIST = "module_list";
 	public static final String TEMPLATE_TAG_BLUETOOTH_MASTER_LIST = "bluetooth_master_list";
 	public static final String TEMPLATE_TAG_BLUETOOTH_SLAVE_LIST = "bluetooth_slave_list";

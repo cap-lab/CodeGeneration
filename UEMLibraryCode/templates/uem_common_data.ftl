@@ -127,9 +127,11 @@ ${innerspace}		${scheduleItem.taskName}_Go${scheduleItem.taskFuncId}(${flat_task
 ${innerspace}		result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
 ${innerspace}		if(result == ERR_UEM_NOERROR)
 ${innerspace}		{
+${innerspace}			SModeTransitionController *pstController = NULL;
+${innerspace}			pstController = (SModeTransitionController *) g_stGraph_${parentTaskName}.pController;
 ${innerspace}			result = UCThreadMutex_Lock(pstTask->hMutex);
 ${innerspace}			if(result == ERR_UEM_NOERROR){
-${innerspace}				transitMode_${parentTaskName}(g_astTasks_${flat_task[parentTaskName].parentTaskGraphName}[${flat_task[parentTaskName].inGraphIndex}].pstMTMInfo);
+${innerspace}				transitMode_${parentTaskName}(pstController->pstMTMInfo);
 ${innerspace}				UCThreadMutex_Unlock(pstTask->hMutex);
 ${innerspace}			}	
 ${innerspace}			return; // exit when the mode is MODE_STATE_TRANSITING
@@ -140,13 +142,16 @@ ${innerspace}}
 		
 		<#if device_constrained_info == "unconstrained">
 ${innerspace}{
-${innerspace}	STask *pstTask = (STask *)NULL;
-${innerspace}	uem_result result;
-${innerspace}
-${innerspace}	result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
-${innerspace}	if(result == ERR_UEM_NOERROR)
+${innerspace}	if(nTaskId != INVALID_TASK_ID) //ignore setting nCurRunIndex operation when given nTaskId is INVALID_TASK_ID. 
 ${innerspace}	{
-${innerspace}		pstTask->astThreadContext[${scheduleItem.taskFuncId}].nCurRunIndex = pstTask->nCurIteration;
+${innerspace}		STask *pstTask = (STask *)NULL;
+${innerspace}		uem_result result;
+${innerspace}	
+${innerspace}		result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
+${innerspace}		if(result == ERR_UEM_NOERROR)
+${innerspace}		{
+${innerspace}			pstTask->astThreadContext[${scheduleItem.taskFuncId}].nCurRunIndex = pstTask->nCurIteration;
+${innerspace}		}
 ${innerspace}	}
 ${innerspace}}
 		</#if>

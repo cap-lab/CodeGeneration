@@ -5,8 +5,8 @@
  *      Author: chjej202
  */
 
-#ifndef SRC_COMMON_UNCONSTRAINED_INCLUDE_COMMUNICATION_UCENDIAN_H_
-#define SRC_COMMON_UNCONSTRAINED_INCLUDE_COMMUNICATION_UCENDIAN_H_
+#ifndef SRC_COMMON_INCLUDE_UCENDIAN_H_
+#define SRC_COMMON_INCLUDE_UCENDIAN_H_
 
 #include <uem_common.h>
 
@@ -74,4 +74,4 @@ uem_bool UCEndian_LittleEndianCharToSystemShort(char *pBuffer, int nBufferLen, O
 }
 #endif
 
-#endif /* SRC_COMMON_UNCONSTRAINED_INCLUDE_COMMUNICATION_UCENDIAN_H_ */
+#endif /* SRC_COMMON_INCLUDE_UCENDIAN_H_ */

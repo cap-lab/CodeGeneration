@@ -96,6 +96,34 @@ _EXIT:
 	return result;
 }
 
+uem_result UCThreadEvent_ClearEvent(HThreadEvent hEvent)
+{   
+    uem_result result = ERR_UEM_UNKNOWN;
+    SThreadEvent *pstEvent = NULL;
+    uem_bool bMutexFailed = FALSE;
+#ifdef ARGUMENT_CHECK
+    if (IS_VALID_HANDLE(hEvent, ID_UEM_THREAD_EVENT) == FALSE) {
+        ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+    }
+#endif
+    pstEvent = (SThreadEvent *) hEvent;
+    
+    if (pthread_mutex_lock(&(pstEvent->hMutex)) != 0) {
+        bMutexFailed = TRUE;
+    }
+    
+    pstEvent->bIsSet = FALSE; // clear event
+    
+    if (bMutexFailed == FALSE && pthread_mutex_unlock(&(pstEvent->hMutex)) != 0) {
+        // ignore error
+    }
+    
+    result = ERR_UEM_NOERROR;
+_EXIT:
+    return result;
+}
+
+
 uem_result UCThreadEvent_WaitEvent(HThreadEvent hEvent)
 {
 	uem_result result = ERR_UEM_UNKNOWN;

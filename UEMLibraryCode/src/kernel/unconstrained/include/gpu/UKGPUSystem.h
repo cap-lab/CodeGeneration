@@ -5,8 +5,8 @@
  *      Author: jej
  */
 
-#ifndef SRC_KERNEL_UNCONSTRAINED_UKGPUSYSTEM_H_
-#define SRC_KERNEL_UNCONSTRAINED_UKGPUSYSTEM_H_
+#ifndef SRC_KERNEL_UNCONSTRAINED_INCLUDE_GPU_UKGPUSYSTEM_H_
+#define SRC_KERNEL_UNCONSTRAINED_INCLUDE_GPU_UKGPUSYSTEM_H_
 
 #include <uem_common.h>
 
@@ -138,5 +138,5 @@ uem_result UKGPUSystem_MapGPU(HThread hThread, int nProcessorId, int nLocalId);
 }
 #endif
 
-#endif /* SRC_KERNEL_UNCONSTRAINED_UKGPUSYSTEM_H_ */
+#endif /* SRC_KERNEL_UNCONSTRAINED_INCLUDE_GPU_UKGPUSYSTEM_H_ */
 

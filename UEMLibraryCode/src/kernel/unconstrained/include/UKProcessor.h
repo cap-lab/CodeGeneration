@@ -5,8 +5,8 @@
  *      Author: jej
  */
 
-#ifndef SRC_KERNEL_INCLUDE_UKPROCESSOR_H_
-#define SRC_KERNEL_INCLUDE_UKPROCESSOR_H_
+#ifndef SRC_KERNEL_UNCONSTRAINED_INCLUDE_UKPROCESSOR_H_
+#define SRC_KERNEL_UNCONSTRAINED_INCLUDE_UKPROCESSOR_H_
 
 #include <uem_common.h>
 
@@ -47,4 +47,4 @@ uem_result UKProcessor_GetGPUProcessorId(IN int nProcessorId, OUT int *pnGPUProc
 }
 #endif
 
-#endif /* SRC_KERNEL_INCLUDE_UKPROCESSOR_H_ */
+#endif /* SRC_KERNEL_UNCONSTRAINED_INCLUDE_UKPROCESSOR_H_ */

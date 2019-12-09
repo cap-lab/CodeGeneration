@@ -34,6 +34,7 @@ static dim3 __threads(THREAD_X, THREAD_Y, THREAD_Z);
 #define KERNEL_CALL(x, ...) x<<<GRID, THREADS>>>(__VA_ARGS__);
 </#if>
 
+#include <UFMulticastPort.h>
 
 #include <UFPort.h> 
 #include <UFPort_deprecated.h>

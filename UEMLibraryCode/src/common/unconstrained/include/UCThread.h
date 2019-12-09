@@ -5,8 +5,8 @@
  *      Author: jej
  */
 
-#ifndef SRC_COMMON_INCLUDE_UCTHREAD_H_
-#define SRC_COMMON_INCLUDE_UCTHREAD_H_
+#ifndef SRC_COMMON_UNCONSTRAINED_INCLUDE_UCTHREAD_H_
+#define SRC_COMMON_UNCONSTRAINED_INCLUDE_UCTHREAD_H_
 
 #include "uem_common.h"
 
@@ -81,4 +81,4 @@ uem_result UCThread_SetMappedCPU(HThread hThread, int nCoreId);
 }
 #endif
 
-#endif /* SRC_COMMON_INCLUDE_UCTHREAD_H_ */
+#endif /* SRC_COMMON_UNCONSTRAINED_INCLUDE_UCTHREAD_H_ */

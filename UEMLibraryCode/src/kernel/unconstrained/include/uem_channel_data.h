@@ -3,10 +3,12 @@
  *
  *  Created on: 2018. 3. 30.
  *      Author: jej
+ *      Changed :
+ *  	    1. 2019. 06. 20. wecracy
  */
 
-#ifndef SRC_KERNEL_INCLUDE_UEM_CHANNEL_DATA_H_
-#define SRC_KERNEL_INCLUDE_UEM_CHANNEL_DATA_H_
+#ifndef SRC_KERNEL_UNCONSTRAINED_INCLUDE_UEM_CHANNEL_DATA_H_
+#define SRC_KERNEL_UNCONSTRAINED_INCLUDE_UEM_CHANNEL_DATA_H_
 
 #include <uem_common.h>
 
@@ -16,20 +18,12 @@
 
 #include <uem_enum.h>
 
+#include <uem_memory_data.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-
-typedef enum _ESharedMemoryAccessType {
-	ACCESS_TYPE_CPU_ONLY,
-	ACCESS_TYPE_CPU_GPU,
-	ACCESS_TYPE_GPU_CPU,
-	ACCESS_TYPE_GPU_GPU,
-	ACCESS_TYPE_GPU_GPU_DIFFERENT,
-} ESharedMemoryAccessType;
 
 typedef struct _SChunk {
 	void *pChunkStart; // fixed
@@ -54,18 +48,6 @@ typedef struct _SAvailableChunk {
 	SAvailableChunk *pstPrev;
 	SAvailableChunk *pstNext;
 } SAvailableChunk;
-
-typedef uem_result (*FnCreateMemory)(int nSize, int nProcessorId, OUT void **ppMemory);
-typedef uem_result (*FnCopyMemory)(IN void *pDest, IN void *pSource, int nCopySize);
-typedef uem_result (*FnDestroyMemory)(IN OUT void **ppMemory);
-
-typedef struct _SGenericMemoryAccess {
-	FnCreateMemory fnCreateMemory;
-	FnCopyMemory fnCopyToMemory;
-	FnCopyMemory fnCopyInMemory;
-	FnCopyMemory fnCopyFromMemory;
-	FnDestroyMemory fnDestroyMemory;
-} SGenericMemoryAccess;
 
 typedef struct _SSharedMemoryChannel {
 	ESharedMemoryAccessType enAccessType;
@@ -185,4 +167,4 @@ extern int g_nChannelAPINum;
 }
 #endif
 
-#endif /* SRC_KERNEL_INCLUDE_UEM_CHANNEL_DATA_H_ */
+#endif /* SRC_KERNEL_UNCONSTRAINED_INCLUDE_UEM_CHANNEL_DATA_H_ */

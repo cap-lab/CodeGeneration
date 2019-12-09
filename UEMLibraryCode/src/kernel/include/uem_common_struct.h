@@ -16,6 +16,7 @@ extern "C"
 #endif
 
 typedef struct _STask STask;
+typedef struct _STaskGraph STaskGraph;
 typedef struct _SChannel SChannel;
 
 typedef struct _STimer {
@@ -31,12 +32,6 @@ typedef struct _STaskFunctions {
 	FnUemTaskWrapup fnWrapup;
 } STaskFunctions;
 
-typedef struct _STaskGraph {
-	ETaskGraphType enType;
-	STask *astTasks;
-	int nNumOfTasks;
-	STask *pstParentTask;
-} STaskGraph;
 
 typedef union _UParamValue {
 	int nParam;

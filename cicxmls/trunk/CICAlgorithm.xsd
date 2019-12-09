@@ -17,6 +17,7 @@
       <xs:element name="tasks" type="TaskListType" minOccurs="1" maxOccurs="1" />
       <xs:element name="libraries" type="LibraryListType" minOccurs="0" maxOccurs="1" />
 	  <xs:element name="channels" type="ChannelListType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="multicastGroups" type="MulticastGroupListType" minOccurs="0" maxOccurs="1" />
 	  <xs:element name="portMaps" type="PortMapListType" minOccurs="0" maxOccurs="1" />
       <xs:element name="libraryConnections" type="LibraryConnectionListType" minOccurs="0" maxOccurs="1" />
       <xs:element name="taskGroups" type="TaskGroupListType" minOccurs="0" maxOccurs="1" />
@@ -43,7 +44,13 @@
       <xs:element name="channel" type="ChannelType" minOccurs="1" maxOccurs="unbounded" />
     </xs:sequence>
   </xs:complexType>
-
+  
+  <xs:complexType name="MulticastGroupListType">
+    <xs:sequence>
+      <xs:element name="multicastGroup" type="MulticastGroupType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  
   <xs:complexType name="PortMapListType">
     <xs:sequence>
       <xs:element name="portMap" type="PortMapType" minOccurs="1" maxOccurs="unbounded" />
@@ -99,6 +106,7 @@
     <xs:sequence>
       <xs:element name="dataParallel" type="TaskDataParallelType" minOccurs="0" maxOccurs="1" />
       <xs:element name="port" type="TaskPortType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="multicastPort" type="MulticastPortType" minOccurs="0" maxOccurs="unbounded" />
       <xs:element name="mode" type="TaskModeType" minOccurs="0" maxOccurs="unbounded" />
       <xs:element name="libraryMasterPort" type="LibraryMasterPortType" minOccurs="0" maxOccurs="unbounded" />
       <xs:element name="parameter" type="TaskParameterType" minOccurs="0" maxOccurs="unbounded" />
@@ -151,7 +159,13 @@
     <xs:attribute name="sampleSize" type="xs:nonNegativeInteger" use="optional" />
     <xs:attribute name="isFeedback" type="xs:boolean" use="optional" />
   </xs:complexType>
-  
+
+  <xs:complexType name="MulticastPortType">
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="group" type="NameType" use="required" />
+    <xs:attribute name="direction" type="PortDirectionType" use="required" />
+  </xs:complexType>
+
   <xs:complexType name="TaskModeType">
 	<xs:attribute name="input" type="xs:string" use="required" />
 	<xs:attribute name="mode" type="xs:string" use="required" />
@@ -237,7 +251,13 @@
     <xs:attribute name="task" type="NameType" use="required" />
     <xs:attribute name="port" type="NameType" use="required" />
   </xs:complexType>
-
+  
+  <!-- Type definitions for multicast group specification -->
+  <xs:complexType name="MulticastGroupType">
+    <xs:attribute name="groupName" type="NameType" use="required" />
+    <xs:attribute name="size" type="xs:nonNegativeInteger" use="required" />
+  </xs:complexType>
+  
   <!-- Type definitions for port map specification -->
   <xs:complexType name="PortMapType">
     <xs:attribute name="task" type="NameType" use="required" />
@@ -434,8 +454,9 @@
 
   <xs:simpleType name="PortMapTypeType">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="distributing" />
-      <xs:enumeration value="broadcasting" />
+    <xs:enumeration value="normal" />       
+    <xs:enumeration value="distributing" />
+    <xs:enumeration value="broadcasting" />
     </xs:restriction>
   </xs:simpleType>
   

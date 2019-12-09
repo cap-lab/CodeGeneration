@@ -3,6 +3,8 @@
  *
  *  Created on: 2018. 6. 8.
  *      Author: jej
+ *      Changed :
+ *  	    1. 2019. 06. 20. wecracy
  */
 
 #ifndef SRC_KERNEL_INCLUDE_UEM_ENUM_H_
@@ -53,7 +55,6 @@ typedef enum _ETimeMetric {
 	TIME_METRIC_HOUR,
 } ETimeMetric;
 
-
 typedef enum _EPortDirection {
 	PORT_DIRECTION_OUTPUT,
 	PORT_DIRECTION_INPUT,
@@ -65,12 +66,10 @@ typedef enum _EPortSampleRateType {
 	PORT_SAMPLE_RATE_MULTIPLE,
 } EPortSampleRateType;
 
-
 typedef enum _ECommunicationType {
 	COMMUNICATION_TYPE_SHARED_MEMORY,
 	COMMUNICATION_TYPE_REMOTE_READER,
 	COMMUNICATION_TYPE_REMOTE_WRITER,
-
 } ECommunicationType;
 
 typedef enum _EChannelType {
@@ -79,6 +78,11 @@ typedef enum _EChannelType {
 	CHANNEL_TYPE_OUTPUT_ARRAY,
 	CHANNEL_TYPE_FULL_ARRAY,
 } EChannelType;
+
+typedef enum _EMulticastCommunicationType {
+	SHARED_MEMORY,
+	UDP,
+}EMulticastCommunicationType;
 
 typedef enum _ELoopType {
 	LOOP_TYPE_CONVERGENT,

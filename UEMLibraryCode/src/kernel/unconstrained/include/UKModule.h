@@ -5,8 +5,8 @@
  *      Author: jej
  */
 
-#ifndef SRC_KERNEL_INCLUDE_UKMODULE_H_
-#define SRC_KERNEL_INCLUDE_UKMODULE_H_
+#ifndef SRC_KERNEL_UNCONSTRAINED_INCLUDE_UKMODULE_H_
+#define SRC_KERNEL_UNCONSTRAINED_INCLUDE_UKMODULE_H_
 
 #include <uem_common.h>
 
@@ -44,4 +44,4 @@ extern SAddOnModule g_stModules[];
 }
 #endif
 
-#endif /* SRC_KERNEL_INCLUDE_UKMODULE_H_ */
+#endif /* SRC_KERNEL_UNCONSTRAINED_INCLUDE_UKMODULE_H_ */

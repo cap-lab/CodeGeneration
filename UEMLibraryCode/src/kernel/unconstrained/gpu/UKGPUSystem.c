@@ -14,6 +14,8 @@
 #include <UCGPUMemory.h>
 #include <UCThread.h>
 
+#include <UKProcessor.h>
+
 uem_result UKGPUSystem_CreateMemory(int nSize, int nProcessorId, OUT void **ppMemory)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
