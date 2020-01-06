@@ -323,13 +323,17 @@ public class Application {
 	
 	private void putSupportedConnectionTypeListOnDevice(Device device, DeviceConnectionListType connectionList) 
 	{
-		if(connectionList.getSerialConnection() == null)
+		if(connectionList.getSerialConnection() != null)
 		{
 			if(connectionList.getSerialConnection().stream().filter(x -> x.getNetwork().equals(NetworkType.BLUETOOTH)).count() > 0) 
 			{
 				device.putSupportedConnectionType(DeviceCommunicationType.BLUETOOTH);
 			}
 			if(connectionList.getSerialConnection().stream().filter(x -> x.getNetwork().equals(NetworkType.WIRE)).count() > 0) 
+			{
+				device.putSupportedConnectionType(DeviceCommunicationType.SERIAL);
+			}
+			if(connectionList.getSerialConnection().stream().filter(x -> x.getNetwork().equals(NetworkType.USB)).count() > 0) 
 			{
 				device.putSupportedConnectionType(DeviceCommunicationType.SERIAL);
 			}
