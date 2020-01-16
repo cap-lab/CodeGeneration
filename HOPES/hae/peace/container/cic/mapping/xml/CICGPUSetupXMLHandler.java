@@ -50,10 +50,12 @@ public class CICGPUSetupXMLHandler extends CICXMLHandler{
 	
 	public GPUTaskType findTask(String taskName)
 	{
-		for (Object obj : gpuSetup.getTasks().getTask()) {
-			GPUTaskType gpuTask = (GPUTaskType) obj;
-			if (taskName.equalsIgnoreCase(gpuTask.getName())) {
-				return gpuTask;
+		if (gpuSetup.getTasks() != null) {
+			for (Object obj : gpuSetup.getTasks().getTask()) {
+				GPUTaskType gpuTask = (GPUTaskType) obj;
+				if (taskName.equalsIgnoreCase(gpuTask.getName())) {
+					return gpuTask;
+				}
 			}
 		}
 		return null;
