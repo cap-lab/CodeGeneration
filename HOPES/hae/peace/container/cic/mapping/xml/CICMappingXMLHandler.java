@@ -68,7 +68,7 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 						System.out.println("cannot find processor[" + poolName + ":" + localId + "]");
 						continue;
 					}
-					task.addProcessor(processor, processorType.getScale().intValue());
+					task.addProcessorForce(processor);
 				}
 				taskList.add(task);
 			}			
@@ -118,7 +118,6 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 					MappingProcessorIdType processorType = new MappingProcessorIdType();
 					processorType.setPool(processor.getName());
 					processorType.setLocalId(BigInteger.valueOf(processor.getIndex()));
-					processorType.setScale(BigInteger.valueOf(task.getScale(processor)));
 					processors.add(processorType);
 					device.get(0).setName(processor.getParentDevice());
 				}
