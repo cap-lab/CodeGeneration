@@ -5,10 +5,11 @@ package hae.peace.container.cic.mapping.xml;
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import hae.kernel.util.ObjectList;
 import hae.peace.container.cic.mapping.MemoryRegion;
 import hae.peace.container.cic.mapping.Processor;
 import hopes.cic.exception.CICXMLException;
@@ -57,9 +58,10 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 		this.architecture = architecture;
 	}
 
-	private ObjectList procList = new ObjectList();
+	private List<Processor> procList = new ArrayList<Processor>();
 	private boolean processed = false;
-	public ObjectList getProcessorList() {
+
+	public List<Processor> getProcessorList() {
 		if (!processed && architecture != null) {
 			procList.clear();
 			makeProcessorList();
@@ -146,38 +148,7 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 		
 		return BigInteger.ZERO;
 	}
-	
-	// * [hshong, 2014/07/01]: deleted: architecture.xml ���濡 ���� map ����
-//	private void updateMemoryRegionMap() {
-//		for (ArchitectureMapType master : architecture.getMaps().getMaster()) {
-//			for (ArchitectureMapSlaveType slave : master.getSlave()) {
-//				MemoryRegion memoryRegion = memoryRegionMap.get(slave.getName());
-//				if (memoryRegion != null)
-//					memoryRegion.addShareCount();
-//			}
-//		}
-//	}
-	
-// * [hshong, 2014/07/01]: deleted: architecture.xml ���濡 ���� map ����
-//	private void addMemoryRegionListToProcessor() {
-//		for (ArchitectureMapType master : architecture.getMaps().getMaster()) {
-//			for (ArchitectureMapSlaveType slave : master.getSlave()) {
-//				MemoryRegion memoryRegion = memoryRegionMap.get(slave.getName());
-//				if (memoryRegion == null)
-//					continue;
-//				
-//				memoryRegion = memoryRegion.clone();
-//				memoryRegion.setBaseAddress(slave.getBaseAddress());
-//				
-//				// TODO localId�� optional�ε� ���� ��� ��� ó���ؾ� �ϳ�?
-//				Processor proc = getProcessor(master.getName(), master.getLocalId());
-//				if (proc == null)
-//					continue;
-//				
-//				proc.getMemoryRegionList().add(memoryRegion);
-//			}
-//		}
-//	}
+
 
 	private void update() {
 		for (ArchitectureDeviceType device : architecture.getDevices().getDevice()) {
@@ -210,8 +181,4 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 	public void setTarget(String target) {
 		architecture.setTarget(target);
 	}
-
-//	public String getFileName() {
-//		return panel.getParentPanel().getNickName() + "_architecture.xml";
-//	}
 }

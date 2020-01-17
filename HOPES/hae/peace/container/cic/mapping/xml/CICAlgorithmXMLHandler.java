@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import hae.kernel.util.ObjectList;
 import hae.peace.container.cic.mapping.MappingTask;
 import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICAlgorithmType;
@@ -81,7 +80,7 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 	}
 	
 	
-	public void updateTaskList(ObjectList taskList)
+	public void updateTaskList(List<MappingTask> taskList)
 	{
 		Map<String, DataParallelType> mapParallelType = new HashMap<String, DataParallelType>();
 		Map<String, LoopStructureTypeType> mapLoopType = new HashMap<String, LoopStructureTypeType>();
@@ -105,16 +104,12 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 			}
 		}
 		
-		for(Object oSubtask : taskList)
-		{
-			if( oSubtask instanceof MappingTask ) {
-				MappingTask task = (MappingTask)oSubtask;
-				String key = task.getName();
-				if(mapParallelType.containsKey(key))
-					task.setParallelType(mapParallelType.get(key));
-				if(mapLoopType.containsKey(key))
-					task.setLoopType(mapLoopType.get(key));
-			}
+		for (MappingTask task : taskList) {
+			String key = task.getName();
+			if (mapParallelType.containsKey(key))
+				task.setParallelType(mapParallelType.get(key));
+			if (mapLoopType.containsKey(key))
+				task.setLoopType(mapLoopType.get(key));
 		}
 	}
 	
