@@ -83,6 +83,9 @@ SLibrary g_stLibraryInfo[] = {
 		l_${libraryName}_wrapup,
 	},
 </#list>
+<#if platform == "windows" && (library_info?size == 0)>
+	0, 
+</#if>
 };
 
 // ##LIBRARY_INFO_TEMPLATE::END

@@ -192,7 +192,7 @@ uem_result UCFixedSizeQueue_PutItem(HFixedSizeQueue hQueue, void *pData, int nEl
 		ERRASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
 	}
 
-	pItemLocation = pstQueue->pQueueData + pstQueue->nRearIndex * nElementSize;
+	pItemLocation = (char *) pstQueue->pQueueData + pstQueue->nRearIndex * nElementSize;
 	UC_memcpy(pItemLocation, pData, nElementSize);
 
 	pstQueue->nRearIndex = (pstQueue->nRearIndex + 1) % pstQueue->nMaxElementNum;
@@ -247,7 +247,7 @@ uem_result UCFixedSizeQueue_GetItem(HFixedSizeQueue hQueue, void *pData, int *pn
 		ERRASSIGNGOTO(result, ERR_UEM_SUSPEND, _EXIT_LOCK);
 	}
 
-	pItemLocation = pstQueue->pQueueData + pstQueue->nFrontIndex * pstQueue->nElementSize;
+	pItemLocation = (char *) pstQueue->pQueueData + pstQueue->nFrontIndex * pstQueue->nElementSize;
 
 	UC_memcpy(pData, pItemLocation, pstQueue->nElementSize);
 

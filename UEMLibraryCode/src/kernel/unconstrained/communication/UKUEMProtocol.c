@@ -635,7 +635,7 @@ static uem_result receiveBody(HVirtualSocket hSocket, SVirtualCommunicationAPI *
 
 	while(nTotalReceivedSize < nBodySize)
 	{
-		result = pstAPI->fnReceive(hSocket, RECEIVE_TIMEOUT, pstDataReceived->pBodyData + nTotalReceivedSize,
+		result = pstAPI->fnReceive(hSocket, RECEIVE_TIMEOUT, (char *)pstDataReceived->pBodyData + nTotalReceivedSize,
 										nBodySize - nTotalReceivedSize, &nReceivedSize);
 		ERRIFGOTO(result, _EXIT);
 

@@ -73,7 +73,7 @@ uem_result UCUnixDomainSocket_Accept(HSocket hServerSocket, HSocket hClientSocke
 	SUCSocket *pstServerSocket = NULL;
 	SUCSocket *pstClientSocket = NULL;
     struct sockaddr_un stClientAddr;
-    socklen_t nLen = 0;
+    socklen_t nLen = sizeof(struct sockaddr_un);
 
 	pstServerSocket = (SUCSocket *) hServerSocket;
 	pstClientSocket = (SUCSocket *) hClientSocket;

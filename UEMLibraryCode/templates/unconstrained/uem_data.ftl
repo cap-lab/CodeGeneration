@@ -74,6 +74,9 @@ SVariableIntMap g_astVariableIntMap_${task.name}[] = {
 		0, 
 	},
 		</#list>
+		<#if platform == "windows" && (task.modeTransition.variableMap?size == 0)>
+	0, 
+		</#if>
 };
 
 		<#if (task.modeTransition.modeMap?size > 1)>
@@ -138,6 +141,9 @@ STaskParameter g_astTaskParameter_${task.name}[] = {
 		{ <#if task_param.type == "INT">.nParam = ${task_param.value?c},<#else>.dbParam = ${task_param.value?c}</#if> },
 	},
 		</#list>
+		<#if platform == "windows" && (task.taskParamList?size == 0)>
+	0, 
+		</#if>
 };
 	</#if>
 </#list>
@@ -354,12 +360,12 @@ STaskGraph g_stGraph_${task_graph_element.name} = {
 
 // ##TASK_ID_TO_TASK_MAP_TEMPLATE::START
 STaskIdToTaskMap g_astTaskIdToTask[] = {
-<#list flat_task as task_name, task>
-	{ 	${task.id}, // Task ID
-		"${task.name}", // Task name
-		&g_astTasks_${task.parentTaskGraphName}[${task.inGraphIndex}], // Task structure pointer
-	},
-</#list>
+	<#list flat_task as task_name, task>
+		{ 	${task.id}, // Task ID
+			"${task.name}", // Task name
+			&g_astTasks_${task.parentTaskGraphName}[${task.inGraphIndex}], // Task structure pointer
+		},
+	</#list>
 };
 // ##TASK_ID_TO_TASK_MAP_TEMPLATE::END
 
@@ -391,6 +397,9 @@ SScheduleList g_astScheduleList_${scheduled_task.parentTaskName}_${compositeMapp
 		<#if task_schedule.hasSourceTask == true>TRUE<#else>FALSE</#if>,
 	},
 		</#list>
+		<#if platform == "windows" && (compositeMappedProcessor.compositeTaskScheduleList?size == 0)>
+	0, 
+		</#if>
 };
 	</#list>
 </#list>
@@ -410,6 +419,9 @@ SScheduledTasks g_astScheduledTaskList[] = {
 	},
 	</#list>
 </#list>
+<#if platform == "windows" && (schedule_info?size == 0)>
+	0, 
+</#if>
 };
 
 SGenericMapProcessor g_stCPUProcessor = {
@@ -447,6 +459,9 @@ SMappedGeneralTaskInfo g_astGeneralTaskMappingInfo[] = {
 	},
 	</#list>
 </#list>
+<#if platform == "windows" && (mapping_info?size == 0)>
+	0, 
+</#if>
 };
 
 
@@ -460,6 +475,9 @@ SMappedCompositeTaskInfo g_astCompositeTaskMappingInfo[] = {
 	},
 	</#list>
 </#list>
+<#if platform == "windows" && (schedule_info?size == 0)>
+	0, 
+</#if>
 };
 
 

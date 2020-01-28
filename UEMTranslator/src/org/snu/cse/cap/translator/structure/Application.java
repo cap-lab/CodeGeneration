@@ -311,7 +311,7 @@ public class Application {
 		if(connectionList.getTCPConnection() == null)
 		{
 			return;
-		}
+		}		
 		for(TCPConnectionType connectionType : connectionList.getTCPConnection())
 		{
 			TCPConnection connection = null;
@@ -338,11 +338,11 @@ public class Application {
 				device.putSupportedConnectionType(DeviceCommunicationType.SERIAL);
 			}
 		}
-		if(connectionList.getTCPConnection() != null)
+		if(connectionList.getTCPConnection() != null && connectionList.getTCPConnection().size() > 0)
 		{
 			device.putSupportedConnectionType(DeviceCommunicationType.TCP);
 		}
-		if(connectionList.getUDPConnection() != null)
+		if(connectionList.getUDPConnection() != null && connectionList.getUDPConnection().size() > 0)
 		{
 			device.putSupportedConnectionType(DeviceCommunicationType.UDP);
 		}
@@ -1585,6 +1585,8 @@ public class Application {
 			channel.setOutputPort(srcPort.getMostUpperPort());
 			channel.setInputPort(dstPort.getMostUpperPort());
 
+			System.out.println("ChannelSrcPort: " + channelSrcPort.getTask() + "/" + channelSrcPort.getPort());
+			System.out.println("ChannelDstPort: " + channelDstPort.getTask() + "/" + channelDstPort.getPort());
 			srcTaskMappingInfo = findMappingInfoByTaskName(channelSrcPort.getTask());
 			dstTaskMappingInfo = findMappingInfoByTaskName(channelDstPort.getTask());
 

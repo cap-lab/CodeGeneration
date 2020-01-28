@@ -1,5 +1,5 @@
 /*
- * UCBluetoothSocket.c
+ * UCTCPSocket.c
  *
  *  Created on: 2018. 10. 2.
  *      Author: chjej202
@@ -9,12 +9,7 @@
 #include <config.h>
 #endif
 
-#include <fcntl.h>
-#include <errno.h>
-#include <sys/socket.h>
-
-#include <bluetooth/bluetooth.h>
-#include <bluetooth/rfcomm.h>
+#include <winsock2.h>
 
 #include <uem_common.h>
 
@@ -22,17 +17,17 @@
 
 #include <UCDynamicSocket.h>
 
-uem_result UCBluetoothSocket_Bind(HSocket hServerSocket)
+uem_result UCTCPSocket_Bind(HSocket hServerSocket)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SUCSocket *pstSocket = NULL;
-    struct sockaddr_rc stBluetoothServerAddr;
+    struct sockaddr_in stTCPServerAddr;
     int nRet = 0;
     struct linger stLinger;
 
 	pstSocket = (SUCSocket *) hServerSocket;
 
-   pstSocket->nSocketfd = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+   pstSocket->nSocketfd = socket(AF_INET, SOCK_STREAM, 0);
    if(pstSocket->nSocketfd < 0)
    {
 	   ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
@@ -40,20 +35,19 @@ uem_result UCBluetoothSocket_Bind(HSocket hServerSocket)
 
    stLinger.l_onoff = TRUE;
    stLinger.l_linger = 0;
+   //nRet = setsockopt(pstSocket->nSocketfd, SOL_SOCKET, TCP_NODELAY, &stLinger, sizeof(stLinger));
    nRet = setsockopt(pstSocket->nSocketfd, SOL_SOCKET, SO_LINGER, (void *)&stLinger, sizeof(stLinger));
    if(nRet != 0)
    {
 	   ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
    }
 
-   UC_memset(&stBluetoothServerAddr, 0, sizeof(stBluetoothServerAddr));
-   stBluetoothServerAddr.rc_family = AF_BLUETOOTH;
-   stBluetoothServerAddr.rc_bdaddr = *BDADDR_ANY;
+   UC_memset(&stTCPServerAddr, 0, sizeof(stTCPServerAddr));
+   stTCPServerAddr.sin_family = AF_INET;
+   stTCPServerAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+   stTCPServerAddr.sin_port = htons(pstSocket->nPort);
 
-   // TODO: check channel need to be set or dynamically bind
-   stBluetoothServerAddr.rc_channel = 1;
-
-   nRet = bind(pstSocket->nSocketfd, (struct sockaddr *)&stBluetoothServerAddr, sizeof(stBluetoothServerAddr));
+   nRet = bind(pstSocket->nSocketfd, (struct sockaddr *)&stTCPServerAddr, sizeof(stTCPServerAddr));
    if(nRet != 0)
    {
 	   UEM_DEBUG_PRINT("bind errno: %d, %s\n", errno, strerror(errno));
@@ -65,13 +59,13 @@ _EXIT:
 	return result;
 }
 
-uem_result UCBluetoothSocket_Accept(HSocket hServerSocket, HSocket hClientSocket)
+uem_result UCTCPSocket_Accept(HSocket hServerSocket, HSocket hClientSocket)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SUCSocket *pstServerSocket = NULL;
 	SUCSocket *pstClientSocket = NULL;
-    struct sockaddr_rc stClientAddr;
-    socklen_t nLen = sizeof(struct sockaddr_rc);
+    struct sockaddr_in stClientAddr;
+    int nLen = sizeof(struct sockaddr_in);
 
 	pstServerSocket = (SUCSocket *) hServerSocket;
 	pstClientSocket = (SUCSocket *) hClientSocket;
@@ -88,54 +82,39 @@ _EXIT:
 }
 
 // TODO: nTimeout must be implemented
-uem_result UCBluetoothSocket_Connect(HSocket hSocket, IN int nTimeout)
+uem_result UCTCPSocket_Connect(HSocket hSocket, IN int nTimeout)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SUCSocket *pstSocket = NULL;
-    struct sockaddr_rc stClientAddr;
+    struct sockaddr_in stTCPClientAddr;
     int nRet = 0;
     struct linger stLinger;
 
 	pstSocket = (SUCSocket *) hSocket;
 
-    pstSocket->nSocketfd = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+    pstSocket->nSocketfd = socket(AF_INET, SOCK_STREAM, 0);
     if(pstSocket->nSocketfd < 0)
-     {
+    {
         ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
-     }
+    }
 
     stLinger.l_onoff = TRUE;
     stLinger.l_linger = 0;
-    nRet = setsockopt(pstSocket->nSocketfd, SOL_SOCKET, SO_LINGER, &stLinger, sizeof(stLinger));
+    nRet = setsockopt(pstSocket->nSocketfd, SOL_SOCKET, SO_LINGER, (void *)&stLinger, sizeof(stLinger));
     if(nRet != 0)
     {
         ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
     }
 
-    UC_memset(&stClientAddr, 0, sizeof(stClientAddr));
-    stClientAddr.rc_family = AF_BLUETOOTH;
-    stClientAddr.rc_channel = 1;
+    UC_memset(&stTCPClientAddr, 0, sizeof(stTCPClientAddr));
+    stTCPClientAddr.sin_family = AF_INET;
+    stTCPClientAddr.sin_addr.s_addr = inet_addr(pstSocket->pszSocketPath);
+    stTCPClientAddr.sin_port = htons(pstSocket->nPort);
 
-    nRet = str2ba( pstSocket->pszSocketPath, &stClientAddr.rc_bdaddr );
+    nRet = connect(pstSocket->nSocketfd, (struct sockaddr *)&stTCPClientAddr, sizeof(stTCPClientAddr));
     if(nRet != 0)
     {
-    	ERRASSIGNGOTO(result, ERR_UEM_CONVERSION_ERROR, _EXIT);
-    }
-
-    nRet = fcntl(pstSocket->nSocketfd, F_SETFL, O_NONBLOCK);
-    if(nRet != 0)
-    {
-    	ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);
-    }
-
-    nRet = connect(pstSocket->nSocketfd, (struct sockaddr *)&stClientAddr, sizeof(stClientAddr));
-    if(nRet != 0)
-    {
-    	if(errno == EINPROGRESS)
-    	{
-    		UEMASSIGNGOTO(result, ERR_UEM_IN_PROGRESS, _EXIT);
-    	}
-    	ERRASSIGNGOTO(result, ERR_UEM_CONNECT_ERROR, _EXIT);
+        ERRASSIGNGOTO(result, ERR_UEM_CONNECT_ERROR, _EXIT);
     }
 
 	result = ERR_UEM_NOERROR;
