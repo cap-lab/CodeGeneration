@@ -66,6 +66,8 @@ import hopes.cic.xml.CICMappingType;
 import hopes.cic.xml.CICProfileType;
 import hopes.cic.xml.ChannelPortType;
 import hopes.cic.xml.ChannelType;
+import hopes.cic.xml.DLAppTaskType;
+import hopes.cic.xml.DLAppType;
 import hopes.cic.xml.DeviceConnectionListType;
 import hopes.cic.xml.EnvironmentVariableType;
 import hopes.cic.xml.LibraryFunctionArgumentType;
@@ -183,6 +185,10 @@ public class Application {
 
 		for(TaskType task_metadata: algorithm_metadata.getTasks().getTask())
 		{
+			// skip DLApp.
+			if (task_metadata instanceof DLAppTaskType)
+				continue;
+
 			task = new Task(taskId, task_metadata);
 
 			this.taskMap.put(task.getName(), task);
