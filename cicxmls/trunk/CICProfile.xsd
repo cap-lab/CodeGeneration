@@ -16,7 +16,8 @@
     <xs:sequence>
       <xs:element name="task" type="ProfileTaskType" minOccurs="1" maxOccurs="unbounded" />
       <xs:element name="library" type="ProfileLibraryType" minOccurs="0" maxOccurs="unbounded" />
-      <xs:element name="comm" type="ProfileCommType" minOccurs="0" maxOccurs="unbounded" />  
+      <xs:element name="comm" type="ProfileCommType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="migration" type="ProfileMigrationType" minOccurs="0" maxOccurs="unbounded" />    
     </xs:sequence>
   </xs:complexType>
   
@@ -37,11 +38,20 @@
   <xs:complexType name="ProfileType">
     <xs:attribute name="processorType" type="xs:string" use="required" />
     <xs:attribute name="value" type="xs:nonNegativeInteger" use="required" />
-    <xs:attribute name="unit" type="xs:string" use="required" />
+    <xs:attribute name="unit" type="TimeMetricType" use="required" />
     <xs:attribute name="memoryAccessCount" type="xs:nonNegativeInteger" use="optional" />
   </xs:complexType>
 
  <xs:complexType name="ProfileCommType">
+    <xs:attribute name="src" type="NameType" use="required" />
+    <xs:attribute name="dst" type="NameType" use="required" />
+    <xs:attribute name="secondPowerCoef" type="xs:string" use="required" />
+    <xs:attribute name="firstPowerCoef" type="xs:string" use="required" />  
+    <xs:attribute name="constant" type="xs:string" use="required" />
+    <xs:attribute name="timeunit" type="TimeMetricType" use="required" />
+  </xs:complexType>
+  
+  <xs:complexType name="ProfileMigrationType">
     <xs:attribute name="src" type="NameType" use="required" />
     <xs:attribute name="dst" type="NameType" use="required" />
     <xs:attribute name="size" type="xs:nonNegativeInteger" use="required" />

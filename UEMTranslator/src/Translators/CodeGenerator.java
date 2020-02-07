@@ -277,20 +277,24 @@ public class CodeGenerator {
 		for (String outputFileName : codeOrganizer.getKernelDataSourceList()) {
 			Template uemDataTemplate;
 			String templateFileName;
+			String templateFileDir;
 			String outputFilePath = topDirPath + File.separator + CodeOrganizer.KERNEL_GENERATED_DIR + File.separator;
 
 			// remove file extension of the file name (removes last dot and the following
 			// chars ex. abc.x.c => abc.x)
 			templateFileName = outputFileName.replaceFirst("[.][^.]+$", "") + Constants.TEMPLATE_FILE_EXTENSION;
+			templateFileDir = codeOrganizer.getDeviceRestriction() + Constants.TEMPLATE_PATH_SEPARATOR
+					+ codeOrganizer.getPlatform();
 
-			File templateFile = new File(codeOrganizer.getDeviceRestriction() + Constants.TEMPLATE_PATH_SEPARATOR
-					+ codeOrganizer.getPlatform() + Constants.TEMPLATE_PATH_SEPARATOR + templateFileName);
-			if (templateFile.isFile()) {
-				uemDataTemplate = this.templateConfig.getTemplate(templateFile.getCanonicalPath());
-			} else {
-				uemDataTemplate = this.templateConfig.getTemplate(
-						codeOrganizer.getDeviceRestriction() + Constants.TEMPLATE_PATH_SEPARATOR + templateFileName);
+			File templateFile = new File(
+					this.templateDir + Constants.TEMPLATE_PATH_SEPARATOR + templateFileDir
+							+ Constants.TEMPLATE_PATH_SEPARATOR + templateFileName);
+			if (templateFile.isFile() == false) {
+				templateFileDir = codeOrganizer.getDeviceRestriction();
 			}
+			uemDataTemplate = this.templateConfig.getTemplate(
+					templateFileDir + Constants.TEMPLATE_PATH_SEPARATOR + templateFileName);
+			
 			outputFilePath += outputFileName;
 
 			Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
