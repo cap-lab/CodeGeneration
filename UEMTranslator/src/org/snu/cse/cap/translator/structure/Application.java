@@ -67,7 +67,6 @@ import hopes.cic.xml.CICProfileType;
 import hopes.cic.xml.ChannelPortType;
 import hopes.cic.xml.ChannelType;
 import hopes.cic.xml.DLAppTaskType;
-import hopes.cic.xml.DLAppType;
 import hopes.cic.xml.DeviceConnectionListType;
 import hopes.cic.xml.EnvironmentVariableType;
 import hopes.cic.xml.LibraryFunctionArgumentType;
