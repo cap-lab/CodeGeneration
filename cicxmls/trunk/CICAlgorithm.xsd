@@ -30,6 +30,7 @@
   <xs:complexType name="TaskListType">
     <xs:sequence>
       <xs:element name="task" type="TaskType" minOccurs="1" maxOccurs="unbounded" />
+      <xs:element name="externalTask" type="ExternalTaskType" minOccurs="0" maxOccurs="unbounded" />
     </xs:sequence>
   </xs:complexType>
 
@@ -136,22 +137,17 @@
     <xs:attribute name="language" type="LanguageType" use="optional" />
   </xs:complexType>
   
-  <xs:complexType name="DLAppTaskType">
-	<xs:complexContent>
-		<xs:extension base="TaskType">
-		<xs:attribute name="networkFileDirectory" type="xs:string" use="required"/>
-		<xs:attribute name="architectureFileDirectory"
-			type="xs:string" />
-		<xs:attribute name="profileFileDirectory" type="xs:string" />
-		<xs:attribute name="mappingFileDirectory" type="xs:string" />
-		<xs:attribute name="period" type="xs:string" />
-		<xs:attribute name="priority" type="xs:string" />
-		<xs:attribute name="deadlineConst" type="xs:string" />
-		</xs:extension>
-	</xs:complexContent>
+  <xs:complexType name="ExternalTaskType">
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="taskType" type="xs:string" use="required" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
+    <xs:attribute name="ParentTask" type="xs:string" use="required" />
+	<xs:attribute name="networkFile" type="xs:string" use="required"/>
+	<xs:attribute name="architectureFile" type="xs:string" use="required"/>
+	<xs:attribute name="profileFile" type="xs:string" use="required"/>
+	<xs:attribute name="mappingFile" type="xs:string" use="required"/>
   </xs:complexType>
   
-
   <xs:complexType name="TaskDataParallelType">
     <xs:sequence>
       <xs:element name="volume" type="VectorType" minOccurs="0" maxOccurs="1" />
