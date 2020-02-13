@@ -15,19 +15,20 @@
 // this code is not run on Windows because I didn't call any WSAStartup or WSACleanup.
 // ifdefs are used for removing compile errors on mingw32 build
 
-#ifndef WIN32
+#ifndef _WIN32
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #else
-#include <winsock.h>
+#include <winsock2.h>
 #endif
 
 #include <UCBasic.h>
 #include <UCAlloc.h>
 #include <UCString.h>
 #include <UCDynamicSocket.h>
+#include <UCSocket.h>
 
 typedef struct _SSocketAPIList {
     SSocketAPI *pstTCPAPI;
@@ -197,7 +198,7 @@ uem_result UCDynamicSocket_Destroy(IN OUT HSocket *phSocket)
 
     if(pstSocket->nSocketfd != SOCKET_FD_NOT_SET)
     {
-        close(pstSocket->nSocketfd);
+    	UCSocket_Close(pstSocket->nSocketfd);
     }
 
     if(pstSocketAPI->fnDestroy != NULL)
@@ -465,7 +466,7 @@ uem_result UCDynamicSocket_Disconnect(HSocket hClientSocket)
 
     if(pstSocket->nSocketfd != SOCKET_FD_NOT_SET)
     {
-        close(pstSocket->nSocketfd);
+    	UCSocket_Close(pstSocket->nSocketfd);
         pstSocket->nSocketfd = SOCKET_FD_NOT_SET;
     }
 

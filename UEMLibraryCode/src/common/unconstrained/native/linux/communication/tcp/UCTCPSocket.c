@@ -9,18 +9,18 @@
 #include <config.h>
 #endif
 
-#ifndef WIN32
+#ifndef _WIN32
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
 #else
-#include <winsock.h>
+#include <winsock2.h>
 #endif
 
 #include <uem_common.h>
 
-#ifndef WIN32
+#ifndef _WIN32
 	#ifdef DEBUG_PRINT
 #include <errno.h>
 #include <string.h>
@@ -78,11 +78,10 @@ uem_result UCTCPSocket_Accept(HSocket hServerSocket, HSocket hClientSocket)
 	uem_result result = ERR_UEM_UNKNOWN;
 	SUCSocket *pstServerSocket = NULL;
 	SUCSocket *pstClientSocket = NULL;
-#ifndef WIN32
     struct sockaddr_in stClientAddr;
-    socklen_t nLen = 0;
+#ifndef WIN32
+    socklen_t nLen = sizeof(struct sockaddr_in);
 #else
-    struct sockaddr stClientAddr;
     int nLen = 0;
 #endif
 	pstServerSocket = (SUCSocket *) hServerSocket;

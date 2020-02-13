@@ -27,11 +27,11 @@ SYSTEM_LDFLAG_LIST=${build_info.ldflags}
 
 <#assign printed=false />
 MAIN_C_SOURCES=<#list build_info.mainSourceList as source_file><#if source_file?ends_with(".c") ><#if (printed == true)>
-	</#if><#assign printed=true />$(MAIN_DIR)/$(PLATFORM_DIR)/${source_file}<#if (source_file?index < build_info.mainSourceList?size - 1)>\</#if></#if></#list>
+	</#if><#assign printed=true />$(MAIN_DIR)/${source_file}<#if (source_file?index < build_info.mainSourceList?size - 1)>\</#if></#if></#list>
 
 <#assign printed=false />
 MAIN_CPP_SOURCES=<#list build_info.mainSourceList as source_file><#if source_file?ends_with(".cpp") ><#if (printed == true)>
-	</#if><#assign printed=true />$(MAIN_DIR)/$(PLATFORM_DIR)/${source_file}<#if (source_file?index < build_info.mainSourceList?size - 1)>\</#if></#if></#list>
+	</#if><#assign printed=true />$(MAIN_DIR)/${source_file}<#if (source_file?index < build_info.mainSourceList?size - 1)>\</#if></#if></#list>
 
 <#assign printed=false />
 APPLICATION_C_SOURCES=<#list build_info.taskSourceCodeList as source_file><#if source_file?ends_with(".c") ><#if (printed == true)>

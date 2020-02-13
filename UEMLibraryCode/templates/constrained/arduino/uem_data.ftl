@@ -11,7 +11,7 @@
 <#assign timerSlotSize=3 />
 #define MAX_TIMER_SLOT_SIZE (${timerSlotSize})
 
-<#include "../uem_common_data.ftl">
+<#include "../../uem_common_data.ftl">
 
 // ##TASK_PARAMETER_TEMPLATE::START
 <#list flat_task as task_name, task>

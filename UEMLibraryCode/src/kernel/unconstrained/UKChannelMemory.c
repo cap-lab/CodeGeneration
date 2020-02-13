@@ -200,9 +200,9 @@ static uem_result copyAndMovePointerFromRoundedQueue(unsigned char *pDest, SChan
 	pstMemoryAPI = pstSharedMemoryChannel->pstMemoryAccessAPI;
 
 	// data is divided into two segments because the start point of the chunk is close to the end of buffer range
-	if(pstSharedMemoryChannel->pDataStart + nDataToRead > pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
+	if((char *) pstSharedMemoryChannel->pDataStart + nDataToRead > (char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
 	{
-		nSegmentLen = pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize - pstSharedMemoryChannel->pDataStart;
+		nSegmentLen = (char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize - (char *) pstSharedMemoryChannel->pDataStart;
 		nRemainderLen = nDataToRead - nSegmentLen;
 
 		if(pDest != NULL)
@@ -213,7 +213,7 @@ static uem_result copyAndMovePointerFromRoundedQueue(unsigned char *pDest, SChan
 			ERRIFGOTO(result, _EXIT);
 		}
 
-		pstSharedMemoryChannel->pDataStart = pstSharedMemoryChannel->pBuffer + nRemainderLen;
+		pstSharedMemoryChannel->pDataStart = (char *) pstSharedMemoryChannel->pBuffer + nRemainderLen;
 	}
 	else
 	{
@@ -223,13 +223,13 @@ static uem_result copyAndMovePointerFromRoundedQueue(unsigned char *pDest, SChan
 			ERRIFGOTO(result, _EXIT);
 		}
 
-		if(pstSharedMemoryChannel->pDataStart + nDataToRead == pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
+		if((char *) pstSharedMemoryChannel->pDataStart + nDataToRead == (char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
 		{
 			pstSharedMemoryChannel->pDataStart = pstSharedMemoryChannel->pBuffer;
 		}
 		else
 		{
-			pstSharedMemoryChannel->pDataStart += nDataToRead;
+			pstSharedMemoryChannel->pDataStart = (char *) pstSharedMemoryChannel->pDataStart + nDataToRead;
 		}
 	}
 
@@ -253,9 +253,9 @@ static uem_result copyToRoundedChunk(SChannel *pstChannel, SSharedMemoryChannel 
 	pstDestChunk = &(pstSharedMemoryChannel->stOutputPortChunk.astChunk[nChunkIndex]);
 
 	// Chunk is divided into two segments because the start point of the chunk is close to the end of buffer range
-	if(pstDestChunk->pDataEnd + nDataToWrite > pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
+	if((char *) pstDestChunk->pDataEnd + nDataToWrite > (char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
 	{
-		nSegmentLen = pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize - pstDestChunk->pDataEnd;
+		nSegmentLen = (char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize - (char *) pstDestChunk->pDataEnd;
 		nRemainderLen = nDataToWrite - nSegmentLen;
 
 		result = pstMemoryAPI->fnCopyToMemory(pstDestChunk->pDataEnd, pSrc, nSegmentLen);
@@ -263,20 +263,20 @@ static uem_result copyToRoundedChunk(SChannel *pstChannel, SSharedMemoryChannel 
 		result = pstMemoryAPI->fnCopyToMemory(pstSharedMemoryChannel->pBuffer, pSrc + nSegmentLen, nRemainderLen);
 		ERRIFGOTO(result, _EXIT);
 
-		pstDestChunk->pDataEnd = pstSharedMemoryChannel->pBuffer + nDataToWrite - nSegmentLen;
+		pstDestChunk->pDataEnd = (char *) pstSharedMemoryChannel->pBuffer + nDataToWrite - nSegmentLen;
 	}
 	else
 	{
 		result = pstMemoryAPI->fnCopyToMemory(pstDestChunk->pDataEnd, pSrc, nDataToWrite);
 		ERRIFGOTO(result, _EXIT);
 
-		if(pstDestChunk->pDataEnd == pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
+		if(pstDestChunk->pDataEnd == (char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
 		{
 			pstDestChunk->pDataEnd = pstSharedMemoryChannel->pBuffer;
 		}
 		else
 		{
-			pstDestChunk->pDataEnd += nDataToWrite;
+			pstDestChunk->pDataEnd = (char *) pstDestChunk->pDataEnd + nDataToWrite;
 		}
 	}
 
@@ -294,9 +294,9 @@ static uem_result copyAndMovePointerToRoundedQueue(SChannel *pstChannel, SShared
 	int nRemainderLen = 0;
 
 	// Chunk is divided into two segments because the start point of the chunk is close to the end of buffer range
-	if(pstSharedMemoryChannel->pDataEnd + nDataToWrite > pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
+	if((char *) pstSharedMemoryChannel->pDataEnd + nDataToWrite > (char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
 	{
-		nSegmentLen = pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize - pstSharedMemoryChannel->pDataEnd;
+		nSegmentLen = (char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize - (char *) pstSharedMemoryChannel->pDataEnd;
 		nRemainderLen = nDataToWrite - nSegmentLen;
 
 		result = fnCopyFunc(pstSharedMemoryChannel->pDataEnd, pSrc, nSegmentLen);
@@ -304,20 +304,20 @@ static uem_result copyAndMovePointerToRoundedQueue(SChannel *pstChannel, SShared
 		result = fnCopyFunc(pstSharedMemoryChannel->pBuffer, pSrc + nSegmentLen, nRemainderLen);
 		ERRIFGOTO(result, _EXIT);
 
-		pstSharedMemoryChannel->pDataEnd = pstSharedMemoryChannel->pBuffer + nDataToWrite - nSegmentLen;
+		pstSharedMemoryChannel->pDataEnd = (char *) pstSharedMemoryChannel->pBuffer + nDataToWrite - nSegmentLen;
 	}
 	else
 	{
 		result = fnCopyFunc(pstSharedMemoryChannel->pDataEnd, pSrc, nDataToWrite);
 		ERRIFGOTO(result, _EXIT);
 
-		if(pstSharedMemoryChannel->pDataEnd == pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
+		if(pstSharedMemoryChannel->pDataEnd == (char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
 		{
 			pstSharedMemoryChannel->pDataEnd = pstSharedMemoryChannel->pBuffer;
 		}
 		else
 		{
-			pstSharedMemoryChannel->pDataEnd += nDataToWrite;
+			pstSharedMemoryChannel->pDataEnd = (char *) pstSharedMemoryChannel->pDataEnd + nDataToWrite;
 		}
 	}
 
@@ -342,9 +342,9 @@ static uem_result copyFromRoundedChunk(unsigned char *pDest, SChannel *pstChanne
 	pstSrcChunk = &(pstSharedMemoryChannel->stInputPortChunk.astChunk[nChunkIndex]);
 
 	// Chunk is divided into two segments because the start point of the chunk is close to the end of buffer range
-	if(pstSrcChunk->pDataStart + nDataToRead > pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
+	if((char *) pstSrcChunk->pDataStart + nDataToRead > (char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
 	{
-		nSegmentLen = pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize - pstSrcChunk->pDataStart;
+		nSegmentLen = (char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize - (char *) pstSrcChunk->pDataStart;
 		nRemainderLen = nDataToRead - nSegmentLen;
 
 		if(pDest != NULL)
@@ -408,15 +408,15 @@ static uem_result setInputChunks(SChannel *pstChannel, SSharedMemoryChannel *pst
 		ERRIFGOTO(result, _EXIT);
 		pstSharedMemoryChannel->stInputPortChunk.astChunk[nLoop].nAvailableDataNum = nMaxAvailableNum;
 		pstSharedMemoryChannel->stInputPortChunk.astChunk[nLoop].nChunkDataLen = pstSharedMemoryChannel->stInputPortChunk.nChunkLen;
-		if(pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize <= pstSharedMemoryChannel->pDataStart + pstSharedMemoryChannel->stInputPortChunk.nChunkLen * nLoop)
+		if((char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize <= (char *) pstSharedMemoryChannel->pDataStart + pstSharedMemoryChannel->stInputPortChunk.nChunkLen * nLoop)
 		{
-			int nRemainderLen = pstSharedMemoryChannel->pDataStart + pstSharedMemoryChannel->stInputPortChunk.nChunkLen * nLoop - (pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize);
+			int nRemainderLen = (char *) pstSharedMemoryChannel->pDataStart + pstSharedMemoryChannel->stInputPortChunk.nChunkLen * nLoop - ((char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize);
 
-			pstSharedMemoryChannel->stInputPortChunk.astChunk[nLoop].pDataStart = pstSharedMemoryChannel->pBuffer + nRemainderLen;
+			pstSharedMemoryChannel->stInputPortChunk.astChunk[nLoop].pDataStart = (char *) pstSharedMemoryChannel->pBuffer + nRemainderLen;
 		}
 		else
 		{
-			pstSharedMemoryChannel->stInputPortChunk.astChunk[nLoop].pDataStart = pstSharedMemoryChannel->pDataStart + pstSharedMemoryChannel->stInputPortChunk.nChunkLen * nLoop;
+			pstSharedMemoryChannel->stInputPortChunk.astChunk[nLoop].pDataStart = (char *) pstSharedMemoryChannel->pDataStart + pstSharedMemoryChannel->stInputPortChunk.nChunkLen * nLoop;
 		}
 		pstSharedMemoryChannel->stInputPortChunk.astChunk[nLoop].pDataEnd = NULL;
 		pstSharedMemoryChannel->stInputPortChunk.astChunk[nLoop].pChunkStart = NULL;
@@ -476,17 +476,17 @@ static uem_result moveDataPointerOfArrayQueue(SChannel *pstChannel, SSharedMemor
 	pstSharedMemoryChannel->nDataLen = pstSharedMemoryChannel->nDataLen - (pstSharedMemoryChannel->stInputPortChunk.nChunkNum * pstSharedMemoryChannel->stInputPortChunk.nChunkLen);
 
 	// if the next pDataStart needs to be moved to the front pointer
-	if(pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize < pstSharedMemoryChannel->pDataStart + pstSharedMemoryChannel->stInputPortChunk.nChunkNum * pstSharedMemoryChannel->stInputPortChunk.nChunkLen)
+	if((char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize < (char *) pstSharedMemoryChannel->pDataStart + pstSharedMemoryChannel->stInputPortChunk.nChunkNum * pstSharedMemoryChannel->stInputPortChunk.nChunkLen)
 	{
-		pstSharedMemoryChannel->pDataStart = pstSharedMemoryChannel->pBuffer +
+		pstSharedMemoryChannel->pDataStart = (char *) pstSharedMemoryChannel->pBuffer +
 					(pstSharedMemoryChannel->stInputPortChunk.nChunkNum * pstSharedMemoryChannel->stInputPortChunk.nChunkLen) -
-					(pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize - pstSharedMemoryChannel->pDataStart);
+					((char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize - (char *) pstSharedMemoryChannel->pDataStart);
 	}
 	else
 	{
-		pstSharedMemoryChannel->pDataStart = pstSharedMemoryChannel->pDataStart + pstSharedMemoryChannel->stInputPortChunk.nChunkNum * pstSharedMemoryChannel->stInputPortChunk.nChunkLen;
+		pstSharedMemoryChannel->pDataStart = (char *) pstSharedMemoryChannel->pDataStart + pstSharedMemoryChannel->stInputPortChunk.nChunkNum * pstSharedMemoryChannel->stInputPortChunk.nChunkLen;
 
-		if(pstSharedMemoryChannel->pDataStart == pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
+		if(pstSharedMemoryChannel->pDataStart == (char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
 		{
 			pstSharedMemoryChannel->pDataStart = pstSharedMemoryChannel->pBuffer;
 		}
@@ -776,7 +776,7 @@ static uem_result clearOutputChunkInfo(SChannel *pstChannel, SSharedMemoryChanne
 	void *pNextChunkDataEnd = NULL;
 	int nSegmentLen = 0;
 
-	if(pstSharedMemoryChannel->pDataEnd == pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
+	if(pstSharedMemoryChannel->pDataEnd == (char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
 	{
 		pstSharedMemoryChannel->pDataEnd = pstSharedMemoryChannel->pBuffer;
 	}
@@ -784,12 +784,12 @@ static uem_result clearOutputChunkInfo(SChannel *pstChannel, SSharedMemoryChanne
 	for(nLoop = 0 ; nLoop < pstSharedMemoryChannel->stOutputPortChunk.nChunkNum ; nLoop++)
 	{
 		// if(pstChannel->stOutputPortChunk.astChunk[nLoop].pDataEnd )
-		pNextChunkDataEnd = pstSharedMemoryChannel->pDataEnd + pstSharedMemoryChannel->stOutputPortChunk.nChunkLen * nLoop;
+		pNextChunkDataEnd = (char *) pstSharedMemoryChannel->pDataEnd + pstSharedMemoryChannel->stOutputPortChunk.nChunkLen * nLoop;
 
-		if(pNextChunkDataEnd >= pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
+		if(pNextChunkDataEnd >= (char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
 		{
-			nSegmentLen = pNextChunkDataEnd - (pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize);
-			pstSharedMemoryChannel->stOutputPortChunk.astChunk[nLoop].pDataEnd = pstSharedMemoryChannel->pBuffer + nSegmentLen;
+			nSegmentLen = (char *) pNextChunkDataEnd - ((char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize);
+			pstSharedMemoryChannel->stOutputPortChunk.astChunk[nLoop].pDataEnd = (char *) pstSharedMemoryChannel->pBuffer + nSegmentLen;
 		}
 		else
 		{
@@ -877,11 +877,11 @@ static uem_result writeToArrayQueue(SChannel *pstChannel, SSharedMemoryChannel *
 	{
 		void *pNewEnd = NULL;
 		int nSegmentLen = 0;
-		pNewEnd = pstSharedMemoryChannel->pDataEnd + (  pstSharedMemoryChannel->stOutputPortChunk.nChunkLen * pstSharedMemoryChannel->stOutputPortChunk.nChunkNum ) ;
-		if(pNewEnd >= pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
+		pNewEnd = (char *) pstSharedMemoryChannel->pDataEnd + (  pstSharedMemoryChannel->stOutputPortChunk.nChunkLen * pstSharedMemoryChannel->stOutputPortChunk.nChunkNum ) ;
+		if(pNewEnd >= (char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize)
 		{
-			nSegmentLen = pNewEnd - (pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize);
-			pNewEnd = pstSharedMemoryChannel->pBuffer + nSegmentLen;
+			nSegmentLen = (char *) pNewEnd - ((char *) pstSharedMemoryChannel->pBuffer + pstChannel->nBufSize);
+			pNewEnd = (char *) pstSharedMemoryChannel->pBuffer + nSegmentLen;
 		}
 		pstSharedMemoryChannel->nDataLen += (  pstSharedMemoryChannel->stOutputPortChunk.nChunkLen * pstSharedMemoryChannel->stOutputPortChunk.nChunkNum ) ;
 		pstSharedMemoryChannel->pDataEnd = pNewEnd;

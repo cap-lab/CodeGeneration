@@ -21,7 +21,7 @@ SYSTEM_LDFLAG_LIST=${build_info.ldflags}
 bin_PROGRAMS=proc
 
 MAIN_SOURCES=<#list build_info.mainSourceList as source_file><#if (source_file?index > 0)>
-	</#if>$(MAIN_DIR)/$(PLATFORM_DIR)/${source_file}<#if (source_file?index < build_info.mainSourceList?size - 1)>\</#if></#list>
+	</#if>$(MAIN_DIR)/${source_file}<#if (source_file?index < build_info.mainSourceList?size - 1)>\</#if></#list>
 
 APPLICATION_SOURCES=<#list build_info.taskSourceCodeList as source_file><#if (source_file?index > 0)>
 	</#if>$(APPLICATION_DIR)/${source_file}<#if (source_file?index < build_info.taskSourceCodeList?size - 1)>\</#if></#list>
@@ -51,7 +51,7 @@ MODULE_SOURCES=<#list build_info.moduleSourceList as source_file><#if (source_fi
 proc_SOURCES=$(MAIN_SOURCES) $(APPLICATION_SOURCES) $(EXTRA_SOURCES) $(API_SOURCES) $(KERNEL_DATA_SOURCES) $(KERNEL_SOURCES) $(KERNEL_DEVICE_SOURCES) $(COMMON_SOURCES) $(MODULE_SOURCES)
 			 
 
-MAIN_CFLAGS=-I$(MAIN_DIR)/include
+MAIN_CFLAGS=-I$(MAIN_DIR)/include -I$(MAIN_DIR)/$(DEVICE_RESTRICTION)
 
 API_CFLAGS=-I$(API_DIR)/include
 

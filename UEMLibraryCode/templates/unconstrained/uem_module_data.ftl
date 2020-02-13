@@ -22,6 +22,9 @@ SAddOnModule g_stModules[] = {
 		${module.finalizer}, // module finalization function
 	},
 </#list>
+<#if platform == "windows" && (module_list?size == 0)>
+	0, 
+</#if>
 };
 
 <#if (module_list?size > 0) >

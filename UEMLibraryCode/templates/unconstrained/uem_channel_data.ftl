@@ -7,6 +7,7 @@
 #include <uem_common.h>
 
 <#if communication_used == true>
+#include <UCSocket.h>
 #include <UCDynamicSocket.h>
 #include <UCFixedSizeQueue.h>
 	<#if used_communication_list?seq_contains("tcp")>
@@ -110,6 +111,9 @@ SPort g_astPortInfo[] = {
 		<#if port.subgraphPort??>&g_astPortInfo[${port_key_to_index[port.subgraphPort.portKey]}]<#else>(SPort *) NULL</#if>, // Pointer to Subgraph port
 	}, // Port information		
 </#list>
+<#if platform == "windows" && (port_info?size == 0)>
+	0, 
+</#if>
 };
 // ##PORT_ARRAY_TEMPLATE::END
 
@@ -176,6 +180,9 @@ STCPInfo g_astTCPClientInfo[] = {
 		PAIR_TYPE_CLIENT,
 	},
 	</#list>
+	<#if platform == "windows" && (tcp_client_list?size == 0)>
+	0, 
+	</#if>
 };
 // ##TCP_CLIENT_GENERATION_TEMPLATE::END
 
@@ -195,6 +202,9 @@ STCPServerInfo g_astTCPServerInfo[] = {
 		},		
 	},
 	</#list>
+	<#if platform == "windows" && (tcp_server_list?size == 0)>
+	0, 
+	</#if>
 };
 // ##TCP_SERVER_GENERATION_TEMPLATE::END
 
@@ -217,6 +227,9 @@ STCPAggregatedServiceInfo g_astTCPAggregateClientInfo[] = {
 		},
 	},
 	</#list>
+	<#if platform == "windows" && (tcp_client_list?size == 0)>
+	0, 
+	</#if>
 };
 
 STCPAggregatedServiceInfo g_astTCPAggregateServerInfo[] = {
@@ -237,6 +250,9 @@ STCPAggregatedServiceInfo g_astTCPAggregateServerInfo[] = {
 		},
 	},
 	</#list>
+	<#if platform == "windows" && (tcp_server_list?size == 0)>
+	0, 
+	</#if>
 };
 #endif
 // ##TCP_COMMUNICATION_GENERATION_TEMPLATE::END
@@ -413,6 +429,8 @@ SAggregateConnectionInfo g_astAggregateConnectionInfo[] = {
 						<#break>
 				</#switch>	
 	},
+#else
+	0,
 #endif				
 				<#break>
 		</#switch>
@@ -686,29 +704,33 @@ SChannelAPI *g_astChannelAPIList[] = {
 
 
 
+<#if communication_used == true>
 FnChannelAPIInitialize g_aFnRemoteCommunicationModuleIntializeList[] = {
-<#if used_communication_list?seq_contains("tcp")>
+	UCSocket_Initialize, 
+	<#if used_communication_list?seq_contains("tcp")>
 	UKTCPServerManager_Initialize,
-</#if>
-<#if used_communication_list?seq_contains("bluetooth")>
+	</#if>
+	<#if used_communication_list?seq_contains("bluetooth")>
 	UKBluetoothModule_Initialize,
-</#if>
-<#if used_communication_list?seq_contains("serial")>
+	</#if>
+	<#if used_communication_list?seq_contains("serial")>
 	UKSerialModule_Initialize,
-</#if>
+	</#if>
 };
 
 FnChannelAPIFinalize g_aFnRemoteCommunicationModuleFinalizeList[] = {
-<#if used_communication_list?seq_contains("tcp")>
+	<#if used_communication_list?seq_contains("tcp")>
 	UKTCPServerManager_Finalize,
-</#if>
-<#if used_communication_list?seq_contains("bluetooth")>
+	</#if>
+	<#if used_communication_list?seq_contains("bluetooth")>
 	UKBluetoothModule_Finalize,
-</#if>
-<#if used_communication_list?seq_contains("serial")>
+	</#if>
+	<#if used_communication_list?seq_contains("serial")>
 	UKSerialModule_Finalize,
-</#if>
+	</#if>
+	UCSocket_Finalize, 
 };
+</#if>
 
 <#if used_communication_list?seq_contains("bluetooth")>
 SSocketAPI stBluetoothAPI = {

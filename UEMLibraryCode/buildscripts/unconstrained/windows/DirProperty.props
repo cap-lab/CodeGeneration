@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+	<SRC_DIR>src</SRC_DIR>
+    <MAIN_DIR>src\main</MAIN_DIR>
+    <APPLICATION_DIR>src\application</APPLICATION_DIR>
+    <API_DIR>src\api</API_DIR>
+    <KERNEL_DIR>src\kernel</KERNEL_DIR>
+    <COMMON_DIR>src\common</COMMON_DIR>
+    <MODULE_DIR>src\module</MODULE_DIR>
+    <PLATFORM_DIR>native\windows</PLATFORM_DIR>
+    <DEVICE_RESTRICTION>unconstrained</DEVICE_RESTRICTION>
+    <NATIVE_DIR>native</NATIVE_DIR>
+	<INCLUDE_DIR>include</INCLUDE_DIR>
+	<GENERATED_DIR>generated</GENERATED_DIR>
+	<COMMUNICATION_DIR>communication</COMMUNICATION_DIR>
+	<TCP_DIR>tcp</TCP_DIR>
+  </PropertyGroup>
+</Project>

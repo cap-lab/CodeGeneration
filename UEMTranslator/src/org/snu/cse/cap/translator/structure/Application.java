@@ -66,6 +66,7 @@ import hopes.cic.xml.CICMappingType;
 import hopes.cic.xml.CICProfileType;
 import hopes.cic.xml.ChannelPortType;
 import hopes.cic.xml.ChannelType;
+import hopes.cic.xml.DLAppTaskType;
 import hopes.cic.xml.DeviceConnectionListType;
 import hopes.cic.xml.EnvironmentVariableType;
 import hopes.cic.xml.LibraryFunctionArgumentType;
@@ -183,6 +184,10 @@ public class Application {
 
 		for(TaskType task_metadata: algorithm_metadata.getTasks().getTask())
 		{
+			// skip DLApp.
+			if (task_metadata instanceof DLAppTaskType)
+				continue;
+
 			task = new Task(taskId, task_metadata);
 
 			this.taskMap.put(task.getName(), task);
@@ -311,7 +316,7 @@ public class Application {
 		if(connectionList.getTCPConnection() == null)
 		{
 			return;
-		}
+		}		
 		for(TCPConnectionType connectionType : connectionList.getTCPConnection())
 		{
 			TCPConnection connection = null;
@@ -323,7 +328,7 @@ public class Application {
 	
 	private void putSupportedConnectionTypeListOnDevice(Device device, DeviceConnectionListType connectionList) 
 	{
-		if(connectionList.getSerialConnection() == null)
+		if(connectionList.getSerialConnection() != null)
 		{
 			if(connectionList.getSerialConnection().stream().filter(x -> x.getNetwork().equals(NetworkType.BLUETOOTH)).count() > 0) 
 			{
@@ -333,12 +338,16 @@ public class Application {
 			{
 				device.putSupportedConnectionType(DeviceCommunicationType.SERIAL);
 			}
+			if(connectionList.getSerialConnection().stream().filter(x -> x.getNetwork().equals(NetworkType.USB)).count() > 0) 
+			{
+				device.putSupportedConnectionType(DeviceCommunicationType.SERIAL);
+			}
 		}
-		if(connectionList.getTCPConnection() != null)
+		if(connectionList.getTCPConnection() != null && connectionList.getTCPConnection().size() > 0)
 		{
 			device.putSupportedConnectionType(DeviceCommunicationType.TCP);
 		}
-		if(connectionList.getUDPConnection() != null)
+		if(connectionList.getUDPConnection() != null && connectionList.getUDPConnection().size() > 0)
 		{
 			device.putSupportedConnectionType(DeviceCommunicationType.UDP);
 		}
@@ -1581,6 +1590,8 @@ public class Application {
 			channel.setOutputPort(srcPort.getMostUpperPort());
 			channel.setInputPort(dstPort.getMostUpperPort());
 
+			System.out.println("ChannelSrcPort: " + channelSrcPort.getTask() + "/" + channelSrcPort.getPort());
+			System.out.println("ChannelDstPort: " + channelDstPort.getTask() + "/" + channelDstPort.getPort());
 			srcTaskMappingInfo = findMappingInfoByTaskName(channelSrcPort.getTask());
 			dstTaskMappingInfo = findMappingInfoByTaskName(channelDstPort.getTask());
 

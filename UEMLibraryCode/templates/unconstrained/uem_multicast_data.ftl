@@ -277,6 +277,9 @@ SMulticastGroup g_astMulticastGroups[] = {
 		${multicast.getCommunicationTypeList()?size}, // nCommunicationTypeNum
 	},
 </#list>
+<#if platform == "windows" && (multicast_group_list?size == 0)>
+	0, 
+</#if>
 };
 // ##MULTICAST_GROUP_LIST_TEMPLATE::START
 
@@ -310,5 +313,10 @@ _EXIT:
 <#if used_communication_list?seq_contains("udp")>
 int g_nMulticastUDPNum = ARRAYLEN(g_astMulticastUDPList);
 </#if>
+<#if (multicast_group_list?size > 0) >
 int g_nMulticastGroupNum = ARRAYLEN(g_astMulticastGroups);
 int g_nMulticastAPINum = ARRAYLEN(g_astMulticastAPIList);
+<#else>
+int g_nMulticastGroupNum = 0;
+int g_nMulticastAPINum = 0;
+</#if>

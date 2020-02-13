@@ -17,7 +17,7 @@ extern "C"
 {
 #endif
 
-#define UDP_MAX 508
+#define UDP_MAX 65507
 
 /**
  * @brief Bind a UDP socket.
