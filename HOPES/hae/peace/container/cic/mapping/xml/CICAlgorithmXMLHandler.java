@@ -197,5 +197,16 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 		}
 		return -1;
 	}
+
+	public ModeTaskType findModeTaskTypeByTaskName(String taskName) {
+		for(ModeType mode : algorithm.getModes().getMode()) {
+			for (ModeTaskType modeTask : mode.getTask()) {
+				if (modeTask.getName().equals(taskName)) {
+					return modeTask;
+				}
+			}
+		}
+		throw new RuntimeException("Error : modeTask not found. " + taskName);
+	}
 }
 	

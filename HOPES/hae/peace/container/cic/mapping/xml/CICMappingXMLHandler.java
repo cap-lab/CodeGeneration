@@ -6,15 +6,14 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-import hae.peace.container.cic.mapping.MappingDLAppTask;
 import hae.peace.container.cic.mapping.MappingTask;
 import hae.peace.container.cic.mapping.Processor;
 import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICMappingType;
 import hopes.cic.xml.CICMappingTypeLoader;
 import hopes.cic.xml.DataParallelType;
-import hopes.cic.xml.MappingDLAppTaskType;
 import hopes.cic.xml.MappingDeviceType;
+import hopes.cic.xml.MappingExternalTaskType;
 import hopes.cic.xml.MappingMulticastType;
 import hopes.cic.xml.MappingMulticastUDPType;
 import hopes.cic.xml.MappingProcessorIdType;
@@ -68,12 +67,9 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 		}
 	}
 
-	public void makeTaskList(CICArchitectureXMLHandler architectureHandler) {
-		if (processed || mapping == null) {
-			return;
-		}
-		taskList.clear();
-		for (MappingTaskType taskType : mapping.getTask()) {
+	public void addMappingTaskTypeToTaskList(List<MappingTaskType> taskTypeList,
+			CICArchitectureXMLHandler architectureHandler) {
+		for (MappingTaskType taskType : taskTypeList) {
 			String taskName = taskType.getName();
 			DataParallelType parallelType = taskType.getDataParallel() == null ? DataParallelType.NONE
 					: taskType.getDataParallel();
@@ -81,14 +77,14 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 			addTaskProcessorForce(task, taskType, architectureHandler);
 			taskList.add(task);
 		}
-		for (MappingDLAppTaskType taskType : mapping.getDlAppTask()) {
-			String taskName = taskType.getName();
-			DataParallelType parallelType = taskType.getDataParallel() == null ? DataParallelType.NONE
-					: taskType.getDataParallel();
-			MappingDLAppTask task = new MappingDLAppTask(taskName, parallelType);
-			addTaskProcessorForce(task, taskType, architectureHandler);
-			taskList.add(task);
+	}
+
+	public void makeTaskList(CICArchitectureXMLHandler architectureHandler) {
+		if (processed || mapping == null) {
+			return;
 		}
+		taskList.clear();
+		addMappingTaskTypeToTaskList(mapping.getTask(), architectureHandler);
 		processed = true;
 	}
 	
@@ -100,24 +96,26 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 		for (MappingTaskType task : mapping.getTask()) {
 			task.getDevice().get(0).getProcessor().clear();
 		}
-		for (MappingDLAppTaskType task : mapping.getDlAppTask()) {
-			task.getDevice().get(0).getProcessor().clear();
+		for (MappingExternalTaskType externalTask : mapping.getExternalTask()) {
+			for (MappingTaskType task : externalTask.getChildTask()) {
+				task.getDevice().get(0).getProcessor().clear();
+			}
 		}
 	}
 
 	private List<MappingProcessorIdType> getProcessIdList(String taskName) {
 		for (MappingTaskType task : mapping.getTask()) {
-			if (!taskName.equals(task.getName()))
-				continue;
-			else
+			if (taskName.equals(task.getName())) {
 				return task.getDevice().get(0).getProcessor();
+			}
 		}
+		for (MappingExternalTaskType externalTask : mapping.getExternalTask()) {
+			for (MappingTaskType task : externalTask.getChildTask()) {
+				if (taskName.equals(task.getName())) {
+					return task.getDevice().get(0).getProcessor();
+				}
+			}
 
-		for (MappingDLAppTaskType task : mapping.getDlAppTask()) {
-			if (!taskName.equals(task.getName()))
-				continue;
-			else
-				return task.getDevice().get(0).getProcessor();
 		}
 		return null;
 	}
@@ -129,12 +127,12 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 			else
 				return task.getDevice();
 		}
-
-		for (MappingTaskType task : mapping.getDlAppTask()) {
-			if (!taskName.equals(task.getName()))
-				continue;
-			else
-				return task.getDevice();
+		for (MappingExternalTaskType externalTask : mapping.getExternalTask()) {
+			for (MappingTaskType task : externalTask.getChildTask()) {
+				if (taskName.equals(task.getName())) {
+					return task.getDevice();
+				}
+			}
 		}
 		return null;
 	}
@@ -142,18 +140,16 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 	public void update() {
 		clearMap();
 		for (MappingTask obj : taskList) {
-				MappingTask task = (MappingTask)obj;
-				
-				List<MappingDeviceType> device = getDeviceType(task.getName());
-				
-				List<MappingProcessorIdType> processors = getProcessIdList(task.getName());
-				for (Processor processor : task.getAssignedProcList()) {
-					MappingProcessorIdType processorType = new MappingProcessorIdType();
-					processorType.setPool(processor.getName());
-					processorType.setLocalId(BigInteger.valueOf(processor.getIndex()));
-					processors.add(processorType);
-					device.get(0).setName(processor.getParentDevice());
-				}
+			MappingTask task = (MappingTask) obj;
+			List<MappingDeviceType> device = getDeviceType(task.getName());
+			List<MappingProcessorIdType> processors = getProcessIdList(task.getName());
+			for (Processor processor : task.getAssignedProcList()) {
+				MappingProcessorIdType processorType = new MappingProcessorIdType();
+				processorType.setPool(processor.getName());
+				processorType.setLocalId(BigInteger.valueOf(processor.getIndex()));
+				processors.add(processorType);
+				device.get(0).setName(processor.getParentDevice());
+			}
 		}
 	}
 	
@@ -169,9 +165,9 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 		if(element.equals("task")) {
 			originData.getTask().clear();
 			originData.getTask().addAll(mapping.getTask());
-		} else if (element.equals("dlAppTask")) {
-			originData.getDlAppTask().clear();
-			originData.getDlAppTask().addAll(mapping.getDlAppTask());
+		} else if (element.equals("externalTask")) {
+			originData.getExternalTask().clear();
+			originData.getExternalTask().addAll(mapping.getExternalTask());
 		}
 		else if (element.equals("library")) {
 			originData.getLibrary().clear();
