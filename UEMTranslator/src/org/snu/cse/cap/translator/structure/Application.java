@@ -338,11 +338,11 @@ public class Application {
 				device.putSupportedConnectionType(DeviceCommunicationType.SERIAL);
 			}
 		}
-		if(connectionList.getTCPConnection() != null)
+		if (connectionList.getTCPConnection() != null && connectionList.getTCPConnection().size() > 0)
 		{
 			device.putSupportedConnectionType(DeviceCommunicationType.TCP);
 		}
-		if(connectionList.getUDPConnection() != null)
+		if (connectionList.getUDPConnection() != null && connectionList.getUDPConnection().size() > 0)
 		{
 			device.putSupportedConnectionType(DeviceCommunicationType.UDP);
 		}
