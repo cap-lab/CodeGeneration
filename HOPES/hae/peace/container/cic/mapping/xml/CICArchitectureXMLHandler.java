@@ -66,13 +66,7 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 			procList.clear();
 			makeProcessorList();
 			makeMemoryRegionMap();
-			// * [hshong, 2014/06/27] : �ӽ÷� ��� ����! (xml)setMaps ����
-			// * [hshong, 2014/07/01]: deleted: architecture.xml ���濡 ���� map ����
-			//updateMemoryRegionMap();
 			processed = true;
-			// * [hshong, 2014/06/27] : �ӽ÷� ��� ����! (xml)setMaps ����
-			// * [hshong, 2014/07/01]: deleted: architecture.xml ���濡 ���� map ����
-			//addMemoryRegionListToProcessor();
 		}
 		
 		return procList;
@@ -92,7 +86,7 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 			for (ArchitectureElementType element : device.getElements().getElement()) {
 				ArchitectureElementTypeType elementType = getElementType(ArchitectureElementCategoryType.PROCESSOR,
 						element.getType());
-				if (elementType == null) // processor�� �ƴϰų� invalid�� �����
+				if (elementType == null)
 					continue;
 
 				int poolSize = element.getPoolSize() != null ? element.getPoolSize().intValue() : 1;
@@ -100,12 +94,7 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 				if (os == null)
 					os = "NONE";
 
-				// deleted for release (2015/12) - ���̻� processor ������ allow Data
-				// ParallelMapping�� ������ ����
-				// boolean bParallel = element.isAllowDataParallelMapping();
 				for (int i = 0; i < poolSize; i++) {
-					// deleted for release (2015/12) - ���̻� processor ������ allow
-					// Data ParallelMapping�� ������ ����
 					Processor proc = new Processor(i, element.getName(), /* bParallel, */os, element.getType(), elementType.getSubcategory(), device.getName());
 					procList.add(proc);
 				}
@@ -120,7 +109,7 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 			for (ArchitectureElementType element : device.getElements().getElement()) {
 				ArchitectureElementTypeType elementType = getElementType(ArchitectureElementCategoryType.MEMORY,
 						element.getType());
-				if (elementType == null) // memory�� �ƴϰų� invalid�� �����
+				if (elementType == null)
 					continue;
 
 				ArchitectureElementSlavePortType slavePort = elementType.getSlavePort().get(0);
@@ -155,7 +144,7 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 			for (ArchitectureElementType element : device.getElements().getElement()) {
 				ArchitectureElementTypeType elementType = getElementType(ArchitectureElementCategoryType.PROCESSOR,
 						element.getType());
-				if (elementType == null) // processor�� �ƴϰų� invalid�� �����
+				if (elementType == null)
 					continue;
 
 				Processor processor = getProcessor(element.getName(), BigInteger.ZERO);
