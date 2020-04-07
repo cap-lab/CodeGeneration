@@ -4,7 +4,7 @@
   <artifactId>CICXML4JAVA</artifactId>
   <version>1.1.0-SNAPSHOT</version>
   <build>
-    <sourceDirectory>src/schemas</sourceDirectory>
+    <sourceDirectory>src/main</sourceDirectory>
     <testSourceDirectory>src/test</testSourceDirectory>
     <plugins>
     	<plugin>
@@ -20,7 +20,7 @@
 					</goals>
 					<configuration>
 						<sources>
-							<source>src/main</source>
+							<source>src/schemas</source>
 						</sources>
 					</configuration>
 				</execution>
@@ -40,12 +40,13 @@
   	<dependency>
   		<groupId>javax.xml.bind</groupId>
   		<artifactId>jaxb-api</artifactId>
-  		<version>2.3.1</version>
+  		<version>2.0</version>
   	</dependency>
   	<dependency>
 		<groupId>com.sun.xml.bind</groupId>
 		<artifactId>jaxb-impl</artifactId>
-		<version>2.3.1</version>
+		<version>2.0.5</version>
 	</dependency>
   </dependencies>
+  <packaging>pom</packaging>
 </project>
