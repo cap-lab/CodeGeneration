@@ -13,7 +13,7 @@
         <pathelement location="bin"/>
         <pathelement location="${JavaLibraries.location}/jars/cicxml.jar"/>
         <pathelement location="jars/commons-cli-1.4.jar"/>
-	<pathelement location="${JavaLibraries.location}/jars/repo/mapss/dif/mapss/0.0.0/mmapss-0.0.0.jar"/>
+	<pathelement location="${JavaLibraries.location}/jars/repo/mapss/dif/mapss/0.0.0/mapss-0.0.0.jar"/>
 	<pathelement location="${JavaLibraries.location}/jars/repo/mocgraph/mocgraph/0.0.0/mocgraph-0.0.0.jar"/>
 	<pathelement location="${JavaLibraries.location}/jars/repo/ptolemy/ptolemy/0.0.0/ptolemy-0.0.0.jar"/>
         <pathelement location="${JavaLibraries.location}/jars/jaxb-api.jar"/>
