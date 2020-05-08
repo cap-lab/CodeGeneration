@@ -375,6 +375,7 @@
     <xs:attribute name="architecture" type="xs:string" use="required" />
     <xs:attribute name="platform" type="xs:string" use="required" />
 	<xs:attribute name="runtime" type="xs:string" use="required" />
+	<xs:attribute name="processorType" type="xs:string" use="required" />
   </xs:complexType>
 
   <!-- Type definitions for mode specification -->
