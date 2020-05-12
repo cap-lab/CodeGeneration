@@ -85,4 +85,11 @@
     </xs:restriction>
   </xs:simpleType>
 
+	<xs:simpleType name="BoundType">
+	<xs:restriction base="xs:string">
+		<xs:enumeration value="Maximum" />
+		<xs:enumeration value="Minimum" />
+	</xs:restriction>
+	</xs:simpleType>
+
 </xs:schema>

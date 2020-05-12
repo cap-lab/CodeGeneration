@@ -2,6 +2,8 @@
 package hopes.cic.xml;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -17,6 +19,9 @@ import javax.xml.bind.annotation.XmlType;
  * &lt;complexType name="ProfileType">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ *       &lt;sequence>
+ *         &lt;element name="bound" type="{http://peace.snu.ac.kr/CICXMLSchema}ProfileExecutionBoundType" maxOccurs="2" minOccurs="0"/>
+ *       &lt;/sequence>
  *       &lt;attribute name="memoryAccessCount" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
  *       &lt;attribute name="processorType" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
  *       &lt;attribute name="unit" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}TimeMetricType" />
@@ -29,9 +34,12 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "ProfileType")
+@XmlType(name = "ProfileType", propOrder = {
+    "bound"
+})
 public class ProfileType {
 
+    protected List<ProfileExecutionBoundType> bound;
     @XmlAttribute
     protected BigInteger memoryAccessCount;
     @XmlAttribute(required = true)
@@ -40,6 +48,35 @@ public class ProfileType {
     protected TimeMetricType unit;
     @XmlAttribute(required = true)
     protected BigInteger value;
+
+    /**
+     * Gets the value of the bound property.
+     * 
+     * <p>
+     * This accessor method returns a reference to the live list,
+     * not a snapshot. Therefore any modification you make to the
+     * returned list will be present inside the JAXB object.
+     * This is why there is not a <CODE>set</CODE> method for the bound property.
+     * 
+     * <p>
+     * For example, to add a new item, do as follows:
+     * <pre>
+     *    getBound().add(newItem);
+     * </pre>
+     * 
+     * 
+     * <p>
+     * Objects of the following type(s) are allowed in the list
+     * {@link ProfileExecutionBoundType }
+     * 
+     * 
+     */
+    public List<ProfileExecutionBoundType> getBound() {
+        if (bound == null) {
+            bound = new ArrayList<ProfileExecutionBoundType>();
+        }
+        return this.bound;
+    }
 
     /**
      * Gets the value of the memoryAccessCount property.

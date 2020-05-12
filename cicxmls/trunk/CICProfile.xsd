@@ -4,8 +4,9 @@
         targetNamespace="http://peace.snu.ac.kr/CICXMLSchema"
         elementFormDefault="qualified"
         xmlns="http://peace.snu.ac.kr/CICXMLSchema"
+        xmlns:pxs="http://peace.snu.ac.kr/CICXMLSchema"
         xmlns:xs="http://www.w3.org/2001/XMLSchema">
-
+        
   <xs:include schemaLocation="./CICCommon.xsd" />
 
   <xs:element name="CIC_Profile" type="CICProfileType" />
@@ -22,8 +23,13 @@
   </xs:complexType>
   
     <xs:complexType name="ProfileTaskModeType">
-    <xs:sequence>
-      <xs:element name="profile" type="ProfileType" minOccurs="1" maxOccurs="unbounded" />
+	<xs:sequence>
+		<xs:element name="profile" type="ProfileType" minOccurs="1" maxOccurs="unbounded">
+			<xs:unique name="ProfileExecutionBoundTypeUniqueKey" >
+				<xs:selector xpath="pxs:bound" />
+				<xs:field xpath="@type" />
+			</xs:unique>
+		</xs:element>
     </xs:sequence>
     <xs:attribute name="name" type="NameType" use="required" />
   </xs:complexType>
@@ -34,12 +40,21 @@
     </xs:sequence>
     <xs:attribute name="name" type="NameType" use="required" />
   </xs:complexType>
-
+  
   <xs:complexType name="ProfileType">
-    <xs:attribute name="processorType" type="xs:string" use="required" />
-    <xs:attribute name="value" type="xs:nonNegativeInteger" use="required" />
-    <xs:attribute name="unit" type="TimeMetricType" use="required" />
-    <xs:attribute name="memoryAccessCount" type="xs:nonNegativeInteger" use="optional" />
+   <xs:sequence>
+  	<xs:element name="bound" type="ProfileExecutionBoundType" minOccurs="0" maxOccurs="2" />
+   </xs:sequence>
+   <xs:attribute name="processorType" type="xs:string" use="required" />
+   	<xs:attribute name="value" type="xs:nonNegativeInteger" use="required" />
+  	<xs:attribute name="unit" type="TimeMetricType" use="required" />
+   <xs:attribute name="memoryAccessCount" type="xs:nonNegativeInteger" use="optional" />
+  </xs:complexType>
+  
+   <xs:complexType name="ProfileExecutionBoundType">
+  	<xs:attribute name="type" type="BoundType" use="required" />
+  	<xs:attribute name="value" type="xs:nonNegativeInteger" use="required" />
+  	<xs:attribute name="unit" type="TimeMetricType" use="required" />
   </xs:complexType>
 
  <xs:complexType name="ProfileCommType">
