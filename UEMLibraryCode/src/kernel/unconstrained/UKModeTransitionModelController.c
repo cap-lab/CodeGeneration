@@ -392,6 +392,7 @@ static uem_result traverseAndSetEventToTemporarySuspendedMTMTask(STask *pstTask,
 				if(UKChannel_IsPortRateAvailableTask(pstMTMSubTask->nTaskId, pszOldModeName) == FALSE &&
 					bCurrentPortAvailable == TRUE)
 				{
+					int nNextStartIteration = 0;
 					//UEM_DEBUG_PRINT("new task: %s, previous_iteration: %d, new_iteration: %d\n", pstTask->pszTaskName, pstTask->nCurIteration, pstNewModeData->nNewStartIteration);
 
 					result = UKTask_GetIterationNumberBasedOnTargetParentTaskId(pstTask, pstNewModeData->nNewStartIteration,
@@ -401,8 +402,11 @@ static uem_result traverseAndSetEventToTemporarySuspendedMTMTask(STask *pstTask,
 
 					result = UCThreadMutex_Lock(pstTask->hMutex);
 					ERRIFGOTO(result, _EXIT);
-
-					pstTask->nCurIteration = nConvertedStartIteration;
+					result = UKModeTransition_GetNextModeStartIndexByIteration(pstController->pstMTMInfo, pstTask->nCurIteration, NULL, &nNextStartIteration);
+					if(result == ERR_UEM_NOERROR && nConvertedStartIteration == nNextStartIteration)
+					{
+						pstTask->nCurIteration = nConvertedStartIteration;
+					} // skip when the error is occurred.
 
 					result = UKTask_UpdateAllSubGraphCurrentIteration(pstNewModeData->pstParentTaskGraph, pstTask, pstNewModeData->nNewStartIteration);
 					UCThreadMutex_Unlock(pstTask->hMutex);
