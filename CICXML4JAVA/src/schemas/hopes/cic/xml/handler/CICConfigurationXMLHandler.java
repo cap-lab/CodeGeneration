@@ -1,4 +1,4 @@
-package hae.peace.container.cic.mapping.xml;
+package hopes.cic.xml.handler;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
@@ -14,8 +14,12 @@ public class CICConfigurationXMLHandler extends CICXMLHandler {
 	
 	public CICConfigurationXMLHandler() {
 		loader = new CICConfigurationTypeLoader();
+		configuration = new CICConfigurationType();
 	}
 	
+	public void init() {
+	}
+
 	protected void storeResource(StringWriter writer) throws CICXMLException {
 		loader.storeResource(configuration, writer);
 	}

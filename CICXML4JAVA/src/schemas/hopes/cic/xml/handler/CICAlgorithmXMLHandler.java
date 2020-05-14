@@ -1,5 +1,5 @@
 // hs: need to delete before release
-package hae.peace.container.cic.mapping.xml;
+package hopes.cic.xml.handler;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
@@ -7,140 +7,137 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import hae.peace.container.cic.mapping.MappingTask;
 import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICAlgorithmType;
 import hopes.cic.xml.CICAlgorithmTypeLoader;
+import hopes.cic.xml.ChannelListType;
 import hopes.cic.xml.DataParallelType;
+import hopes.cic.xml.ExternalTaskType;
+import hopes.cic.xml.LibraryType;
 import hopes.cic.xml.LoopStructureTypeType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.ModeType;
+import hopes.cic.xml.PortMapListType;
 import hopes.cic.xml.TaskType;
 
 public class CICAlgorithmXMLHandler extends CICXMLHandler {
 	private CICAlgorithmTypeLoader loader;
 	private CICAlgorithmType algorithm;
+	private List<TaskType> taskList = new ArrayList<TaskType>();
+	private List<ExternalTaskType> externalTaskList = new ArrayList<ExternalTaskType>();
+	private List<LibraryType> libraryList = new ArrayList<LibraryType>();
+	private List<TaskType> mtmtaskList = new ArrayList<TaskType>();
 	
 	public CICAlgorithmXMLHandler() {
 		loader = new CICAlgorithmTypeLoader();
+		algorithm = new CICAlgorithmType();
 	}
-	
+
 	protected void storeResource(StringWriter writer) throws CICXMLException {
 		loader.storeResource(algorithm, writer);
 	}
-	
+
 	protected void loadResource(ByteArrayInputStream is) throws CICXMLException {
 		algorithm = loader.loadResource(is);
 	}
-	
+
+	public void init() {
+		taskList.clear();
+		externalTaskList.clear();
+		libraryList.clear();
+		mtmtaskList.clear();
+		for (TaskType task : algorithm.getTasks().getTask()) {
+			taskList.add(task);
+			if (task.getHasSubGraph().equalsIgnoreCase("Yes")) {
+				mtmtaskList.add(task);
+			}
+		}
+		for (ExternalTaskType externalTask : algorithm.getTasks().getExternalTask()) {
+			externalTaskList.add(externalTask);
+		}
+		if (algorithm.getLibraries() != null) {
+			for (LibraryType library : algorithm.getLibraries().getLibrary()) {
+				libraryList.add(library);
+			}
+		}
+	}
+
+	public List<TaskType> getTaskList() {
+		return taskList;
+	}
+
+	public List<ExternalTaskType> getExternalTaskList() {
+		return externalTaskList;
+	}
+
+	public List<LibraryType> getLibraryList() {
+		return libraryList;
+	}
+
+	public List<TaskType> getMTMTaskList() {
+		return mtmtaskList;
+	}
+
+	public PortMapListType getPortMaps() {
+		return algorithm.getPortMaps();
+	}
+
+	public ChannelListType getChannels() {
+		return algorithm.getChannels();
+	}
+
+	public String getProperty() {
+		return algorithm.getProperty();
+	}
+
 	public CICAlgorithmType getAlgorithm()
 	{
 		return algorithm;
 	}
-	
-	public CICAlgorithmTypeLoader getLoader()
-	{
-		return loader;
-	}
-	
-	private HashMap<String, TaskType> getFullTaskMap(List<TaskType> taskList)
-	{
-		HashMap<String, TaskType> taskMap = new HashMap<String, TaskType>();
-		for(TaskType task : taskList)
-		{
-			taskMap.put(task.getName(), task);
-		}
-		
-		return taskMap;
-	}
-	
-	private boolean isInDataTypeLoop(String taskName, HashMap<String, TaskType> taskMap)
-	{
-		boolean isDataTypeLoop = false;
-		TaskType task;
-		String currentTaskName;
-		
-		task = taskMap.get(taskName);
-		
-		do {
-			currentTaskName = task.getName();
-			
-			if(task.getLoopStructure() != null && task.getLoopStructure().getType() == LoopStructureTypeType.DATA)
-			{
-				isDataTypeLoop = true;
-				break;
+
+	private boolean isInDataTypeLoop(TaskType task) {
+		while (true) {
+			if(task.getLoopStructure() != null && task.getLoopStructure().getType().equals(LoopStructureTypeType.DATA)){
+				return true;
+			} else if (task.getName().equals(task.getParentTask())) {
+				return false;
+			} else {
+				task = findTaskByName(task.getParentTask());
 			}
-					
-			task = taskMap.get(task.getParentTask());
-			
-		}while(task.getName().equals(currentTaskName) == false);
-		
-		return isDataTypeLoop;
+		}
 	}
 	
-	
-	public void updateTaskList(List<MappingTask> taskList)
-	{
+	public Map<String, DataParallelType> getMapParallelType() {
 		Map<String, DataParallelType> mapParallelType = new HashMap<String, DataParallelType>();
+		List<TaskType> parallelTaskList = taskList.stream().filter(t -> t.getDataParallel() != null)
+				.collect(Collectors.toList());
+		parallelTaskList.forEach(t -> mapParallelType.put(t.getName(), t.getDataParallel().getType()));
+		return mapParallelType;
+	}
+
+	public Map<String, LoopStructureTypeType> getMapLoopType() {
 		Map<String, LoopStructureTypeType> mapLoopType = new HashMap<String, LoopStructureTypeType>();
-		HashMap<String, TaskType> taskMap;
-		
-		taskMap = getFullTaskMap(algorithm.getTasks().getTask());
-		
-		for(TaskType taskType : algorithm.getTasks().getTask())
-		{
-			String taskName = taskType.getName();
-			if(taskType.getDataParallel()!=null)
-			{
-				String key = taskName;
-				mapParallelType.put(key, taskType.getDataParallel().getType());
-			}
-			
-			if(isInDataTypeLoop(taskName, taskMap) == true)
-			{
-				String key = taskName;
-				mapLoopType.put(key, LoopStructureTypeType.DATA);
+		for (TaskType taskType : taskList) {
+			if (isInDataTypeLoop(taskType)) {
+				mapLoopType.put(taskType.getName(), LoopStructureTypeType.DATA);
 			}
 		}
-		
-		for (MappingTask task : taskList) {
-			String key = task.getName();
-			if (mapParallelType.containsKey(key))
-				task.setParallelType(mapParallelType.get(key));
-			if (mapLoopType.containsKey(key))
-				task.setLoopType(mapLoopType.get(key));
-		}
+		return mapLoopType;
 	}
 	
-	private TaskType getTaskTypebyTaskName(String taskName)
+	private Map<String, ArrayList<String>> makeHierarchicalTaskMap()
 	{
-		for(TaskType task : algorithm.getTasks().getTask())
-		{
-			if(task.getName().contentEquals(taskName))
-			{
-				return task;
-			}
-		}
-		
-		for(TaskType task : algorithm.getTasks().getTask())
-		{
-			System.out.println(task.getName());
-		}
-		return null;		
-	}
-	
-	private HashMap<String, ArrayList<String>> makeHierarchicalTaskMap()
-	{
-		HashMap<String, ArrayList<String>> hierarchicalTaskMap = new HashMap<String, ArrayList<String>>();
+		Map<String, ArrayList<String>> hierarchicalTaskMap = new HashMap<String, ArrayList<String>>();
 		//make hierarchicalTaskMap.
-		for(TaskType task : algorithm.getTasks().getTask())
+		for (TaskType task : taskList)
 		{
 			String subTaskName = task.getName();
 			TaskType currentTaskType = task;
 			while(!currentTaskType.getParentTask().equals(currentTaskType.getName())) //while task has parent task.
 			{
-				TaskType parentTaskTaskType = getTaskTypebyTaskName(currentTaskType.getParentTask());				
+				TaskType parentTaskTaskType = findTaskByName(currentTaskType.getParentTask());				
 
 				if(hierarchicalTaskMap.containsKey(parentTaskTaskType.getName()))
 				{
@@ -159,43 +156,20 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 		return hierarchicalTaskMap;
 	}		
 	
-	public HashMap<String, ArrayList<String>> getHierarchicalDATALoopAndSubTasksMap() 
+	public Map<String, ArrayList<String>> getHierarchicalDATALoopAndSubTasksMap() 
 	{		
-		HashMap<String, ArrayList<String>> hierarchicalTaskMap = makeHierarchicalTaskMap();				
-		HashMap<String, ArrayList<String>> hierarchicalDATALoopAndSubTasksMap = new HashMap<String, ArrayList<String>>();
+		Map<String, ArrayList<String>> hierarchicalTaskMap = makeHierarchicalTaskMap();
+		Map<String, ArrayList<String>> hierarchicalDATALoopAndSubTasksMap = new HashMap<String, ArrayList<String>>();
 			
 		for(String hierarchicalTaskName : hierarchicalTaskMap.keySet())
 		{
-			TaskType hierarchicalTaskType = getTaskTypebyTaskName(hierarchicalTaskName);
-			if(hierarchicalTaskType.getLoopStructure() != null && hierarchicalTaskType.getLoopStructure().getType() == LoopStructureTypeType.DATA)
+			TaskType hierarchicalTaskType = findTaskByName(hierarchicalTaskName);
+			if(hierarchicalTaskType.getLoopStructure() != null && hierarchicalTaskType.getLoopStructure().getType().equals(LoopStructureTypeType.DATA))
 			{
 				hierarchicalDATALoopAndSubTasksMap.put(hierarchicalTaskName, hierarchicalTaskMap.get(hierarchicalTaskName));
 			}
 		}	
-		
 		return hierarchicalDATALoopAndSubTasksMap;
-	}
-
-	public int getPriorityByTaskName(String taskName)
-	{
-		for(ModeType modeType : algorithm.getModes().getMode())
-		{
-			for(ModeTaskType modeTaskType : modeType.getTask())
-			{
-				if(modeTaskType.getName().equals(taskName))
-				{
-					return modeTaskType.getPriority().intValue();
-				}
-			}
-		}
-
-		try {
-			throw new Exception("error : no task exists " + taskName);
-		}catch(Exception e)
-		{
-				e.printStackTrace();
-		}
-		return -1;
 	}
 
 	public ModeTaskType findModeTaskTypeByTaskName(String taskName) {
@@ -207,6 +181,25 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 			}
 		}
 		throw new RuntimeException("Error : modeTask not found. " + taskName);
+	}
+
+	public ModeTaskType findModeTaskTypeByTaskNameInFirstIndex(String taskName) {
+		for (ModeTaskType mt : algorithm.getModes().getMode().get(0).getTask()) {
+			if (mt.getName().equals(taskName)) {
+				return mt;
+			}
+		}
+		return null;
+	}
+
+	public List<ModeTaskType> findModeTaskTypeListByTaskNameInFirstIndex(String taskName) {
+		return algorithm.getModes().getMode().get(0).getTask().stream()
+				.filter(mt -> mt.getName().equals(taskName))
+				.collect(Collectors.toList());
+	}
+
+	public TaskType findTaskByName(String taskName) {
+		return taskList.stream().filter(t -> t.getName().equals(taskName)).findFirst().orElse(null);
 	}
 }
 	

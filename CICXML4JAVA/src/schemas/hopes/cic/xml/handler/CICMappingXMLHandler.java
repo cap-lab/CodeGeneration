@@ -1,4 +1,4 @@
-package hae.peace.container.cic.mapping.xml;
+package hopes.cic.xml.handler;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
@@ -6,14 +6,12 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-import hae.peace.container.cic.mapping.MappingTask;
-import hae.peace.container.cic.mapping.Processor;
 import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICMappingType;
 import hopes.cic.xml.CICMappingTypeLoader;
-import hopes.cic.xml.DataParallelType;
 import hopes.cic.xml.MappingDeviceType;
 import hopes.cic.xml.MappingExternalTaskType;
+import hopes.cic.xml.MappingLibraryType;
 import hopes.cic.xml.MappingMulticastType;
 import hopes.cic.xml.MappingMulticastUDPType;
 import hopes.cic.xml.MappingProcessorIdType;
@@ -22,23 +20,56 @@ import hopes.cic.xml.MappingTaskType;
 public class CICMappingXMLHandler extends CICXMLHandler {
 	private CICMappingTypeLoader loader;
 	private CICMappingType mapping;
-	
+	private List<MappingTaskType> taskList = new ArrayList<MappingTaskType>();
+	private List<MappingExternalTaskType> externalTaskList = new ArrayList<MappingExternalTaskType>();
+
 	public CICMappingXMLHandler() {
 		loader = new CICMappingTypeLoader();
+		mapping = new CICMappingType();
 	}
-	
+
 	protected void storeResource(StringWriter writer) throws CICXMLException {
 		loader.storeResource(mapping, writer);
 	}
-	
+
 	protected void loadResource(ByteArrayInputStream is) throws CICXMLException {
 		mapping = loader.loadResource(is);
 	}
+
+	public void init() {
+		taskList.clear();
+		externalTaskList.clear();
+		makeMappingTaskList();
+		makeMappingExternalTaskList();
+	}
+
+	public List<MappingTaskType> getTaskList() {
+		return taskList;
+	}
+
+	public void setTaskList(List<MappingTaskType> taskList) {
+		this.taskList = taskList;
+	}
 	
-	@Override
-	public void setXMLString(String xmlString) throws CICXMLException {
-		super.setXMLString(xmlString);
-		processed = false;		
+	public void addTask(MappingTaskType task) {
+		this.taskList.add(task);
+		this.mapping.getTask().add(task);
+	}
+
+	public List<MappingExternalTaskType> getExternalTaskList() {
+		return externalTaskList;
+	}
+
+	public void makeMappingTaskList() {
+		for (MappingTaskType task : mapping.getTask()) {
+			taskList.add(task);
+		}
+	}
+
+	public void makeMappingExternalTaskList() {
+		for (MappingExternalTaskType task : mapping.getExternalTask()) {
+			externalTaskList.add(task);
+		}
 	}
 
 	public CICMappingType getMapping() {
@@ -49,85 +80,41 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 		this.mapping = mapping;
 	}
 
-	private List<MappingTask> taskList = new ArrayList<MappingTask>();
-	private boolean processed = false;
-
-	private void addTaskProcessorForce(MappingTask task, MappingTaskType taskType,
-			CICArchitectureXMLHandler architectureHandler) {
-		for (MappingProcessorIdType processorType : taskType.getDevice().get(0).getProcessor()) {
-			String poolName = processorType.getPool();
-			BigInteger localId = processorType.getLocalId();
-
-			Processor processor = architectureHandler.getProcessor(poolName, localId);
-			if (processor == null) {
-				System.out.println("cannot find processor[" + poolName + ":" + localId + "]");
-				continue;
-			}
-			task.addProcessorForce(processor);
-		}
-	}
-
-	public void addMappingTaskTypeToTaskList(List<MappingTaskType> taskTypeList,
-			CICArchitectureXMLHandler architectureHandler) {
-		for (MappingTaskType taskType : taskTypeList) {
-			String taskName = taskType.getName();
-			DataParallelType parallelType = taskType.getDataParallel() == null ? DataParallelType.NONE
-					: taskType.getDataParallel();
-			MappingTask task = new MappingTask(taskName, parallelType);
-			addTaskProcessorForce(task, taskType, architectureHandler);
-			taskList.add(task);
-		}
-	}
-
-	public void makeTaskList(CICArchitectureXMLHandler architectureHandler) {
-		if (processed || mapping == null) {
-			return;
-		}
-		taskList.clear();
-		addMappingTaskTypeToTaskList(mapping.getTask(), architectureHandler);
-		processed = true;
-	}
-	
-	public List<MappingTask> getTaskList() {
-		return taskList;
-	}
-	
-	private void clearMap() {
-		for (MappingTaskType task : mapping.getTask()) {
+	public void clearMap() {
+		for (MappingTaskType task : taskList) {
 			task.getDevice().get(0).getProcessor().clear();
 		}
-		for (MappingExternalTaskType externalTask : mapping.getExternalTask()) {
+		for (MappingExternalTaskType externalTask : externalTaskList) {
 			for (MappingTaskType task : externalTask.getChildTask()) {
 				task.getDevice().get(0).getProcessor().clear();
 			}
 		}
 	}
 
-	private List<MappingProcessorIdType> getProcessIdList(String taskName) {
-		for (MappingTaskType task : mapping.getTask()) {
+	public List<MappingProcessorIdType> getProcessIdList(String taskName) {
+		for (MappingTaskType task : taskList) {
 			if (taskName.equals(task.getName())) {
 				return task.getDevice().get(0).getProcessor();
 			}
 		}
-		for (MappingExternalTaskType externalTask : mapping.getExternalTask()) {
+		for (MappingExternalTaskType externalTask : externalTaskList) {
 			for (MappingTaskType task : externalTask.getChildTask()) {
 				if (taskName.equals(task.getName())) {
 					return task.getDevice().get(0).getProcessor();
 				}
 			}
-
 		}
 		return null;
 	}
 	
-	private List<MappingDeviceType> getDeviceType(String taskName){
-		for (MappingTaskType task : mapping.getTask()) {
+	public List<MappingDeviceType> getDeviceType(String taskName) {
+		for (MappingTaskType task : taskList) {
 			if (!taskName.equals(task.getName()))
 				continue;
 			else
 				return task.getDevice();
 		}
-		for (MappingExternalTaskType externalTask : mapping.getExternalTask()) {
+		for (MappingExternalTaskType externalTask : externalTaskList) {
 			for (MappingTaskType task : externalTask.getChildTask()) {
 				if (taskName.equals(task.getName())) {
 					return task.getDevice();
@@ -137,29 +124,13 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 		return null;
 	}
 	
-	public void update() {
-		clearMap();
-		for (MappingTask obj : taskList) {
-			MappingTask task = (MappingTask) obj;
-			List<MappingDeviceType> device = getDeviceType(task.getName());
-			List<MappingProcessorIdType> processors = getProcessIdList(task.getName());
-			for (Processor processor : task.getAssignedProcList()) {
-				MappingProcessorIdType processorType = new MappingProcessorIdType();
-				processorType.setPool(processor.getName());
-				processorType.setLocalId(BigInteger.valueOf(processor.getIndex()));
-				processors.add(processorType);
-				device.get(0).setName(processor.getParentDevice());
-			}
-		}
-	}
-	
-	public String getXMLString(CICMappingType xmlData) throws CICXMLException{
+	public String getXMLString(CICMappingType xmlData) throws CICXMLException {
 		StringWriter writer = new StringWriter();
 		loader.storeResource(xmlData, writer);
 		writer.flush();
-		return writer.toString();	
+		return writer.toString();
 	}
-	
+
 	public boolean updateXMLFile(String fileName, String element) throws CICXMLException {
 		CICMappingType originData = loader.loadResource(new ByteArrayInputStream(getLocalFile(fileName).getBytes()));
 		if(element.equals("task")) {
@@ -180,16 +151,6 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 		}
 		
 		return putLocalFile(fileName, getXMLString(originData));
-	}
-	
-	public MappingTask findTaskByName(String taskName, CICArchitectureXMLHandler architectureHandler) {
-		makeTaskList(architectureHandler);
-		for (MappingTask task : getTaskList()) {
-			if (task.getName().equals(taskName)) {
-				return task;
-			}
-		}
-		return null;
 	}
 	
 	public ArrayList<String> getGroupList() {
@@ -262,5 +223,28 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 				selectedGroup.getConnectionType().getUDP().setPort(new BigInteger(Content));
 			}
 		}
+	}
+
+	public MappingTaskType getTaskMappingByTaskName(String taskName) {
+		MappingTaskType taskMapping = taskList.stream().filter(it -> it.getName().equals(taskName)).findFirst()
+				.orElse(null);
+		if (taskMapping == null) {
+			externalTaskList.stream().map(MappingExternalTaskType::getChildTask).flatMap(List::stream)
+					.filter(extTaskMapping -> extTaskMapping.getName().equals(taskName)).findFirst().orElse(null);
+		}
+		return taskMapping;
+	}
+
+	public List<MappingMulticastType> getMappingMulticastTypeList() {
+		return mapping.getMulticast();
+	}
+
+	public void addExternalTask(MappingExternalTaskType mappingExternalTaskType) {
+		this.externalTaskList.add(mappingExternalTaskType);
+		this.mapping.getExternalTask().add(mappingExternalTaskType);
+	}
+
+	public void addLibrary(MappingLibraryType mappingLibrary) {
+		mapping.getLibrary().add(mappingLibrary);
 	}
 }

@@ -1,7 +1,6 @@
-package hae.peace.container.cic.mapping.xml;
+package hopes.cic.xml.handler;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileOutputStream;
 import java.io.StringWriter;
 
 import hopes.cic.exception.CICXMLException;
@@ -17,8 +16,12 @@ public class CICGPUSetupXMLHandler extends CICXMLHandler{
 	
 	public CICGPUSetupXMLHandler() {
 		loader = new CICGPUSetupTypeLoader();
+		gpuSetup = new CICGPUSetupType();
 	}
 	
+	public void init() {
+	}
+
 	protected void storeResource(StringWriter writer) throws CICXMLException {
 		loader.storeResource(gpuSetup, writer);
 	}

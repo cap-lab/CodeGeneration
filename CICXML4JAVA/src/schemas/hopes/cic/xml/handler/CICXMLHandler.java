@@ -1,4 +1,4 @@
-package hae.peace.container.cic.mapping.xml;
+package hopes.cic.xml.handler;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -11,7 +11,8 @@ import hopes.cic.exception.CICXMLException;
 public abstract class CICXMLHandler {
 	protected abstract void storeResource(StringWriter writer) throws CICXMLException;
 	protected abstract void loadResource(ByteArrayInputStream is) throws CICXMLException;
-	
+	public abstract void init();
+
 	public void setXMLString(String xmlString) throws CICXMLException{
 		ByteArrayInputStream is = new ByteArrayInputStream(xmlString.getBytes());
 		loadResource(is);
@@ -69,12 +70,13 @@ public abstract class CICXMLHandler {
 		}
 	}
 	
-	public void LoadXMLfileToHandler(String xmlFileName) throws CICXMLException {
+	public void loadXMLfileToHandler(String xmlFileName) throws CICXMLException {
 		String xmlData = getLocalFile(xmlFileName);
 
 		if (xmlData == null || xmlData.indexOf(xmlFileName + " doesn't exist") == 0) {
 			throw new CICXMLException(null, "[ERROR] file doesn't exist");
 		}
 		setXMLString(xmlData);
+		init();
 	}	
 }
