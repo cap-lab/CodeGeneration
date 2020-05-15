@@ -222,4 +222,10 @@ public class CICProfileXMLHandler extends CICXMLHandler{
 			return execBound;
 		}
 	}
+
+	public ProfileTaskModeType getProfileTaskModeTypeByModeName(ProfileTaskType profileTask, String modeName) {
+		return profileTask.getMode().stream().filter(pmt -> pmt.getName().equalsIgnoreCase(modeName)).findFirst()
+				.orElseThrow(IllegalArgumentException::new);
+	}
+
 }
