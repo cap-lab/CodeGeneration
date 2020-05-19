@@ -229,7 +229,7 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 		MappingTaskType taskMapping = taskList.stream().filter(it -> it.getName().equals(taskName)).findFirst()
 				.orElse(null);
 		if (taskMapping == null) {
-			externalTaskList.stream().map(MappingExternalTaskType::getChildTask).flatMap(List::stream)
+			taskMapping = externalTaskList.stream().map(MappingExternalTaskType::getChildTask).flatMap(List::stream)
 					.filter(extTaskMapping -> extTaskMapping.getName().equals(taskName)).findFirst().orElse(null);
 		}
 		return taskMapping;

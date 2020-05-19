@@ -20,6 +20,7 @@ import hopes.cic.xml.LoopStructureTypeType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.ModeType;
 import hopes.cic.xml.PortMapListType;
+import hopes.cic.xml.TaskPortType;
 import hopes.cic.xml.TaskType;
 
 public class CICAlgorithmXMLHandler extends CICXMLHandler {
@@ -97,7 +98,7 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 		return algorithm;
 	}
 
-	private boolean isInDataTypeLoop(TaskType task) {
+	public boolean isInDataTypeLoop(TaskType task) {
 		while (true) {
 			if(task.getLoopStructure() != null && task.getLoopStructure().getType().equals(LoopStructureTypeType.DATA)){
 				return true;
@@ -200,6 +201,11 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 
 	public TaskType findTaskByName(String taskName) {
 		return taskList.stream().filter(t -> t.getName().equals(taskName)).findFirst().orElse(null);
+	}
+
+	public TaskPortType findTaskPortByName(TaskType task, String portName) {
+		return task.getPort().stream().filter(port -> port.getName().equals(portName)).findAny()
+				.orElseThrow(IllegalArgumentException::new);
 	}
 }
 	
