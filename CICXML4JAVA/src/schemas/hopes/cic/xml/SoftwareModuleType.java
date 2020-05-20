@@ -40,9 +40,9 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class SoftwareModuleType {
 
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(required = true)
     protected FileSourceListType sources;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(required = true)
     protected FileSourceListType headers;
     @XmlAttribute(required = true)
     protected String cflags;

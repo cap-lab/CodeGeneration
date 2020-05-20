@@ -23,10 +23,10 @@ import javax.xml.bind.annotation.XmlEnumValue;
 @XmlEnum
 public enum ServerClientRoleType {
 
-    @XmlEnumValue("client")
-    CLIENT("client"),
     @XmlEnumValue("server")
-    SERVER("server");
+    SERVER("server"),
+    @XmlEnumValue("client")
+    CLIENT("client");
     private final String value;
 
     ServerClientRoleType(String v) {

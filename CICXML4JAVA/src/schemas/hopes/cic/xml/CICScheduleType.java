@@ -34,7 +34,7 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class CICScheduleType {
 
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(required = true)
     protected TaskGroupsType taskGroups;
     @XmlAttribute(required = true)
     protected String type;

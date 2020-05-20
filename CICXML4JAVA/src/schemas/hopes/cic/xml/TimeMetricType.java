@@ -31,26 +31,26 @@ import javax.xml.bind.annotation.XmlEnumValue;
 @XmlEnum
 public enum TimeMetricType {
 
-    @XmlEnumValue("count")
-    COUNT("count"),
-    @XmlEnumValue("cycle")
-    CYCLE("cycle"),
-    @XmlEnumValue("fs")
-    FS("fs"),
     @XmlEnumValue("h")
     H("h"),
     @XmlEnumValue("m")
     M("m"),
+    @XmlEnumValue("s")
+    S("s"),
     @XmlEnumValue("ms")
     MS("ms"),
+    @XmlEnumValue("us")
+    US("us"),
     @XmlEnumValue("ns")
     NS("ns"),
     @XmlEnumValue("ps")
     PS("ps"),
-    @XmlEnumValue("s")
-    S("s"),
-    @XmlEnumValue("us")
-    US("us");
+    @XmlEnumValue("fs")
+    FS("fs"),
+    @XmlEnumValue("cycle")
+    CYCLE("cycle"),
+    @XmlEnumValue("count")
+    COUNT("count");
     private final String value;
 
     TimeMetricType(String v) {

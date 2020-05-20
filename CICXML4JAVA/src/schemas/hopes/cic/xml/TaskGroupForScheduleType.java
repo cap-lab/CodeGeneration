@@ -7,7 +7,6 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -42,7 +41,6 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class TaskGroupForScheduleType {
 
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
     protected List<ScheduleGroupType> scheduleGroup;
     @XmlAttribute(required = true)
     protected BigInteger initiationInterval;

@@ -24,12 +24,12 @@ import javax.xml.bind.annotation.XmlEnumValue;
 @XmlEnum
 public enum PortMapTypeType {
 
-    @XmlEnumValue("broadcasting")
-    BROADCASTING("broadcasting"),
+    @XmlEnumValue("normal")
+    NORMAL("normal"),
     @XmlEnumValue("distributing")
     DISTRIBUTING("distributing"),
-    @XmlEnumValue("normal")
-    NORMAL("normal");
+    @XmlEnumValue("broadcasting")
+    BROADCASTING("broadcasting");
     private final String value;
 
     PortMapTypeType(String v) {

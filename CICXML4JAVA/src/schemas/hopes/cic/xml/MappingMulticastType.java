@@ -4,7 +4,6 @@ package hopes.cic.xml;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -34,7 +33,6 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class MappingMulticastType {
 
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected MappingMulticastConnectionType connectionType;
     @XmlAttribute(required = true)
     protected String groupName;

@@ -23,10 +23,10 @@ import javax.xml.bind.annotation.XmlEnumValue;
 @XmlEnum
 public enum LoopStructureTypeType {
 
-    @XmlEnumValue("convergent")
-    CONVERGENT("convergent"),
     @XmlEnumValue("data")
-    DATA("data");
+    DATA("data"),
+    @XmlEnumValue("convergent")
+    CONVERGENT("convergent");
     private final String value;
 
     LoopStructureTypeType(String v) {

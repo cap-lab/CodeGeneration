@@ -5,7 +5,6 @@ import java.math.BigInteger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -37,7 +36,6 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class FaultToleranceType {
 
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected String validationTaskCIC;
     @XmlAttribute(required = true)
     protected BigInteger number;

@@ -6,10 +6,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
-import hopes.cic.xml.TaskGroupType.Task;
-import hopes.cic.xml.TaskGroupType.TaskGroup;
 
 
 /**
@@ -57,10 +54,8 @@ import hopes.cic.xml.TaskGroupType.TaskGroup;
 })
 public class TaskGroupType {
 
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
-    protected List<TaskGroup> taskGroup;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
-    protected List<Task> task;
+    protected List<TaskGroupType.TaskGroup> taskGroup;
+    protected List<TaskGroupType.Task> task;
     @XmlAttribute
     protected GroupTypeType groupType;
     @XmlAttribute(required = true)
@@ -84,13 +79,13 @@ public class TaskGroupType {
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link TaskGroup }
+     * {@link TaskGroupType.TaskGroup }
      * 
      * 
      */
-    public List<TaskGroup> getTaskGroup() {
+    public List<TaskGroupType.TaskGroup> getTaskGroup() {
         if (taskGroup == null) {
-            taskGroup = new ArrayList<TaskGroup>();
+            taskGroup = new ArrayList<TaskGroupType.TaskGroup>();
         }
         return this.taskGroup;
     }
@@ -113,13 +108,13 @@ public class TaskGroupType {
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link Task }
+     * {@link TaskGroupType.Task }
      * 
      * 
      */
-    public List<Task> getTask() {
+    public List<TaskGroupType.Task> getTask() {
         if (task == null) {
-            task = new ArrayList<Task>();
+            task = new ArrayList<TaskGroupType.Task>();
         }
         return this.task;
     }

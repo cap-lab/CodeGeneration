@@ -36,7 +36,7 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class MTMTransitionType {
 
-    @XmlElement(name = "condition_list", namespace = "http://peace.snu.ac.kr/CICXMLSchema")
+    @XmlElement(name = "condition_list")
     protected MTMConditionListType conditionList;
     @XmlAttribute(name = "dst_mode", required = true)
     protected String dstMode;

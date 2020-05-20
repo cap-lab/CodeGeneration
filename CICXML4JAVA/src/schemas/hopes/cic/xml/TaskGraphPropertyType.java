@@ -23,10 +23,10 @@ import javax.xml.bind.annotation.XmlEnumValue;
 @XmlEnum
 public enum TaskGraphPropertyType {
 
-    @XmlEnumValue("DataFlow")
-    DATA_FLOW("DataFlow"),
     @XmlEnumValue("ProcessNetwork")
-    PROCESS_NETWORK("ProcessNetwork");
+    PROCESS_NETWORK("ProcessNetwork"),
+    @XmlEnumValue("DataFlow")
+    DATA_FLOW("DataFlow");
     private final String value;
 
     TaskGraphPropertyType(String v) {

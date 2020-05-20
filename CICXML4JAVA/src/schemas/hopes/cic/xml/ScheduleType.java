@@ -23,10 +23,10 @@ import javax.xml.bind.annotation.XmlEnumValue;
 @XmlEnum
 public enum ScheduleType {
 
-    @XmlEnumValue("dynamic")
-    DYNAMIC("dynamic"),
     @XmlEnumValue("static")
-    STATIC("static");
+    STATIC("static"),
+    @XmlEnumValue("dynamic")
+    DYNAMIC("dynamic");
     private final String value;
 
     ScheduleType(String v) {

@@ -40,13 +40,10 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class CICMappingType {
 
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(required = true)
     protected List<MappingTaskType> task;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
     protected List<MappingExternalTaskType> externalTask;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
     protected List<MappingLibraryType> library;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
     protected List<MappingMulticastType> multicast;
 
     /**

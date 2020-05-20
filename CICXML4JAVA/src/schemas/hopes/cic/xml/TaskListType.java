@@ -36,9 +36,8 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class TaskListType {
 
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(required = true)
     protected List<TaskType> task;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
     protected List<ExternalTaskType> externalTask;
 
     /**

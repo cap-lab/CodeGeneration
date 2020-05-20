@@ -50,23 +50,16 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class CICAlgorithmType {
 
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(required = true)
     protected TaskListType tasks;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected LibraryListType libraries;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected ChannelListType channels;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected MulticastGroupListType multicastGroups;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected PortMapListType portMaps;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected LibraryConnectionListType libraryConnections;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected TaskGroupListType taskGroups;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(required = true)
     protected ModeListType modes;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected HeaderListType headers;
     @XmlAttribute(required = true)
     protected String property;

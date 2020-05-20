@@ -24,10 +24,10 @@ import javax.xml.bind.annotation.XmlEnumValue;
 @XmlEnum
 public enum DataParallelType {
 
-    @XmlEnumValue("loop")
-    LOOP("loop"),
     @XmlEnumValue("none")
     NONE("none"),
+    @XmlEnumValue("loop")
+    LOOP("loop"),
     @XmlEnumValue("wavefront")
     WAVEFRONT("wavefront");
     private final String value;

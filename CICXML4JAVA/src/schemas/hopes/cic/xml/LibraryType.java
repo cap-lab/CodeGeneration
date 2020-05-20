@@ -7,7 +7,6 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -59,19 +58,12 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class LibraryType {
 
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
     protected List<LibraryMasterPortType> libraryMasterPort;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
     protected List<String> extraHeader;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
     protected List<String> extraSource;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
     protected List<String> extraCIC;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
     protected List<String> extraFile;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
     protected List<LibraryFunctionType> function;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected HardwareDependencyType hardwareDependency;
     @XmlAttribute
     protected String cflags;

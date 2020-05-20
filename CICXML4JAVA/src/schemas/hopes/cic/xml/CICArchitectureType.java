@@ -40,13 +40,11 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class CICArchitectureType {
 
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(required = true)
     protected ArchitectureElementTypeListType elementTypes;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected ArchitectureElementListType elements;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected ArchitectureDeviceListType devices;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(required = true)
     protected ArchitectureConnectionListType connections;
     @XmlAttribute(required = true)
     protected String target;

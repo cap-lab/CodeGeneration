@@ -5,7 +5,6 @@ import java.math.BigInteger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -42,11 +41,8 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class ModeTaskType {
 
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected TimeType period;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected TimeType deadline;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected TimeType maxInitialInterval;
     @XmlAttribute(required = true)
     protected String name;

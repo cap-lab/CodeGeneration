@@ -3,7 +3,6 @@ package hopes.cic.xml;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -36,11 +35,8 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class CICDeviceIOType {
 
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected SensorListType sensors;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected ActuatorListType actuators;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected DisplayListType displays;
 
     /**

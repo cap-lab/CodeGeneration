@@ -23,10 +23,10 @@ import javax.xml.bind.annotation.XmlEnumValue;
 @XmlEnum
 public enum FaultToleranceTypeType {
 
-    @XmlEnumValue("activeReplication")
-    ACTIVE_REPLICATION("activeReplication"),
     @XmlEnumValue("reexecution")
-    REEXECUTION("reexecution");
+    REEXECUTION("reexecution"),
+    @XmlEnumValue("activeReplication")
+    ACTIVE_REPLICATION("activeReplication");
     private final String value;
 
     FaultToleranceTypeType(String v) {

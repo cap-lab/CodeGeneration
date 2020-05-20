@@ -25,14 +25,14 @@ import javax.xml.bind.annotation.XmlEnumValue;
 @XmlEnum
 public enum ArchitectureElementCategoryType {
 
+    @XmlEnumValue("processor")
+    PROCESSOR("processor"),
+    @XmlEnumValue("memory")
+    MEMORY("memory"),
     @XmlEnumValue("dma")
     DMA("dma"),
     @XmlEnumValue("hwip")
-    HWIP("hwip"),
-    @XmlEnumValue("memory")
-    MEMORY("memory"),
-    @XmlEnumValue("processor")
-    PROCESSOR("processor");
+    HWIP("hwip");
     private final String value;
 
     ArchitectureElementCategoryType(String v) {

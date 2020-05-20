@@ -32,7 +32,7 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class MappingMulticastConnectionType {
 
-    @XmlElement(name = "UDP", namespace = "http://peace.snu.ac.kr/CICXMLSchema")
+    @XmlElement(name = "UDP")
     protected MappingMulticastUDPType udp;
 
     /**

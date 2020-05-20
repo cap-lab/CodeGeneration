@@ -36,7 +36,7 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class MappingDeviceType {
 
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(required = true)
     protected List<MappingProcessorIdType> processor;
     @XmlAttribute(required = true)
     protected String name;

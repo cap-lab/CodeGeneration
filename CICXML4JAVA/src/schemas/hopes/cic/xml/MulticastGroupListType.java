@@ -34,7 +34,7 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class MulticastGroupListType {
 
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(required = true)
     protected List<MulticastGroupType> multicastGroup;
 
     /**

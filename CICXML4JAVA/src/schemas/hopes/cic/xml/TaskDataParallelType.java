@@ -5,7 +5,6 @@ import java.math.BigInteger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -39,9 +38,7 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class TaskDataParallelType {
 
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected VectorType volume;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema")
     protected VectorListType dependencyVector;
     @XmlAttribute
     protected BigInteger loopCount;

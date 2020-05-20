@@ -24,10 +24,10 @@ import javax.xml.bind.annotation.XmlEnum;
 @XmlEnum
 public enum ArchitectureSchedulerType {
 
-    EDF,
-    FPFCFS,
     RM,
-    RR;
+    EDF,
+    RR,
+    FPFCFS;
 
     public String value() {
         return name();

@@ -38,11 +38,11 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class DeviceConnectionListType {
 
-    @XmlElement(name = "TCPConnection", namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(name = "TCPConnection")
     protected List<TCPConnectionType> tcpConnection;
-    @XmlElement(name = "UDPConnection", namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(name = "UDPConnection")
     protected List<UDPConnectionType> udpConnection;
-    @XmlElement(name = "SerialConnection", namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(name = "SerialConnection")
     protected List<SerialConnectionType> serialConnection;
 
     /**

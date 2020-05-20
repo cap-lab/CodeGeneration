@@ -36,11 +36,11 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class MTMType {
 
-    @XmlElement(name = "mode_list", namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(name = "mode_list", required = true)
     protected MTMModeListType modeList;
-    @XmlElement(name = "variable_list", namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(name = "variable_list", required = true)
     protected MTMVariableListType variableList;
-    @XmlElement(name = "transition_list", namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(name = "transition_list", required = true)
     protected MTMTransitionListType transitionList;
 
     /**

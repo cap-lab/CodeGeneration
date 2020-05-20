@@ -23,10 +23,10 @@ import javax.xml.bind.annotation.XmlEnumValue;
 @XmlEnum
 public enum YesNoType {
 
-    @XmlEnumValue("No")
-    NO("No"),
     @XmlEnumValue("Yes")
-    YES("Yes");
+    YES("Yes"),
+    @XmlEnumValue("No")
+    NO("No");
     private final String value;
 
     YesNoType(String v) {

@@ -23,10 +23,10 @@ import javax.xml.bind.annotation.XmlEnumValue;
 @XmlEnum
 public enum PreemptionTypeType {
 
-    @XmlEnumValue("nonPreemptive")
-    NON_PREEMPTIVE("nonPreemptive"),
     @XmlEnumValue("preemptive")
-    PREEMPTIVE("preemptive");
+    PREEMPTIVE("preemptive"),
+    @XmlEnumValue("nonPreemptive")
+    NON_PREEMPTIVE("nonPreemptive");
     private final String value;
 
     PreemptionTypeType(String v) {

@@ -24,12 +24,12 @@ import javax.xml.bind.annotation.XmlEnumValue;
 @XmlEnum
 public enum RunConditionType {
 
-    @XmlEnumValue("control-driven")
-    CONTROL_DRIVEN("control-driven"),
+    @XmlEnumValue("time-driven")
+    TIME_DRIVEN("time-driven"),
     @XmlEnumValue("data-driven")
     DATA_DRIVEN("data-driven"),
-    @XmlEnumValue("time-driven")
-    TIME_DRIVEN("time-driven");
+    @XmlEnumValue("control-driven")
+    CONTROL_DRIVEN("control-driven");
     private final String value;
 
     RunConditionType(String v) {

@@ -30,23 +30,23 @@ import javax.xml.bind.annotation.XmlEnumValue;
 @XmlEnum
 public enum SizeMetricType {
 
-    B("B"),
+    @XmlEnumValue("YiB")
+    YI_B("YiB"),
+    @XmlEnumValue("ZiB")
+    ZI_B("ZiB"),
     @XmlEnumValue("EiB")
     EI_B("EiB"),
-    @XmlEnumValue("GiB")
-    GI_B("GiB"),
-    @XmlEnumValue("KiB")
-    KI_B("KiB"),
-    @XmlEnumValue("MiB")
-    MI_B("MiB"),
     @XmlEnumValue("PiB")
     PI_B("PiB"),
     @XmlEnumValue("TiB")
     TI_B("TiB"),
-    @XmlEnumValue("YiB")
-    YI_B("YiB"),
-    @XmlEnumValue("ZiB")
-    ZI_B("ZiB");
+    @XmlEnumValue("GiB")
+    GI_B("GiB"),
+    @XmlEnumValue("MiB")
+    MI_B("MiB"),
+    @XmlEnumValue("KiB")
+    KI_B("KiB"),
+    B("B");
     private final String value;
 
     SizeMetricType(String v) {

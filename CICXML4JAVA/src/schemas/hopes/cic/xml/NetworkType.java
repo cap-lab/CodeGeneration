@@ -25,10 +25,10 @@ import javax.xml.bind.annotation.XmlEnumValue;
 @XmlEnum
 public enum NetworkType {
 
-    @XmlEnumValue("Bluetooth")
-    BLUETOOTH("Bluetooth"),
     @XmlEnumValue("Ethernet/Wi-Fi")
     ETHERNET_WI_FI("Ethernet/Wi-Fi"),
+    @XmlEnumValue("Bluetooth")
+    BLUETOOTH("Bluetooth"),
     USB("USB"),
     @XmlEnumValue("Wire")
     WIRE("Wire");

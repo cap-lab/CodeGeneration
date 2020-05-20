@@ -24,10 +24,10 @@ import javax.xml.bind.annotation.XmlEnumValue;
 @XmlEnum
 public enum PortTypeType {
 
-    @XmlEnumValue("array")
-    ARRAY("array"),
     @XmlEnumValue("fifo")
     FIFO("fifo"),
+    @XmlEnumValue("array")
+    ARRAY("array"),
     @XmlEnumValue("overwritable")
     OVERWRITABLE("overwritable");
     private final String value;

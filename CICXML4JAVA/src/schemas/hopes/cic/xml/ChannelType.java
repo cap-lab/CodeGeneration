@@ -43,9 +43,9 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class ChannelType {
 
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(required = true)
     protected List<ChannelPortType> src;
-    @XmlElement(namespace = "http://peace.snu.ac.kr/CICXMLSchema", required = true)
+    @XmlElement(required = true)
     protected List<ChannelPortType> dst;
     @XmlAttribute
     protected BigInteger initialDataSize;
