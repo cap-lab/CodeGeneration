@@ -69,6 +69,10 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 		return taskList;
 	}
 
+	public List<TaskType> getNonHierarchicalTaskList() {
+		return taskList.stream().filter(t -> !t.getHasSubGraph().equalsIgnoreCase("Yes")).collect(Collectors.toList());
+	}
+
 	public List<ExternalTaskType> getExternalTaskList() {
 		return externalTaskList;
 	}
