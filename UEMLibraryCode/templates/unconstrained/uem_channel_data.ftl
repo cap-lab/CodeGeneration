@@ -6,6 +6,7 @@
 
 #include <uem_common.h>
 
+
 <#if communication_used == true>
 #include <UCSocket.h>
 #include <UCDynamicSocket.h>
@@ -18,6 +19,9 @@
 	</#if>
 	<#if used_communication_list?seq_contains("serial")>
 #include <UCSerialPort.h>
+	</#if>
+	<#if used_communication_list?seq_contains("ssl_tcp")>
+#include <UCSSLTCPSocket.h>
 	</#if>
 </#if>
 
@@ -50,6 +54,11 @@
 #include <UKSerialModule.h>
 #include <UKSerialCommunication.h>
 #include <uem_serial_data.h>
+	</#if>
+	<#if used_communication_list?seq_contains("ssl_tcp")>
+#include <UKSSLTCPServerManager.h>
+#include <UKSSLTCPCommunication.h>
+#include <uem_ssl_tcp_data.h>
 	</#if>
 </#if>
 <#if gpu_used == true>
@@ -165,7 +174,28 @@ SVirtualCommunicationAPI g_stSerialCommunication = {
 };
 
 </#if>
+<#if used_communication_list?seq_contains("ssl_tcp")>
+SVirtualCommunicationAPI g_stSSLTCPCommunication = {
+	UKSSLTCPCommunication_Create,
+	UKSSLTCPCommunication_Destroy,
+	UKSSLTCPCommunication_Connect,
+	UKSSLTCPCommunication_Disconnect,
+	UKSSLTCPCommunication_Listen,
+	UKSSLTCPCommunication_Accept,
+	UKSSLTCPCommunication_Send,
+	UKSSLTCPCommunication_Receive,
+};
 
+SKeyInfo g_astKeyInfoList[] = {
+	<#list ssl_key_info_list as key_info>
+	{
+		"${key_info.caPublicKey}",
+		"${key_info.publicKey}",
+		"${key_info.privateKey}",
+	},
+	</#list>
+};
+</#if>
 
 
 <#if used_communication_list?seq_contains("tcp")>
@@ -258,6 +288,107 @@ STCPAggregatedServiceInfo g_astTCPAggregateServerInfo[] = {
 // ##TCP_COMMUNICATION_GENERATION_TEMPLATE::END
 </#if>
 
+<#if used_communication_list?seq_contains("ssl_tcp")>
+// #SSL_TCP_COMMUNICATION_GENERATION_TEMPLATE::START
+#ifndef AGGREGATE_SSL_TCP_CONNECTION
+// ##SSL_TCP_CLIENT_GENERATION_TEMPLATE::START
+SSSLTCPInfo g_astSSLTCPClientInfo[] = {
+	<#list ssl_tcp_client_list as client>
+	{
+		{
+			${client.port?c},
+			"${client.IP}",
+			PAIR_TYPE_CLIENT,
+		},
+		&g_astKeyInfoList[${client.keyInfoIndex}],
+	},
+	</#list>
+	<#if platform == "windows" && (ssl_tcp_client_list?size == 0)>
+	0, 
+	</#if>
+};
+// ##SSL_TCP_CLIENT_GENERATION_TEMPLATE::END
+
+// ##SSL_TCP_SERVER_GENERATION_TEMPLATE::START
+SSSLTCPServerInfo g_astSSLTCPServerInfo[] = {
+	<#list ssl_tcp_server_list as server>
+	{
+		{
+			{
+				${server.port?c},
+				(char *) NULL,
+				PAIR_TYPE_SERVER,
+			},
+			&g_astKeyInfoList[${server.keyInfoIndex}],
+		},
+		{
+			(HVirtualSocket) NULL,
+			(HThread) NULL,
+			&g_stSSLTCPCommunication,
+		},		
+	},
+	</#list>
+	<#if platform == "windows" && (ssl_tcp_server_list?size == 0)>
+	0, 
+	</#if>
+};
+// ##SSL_TCP_SERVER_GENERATION_TEMPLATE::END
+
+#else
+SSSLTCPAggregatedServiceInfo g_astSSLTCPAggregateClientInfo[] = {
+	<#list ssl_tcp_client_list as client>
+	{
+		{
+			{
+				${client.port?c},
+				"${client.IP}",
+				PAIR_TYPE_CLIENT,
+			},
+			&g_astKeyInfoList[${client.keyInfoIndex}],
+		},
+		{
+			(HThread) NULL, // thread handle
+			${client.channelAccessNum}, // max channel access number
+			(HVirtualSocket) NULL, // socket handle
+			&g_stSSLTCPCommunication, // bluetooth communication API
+			(HSerialCommunicationManager) NULL, // Serial communication manager handle
+			FALSE, // initialized or not
+		},
+	},
+	</#list>
+	<#if platform == "windows" && (ssl_tcp_client_list?size == 0)>
+	0, 
+	</#if>
+};
+
+SSSLTCPAggregatedServiceInfo g_astSSLTCPAggregateServerInfo[] = {
+	<#list ssl_tcp_server_list as server>
+	{
+		{
+			{
+				${server.port?c},
+				(char *) NULL,
+				PAIR_TYPE_SERVER,
+			},
+			&g_astKeyInfoList[${server.keyInfoIndex}],
+		},
+		{
+			(HThread) NULL, // thread handle
+			${server.channelAccessNum}, // max channel access number
+			(HVirtualSocket) NULL, // socket handle
+			&g_stSSLTCPCommunication, // bluetooth communication API
+			(HSerialCommunicationManager) NULL, // Serial communication manager handle
+			FALSE, // initialized or not
+		},
+	},
+	</#list>
+	<#if platform == "windows" && (ssl_tcp_server_list?size == 0)>
+	0, 
+	</#if>
+};
+#endif
+// ##SSL_TCP_COMMUNICATION_GENERATION_TEMPLATE::END
+</#if>
 
 <#if communication_used == true>
 // ##INDIVIDUAL_CONNECTION_GENERATION_TEMPLATE::START
@@ -283,7 +414,26 @@ SIndividualConnectionInfo g_astIndividualConnectionInfo[] = {
 		(HVirtualSocket) NULL,
 		(HUEMProtocol) NULL,
 	},
-				<#break>
+			<#break>
+			<#case "SSL_TCP">
+	{
+		${channel.index},
+		COMMUNICATION_METHOD_${channel.remoteMethodType},
+			<#switch channel.connectionRoleType>
+				<#case "CLIENT">
+		(STCPInfo *) &g_astSSLTCPClientInfo[${channel.socketInfoIndex}],
+		PAIR_TYPE_CLIENT,
+					<#break>
+				<#case "SERVER">
+		(void *) NULL,
+		PAIR_TYPE_SERVER,
+					<#break>
+			</#switch>
+		&g_stSSLTCPCommunication,
+		(HVirtualSocket) NULL,
+		(HUEMProtocol) NULL,
+	},
+			<#break>
 		</#switch>
 	</#list>
 #endif
@@ -495,6 +645,13 @@ SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 				<#case "BLUETOOTH">
 				<#case "SERIAL">
 		CONNECTION_METHOD_AGGREGATE,
+					<#break>
+				<#case "SSL_TCP">
+#ifndef AGGREGATE_SSL_TCP_CONNECTION
+		CONNECTION_METHOD_INDIVIDUAL,
+#else
+		CONNECTION_METHOD_AGGREGATE,
+#endif
 					<#break>
 			</#switch>
 		NULL, // will be set to SIndividualServiceInfo or SAggregateServiceInfo
@@ -716,6 +873,9 @@ FnChannelAPIInitialize g_aFnRemoteCommunicationModuleIntializeList[] = {
 	<#if used_communication_list?seq_contains("serial")>
 	UKSerialModule_Initialize,
 	</#if>
+	<#if used_communication_list?seq_contains("ssl_tcp")>
+	UKSSLTCPServerManager_Initialize,
+	</#if>
 };
 
 FnChannelAPIFinalize g_aFnRemoteCommunicationModuleFinalizeList[] = {
@@ -727,6 +887,9 @@ FnChannelAPIFinalize g_aFnRemoteCommunicationModuleFinalizeList[] = {
 	</#if>
 	<#if used_communication_list?seq_contains("serial")>
 	UKSerialModule_Finalize,
+	</#if>
+	<#if used_communication_list?seq_contains("ssl_tcp")>
+	UKSSLTCPServerManager_Finalize,
 	</#if>
 	UCSocket_Finalize, 
 };
@@ -743,7 +906,7 @@ SSocketAPI stBluetoothAPI = {
 </#if>
 
 
-<#if used_communication_list?seq_contains("tcp")>
+<#if used_communication_list?seq_contains("tcp") || used_communication_list?seq_contains("ssl_tcp")>
 SSocketAPI stTCPAPI = {
 	UCTCPSocket_Bind,
 	UCTCPSocket_Accept,
@@ -752,7 +915,6 @@ SSocketAPI stTCPAPI = {
 	(FnSocketDestroy) NULL,
 };		
 </#if>
-
 
 /*
 SSocketAPI stUnixDomainSocketAPI = {
@@ -779,7 +941,7 @@ uem_result ChannelAPI_SetSocketAPIs()
 	ERRIFGOTO(result, _EXIT);
 	<#assign printed=true />
 </#if>
-<#if used_communication_list?seq_contains("tcp")>
+<#if used_communication_list?seq_contains("tcp") || used_communication_list?seq_contains("ssl_tcp")>
 	result = UCDynamicSocket_SetAPIList(SOCKET_TYPE_TCP, &stTCPAPI);
 	ERRIFGOTO(result, _EXIT);
 	<#assign printed=true />
@@ -853,6 +1015,7 @@ int g_nAggregateConnectionInfoNum = 0;
 	</#if>
 #endif
 	
+
 #ifndef AGGREGATE_TCP_CONNECTION
 	<#if (tcp_server_list?size > 0) >
 int g_nTCPServerInfoNum = ARRAYLEN(g_astTCPServerInfo);
@@ -870,6 +1033,26 @@ int g_nTCPAggregateServerInfoNum = 0;
 int g_nTCPAggregateClientInfoNum = ARRAYLEN(g_astTCPAggregateClientInfo);
 	<#else>
 int g_nTCPAggregateClientInfoNum = 0;
+	</#if>
+#endif
+	
+#ifndef AGGREGATE_SSL_TCP_CONNECTION
+	<#if (ssl_tcp_server_list?size > 0) >
+int g_nSSLTCPServerInfoNum = ARRAYLEN(g_astSSLTCPServerInfo);
+	<#else>
+int g_nSSLTCPServerInfoNum = 0;
+	</#if>
+#else
+	<#if (ssl_tcp_server_list?size > 0) >
+int g_nSSLTCPAggregateServerInfoNum = ARRAYLEN(g_astSSLTCPAggregateServerInfo);
+	<#else>
+int g_nSSLTCPAggregateServerInfoNum = 0;
+	</#if>
+	
+	<#if (ssl_tcp_client_list?size > 0) >
+int g_nSSLTCPAggregateClientInfoNum = ARRAYLEN(g_astSSLTCPAggregateClientInfo);
+	<#else>
+int g_nSSLTCPAggregateClientInfoNum = 0;
 	</#if>
 #endif
 	

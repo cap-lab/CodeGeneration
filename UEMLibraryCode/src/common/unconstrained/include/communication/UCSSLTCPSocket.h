@@ -12,6 +12,7 @@
 
 #include <uem_common.h>
 
+#include <UCTCPSocket.h>
 #include <UCDynamicSocket.h>
 
 #ifdef __cplusplus
@@ -47,20 +48,6 @@ typedef struct _SUCSSLSocket
 
 typedef struct _SUCSSLSocket *HSSLSocket;
 
-typedef uem_result (*FnSSLSocketBind)(HSSLSocket hSocket);
-typedef uem_result (*FnSSLSocketAccept)(HSSLSocket hServerSocket, HSSLSocket hClientSocket);
-typedef uem_result (*FnSSLSocketConnect)(HSSLSocket hSocket, IN int nTimeout);
-typedef uem_result (*FnSSLSocketCreate)(HSSLSocket hSocket, SSSLSocketInfo *pstSSLSocketInfo, uem_bool bIsServer);
-typedef uem_result (*FnSSLSocketDestroy)(HSSLSocket hSocket);
-
-typedef struct _SSSLSocketAPI {
-	FnSSLSocketBind fnBind;
-	FnSSLSocketAccept fnAccept;
-	FnSSLSocketConnect fnConnect;
-	FnSSLSocketCreate fnCreate;
-	FnSSLSocketDestroy fnDestroy;	
-} SSSLSocketAPI;
-
 uem_result UCSSLTCPSocket_Initialize();
 
 uem_result UCSSLTCPSocket_Create(IN SSSLSocketInfo *pstSocketInfo, IN uem_bool bIsServer, OUT HSSLSocket *phSocket);
@@ -80,6 +67,12 @@ uem_result UCSSLTCPSocket_Disconnect(HSSLSocket hClientSocket);
 uem_result UCSSLTCPSocket_Send(HSSLSocket hSocket, IN int nTimeout, IN char *pData, IN int nDataLen, OUT int *pnSentSize);
 
 uem_result UCSSLTCPSocket_Receive(HSSLSocket hSocket, IN int nTimeout, IN OUT char *pBuffer, IN int nBufferLen, OUT int *pnReceivedSize);
+
+uem_result UCSSLTCPSocket_Bind_API(HSocket hServerSocket);
+
+uem_result UCSSLTCPSocket_Accept_API(HSocket hServerSocket, HSocket hClientSocket);
+
+uem_result UCSSLTCPSocket_Connect_API(HSocket hSocket, IN int nTimeout);
 
 #ifdef __cplusplus
 }

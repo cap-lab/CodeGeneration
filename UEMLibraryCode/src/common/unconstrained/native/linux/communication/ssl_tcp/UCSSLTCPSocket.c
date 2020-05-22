@@ -87,14 +87,18 @@ static uem_result initializeCTX(SKeyInfo *pstKeyInfo, uem_bool bIsServer, SSL_CT
 	{
 		if(!(pstCTX = SSL_CTX_new(SSLv23_server_method())))
 		{
-			ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);	
+			ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
+		}
+		if(pstKeyInfo == NULL || pstKeyInfo->pszCAPublicKey == NULL || pstKeyInfo->pszPublicKey == NULL || pstKeyInfo->pszPrivateKey == NULL)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_SSL_KEY_NOT_FOUND, _EXIT);
 		}
 	}
 	else
 	{
-		if(!(pstCTX = SSL_CTX_new(SSLv23_server_method())))
+		if(!(pstCTX = SSL_CTX_new(SSLv23_client_method())))
 		{
-			ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);	
+			ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
 		}
 	}
 
@@ -102,7 +106,7 @@ static uem_result initializeCTX(SKeyInfo *pstKeyInfo, uem_bool bIsServer, SSL_CT
 	{
 		if(SSL_CTX_load_verify_locations(pstCTX, pstKeyInfo->pszCAPublicKey, NULL) != 1)
 		{
-			ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);	
+			ERRASSIGNGOTO(result, ERR_UEM_SSL_KEY_INVALID, _EXIT);
 		}
 		if(bIsServer)
 		{
@@ -110,15 +114,15 @@ static uem_result initializeCTX(SKeyInfo *pstKeyInfo, uem_bool bIsServer, SSL_CT
 		}
 		if (SSL_CTX_use_certificate_file(pstCTX, pstKeyInfo->pszPublicKey, SSL_FILETYPE_PEM) != 1)
 		{
-			ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);	
+			ERRASSIGNGOTO(result, ERR_UEM_SSL_KEY_INVALID, _EXIT);
 		}
 		if (SSL_CTX_use_PrivateKey_file(pstCTX, pstKeyInfo->pszPrivateKey, SSL_FILETYPE_PEM) != 1)
 		{
-			ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);	
+			ERRASSIGNGOTO(result, ERR_UEM_SSL_KEY_INVALID, _EXIT);
 		}
 		if (SSL_CTX_check_private_key(pstCTX) != 1)
 		{
-			ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);	
+			ERRASSIGNGOTO(result, ERR_UEM_SSL_KEY_INVALID, _EXIT);
 		}
 		SSL_CTX_set_mode(pstCTX, SSL_MODE_AUTO_RETRY);
 		SSL_CTX_set_verify(pstCTX, SSL_VERIFY_PEER, NULL);
@@ -282,7 +286,7 @@ uem_result UCSSLTCPSocket_Accept(HSSLSocket hServerSocket, IN int nTimeout, IN O
 
 	if((result = SSL_set_fd(pstCliSocket->pstSSLInfo->pstSSL, pstCliSocket->hSocket->nSocketfd)) != 1)
 	{
-		ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);	
+		ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
 	}
 	if((result = SSL_accept(pstCliSocket->pstSSLInfo->pstSSL)) != 1) 
 	{
@@ -292,7 +296,7 @@ uem_result UCSSLTCPSocket_Accept(HSSLSocket hServerSocket, IN int nTimeout, IN O
 			pstCliSocket->pstSSLInfo->pstSSL = NULL;	
 		}	
 		SSL_free(pstCliSocket->pstSSLInfo->pstSSL);
-		ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);	
+		ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
 	}
 
     result = ERR_UEM_NOERROR;
@@ -317,7 +321,7 @@ uem_result UCSSLTCPSocket_Connect(HSSLSocket hClientSocket, IN int nTimeout)
 
 	if((result = SSL_set_fd(pstSSLInfo->pstSSL, pstSocket->hSocket->nSocketfd)) != 1)
 	{
-		ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);	
+		ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
 	}
 	if((result = SSL_connect(pstSSLInfo->pstSSL)) != 1) 
 	{
@@ -327,15 +331,15 @@ uem_result UCSSLTCPSocket_Connect(HSSLSocket hClientSocket, IN int nTimeout)
 			pstSSLInfo->pstSSL = NULL;	
 		}	
 		SSL_free(pstSSLInfo->pstSSL);
-		ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);	
+		ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
 	}
 	if(SSL_do_handshake(pstSSLInfo->pstSSL) != 1)
 	{
-		ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);	
+		ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
 	}
 	if(SSL_get_verify_result(pstSSLInfo->pstSSL) != X509_V_OK) 
 	{
-		ERRASSIGNGOTO(result, ERR_UEM_SOCKET_ERROR, _EXIT);	
+		ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
 	}
 
     result = ERR_UEM_NOERROR;
@@ -469,4 +473,3 @@ uem_result UCSSLTCPSocket_Receive(HSSLSocket hSocket, IN int nTimeout, IN OUT ch
 _EXIT:
     return result;
 }
-

@@ -5,6 +5,7 @@ public enum DeviceCommunicationType {
 	TCP("tcp"),
 	UDP("udp"),
 	SERIAL("serial"),
+	SSL_TCP("ssl_tcp"),
 	;
 
 	private final String value;

@@ -5,4 +5,5 @@ public enum RemoteCommunicationType {
 	BLUETOOTH,
 	TCP,
 	SERIAL,
+	SSL_TCP,
 }
