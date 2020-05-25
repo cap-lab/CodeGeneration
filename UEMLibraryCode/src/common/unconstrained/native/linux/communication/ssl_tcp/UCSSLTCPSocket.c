@@ -78,10 +78,11 @@ _EXIT:
     return result;
 }
 
-static uem_result initializeCTX(SKeyInfo *pstKeyInfo, uem_bool bIsServer, SSL_CTX **ppstCTX) 
+static uem_result initializeCTX(SKeyInfo *pstKeyInfo, uem_bool bIsServer, SSL_CTX **ppstCTX, uem_bool *pbKeyLoaded)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSL_CTX *pstCTX = NULL;
+	uem_bool bKeyLoaded = FALSE;
 
 	if(bIsServer) 
 	{
@@ -127,9 +128,12 @@ static uem_result initializeCTX(SKeyInfo *pstKeyInfo, uem_bool bIsServer, SSL_CT
 		SSL_CTX_set_mode(pstCTX, SSL_MODE_AUTO_RETRY);
 		SSL_CTX_set_verify(pstCTX, SSL_VERIFY_PEER, NULL);
 		SSL_CTX_set_verify_depth(pstCTX, 1);
+
+		bKeyLoaded = TRUE;
 	}
 
 	*ppstCTX = pstCTX;
+	*pbKeyLoaded = bKeyLoaded;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -183,8 +187,9 @@ uem_result UCSSLTCPSocket_Create(IN SSSLSocketInfo *pstSSLSocketInfo, IN uem_boo
 
 	pstSocket->pstSSLInfo->pstSSL = NULL;
 	pstSocket->pstSSLInfo->pstCTX = NULL;
+	pstSocket->pstSSLInfo->bKeyLoaded = FALSE;
 
-	result = initializeCTX(pstSSLSocketInfo->pstKeyInfo, bIsServer, &(pstSocket->pstSSLInfo->pstCTX));
+	result = initializeCTX(pstSSLSocketInfo->pstKeyInfo, bIsServer, &(pstSocket->pstSSLInfo->pstCTX), &(pstSocket->pstSSLInfo->bKeyLoaded));
 	ERRIFGOTO(result, _EXIT);
 
 	*phSocket = pstSocket;
@@ -333,13 +338,16 @@ uem_result UCSSLTCPSocket_Connect(HSSLSocket hClientSocket, IN int nTimeout)
 		SSL_free(pstSSLInfo->pstSSL);
 		ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
 	}
-	if(SSL_do_handshake(pstSSLInfo->pstSSL) != 1)
-	{
-		ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
-	}
-	if(SSL_get_verify_result(pstSSLInfo->pstSSL) != X509_V_OK) 
-	{
-		ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
+
+	if(pstSSLInfo->bKeyLoaded) {
+		if(SSL_do_handshake(pstSSLInfo->pstSSL) != 1)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
+		}
+		if(SSL_get_verify_result(pstSSLInfo->pstSSL) != X509_V_OK)
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
+		}
 	}
 
     result = ERR_UEM_NOERROR;

@@ -31,6 +31,7 @@ typedef struct _SSSLInfo
 {
 	SSL *pstSSL;
 	SSL_CTX *pstCTX;
+	uem_bool bKeyLoaded;
 } SSSLInfo;
 
 typedef struct _SSSLSocketInfo 

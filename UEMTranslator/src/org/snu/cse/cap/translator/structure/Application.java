@@ -557,6 +557,7 @@ public class Application {
 			break;
 		case TCP:
 			channel.setRemoteMethodType(RemoteCommunicationType.TCP);
+			break;
 		case SSL_TCP:
 			channel.setRemoteMethodType(RemoteCommunicationType.SSL_TCP);
 			break;
