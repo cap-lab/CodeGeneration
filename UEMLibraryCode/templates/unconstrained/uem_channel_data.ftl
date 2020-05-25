@@ -180,7 +180,7 @@ SVirtualCommunicationAPI g_stSSLTCPCommunication = {
 	UKSSLTCPCommunication_Destroy,
 	UKSSLTCPCommunication_Connect,
 	UKSSLTCPCommunication_Disconnect,
-	UKSSLTCPCommunication_Listen,
+	UKSSLTCPCommunication_Listen,	
 	UKSSLTCPCommunication_Accept,
 	UKSSLTCPCommunication_Send,
 	UKSSLTCPCommunication_Receive,
@@ -189,9 +189,21 @@ SVirtualCommunicationAPI g_stSSLTCPCommunication = {
 SKeyInfo g_astKeyInfoList[] = {
 	<#list ssl_key_info_list as key_info>
 	{
+		<#if key_info.caPublicKey?has_content == false>
+		NULL,
+		<#else>
 		"${key_info.caPublicKey}",
+		</#if>		
+		<#if key_info.publicKey?has_content == false>
+		NULL,
+		<#else>
 		"${key_info.publicKey}",
+		</#if>		
+		<#if key_info.privateKey?has_content == false>
+		NULL,
+		<#else>
 		"${key_info.privateKey}",
+		</#if>
 	},
 	</#list>
 };
