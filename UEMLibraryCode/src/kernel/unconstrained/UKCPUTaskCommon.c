@@ -202,13 +202,13 @@ _EXIT:
 	return result;
 }
 
-
 uem_result UKCPUTaskCommon_HandleTimeDrivenTask(STask *pstCurrentTask, FnUemTaskGo fnGo, IN OUT long long *pllNextTime,
 										IN OUT int *pnRunCount, IN OUT int *pnNextMaxRunCount, OUT uem_bool *pbFunctionCalled)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	long long llCurTime = 0;
 	long long llNextTime = 0;
+	long long llConvertedPeriod = 0;
 	int nMaxRunCount = 0;
 	int nRunCount = 0;
 	uem_bool bFunctionCalled = FALSE;
@@ -242,6 +242,16 @@ uem_result UKCPUTaskCommon_HandleTimeDrivenTask(STask *pstCurrentTask, FnUemTask
 			else
 			{
 				// otherwise, busy wait
+			}
+
+			result = UKTime_ConvertToMilliSec(pstCurrentTask->nPeriod, pstCurrentTask->enPeriodMetric, &llConvertedPeriod);
+			ERRIFGOTO(result, _EXIT);
+
+			if(llNextTime - llCurTime > llConvertedPeriod)
+			{
+				result = UKTime_GetNextTimeByPeriod(llCurTime, pstCurrentTask->nPeriod, pstCurrentTask->enPeriodMetric,
+												&llNextTime, &nMaxRunCount);
+				ERRIFGOTO(result, _EXIT);
 			}
 		}
 	}

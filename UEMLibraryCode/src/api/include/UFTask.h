@@ -22,6 +22,14 @@ typedef enum _ETaskState {
 	STATE_END,
 } ETaskState;
 
+typedef enum _ETaskTimeUnit {
+	MICROSEC,
+	MILLISEC,
+	SEC,
+	MINUTE,
+	HOUR,
+} ETaskTimeUnit;
+
 /**
  * @brief Return the corresponding integer parameter of the corresponding task.
  *
@@ -196,6 +204,44 @@ uem_result UFTask_SetModeIntegerParameter (IN int nCallerTaskId, IN char *pszTas
  *
  */
 uem_result UFTask_UpdateMode (IN int nCallerTaskId, IN char *pszTaskName);
+
+/**
+ * @brief Set a period.
+ *
+ * @sa UKTask_SetPeriod.
+ *
+ * @param nCallerTaskId id of caller task.
+ * @param pszTaskName task name to set period.
+ * @param pszValue character array containing value.
+ * @param enTimeUnit period unit.
+ *
+ * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * @ref ERR_UEM_ILLEGAL_CONTROL if task is not Control task. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid caller task id, task name, time unit. \n
+ * @ref ERR_UEM_NO_DATA if caller task id does not match to any task or target task name does not match to any. \n
+ *
+ */
+uem_result UFTask_SetPeriod (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszValue, IN ETaskTimeUnit enTimeUnit);
+
+/**
+ * @brief Update a mapping info.
+ *
+ * @sa UFTask_UpdateMappingInfo.
+ *
+ * @param nCallerTaskId id of caller task.
+ * @param pszTaskName task name to set period.
+ * @param nNewLocalId core id to assign.
+ *
+ * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * @ref ERR_UEM_ILLEGAL_CONTROL if task is not Control task. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid caller task id, task name, time unit. \n
+ * @ref ERR_UEM_NO_DATA if caller task id does not match to any task or target task name does not match to any. \n
+ *
+ */
+uem_result UFTask_UpdateMappingInfo (IN int nCallerTaskId, IN char *pszTaskName, IN int nNewLocalId);
+
 #endif
 
 #ifdef __cplusplus

@@ -270,6 +270,43 @@ uem_result UKTask_GetTaskByTaskNameAndCallerTask(STask *pstCallerTask, char *psz
  */
 uem_bool UKTask_isParentTask(int nTaskId, int nParentTaskId);
 
+/**
+ * @brief Set a period.
+ *
+ * This function sets a period of the task.
+ *
+ * @param nCallerTaskId id of caller task.
+ * @param pszTaskName task name to set period.
+ * @param pszValue character array containing value.
+ * @param enTimeUnit time unit for the period.
+ *
+ * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid @a nCallerTaskId, @a pszTaskName, @a pszValue. \n
+ * @ref ERR_UEM_ILLEGAL_CONTROL if task is not Control task. \n
+ * @ref ERR_UEM_NO_DATA if caller task id does not match to any task or target task name does not match to any. \n
+ *
+ */
+uem_result UKTask_SetPeriod (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszValue, IN ETimeMetric enTimeMetric);
+
+/**
+ * @brief Update a mapping info of the task.
+ *
+ * This function updates a mapping info of the task.
+ *
+ * @param nCallerTaskId id of caller task.
+ * @param pszTaskName task name to update the mapping info.
+ * @param nNewLocalId local core id to assign newly.
+ *
+ * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid @a nCallerTaskId, @a pszTaskName, @a pszValue. \n
+ * @ref ERR_UEM_ILLEGAL_CONTROL if task is not Control task. \n
+ * @ref ERR_UEM_NO_DATA if caller task id does not match to any task or target task name does not match to any. \n
+ *
+ */
+uem_result UKTask_UpdateMappingInfo (IN int nCallerTaskId, IN char *pszTaskName, IN int nNewLocalId);
+
 #ifdef __cplusplus
 }
 #endif

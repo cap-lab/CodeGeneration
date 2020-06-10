@@ -947,6 +947,69 @@ _EXIT:
 	return result;
 }
 
+uem_result UKTask_SetPeriod (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszValue, IN ETimeMetric enTimeMetric)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask *pstTask = NULL;
+	uem_string_struct stValue;
+	int nValue = 0;
+	STask *pstCallerTask = NULL;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(pszValue, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+#endif
 
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
 
+	if(pstCallerTask->enType != TASK_TYPE_CONTROL)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
 
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCString_New(&stValue, pszValue, UEMSTRING_CONST);
+	ERRIFGOTO(result, _EXIT);
+
+	nValue = UCString_ToInteger(&stValue, 0, NULL);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadMutex_Lock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	pstTask->nPeriod = nValue;
+	pstTask->enPeriodMetric = enTimeMetric;
+
+	result = UCThreadMutex_Unlock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+uem_result UKTask_UpdateMappingInfo (IN int nCallerTaskId, IN char *pszTaskName, IN int nNewLocalId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask *pstTask = NULL;
+	STask *pstCallerTask = NULL;
+
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstCallerTask->enType != TASK_TYPE_CONTROL)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
+
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKCPUTaskManager_UpdateTaskMappingInfo(g_hCPUTaskManager, pstTask->nTaskId, nNewLocalId);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}

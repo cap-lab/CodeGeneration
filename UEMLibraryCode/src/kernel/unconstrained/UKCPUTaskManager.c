@@ -1097,7 +1097,6 @@ _EXIT:
 	return result;
 }
 
-
 uem_result UKCPUTaskManager_IsAllTaskStopped(HCPUTaskManager hCPUTaskManager, uem_bool *pbStopped)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -1143,6 +1142,45 @@ uem_result UKCPUTaskManager_IsAllTaskStopped(HCPUTaskManager hCPUTaskManager, ue
 	}
 
 #endif
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+uem_result UKCPUTaskManager_UpdateTaskMappingInfo(HCPUTaskManager hCPUTaskManager, int nTaskId, int nNewLocalId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCPUTaskManager *pstManager = NULL;
+	STask *pstTask = NULL;
+	ECPUTaskState enTaskState;
+#ifdef ARGUMENT_CHECK
+	if (IS_VALID_HANDLE(hCPUTaskManager, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+
+	if(nTaskId < 0 || nNewLocalId < 0) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+#endif
+
+	pstManager = hCPUTaskManager;
+
+	result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstTask->enType != TASK_TYPE_COMPUTATIONAL || pstTask->enType != TASK_TYPE_CONTROL)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
+
+	if(pstTask->bStaticScheduled == TRUE)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
+
+	result = UKCPUGeneralTaskManager_UpdateTaskMappingInfo(hCPUTaskManager, pstTask, nNewLocalId);
+	ERRIFGOTO(result, _EXIT);
+
 	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;

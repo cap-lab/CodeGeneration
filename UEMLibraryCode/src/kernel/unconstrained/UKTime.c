@@ -96,3 +96,34 @@ uem_result UKTime_GetNextTimeByPeriod(long long llPrevTime, int nPeriod, ETimeMe
 _EXIT:
 	return result;
 }
+
+uem_result UKTime_ConvertToMilliSec(long long llTime, ETimeMetric enTimeMetric, OUT long long *pllConvertedtTime)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	switch(enTimeMetric)
+	{
+	case TIME_METRIC_MICROSEC: // TODO: micro-second time tick is even not correct
+		*pllConvertedtTime = llTime / 1000 == 0 ? 1 : llTime / 1000;
+		break;
+	case TIME_METRIC_MILLISEC:
+		*pllConvertedtTime = llTime;
+		break;
+	case TIME_METRIC_SEC:
+		*pllConvertedtTime = llTime * SEC_UNIT;
+		break;
+	case TIME_METRIC_MINUTE:
+		*pllConvertedtTime = llTime * SEC_UNIT * MINUTE_UNIT;
+		break;
+	case TIME_METRIC_HOUR:
+		*pllConvertedtTime = llTime * SEC_UNIT * MINUTE_UNIT * HOUR_UNIT;
+		break;
+	default:
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		break;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
