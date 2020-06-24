@@ -8,6 +8,11 @@
 #ifndef SRC_COMMON_UNCONSTRAINED_INCLUDE_COMMUNICATION_UCSOCKET_H_
 #define SRC_COMMON_UNCONSTRAINED_INCLUDE_COMMUNICATION_UCSOCKET_H_
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @brief Initialize a socket operation.
  *
@@ -40,5 +45,9 @@ uem_result UCSocket_Finalize();
  * @return Always returns @ref ERR_UEM_NOERROR.
  */
 uem_result UCSocket_Close(int nSocketfd);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SRC_COMMON_UNCONSTRAINED_INCLUDE_COMMUNICATION_UCSOCKET_H_ */
