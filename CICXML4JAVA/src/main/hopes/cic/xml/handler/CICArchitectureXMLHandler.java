@@ -33,7 +33,6 @@ public class CICArchitectureXMLHandler extends CICXMLHandler {
 	}
 	
 	public void init() {
-//		getProcessorList();
 	}
 	
 	public CICArchitectureType getArchitecture() {

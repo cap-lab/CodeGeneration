@@ -131,50 +131,30 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 		}
 		return mapLoopType;
 	}
-	
-	private Map<String, ArrayList<String>> makeHierarchicalTaskMap()
-	{
-		Map<String, ArrayList<String>> hierarchicalTaskMap = new HashMap<String, ArrayList<String>>();
-		//make hierarchicalTaskMap.
-		for (TaskType task : taskList)
-		{
-			String subTaskName = task.getName();
-			TaskType currentTaskType = task;
-			while(!currentTaskType.getParentTask().equals(currentTaskType.getName())) //while task has parent task.
-			{
-				TaskType parentTaskTaskType = findTaskByName(currentTaskType.getParentTask());				
 
-				if(hierarchicalTaskMap.containsKey(parentTaskTaskType.getName()))
-				{
-					hierarchicalTaskMap.get(parentTaskTaskType.getName()).add(subTaskName);
-				}
-				else
-				{
-					ArrayList<String> newSubTasksList = new ArrayList<String>();
-					newSubTasksList.add(subTaskName);
-					hierarchicalTaskMap.put(parentTaskTaskType.getName(), newSubTasksList);
-				}
-				currentTaskType = parentTaskTaskType;
+	public Map<TaskType, List<TaskType>> getHierarchicalDATALoopTaskMap() {
+		Map<TaskType, List<TaskType>> hierarchicalTaskMap = makeHierarchicalTaskMap();
+		Map<TaskType, List<TaskType>> hierarchicalDATALoopTaskMap = new HashMap<TaskType, List<TaskType>>();
+		for (TaskType task : hierarchicalTaskMap.keySet()) {
+			if (task.getLoopStructure() != null
+					&& task.getLoopStructure().getType().equals(LoopStructureTypeType.DATA)) {
+				hierarchicalDATALoopTaskMap.put(task, hierarchicalTaskMap.get(task));
 			}
 		}
-		
-		return hierarchicalTaskMap;
-	}		
-	
-	public Map<String, ArrayList<String>> getHierarchicalDATALoopAndSubTasksMap() 
-	{		
-		Map<String, ArrayList<String>> hierarchicalTaskMap = makeHierarchicalTaskMap();
-		Map<String, ArrayList<String>> hierarchicalDATALoopAndSubTasksMap = new HashMap<String, ArrayList<String>>();
-			
-		for(String hierarchicalTaskName : hierarchicalTaskMap.keySet())
-		{
-			TaskType hierarchicalTaskType = findTaskByName(hierarchicalTaskName);
-			if(hierarchicalTaskType.getLoopStructure() != null && hierarchicalTaskType.getLoopStructure().getType().equals(LoopStructureTypeType.DATA))
-			{
-				hierarchicalDATALoopAndSubTasksMap.put(hierarchicalTaskName, hierarchicalTaskMap.get(hierarchicalTaskName));
+		return hierarchicalDATALoopTaskMap;
+	}
+
+	private Map<TaskType, List<TaskType>> makeHierarchicalTaskMap() {
+		Map<TaskType, List<TaskType>> hierarchicalTaskMap = new HashMap<TaskType, List<TaskType>>();
+		for (TaskType task : taskList) {
+			// while task has parent task
+			while (!task.getParentTask().equals(task.getName())) {
+				TaskType parentTask = findTaskByName(task.getParentTask());
+				hierarchicalTaskMap.getOrDefault(parentTask, new ArrayList<TaskType>()).add(task);
+				task = parentTask;
 			}
-		}	
-		return hierarchicalDATALoopAndSubTasksMap;
+		}
+		return hierarchicalTaskMap;
 	}
 
 	public ModeTaskType findModeTaskTypeByTaskName(String taskName) {
