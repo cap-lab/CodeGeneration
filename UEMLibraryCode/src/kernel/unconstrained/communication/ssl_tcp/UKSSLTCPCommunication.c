@@ -1,8 +1,8 @@
 /*
- * UKTCPCommunication.c
+ * UKSSLTCPCommunication.c
  *
- *  Created on: 2019. 5. 22.
- *      Author: jej
+ *  Created on: 2020. 5. 21.
+ *      Author: jrkim
  */
 
 
@@ -26,7 +26,6 @@ uem_result UKSSLTCPCommunication_Create(OUT HVirtualSocket *phSocket, void *pSoc
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSSLTCPInfo *pstSSLTCPInfo = NULL;
 	SSSLSocketInfo stSSLSocketInfo;
-	SSocketInfo stSocketInfo;
 	uem_bool bIsServer = FALSE;
 	HSSLSocket hSocket = NULL;
 #ifdef ARGUMENT_CHECK
@@ -34,17 +33,14 @@ uem_result UKSSLTCPCommunication_Create(OUT HVirtualSocket *phSocket, void *pSoc
 #endif
 	pstSSLTCPInfo = (SSSLTCPInfo *) pSocketInfo;
 
-	stSSLSocketInfo.pstSocketInfo = &(stSocketInfo);
-	stSSLSocketInfo.pstKeyInfo = NULL;
-
-	stSocketInfo.enSocketType = SOCKET_TYPE_TCP;
+	stSSLSocketInfo.stSocketInfo.enSocketType = SOCKET_TYPE_TCP;
 
 	if(pstSSLTCPInfo != NULL)
 	{
 		stSSLSocketInfo.pstKeyInfo = pstSSLTCPInfo->pstKeyInfo;
 
-		stSocketInfo.nPort = pstSSLTCPInfo->stTCPInfo.nPort;
-		stSocketInfo.pszSocketPath = pstSSLTCPInfo->stTCPInfo.pszIPAddress;
+		stSSLSocketInfo.stSocketInfo.nPort = pstSSLTCPInfo->stTCPInfo.nPort;
+		stSSLSocketInfo.stSocketInfo.pszSocketPath = pstSSLTCPInfo->stTCPInfo.pszIPAddress;
 
 		switch(pstSSLTCPInfo->stTCPInfo.enType)
 		{
@@ -61,8 +57,9 @@ uem_result UKSSLTCPCommunication_Create(OUT HVirtualSocket *phSocket, void *pSoc
 	}
 	else // client socket for accept
 	{
-		stSocketInfo.nPort = UNUSED_PORT_NUM;
-		stSocketInfo.pszSocketPath = NULL;
+		stSSLSocketInfo.pstKeyInfo = NULL;
+		stSSLSocketInfo.stSocketInfo.nPort = UNUSED_PORT_NUM;
+		stSSLSocketInfo.stSocketInfo.pszSocketPath = NULL;
 
 		bIsServer = FALSE;
 	}

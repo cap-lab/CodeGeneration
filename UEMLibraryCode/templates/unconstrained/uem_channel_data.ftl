@@ -186,7 +186,7 @@ SVirtualCommunicationAPI g_stSSLTCPCommunication = {
 	UKSSLTCPCommunication_Receive,
 };
 
-SKeyInfo g_astKeyInfoList[] = {
+SSSLKeyInfo g_astSSLKeyInfoList[] = {
 	<#list ssl_key_info_list as key_info>
 	{
 		<#if key_info.caPublicKey?has_content == false>
@@ -312,7 +312,7 @@ SSSLTCPInfo g_astSSLTCPClientInfo[] = {
 			"${client.IP}",
 			PAIR_TYPE_CLIENT,
 		},
-		&g_astKeyInfoList[${client.keyInfoIndex}],
+		&g_astSSLKeyInfoList[${client.keyInfoIndex}],
 	},
 	</#list>
 	<#if platform == "windows" && (ssl_tcp_client_list?size == 0)>
@@ -331,7 +331,7 @@ SSSLTCPServerInfo g_astSSLTCPServerInfo[] = {
 				(char *) NULL,
 				PAIR_TYPE_SERVER,
 			},
-			&g_astKeyInfoList[${server.keyInfoIndex}],
+			&g_astSSLKeyInfoList[${server.keyInfoIndex}],
 		},
 		{
 			(HVirtualSocket) NULL,
@@ -356,7 +356,7 @@ SSSLTCPAggregatedServiceInfo g_astSSLTCPAggregateClientInfo[] = {
 				"${client.IP}",
 				PAIR_TYPE_CLIENT,
 			},
-			&g_astKeyInfoList[${client.keyInfoIndex}],
+			&g_astSSLKeyInfoList[${client.keyInfoIndex}],
 		},
 		{
 			(HThread) NULL, // thread handle
@@ -382,7 +382,7 @@ SSSLTCPAggregatedServiceInfo g_astSSLTCPAggregateServerInfo[] = {
 				(char *) NULL,
 				PAIR_TYPE_SERVER,
 			},
-			&g_astKeyInfoList[${server.keyInfoIndex}],
+			&g_astSSLKeyInfoList[${server.keyInfoIndex}],
 		},
 		{
 			(HThread) NULL, // thread handle
@@ -409,31 +409,17 @@ SIndividualConnectionInfo g_astIndividualConnectionInfo[] = {
 	<#list channel_list as channel>
 		<#switch channel.remoteMethodType>
 			<#case "TCP">
-	{
-		${channel.index},
-		COMMUNICATION_METHOD_${channel.remoteMethodType},
-			<#switch channel.connectionRoleType>
-				<#case "CLIENT">
-		(STCPInfo *) &g_astTCPClientInfo[${channel.socketInfoIndex}],
-		PAIR_TYPE_CLIENT,
-					<#break>
-				<#case "SERVER">
-		(void *) NULL,
-		PAIR_TYPE_SERVER,
-					<#break>
-			</#switch>
-		&g_stTCPCommunication,
-		(HVirtualSocket) NULL,
-		(HUEMProtocol) NULL,
-	},
-			<#break>
 			<#case "SSL_TCP">
 	{
 		${channel.index},
 		COMMUNICATION_METHOD_${channel.remoteMethodType},
 			<#switch channel.connectionRoleType>
 				<#case "CLIENT">
-		(STCPInfo *) &g_astSSLTCPClientInfo[${channel.socketInfoIndex}],
+				<#if channel.remoteMethodType == "TCP">
+		(STCPInfo *) &g_astTCPClientInfo[${channel.socketInfoIndex}],
+				<#else>
+		(STCPInfo *) &g_astSSLTCPClientInfo[${channel.socketInfoIndex}],		
+				</#if>
 		PAIR_TYPE_CLIENT,
 					<#break>
 				<#case "SERVER">
@@ -441,7 +427,11 @@ SIndividualConnectionInfo g_astIndividualConnectionInfo[] = {
 		PAIR_TYPE_SERVER,
 					<#break>
 			</#switch>
+			<#if channel.remoteMethodType == "TCP">
+		&g_stTCPCommunication,
+			<#else>
 		&g_stSSLTCPCommunication,
+			</#if>
 		(HVirtualSocket) NULL,
 		(HUEMProtocol) NULL,
 	},
@@ -648,7 +638,8 @@ SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 	{ 
 			<#switch channel.remoteMethodType>
 				<#case "TCP">
-#ifndef AGGREGATE_TCP_CONNECTION
+				<#case "SSL_TCP">
+#ifndef AGGREGATE_${channel.remoteMethodType}_CONNECTION
 		CONNECTION_METHOD_INDIVIDUAL,
 #else
 		CONNECTION_METHOD_AGGREGATE,
@@ -657,13 +648,6 @@ SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 				<#case "BLUETOOTH">
 				<#case "SERIAL">
 		CONNECTION_METHOD_AGGREGATE,
-					<#break>
-				<#case "SSL_TCP">
-#ifndef AGGREGATE_SSL_TCP_CONNECTION
-		CONNECTION_METHOD_INDIVIDUAL,
-#else
-		CONNECTION_METHOD_AGGREGATE,
-#endif
 					<#break>
 			</#switch>
 		NULL, // will be set to SIndividualServiceInfo or SAggregateServiceInfo

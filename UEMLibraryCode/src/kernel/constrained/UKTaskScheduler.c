@@ -187,7 +187,7 @@ static uem_result handleTimeDrivenTask(SGeneralTaskRuntimeInfo *pstRunTimeInfo)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	uem_time tPrevTime;
-	uem_time tConvertedPeriod;
+
 	int nNextRunCount = 0;
 	uem_time tCurTime;
 	STask *pstTask = NULL;
@@ -206,17 +206,6 @@ static uem_result handleTimeDrivenTask(SGeneralTaskRuntimeInfo *pstRunTimeInfo)
 		else
 		{
 			// do nothing
-		}
-
-		result = UKTime_ConvertToMilliSec(pstTask->nPeriod, pstTask->enPeriodMetric, &tConvertedPeriod);
-		ERRIFGOTO(result, _EXIT);
-
-		if(pstRunTimeInfo->tNextTime - tCurTime > tConvertedPeriod)
-		{
-			tPrevTime = pstRunTimeInfo->tNextTime;
-			result = UKTime_GetNextTimeByPeriod(tPrevTime, pstTask->nPeriod, pstTask->enPeriodMetric,
-							&(pstRunTimeInfo->tNextTime), &nNextRunCount);
-			ERRIFGOTO(result, _EXIT);
 		}
 	}
 	else // ulCurTime > g_astGeneralTaskRuntimeInfo[nLoop].ulNextTime

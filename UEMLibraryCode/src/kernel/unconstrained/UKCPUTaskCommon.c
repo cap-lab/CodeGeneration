@@ -206,20 +206,20 @@ uem_result UKCPUTaskCommon_HandleTimeDrivenTask(STask *pstCurrentTask, FnUemTask
 										IN OUT int *pnRunCount, IN OUT int *pnNextMaxRunCount, OUT uem_bool *pbFunctionCalled)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	long long llCurTime = 0;
-	long long llNextTime = 0;
-	long long llConvertedPeriod = 0;
+	uem_time tCurTime = 0;
+	uem_time tNextTime = 0;
+	uem_time tConvertedPeriod = 0;
 	int nMaxRunCount = 0;
 	int nRunCount = 0;
 	uem_bool bFunctionCalled = FALSE;
 
-	llNextTime = *pllNextTime;
+	tNextTime = *pllNextTime;
 	nRunCount = *pnRunCount;
 	nMaxRunCount = *pnNextMaxRunCount;
 
-	result = UCTime_GetCurTickInMilliSeconds(&llCurTime);
+	result = UCTime_GetCurTickInMilliSeconds(&tCurTime);
 	ERRIFGOTO(result, _EXIT);
-	if(llCurTime <= llNextTime) // time is not passed
+	if(tCurTime <= tNextTime) // time is not passed
 	{
 		//UEM_DEBUG_PRINT("pstCurrentTask (%s) time in: %I64d %I64d %I64d\n", pstCurrentTask->pszTaskName, llCurTime, llNextTime, llNextTime - llCurTime);
 		if(nRunCount < nMaxRunCount) // run count is available
@@ -230,12 +230,22 @@ uem_result UKCPUTaskCommon_HandleTimeDrivenTask(STask *pstCurrentTask, FnUemTask
 		}
 		else // all run count is used and time is not passed yet
 		{
+			result = UKTime_ConvertToMilliSec(pstCurrentTask->nPeriod, pstCurrentTask->enPeriodMetric, &tConvertedPeriod);
+			ERRIFGOTO(result, _EXIT);
+
+			if(tNextTime - tCurTime > tConvertedPeriod)
+			{
+				result = UKTime_GetNextTimeByPeriod(tCurTime, pstCurrentTask->nPeriod, pstCurrentTask->enPeriodMetric,
+												&tNextTime, &nMaxRunCount);
+				ERRIFGOTO(result, _EXIT);
+			}
+
 			// if period is long, sleep by time passing
-			if(llNextTime - llCurTime > MAX_SLEEP_DURATION)
+			if(tNextTime - tCurTime > MAX_SLEEP_DURATION)
 			{
 				UCTime_Sleep(MAX_SLEEP_DURATION);
 			}
-			else if(llNextTime - llCurTime > MIN_SLEEP_DURATION) // left time is more than SLEEP_DURATION ms
+			else if(tNextTime - tCurTime > MIN_SLEEP_DURATION) // left time is more than SLEEP_DURATION ms
 			{
 				UCTime_Sleep(MIN_SLEEP_DURATION);
 			}
@@ -243,22 +253,12 @@ uem_result UKCPUTaskCommon_HandleTimeDrivenTask(STask *pstCurrentTask, FnUemTask
 			{
 				// otherwise, busy wait
 			}
-
-			result = UKTime_ConvertToMilliSec(pstCurrentTask->nPeriod, pstCurrentTask->enPeriodMetric, &llConvertedPeriod);
-			ERRIFGOTO(result, _EXIT);
-
-			if(llNextTime - llCurTime > llConvertedPeriod)
-			{
-				result = UKTime_GetNextTimeByPeriod(llCurTime, pstCurrentTask->nPeriod, pstCurrentTask->enPeriodMetric,
-												&llNextTime, &nMaxRunCount);
-				ERRIFGOTO(result, _EXIT);
-			}
 		}
 	}
 	else // time is passed, reset
 	{
-		result = UKTime_GetNextTimeByPeriod(llNextTime, pstCurrentTask->nPeriod, pstCurrentTask->enPeriodMetric,
-										&llNextTime, &nMaxRunCount);
+		result = UKTime_GetNextTimeByPeriod(tNextTime, pstCurrentTask->nPeriod, pstCurrentTask->enPeriodMetric,
+										&tNextTime, &nMaxRunCount);
 		ERRIFGOTO(result, _EXIT);
 		nRunCount = 0;
 		if(nRunCount < nMaxRunCount) // run count is available
@@ -269,7 +269,7 @@ uem_result UKCPUTaskCommon_HandleTimeDrivenTask(STask *pstCurrentTask, FnUemTask
 		}
 	}
 
-	*pllNextTime = llNextTime;
+	*pllNextTime = tNextTime;
 	*pnRunCount = nRunCount;
 	*pnNextMaxRunCount = nMaxRunCount;
 	*pbFunctionCalled = bFunctionCalled;

@@ -21,7 +21,7 @@ import org.snu.cse.cap.translator.structure.device.connection.Connection;
 import org.snu.cse.cap.translator.structure.device.connection.ConstrainedSerialConnection;
 import org.snu.cse.cap.translator.structure.device.connection.IPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
-import org.snu.cse.cap.translator.structure.device.connection.KeyInfo;
+import org.snu.cse.cap.translator.structure.device.connection.SSLKeyInfo;
 import org.snu.cse.cap.translator.structure.device.connection.SerialConnection;
 import org.snu.cse.cap.translator.structure.device.connection.TCPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.UDPConnection;
@@ -98,7 +98,7 @@ public class Device {
 	private ArrayList<UnconstrainedSerialConnection> serialUnconstrainedSlaveList;
 	private ArrayList<SSLTCPConnection> sslTcpServerList;
 	private ArrayList<SSLTCPConnection> sslTcpClientList;
-	private ArrayList<KeyInfo> keyInfoList;
+	private ArrayList<SSLKeyInfo> sslKeyInfoList;
 	
 	private HashSet<DeviceCommunicationType> supportedConnectionTypeList;
 
@@ -137,7 +137,7 @@ public class Device {
 		this.serialUnconstrainedSlaveList = new ArrayList<UnconstrainedSerialConnection>();
 		this.sslTcpServerList = new ArrayList<SSLTCPConnection>();
 		this.sslTcpClientList = new ArrayList<SSLTCPConnection>();
-		this.keyInfoList = new ArrayList<KeyInfo>();
+		this.sslKeyInfoList = new ArrayList<SSLKeyInfo>();
 		
 
 		this.supportedConnectionTypeList = new HashSet<DeviceCommunicationType>();
@@ -1165,20 +1165,18 @@ public class Device {
 		return this.udpList.containsKey(connectionId);
 	}
 	
-	public int putKeyInfo(SSLTCPConnection connection) {
+	private int putKeyInfo(SSLTCPConnection connection) {
 		int index = -1;
-		KeyInfo newKeyInfo = new KeyInfo(connection.getCAPublicKey(), connection.getPublicKey(),
-				connection.getPrivateKey());
 
-		for (KeyInfo keyInfo : keyInfoList) {
-			if (keyInfo.equals(newKeyInfo)) {
-				index = keyInfoList.indexOf(keyInfo);
+		for (SSLKeyInfo keyInfo : sslKeyInfoList) {
+			if (keyInfo.equals(connection.getSSLKeyInfo())) {
+				index = sslKeyInfoList.indexOf(keyInfo);
 			}
 		}
 
 		if (index == -1) {
-			keyInfoList.add(newKeyInfo);
-			index = keyInfoList.indexOf(newKeyInfo);
+			sslKeyInfoList.add(connection.getSSLKeyInfo());
+			index = sslKeyInfoList.indexOf(connection.getSSLKeyInfo());
 		}
 		
 		return index;
@@ -1407,7 +1405,7 @@ public class Device {
 		return sslTcpClientList;
 	}
 
-	public ArrayList<KeyInfo> getKeyInfoList() {
-		return keyInfoList;
+	public ArrayList<SSLKeyInfo> getKeyInfoList() {
+		return sslKeyInfoList;
 	}
 }

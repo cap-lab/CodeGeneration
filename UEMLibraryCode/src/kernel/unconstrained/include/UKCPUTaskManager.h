@@ -226,7 +226,7 @@ uem_result UKCPUTaskManager_IsAllTaskStopped(HCPUTaskManager hCPUTaskManager, OU
  *         Errors to be returned - @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_ILLEGAL_CONTROL. \n
  *         @ref ERR_UEM_ILLEGAL_CONTROL is occurred when the task is not computational or control type, and the task is statically scheduled.
  */
-uem_result UKCPUTaskManager_UpdateTaskMappingInfo(HCPUTaskManager hCPUTaskManager, int nTaskId, int nNewLocalId);
+uem_result UKCPUTaskManager_ChangeMappedCore(HCPUTaskManager hCPUTaskManager, int nTaskId, int nNewLocalId);
 
 /**
  * @brief Destroy a task manager.

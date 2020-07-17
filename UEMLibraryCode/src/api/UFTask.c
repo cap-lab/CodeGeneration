@@ -153,33 +153,11 @@ _EXIT:
 	return result;
 }
 
-uem_result UFTask_SetPeriod (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszValue, IN ETaskTimeUnit enTimeUnit)
+uem_result UFTask_SetPeriod (IN int nCallerTaskId, IN char *pszTaskName, IN int nValue, IN char *pszTimeUnit)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	ETimeMetric enTimeMetirc;
 
-	switch(enTimeUnit)
-	{
-	case MICROSEC:
-		enTimeMetirc = TIME_METRIC_MICROSEC;
-		break;
-	case MILLISEC:
-		enTimeMetirc = TIME_METRIC_MILLISEC;
-		break;
-	case SEC:
-		enTimeMetirc = TIME_METRIC_SEC;
-		break;
-	case MINUTE:
-		enTimeMetirc = TIME_METRIC_MINUTE;
-		break;
-	case HOUR:
-		enTimeMetirc = TIME_METRIC_HOUR;
-		break;
-	default:
-		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
-	}
-
-	result = UKTask_SetPeriod (nCallerTaskId, pszTaskName, pszValue, enTimeMetirc);
+	result = UKTask_SetPeriod (nCallerTaskId, pszTaskName, nValue, pszTimeUnit);
 
 	ERRIFGOTO(result, _EXIT);
 
@@ -188,11 +166,11 @@ _EXIT:
 	return result;
 }
 
-uem_result UFTask_UpdateMappingInfo (IN int nCallerTaskId, IN char *pszTaskName, IN int nNewLocalId)
+uem_result UFTask_ChangeMappedCore (IN int nCallerTaskId, IN char *pszTaskName, IN int nNewLocalId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	result = UKTask_UpdateMappingInfo(nCallerTaskId, pszTaskName, nNewLocalId);
+	result = UKTask_ChangeMappedCore(nCallerTaskId, pszTaskName, nNewLocalId);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;

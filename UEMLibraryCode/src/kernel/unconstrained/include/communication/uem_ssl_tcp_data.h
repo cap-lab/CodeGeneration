@@ -1,8 +1,8 @@
 /*
- * uem_tcp_data.h
+ * uem_ssl_tcp_data.h
  *
- *  Created on: 2018. 6. 11.
- *      Author: jej
+ *  Created on: 2020. 5. 21.
+ *      Author: jrkim
  */
 
 #ifndef SRC_KERNEL_UNCONSTRAINED_INCLUDE_COMMUNICATION_UEM_SSL_TCP_DATA_H_
@@ -16,11 +16,11 @@
 #include <uem_enum.h>
 
 #include <UKVirtualCommunication.h>
+#include <UCSSLTCPSocket.h>
 
 #include <uem_remote_data.h>
 #include <uem_tcp_data.h>
 
-#include <UCSSLTCPSocket.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -29,10 +29,10 @@ extern "C"
 
 typedef struct _SSSLTCPInfo {
 	STCPInfo stTCPInfo;
-	SKeyInfo *pstKeyInfo;
+	SSSLKeyInfo *pstKeyInfo;
 } SSSLTCPInfo;
 
-#ifndef AGGREGATE_SSL_TCP_CONNECTION
+#ifndef AGGREGATE_TCP_CONNECTION
 typedef struct _SSSLTCPServerInfo {
 	SSSLTCPInfo stSSLTCPInfo;
 	SIndividualServiceInfo stServiceInfo;

@@ -1147,7 +1147,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKCPUTaskManager_UpdateTaskMappingInfo(HCPUTaskManager hCPUTaskManager, int nTaskId, int nNewLocalId)
+uem_result UKCPUTaskManager_ChangeMappedCore(HCPUTaskManager hCPUTaskManager, int nTaskId, int nNewLocalId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
@@ -1168,7 +1168,12 @@ uem_result UKCPUTaskManager_UpdateTaskMappingInfo(HCPUTaskManager hCPUTaskManage
 	result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstTask->enType != TASK_TYPE_COMPUTATIONAL || pstTask->enType != TASK_TYPE_CONTROL)
+	if(pstTask->enType != TASK_TYPE_COMPUTATIONAL && pstTask->enType != TASK_TYPE_CONTROL)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
+
+	if(pstTask->pstSubGraph != NULL)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 	}
@@ -1178,7 +1183,7 @@ uem_result UKCPUTaskManager_UpdateTaskMappingInfo(HCPUTaskManager hCPUTaskManage
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 	}
 
-	result = UKCPUGeneralTaskManager_UpdateTaskMappingInfo(hCPUTaskManager, pstTask, nNewLocalId);
+	result = UKCPUGeneralTaskManager_ChangeMappedCore(hCPUTaskManager->hGeneralManager, pstTask, nNewLocalId);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;

@@ -19,18 +19,33 @@
  * If the period metric is too small, it also provides @a pnNextMaxRunCount to execute multiple times. \n
  * (ex. 1 us period => 1000 run count with 1 ms period)
  *
- * @param llPrevTime previous time value in milliseconds.
+ * @param tPrevTime previous time value in milliseconds.
  * @param nPeriod period value.
  * @param enPeriodMetric period metric.
- * @param[out] pllNextTime next time value in milliseconds.
+ * @param[out] ptNextTime next time value in milliseconds.
  * @param[out] pnNextMaxRunCount run count of current period.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_ILLEGAL_DATA. \n
  *         @ref ERR_UEM_ILLEGAL_DATA is occurred when the period metric is unknown.
  */
-uem_result UKTime_GetNextTimeByPeriod(long long llPrevTime, int nPeriod, ETimeMetric enPeriodMetric,
-											OUT long long *pllNextTime, OUT int *pnNextMaxRunCount);
+uem_result UKTime_GetNextTimeByPeriod(uem_time tPrevTime, int nPeriod, ETimeMetric enPeriodMetric,
+											OUT uem_time *ptNextTime, OUT int *pnNextMaxRunCount);
+
+/**
+ * @brief  Convert the given string time unit to ETimeMetric time unit.
+ *
+ * This function converts the given string time unit to EtimeMetirc time unit.
+ *
+ * @param pszTimeUnit the given string time unit.
+ * @param[out] penTimeMetric the metric converted from the given time unit.
+ *
+ * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * @ref ERR_UEM_INVALID_PARAM if the given string time unit is invalid.
+ *
+ */
+uem_result UKTime_ConvertTimeUnit(char *pszTimeUnit, OUT ETimeMetric *penTimeMetric);
 
 /**
  * @brief  Convert the given time as a milli sec unit.

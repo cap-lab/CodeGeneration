@@ -1,8 +1,8 @@
 /*
- * UKTCPServerManager.c
+ * UKSSLTCPServerManager.c
  *
- *  Created on: 2018. 6. 2.
- *      Author: jej
+ *  Created on: 2020. 5. 21.
+ *      Author: jrkim
  */
 
 #ifdef HAVE_CONFIG_H
@@ -28,7 +28,7 @@ uem_result UKSSLTCPServerManager_Initialize()
 	result = UCSSLTCPSocket_Initialize();
 	ERRIFGOTO(result, _EXIT);
 
-#ifndef AGGREGATE_TCP_CONNECTION
+#ifndef AGGREGATE_SSL_TCP_CONNECTION
 	for(nLoop = 0 ; nLoop < g_nSSLTCPServerInfoNum ; nLoop++)
 	{
 		result = UKServiceRunner_StartIndividualService(&(g_astSSLTCPServerInfo[nLoop].stServiceInfo), &(g_astSSLTCPServerInfo[nLoop].stSSLTCPInfo));
@@ -57,7 +57,7 @@ uem_result UKSSLTCPServerManager_Finalize()
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nLoop = 0;
-#ifdef AGGREGATE_TCP_CONNECTION
+#ifdef AGGREGATE_SSL_TCP_CONNECTION
 	for(nLoop = 0 ; nLoop < g_nSSLTCPAggregateClientInfoNum ; nLoop++)
 	{
 		result = UKServiceRunner_StopAggregatedClientService(&(g_astSSLTCPAggregateClientInfo[nLoop].stServiceInfo));

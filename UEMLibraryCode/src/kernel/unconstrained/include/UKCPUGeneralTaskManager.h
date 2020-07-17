@@ -209,7 +209,7 @@ uem_result UKCPUGeneralTaskManager_DestroyThread(HCPUGeneralTaskManager hManager
  *         @ref ERR_UEM_NOT_FOUND is occurred when the target task is not found in the general task manager.
  *         @ref ERR_UEM_ILLEGAL_CONTROL is occurred when the processor of the task is not a CPU.
  */
-uem_result UKCPUGeneralTaskManager_UpdateTaskMappingInfo(HCPUGeneralTaskManager hManager, STask *pstTargetTask, int nNewLocalId);
+uem_result UKCPUGeneralTaskManager_ChangeMappedCore(HCPUGeneralTaskManager hManager, STask *pstTargetTask, int nNewLocalId);
 
 /**
  * @brief Check all the general tasks are stopped.

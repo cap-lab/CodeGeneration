@@ -19,6 +19,11 @@
 #define MINUTE_UNIT (60)
 #define HOUR_UNIT (60)
 
+#define TIMER_UNIT_HOUR "HOUR"
+#define TIMER_UNIT_MINUTE "MIN"
+#define TIMER_UNIT_SEC "S"
+#define TIMER_UNIT_MILLSEC "MS"
+#define TIMER_UNIT_MICROSEC "US"
 
 uem_result UKTime_GetProgramExecutionTime(OUT int *pnValue, OUT ETimeMetric *penMetric)
 {
@@ -37,19 +42,19 @@ _EXIT:
 	return result;
 }
 
-uem_result UKTime_GetNextTimeByPeriod(long long llPrevTime, int nPeriod, ETimeMetric enPeriodMetric,
-											OUT long long *pllNextTime, OUT int *pnNextMaxRunCount)
+uem_result UKTime_GetNextTimeByPeriod(uem_time tPrevTime, int nPeriod, ETimeMetric enPeriodMetric,
+											OUT uem_time *ptNextTime, OUT int *pnNextMaxRunCount)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
 	switch(enPeriodMetric)
 	{
 	case TIME_METRIC_COUNT: // currently, same to 1 ms
-		*pllNextTime = llPrevTime + 1 * nPeriod;
+		*ptNextTime = tPrevTime + 1 * nPeriod;
 		*pnNextMaxRunCount = 1;
 		break;
 	case TIME_METRIC_CYCLE: // currently, same to 1 ms
-		*pllNextTime = llPrevTime + 1 * nPeriod;
+		*ptNextTime = tPrevTime + 1 * nPeriod;
 		*pnNextMaxRunCount = 1;
 		break;
 	case TIME_METRIC_MICROSEC: // TODO: micro-second time tick is even not correct
@@ -64,32 +69,66 @@ uem_result UKTime_GetNextTimeByPeriod(long long llPrevTime, int nPeriod, ETimeMe
 
 		if(nPeriod/MILLISEC_UNIT <= 0)
 		{
-			*pllNextTime = llPrevTime + 1;
+			*ptNextTime = tPrevTime + 1;
 		}
 		else
 		{
-			*pllNextTime = llPrevTime + nPeriod/MILLISEC_UNIT;
+			*ptNextTime = tPrevTime + nPeriod/MILLISEC_UNIT;
 		}
 		break;
 	case TIME_METRIC_MILLISEC:
-		*pllNextTime = llPrevTime + nPeriod;
+		*ptNextTime = tPrevTime + nPeriod;
 		*pnNextMaxRunCount = 1;
 		break;
 	case TIME_METRIC_SEC:
-		*pllNextTime = llPrevTime + SEC_UNIT * nPeriod;
+		*ptNextTime = tPrevTime + SEC_UNIT * nPeriod;
 		*pnNextMaxRunCount = 1;
 		break;
 	case TIME_METRIC_MINUTE:
-		*pllNextTime = llPrevTime + SEC_UNIT * MINUTE_UNIT * nPeriod;
+		*ptNextTime = tPrevTime + SEC_UNIT * MINUTE_UNIT * nPeriod;
 		*pnNextMaxRunCount = 1;
 		break;
 	case TIME_METRIC_HOUR:
-		*pllNextTime = llPrevTime + SEC_UNIT * MINUTE_UNIT * HOUR_UNIT * nPeriod;
+		*ptNextTime = tPrevTime + SEC_UNIT * MINUTE_UNIT * HOUR_UNIT * nPeriod;
 		*pnNextMaxRunCount = 1;
 		break;
 	default:
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
 		break;
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+uem_result UKTime_ConvertTimeUnit(char *pszTimeUnit, OUT ETimeMetric *penTimeMetric)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	if (UC_memcmp(pszTimeUnit, TIMER_UNIT_HOUR, sizeof(TIMER_UNIT_HOUR)) == 0)
+	{
+		*penTimeMetric = TIME_METRIC_SEC;
+	}
+	if (UC_memcmp(pszTimeUnit, TIMER_UNIT_MINUTE, sizeof(TIMER_UNIT_MINUTE)) == 0)
+	{
+		*penTimeMetric = TIME_METRIC_SEC;
+	}
+	if (UC_memcmp(pszTimeUnit, TIMER_UNIT_SEC, sizeof(TIMER_UNIT_SEC)) == 0)
+	{
+		*penTimeMetric = TIME_METRIC_SEC;
+	}
+	else if (UC_memcmp(pszTimeUnit, TIMER_UNIT_MILLSEC, sizeof(TIMER_UNIT_MILLSEC)) == 0)
+	{
+		*penTimeMetric = TIME_METRIC_MILLISEC;
+	}
+	else if (UC_memcmp(pszTimeUnit, TIMER_UNIT_MICROSEC, sizeof(TIMER_UNIT_MICROSEC)) == 0)
+	{
+		*penTimeMetric = TIME_METRIC_MICROSEC;
+	}
+	else
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
 	}
 
 	result = ERR_UEM_NOERROR;

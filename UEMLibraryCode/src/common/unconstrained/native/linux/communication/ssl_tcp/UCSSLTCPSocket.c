@@ -1,31 +1,24 @@
 /*
- * UCTCPSocket.c
+ * UCSSLTCPSocket.c
  *
- *  Created on: 2018. 10. 2.
- *      Author: chjej202
+ *  Created on: 2020. 5. 21.
+ *      Author: jrkim
  */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#ifndef _WIN32
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <openssl/ssl.h>
 
-#else
-#include <winsock2.h>
-#endif
-
 #include <uem_common.h>
 
-#ifndef _WIN32
-	#ifdef DEBUG_PRINT
+#ifdef DEBUG_PRINT
 #include <errno.h>
 #include <string.h>
-	#endif
 #endif
 
 #include <UCBasic.h>
@@ -33,6 +26,21 @@
 
 #include <UCSSLTCPSocket.h>
 #include <UCDynamicSocket.h>
+
+typedef struct _SSSLInfo
+{
+	SSL *pstSSL;
+	SSL_CTX *pstCTX;
+	uem_bool bKeyLoaded;
+} SSSLInfo;
+
+typedef struct _SUCSSLSocket
+{
+	EUemModuleId enID;
+	HSocket hSocket;
+	SSSLInfo stSSLInfo;
+} SUCSSLSocket;
+
 
 static uem_result selectTimeout(int nSocketfd, fd_set *pstReadSet, fd_set *pstWriteSet, fd_set *pstExceptSet, int nTimeout)
 {
@@ -78,7 +86,7 @@ _EXIT:
     return result;
 }
 
-static uem_result initializeCTX(SKeyInfo *pstKeyInfo, uem_bool bIsServer, SSL_CTX **ppstCTX, uem_bool *pbKeyLoaded)
+static uem_result initializeCTX(SSSLKeyInfo *pstKeyInfo, uem_bool bIsServer, SSL_CTX **ppstCTX, uem_bool *pbKeyLoaded)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSL_CTX *pstCTX = NULL;
@@ -86,7 +94,7 @@ static uem_result initializeCTX(SKeyInfo *pstKeyInfo, uem_bool bIsServer, SSL_CT
 
 	if(bIsServer) 
 	{
-		if(!(pstCTX = SSL_CTX_new(SSLv23_server_method())))
+		if(!(pstCTX = SSL_CTX_new(TLS_server_method())))
 		{
 			ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
 		}
@@ -97,7 +105,7 @@ static uem_result initializeCTX(SKeyInfo *pstKeyInfo, uem_bool bIsServer, SSL_CT
 	}
 	else
 	{
-		if(!(pstCTX = SSL_CTX_new(SSLv23_client_method())))
+		if(!(pstCTX = SSL_CTX_new(TLS_client_method())))
 		{
 			ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
 		}
@@ -131,9 +139,13 @@ static uem_result initializeCTX(SKeyInfo *pstKeyInfo, uem_bool bIsServer, SSL_CT
 
 		bKeyLoaded = TRUE;
 	}
+	else if(bIsServer) {
+		ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
+	}
+
+	*pbKeyLoaded = bKeyLoaded;
 
 	*ppstCTX = pstCTX;
-	*pbKeyLoaded = bKeyLoaded;
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -179,17 +191,14 @@ uem_result UCSSLTCPSocket_Create(IN SSSLSocketInfo *pstSSLSocketInfo, IN uem_boo
 
 	pstSocket->enID = ID_UEM_SSL_SOCKET;
 
-	result = UCDynamicSocket_Create(pstSSLSocketInfo->pstSocketInfo, bIsServer, &(pstSocket->hSocket));
+	result = UCDynamicSocket_Create(&(pstSSLSocketInfo->stSocketInfo), bIsServer, &(pstSocket->hSocket));
 	ERRIFGOTO(result, _EXIT);
 
-	pstSocket->pstSSLInfo = (SSSLInfo *) UCAlloc_malloc(sizeof(SSSLInfo));
-	ERRMEMGOTO(pstSocket->pstSSLInfo, result, _EXIT);
+	pstSocket->stSSLInfo.pstSSL = NULL;
+	pstSocket->stSSLInfo.pstCTX = NULL;
+	pstSocket->stSSLInfo.bKeyLoaded = FALSE;
 
-	pstSocket->pstSSLInfo->pstSSL = NULL;
-	pstSocket->pstSSLInfo->pstCTX = NULL;
-	pstSocket->pstSSLInfo->bKeyLoaded = FALSE;
-
-	result = initializeCTX(pstSSLSocketInfo->pstKeyInfo, bIsServer, &(pstSocket->pstSSLInfo->pstCTX), &(pstSocket->pstSSLInfo->bKeyLoaded));
+	result = initializeCTX(pstSSLSocketInfo->pstKeyInfo, bIsServer, &(pstSocket->stSSLInfo.pstCTX), &(pstSocket->stSSLInfo.bKeyLoaded));
 	ERRIFGOTO(result, _EXIT);
 
 	*phSocket = pstSocket;
@@ -207,34 +216,28 @@ uem_result UCSSLTCPSocket_Destroy(IN OUT HSSLSocket *phSocket)
 {
     uem_result result = ERR_UEM_UNKNOWN;
     SUCSSLSocket *pstSocket = NULL;
-	SSSLInfo *pstSSLInfo = NULL;
 
-    pstSocket = (SUCSSLSocket *) *phSocket;
-	pstSSLInfo = pstSocket->pstSSLInfo;
+	pstSocket = (SUCSSLSocket *) *phSocket;
 
-	if(pstSSLInfo != NULL) 
+	if(pstSocket->stSSLInfo.pstSSL != NULL)
 	{   
-		if(pstSSLInfo->pstSSL != NULL) 
+		if(SSL_shutdown(pstSocket->stSSLInfo.pstSSL) == 1)
 		{   
-			if((result = SSL_shutdown(pstSSLInfo->pstSSL)) == 1)    
-			{   
-				SSL_free(pstSSLInfo->pstSSL);
-				pstSSLInfo->pstSSL = NULL;
+			SSL_free(pstSocket->stSSLInfo.pstSSL);
+			pstSocket->stSSLInfo.pstSSL = NULL;
+		}
 
-				if(pstSSLInfo->pstCTX != NULL) 
-				{   
-					SSL_CTX_free(pstSSLInfo->pstCTX);   
-					pstSSLInfo->pstCTX = NULL;
-				}   
-			}   
-		}   
+		if(pstSocket->stSSLInfo.pstCTX != NULL)
+		{
+			SSL_CTX_free(pstSocket->stSSLInfo.pstCTX);
+			pstSocket->stSSLInfo.pstCTX = NULL;
+		}
 	}   
-	SAFEMEMFREE(pstSSLInfo);
 
 	result = UCDynamicSocket_Destroy(&(pstSocket->hSocket));
 	ERRIFGOTO(result, _EXIT);
 
-    SAFEMEMFREE(pstSocket);
+	SAFEMEMFREE(pstSocket);
 
     *phSocket = NULL;
 
@@ -246,11 +249,11 @@ _EXIT:
 uem_result UCSSLTCPSocket_Bind(HSSLSocket hServerSocket)
 {
     uem_result result = ERR_UEM_UNKNOWN;
-    SUCSSLSocket *pstSocket = NULL;
+    SUCSSLSocket *pstServerSocket = NULL;
 
-    pstSocket = (SUCSSLSocket *) hServerSocket;
+    pstServerSocket = (SUCSSLSocket *) hServerSocket;
 
-	result = UCDynamicSocket_Bind(pstSocket->hSocket);
+	result = UCDynamicSocket_Bind(pstServerSocket->hSocket);
 	ERRIFGOTO(result, _EXIT);
 
     result = ERR_UEM_NOERROR;
@@ -261,11 +264,11 @@ _EXIT:
 uem_result UCSSLTCPSocket_Listen(HSSLSocket hServerSocket)
 {
     uem_result result = ERR_UEM_UNKNOWN;
-    SUCSSLSocket *pstSocket = NULL;
+    SUCSSLSocket *pstServerSocket = NULL;
 
-    pstSocket = (SUCSSLSocket *) hServerSocket;
+    pstServerSocket = (SUCSSLSocket *) hServerSocket;
 
-	result = UCDynamicSocket_Listen(pstSocket->hSocket);
+	result = UCDynamicSocket_Listen(pstServerSocket->hSocket);
 	ERRIFGOTO(result, _EXIT);
 
     result = ERR_UEM_NOERROR;
@@ -276,31 +279,30 @@ _EXIT:
 uem_result UCSSLTCPSocket_Accept(HSSLSocket hServerSocket, IN int nTimeout, IN OUT HSSLSocket hSocket)
 {
     uem_result result = ERR_UEM_UNKNOWN;
-    SUCSSLSocket *pstSocket = NULL;
+    SUCSSLSocket *pstServerSocket = NULL;
     SUCSSLSocket *pstCliSocket = NULL;
 
-    pstSocket = (SUCSSLSocket *) hServerSocket;
+    pstServerSocket = (SUCSSLSocket *) hServerSocket;
     pstCliSocket = (SUCSSLSocket *) hSocket;
-	pstCliSocket->pstSSLInfo = (SSSLInfo *) UCAlloc_malloc(sizeof(SSSLInfo));
 
-	result = UCDynamicSocket_Accept(pstSocket->hSocket, nTimeout, pstCliSocket->hSocket);
+	result = UCDynamicSocket_Accept(pstServerSocket->hSocket, nTimeout, pstCliSocket->hSocket);
 	ERRIFGOTO(result, _EXIT);
 
-	result = initializeSSL(pstSocket->pstSSLInfo->pstCTX, &(pstCliSocket->pstSSLInfo->pstSSL));
+	result = initializeSSL(pstServerSocket->stSSLInfo.pstCTX, &(pstCliSocket->stSSLInfo.pstSSL));
 	ERRIFGOTO(result, _EXIT);
 
-	if((result = SSL_set_fd(pstCliSocket->pstSSLInfo->pstSSL, pstCliSocket->hSocket->nSocketfd)) != 1)
+	if((result = SSL_set_fd(pstCliSocket->stSSLInfo.pstSSL, pstCliSocket->hSocket->nSocketfd)) != 1)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
 	}
-	if((result = SSL_accept(pstCliSocket->pstSSLInfo->pstSSL)) != 1) 
+	if((result = SSL_accept(pstCliSocket->stSSLInfo.pstSSL)) != 1)
 	{
 		if(result != 0) 
 		{
-			SSL_shutdown(pstCliSocket->pstSSLInfo->pstSSL);
-			pstCliSocket->pstSSLInfo->pstSSL = NULL;	
+			SSL_shutdown(pstCliSocket->stSSLInfo.pstSSL);
+			pstCliSocket->stSSLInfo.pstSSL = NULL;
 		}	
-		SSL_free(pstCliSocket->pstSSLInfo->pstSSL);
+		SSL_free(pstCliSocket->stSSLInfo.pstSSL);
 		ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
 	}
 
@@ -313,38 +315,40 @@ uem_result UCSSLTCPSocket_Connect(HSSLSocket hClientSocket, IN int nTimeout)
 {
     uem_result result = ERR_UEM_UNKNOWN;
     SUCSSLSocket *pstSocket = NULL;
-	SSSLInfo *pstSSLInfo = NULL;
 
     pstSocket = (SUCSSLSocket *) hClientSocket;
-	pstSSLInfo = pstSocket->pstSSLInfo;
 
 	result = UCDynamicSocket_Connect(pstSocket->hSocket, nTimeout);
 	ERRIFGOTO(result, _EXIT);
 
-	result = initializeSSL(pstSSLInfo->pstCTX, &(pstSSLInfo->pstSSL));
+	result = initializeSSL(pstSocket->stSSLInfo.pstCTX, &(pstSocket->stSSLInfo.pstSSL));
 	ERRIFGOTO(result, _EXIT);
 
-	if((result = SSL_set_fd(pstSSLInfo->pstSSL, pstSocket->hSocket->nSocketfd)) != 1)
+	if(SSL_set_fd(pstSocket->stSSLInfo.pstSSL, pstSocket->hSocket->nSocketfd) != 1)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
 	}
-	if((result = SSL_connect(pstSSLInfo->pstSSL)) != 1) 
+
+	if(SSL_connect(pstSocket->stSSLInfo.pstSSL) != 1)
 	{
 		if(result != 0) 
 		{
-			SSL_shutdown(pstSSLInfo->pstSSL);
-			pstSSLInfo->pstSSL = NULL;	
+			SSL_shutdown(pstSocket->stSSLInfo.pstSSL);
+			pstSocket->stSSLInfo.pstSSL = NULL;
 		}	
-		SSL_free(pstSSLInfo->pstSSL);
+		SSL_free(pstSocket->stSSLInfo.pstSSL);
 		ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
 	}
 
-	if(pstSSLInfo->bKeyLoaded) {
-		if(SSL_do_handshake(pstSSLInfo->pstSSL) != 1)
+	if(pstSocket->stSSLInfo.bKeyLoaded) {
+		if(SSL_get_peer_certificate(pstSocket->stSSLInfo.pstSSL) != NULL)
 		{
-			ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
+			if(SSL_get_verify_result(pstSocket->stSSLInfo.pstSSL) != X509_V_OK)
+			{
+				ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
+			}
 		}
-		if(SSL_get_verify_result(pstSSLInfo->pstSSL) != X509_V_OK)
+		else
 		{
 			ERRASSIGNGOTO(result, ERR_UEM_SSL_ERROR, _EXIT);
 		}
@@ -359,23 +363,18 @@ uem_result UCSSLTCPSocket_Disconnect(HSSLSocket hClientSocket)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
     SUCSSLSocket *pstSocket = NULL;
-	SSSLInfo *pstSSLInfo = NULL;
 
     pstSocket = (SUCSSLSocket *) hClientSocket;
-	pstSSLInfo = pstSocket->pstSSLInfo;
 
 	result = UCDynamicSocket_Disconnect(pstSocket->hSocket);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstSSLInfo != NULL) 
+	if(pstSocket->stSSLInfo.pstSSL != NULL)
 	{   
-		if(pstSSLInfo->pstSSL != NULL) 
+		if((result = SSL_shutdown(pstSocket->stSSLInfo.pstSSL)) == 1)
 		{   
-			if((result = SSL_shutdown(pstSSLInfo->pstSSL)) == 1)    
-			{   
-				SSL_free(pstSSLInfo->pstSSL);
-				pstSSLInfo->pstSSL = NULL;
-			}   
+			SSL_free(pstSocket->stSSLInfo.pstSSL);
+			pstSocket->stSSLInfo.pstSSL = NULL;
 		}   
 	}   
 
@@ -412,13 +411,13 @@ uem_result UCSSLTCPSocket_Send(HSSLSocket hSocket, IN int nTimeout, IN char *pDa
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_SOCKET, _EXIT);
     }
 #endif
-	if(SSL_pending(pstSocket->pstSSLInfo->pstSSL) == 0)
+	if(SSL_pending(pstSocket->stSSLInfo.pstSSL) == 0)
 	{
 		result = selectTimeout(pstHSocket->nSocketfd, NULL, &stWriteSet, NULL, nTimeout);
 		ERRIFGOTO(result, _EXIT);
 	}
 
-	nDataSent = SSL_write(pstSocket->pstSSLInfo->pstSSL, pData, nDataLen);
+	nDataSent = SSL_write(pstSocket->stSSLInfo.pstSSL, pData, nDataLen);
 	if(nDataSent < 0)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_NET_SEND_ERROR, _EXIT);
@@ -461,13 +460,13 @@ uem_result UCSSLTCPSocket_Receive(HSSLSocket hSocket, IN int nTimeout, IN OUT ch
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_SOCKET, _EXIT);
     }
 #endif
-	if(SSL_pending(pstSocket->pstSSLInfo->pstSSL) == 0)
+	if(SSL_pending(pstSocket->stSSLInfo.pstSSL) == 0)
 	{
 		result = selectTimeout(pstHSocket->nSocketfd, &stReadSet, NULL, NULL, nTimeout);
 		ERRIFGOTO(result, _EXIT);
 	}
 
-	nDataReceived = SSL_read(pstSocket->pstSSLInfo->pstSSL, pBuffer, nBufferLen);
+	nDataReceived = SSL_read(pstSocket->stSSLInfo.pstSSL, pBuffer, nBufferLen);
 	if(nDataReceived <= 0)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_NET_RECEIVE_ERROR, _EXIT);

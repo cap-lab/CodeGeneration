@@ -118,7 +118,7 @@ struct _STraverseChangeSubgraphState {
 	ECPUTaskState enNewState;
 };
 
-struct _STraverseUpdateMappingInfo {
+struct _STraverseChangeMappedCore {
 	SGeneralTask *pstGeneralTask;
 	int nNewLocalId;
 };
@@ -480,7 +480,7 @@ static uem_result waitRunSignal(SGeneralTask *pstGeneralTask, SGeneralTaskThread
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstCurrentTask = NULL;
-	long long llCurTime = 0;
+	uem_time tCurTime = 0;
 
 	pstCurrentTask = pstGeneralTask->pstTask;
 
@@ -499,10 +499,10 @@ static uem_result waitRunSignal(SGeneralTask *pstGeneralTask, SGeneralTaskThread
 
 		if(pstCurrentTask != NULL && pstCurrentTask->enRunCondition == RUN_CONDITION_TIME_DRIVEN)
 		{
-			result = UCTime_GetCurTickInMilliSeconds(&llCurTime);
+			result = UCTime_GetCurTickInMilliSeconds(&tCurTime);
 			ERRIFGOTO(result, _EXIT);
 
-			result = UKTime_GetNextTimeByPeriod(llCurTime, pstCurrentTask->nPeriod, pstCurrentTask->enPeriodMetric,
+			result = UKTime_GetNextTimeByPeriod(tCurTime, pstCurrentTask->nPeriod, pstCurrentTask->enPeriodMetric,
 																pllNextTime, pnNextMaxRunCount);
 			ERRIFGOTO(result, _EXIT);
 		}
@@ -1800,15 +1800,15 @@ _EXIT:
 	return result;
 }
 
-static uem_result updateMappingInfo(IN int nOffset, IN void *pData, IN void *pUserData)
+static uem_result changeMappedCore(IN int nOffset, IN void *pData, IN void *pUserData)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SGeneralTaskThread *pstTaskThread = NULL;
-	struct _STraverseUpdateMappingInfo *pstUserData = NULL;
+	struct _STraverseChangeMappedCore *pstUserData = NULL;
 	SGeneralTask *pstGeneralTask = NULL;
 
 	pstTaskThread = (SGeneralTaskThread *) pData;
-	pstUserData = (struct _STraverseUpdateMappingInfo *) pUserData;
+	pstUserData = (struct _STraverseChangeMappedCore *) pUserData;
 	pstGeneralTask = pstUserData->pstGeneralTask;
 
 	result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
@@ -1826,12 +1826,12 @@ _EXIT:
 	return result;
 }
 
-uem_result UKCPUGeneralTaskManager_UpdateTaskMappingInfo(HCPUGeneralTaskManager hManager, STask *pstTargetTask, int nNewLocalId)
+uem_result UKCPUGeneralTaskManager_ChangeMappedCore(HCPUGeneralTaskManager hManager, STask *pstTargetTask, int nNewLocalId)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUGeneralTaskManager *pstTaskManager = NULL;
 	SGeneralTask *pstGeneralTask = NULL;
-	struct _STraverseUpdateMappingInfo stUserData;
+	struct _STraverseChangeMappedCore stUserData;
 	uem_bool bIsCPU = FALSE;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(pstTargetTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
@@ -1860,7 +1860,7 @@ uem_result UKCPUGeneralTaskManager_UpdateTaskMappingInfo(HCPUGeneralTaskManager 
 	stUserData.pstGeneralTask = pstGeneralTask;
 	stUserData.nNewLocalId = nNewLocalId;
 
-	result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, updateMappingInfo, &stUserData);
+	result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, changeMappedCore, &stUserData);
 	ERRIFGOTO(result, _EXIT_LOCK);
 
 	result = ERR_UEM_NOERROR;
