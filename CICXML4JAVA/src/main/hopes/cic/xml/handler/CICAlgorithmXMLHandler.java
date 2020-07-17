@@ -168,7 +168,7 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 		throw new RuntimeException("Error : modeTask not found. " + taskName);
 	}
 
-	public ModeTaskType findModeTaskTypeByTaskNameInFirstIndex(String taskName) {
+	public ModeTaskType findModeTaskTypeByTaskNameFirst(String taskName) {
 		for (ModeTaskType mt : algorithm.getModes().getMode().get(0).getTask()) {
 			if (mt.getName().equals(taskName)) {
 				return mt;
