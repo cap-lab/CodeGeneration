@@ -316,23 +316,29 @@ public class Application {
 		}		
 		for(TCPConnectionType connectionType : connectionList.getTCPConnection())
 		{
-			TCPConnection connection = null;
-			connection = new TCPConnection(connectionType.getName(), connectionType.getRole().toString(),
+			if (!connectionType.isSecure()) {
+				TCPConnection connection = null;
+				connection = new TCPConnection(connectionType.getName(), connectionType.getRole()
+						.toString(),
 					connectionType.getIp(), connectionType.getPort().intValue());
-			device.putConnection(connection);
+				device.putConnection(connection);
+			}
 		}
 	}
 
 	private void putSSLTCPConnectionsOnDevice(Device device, DeviceConnectionListType connectionList) {
-		if (connectionList.getSSLTCPConnection() == null) {
+		if (connectionList.getTCPConnection() == null) {
 			return;
 		}
-		for (SSLTCPConnectionType connectionType : connectionList.getSSLTCPConnection()) {
-			SSLTCPConnection connection = null;
-			connection = new SSLTCPConnection(connectionType.getName(), connectionType.getRole().toString(),
+		for (TCPConnectionType connectionType : connectionList.getTCPConnection()) {
+			if (connectionType.isSecure()) {
+				SSLTCPConnection connection = null;
+				connection = new SSLTCPConnection(connectionType.getName(), connectionType.getRole()
+						.toString(),
 					connectionType.getIp(), connectionType.getPort().intValue(), connectionType.getCaPublicKey(),
 					connectionType.getPublicKey(), connectionType.getPrivateKey());
-			device.putConnection(connection);
+				device.putConnection(connection);
+			}
 		}
 	}
 	
@@ -356,14 +362,16 @@ public class Application {
 		if(connectionList.getTCPConnection() != null && connectionList.getTCPConnection().size() > 0)
 		{
 			device.putSupportedConnectionType(DeviceCommunicationType.TCP);
+			for (TCPConnectionType connectionType : connectionList.getTCPConnection()) {
+				if (connectionType.isSecure()) {
+					device.putSupportedConnectionType(DeviceCommunicationType.SSL_TCP);
+					break;
+				}
+			}
 		}
 		if(connectionList.getUDPConnection() != null && connectionList.getUDPConnection().size() > 0)
 		{
 			device.putSupportedConnectionType(DeviceCommunicationType.UDP);
-		}
-		if (connectionList.getSSLTCPConnection() != null && connectionList.getSSLTCPConnection().size() > 0) {
-			device.putSupportedConnectionType(DeviceCommunicationType.SSL_TCP);
-			device.putSupportedConnectionType(DeviceCommunicationType.TCP);
 		}
 	}
 
