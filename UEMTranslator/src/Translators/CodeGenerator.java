@@ -261,8 +261,8 @@ public class CodeGenerator {
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_BLUETOOTH_MASTER_LIST, device.getBluetoothMasterList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_BLUETOOTH_SLAVE_LIST, device.getBluetoothUnconstrainedSlaveList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_MASTER_LIST, device.getSerialMasterList());
-		uemDataRootHash.put(Constants.TEMPLATE_TAG_SSL_TCP_CLIENT_LIST, device.getSslTcpClientList());
-		uemDataRootHash.put(Constants.TEMPLATE_TAG_SSL_TCP_SERVER_LIST, device.getSslTcpServerList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_SECURE_TCP_CLIENT_LIST, device.getSecureTcpClientList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_SECURE_TCP_SERVER_LIST, device.getSecureTcpServerList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_SSL_KEY_INFO_LIST, device.getKeyInfoList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_ENVIRONMENT_VARIABLE_INFO, envVarList);
 

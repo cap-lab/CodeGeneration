@@ -28,7 +28,7 @@ uem_result UKSecureTCPServerManager_Initialize()
 	result = UCSecureTCPSocket_Initialize();
 	ERRIFGOTO(result, _EXIT);
 
-#ifndef AGGREGATE_SSL_TCP_CONNECTION
+#ifndef AGGREGATE_SECURE_TCP_CONNECTION
 	for(nLoop = 0 ; nLoop < g_nSecureTCPServerInfoNum ; nLoop++)
 	{
 		result = UKServiceRunner_StartIndividualService(&(g_astSecureTCPServerInfo[nLoop].stServiceInfo), &(g_astSecureTCPServerInfo[nLoop].stSSLTCPInfo));
@@ -57,7 +57,7 @@ uem_result UKSecureTCPServerManager_Finalize()
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	int nLoop = 0;
-#ifdef AGGREGATE_SSL_TCP_CONNECTION
+#ifdef AGGREGATE_SECURE_TCP_CONNECTION
 	for(nLoop = 0 ; nLoop < g_nSecureTCPAggregateClientInfoNum ; nLoop++)
 	{
 		result = UKServiceRunner_StopAggregatedClientService(&(g_astSecureTCPAggregateClientInfo[nLoop].stServiceInfo));

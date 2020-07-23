@@ -301,11 +301,11 @@ STCPAggregatedServiceInfo g_astTCPAggregateServerInfo[] = {
 </#if>
 
 <#if used_communication_list?seq_contains("secure_tcp")>
-// #SSL_TCP_COMMUNICATION_GENERATION_TEMPLATE::START
-#ifndef AGGREGATE_SSL_TCP_CONNECTION
-// ##SSL_TCP_CLIENT_GENERATION_TEMPLATE::START
+// #SECURE_TCP_COMMUNICATION_GENERATION_TEMPLATE::START
+#ifndef AGGREGATE_SECURE_TCP_CONNECTION
+// ##SECURE_TCP_CLIENT_GENERATION_TEMPLATE::START
 SSecureTCPInfo g_astSecureTCPClientInfo[] = {
-	<#list ssl_tcp_client_list as client>
+	<#list secure_tcp_client_list as client>
 	{
 		{
 			${client.port?c},
@@ -315,15 +315,15 @@ SSecureTCPInfo g_astSecureTCPClientInfo[] = {
 		&g_astSSLKeyInfoList[${client.keyInfoIndex}],
 	},
 	</#list>
-	<#if platform == "windows" && (ssl_tcp_client_list?size == 0)>
+	<#if platform == "windows" && (secure_tcp_client_list?size == 0)>
 	0, 
 	</#if>
 };
-// ##SSL_TCP_CLIENT_GENERATION_TEMPLATE::END
+// ##SECURE_TCP_CLIENT_GENERATION_TEMPLATE::END
 
-// ##SSL_TCP_SERVER_GENERATION_TEMPLATE::START
+// ##SECURE_TCP_SERVER_GENERATION_TEMPLATE::START
 SSecureTCPServerInfo g_astSecureTCPServerInfo[] = {
-	<#list ssl_tcp_server_list as server>
+	<#list secure_tcp_server_list as server>
 	{
 		{
 			{
@@ -340,15 +340,15 @@ SSecureTCPServerInfo g_astSecureTCPServerInfo[] = {
 		},		
 	},
 	</#list>
-	<#if platform == "windows" && (ssl_tcp_server_list?size == 0)>
+	<#if platform == "windows" && (secure_tcp_server_list?size == 0)>
 	0, 
 	</#if>
 };
-// ##SSL_TCP_SERVER_GENERATION_TEMPLATE::END
+// ##SECURE_TCP_SERVER_GENERATION_TEMPLATE::END
 
 #else
 SSecureTCPAggregatedServiceInfo g_astSecureTCPAggregateClientInfo[] = {
-	<#list ssl_tcp_client_list as client>
+	<#list secure_tcp_client_list as client>
 	{
 		{
 			{
@@ -368,13 +368,13 @@ SSecureTCPAggregatedServiceInfo g_astSecureTCPAggregateClientInfo[] = {
 		},
 	},
 	</#list>
-	<#if platform == "windows" && (ssl_tcp_client_list?size == 0)>
+	<#if platform == "windows" && (secure_tcp_client_list?size == 0)>
 	0, 
 	</#if>
 };
 
 SSecureTCPAggregatedServiceInfo g_astSecureTCPAggregateServerInfo[] = {
-	<#list ssl_tcp_server_list as server>
+	<#list secure_tcp_server_list as server>
 	{
 		{
 			{
@@ -394,44 +394,36 @@ SSecureTCPAggregatedServiceInfo g_astSecureTCPAggregateServerInfo[] = {
 		},
 	},
 	</#list>
-	<#if platform == "windows" && (ssl_tcp_server_list?size == 0)>
+	<#if platform == "windows" && (secure_tcp_server_list?size == 0)>
 	0, 
 	</#if>
 };
 #endif
-// ##SSL_TCP_COMMUNICATION_GENERATION_TEMPLATE::END
+// ##SECURE_TCP_COMMUNICATION_GENERATION_TEMPLATE::END
 </#if>
 
 <#if communication_used == true>
 // ##INDIVIDUAL_CONNECTION_GENERATION_TEMPLATE::START
 SIndividualConnectionInfo g_astIndividualConnectionInfo[] = {
-#ifndef AGGREGATE_TCP_CONNECTION
 	<#list channel_list as channel>
 		<#switch channel.remoteMethodType>
 			<#case "TCP">
-			<#case "SSL_TCP">
-	{
+			<#case "SecureTCP">
+#ifndef AGGREGATE_${channel.remoteMethodType}_CONNECTION
+		{
 		${channel.index},
-		COMMUNICATION_METHOD_${channel.remoteMethodType},
-			<#switch channel.connectionRoleType>
-				<#case "CLIENT">
-				<#if channel.remoteMethodType == "TCP">
-		(STCPInfo *) &g_astTCPClientInfo[${channel.socketInfoIndex}],
-				<#else>
-		(STCPInfo *) &g_astSecureTCPClientInfo[${channel.socketInfoIndex}],		
-				</#if>
+		COMMUNICATION_METHOD_${channel.remoteMethodType?upper_case},
+		<#switch channel.connectionRoleType>
+			<#case "CLIENT">
+		(S${channel.remoteMethodType}Info *) &g_ast${channel.remoteMethodType}ClientInfo[${channel.socketInfoIndex}],
 		PAIR_TYPE_CLIENT,
-					<#break>
-				<#case "SERVER">
+			<#break>
+			<#case "SERVER">
 		(void *) NULL,
 		PAIR_TYPE_SERVER,
-					<#break>
-			</#switch>
-			<#if channel.remoteMethodType == "TCP">
-		&g_stTCPCommunication,
-			<#else>
-		&g_stSecureTCPCommunication,
-			</#if>
+			<#break>
+		</#switch>
+		&g_st${channel.remoteMethodType}Communication,
 		(HVirtualSocket) NULL,
 		(HUEMProtocol) NULL,
 	},
@@ -638,8 +630,12 @@ SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 	{ 
 			<#switch channel.remoteMethodType>
 				<#case "TCP">
-				<#case "SSL_TCP">
+				<#case "SecureTCP">
+					<#if channel.remoteMethodType == "SecureTCP">
+#ifndef AGGREGATE_SECURE_TCP_CONNECTION
+					<#else>
 #ifndef AGGREGATE_${channel.remoteMethodType}_CONNECTION
+				</#if>
 		CONNECTION_METHOD_INDIVIDUAL,
 #else
 		CONNECTION_METHOD_AGGREGATE,
@@ -1032,20 +1028,20 @@ int g_nTCPAggregateClientInfoNum = 0;
 	</#if>
 #endif
 	
-#ifndef AGGREGATE_SSL_TCP_CONNECTION
-	<#if (ssl_tcp_server_list?size > 0) >
+#ifndef AGGREGATE_SECURE_TCP_CONNECTION
+	<#if (secure_tcp_server_list?size > 0) >
 int g_nSecureTCPServerInfoNum = ARRAYLEN(g_astSecureTCPServerInfo);
 	<#else>
 int g_nSecureTCPServerInfoNum = 0;
 	</#if>
 #else
-	<#if (ssl_tcp_server_list?size > 0) >
+	<#if (secure_tcp_server_list?size > 0) >
 int g_nSecureTCPAggregateServerInfoNum = ARRAYLEN(g_astSecureTCPAggregateServerInfo);
 	<#else>
 int g_nSecureTCPAggregateServerInfoNum = 0;
 	</#if>
 	
-	<#if (ssl_tcp_client_list?size > 0) >
+	<#if (secure_tcp_client_list?size > 0) >
 int g_nSecureTCPAggregateClientInfoNum = ARRAYLEN(g_astSecureTCPAggregateClientInfo);
 	<#else>
 int g_nSecureTCPAggregateClientInfoNum = 0;

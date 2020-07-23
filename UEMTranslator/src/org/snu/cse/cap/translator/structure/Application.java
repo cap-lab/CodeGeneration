@@ -567,7 +567,7 @@ public class Application {
 			channel.setRemoteMethodType(RemoteCommunicationType.TCP);
 			break;
 		case SSL_TCP:
-			channel.setRemoteMethodType(RemoteCommunicationType.SSL_TCP);
+			channel.setRemoteMethodType(RemoteCommunicationType.SECURE_TCP);
 			break;
 		default:
 			throw new UnsupportedOperationException();
@@ -848,14 +848,14 @@ public class Application {
 				}
 			}
 			break;
-		case SSL_TCP:
+		case SECURE_TCP:
 			switch (channel.getConnectionRoleType()) {
 			case SERVER:
-				sslTcpConnectionList = targetDevice.getSslTcpServerList();
+				sslTcpConnectionList = targetDevice.getSecureTcpServerList();
 				sslTcpconnection = (SSLTCPConnection) connectionPair.getMasterConnection();
 				break;
 			case CLIENT:
-				sslTcpConnectionList = targetDevice.getSslTcpClientList();
+				sslTcpConnectionList = targetDevice.getSecureTcpClientList();
 				sslTcpconnection = (SSLTCPConnection) connectionPair.getSlaveConnection();
 				break;
 			default:

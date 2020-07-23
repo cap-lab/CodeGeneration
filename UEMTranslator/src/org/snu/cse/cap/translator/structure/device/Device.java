@@ -96,8 +96,8 @@ public class Device {
 	private ArrayList<ConstrainedSerialConnection> serialConstrainedSlaveList;
 	private ArrayList<UnconstrainedSerialConnection> serialMasterList;
 	private ArrayList<UnconstrainedSerialConnection> serialUnconstrainedSlaveList;
-	private ArrayList<SSLTCPConnection> sslTcpServerList;
-	private ArrayList<SSLTCPConnection> sslTcpClientList;
+	private ArrayList<SSLTCPConnection> secureTcpServerList;
+	private ArrayList<SSLTCPConnection> secureTcpClientList;
 	private ArrayList<SSLKeyInfo> sslKeyInfoList;
 	
 	private HashSet<DeviceCommunicationType> supportedConnectionTypeList;
@@ -135,8 +135,8 @@ public class Device {
 		this.serialConstrainedSlaveList = new ArrayList<ConstrainedSerialConnection>();
 		this.serialMasterList = new ArrayList<UnconstrainedSerialConnection>();
 		this.serialUnconstrainedSlaveList = new ArrayList<UnconstrainedSerialConnection>();
-		this.sslTcpServerList = new ArrayList<SSLTCPConnection>();
-		this.sslTcpClientList = new ArrayList<SSLTCPConnection>();
+		this.secureTcpServerList = new ArrayList<SSLTCPConnection>();
+		this.secureTcpClientList = new ArrayList<SSLTCPConnection>();
 		this.sslKeyInfoList = new ArrayList<SSLKeyInfo>();
 		
 
@@ -1239,9 +1239,9 @@ public class Device {
 			((SSLTCPConnection) connection).setKeyInfoIndex(index);
 
 			if (connection.getRole().equalsIgnoreCase(IPConnection.ROLE_SERVER) == true) {
-				this.sslTcpServerList.add((SSLTCPConnection) connection);
+				this.secureTcpServerList.add((SSLTCPConnection) connection);
 			} else {
-				this.sslTcpClientList.add((SSLTCPConnection) connection);
+				this.secureTcpClientList.add((SSLTCPConnection) connection);
 			}
 			break;
 		default:
@@ -1397,12 +1397,12 @@ public class Device {
 		return serialUnconstrainedSlaveList;
 	}
 	
-	public ArrayList<SSLTCPConnection> getSslTcpServerList() {
-		return sslTcpServerList;
+	public ArrayList<SSLTCPConnection> getSecureTcpServerList() {
+		return secureTcpServerList;
 	}
 
-	public ArrayList<SSLTCPConnection> getSslTcpClientList() {
-		return sslTcpClientList;
+	public ArrayList<SSLTCPConnection> getSecureTcpClientList() {
+		return secureTcpClientList;
 	}
 
 	public ArrayList<SSLKeyInfo> getKeyInfoList() {
