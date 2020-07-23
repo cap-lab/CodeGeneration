@@ -5,8 +5,8 @@
  *      Author: jej
  */
 
-#ifndef SRC_KERNEL_UNCONSTRAINED_INCLUDE_UKTIME_H_
-#define SRC_KERNEL_UNCONSTRAINED_INCLUDE_UKTIME_H_
+#ifndef SRC_KERNEL_INCLUDE_UKTIME_H_
+#define SRC_KERNEL_INCLUDE_UKTIME_H_
 
 #include <uem_common.h>
 
@@ -67,17 +67,5 @@ uem_result UKTime_ConvertTimeUnit(char *pszTimeUnit, OUT ETimeMetric *penTimeMet
  */
 uem_result UKTime_ConvertToMilliSec(long long llTime, ETimeMetric enTimeMetric, OUT long long *pllConvertedtTime);
 
-/**
- * @brief Get program execution time.
- *
- * This function retrieves program execution time.
- *
- * @param[out] pnValue time value.
- * @param[out] penMetric time unit.
- *
- * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
- *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
- */
-uem_result UKTime_GetProgramExecutionTime(OUT int *pnValue, OUT ETimeMetric *penMetric);
 
-#endif /* SRC_KERNEL_UNCONSTRAINED_INCLUDE_UKTIME_H_ */
+#endif /* SRC_KERNEL_INCLUDE_UKTIME_H_ */

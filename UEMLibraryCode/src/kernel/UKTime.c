@@ -19,77 +19,63 @@
 #define MINUTE_UNIT (60)
 #define HOUR_UNIT (60)
 
-#define TIMER_UNIT_HOUR "HOUR"
-#define TIMER_UNIT_MINUTE "MIN"
+#define TIMER_UNIT_HOUR "H"
+#define TIMER_UNIT_MINUTE "M"
 #define TIMER_UNIT_SEC "S"
 #define TIMER_UNIT_MILLSEC "MS"
 #define TIMER_UNIT_MICROSEC "US"
-
-uem_result UKTime_GetProgramExecutionTime(OUT int *pnValue, OUT ETimeMetric *penMetric)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-
-#ifdef ARGUMENT_CHECK
-	IFVARERRASSIGNGOTO(pnValue, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-	IFVARERRASSIGNGOTO(penMetric, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-#endif
-
-	*pnValue = g_stExecutionTime.nValue;
-	*penMetric = g_stExecutionTime.enTimeMetric;
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
 
 uem_result UKTime_GetNextTimeByPeriod(uem_time tPrevTime, int nPeriod, ETimeMetric enPeriodMetric,
 											OUT uem_time *ptNextTime, OUT int *pnNextMaxRunCount)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
+	uem_time tPeriod;
+
+	tPeriod = (uem_time) nPeriod;
 
 	switch(enPeriodMetric)
 	{
 	case TIME_METRIC_COUNT: // currently, same to 1 ms
-		*ptNextTime = tPrevTime + 1 * nPeriod;
+		*ptNextTime = tPrevTime + 1 * tPeriod;
 		*pnNextMaxRunCount = 1;
 		break;
 	case TIME_METRIC_CYCLE: // currently, same to 1 ms
-		*ptNextTime = tPrevTime + 1 * nPeriod;
+		*ptNextTime = tPrevTime + 1 * tPeriod;
 		*pnNextMaxRunCount = 1;
 		break;
 	case TIME_METRIC_MICROSEC: // TODO: micro-second time tick is even not correct
-		if(nPeriod > 0 && nPeriod < MILLISEC_UNIT)
+		if(tPeriod > 0 && tPeriod < MILLISEC_UNIT)
 		{
-			*pnNextMaxRunCount = MILLISEC_UNIT/nPeriod;
+			*pnNextMaxRunCount = MILLISEC_UNIT/tPeriod;
 		}
 		else
 		{
 			*pnNextMaxRunCount = 1;
 		}
 
-		if(nPeriod/MILLISEC_UNIT <= 0)
+		if(tPeriod/MILLISEC_UNIT <= 0)
 		{
 			*ptNextTime = tPrevTime + 1;
 		}
 		else
 		{
-			*ptNextTime = tPrevTime + nPeriod/MILLISEC_UNIT;
+			*ptNextTime = tPrevTime + tPeriod/MILLISEC_UNIT;
 		}
 		break;
 	case TIME_METRIC_MILLISEC:
-		*ptNextTime = tPrevTime + nPeriod;
+		*ptNextTime = tPrevTime + tPeriod;
 		*pnNextMaxRunCount = 1;
 		break;
 	case TIME_METRIC_SEC:
-		*ptNextTime = tPrevTime + SEC_UNIT * nPeriod;
+		*ptNextTime = tPrevTime + SEC_UNIT * tPeriod;
 		*pnNextMaxRunCount = 1;
 		break;
 	case TIME_METRIC_MINUTE:
-		*ptNextTime = tPrevTime + SEC_UNIT * MINUTE_UNIT * nPeriod;
+		*ptNextTime = tPrevTime + SEC_UNIT * MINUTE_UNIT * tPeriod;
 		*pnNextMaxRunCount = 1;
 		break;
 	case TIME_METRIC_HOUR:
-		*ptNextTime = tPrevTime + SEC_UNIT * MINUTE_UNIT * HOUR_UNIT * nPeriod;
+		*ptNextTime = tPrevTime + SEC_UNIT * MINUTE_UNIT * HOUR_UNIT * tPeriod;
 		*pnNextMaxRunCount = 1;
 		break;
 	default:

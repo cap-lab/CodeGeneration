@@ -1,5 +1,5 @@
 /*
- * UKSSLTCPCommunication.c
+ * UKSecureTCPCommunication.c
  *
  *  Created on: 2020. 5. 21.
  *      Author: jrkim
@@ -12,26 +12,26 @@
 
 #include <uem_common.h>
 
-#include <UCSSLTCPSocket.h>
+#include <UCSecureTCPSocket.h>
 
 #include <UKVirtualCommunication.h>
 
-#include <uem_ssl_tcp_data.h>
+#include <uem_secure_tcp_data.h>
 
 #define UNUSED_PORT_NUM (1)
 
 
-uem_result UKSSLTCPCommunication_Create(OUT HVirtualSocket *phSocket, void *pSocketInfo)
+uem_result UKSecureTCPCommunication_Create(OUT HVirtualSocket *phSocket, void *pSocketInfo)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-	SSSLTCPInfo *pstSSLTCPInfo = NULL;
-	SSSLSocketInfo stSSLSocketInfo;
+	SSecureTCPInfo *pstSSLTCPInfo = NULL;
+	SSecureSocketInfo stSSLSocketInfo;
 	uem_bool bIsServer = FALSE;
 	HSSLSocket hSocket = NULL;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(phSocket, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
-	pstSSLTCPInfo = (SSSLTCPInfo *) pSocketInfo;
+	pstSSLTCPInfo = (SSecureTCPInfo *) pSocketInfo;
 
 	stSSLSocketInfo.stSocketInfo.enSocketType = SOCKET_TYPE_TCP;
 
@@ -64,7 +64,7 @@ uem_result UKSSLTCPCommunication_Create(OUT HVirtualSocket *phSocket, void *pSoc
 		bIsServer = FALSE;
 	}
 
-	result = UCSSLTCPSocket_Create(&stSSLSocketInfo, bIsServer, &hSocket);
+	result = UCSecureTCPSocket_Create(&stSSLSocketInfo, bIsServer, &hSocket);
 	ERRIFGOTO(result, _EXIT);
 
 	*phSocket = (HVirtualSocket *) hSocket;
@@ -74,7 +74,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKSSLTCPCommunication_Destroy(HVirtualSocket *phSocket)
+uem_result UKSecureTCPCommunication_Destroy(HVirtualSocket *phSocket)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	HSSLSocket hSocket = NULL;
@@ -84,7 +84,7 @@ uem_result UKSSLTCPCommunication_Destroy(HVirtualSocket *phSocket)
 #endif
 	hSocket = (HSSLSocket) *phSocket;
 
-	result = UCSSLTCPSocket_Destroy(&hSocket);
+	result = UCSecureTCPSocket_Destroy(&hSocket);
 	ERRIFGOTO(result, _EXIT);
 
 	*phSocket = NULL;
@@ -94,7 +94,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKSSLTCPCommunication_Connect(HVirtualSocket hSocket, int nTimeout)
+uem_result UKSecureTCPCommunication_Connect(HVirtualSocket hSocket, int nTimeout)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	HSSLSocket hTCPSocket = NULL;
@@ -103,7 +103,7 @@ uem_result UKSSLTCPCommunication_Connect(HVirtualSocket hSocket, int nTimeout)
 #endif
 	hTCPSocket = (HSSLSocket) hSocket;
 
-	result = UCSSLTCPSocket_Connect(hTCPSocket, nTimeout);
+	result = UCSecureTCPSocket_Connect(hTCPSocket, nTimeout);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -111,7 +111,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKSSLTCPCommunication_Disconnect(HVirtualSocket hSocket)
+uem_result UKSecureTCPCommunication_Disconnect(HVirtualSocket hSocket)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	HSSLSocket hTCPSocket = NULL;
@@ -120,7 +120,7 @@ uem_result UKSSLTCPCommunication_Disconnect(HVirtualSocket hSocket)
 #endif
 	hTCPSocket = (HSSLSocket) hSocket;
 
-	result = UCSSLTCPSocket_Disconnect(hTCPSocket);
+	result = UCSecureTCPSocket_Disconnect(hTCPSocket);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -128,7 +128,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKSSLTCPCommunication_Listen(HVirtualSocket hSocket)
+uem_result UKSecureTCPCommunication_Listen(HVirtualSocket hSocket)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	HSSLSocket hServerSocket = NULL;
@@ -137,10 +137,10 @@ uem_result UKSSLTCPCommunication_Listen(HVirtualSocket hSocket)
 #endif
 	hServerSocket = (HSSLSocket) hSocket;
 
-	result = UCSSLTCPSocket_Bind(hServerSocket);
+	result = UCSecureTCPSocket_Bind(hServerSocket);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UCSSLTCPSocket_Listen(hServerSocket);
+	result = UCSecureTCPSocket_Listen(hServerSocket);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -148,7 +148,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKSSLTCPCommunication_Accept(HVirtualSocket hSocket, int nTimeout, IN OUT HVirtualSocket hAcceptedSocket)
+uem_result UKSecureTCPCommunication_Accept(HVirtualSocket hSocket, int nTimeout, IN OUT HVirtualSocket hAcceptedSocket)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	HSSLSocket hServerSocket = NULL;
@@ -160,7 +160,7 @@ uem_result UKSSLTCPCommunication_Accept(HVirtualSocket hSocket, int nTimeout, IN
 	hServerSocket = (HSSLSocket) hSocket;
 	hClientSocket = (HSSLSocket) hAcceptedSocket;
 
-	result = UCSSLTCPSocket_Accept(hServerSocket, nTimeout, hClientSocket);
+	result = UCSecureTCPSocket_Accept(hServerSocket, nTimeout, hClientSocket);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -168,7 +168,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKSSLTCPCommunication_Send(HVirtualSocket hSocket, IN int nTimeout, IN char *pData, IN int nDataLen, OUT int *pnSentSize)
+uem_result UKSecureTCPCommunication_Send(HVirtualSocket hSocket, IN int nTimeout, IN char *pData, IN int nDataLen, OUT int *pnSentSize)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	HSSLSocket hTCPSocket = NULL;
@@ -177,7 +177,7 @@ uem_result UKSSLTCPCommunication_Send(HVirtualSocket hSocket, IN int nTimeout, I
 #endif
 	hTCPSocket = (HSSLSocket) hSocket;
 
-	result = UCSSLTCPSocket_Send(hTCPSocket, nTimeout, pData, nDataLen, pnSentSize);
+	result = UCSecureTCPSocket_Send(hTCPSocket, nTimeout, pData, nDataLen, pnSentSize);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
@@ -185,7 +185,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKSSLTCPCommunication_Receive(HVirtualSocket hSocket, IN int nTimeout, IN OUT char *pBuffer, IN int nBufferLen, OUT int *pnReceivedSize)
+uem_result UKSecureTCPCommunication_Receive(HVirtualSocket hSocket, IN int nTimeout, IN OUT char *pBuffer, IN int nBufferLen, OUT int *pnReceivedSize)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	HSSLSocket hTCPSocket = NULL;
@@ -194,7 +194,7 @@ uem_result UKSSLTCPCommunication_Receive(HVirtualSocket hSocket, IN int nTimeout
 #endif
 	hTCPSocket = (HSSLSocket) hSocket;
 
-	result = UCSSLTCPSocket_Receive(hTCPSocket, nTimeout, pBuffer, nBufferLen, pnReceivedSize);
+	result = UCSecureTCPSocket_Receive(hTCPSocket, nTimeout, pBuffer, nBufferLen, pnReceivedSize);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;

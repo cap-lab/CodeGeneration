@@ -1,12 +1,12 @@
 /*
- * UCSSLTCPSocket.h
+ * UCSecureTCPSocket.h
  *
  *  Created on: 2020. 5. 21.
  *      Author: jrkim
  */
 
-#ifndef SRC_COMMON_UNCONSTRAINED_INCLUDE_COMMUNICATION_UCSSLTCPSOCKET_H_
-#define SRC_COMMON_UNCONSTRAINED_INCLUDE_COMMUNICATION_UCSSLTCPSOCKET_H_
+#ifndef SRC_COMMON_UNCONSTRAINED_INCLUDE_COMMUNICATION_UCSECURETCPSOCKET_H_
+#define SRC_COMMON_UNCONSTRAINED_INCLUDE_COMMUNICATION_UCSECURETCPSOCKET_H_
 
 #include <uem_common.h>
 
@@ -18,20 +18,20 @@ extern "C"
 {
 #endif
 
-typedef struct _SSSLKeyInfo 
+typedef struct _SSecureKeyInfo 
 {
 	char *pszCAPublicKey;
 	char *pszPublicKey;
 	char *pszPrivateKey;
-} SSSLKeyInfo;
+} SSecureKeyInfo;
 
-typedef struct _SSSLSocketInfo 
+typedef struct _SSecureSocketInfo 
 {
 	SSocketInfo stSocketInfo;
-	SSSLKeyInfo *pstKeyInfo;
-} SSSLSocketInfo;
+	SSecureKeyInfo *pstKeyInfo;
+} SSecureSocketInfo;
 
-typedef struct _SUCSSLSocket *HSSLSocket;
+typedef struct _SUCSecureSocket *HSSLSocket;
 
 /**
  * @brief Initialize a SSL socket handle.
@@ -41,7 +41,7 @@ typedef struct _SUCSSLSocket *HSSLSocket;
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  */
-uem_result UCSSLTCPSocket_Initialize();
+uem_result UCSecureTCPSocket_Initialize();
 
 /**
  * @brief Create a SSL socket handle.
@@ -64,7 +64,7 @@ uem_result UCSSLTCPSocket_Initialize();
  *         @ref ERR_UEM_SSL_KEY_NOT_FOUND if SSL key does not exist. \n
  *         @ref ERR_UEM_SSL_KEY_INVALID if SSL key is not invalid.
  */
-uem_result UCSSLTCPSocket_Create(IN SSSLSocketInfo *pstSocketInfo, IN uem_bool bIsServer, OUT HSSLSocket *phSocket);
+uem_result UCSecureTCPSocket_Create(IN SSecureSocketInfo *pstSocketInfo, IN uem_bool bIsServer, OUT HSSLSocket *phSocket);
 
 /**
  * @brief Destroy a SSL socket handle.
@@ -81,7 +81,7 @@ uem_result UCSSLTCPSocket_Create(IN SSSLSocketInfo *pstSocketInfo, IN uem_bool b
  *         @ref ERR_UEM_INVALID_PARAM can be occurred if @a phSocket is NULL \n
  *         @ref ERR_UEM_NOT_SUPPORTED if @a enSocketType of @a pstSocketInfo is invalid.
  */
-uem_result UCSSLTCPSocket_Destroy(IN OUT HSSLSocket *phSocket);
+uem_result UCSecureTCPSocket_Destroy(IN OUT HSSLSocket *phSocket);
 
 /**
  * @brief Bind a SSL socket (server-only).
@@ -101,7 +101,7 @@ uem_result UCSSLTCPSocket_Destroy(IN OUT HSSLSocket *phSocket);
  *
  * @sa UCBluetoothSocket_Bind, UCTCPSocket_Bind, UCUnixDomainSocket_Bind.
  */
-uem_result UCSSLTCPSocket_Bind(HSSLSocket hServerSocket);
+uem_result UCSecureTCPSocket_Bind(HSSLSocket hServerSocket);
 
 /**
  * @brief Listen a SSL socket (server-only).
@@ -117,7 +117,7 @@ uem_result UCSSLTCPSocket_Bind(HSSLSocket hServerSocket);
  *         @ref ERR_UEM_INVALID_SOCKET can be occurred if the @a hServerSocket is a client socket. \n
  *         @ref ERR_UEM_LISTEN_ERROR can be occurred when listen operation is failed.
  */
-uem_result UCSSLTCPSocket_Listen(HSSLSocket hServerSocket);
+uem_result UCSecureTCPSocket_Listen(HSSLSocket hServerSocket);
 
 /**
  * @brief Accept a client connection (server-only).
@@ -143,7 +143,7 @@ uem_result UCSSLTCPSocket_Listen(HSSLSocket hServerSocket);
  *
  * @sa UCBluetoothSocket_Accept, UCTCPSocket_Accept, UCUnixDomainSocket_Accept.
  */
-uem_result UCSSLTCPSocket_Accept(HSSLSocket hServerSocket, IN int nTimeout, IN OUT HSSLSocket hSocket);
+uem_result UCSecureTCPSocket_Accept(HSSLSocket hServerSocket, IN int nTimeout, IN OUT HSSLSocket hSocket);
 
 /**
  * @brief Connect to a server (client-only).
@@ -165,7 +165,7 @@ uem_result UCSSLTCPSocket_Accept(HSSLSocket hServerSocket, IN int nTimeout, IN O
  * @sa UCBluetoothSocket_Connect, UCTCPSocket_Connect, UCUnixDomainSocket_Connect.
  *
  */
-uem_result UCSSLTCPSocket_Connect(HSSLSocket hClientSocket, IN int nTimeout);
+uem_result UCSecureTCPSocket_Connect(HSSLSocket hClientSocket, IN int nTimeout);
 
 /**
  * @brief Disconnect a socket from a server (client-only).
@@ -178,7 +178,7 @@ uem_result UCSSLTCPSocket_Connect(HSSLSocket hClientSocket, IN int nTimeout);
  *         Errors to be returned - @ref ERR_UEM_INVALID_HANDLE. \n
  *         @ref ERR_UEM_INVALID_HANDLE can be occurred if the handle is not a socket handle.
  */
-uem_result UCSSLTCPSocket_Disconnect(HSSLSocket hClientSocket);
+uem_result UCSecureTCPSocket_Disconnect(HSSLSocket hClientSocket);
 
 /**
  * @brief Send data (client-only).
@@ -201,7 +201,7 @@ uem_result UCSSLTCPSocket_Disconnect(HSSLSocket hClientSocket);
  *         @ref ERR_UEM_NET_TIMEOUT can be occurred the timeout is happened during select operation. \n
  *         @ref ERR_UEM_NET_SEND_ERROR can be occurred when send operation is failed. \n
  */
-uem_result UCSSLTCPSocket_Send(HSSLSocket hSocket, IN int nTimeout, IN char *pData, IN int nDataLen, OUT int *pnSentSize);
+uem_result UCSecureTCPSocket_Send(HSSLSocket hSocket, IN int nTimeout, IN char *pData, IN int nDataLen, OUT int *pnSentSize);
 
 /**
  * @brief Receive data (client-only).
@@ -225,10 +225,10 @@ uem_result UCSSLTCPSocket_Send(HSSLSocket hSocket, IN int nTimeout, IN char *pDa
  *         @ref ERR_UEM_NET_TIMEOUT can be occurred the timeout is happened during select operation. \n
  *         @ref ERR_UEM_NET_RECEIVE_ERROR can be occurred when recv operation is failed.
  */
-uem_result UCSSLTCPSocket_Receive(HSSLSocket hSocket, IN int nTimeout, IN OUT char *pBuffer, IN int nBufferLen, OUT int *pnReceivedSize);
+uem_result UCSecureTCPSocket_Receive(HSSLSocket hSocket, IN int nTimeout, IN OUT char *pBuffer, IN int nBufferLen, OUT int *pnReceivedSize);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* SRC_COMMON_UNCONSTRAINED_INCLUDE_COMMUNICATION_UCSSLTCPSOCKET_H_ */
+#endif /* SRC_COMMON_UNCONSTRAINED_INCLUDE_COMMUNICATION_UCSECURETCPSOCKET_H_ */

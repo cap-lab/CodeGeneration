@@ -1,12 +1,12 @@
 /*
- * UKTCPServerManager.h
+ * UKSecureTCPServerManager.h
  *
- *  Created on: 2018. 6. 11.
- *      Author: jej
+ *  Created on: 2020. 5. 21.
+ *      Author: jrkim
  */
 
-#ifndef SRC_KERNEL_UNCONSTRAINED_INCLUDE_COMMUNICATION_UKSSLTCPSERVERMANAGER_H_
-#define SRC_KERNEL_UNCONSTRAINED_INCLUDE_COMMUNICATION_UKSSLTCPSERVERMANAGER_H_
+#ifndef SRC_KERNEL_UNCONSTRAINED_INCLUDE_COMMUNICATION_UKSECURETCPSERVERMANAGER_H_
+#define SRC_KERNEL_UNCONSTRAINED_INCLUDE_COMMUNICATION_UKSECURETCPSERVERMANAGER_H_
 
 #include <uem_common.h>
 
@@ -25,7 +25,7 @@ extern "C"
  *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_OUT_OF_MEMORY, and \n
  *         errors corresponding to @ref SVirtualCommunicationAPI fnCreate() and fnListen().
  */
-uem_result UKSSLTCPServerManager_Initialize();
+uem_result UKSecureTCPServerManager_Initialize();
 
 /**
  * @brief Finalize TCP server.
@@ -37,10 +37,10 @@ uem_result UKSSLTCPServerManager_Initialize();
  *         errors corresponding to @ref SVirtualCommunicationAPI fnDestroy(). \n
  *         @ref ERR_UEM_INTERNAL_FAIL can be occurred when threads created by this module is not terminated properly.
  */
-uem_result UKSSLTCPServerManager_Finalize();
+uem_result UKSecureTCPServerManager_Finalize();
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* SRC_KERNEL_UNCONSTRAINED_INCLUDE_COMMUNICATION_UKSSLTCPSERVERMANAGER_H_ */
+#endif /* SRC_KERNEL_UNCONSTRAINED_INCLUDE_COMMUNICATION_UKSECURETCPSERVERMANAGER_H_ */

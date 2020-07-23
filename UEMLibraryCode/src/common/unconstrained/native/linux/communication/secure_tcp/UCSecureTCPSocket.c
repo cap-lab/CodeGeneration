@@ -1,5 +1,5 @@
 /*
- * UCSSLTCPSocket.c
+ * UCSecureTCPSocket.c
  *
  *  Created on: 2020. 5. 21.
  *      Author: jrkim
@@ -24,22 +24,22 @@
 #include <UCBasic.h>
 #include <UCAlloc.h>
 
-#include <UCSSLTCPSocket.h>
+#include <UCSecureTCPSocket.h>
 #include <UCDynamicSocket.h>
 
-typedef struct _SSSLInfo
+typedef struct _SSecureInfo
 {
 	SSL *pstSSL;
 	SSL_CTX *pstCTX;
 	uem_bool bKeyLoaded;
-} SSSLInfo;
+} SSecureInfo;
 
-typedef struct _SUCSSLSocket
+typedef struct _SUCSecureSocket
 {
 	EUemModuleId enID;
 	HSocket hSocket;
-	SSSLInfo stSSLInfo;
-} SUCSSLSocket;
+	SSecureInfo stSSLInfo;
+} SUCSecureSocket;
 
 
 static uem_result selectTimeout(int nSocketfd, fd_set *pstReadSet, fd_set *pstWriteSet, fd_set *pstExceptSet, int nTimeout)
@@ -86,7 +86,7 @@ _EXIT:
     return result;
 }
 
-static uem_result initializeCTX(SSSLKeyInfo *pstKeyInfo, uem_bool bIsServer, SSL_CTX **ppstCTX, uem_bool *pbKeyLoaded)
+static uem_result initializeCTX(SSecureKeyInfo *pstKeyInfo, uem_bool bIsServer, SSL_CTX **ppstCTX, uem_bool *pbKeyLoaded)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSL_CTX *pstCTX = NULL;
@@ -173,7 +173,7 @@ static uem_result initializeSSL(SSL_CTX *pstCTX, SSL **ppstSSL)
 }
 
 
-uem_result UCSSLTCPSocket_Initialize()
+uem_result UCSecureTCPSocket_Initialize()
 {
 	SSL_load_error_strings();
 	OpenSSL_add_ssl_algorithms();
@@ -181,12 +181,12 @@ uem_result UCSSLTCPSocket_Initialize()
 	return ERR_UEM_NOERROR;
 }
 
-uem_result UCSSLTCPSocket_Create(IN SSSLSocketInfo *pstSSLSocketInfo, IN uem_bool bIsServer, OUT HSSLSocket *phSocket)
+uem_result UCSecureTCPSocket_Create(IN SSecureSocketInfo *pstSSLSocketInfo, IN uem_bool bIsServer, OUT HSSLSocket *phSocket)
 {
     uem_result result = ERR_UEM_UNKNOWN;
-    SUCSSLSocket *pstSocket = NULL;
+    SUCSecureSocket *pstSocket = NULL;
 
-    pstSocket = (SUCSSLSocket *) UCAlloc_malloc(sizeof(SUCSSLSocket));
+    pstSocket = (SUCSecureSocket *) UCAlloc_malloc(sizeof(SUCSecureSocket));
     ERRMEMGOTO(pstSocket, result, _EXIT);
 
 	pstSocket->enID = ID_UEM_SSL_SOCKET;
@@ -207,17 +207,17 @@ uem_result UCSSLTCPSocket_Create(IN SSSLSocketInfo *pstSSLSocketInfo, IN uem_boo
 _EXIT:
     if(result != ERR_UEM_NOERROR && pstSocket != NULL)
     {
-        UCSSLTCPSocket_Destroy((HSSLSocket *)&pstSocket);
+        UCSecureTCPSocket_Destroy((HSSLSocket *)&pstSocket);
     }
     return result;
 }
 
-uem_result UCSSLTCPSocket_Destroy(IN OUT HSSLSocket *phSocket)
+uem_result UCSecureTCPSocket_Destroy(IN OUT HSSLSocket *phSocket)
 {
     uem_result result = ERR_UEM_UNKNOWN;
-    SUCSSLSocket *pstSocket = NULL;
+    SUCSecureSocket *pstSocket = NULL;
 
-	pstSocket = (SUCSSLSocket *) *phSocket;
+	pstSocket = (SUCSecureSocket *) *phSocket;
 
 	if(pstSocket->stSSLInfo.pstSSL != NULL)
 	{   
@@ -246,12 +246,12 @@ _EXIT:
     return result;
 }
 
-uem_result UCSSLTCPSocket_Bind(HSSLSocket hServerSocket)
+uem_result UCSecureTCPSocket_Bind(HSSLSocket hServerSocket)
 {
     uem_result result = ERR_UEM_UNKNOWN;
-    SUCSSLSocket *pstServerSocket = NULL;
+    SUCSecureSocket *pstServerSocket = NULL;
 
-    pstServerSocket = (SUCSSLSocket *) hServerSocket;
+    pstServerSocket = (SUCSecureSocket *) hServerSocket;
 
 	result = UCDynamicSocket_Bind(pstServerSocket->hSocket);
 	ERRIFGOTO(result, _EXIT);
@@ -261,12 +261,12 @@ _EXIT:
     return result;
 }
 
-uem_result UCSSLTCPSocket_Listen(HSSLSocket hServerSocket)
+uem_result UCSecureTCPSocket_Listen(HSSLSocket hServerSocket)
 {
     uem_result result = ERR_UEM_UNKNOWN;
-    SUCSSLSocket *pstServerSocket = NULL;
+    SUCSecureSocket *pstServerSocket = NULL;
 
-    pstServerSocket = (SUCSSLSocket *) hServerSocket;
+    pstServerSocket = (SUCSecureSocket *) hServerSocket;
 
 	result = UCDynamicSocket_Listen(pstServerSocket->hSocket);
 	ERRIFGOTO(result, _EXIT);
@@ -276,14 +276,14 @@ _EXIT:
     return result;
 }
 
-uem_result UCSSLTCPSocket_Accept(HSSLSocket hServerSocket, IN int nTimeout, IN OUT HSSLSocket hSocket)
+uem_result UCSecureTCPSocket_Accept(HSSLSocket hServerSocket, IN int nTimeout, IN OUT HSSLSocket hSocket)
 {
     uem_result result = ERR_UEM_UNKNOWN;
-    SUCSSLSocket *pstServerSocket = NULL;
-    SUCSSLSocket *pstCliSocket = NULL;
+    SUCSecureSocket *pstServerSocket = NULL;
+    SUCSecureSocket *pstCliSocket = NULL;
 
-    pstServerSocket = (SUCSSLSocket *) hServerSocket;
-    pstCliSocket = (SUCSSLSocket *) hSocket;
+    pstServerSocket = (SUCSecureSocket *) hServerSocket;
+    pstCliSocket = (SUCSecureSocket *) hSocket;
 
 	result = UCDynamicSocket_Accept(pstServerSocket->hSocket, nTimeout, pstCliSocket->hSocket);
 	ERRIFGOTO(result, _EXIT);
@@ -311,12 +311,12 @@ _EXIT:
     return result;
 }
 
-uem_result UCSSLTCPSocket_Connect(HSSLSocket hClientSocket, IN int nTimeout)
+uem_result UCSecureTCPSocket_Connect(HSSLSocket hClientSocket, IN int nTimeout)
 {
     uem_result result = ERR_UEM_UNKNOWN;
-    SUCSSLSocket *pstSocket = NULL;
+    SUCSecureSocket *pstSocket = NULL;
 
-    pstSocket = (SUCSSLSocket *) hClientSocket;
+    pstSocket = (SUCSecureSocket *) hClientSocket;
 
 	result = UCDynamicSocket_Connect(pstSocket->hSocket, nTimeout);
 	ERRIFGOTO(result, _EXIT);
@@ -359,12 +359,12 @@ _EXIT:
     return result;
 }
 
-uem_result UCSSLTCPSocket_Disconnect(HSSLSocket hClientSocket)
+uem_result UCSecureTCPSocket_Disconnect(HSSLSocket hClientSocket)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
-    SUCSSLSocket *pstSocket = NULL;
+    SUCSecureSocket *pstSocket = NULL;
 
-    pstSocket = (SUCSSLSocket *) hClientSocket;
+    pstSocket = (SUCSecureSocket *) hClientSocket;
 
 	result = UCDynamicSocket_Disconnect(pstSocket->hSocket);
 	ERRIFGOTO(result, _EXIT);
@@ -383,10 +383,10 @@ _EXIT:
 	return result;
 }
 
-uem_result UCSSLTCPSocket_Send(HSSLSocket hSocket, IN int nTimeout, IN char *pData, IN int nDataLen, OUT int *pnSentSize)
+uem_result UCSecureTCPSocket_Send(HSSLSocket hSocket, IN int nTimeout, IN char *pData, IN int nDataLen, OUT int *pnSentSize)
 {
     uem_result result = ERR_UEM_UNKNOWN;
-    SUCSSLSocket *pstSocket = NULL;
+    SUCSecureSocket *pstSocket = NULL;
 	SUCSocket *pstHSocket = NULL;
     fd_set stWriteSet;
     int nDataSent = 0;
@@ -403,7 +403,7 @@ uem_result UCSSLTCPSocket_Send(HSSLSocket hSocket, IN int nTimeout, IN char *pDa
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
 #endif
-    pstSocket = (SUCSSLSocket *) hSocket;
+    pstSocket = (SUCSecureSocket *) hSocket;
 	pstHSocket = pstSocket->hSocket;
 #ifdef ARGUMENT_CHECK
     if(pstHSocket->bIsServer == TRUE)
@@ -432,10 +432,10 @@ _EXIT:
     return result;
 }
 
-uem_result UCSSLTCPSocket_Receive(HSSLSocket hSocket, IN int nTimeout, IN OUT char *pBuffer, IN int nBufferLen, OUT int *pnReceivedSize)
+uem_result UCSecureTCPSocket_Receive(HSSLSocket hSocket, IN int nTimeout, IN OUT char *pBuffer, IN int nBufferLen, OUT int *pnReceivedSize)
 {
     uem_result result = ERR_UEM_UNKNOWN;
-    SUCSSLSocket *pstSocket = NULL;
+    SUCSecureSocket *pstSocket = NULL;
 	SUCSocket *pstHSocket = NULL;
     fd_set stReadSet;
     int nDataReceived = 0;
@@ -452,7 +452,7 @@ uem_result UCSSLTCPSocket_Receive(HSSLSocket hSocket, IN int nTimeout, IN OUT ch
         ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
     }
 #endif
-    pstSocket = (SUCSSLSocket *) hSocket;
+    pstSocket = (SUCSecureSocket *) hSocket;
 	pstHSocket = pstSocket->hSocket;
 #ifdef ARGUMENT_CHECK
     if(pstHSocket->bIsServer == TRUE)

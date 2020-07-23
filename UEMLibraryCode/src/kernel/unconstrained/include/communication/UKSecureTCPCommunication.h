@@ -1,12 +1,12 @@
 /*
- * UKTCPCommunication.h
+ * UKSecureTCPCommunication.h
  *
- *  Created on: 2019. 5. 23.
- *      Author: jej
+ *  Created on: 2020. 5. 21.
+ *      Author: jrkim
  */
 
-#ifndef SRC_KERNEL_UNCONSTRAINED_INCLUDE_COMMUNICATION_UKSSLTCPCOMMUNICATION_H_
-#define SRC_KERNEL_UNCONSTRAINED_INCLUDE_COMMUNICATION_UKSSLTCPCOMMUNICATION_H_
+#ifndef SRC_KERNEL_UNCONSTRAINED_INCLUDE_COMMUNICATION_UKSECURETCPCOMMUNICATION_H_
+#define SRC_KERNEL_UNCONSTRAINED_INCLUDE_COMMUNICATION_UKSECURETCPCOMMUNICATION_H_
 
 #include <uem_common.h>
 
@@ -36,7 +36,7 @@ extern "C"
  *         @ref ERR_UEM_SSL_KEY_NOT_FOUND if SSL key does not exist. \n
  *         @ref ERR_UEM_SSL_KEY_INVALID if SSL key is not invalid.
  */
-uem_result UKSSLTCPCommunication_Create(OUT HVirtualSocket *phSocket, void *pSocketInfo);
+uem_result UKSecureTCPCommunication_Create(OUT HVirtualSocket *phSocket, void *pSocketInfo);
 
 /**
  * @brief Destroy a SSL TCP communication socket.
@@ -54,7 +54,7 @@ uem_result UKSSLTCPCommunication_Create(OUT HVirtualSocket *phSocket, void *pSoc
  *         @ref ERR_UEM_INVALID_PARAM can be occurred if @a phSocket is NULL \n
  *         @ref ERR_UEM_NOT_SUPPORTED if @a enSocketType of @a pstSocketInfo is invalid.
  */
-uem_result UKSSLTCPCommunication_Destroy(HVirtualSocket *phSocket);
+uem_result UKSecureTCPCommunication_Destroy(HVirtualSocket *phSocket);
 
 /**
  * @brief Connect to a server (client-only).
@@ -77,7 +77,7 @@ uem_result UKSSLTCPCommunication_Destroy(HVirtualSocket *phSocket);
  * @sa UCBluetoothSocket_Connect, UCTCPSocket_Connect, UCUnixDomainSocket_Connect.
  *
  */
-uem_result UKSSLTCPCommunication_Connect(HVirtualSocket hSocket, int nTimeout);
+uem_result UKSecureTCPCommunication_Connect(HVirtualSocket hSocket, int nTimeout);
 
 /**
  * @brief Disconnect a socket from a server (client-only).
@@ -91,7 +91,7 @@ uem_result UKSSLTCPCommunication_Connect(HVirtualSocket hSocket, int nTimeout);
  *         Errors to be returned - @ref ERR_UEM_INVALID_HANDLE. \n
  *         @ref ERR_UEM_INVALID_HANDLE can be occurred if the handle is not a socket handle.
  */
-uem_result UKSSLTCPCommunication_Disconnect(HVirtualSocket hSocket);
+uem_result UKSecureTCPCommunication_Disconnect(HVirtualSocket hSocket);
 
 /**
  * @brief Listen a SSL socket (server-only).
@@ -107,7 +107,7 @@ uem_result UKSSLTCPCommunication_Disconnect(HVirtualSocket hSocket);
  *         @ref ERR_UEM_INVALID_SOCKET can be occurred if the @a hServerSocket is a client socket. \n
  *         @ref ERR_UEM_LISTEN_ERROR can be occurred when listen operation is failed.
  */
-uem_result UKSSLTCPCommunication_Listen(HVirtualSocket hSocket);
+uem_result UKSecureTCPCommunication_Listen(HVirtualSocket hSocket);
 
 /**
  * @brief Accept a client connection (server-only).
@@ -131,7 +131,7 @@ uem_result UKSSLTCPCommunication_Listen(HVirtualSocket hSocket);
  *
  * @sa UCBluetoothSocket_Accept, UCTCPSocket_Accept, UCUnixDomainSocket_Accept.
  */
-uem_result UKSSLTCPCommunication_Accept(HVirtualSocket hSocket, int nTimeout, IN OUT HVirtualSocket hAcceptedSocket);
+uem_result UKSecureTCPCommunication_Accept(HVirtualSocket hSocket, int nTimeout, IN OUT HVirtualSocket hAcceptedSocket);
 
 /**
  * @brief Send data.
@@ -155,7 +155,7 @@ uem_result UKSSLTCPCommunication_Accept(HVirtualSocket hSocket, int nTimeout, IN
  *         @ref ERR_UEM_NET_TIMEOUT can be occurred the timeout is happened during select operation. \n
  *         @ref ERR_UEM_NET_SEND_ERROR can be occurred when send operation is failed. \n
  */
-uem_result UKSSLTCPCommunication_Send(HVirtualSocket hSocket, IN int nTimeout, IN char *pData, IN int nDataLen, OUT int *pnSentSize);
+uem_result UKSecureTCPCommunication_Send(HVirtualSocket hSocket, IN int nTimeout, IN char *pData, IN int nDataLen, OUT int *pnSentSize);
 
 /**
  * @brief Receive data.
@@ -180,10 +180,10 @@ uem_result UKSSLTCPCommunication_Send(HVirtualSocket hSocket, IN int nTimeout, I
  *         @ref ERR_UEM_NET_TIMEOUT can be occurred the timeout is happened during select operation. \n
  *         @ref ERR_UEM_NET_RECEIVE_ERROR can be occurred when recv operation is failed.
  */
-uem_result UKSSLTCPCommunication_Receive(HVirtualSocket hSocket, IN int nTimeout, IN OUT char *pBuffer, IN int nBufferLen, OUT int *pnReceivedSize);
+uem_result UKSecureTCPCommunication_Receive(HVirtualSocket hSocket, IN int nTimeout, IN OUT char *pBuffer, IN int nBufferLen, OUT int *pnReceivedSize);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* SRC_KERNEL_UNCONSTRAINED_INCLUDE_COMMUNICATION_UKSSLTCPCOMMUNICATION_H_ */
+#endif /* SRC_KERNEL_UNCONSTRAINED_INCLUDE_COMMUNICATION_UKSECURETCPCOMMUNICATION_H_ */
