@@ -31,7 +31,7 @@ typedef struct _SSecureTCPInfo {
 	SSecureKeyInfo *pstKeyInfo;
 } SSecureTCPInfo;
 
-#ifndef AGGREGATE_SECURE_TCP_CONNECTION
+#ifndef AGGREGATE_SECURETCP_CONNECTION
 typedef struct _SSecureTCPServerInfo {
 	SSecureTCPInfo stSSLTCPInfo;
 	SIndividualServiceInfo stServiceInfo;
@@ -43,7 +43,7 @@ typedef struct _SSecureTCPAggregatedServiceInfo {
 } SSecureTCPAggregatedServiceInfo;
 #endif
 
-#ifndef AGGREGATE_SECURE_TCP_CONNECTION
+#ifndef AGGREGATE_SECURETCP_CONNECTION
 extern SSecureTCPServerInfo g_astSecureTCPServerInfo[];
 extern int g_nSecureTCPServerInfoNum;
 #else

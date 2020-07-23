@@ -302,7 +302,7 @@ STCPAggregatedServiceInfo g_astTCPAggregateServerInfo[] = {
 
 <#if used_communication_list?seq_contains("secure_tcp")>
 // #SECURE_TCP_COMMUNICATION_GENERATION_TEMPLATE::START
-#ifndef AGGREGATE_SECURE_TCP_CONNECTION
+#ifndef AGGREGATE_SECURETCP_CONNECTION
 // ##SECURE_TCP_CLIENT_GENERATION_TEMPLATE::START
 SSecureTCPInfo g_astSecureTCPClientInfo[] = {
 	<#list secure_tcp_client_list as client>
@@ -409,7 +409,7 @@ SIndividualConnectionInfo g_astIndividualConnectionInfo[] = {
 		<#switch channel.remoteMethodType>
 			<#case "TCP">
 			<#case "SecureTCP">
-#ifndef AGGREGATE_${channel.remoteMethodType}_CONNECTION
+#ifndef AGGREGATE_${channel.remoteMethodType?upper_case}_CONNECTION
 		{
 		${channel.index},
 		COMMUNICATION_METHOD_${channel.remoteMethodType?upper_case},
@@ -632,7 +632,7 @@ SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 				<#case "TCP">
 				<#case "SecureTCP">
 					<#if channel.remoteMethodType == "SecureTCP">
-#ifndef AGGREGATE_SECURE_TCP_CONNECTION
+#ifndef AGGREGATE_SECURETCP_CONNECTION
 					<#else>
 #ifndef AGGREGATE_${channel.remoteMethodType}_CONNECTION
 				</#if>
@@ -1028,7 +1028,7 @@ int g_nTCPAggregateClientInfoNum = 0;
 	</#if>
 #endif
 	
-#ifndef AGGREGATE_SECURE_TCP_CONNECTION
+#ifndef AGGREGATE_SECURETCP_CONNECTION
 	<#if (secure_tcp_server_list?size > 0) >
 int g_nSecureTCPServerInfoNum = ARRAYLEN(g_astSecureTCPServerInfo);
 	<#else>
