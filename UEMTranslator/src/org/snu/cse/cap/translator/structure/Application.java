@@ -364,7 +364,7 @@ public class Application {
 			device.putSupportedConnectionType(DeviceCommunicationType.TCP);
 			for (TCPConnectionType connectionType : connectionList.getTCPConnection()) {
 				if (connectionType.isSecure()) {
-					device.putSupportedConnectionType(DeviceCommunicationType.SSL_TCP);
+					device.putSupportedConnectionType(DeviceCommunicationType.SECURE_TCP);
 					break;
 				}
 			}
@@ -566,7 +566,7 @@ public class Application {
 		case TCP:
 			channel.setRemoteMethodType(RemoteCommunicationType.TCP);
 			break;
-		case SSL_TCP:
+		case SECURE_TCP:
 			channel.setRemoteMethodType(RemoteCommunicationType.SECURE_TCP);
 			break;
 		default:
@@ -577,7 +577,7 @@ public class Application {
 	private void setChannelConnectionRoleType(Channel channel, ConnectionPair connectionPair, String taskName)
 	{
 		if (connectionPair.getMasterConnection().getProtocol() == ProtocolType.TCP
-				|| connectionPair.getMasterConnection().getProtocol() == ProtocolType.SSL_TCP) {
+				|| connectionPair.getMasterConnection().getProtocol() == ProtocolType.SECURE_TCP) {
 			if(connectionPair.getMasterDeviceName().equals(taskName) == true) {
 				channel.setConnectionRoleType(ConnectionRoleType.SERVER);
 			}
@@ -1027,7 +1027,7 @@ public class Application {
 			break;
 		case LINUX:
 			if (connectionPair.getMasterConnection().getProtocol() == ProtocolType.TCP
-					|| connectionPair.getMasterConnection().getProtocol() == ProtocolType.SSL_TCP) {
+					|| connectionPair.getMasterConnection().getProtocol() == ProtocolType.SECURE_TCP) {
 				setSocketIndexFromTCPConnection(channel, targetDevice, connectionPair);
 			}
 			else {

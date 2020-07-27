@@ -7,7 +7,7 @@ public class SSLTCPConnection extends IPConnection {
 
 	public SSLTCPConnection(String name, String role, String IP, int port, String caPublicKey, String publicKey,
 			String privateKey) {
-		super(name, role, IP, port, ProtocolType.SSL_TCP);
+		super(name, role, IP, port, ProtocolType.SECURE_TCP);
 		this.channelAccessNum = 0;
 		this.sslKeyInfo = new SSLKeyInfo(caPublicKey, publicKey, privateKey);
 	}

@@ -86,7 +86,7 @@ _EXIT:
     return result;
 }
 
-static uem_result initializeCTX(SSecureKeyInfo *pstKeyInfo, uem_bool bIsServer, SSL_CTX **ppstCTX, uem_bool *pbKeyLoaded)
+static uem_result initializeCTX(SSecurityKeyInfo *pstKeyInfo, uem_bool bIsServer, SSL_CTX **ppstCTX, uem_bool *pbKeyLoaded)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSL_CTX *pstCTX = NULL;

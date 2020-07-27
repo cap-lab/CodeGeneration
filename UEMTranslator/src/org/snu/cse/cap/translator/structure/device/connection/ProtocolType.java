@@ -4,5 +4,5 @@ public enum ProtocolType {
 	TCP,
 	UDP,
 	SERIAL,
-	SSL_TCP,
+	SECURE_TCP,
 }

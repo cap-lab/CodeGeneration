@@ -18,17 +18,17 @@ extern "C"
 {
 #endif
 
-typedef struct _SSecureKeyInfo 
+typedef struct _SSecurityKeyInfo 
 {
 	char *pszCAPublicKey;
 	char *pszPublicKey;
 	char *pszPrivateKey;
-} SSecureKeyInfo;
+} SSecurityKeyInfo;
 
 typedef struct _SSecureSocketInfo 
 {
 	SSocketInfo stSocketInfo;
-	SSecureKeyInfo *pstKeyInfo;
+	SSecurityKeyInfo *pstKeyInfo;
 } SSecureSocketInfo;
 
 typedef struct _SUCSecureSocket *HSSLSocket;

@@ -1234,7 +1234,7 @@ public class Device {
 				break;
 			}
 			break;
-		case SSL_TCP:
+		case SECURE_TCP:
 			int index = putKeyInfo((SSLTCPConnection) connection);
 			((SSLTCPConnection) connection).setKeyInfoIndex(index);
 

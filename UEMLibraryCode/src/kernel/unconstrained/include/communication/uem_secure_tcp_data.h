@@ -28,7 +28,7 @@ extern "C"
 
 typedef struct _SSecureTCPInfo {
 	STCPInfo stTCPInfo;
-	SSecureKeyInfo *pstKeyInfo;
+	SSecurityKeyInfo *pstKeyInfo;
 } SSecureTCPInfo;
 
 #ifndef AGGREGATE_SECURETCP_CONNECTION

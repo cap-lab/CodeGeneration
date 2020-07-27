@@ -186,7 +186,7 @@ SVirtualCommunicationAPI g_stSecureTCPCommunication = {
 	UKSecureTCPCommunication_Receive,
 };
 
-SSecureKeyInfo g_astSSLKeyInfoList[] = {
+SSecurityKeyInfo g_astSSLKeyInfoList[] = {
 	<#list ssl_key_info_list as key_info>
 	{
 		<#if key_info.caPublicKey?has_content == false>
@@ -631,11 +631,7 @@ SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 			<#switch channel.remoteMethodType>
 				<#case "TCP">
 				<#case "SecureTCP">
-					<#if channel.remoteMethodType == "SecureTCP">
-#ifndef AGGREGATE_SECURETCP_CONNECTION
-					<#else>
-#ifndef AGGREGATE_${channel.remoteMethodType}_CONNECTION
-				</#if>
+#ifndef AGGREGATE_${channel.remoteMethodType?upper_case}_CONNECTION
 		CONNECTION_METHOD_INDIVIDUAL,
 #else
 		CONNECTION_METHOD_AGGREGATE,
