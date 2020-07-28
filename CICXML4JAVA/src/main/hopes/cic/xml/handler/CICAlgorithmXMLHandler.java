@@ -114,6 +114,19 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 		}
 	}
 	
+	public int getTotalDataTypeLoopCountNum(TaskType task) {
+		int loopCountMul = 1;
+		while (true) {
+			if (task.getName().equals(task.getParentTask())) {
+				return loopCountMul;
+			}
+			if(task.getLoopStructure() != null && task.getLoopStructure().getType().equals(LoopStructureTypeType.DATA)){
+				loopCountMul *= task.getLoopStructure().getLoopCount().intValueExact();
+			}
+			task = findTaskByName(task.getParentTask());
+		}
+	}
+	
 	public Map<String, DataParallelType> getMapParallelType() {
 		Map<String, DataParallelType> mapParallelType = new HashMap<String, DataParallelType>();
 		List<TaskType> parallelTaskList = taskList.stream().filter(t -> t.getDataParallel() != null)
