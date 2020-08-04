@@ -71,7 +71,7 @@ uem_result UCBluetoothSocket_Accept(HSocket hServerSocket, HSocket hClientSocket
 	SUCSocket *pstServerSocket = NULL;
 	SUCSocket *pstClientSocket = NULL;
     struct sockaddr_rc stClientAddr;
-    socklen_t nLen = 0;
+    socklen_t nLen = sizeof(struct sockaddr_rc);
 
 	pstServerSocket = (SUCSocket *) hServerSocket;
 	pstClientSocket = (SUCSocket *) hClientSocket;

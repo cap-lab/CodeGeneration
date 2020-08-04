@@ -15,8 +15,9 @@ public class TranslatorProperties {
 	public static final String PROPERTIES_CONSTRAINED_SOURCE_FILE = "constrained_source_file";
 	public static final String PROPERTIES_PERIPHERAL_LIST = "peripheral_list";
 	public static final String PROPERTIES_GENERATED_KERNEL_DATA_FILE = "generated_kernel_data_file";
-	public static final String PROPERTIES_BUILDSCRIPT_FILE = "buildscript_file";
-	public static final String PROPERTIES_BUILDSCRIPT_TYPE= "buildscript_type";
+	public static final String PROPERTIES_BUILDSCRIPT_SUBFILE = "file";
+	public static final String PROPERTIES_BUILDSCRIPT_SUBTEMPLATE = "template";
+	public static final String PROPERTIES_BUILDSCRIPT = "buildscript";
 	public static final String PROPERTIES_PERIPHERAL_SUBTYPE= "type";
 	
 	public static final String PROPERTIES_CFLAGS = "CFLAGS";

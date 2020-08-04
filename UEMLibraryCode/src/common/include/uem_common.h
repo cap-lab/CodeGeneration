@@ -186,8 +186,11 @@ typedef enum _EUemModuleId {
 #ifdef DEBUG_PRINT
 	#if defined(HAVE_PRINTF)
 		#include <stdio.h>
-
-		#define UEM_DEBUG_PRINT(fmt,args...) printf(fmt, ## args )
+		#ifndef _WIN32
+			#define UEM_DEBUG_PRINT(fmt,args...) printf(fmt, ## args )
+		#else
+			#define UEM_DEBUG_PRINT(fmt, ...) printf(fmt, __VA_ARGS__ )
+		#endif
 	#elif defined(ARDUINO)
 		#include <UCPrint.h>
 
@@ -196,12 +199,18 @@ typedef enum _EUemModuleId {
 		#define UEM_DEBUG_PRINT(fmt,args...)
 	#endif
 #else
-	#define UEM_DEBUG_PRINT(fmt,args...)
+	#ifndef _WIN32
+		#define UEM_DEBUG_PRINT(fmt,args...)
+	#else
+		#define UEM_DEBUG_PRINT(fmt, ...)
+	#endif
 #endif
 
 #ifdef _DEBUG
 	#if defined(HAVE_PRINTF)
-		#include <unistd.h>
+		#ifndef _WIN32
+			#include <unistd.h>
+		#endif
 		#include <stdio.h>
 		#include <errno.h>
 
@@ -223,7 +232,6 @@ typedef enum _EUemModuleId {
 		#define ERRMEMGOTO(var, res, label) if((var)==NULL) {res=ERR_UEM_OUT_OF_MEMORY;goto label;}
 	#endif
 #else
-
 #define ERRIFGOTO(res, label) if(((res) & ERR_UEM_ERROR)!=ERR_UEM_NOERROR) {goto label;}
 #define ERRASSIGNGOTO(res, err, label) {res=err; goto label;}
 #define IFVARERRASSIGNGOTO(var, val, res, err, label) if((var)==(val)) {res=err;goto label;}

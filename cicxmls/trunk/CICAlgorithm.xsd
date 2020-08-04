@@ -30,6 +30,7 @@
   <xs:complexType name="TaskListType">
     <xs:sequence>
       <xs:element name="task" type="TaskType" minOccurs="1" maxOccurs="unbounded" />
+      <xs:element name="externalTask" type="ExternalTaskType" minOccurs="0" maxOccurs="unbounded" />
     </xs:sequence>
   </xs:complexType>
 
@@ -135,7 +136,18 @@
     <xs:attribute name="subGraphProperty" type="NameType" use="optional" />
     <xs:attribute name="language" type="LanguageType" use="optional" />
   </xs:complexType>
-
+  
+  <xs:complexType name="ExternalTaskType">
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="taskType" type="xs:string" use="required" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
+    <xs:attribute name="ParentTask" type="xs:string" use="required" />
+	<xs:attribute name="networkFile" type="xs:string" use="required"/>
+	<xs:attribute name="architectureFile" type="xs:string" use="required"/>
+	<xs:attribute name="profileFile" type="xs:string" use="required"/>
+	<xs:attribute name="mappingFile" type="xs:string" use="required"/>
+  </xs:complexType>
+  
   <xs:complexType name="TaskDataParallelType">
     <xs:sequence>
       <xs:element name="volume" type="VectorType" minOccurs="0" maxOccurs="1" />
@@ -363,6 +375,7 @@
     <xs:attribute name="architecture" type="xs:string" use="required" />
     <xs:attribute name="platform" type="xs:string" use="required" />
 	<xs:attribute name="runtime" type="xs:string" use="required" />
+	<xs:attribute name="processorType" type="xs:string" use="required" />
   </xs:complexType>
 
   <!-- Type definitions for mode specification -->
