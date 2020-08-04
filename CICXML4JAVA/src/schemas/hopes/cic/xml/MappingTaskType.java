@@ -24,6 +24,7 @@ import javax.xml.bind.annotation.XmlType;
  *       &lt;/sequence>
  *       &lt;attribute name="dataParallel" type="{http://peace.snu.ac.kr/CICXMLSchema}DataParallelType" />
  *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
+ *       &lt;attribute name="remappable" type="{http://www.w3.org/2001/XMLSchema}boolean" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -44,6 +45,8 @@ public class MappingTaskType {
     protected DataParallelType dataParallel;
     @XmlAttribute(required = true)
     protected String name;
+    @XmlAttribute
+    protected Boolean remappable;
 
     /**
      * Gets the value of the processor property.
@@ -149,6 +152,30 @@ public class MappingTaskType {
      */
     public void setName(String value) {
         this.name = value;
+    }
+
+    /**
+     * Gets the value of the remappable property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link Boolean }
+     *     
+     */
+    public Boolean isRemappable() {
+        return remappable;
+    }
+
+    /**
+     * Sets the value of the remappable property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link Boolean }
+     *     
+     */
+    public void setRemappable(Boolean value) {
+        this.remappable = value;
     }
 
 }
