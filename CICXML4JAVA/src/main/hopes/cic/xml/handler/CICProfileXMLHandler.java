@@ -131,6 +131,9 @@ public class CICProfileXMLHandler extends CICXMLHandler{
 	}
 
 	public void makeProcList() {
+		if (profile.getTask().isEmpty()) {
+			return;
+		}
 		ProfileTaskType task = profile.getTask().get(0);
 		for (ProfileType pt : task.getMode().get(0).getProfile()) {
 			procList.add(pt.getProcessorType());
