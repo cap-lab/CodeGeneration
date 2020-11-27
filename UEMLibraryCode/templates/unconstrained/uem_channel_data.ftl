@@ -574,7 +574,9 @@ SAggregateConnectionInfo g_astAggregateConnectionInfo[] = {
 				</#switch>	
 	},
 #else
+	<#if platform == "windows">
 	0,
+	</#if>
 #endif				
 				<#break>
 		</#switch>

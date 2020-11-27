@@ -13,7 +13,17 @@ public abstract class CICXMLHandler {
 	protected abstract void loadResource(ByteArrayInputStream is) throws CICXMLException;
 	public abstract void init();
 
-	public void setXMLString(String xmlString) throws CICXMLException{
+	public void loadXMLfileToHandler(String xmlFileName) throws CICXMLException {
+		String xmlData = getLocalFile(xmlFileName);
+		if (xmlData == null || xmlData.indexOf(xmlFileName + " doesn't exist") == 0) {
+			throw new CICXMLException(null, "[ERROR] file doesn't exist");
+		}
+		ByteArrayInputStream is = new ByteArrayInputStream(xmlData.getBytes());
+		loadResource(is);
+		init();
+	}
+
+	public void setXMLString(String xmlString) throws CICXMLException {
 		ByteArrayInputStream is = new ByteArrayInputStream(xmlString.getBytes());
 		loadResource(is);
 	}
@@ -22,7 +32,7 @@ public abstract class CICXMLHandler {
 		StringWriter writer = new StringWriter();
 		storeResource(writer);
 		writer.flush();
-		return writer.toString();	
+		return writer.toString();
 	}
 	
 	public void storeXMLString(String fileName) throws CICXMLException {
@@ -69,14 +79,4 @@ public abstract class CICXMLHandler {
 			return false;
 		}
 	}
-	
-	public void loadXMLfileToHandler(String xmlFileName) throws CICXMLException {
-		String xmlData = getLocalFile(xmlFileName);
-
-		if (xmlData == null || xmlData.indexOf(xmlFileName + " doesn't exist") == 0) {
-			throw new CICXMLException(null, "[ERROR] file doesn't exist");
-		}
-		setXMLString(xmlData);
-		init();
-	}	
 }
