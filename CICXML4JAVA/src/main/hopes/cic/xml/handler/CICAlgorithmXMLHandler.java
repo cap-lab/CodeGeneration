@@ -136,14 +136,17 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 				.collect(Collectors.toMap(TaskType::getName, task -> task.getDataParallel().getType()));
 	}
 
-	public Map<String, LoopStructureTypeType> getMapLoopType() {
-		Map<String, LoopStructureTypeType> mapLoopType = new HashMap<String, LoopStructureTypeType>();
+	public Map<String, Boolean> getLoopTaskInfo() {
+		Map<String, Boolean> loopTaskLevelInfo = new HashMap<String, Boolean>();
 		for (TaskType taskType : taskList) {
-			if (isInDataTypeLoop(taskType)) {
-				mapLoopType.put(taskType.getName(), LoopStructureTypeType.DATA);
+			if (taskType.getLoopStructure() != null
+					&& taskType.getLoopStructure().getType().equals(LoopStructureTypeType.DATA)) {
+				loopTaskLevelInfo.put(taskType.getName(), true);
+			} else if (isInDataTypeLoop(taskType)) {
+				loopTaskLevelInfo.put(taskType.getName(), false);
 			}
 		}
-		return mapLoopType;
+		return loopTaskLevelInfo;
 	}
 
 	public Map<TaskType, List<TaskType>> getHierarchicalDATALoopTaskMap() {
