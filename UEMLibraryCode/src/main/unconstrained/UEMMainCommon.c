@@ -23,7 +23,7 @@ uem_result UEMMainCommon_CreateTasks(HCPUTaskManager hManager)
 	ETimeMetric enMetric;
 
 
-	result = UKTime_GetProgramExecutionTime(&nValue, &enMetric);
+	result = UKProgram_GetExecutionTime(&nValue, &enMetric);
 	ERRIFGOTO(result, _EXIT);
 
 	if(nValue > 0 && enMetric == TIME_METRIC_COUNT)

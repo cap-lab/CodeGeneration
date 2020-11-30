@@ -119,13 +119,13 @@ public class MappingTaskType {
     }
 
     /**
-	 * Sets the value of the dataParallel property.
-	 * 
-	 * @param value allowed object is
-	 * 
-	 *              {@link DataParallelType }
-	 * 
-	 */
+     * Sets the value of the dataParallel property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link DataParallelType }
+     *     
+     */
     public void setDataParallel(DataParallelType value) {
         this.dataParallel = value;
     }

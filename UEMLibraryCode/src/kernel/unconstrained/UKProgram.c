@@ -16,7 +16,7 @@
 
 #include <UKProgram.h>
 
-uem_result UKTime_GetProgramExecutionTime(OUT int *pnValue, OUT ETimeMetric *penMetric)
+uem_result UKProgram_GetExecutionTime(OUT int *pnValue, OUT ETimeMetric *penMetric)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 

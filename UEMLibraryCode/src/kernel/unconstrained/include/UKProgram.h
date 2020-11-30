@@ -1,5 +1,5 @@
 /*
- * UKProcessor.h
+ * UKProgram.h
  *
  *  Created on: 2020. 7. 23.
  *      Author: jrkim
@@ -26,7 +26,7 @@ extern "C"
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
  */
-uem_result UKTime_GetProgramExecutionTime(OUT int *pnValue, OUT ETimeMetric *penMetric);
+uem_result UKProgram_GetExecutionTime(OUT int *pnValue, OUT ETimeMetric *penMetric);
 
 #ifdef __cplusplus
 }

@@ -258,7 +258,7 @@ static uem_result createCompositeTaskStruct(HCPUCompositeTaskManager hCPUTaskMan
 	if(pstMappedInfo->pstScheduledTasks->pstParentTaskGraph->pstParentTask == NULL)
 	{
 		pstCompositeTask->enTaskState = TASK_STATE_RUNNING;
-		result = UKTime_GetProgramExecutionTime(&nTimeValue, &enTimeMetric);
+		result = UKProgram_GetExecutionTime(&nTimeValue, &enTimeMetric);
 		ERRIFGOTO(result, _EXIT);
 
 		// If iteration count is set, run only a specific number
