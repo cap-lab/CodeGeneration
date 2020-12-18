@@ -410,7 +410,7 @@ SIndividualConnectionInfo g_astIndividualConnectionInfo[] = {
 			<#case "TCP">
 			<#case "SecureTCP">
 #ifndef AGGREGATE_${channel.remoteMethodType?upper_case}_CONNECTION
-		{
+	{
 		${channel.index},
 		COMMUNICATION_METHOD_${channel.remoteMethodType?upper_case},
 		<#switch channel.connectionRoleType>
@@ -427,10 +427,10 @@ SIndividualConnectionInfo g_astIndividualConnectionInfo[] = {
 		(HVirtualSocket) NULL,
 		(HUEMProtocol) NULL,
 	},
+#endif
 			<#break>
 		</#switch>
 	</#list>
-#endif
 };
 // ##INDIVIDUAL_CONNECTION_GENERATION_TEMPLATE::END
 </#if>
