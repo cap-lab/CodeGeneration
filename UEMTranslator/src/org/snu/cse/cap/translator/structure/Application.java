@@ -82,7 +82,6 @@ import hopes.cic.xml.MulticastGroupType;
 import hopes.cic.xml.MulticastPortType;
 import hopes.cic.xml.NetworkType;
 import hopes.cic.xml.PortMapType;
-import hopes.cic.xml.SSLTCPConnectionType;
 import hopes.cic.xml.SerialConnectionType;
 import hopes.cic.xml.TCPConnectionType;
 import hopes.cic.xml.TaskLibraryConnectionType;
