@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema id="CICGPUSetup"
+        targetNamespace="http://peace.snu.ac.kr/CICXMLSchema"
+        elementFormDefault="qualified"
+        xmlns="http://peace.snu.ac.kr/CICXMLSchema"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:include schemaLocation="./CICCommon.xsd" />
+
+  <xs:element name="CIC_GPUSetup" type="CICGPUSetupType" />
+
+
+  <!-- Type definitions for GPU setup specification -->
+  <xs:complexType name="CICGPUSetupType">
+    <xs:sequence>
+      <xs:element name="tasks" type="GPUTaskListType" minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="GPUTaskListType">
+    <xs:sequence>
+      <xs:element name="task" type="GPUTaskType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="GPUTaskType">
+    <xs:sequence>
+      <xs:element name="globalWorkSize" type="WorkSizeType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="localWorkSize" type="WorkSizeType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="device" type="MappingGPUDeviceType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="maxStream" type="xs:nonNegativeInteger" use="optional" />
+    <xs:attribute name="pipelining" type="YesNoType" use="optional" />
+    <xs:attribute name="clustering" type="YesNoType" use="optional" />
+  </xs:complexType>
+  
+  <xs:complexType name="WorkSizeType">
+    <xs:attribute name="height" type="xs:nonNegativeInteger" use="required" />
+    <xs:attribute name="width" type="xs:nonNegativeInteger" use="required" />
+    <xs:attribute name="depth" type="xs:nonNegativeInteger" use="required" />	
+  </xs:complexType>  
+
+  <xs:complexType name="MappingGPUDeviceType">
+    <xs:sequence>
+      <xs:element name="processor" type="MappingGPUProcessorIdType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+	<xs:attribute name="name" type="NameType" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="MappingGPUProcessorIdType">
+    <xs:attribute name="pool" type="NameType" use="required" />
+  </xs:complexType>
+
+</xs:schema>

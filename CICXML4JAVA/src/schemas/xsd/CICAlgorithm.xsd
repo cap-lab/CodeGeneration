@@ -1,0 +1,504 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema id="CICAlgorithm"
+        targetNamespace="http://peace.snu.ac.kr/CICXMLSchema"
+        elementFormDefault="qualified"
+        xmlns="http://peace.snu.ac.kr/CICXMLSchema"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:include schemaLocation="./CICCommon.xsd" />
+
+  <xs:element name="CIC_Algorithm" type="CICAlgorithmType" />
+
+
+  <!-- Type definitions for algorithm specification -->
+  <xs:complexType name="CICAlgorithmType">
+    <xs:sequence>
+      <xs:element name="tasks" type="TaskListType" minOccurs="1" maxOccurs="1" />
+      <xs:element name="libraries" type="LibraryListType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="channels" type="ChannelListType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="multicastGroups" type="MulticastGroupListType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="portMaps" type="PortMapListType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="libraryConnections" type="LibraryConnectionListType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="taskGroups" type="TaskGroupListType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="modes" type="ModeListType" minOccurs="1" maxOccurs="1" />
+      <xs:element name="headers" type="HeaderListType" minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+    <xs:attribute name="property" type="NameType" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="TaskListType">
+    <xs:sequence>
+      <xs:element name="task" type="TaskType" minOccurs="1" maxOccurs="unbounded" />
+      <xs:element name="externalTask" type="ExternalTaskType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="LibraryListType">
+    <xs:sequence>
+      <xs:element name="library" type="LibraryType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ChannelListType">
+    <xs:sequence>
+      <xs:element name="channel" type="ChannelType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="MulticastGroupListType">
+    <xs:sequence>
+      <xs:element name="multicastGroup" type="MulticastGroupType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="PortMapListType">
+    <xs:sequence>
+      <xs:element name="portMap" type="PortMapType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="LibraryConnectionListType">
+    <xs:sequence>
+      <xs:element name="taskLibraryConnection" type="TaskLibraryConnectionType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="libraryLibraryConnection" type="LibraryLibraryConnectionType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="TaskGroupListType">
+    <xs:sequence>
+      <xs:element name="taskGroup" type="TaskGroupType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  
+  <!-- Type definitions for task group specification -->
+  <xs:complexType name="TaskGroupType">
+    <xs:sequence>
+      <xs:element name="taskGroup" minOccurs="0" maxOccurs="unbounded">
+      	<xs:complexType>
+      	<xs:attribute name="name" type="NameType" use="required" />
+      	</xs:complexType>
+      </xs:element>
+      <xs:element name="task" minOccurs="0" maxOccurs="unbounded">
+      	<xs:complexType>
+      	<xs:attribute name="name" type="NameType" use="required" />
+      	</xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="groupType" type="groupTypeType" use="optional" />    
+  </xs:complexType>
+  
+  <xs:simpleType name="groupTypeType">
+	  <xs:restriction base="xs:string">
+		  <xs:enumeration value="StaticRate" />
+	  </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="ModeListType">
+    <xs:sequence>
+      <xs:element name="mode" type="ModeType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+
+  <!-- Type definitions for task specification -->
+  <xs:complexType name="TaskType">
+    <xs:sequence>
+      <xs:element name="dataParallel" type="TaskDataParallelType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="port" type="TaskPortType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="multicastPort" type="MulticastPortType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="mode" type="TaskModeType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="libraryMasterPort" type="LibraryMasterPortType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="parameter" type="TaskParameterType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="extraHeader" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="extraSource" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="extraCIC" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="extraFile" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+	  <xs:element name="mtm" type="MTMType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="loopStructure" type="LoopStructureType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="hardwareDependency" type="HardwareDependencyType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="faultTolerance" type="FaultToleranceType" minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+	<xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="id" type="xs:nonNegativeInteger" use="required" />	
+    <xs:attribute name="hasInternalStates" type="YesNoType" use="optional" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
+    <xs:attribute name="runCondition" type="RunConditionType" use="required" />
+    <xs:attribute name="file" type="xs:string" use="required" />
+    <xs:attribute name="cflags" type="xs:string" use="optional" />
+    <xs:attribute name="ldflags" type="xs:string" use="optional" />
+    <xs:attribute name="hasSubGraph" type="xs:string" use="optional" />
+    <xs:attribute name="hasMTM" type="xs:string" use="optional" />
+    <xs:attribute name="taskType" type="xs:string" use="required" />
+	<xs:attribute name="ParentTask" type="xs:string" use="required" />
+    <xs:attribute name="isHardwareDependent" type="YesNoType" use="optional" />
+    <xs:attribute name="subGraphProperty" type="NameType" use="optional" />
+    <xs:attribute name="language" type="LanguageType" use="optional" />
+  </xs:complexType>
+  
+  <xs:complexType name="ExternalTaskType">
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="taskType" type="xs:string" use="required" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
+    <xs:attribute name="ParentTask" type="xs:string" use="required" />
+	<xs:attribute name="networkFile" type="xs:string" use="required"/>
+	<xs:attribute name="architectureFile" type="xs:string" use="required"/>
+	<xs:attribute name="profileFile" type="xs:string" use="required"/>
+	<xs:attribute name="mappingFile" type="xs:string" use="required"/>
+  </xs:complexType>
+  
+  <xs:complexType name="TaskDataParallelType">
+    <xs:sequence>
+      <xs:element name="volume" type="VectorType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="dependencyVector" type="VectorListType" minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+    <xs:attribute name="type" type="DataParallelType" use="optional" />
+	<xs:attribute name="maxParallel" type="xs:nonNegativeInteger" use="optional" />
+    <xs:attribute name="loopCount" type="xs:nonNegativeInteger" use="optional" />
+  </xs:complexType>
+
+  <xs:complexType name="TaskPortType">
+    <xs:sequence>
+      <xs:element name="rate" type="TaskRateType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="direction" type="PortDirectionType" use="required" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
+    <xs:attribute name="type" type="PortTypeType" use="required" />
+    <xs:attribute name="period" type="xs:nonNegativeInteger" use="optional" />
+    <xs:attribute name="sampleType" type="xs:string" use="optional" />
+    <xs:attribute name="sampleSize" type="xs:nonNegativeInteger" use="optional" />
+    <xs:attribute name="isFeedback" type="xs:boolean" use="optional" />
+  </xs:complexType>
+
+  <xs:complexType name="MulticastPortType">
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="group" type="NameType" use="required" />
+    <xs:attribute name="direction" type="PortDirectionType" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="TaskModeType">
+	<xs:attribute name="input" type="xs:string" use="required" />
+	<xs:attribute name="mode" type="xs:string" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="TaskRateType">
+	<xs:attribute name="mode" type="xs:string" use="required" />
+	<xs:attribute name="rate" type="xs:nonNegativeInteger" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="LibraryMasterPortType">
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="type" type="NameType" use="required" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
+  </xs:complexType>
+
+  <xs:complexType name="TaskParameterType">
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="type" type="xs:string" use="required" />
+    <xs:attribute name="value" type="xs:string" use="required" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
+  </xs:complexType>
+
+
+  <!-- Type definitions for library specification -->
+   <xs:complexType name="LibraryFunctionArgumentType">
+    <xs:attribute name="type" type="xs:string" use="required" />
+    <xs:attribute name="name" type="xs:string" use="required" />
+    <xs:attribute name="size" type="xs:positiveInteger" use="optional" />
+    <xs:attribute name="pointer" type="YesNoType" use="optional" />
+    <xs:attribute name="output" type="YesNoType" use="optional" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
+   </xs:complexType>
+
+   <xs:complexType name="LibraryFunctionType">
+    <xs:sequence>
+      <xs:element name="argument" type="LibraryFunctionArgumentType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="returnType" type="xs:string" use="required" />
+    <xs:attribute name="returnSize" type="xs:nonNegativeInteger" use="optional" />
+    <xs:attribute name="name" type="xs:string" use="required" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
+   </xs:complexType>
+
+   <xs:complexType name="LibraryType">
+    <xs:sequence>
+      <xs:element name="libraryMasterPort" type="LibraryMasterPortType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="extraHeader" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="extraSource" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="extraCIC" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="extraFile" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="function" type="LibraryFunctionType" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="hardwareDependency" type="HardwareDependencyType" minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="id" type="xs:nonNegativeInteger" use="required" />
+    <xs:attribute name="type" type="NameType" use="required" />
+    <xs:attribute name="hasInternalStates" type="YesNoType" use="optional" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
+    <xs:attribute name="file" type="xs:string" use="required" />
+    <xs:attribute name="header" type="xs:string" use="required" />
+    <xs:attribute name="cflags" type="xs:string" use="optional" />
+    <xs:attribute name="ldflags" type="xs:string" use="optional" />
+    <xs:attribute name="isHardwareDependent" type="YesNoType" use="optional" />
+    <xs:attribute name="language" type="LanguageType" use="optional" />
+  </xs:complexType>
+
+
+  <!-- Type definitions for channel specification -->
+  <xs:complexType name="ChannelType">
+    <xs:sequence>
+      <xs:element name="src" type="ChannelPortType" minOccurs="1" maxOccurs="unbounded" />
+      <xs:element name="dst" type="ChannelPortType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="type" type="ChannelTypeType" use="optional" />
+    <xs:attribute name="size" type="xs:nonNegativeInteger" use="required" />
+    <xs:attribute name="sampleSize" type="xs:nonNegativeInteger" use="required" />
+    <xs:attribute name="sampleType" type="xs:string" use="optional" />
+	<xs:attribute name="initialDataSize" type="xs:nonNegativeInteger" use="optional" />
+  </xs:complexType>
+
+  <xs:complexType name="ChannelPortType">
+    <xs:attribute name="task" type="NameType" use="required" />
+    <xs:attribute name="port" type="NameType" use="required" />
+  </xs:complexType>
+  
+  <!-- Type definitions for multicast group specification -->
+  <xs:complexType name="MulticastGroupType">
+    <xs:attribute name="groupName" type="NameType" use="required" />
+    <xs:attribute name="size" type="xs:nonNegativeInteger" use="required" />
+  </xs:complexType>
+  
+  <!-- Type definitions for port map specification -->
+  <xs:complexType name="PortMapType">
+    <xs:attribute name="task" type="NameType" use="required" />
+    <xs:attribute name="port" type="NameType" use="required" />
+    <xs:attribute name="childTask" type="NameType" use="optional" />
+    <xs:attribute name="childTaskPort" type="NameType" use="optional" />
+	<xs:attribute name="direction" type="PortDirectionType" use="required" />
+	<xs:attribute name="type" type="PortMapTypeType" use="required" />
+  </xs:complexType>
+
+
+  <!-- Type definitions for library connection specification -->
+  <xs:complexType name="TaskLibraryConnectionType">
+    <xs:attribute name="masterTask" type="NameType" use="required" />
+    <xs:attribute name="masterPort" type="NameType" use="required" />
+    <xs:attribute name="slaveLibrary" type="NameType" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="LibraryLibraryConnectionType">
+    <xs:attribute name="masterLibrary" type="NameType" use="required" />
+    <xs:attribute name="masterPort" type="NameType" use="required" />
+    <xs:attribute name="slaveLibrary" type="NameType" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="MTMType">
+    <xs:sequence>
+      <xs:element name="mode_list" type="MTMModeListType" minOccurs="1" maxOccurs="1" />
+      <xs:element name="variable_list" type="MTMVariableListType" minOccurs="1" maxOccurs="1" />
+      <xs:element name="transition_list" type="MTMTransitionListType" minOccurs="1" maxOccurs="1" />
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="MTMModeListType">
+    <xs:sequence>
+      <xs:element name="mode" type="MTMModeType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="MTMModeType">
+    <xs:attribute name="name" type="xs:string" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="MTMVariableListType">
+    <xs:sequence>
+      <xs:element name="variable" type="MTMVariableType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="MTMVariableType">
+    <xs:attribute name="type" type="xs:string" use="required" />
+    <xs:attribute name="name" type="xs:string" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="MTMTransitionListType">
+    <xs:sequence>
+      <xs:element name="transition" type="MTMTransitionType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="MTMTransitionType">
+    <xs:sequence>
+      <xs:element name="condition_list" type="MTMConditionListType" minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="optional" />
+    <xs:attribute name="src_mode" type="xs:string" use="required" />
+    <xs:attribute name="dst_mode" type="xs:string" use="required" />
+  </xs:complexType>
+  
+  <xs:complexType name="MTMConditionListType">
+   <xs:sequence>
+    <xs:element name="condition" type="MTMConditionType" minOccurs="1" maxOccurs="unbounded" />
+   </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="MTMConditionType">
+    <xs:attribute name="variable" type="xs:string" use="required" />
+    <xs:attribute name="comparator" type="xs:string" use="required" />
+    <xs:attribute name="value" type="xs:string" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="LoopStructureType">
+    <xs:attribute name="type" type="LoopStructureTypeType" use="required" />
+    <xs:attribute name="loopCount" type="xs:nonNegativeInteger" use="required" />
+	<xs:attribute name="designatedTask" type="xs:string" use="optional" />
+  </xs:complexType>
+  
+  <xs:complexType name="FaultToleranceType">
+    <xs:sequence>
+      <xs:element name="validationTaskCIC" type="xs:string" minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+    <xs:attribute name="validationTaskType" type="ValidationTaskType" use="required" />
+    <xs:attribute name="type" type="FaultToleranceTypeType" use="required" />
+    <xs:attribute name="number" type="xs:positiveInteger" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="HardwareDependencyType">
+   <xs:sequence>
+    <xs:element name="hardware" type="HardwarePlatformType" minOccurs="1" maxOccurs="unbounded" />
+   </xs:sequence>		  
+  </xs:complexType>
+
+  <xs:complexType name="HardwarePlatformType">
+    <xs:attribute name="architecture" type="xs:string" use="required" />
+    <xs:attribute name="platform" type="xs:string" use="required" />
+	<xs:attribute name="runtime" type="xs:string" use="required" />
+	<xs:attribute name="processorType" type="xs:string" use="required" />
+  </xs:complexType>
+
+  <!-- Type definitions for mode specification -->
+  <xs:complexType name="ModeType">
+    <xs:sequence>
+      <xs:element name="task" type="ModeTaskType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="taskGroup" type="ModeTaskGroupType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="name" type="NameType" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="ModeTaskType">
+    <xs:sequence>
+      <xs:element name="period" type="TimeType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="deadline" type="TimeType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="maxInitialInterval" type="TimeType" minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="runRate" type="xs:nonNegativeInteger" use="optional" />
+    <xs:attribute name="priority" type="xs:nonNegativeInteger" use="optional" />
+    <xs:attribute name="preemptionType" type="preemptionTypeType" default="nonPreemptive" use="optional" />
+  </xs:complexType>
+  
+    <xs:complexType name="ModeTaskGroupType">
+    <xs:sequence>
+      <xs:element name="period" type="TimeType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="deadline" type="TimeType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="maxInitialInterval" type="TimeType" minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+    <xs:attribute name="name" type="NameType" use="required" /> 
+    <xs:attribute name="priority" type="xs:nonNegativeInteger" use="optional" />       
+    <xs:attribute name="preemptionType" type="preemptionTypeType" default="nonPreemptive" use="optional" />
+  </xs:complexType>
+
+
+  <!-- Type definitions for header specification -->
+  <xs:complexType name="HeaderListType">
+    <xs:sequence>
+      <xs:element name="headerFile" type="xs:string" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+
+  <!-- Type definitions for the miscellaneous -->
+  <xs:simpleType name="RunConditionType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="time-driven" />
+      <xs:enumeration value="data-driven" />
+      <xs:enumeration value="control-driven" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="PortDirectionType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="input" />
+      <xs:enumeration value="output" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="PortTypeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="fifo" />
+      <xs:enumeration value="array" />			
+      <xs:enumeration value="overwritable" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="ChannelTypeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="fifo" />
+      <xs:enumeration value="array" />
+      <xs:enumeration value="overwritable" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="preemptionTypeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="preemptive" />
+      <xs:enumeration value="nonPreemptive" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="LoopStructureTypeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="data" />
+      <xs:enumeration value="convergent" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="PortMapTypeType">
+    <xs:restriction base="xs:string">
+    <xs:enumeration value="normal" />       
+    <xs:enumeration value="distributing" />
+    <xs:enumeration value="broadcasting" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="TaskGraphPropertyType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ProcessNetwork" />
+      <xs:enumeration value="DataFlow" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="LanguageType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="C" />
+      <xs:enumeration value="C++" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="ValidationTaskType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="automatic" />
+      <xs:enumeration value="manual" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="FaultToleranceTypeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="reexecution" />
+      <xs:enumeration value="activeReplication" />
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>

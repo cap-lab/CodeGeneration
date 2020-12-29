@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema id="CICCommon"
+        targetNamespace="http://peace.snu.ac.kr/CICXMLSchema"
+        elementFormDefault="qualified"
+        xmlns="http://peace.snu.ac.kr/CICXMLSchema"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <!-- Definitions for the common types -->
+  <xs:simpleType name="NameType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[_A-Za-z][-._0-9A-Za-z]*" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="AddressType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="([0-9]+)|(0x[0-9A-Fa-f]+)" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="VectorType">
+    <xs:sequence>
+      <xs:element name="value" type="xs:integer" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="VectorListType">
+    <xs:sequence>
+      <xs:element name="vector" type="VectorType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="DataParallelType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="none" />
+      <xs:enumeration value="loop" />
+      <xs:enumeration value="wavefront" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="TimeType">
+    <xs:attribute name="metric" type="TimeMetricType" use="required" />
+    <xs:attribute name="value" type="xs:nonNegativeInteger" use="required" />
+  </xs:complexType>
+
+  <xs:simpleType name="TimeMetricType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="h" />
+      <xs:enumeration value="m" />
+      <xs:enumeration value="s" />
+      <xs:enumeration value="ms" />
+      <xs:enumeration value="us" />
+      <xs:enumeration value="ns" />
+      <xs:enumeration value="ps" />
+      <xs:enumeration value="fs" />
+      <xs:enumeration value="cycle" />
+      <xs:enumeration value="count" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="SizeType">
+    <xs:attribute name="metric" type="SizeMetricType" use="required" />
+    <xs:attribute name="value" type="xs:nonNegativeInteger" use="required" />
+  </xs:complexType>
+
+  <xs:simpleType name="SizeMetricType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="YiB" />  <!-- yotta-binary(yobi) byte -->
+      <xs:enumeration value="ZiB" />  <!-- zetta-binary(zebi) byte -->
+      <xs:enumeration value="EiB" />  <!-- exa-binary  (exbi) byte -->
+      <xs:enumeration value="PiB" />  <!-- peta-binary (pebi) byte -->
+      <xs:enumeration value="TiB" />  <!-- tera-binary (tebi) byte -->
+      <xs:enumeration value="GiB" />  <!-- giga-binary (gibi) byte -->
+      <xs:enumeration value="MiB" />  <!-- mega-binary (mebi) byte -->
+      <xs:enumeration value="KiB" />  <!-- kilo-binary (kibi) byte -->
+      <xs:enumeration value="B" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="YesNoType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Yes" />
+      <xs:enumeration value="No" />
+    </xs:restriction>
+  </xs:simpleType>
+
+	<xs:simpleType name="BoundType">
+	<xs:restriction base="xs:string">
+		<xs:enumeration value="Maximum" />
+		<xs:enumeration value="Minimum" />
+	</xs:restriction>
+	</xs:simpleType>
+
+</xs:schema>

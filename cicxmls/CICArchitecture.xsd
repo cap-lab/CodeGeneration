@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema id="CICArchitecture"
+        targetNamespace="http://peace.snu.ac.kr/CICXMLSchema"
+        elementFormDefault="qualified"
+        xmlns="http://peace.snu.ac.kr/CICXMLSchema"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:include schemaLocation="./CICCommon.xsd" />
+
+  <xs:element name="CIC_Architecture" type="CICArchitectureType" />
+
+
+  <!-- Type definitions for architecture specification -->
+  <xs:complexType name="CICArchitectureType">
+    <xs:sequence>
+      <xs:element name="elementTypes" type="ArchitectureElementTypeListType" minOccurs="1" maxOccurs="1" />
+	  <xs:element name="elements" type="ArchitectureElementListType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="devices" type="ArchitectureDeviceListType" minOccurs="0" maxOccurs="1" />
+      <xs:element name="connections" type="ArchitectureConnectionListType" minOccurs="1" maxOccurs="1" />
+    </xs:sequence>
+    <xs:attribute name="target" type="xs:string" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="ArchitectureElementTypeListType">
+    <xs:sequence>
+      <xs:element name="elementType" type="ArchitectureElementTypeType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ArchitectureElementListType">
+    <xs:sequence>
+      <xs:element name="element" type="ArchitectureElementType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ArchitectureConnectionListType">
+    <xs:sequence>
+    	<xs:element name="connection" type="ArchitectureConnectType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>    
+  </xs:complexType>
+
+  <xs:complexType name="ArchitectureDeviceListType">
+    <xs:sequence>
+    	<xs:element name="device" type="ArchitectureDeviceType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>    
+  </xs:complexType>
+
+  <xs:complexType name="ArchitectureDeviceType">
+    <xs:sequence>
+      <xs:element name="elements" type="ArchitectureElementListType" minOccurs="1" maxOccurs="1" />
+	  <xs:element name="connections" type="DeviceConnectionListType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="modules" type="ModuleListType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="environmentVariables" type="EnvironmentVariableListType" minOccurs="0" maxOccurs="1" />
+	</xs:sequence>
+	<xs:attribute name="name" type="NameType" use="required" />
+	<xs:attribute name="architecture" type="NameType" use="required" />
+	<xs:attribute name="platform" type="NameType" use="required" />
+	<xs:attribute name="runtime" type="NameType" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="DeviceConnectionListType">
+    <xs:sequence>
+      <xs:element name="TCPConnection" type="TCPConnectionType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="UDPConnection" type="UDPConnectionType" minOccurs="0" maxOccurs="unbounded" />
+	  <xs:element name="SerialConnection" type="SerialConnectionType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="TCPConnectionType">
+	<xs:attribute name="name" type="NameType" use="required" />
+	<xs:attribute name="network" type="NetworkType" use="optional" />
+	<xs:attribute name="role" type="ServerClientRoleType" use="required" />
+	<xs:attribute name="ip" type="xs:string" use="required" />
+	<xs:attribute name="port" type="xs:nonNegativeInteger" use="required" />
+	<xs:attribute name="multicast" type="xs:boolean" use="required" />
+  </xs:complexType>
+  
+  <xs:complexType name="UDPConnectionType">
+	<xs:attribute name="name" type="NameType" use="optional" />
+	<xs:attribute name="network" type="NetworkType" use="optional" />
+	<xs:attribute name="role" type="ServerClientRoleType" use="optional" />
+	<xs:attribute name="multicast" type="xs:boolean" use="required" />
+	<xs:attribute name="ip" type="xs:string" use="optional" />
+	<xs:attribute name="port" type="xs:nonNegativeInteger" use="optional" />
+  </xs:complexType>
+    
+  <xs:complexType name="SerialConnectionType">
+	<xs:attribute name="name" type="NameType" use="required" />
+	<xs:attribute name="network" type="NetworkType" use="optional" />
+	<xs:attribute name="role" type="MasterSlaveRoleType" use="required" />
+	<xs:attribute name="boardTXPinNumber" type="xs:nonNegativeInteger" use="optional" />
+	<xs:attribute name="boardRXPinNumber" type="xs:nonNegativeInteger" use="optional" />
+	<xs:attribute name="portAddress" type="xs:string" use="optional" /> <!--for wire/USB connection, it becomes serial port path. For BLUETOOTH, it becomes MAC address -->
+	<xs:attribute name="multicast" type="xs:boolean" use="required" />
+  </xs:complexType>
+  
+  <xs:complexType name="ModuleListType">
+    <xs:sequence>
+      <xs:element name="module" type="ModuleType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ModuleType">
+ 	<xs:attribute name="name" type="NameType" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="EnvironmentVariableListType">
+    <xs:sequence>
+      <xs:element name="variable" type="EnvironmentVariableType" minOccurs="0" maxOccurs="unbounded" />
+	</xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="EnvironmentVariableType">
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="value" type="xs:string" use="required" />
+  </xs:complexType>
+
+  <!-- Type definitions for architecture element types -->
+  <xs:complexType name="ArchitectureElementTypeType">
+    <xs:sequence>
+      <xs:element name="slavePort" type="ArchitectureElementSlavePortType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="category" type="ArchitectureElementCategoryType" use="required" />
+    <xs:attribute name="subcategory" type="xs:string" use="optional" />
+    <xs:attribute name="model" type="xs:string" use="optional" />
+    <xs:attribute name="OS" type="xs:string" use="optional" />
+    <xs:attribute name="scheduler" type="ArchitectureSchedulerType" use="optional" />
+    <xs:attribute name="clock" type="xs:nonNegativeInteger" use="optional" />
+    <!-- Relative cost -->
+    <xs:attribute name="relativeCost" type="xs:decimal" use="optional" />
+    <!-- Clock frequency in MHz -->
+    <xs:attribute name="archiType" type="xs:string" use="optional" />
+    <xs:attribute name="activePower" type="xs:nonNegativeInteger" use="optional" />
+    <xs:attribute name="sleepPower" type="xs:nonNegativeInteger" use="optional" />
+    <!-- Power consumption in mW -->
+    <xs:attribute name="nMasterPorts" type="xs:nonNegativeInteger" use="optional" />
+    <xs:attribute name="nInterruptPorts" type="xs:nonNegativeInteger" use="optional" />
+    <!-- Device Memory Size in Byte -->
+    <xs:attribute name="memorySize" type="xs:nonNegativeInteger" use="optional" />
+  </xs:complexType>
+
+  <xs:complexType name="ArchitectureElementSlavePortType">
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="size" type="xs:nonNegativeInteger" use="required" />
+    <xs:attribute name="metric" type="SizeMetricType" use="required" />
+  </xs:complexType>
+
+  <xs:simpleType name="ArchitectureElementCategoryType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="processor" />
+      <xs:enumeration value="memory" />
+      <xs:enumeration value="dma" />
+      <xs:enumeration value="hwip" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="ArchitectureSchedulerType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="RM" />
+      <xs:enumeration value="EDF" />
+      <xs:enumeration value="RR" />
+      <xs:enumeration value="FPFCFS" />
+    </xs:restriction>
+  </xs:simpleType>
+
+
+  <!-- Type definitions for architecture elements -->
+  <xs:complexType name="ArchitectureElementType">
+    <xs:attribute name="name" type="NameType" use="required" />
+    <xs:attribute name="type" type="NameType" use="required" />
+    <xs:attribute name="poolSize" type="xs:nonNegativeInteger" use="optional" default="1" />
+    <!-- If it is a pool. Need to be deleted, because core should be allowed Data Parallel Mapping when the task is data-parallel-->
+    <xs:attribute name="allowDataParallelMapping" type="xs:boolean" use="optional" default="false"/>
+  </xs:complexType>
+
+
+  <!-- Type definitions for memory-mapped I/O maps and interrupt maps -->
+  <xs:complexType name="ArchitectureConnectType">
+    <xs:sequence>
+      <xs:element name="slave" type="ArchitectureConnectionSlaveType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>    
+	<xs:attribute name="master" type="NameType" use="required" />
+    <xs:attribute name="connection" type="NameType" use="required" />	
+  </xs:complexType>
+
+  <xs:complexType name="ArchitectureConnectionSlaveType">
+	<xs:attribute name="device" type="NameType" use="required" />
+    <xs:attribute name="connection" type="NameType" use="required" />	
+  </xs:complexType>
+
+  <xs:simpleType name="ServerClientRoleType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="server" />
+      <xs:enumeration value="client" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="MasterSlaveRoleType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="master" />
+      <xs:enumeration value="slave" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+    <xs:simpleType name="NetworkType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Ethernet/Wi-Fi" />
+      <xs:enumeration value="Bluetooth" />
+      <xs:enumeration value="USB" />
+      <xs:enumeration value="Wire" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+</xs:schema>
