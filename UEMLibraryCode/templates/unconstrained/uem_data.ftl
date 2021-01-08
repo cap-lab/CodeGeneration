@@ -168,7 +168,7 @@ STaskFunctions g_ast_${task.name}_functions[] = {
 
 // ##TASK_THREAD_CONTEXT_LIST::START
 <#list flat_task as task_name, task>
-	<#if !task.childTaskGraphName??>
+	<#if (!task.childTaskGraphName) || task.staticScheduled == true ??>
 STaskThreadContext g_ast_${task.name}_thread_context[] = {
 		<#list 0..(task.taskFuncNum-1) as task_func_id>
 	{
@@ -206,7 +206,7 @@ STask g_astTasks_${task_graph.name}[] = {
 		"${task.name}", // Task name
 		TASK_TYPE_${task.type}, // Task Type
 		<#if !task.childTaskGraphName??>g_ast_${task.name}_functions<#else>(STaskFunctions *) NULL</#if>, // Task function array
-		<#if !task.childTaskGraphName??>g_ast_${task.name}_thread_context<#else>(STaskThreadContext *) NULL</#if>, // Task thread context
+		<#if (!task.childTaskGraphName) || task.staticScheduled == true ??>g_ast_${task.name}_thread_context<#else>(STaskThreadContext *) NULL</#if>, // Task thread context
 		${task.taskFuncNum}, // Task function array number
 		RUN_CONDITION_${task.runCondition}, // Run condition
 		${task.period?c}, // Period
