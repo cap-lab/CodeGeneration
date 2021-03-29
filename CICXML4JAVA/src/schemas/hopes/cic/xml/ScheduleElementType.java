@@ -12,16 +12,16 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="ScheduleElementType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;choice>
- *         &lt;element name="loop" type="{http://peace.snu.ac.kr/CICXMLSchema}LoopType" minOccurs="0"/>
- *         &lt;element name="task" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskInstanceType" minOccurs="0"/>
- *       &lt;/choice>
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="ScheduleElementType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;choice&gt;
+ *         &lt;element name="loop" type="{http://peace.snu.ac.kr/CICXMLSchema}LoopType" minOccurs="0"/&gt;
+ *         &lt;element name="task" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskInstanceType" minOccurs="0"/&gt;
+ *       &lt;/choice&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 

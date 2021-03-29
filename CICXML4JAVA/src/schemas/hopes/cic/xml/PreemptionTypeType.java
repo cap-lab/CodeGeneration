@@ -3,6 +3,7 @@ package hopes.cic.xml;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
+import javax.xml.bind.annotation.XmlType;
 
 
 /**
@@ -11,15 +12,16 @@ import javax.xml.bind.annotation.XmlEnumValue;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
- * &lt;simpleType name="preemptionTypeType">
- *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
- *     &lt;enumeration value="preemptive"/>
- *     &lt;enumeration value="nonPreemptive"/>
- *   &lt;/restriction>
- * &lt;/simpleType>
+ * &lt;simpleType name="preemptionTypeType"&gt;
+ *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string"&gt;
+ *     &lt;enumeration value="preemptive"/&gt;
+ *     &lt;enumeration value="nonPreemptive"/&gt;
+ *   &lt;/restriction&gt;
+ * &lt;/simpleType&gt;
  * </pre>
  * 
  */
+@XmlType(name = "preemptionTypeType")
 @XmlEnum
 public enum PreemptionTypeType {
 
@@ -43,7 +45,7 @@ public enum PreemptionTypeType {
                 return c;
             }
         }
-        throw new IllegalArgumentException(v.toString());
+        throw new IllegalArgumentException(v);
     }
 
 }

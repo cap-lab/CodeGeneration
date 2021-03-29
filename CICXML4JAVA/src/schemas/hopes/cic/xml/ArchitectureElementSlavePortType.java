@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -14,15 +15,15 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="ArchitectureElementSlavePortType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="metric" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}SizeMetricType" />
- *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="size" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="ArchitectureElementSlavePortType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="size" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *       &lt;attribute name="metric" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}SizeMetricType" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -31,36 +32,13 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "ArchitectureElementSlavePortType")
 public class ArchitectureElementSlavePortType {
 
-    @XmlAttribute(required = true)
-    protected SizeMetricType metric;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "name", required = true)
     protected String name;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "size", required = true)
+    @XmlSchemaType(name = "nonNegativeInteger")
     protected BigInteger size;
-
-    /**
-     * Gets the value of the metric property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link SizeMetricType }
-     *     
-     */
-    public SizeMetricType getMetric() {
-        return metric;
-    }
-
-    /**
-     * Sets the value of the metric property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link SizeMetricType }
-     *     
-     */
-    public void setMetric(SizeMetricType value) {
-        this.metric = value;
-    }
+    @XmlAttribute(name = "metric", required = true)
+    protected SizeMetricType metric;
 
     /**
      * Gets the value of the name property.
@@ -108,6 +86,30 @@ public class ArchitectureElementSlavePortType {
      */
     public void setSize(BigInteger value) {
         this.size = value;
+    }
+
+    /**
+     * Gets the value of the metric property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link SizeMetricType }
+     *     
+     */
+    public SizeMetricType getMetric() {
+        return metric;
+    }
+
+    /**
+     * Sets the value of the metric property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link SizeMetricType }
+     *     
+     */
+    public void setMetric(SizeMetricType value) {
+        this.metric = value;
     }
 
 }

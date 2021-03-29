@@ -3,6 +3,7 @@ package hopes.cic.xml;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
+import javax.xml.bind.annotation.XmlType;
 
 
 /**
@@ -11,15 +12,16 @@ import javax.xml.bind.annotation.XmlEnumValue;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
- * &lt;simpleType name="PortDirectionType">
- *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
- *     &lt;enumeration value="input"/>
- *     &lt;enumeration value="output"/>
- *   &lt;/restriction>
- * &lt;/simpleType>
+ * &lt;simpleType name="PortDirectionType"&gt;
+ *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string"&gt;
+ *     &lt;enumeration value="input"/&gt;
+ *     &lt;enumeration value="output"/&gt;
+ *   &lt;/restriction&gt;
+ * &lt;/simpleType&gt;
  * </pre>
  * 
  */
+@XmlType(name = "PortDirectionType")
 @XmlEnum
 public enum PortDirectionType {
 
@@ -43,7 +45,7 @@ public enum PortDirectionType {
                 return c;
             }
         }
-        throw new IllegalArgumentException(v.toString());
+        throw new IllegalArgumentException(v);
     }
 
 }

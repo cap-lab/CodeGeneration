@@ -14,16 +14,16 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="CICScheduleType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="taskGroups" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskGroupsType"/>
- *       &lt;/sequence>
- *       &lt;attribute name="type" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="CICScheduleType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="taskGroups" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskGroupsType"/&gt;
+ *       &lt;/sequence&gt;
+ *       &lt;attribute name="type" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -36,7 +36,7 @@ public class CICScheduleType {
 
     @XmlElement(required = true)
     protected TaskGroupsType taskGroups;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "type", required = true)
     protected String type;
 
     /**

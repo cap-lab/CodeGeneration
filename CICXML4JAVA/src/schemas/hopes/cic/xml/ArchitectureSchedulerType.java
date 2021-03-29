@@ -2,6 +2,7 @@
 package hopes.cic.xml;
 
 import javax.xml.bind.annotation.XmlEnum;
+import javax.xml.bind.annotation.XmlType;
 
 
 /**
@@ -10,17 +11,18 @@ import javax.xml.bind.annotation.XmlEnum;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
- * &lt;simpleType name="ArchitectureSchedulerType">
- *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
- *     &lt;enumeration value="RM"/>
- *     &lt;enumeration value="EDF"/>
- *     &lt;enumeration value="RR"/>
- *     &lt;enumeration value="FPFCFS"/>
- *   &lt;/restriction>
- * &lt;/simpleType>
+ * &lt;simpleType name="ArchitectureSchedulerType"&gt;
+ *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string"&gt;
+ *     &lt;enumeration value="RM"/&gt;
+ *     &lt;enumeration value="EDF"/&gt;
+ *     &lt;enumeration value="RR"/&gt;
+ *     &lt;enumeration value="FPFCFS"/&gt;
+ *   &lt;/restriction&gt;
+ * &lt;/simpleType&gt;
  * </pre>
  * 
  */
+@XmlType(name = "ArchitectureSchedulerType")
 @XmlEnum
 public enum ArchitectureSchedulerType {
 

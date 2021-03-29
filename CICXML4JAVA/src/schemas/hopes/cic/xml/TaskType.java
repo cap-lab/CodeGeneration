@@ -7,6 +7,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -16,43 +17,43 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="TaskType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="dataParallel" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskDataParallelType" minOccurs="0"/>
- *         &lt;element name="port" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskPortType" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="multicastPort" type="{http://peace.snu.ac.kr/CICXMLSchema}MulticastPortType" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="mode" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskModeType" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="libraryMasterPort" type="{http://peace.snu.ac.kr/CICXMLSchema}LibraryMasterPortType" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="parameter" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskParameterType" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="extraHeader" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="extraSource" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="extraCIC" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="extraFile" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="mtm" type="{http://peace.snu.ac.kr/CICXMLSchema}MTMType" minOccurs="0"/>
- *         &lt;element name="loopStructure" type="{http://peace.snu.ac.kr/CICXMLSchema}LoopStructureType" minOccurs="0"/>
- *         &lt;element name="hardwareDependency" type="{http://peace.snu.ac.kr/CICXMLSchema}HardwareDependencyType" minOccurs="0"/>
- *         &lt;element name="faultTolerance" type="{http://peace.snu.ac.kr/CICXMLSchema}FaultToleranceType" minOccurs="0"/>
- *       &lt;/sequence>
- *       &lt;attribute name="ParentTask" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="cflags" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="description" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="file" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="hasInternalStates" type="{http://peace.snu.ac.kr/CICXMLSchema}YesNoType" />
- *       &lt;attribute name="hasMTM" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="hasSubGraph" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="id" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *       &lt;attribute name="isHardwareDependent" type="{http://peace.snu.ac.kr/CICXMLSchema}YesNoType" />
- *       &lt;attribute name="language" type="{http://peace.snu.ac.kr/CICXMLSchema}LanguageType" />
- *       &lt;attribute name="ldflags" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="runCondition" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}RunConditionType" />
- *       &lt;attribute name="subGraphProperty" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="taskType" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="TaskType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="dataParallel" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskDataParallelType" minOccurs="0"/&gt;
+ *         &lt;element name="port" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskPortType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="multicastPort" type="{http://peace.snu.ac.kr/CICXMLSchema}MulticastPortType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="mode" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskModeType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="libraryMasterPort" type="{http://peace.snu.ac.kr/CICXMLSchema}LibraryMasterPortType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="parameter" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskParameterType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="extraHeader" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="extraSource" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="extraCIC" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="extraFile" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="mtm" type="{http://peace.snu.ac.kr/CICXMLSchema}MTMType" minOccurs="0"/&gt;
+ *         &lt;element name="loopStructure" type="{http://peace.snu.ac.kr/CICXMLSchema}LoopStructureType" minOccurs="0"/&gt;
+ *         &lt;element name="hardwareDependency" type="{http://peace.snu.ac.kr/CICXMLSchema}HardwareDependencyType" minOccurs="0"/&gt;
+ *         &lt;element name="faultTolerance" type="{http://peace.snu.ac.kr/CICXMLSchema}FaultToleranceType" minOccurs="0"/&gt;
+ *       &lt;/sequence&gt;
+ *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="id" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *       &lt;attribute name="hasInternalStates" type="{http://peace.snu.ac.kr/CICXMLSchema}YesNoType" /&gt;
+ *       &lt;attribute name="description" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="runCondition" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}RunConditionType" /&gt;
+ *       &lt;attribute name="file" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="cflags" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="ldflags" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="hasSubGraph" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="hasMTM" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="taskType" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="ParentTask" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="isHardwareDependent" type="{http://peace.snu.ac.kr/CICXMLSchema}YesNoType" /&gt;
+ *       &lt;attribute name="subGraphProperty" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="language" type="{http://peace.snu.ac.kr/CICXMLSchema}LanguageType" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -90,36 +91,37 @@ public class TaskType {
     protected LoopStructureType loopStructure;
     protected HardwareDependencyType hardwareDependency;
     protected FaultToleranceType faultTolerance;
+    @XmlAttribute(name = "name", required = true)
+    protected String name;
+    @XmlAttribute(name = "id", required = true)
+    @XmlSchemaType(name = "nonNegativeInteger")
+    protected BigInteger id;
+    @XmlAttribute(name = "hasInternalStates")
+    protected YesNoType hasInternalStates;
+    @XmlAttribute(name = "description")
+    protected String description;
+    @XmlAttribute(name = "runCondition", required = true)
+    protected RunConditionType runCondition;
+    @XmlAttribute(name = "file", required = true)
+    protected String file;
+    @XmlAttribute(name = "cflags")
+    protected String cflags;
+    @XmlAttribute(name = "ldflags")
+    protected String ldflags;
+    @XmlAttribute(name = "hasSubGraph")
+    protected String hasSubGraph;
+    @XmlAttribute(name = "hasMTM")
+    protected String hasMTM;
+    @XmlAttribute(name = "taskType", required = true)
+    protected String taskType;
     @XmlAttribute(name = "ParentTask", required = true)
     protected String parentTask;
-    @XmlAttribute
-    protected String cflags;
-    @XmlAttribute
-    protected String description;
-    @XmlAttribute(required = true)
-    protected String file;
-    @XmlAttribute
-    protected YesNoType hasInternalStates;
-    @XmlAttribute
-    protected String hasMTM;
-    @XmlAttribute
-    protected String hasSubGraph;
-    @XmlAttribute(required = true)
-    protected BigInteger id;
-    @XmlAttribute
+    @XmlAttribute(name = "isHardwareDependent")
     protected YesNoType isHardwareDependent;
-    @XmlAttribute
-    protected String language;
-    @XmlAttribute
-    protected String ldflags;
-    @XmlAttribute(required = true)
-    protected String name;
-    @XmlAttribute(required = true)
-    protected RunConditionType runCondition;
-    @XmlAttribute
+    @XmlAttribute(name = "subGraphProperty")
     protected String subGraphProperty;
-    @XmlAttribute(required = true)
-    protected String taskType;
+    @XmlAttribute(name = "language")
+    protected String language;
 
     /**
      * Gets the value of the dataParallel property.
@@ -503,171 +505,27 @@ public class TaskType {
     }
 
     /**
-     * Gets the value of the parentTask property.
+     * Gets the value of the name property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getParentTask() {
-        return parentTask;
+    public String getName() {
+        return name;
     }
 
     /**
-     * Sets the value of the parentTask property.
+     * Sets the value of the name property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setParentTask(String value) {
-        this.parentTask = value;
-    }
-
-    /**
-     * Gets the value of the cflags property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getCflags() {
-        return cflags;
-    }
-
-    /**
-     * Sets the value of the cflags property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setCflags(String value) {
-        this.cflags = value;
-    }
-
-    /**
-     * Gets the value of the description property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDescription() {
-        return description;
-    }
-
-    /**
-     * Sets the value of the description property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDescription(String value) {
-        this.description = value;
-    }
-
-    /**
-     * Gets the value of the file property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getFile() {
-        return file;
-    }
-
-    /**
-     * Sets the value of the file property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setFile(String value) {
-        this.file = value;
-    }
-
-    /**
-     * Gets the value of the hasInternalStates property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link YesNoType }
-     *     
-     */
-    public YesNoType getHasInternalStates() {
-        return hasInternalStates;
-    }
-
-    /**
-     * Sets the value of the hasInternalStates property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link YesNoType }
-     *     
-     */
-    public void setHasInternalStates(YesNoType value) {
-        this.hasInternalStates = value;
-    }
-
-    /**
-     * Gets the value of the hasMTM property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getHasMTM() {
-        return hasMTM;
-    }
-
-    /**
-     * Sets the value of the hasMTM property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setHasMTM(String value) {
-        this.hasMTM = value;
-    }
-
-    /**
-     * Gets the value of the hasSubGraph property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getHasSubGraph() {
-        return hasSubGraph;
-    }
-
-    /**
-     * Sets the value of the hasSubGraph property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setHasSubGraph(String value) {
-        this.hasSubGraph = value;
+    public void setName(String value) {
+        this.name = value;
     }
 
     /**
@@ -695,99 +553,51 @@ public class TaskType {
     }
 
     /**
-     * Gets the value of the isHardwareDependent property.
+     * Gets the value of the hasInternalStates property.
      * 
      * @return
      *     possible object is
      *     {@link YesNoType }
      *     
      */
-    public YesNoType getIsHardwareDependent() {
-        return isHardwareDependent;
+    public YesNoType getHasInternalStates() {
+        return hasInternalStates;
     }
 
     /**
-     * Sets the value of the isHardwareDependent property.
+     * Sets the value of the hasInternalStates property.
      * 
      * @param value
      *     allowed object is
      *     {@link YesNoType }
      *     
      */
-    public void setIsHardwareDependent(YesNoType value) {
-        this.isHardwareDependent = value;
+    public void setHasInternalStates(YesNoType value) {
+        this.hasInternalStates = value;
     }
 
     /**
-     * Gets the value of the language property.
+     * Gets the value of the description property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getLanguage() {
-        return language;
+    public String getDescription() {
+        return description;
     }
 
     /**
-     * Sets the value of the language property.
+     * Sets the value of the description property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setLanguage(String value) {
-        this.language = value;
-    }
-
-    /**
-     * Gets the value of the ldflags property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getLdflags() {
-        return ldflags;
-    }
-
-    /**
-     * Sets the value of the ldflags property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setLdflags(String value) {
-        this.ldflags = value;
-    }
-
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setName(String value) {
-        this.name = value;
+    public void setDescription(String value) {
+        this.description = value;
     }
 
     /**
@@ -815,27 +625,123 @@ public class TaskType {
     }
 
     /**
-     * Gets the value of the subGraphProperty property.
+     * Gets the value of the file property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getSubGraphProperty() {
-        return subGraphProperty;
+    public String getFile() {
+        return file;
     }
 
     /**
-     * Sets the value of the subGraphProperty property.
+     * Sets the value of the file property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setSubGraphProperty(String value) {
-        this.subGraphProperty = value;
+    public void setFile(String value) {
+        this.file = value;
+    }
+
+    /**
+     * Gets the value of the cflags property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getCflags() {
+        return cflags;
+    }
+
+    /**
+     * Sets the value of the cflags property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setCflags(String value) {
+        this.cflags = value;
+    }
+
+    /**
+     * Gets the value of the ldflags property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getLdflags() {
+        return ldflags;
+    }
+
+    /**
+     * Sets the value of the ldflags property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setLdflags(String value) {
+        this.ldflags = value;
+    }
+
+    /**
+     * Gets the value of the hasSubGraph property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getHasSubGraph() {
+        return hasSubGraph;
+    }
+
+    /**
+     * Sets the value of the hasSubGraph property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setHasSubGraph(String value) {
+        this.hasSubGraph = value;
+    }
+
+    /**
+     * Gets the value of the hasMTM property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getHasMTM() {
+        return hasMTM;
+    }
+
+    /**
+     * Sets the value of the hasMTM property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setHasMTM(String value) {
+        this.hasMTM = value;
     }
 
     /**
@@ -860,6 +766,102 @@ public class TaskType {
      */
     public void setTaskType(String value) {
         this.taskType = value;
+    }
+
+    /**
+     * Gets the value of the parentTask property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getParentTask() {
+        return parentTask;
+    }
+
+    /**
+     * Sets the value of the parentTask property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setParentTask(String value) {
+        this.parentTask = value;
+    }
+
+    /**
+     * Gets the value of the isHardwareDependent property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link YesNoType }
+     *     
+     */
+    public YesNoType getIsHardwareDependent() {
+        return isHardwareDependent;
+    }
+
+    /**
+     * Sets the value of the isHardwareDependent property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link YesNoType }
+     *     
+     */
+    public void setIsHardwareDependent(YesNoType value) {
+        this.isHardwareDependent = value;
+    }
+
+    /**
+     * Gets the value of the subGraphProperty property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getSubGraphProperty() {
+        return subGraphProperty;
+    }
+
+    /**
+     * Sets the value of the subGraphProperty property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setSubGraphProperty(String value) {
+        this.subGraphProperty = value;
+    }
+
+    /**
+     * Gets the value of the language property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getLanguage() {
+        return language;
+    }
+
+    /**
+     * Sets the value of the language property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setLanguage(String value) {
+        this.language = value;
     }
 
 }

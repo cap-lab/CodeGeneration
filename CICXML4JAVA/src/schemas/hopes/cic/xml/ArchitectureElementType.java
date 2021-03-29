@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -14,16 +15,16 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="ArchitectureElementType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="allowDataParallelMapping" type="{http://www.w3.org/2001/XMLSchema}boolean" default="false" />
- *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="poolSize" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" default="1" />
- *       &lt;attribute name="type" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="ArchitectureElementType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="type" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="poolSize" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" default="1" /&gt;
+ *       &lt;attribute name="allowDataParallelMapping" type="{http://www.w3.org/2001/XMLSchema}boolean" default="false" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -32,42 +33,15 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "ArchitectureElementType")
 public class ArchitectureElementType {
 
-    @XmlAttribute
-    protected Boolean allowDataParallelMapping;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "name", required = true)
     protected String name;
-    @XmlAttribute
-    protected BigInteger poolSize;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "type", required = true)
     protected String type;
-
-    /**
-     * Gets the value of the allowDataParallelMapping property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
-     */
-    public boolean isAllowDataParallelMapping() {
-        if (allowDataParallelMapping == null) {
-            return false;
-        } else {
-            return allowDataParallelMapping;
-        }
-    }
-
-    /**
-     * Sets the value of the allowDataParallelMapping property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
-     */
-    public void setAllowDataParallelMapping(Boolean value) {
-        this.allowDataParallelMapping = value;
-    }
+    @XmlAttribute(name = "poolSize")
+    @XmlSchemaType(name = "nonNegativeInteger")
+    protected BigInteger poolSize;
+    @XmlAttribute(name = "allowDataParallelMapping")
+    protected Boolean allowDataParallelMapping;
 
     /**
      * Gets the value of the name property.
@@ -91,6 +65,30 @@ public class ArchitectureElementType {
      */
     public void setName(String value) {
         this.name = value;
+    }
+
+    /**
+     * Gets the value of the type property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getType() {
+        return type;
+    }
+
+    /**
+     * Sets the value of the type property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setType(String value) {
+        this.type = value;
     }
 
     /**
@@ -122,27 +120,31 @@ public class ArchitectureElementType {
     }
 
     /**
-     * Gets the value of the type property.
+     * Gets the value of the allowDataParallelMapping property.
      * 
      * @return
      *     possible object is
-     *     {@link String }
+     *     {@link Boolean }
      *     
      */
-    public String getType() {
-        return type;
+    public boolean isAllowDataParallelMapping() {
+        if (allowDataParallelMapping == null) {
+            return false;
+        } else {
+            return allowDataParallelMapping;
+        }
     }
 
     /**
-     * Sets the value of the type property.
+     * Sets the value of the allowDataParallelMapping property.
      * 
      * @param value
      *     allowed object is
-     *     {@link String }
+     *     {@link Boolean }
      *     
      */
-    public void setType(String value) {
-        this.type = value;
+    public void setAllowDataParallelMapping(Boolean value) {
+        this.allowDataParallelMapping = value;
     }
 
 }

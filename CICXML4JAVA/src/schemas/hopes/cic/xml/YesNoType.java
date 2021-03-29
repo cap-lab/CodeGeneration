@@ -3,6 +3,7 @@ package hopes.cic.xml;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
+import javax.xml.bind.annotation.XmlType;
 
 
 /**
@@ -11,15 +12,16 @@ import javax.xml.bind.annotation.XmlEnumValue;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
- * &lt;simpleType name="YesNoType">
- *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
- *     &lt;enumeration value="Yes"/>
- *     &lt;enumeration value="No"/>
- *   &lt;/restriction>
- * &lt;/simpleType>
+ * &lt;simpleType name="YesNoType"&gt;
+ *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string"&gt;
+ *     &lt;enumeration value="Yes"/&gt;
+ *     &lt;enumeration value="No"/&gt;
+ *   &lt;/restriction&gt;
+ * &lt;/simpleType&gt;
  * </pre>
  * 
  */
+@XmlType(name = "YesNoType")
 @XmlEnum
 public enum YesNoType {
 
@@ -43,7 +45,7 @@ public enum YesNoType {
                 return c;
             }
         }
-        throw new IllegalArgumentException(v.toString());
+        throw new IllegalArgumentException(v);
     }
 
 }

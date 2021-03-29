@@ -187,6 +187,7 @@ static uem_result handleTimeDrivenTask(SGeneralTaskRuntimeInfo *pstRunTimeInfo)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	uem_time tPrevTime;
+
 	int nNextRunCount = 0;
 	uem_time tCurTime;
 	STask *pstTask = NULL;

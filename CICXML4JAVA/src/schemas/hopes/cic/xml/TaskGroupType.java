@@ -15,34 +15,34 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="TaskGroupType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="taskGroup" maxOccurs="unbounded" minOccurs="0">
- *           &lt;complexType>
- *             &lt;complexContent>
- *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *                 &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *               &lt;/restriction>
- *             &lt;/complexContent>
- *           &lt;/complexType>
- *         &lt;/element>
- *         &lt;element name="task" maxOccurs="unbounded" minOccurs="0">
- *           &lt;complexType>
- *             &lt;complexContent>
- *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *                 &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *               &lt;/restriction>
- *             &lt;/complexContent>
- *           &lt;/complexType>
- *         &lt;/element>
- *       &lt;/sequence>
- *       &lt;attribute name="groupType" type="{http://peace.snu.ac.kr/CICXMLSchema}groupTypeType" />
- *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="TaskGroupType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="taskGroup" maxOccurs="unbounded" minOccurs="0"&gt;
+ *           &lt;complexType&gt;
+ *             &lt;complexContent&gt;
+ *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *                 &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *               &lt;/restriction&gt;
+ *             &lt;/complexContent&gt;
+ *           &lt;/complexType&gt;
+ *         &lt;/element&gt;
+ *         &lt;element name="task" maxOccurs="unbounded" minOccurs="0"&gt;
+ *           &lt;complexType&gt;
+ *             &lt;complexContent&gt;
+ *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *                 &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *               &lt;/restriction&gt;
+ *             &lt;/complexContent&gt;
+ *           &lt;/complexType&gt;
+ *         &lt;/element&gt;
+ *       &lt;/sequence&gt;
+ *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="groupType" type="{http://peace.snu.ac.kr/CICXMLSchema}groupTypeType" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -56,10 +56,10 @@ public class TaskGroupType {
 
     protected List<TaskGroupType.TaskGroup> taskGroup;
     protected List<TaskGroupType.Task> task;
-    @XmlAttribute
-    protected GroupTypeType groupType;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "name", required = true)
     protected String name;
+    @XmlAttribute(name = "groupType")
+    protected GroupTypeType groupType;
 
     /**
      * Gets the value of the taskGroup property.
@@ -120,30 +120,6 @@ public class TaskGroupType {
     }
 
     /**
-     * Gets the value of the groupType property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link GroupTypeType }
-     *     
-     */
-    public GroupTypeType getGroupType() {
-        return groupType;
-    }
-
-    /**
-     * Sets the value of the groupType property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link GroupTypeType }
-     *     
-     */
-    public void setGroupType(GroupTypeType value) {
-        this.groupType = value;
-    }
-
-    /**
      * Gets the value of the name property.
      * 
      * @return
@@ -167,6 +143,30 @@ public class TaskGroupType {
         this.name = value;
     }
 
+    /**
+     * Gets the value of the groupType property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link GroupTypeType }
+     *     
+     */
+    public GroupTypeType getGroupType() {
+        return groupType;
+    }
+
+    /**
+     * Sets the value of the groupType property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link GroupTypeType }
+     *     
+     */
+    public void setGroupType(GroupTypeType value) {
+        this.groupType = value;
+    }
+
 
     /**
      * <p>Java class for anonymous complex type.
@@ -174,13 +174,13 @@ public class TaskGroupType {
      * <p>The following schema fragment specifies the expected content contained within this class.
      * 
      * <pre>
-     * &lt;complexType>
-     *   &lt;complexContent>
-     *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
-     *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
-     *     &lt;/restriction>
-     *   &lt;/complexContent>
-     * &lt;/complexType>
+     * &lt;complexType&gt;
+     *   &lt;complexContent&gt;
+     *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+     *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+     *     &lt;/restriction&gt;
+     *   &lt;/complexContent&gt;
+     * &lt;/complexType&gt;
      * </pre>
      * 
      * 
@@ -189,7 +189,7 @@ public class TaskGroupType {
     @XmlType(name = "")
     public static class Task {
 
-        @XmlAttribute(required = true)
+        @XmlAttribute(name = "name", required = true)
         protected String name;
 
         /**
@@ -225,13 +225,13 @@ public class TaskGroupType {
      * <p>The following schema fragment specifies the expected content contained within this class.
      * 
      * <pre>
-     * &lt;complexType>
-     *   &lt;complexContent>
-     *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
-     *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
-     *     &lt;/restriction>
-     *   &lt;/complexContent>
-     * &lt;/complexType>
+     * &lt;complexType&gt;
+     *   &lt;complexContent&gt;
+     *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+     *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+     *     &lt;/restriction&gt;
+     *   &lt;/complexContent&gt;
+     * &lt;/complexType&gt;
      * </pre>
      * 
      * 
@@ -240,7 +240,7 @@ public class TaskGroupType {
     @XmlType(name = "")
     public static class TaskGroup {
 
-        @XmlAttribute(required = true)
+        @XmlAttribute(name = "name", required = true)
         protected String name;
 
         /**

@@ -13,14 +13,14 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="TaskModeType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="input" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="mode" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="TaskModeType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;attribute name="input" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="mode" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -29,9 +29,9 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "TaskModeType")
 public class TaskModeType {
 
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "input", required = true)
     protected String input;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "mode", required = true)
     protected String mode;
 
     /**

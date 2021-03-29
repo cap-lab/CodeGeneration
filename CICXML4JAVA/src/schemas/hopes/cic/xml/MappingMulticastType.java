@@ -13,16 +13,16 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="MappingMulticastType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="connectionType" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingMulticastConnectionType" minOccurs="0"/>
- *       &lt;/sequence>
- *       &lt;attribute name="groupName" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="MappingMulticastType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="connectionType" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingMulticastConnectionType" minOccurs="0"/&gt;
+ *       &lt;/sequence&gt;
+ *       &lt;attribute name="groupName" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -34,7 +34,7 @@ import javax.xml.bind.annotation.XmlType;
 public class MappingMulticastType {
 
     protected MappingMulticastConnectionType connectionType;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "groupName", required = true)
     protected String groupName;
 
     /**

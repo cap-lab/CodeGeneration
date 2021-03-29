@@ -7,6 +7,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -16,17 +17,17 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="ControlTaskType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="slaveTask" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" maxOccurs="unbounded" minOccurs="0"/>
- *       &lt;/sequence>
- *       &lt;attribute name="priority" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *       &lt;attribute name="task" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="ControlTaskType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="slaveTask" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *       &lt;/sequence&gt;
+ *       &lt;attribute name="task" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="priority" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -38,10 +39,11 @@ import javax.xml.bind.annotation.XmlType;
 public class ControlTaskType {
 
     protected List<String> slaveTask;
-    @XmlAttribute(required = true)
-    protected BigInteger priority;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "task", required = true)
     protected String task;
+    @XmlAttribute(name = "priority", required = true)
+    @XmlSchemaType(name = "nonNegativeInteger")
+    protected BigInteger priority;
 
     /**
      * Gets the value of the slaveTask property.
@@ -73,30 +75,6 @@ public class ControlTaskType {
     }
 
     /**
-     * Gets the value of the priority property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link BigInteger }
-     *     
-     */
-    public BigInteger getPriority() {
-        return priority;
-    }
-
-    /**
-     * Sets the value of the priority property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link BigInteger }
-     *     
-     */
-    public void setPriority(BigInteger value) {
-        this.priority = value;
-    }
-
-    /**
      * Gets the value of the task property.
      * 
      * @return
@@ -118,6 +96,30 @@ public class ControlTaskType {
      */
     public void setTask(String value) {
         this.task = value;
+    }
+
+    /**
+     * Gets the value of the priority property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link BigInteger }
+     *     
+     */
+    public BigInteger getPriority() {
+        return priority;
+    }
+
+    /**
+     * Sets the value of the priority property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link BigInteger }
+     *     
+     */
+    public void setPriority(BigInteger value) {
+        this.priority = value;
     }
 
 }

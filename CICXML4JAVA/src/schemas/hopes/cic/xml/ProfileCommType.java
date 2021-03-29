@@ -13,18 +13,18 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="ProfileCommType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="constant" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="dst" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="firstPowerCoef" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="secondPowerCoef" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="src" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="timeunit" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}TimeMetricType" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="ProfileCommType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;attribute name="src" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="dst" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="secondPowerCoef" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="firstPowerCoef" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="constant" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="timeunit" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}TimeMetricType" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -33,41 +33,41 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "ProfileCommType")
 public class ProfileCommType {
 
-    @XmlAttribute(required = true)
-    protected String constant;
-    @XmlAttribute(required = true)
-    protected String dst;
-    @XmlAttribute(required = true)
-    protected String firstPowerCoef;
-    @XmlAttribute(required = true)
-    protected String secondPowerCoef;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "src", required = true)
     protected String src;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "dst", required = true)
+    protected String dst;
+    @XmlAttribute(name = "secondPowerCoef", required = true)
+    protected String secondPowerCoef;
+    @XmlAttribute(name = "firstPowerCoef", required = true)
+    protected String firstPowerCoef;
+    @XmlAttribute(name = "constant", required = true)
+    protected String constant;
+    @XmlAttribute(name = "timeunit", required = true)
     protected TimeMetricType timeunit;
 
     /**
-     * Gets the value of the constant property.
+     * Gets the value of the src property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getConstant() {
-        return constant;
+    public String getSrc() {
+        return src;
     }
 
     /**
-     * Sets the value of the constant property.
+     * Sets the value of the src property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setConstant(String value) {
-        this.constant = value;
+    public void setSrc(String value) {
+        this.src = value;
     }
 
     /**
@@ -95,30 +95,6 @@ public class ProfileCommType {
     }
 
     /**
-     * Gets the value of the firstPowerCoef property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getFirstPowerCoef() {
-        return firstPowerCoef;
-    }
-
-    /**
-     * Sets the value of the firstPowerCoef property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setFirstPowerCoef(String value) {
-        this.firstPowerCoef = value;
-    }
-
-    /**
      * Gets the value of the secondPowerCoef property.
      * 
      * @return
@@ -143,27 +119,51 @@ public class ProfileCommType {
     }
 
     /**
-     * Gets the value of the src property.
+     * Gets the value of the firstPowerCoef property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getSrc() {
-        return src;
+    public String getFirstPowerCoef() {
+        return firstPowerCoef;
     }
 
     /**
-     * Sets the value of the src property.
+     * Sets the value of the firstPowerCoef property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setSrc(String value) {
-        this.src = value;
+    public void setFirstPowerCoef(String value) {
+        this.firstPowerCoef = value;
+    }
+
+    /**
+     * Gets the value of the constant property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getConstant() {
+        return constant;
+    }
+
+    /**
+     * Sets the value of the constant property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setConstant(String value) {
+        this.constant = value;
     }
 
     /**

@@ -7,12 +7,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICAlgorithmType;
 import hopes.cic.xml.CICAlgorithmTypeLoader;
 import hopes.cic.xml.ChannelListType;
+import hopes.cic.xml.ChannelPortType;
+import hopes.cic.xml.ChannelType;
 import hopes.cic.xml.DataParallelType;
 import hopes.cic.xml.ExternalTaskType;
 import hopes.cic.xml.LibraryType;
@@ -20,6 +23,7 @@ import hopes.cic.xml.LoopStructureTypeType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.ModeType;
 import hopes.cic.xml.PortMapListType;
+import hopes.cic.xml.PortMapType;
 import hopes.cic.xml.TaskPortType;
 import hopes.cic.xml.TaskType;
 
@@ -128,21 +132,21 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 	}
 	
 	public Map<String, DataParallelType> getMapParallelType() {
-		Map<String, DataParallelType> mapParallelType = new HashMap<String, DataParallelType>();
-		List<TaskType> parallelTaskList = taskList.stream().filter(t -> t.getDataParallel() != null)
-				.collect(Collectors.toList());
-		parallelTaskList.forEach(t -> mapParallelType.put(t.getName(), t.getDataParallel().getType()));
-		return mapParallelType;
+		return taskList.stream().filter(t -> t.getDataParallel() != null)
+				.collect(Collectors.toMap(TaskType::getName, task -> task.getDataParallel().getType()));
 	}
 
-	public Map<String, LoopStructureTypeType> getMapLoopType() {
-		Map<String, LoopStructureTypeType> mapLoopType = new HashMap<String, LoopStructureTypeType>();
+	public Map<String, Boolean> getLoopTaskInfo() {
+		Map<String, Boolean> loopTaskLevelInfo = new HashMap<String, Boolean>();
 		for (TaskType taskType : taskList) {
-			if (isInDataTypeLoop(taskType)) {
-				mapLoopType.put(taskType.getName(), LoopStructureTypeType.DATA);
+			if (taskType.getLoopStructure() != null
+					&& taskType.getLoopStructure().getType().equals(LoopStructureTypeType.DATA)) {
+				loopTaskLevelInfo.put(taskType.getName(), true);
+			} else if (isInDataTypeLoop(taskType)) {
+				loopTaskLevelInfo.put(taskType.getName(), false);
 			}
 		}
-		return mapLoopType;
+		return loopTaskLevelInfo;
 	}
 
 	public Map<TaskType, List<TaskType>> getHierarchicalDATALoopTaskMap() {
@@ -203,6 +207,10 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 	public TaskPortType findTaskPortByName(TaskType task, String portName) {
 		return task.getPort().stream().filter(port -> port.getName().equals(portName)).findAny()
 				.orElseThrow(IllegalArgumentException::new);
+	}
+
+	public Map<String, TaskType> getFullTaskMap() {
+		return taskList.stream().collect(Collectors.toMap(TaskType::getName, Function.identity()));
 	}
 }
 	

@@ -118,6 +118,10 @@ struct _STraverseChangeSubgraphState {
 	ECPUTaskState enNewState;
 };
 
+struct _STraverseChangeMappedCore {
+	SGeneralTask *pstGeneralTask;
+	int nNewLocalId;
+};
 
 uem_result UKCPUGeneralTaskManager_Create(IN OUT HCPUGeneralTaskManager *phManager)
 {
@@ -476,7 +480,7 @@ static uem_result waitRunSignal(SGeneralTask *pstGeneralTask, SGeneralTaskThread
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstCurrentTask = NULL;
-	long long llCurTime = 0;
+	uem_time tCurTime = 0;
 
 	pstCurrentTask = pstGeneralTask->pstTask;
 
@@ -495,10 +499,10 @@ static uem_result waitRunSignal(SGeneralTask *pstGeneralTask, SGeneralTaskThread
 
 		if(pstCurrentTask != NULL && pstCurrentTask->enRunCondition == RUN_CONDITION_TIME_DRIVEN)
 		{
-			result = UCTime_GetCurTickInMilliSeconds(&llCurTime);
+			result = UCTime_GetCurTickInMilliSeconds(&tCurTime);
 			ERRIFGOTO(result, _EXIT);
 
-			result = UKTime_GetNextTimeByPeriod(llCurTime, pstCurrentTask->nPeriod, pstCurrentTask->enPeriodMetric,
+			result = UKTime_GetNextTimeByPeriod(tCurTime, pstCurrentTask->nPeriod, pstCurrentTask->enPeriodMetric,
 																pllNextTime, pnNextMaxRunCount);
 			ERRIFGOTO(result, _EXIT);
 		}
@@ -1796,6 +1800,75 @@ _EXIT:
 	return result;
 }
 
+static uem_result changeMappedCore(IN int nOffset, IN void *pData, IN void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SGeneralTaskThread *pstTaskThread = NULL;
+	struct _STraverseChangeMappedCore *pstUserData = NULL;
+	SGeneralTask *pstGeneralTask = NULL;
+
+	pstTaskThread = (SGeneralTaskThread *) pData;
+	pstUserData = (struct _STraverseChangeMappedCore *) pUserData;
+	pstGeneralTask = pstUserData->pstGeneralTask;
+
+	result = UCThreadMutex_Lock(pstGeneralTask->hMutex);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	pstTaskThread->nProcId = pstUserData->nNewLocalId;
+
+	result = pstGeneralTask->pstMapProcessorAPI->fnMapProcessor(pstTaskThread->hThread, pstGeneralTask->nProcessorId, pstTaskThread->nProcId);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstGeneralTask->hMutex);
+_EXIT:
+	return result;
+}
+
+uem_result UKCPUGeneralTaskManager_ChangeMappedCore(HCPUGeneralTaskManager hManager, STask *pstTargetTask, int nNewLocalId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCPUGeneralTaskManager *pstTaskManager = NULL;
+	SGeneralTask *pstGeneralTask = NULL;
+	struct _STraverseChangeMappedCore stUserData;
+	uem_bool bIsCPU = FALSE;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(pstTargetTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	if (IS_VALID_HANDLE(hManager, ID_UEM_CPU_GENERAL_TASK_MANAGER) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+#endif
+
+	pstTaskManager = hManager;
+
+	result = UCThreadMutex_Lock(pstTaskManager->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	result = UKProcessor_IsCPUByProcessorId(pstGeneralTask->nProcessorId, &bIsCPU);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	if(bIsCPU == FALSE)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT_LOCK);
+	}
+
+	stUserData.pstGeneralTask = pstGeneralTask;
+	stUserData.nNewLocalId = nNewLocalId;
+
+	result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, changeMappedCore, &stUserData);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstTaskManager->hMutex);
+_EXIT:
+	return result;
+}
 
 uem_result UKCPUGeneralTaskManager_Destroy(IN OUT HCPUGeneralTaskManager *phManager)
 {

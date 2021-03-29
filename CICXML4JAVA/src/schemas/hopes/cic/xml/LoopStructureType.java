@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -14,15 +15,15 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="LoopStructureType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="designatedTask" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="loopCount" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *       &lt;attribute name="type" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}LoopStructureTypeType" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="LoopStructureType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;attribute name="type" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}LoopStructureTypeType" /&gt;
+ *       &lt;attribute name="loopCount" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *       &lt;attribute name="designatedTask" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -31,35 +32,36 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "LoopStructureType")
 public class LoopStructureType {
 
-    @XmlAttribute
-    protected String designatedTask;
-    @XmlAttribute(required = true)
-    protected BigInteger loopCount;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "type", required = true)
     protected LoopStructureTypeType type;
+    @XmlAttribute(name = "loopCount", required = true)
+    @XmlSchemaType(name = "nonNegativeInteger")
+    protected BigInteger loopCount;
+    @XmlAttribute(name = "designatedTask")
+    protected String designatedTask;
 
     /**
-     * Gets the value of the designatedTask property.
+     * Gets the value of the type property.
      * 
      * @return
      *     possible object is
-     *     {@link String }
+     *     {@link LoopStructureTypeType }
      *     
      */
-    public String getDesignatedTask() {
-        return designatedTask;
+    public LoopStructureTypeType getType() {
+        return type;
     }
 
     /**
-     * Sets the value of the designatedTask property.
+     * Sets the value of the type property.
      * 
      * @param value
      *     allowed object is
-     *     {@link String }
+     *     {@link LoopStructureTypeType }
      *     
      */
-    public void setDesignatedTask(String value) {
-        this.designatedTask = value;
+    public void setType(LoopStructureTypeType value) {
+        this.type = value;
     }
 
     /**
@@ -87,27 +89,27 @@ public class LoopStructureType {
     }
 
     /**
-     * Gets the value of the type property.
+     * Gets the value of the designatedTask property.
      * 
      * @return
      *     possible object is
-     *     {@link LoopStructureTypeType }
+     *     {@link String }
      *     
      */
-    public LoopStructureTypeType getType() {
-        return type;
+    public String getDesignatedTask() {
+        return designatedTask;
     }
 
     /**
-     * Sets the value of the type property.
+     * Sets the value of the designatedTask property.
      * 
      * @param value
      *     allowed object is
-     *     {@link LoopStructureTypeType }
+     *     {@link String }
      *     
      */
-    public void setType(LoopStructureTypeType value) {
-        this.type = value;
+    public void setDesignatedTask(String value) {
+        this.designatedTask = value;
     }
 
 }

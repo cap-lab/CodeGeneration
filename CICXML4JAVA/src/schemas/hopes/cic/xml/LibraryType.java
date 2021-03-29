@@ -7,6 +7,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -16,32 +17,32 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="LibraryType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="libraryMasterPort" type="{http://peace.snu.ac.kr/CICXMLSchema}LibraryMasterPortType" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="extraHeader" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="extraSource" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="extraCIC" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="extraFile" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="function" type="{http://peace.snu.ac.kr/CICXMLSchema}LibraryFunctionType" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="hardwareDependency" type="{http://peace.snu.ac.kr/CICXMLSchema}HardwareDependencyType" minOccurs="0"/>
- *       &lt;/sequence>
- *       &lt;attribute name="cflags" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="description" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="file" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="hasInternalStates" type="{http://peace.snu.ac.kr/CICXMLSchema}YesNoType" />
- *       &lt;attribute name="header" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="id" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *       &lt;attribute name="isHardwareDependent" type="{http://peace.snu.ac.kr/CICXMLSchema}YesNoType" />
- *       &lt;attribute name="language" type="{http://peace.snu.ac.kr/CICXMLSchema}LanguageType" />
- *       &lt;attribute name="ldflags" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="type" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="LibraryType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="libraryMasterPort" type="{http://peace.snu.ac.kr/CICXMLSchema}LibraryMasterPortType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="extraHeader" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="extraSource" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="extraCIC" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="extraFile" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="function" type="{http://peace.snu.ac.kr/CICXMLSchema}LibraryFunctionType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="hardwareDependency" type="{http://peace.snu.ac.kr/CICXMLSchema}HardwareDependencyType" minOccurs="0"/&gt;
+ *       &lt;/sequence&gt;
+ *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="id" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *       &lt;attribute name="type" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="hasInternalStates" type="{http://peace.snu.ac.kr/CICXMLSchema}YesNoType" /&gt;
+ *       &lt;attribute name="description" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="file" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="header" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="cflags" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="ldflags" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="isHardwareDependent" type="{http://peace.snu.ac.kr/CICXMLSchema}YesNoType" /&gt;
+ *       &lt;attribute name="language" type="{http://peace.snu.ac.kr/CICXMLSchema}LanguageType" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -65,28 +66,29 @@ public class LibraryType {
     protected List<String> extraFile;
     protected List<LibraryFunctionType> function;
     protected HardwareDependencyType hardwareDependency;
-    @XmlAttribute
-    protected String cflags;
-    @XmlAttribute
-    protected String description;
-    @XmlAttribute(required = true)
-    protected String file;
-    @XmlAttribute
-    protected YesNoType hasInternalStates;
-    @XmlAttribute(required = true)
-    protected String header;
-    @XmlAttribute(required = true)
-    protected BigInteger id;
-    @XmlAttribute
-    protected YesNoType isHardwareDependent;
-    @XmlAttribute
-    protected String language;
-    @XmlAttribute
-    protected String ldflags;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "name", required = true)
     protected String name;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "id", required = true)
+    @XmlSchemaType(name = "nonNegativeInteger")
+    protected BigInteger id;
+    @XmlAttribute(name = "type", required = true)
     protected String type;
+    @XmlAttribute(name = "hasInternalStates")
+    protected YesNoType hasInternalStates;
+    @XmlAttribute(name = "description")
+    protected String description;
+    @XmlAttribute(name = "file", required = true)
+    protected String file;
+    @XmlAttribute(name = "header", required = true)
+    protected String header;
+    @XmlAttribute(name = "cflags")
+    protected String cflags;
+    @XmlAttribute(name = "ldflags")
+    protected String ldflags;
+    @XmlAttribute(name = "isHardwareDependent")
+    protected YesNoType isHardwareDependent;
+    @XmlAttribute(name = "language")
+    protected String language;
 
     /**
      * Gets the value of the libraryMasterPort property.
@@ -287,27 +289,99 @@ public class LibraryType {
     }
 
     /**
-     * Gets the value of the cflags property.
+     * Gets the value of the name property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getCflags() {
-        return cflags;
+    public String getName() {
+        return name;
     }
 
     /**
-     * Sets the value of the cflags property.
+     * Sets the value of the name property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setCflags(String value) {
-        this.cflags = value;
+    public void setName(String value) {
+        this.name = value;
+    }
+
+    /**
+     * Gets the value of the id property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link BigInteger }
+     *     
+     */
+    public BigInteger getId() {
+        return id;
+    }
+
+    /**
+     * Sets the value of the id property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link BigInteger }
+     *     
+     */
+    public void setId(BigInteger value) {
+        this.id = value;
+    }
+
+    /**
+     * Gets the value of the type property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getType() {
+        return type;
+    }
+
+    /**
+     * Sets the value of the type property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setType(String value) {
+        this.type = value;
+    }
+
+    /**
+     * Gets the value of the hasInternalStates property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link YesNoType }
+     *     
+     */
+    public YesNoType getHasInternalStates() {
+        return hasInternalStates;
+    }
+
+    /**
+     * Sets the value of the hasInternalStates property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link YesNoType }
+     *     
+     */
+    public void setHasInternalStates(YesNoType value) {
+        this.hasInternalStates = value;
     }
 
     /**
@@ -359,30 +433,6 @@ public class LibraryType {
     }
 
     /**
-     * Gets the value of the hasInternalStates property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link YesNoType }
-     *     
-     */
-    public YesNoType getHasInternalStates() {
-        return hasInternalStates;
-    }
-
-    /**
-     * Sets the value of the hasInternalStates property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link YesNoType }
-     *     
-     */
-    public void setHasInternalStates(YesNoType value) {
-        this.hasInternalStates = value;
-    }
-
-    /**
      * Gets the value of the header property.
      * 
      * @return
@@ -407,27 +457,51 @@ public class LibraryType {
     }
 
     /**
-     * Gets the value of the id property.
+     * Gets the value of the cflags property.
      * 
      * @return
      *     possible object is
-     *     {@link BigInteger }
+     *     {@link String }
      *     
      */
-    public BigInteger getId() {
-        return id;
+    public String getCflags() {
+        return cflags;
     }
 
     /**
-     * Sets the value of the id property.
+     * Sets the value of the cflags property.
      * 
      * @param value
      *     allowed object is
-     *     {@link BigInteger }
+     *     {@link String }
      *     
      */
-    public void setId(BigInteger value) {
-        this.id = value;
+    public void setCflags(String value) {
+        this.cflags = value;
+    }
+
+    /**
+     * Gets the value of the ldflags property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getLdflags() {
+        return ldflags;
+    }
+
+    /**
+     * Sets the value of the ldflags property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setLdflags(String value) {
+        this.ldflags = value;
     }
 
     /**
@@ -476,78 +550,6 @@ public class LibraryType {
      */
     public void setLanguage(String value) {
         this.language = value;
-    }
-
-    /**
-     * Gets the value of the ldflags property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getLdflags() {
-        return ldflags;
-    }
-
-    /**
-     * Sets the value of the ldflags property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setLdflags(String value) {
-        this.ldflags = value;
-    }
-
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setName(String value) {
-        this.name = value;
-    }
-
-    /**
-     * Gets the value of the type property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getType() {
-        return type;
-    }
-
-    /**
-     * Sets the value of the type property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setType(String value) {
-        this.type = value;
     }
 
 }

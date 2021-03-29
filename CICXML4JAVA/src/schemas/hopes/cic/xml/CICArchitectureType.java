@@ -14,19 +14,19 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="CICArchitectureType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="elementTypes" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureElementTypeListType"/>
- *         &lt;element name="elements" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureElementListType" minOccurs="0"/>
- *         &lt;element name="devices" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureDeviceListType" minOccurs="0"/>
- *         &lt;element name="connections" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureConnectionListType"/>
- *       &lt;/sequence>
- *       &lt;attribute name="target" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="CICArchitectureType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="elementTypes" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureElementTypeListType"/&gt;
+ *         &lt;element name="elements" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureElementListType" minOccurs="0"/&gt;
+ *         &lt;element name="devices" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureDeviceListType" minOccurs="0"/&gt;
+ *         &lt;element name="connections" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureConnectionListType"/&gt;
+ *       &lt;/sequence&gt;
+ *       &lt;attribute name="target" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -46,7 +46,7 @@ public class CICArchitectureType {
     protected ArchitectureDeviceListType devices;
     @XmlElement(required = true)
     protected ArchitectureConnectionListType connections;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "target", required = true)
     protected String target;
 
     /**

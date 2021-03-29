@@ -7,6 +7,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -16,19 +17,19 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="ProfileType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="bound" type="{http://peace.snu.ac.kr/CICXMLSchema}ProfileExecutionBoundType" maxOccurs="2" minOccurs="0"/>
- *       &lt;/sequence>
- *       &lt;attribute name="memoryAccessCount" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *       &lt;attribute name="processorType" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="unit" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}TimeMetricType" />
- *       &lt;attribute name="value" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="ProfileType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="bound" type="{http://peace.snu.ac.kr/CICXMLSchema}ProfileExecutionBoundType" maxOccurs="2" minOccurs="0"/&gt;
+ *       &lt;/sequence&gt;
+ *       &lt;attribute name="processorType" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="value" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *       &lt;attribute name="unit" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}TimeMetricType" /&gt;
+ *       &lt;attribute name="memoryAccessCount" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -40,14 +41,16 @@ import javax.xml.bind.annotation.XmlType;
 public class ProfileType {
 
     protected List<ProfileExecutionBoundType> bound;
-    @XmlAttribute
-    protected BigInteger memoryAccessCount;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "processorType", required = true)
     protected String processorType;
-    @XmlAttribute(required = true)
-    protected TimeMetricType unit;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "value", required = true)
+    @XmlSchemaType(name = "nonNegativeInteger")
     protected BigInteger value;
+    @XmlAttribute(name = "unit", required = true)
+    protected TimeMetricType unit;
+    @XmlAttribute(name = "memoryAccessCount")
+    @XmlSchemaType(name = "nonNegativeInteger")
+    protected BigInteger memoryAccessCount;
 
     /**
      * Gets the value of the bound property.
@@ -79,30 +82,6 @@ public class ProfileType {
     }
 
     /**
-     * Gets the value of the memoryAccessCount property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link BigInteger }
-     *     
-     */
-    public BigInteger getMemoryAccessCount() {
-        return memoryAccessCount;
-    }
-
-    /**
-     * Sets the value of the memoryAccessCount property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link BigInteger }
-     *     
-     */
-    public void setMemoryAccessCount(BigInteger value) {
-        this.memoryAccessCount = value;
-    }
-
-    /**
      * Gets the value of the processorType property.
      * 
      * @return
@@ -124,6 +103,30 @@ public class ProfileType {
      */
     public void setProcessorType(String value) {
         this.processorType = value;
+    }
+
+    /**
+     * Gets the value of the value property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link BigInteger }
+     *     
+     */
+    public BigInteger getValue() {
+        return value;
+    }
+
+    /**
+     * Sets the value of the value property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link BigInteger }
+     *     
+     */
+    public void setValue(BigInteger value) {
+        this.value = value;
     }
 
     /**
@@ -151,27 +154,27 @@ public class ProfileType {
     }
 
     /**
-     * Gets the value of the value property.
+     * Gets the value of the memoryAccessCount property.
      * 
      * @return
      *     possible object is
      *     {@link BigInteger }
      *     
      */
-    public BigInteger getValue() {
-        return value;
+    public BigInteger getMemoryAccessCount() {
+        return memoryAccessCount;
     }
 
     /**
-     * Sets the value of the value property.
+     * Sets the value of the memoryAccessCount property.
      * 
      * @param value
      *     allowed object is
      *     {@link BigInteger }
      *     
      */
-    public void setValue(BigInteger value) {
-        this.value = value;
+    public void setMemoryAccessCount(BigInteger value) {
+        this.memoryAccessCount = value;
     }
 
 }

@@ -13,14 +13,14 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="CodeGenerationType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="runtimeExecutionPolicy" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="threadOrFunctioncall" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="CodeGenerationType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;attribute name="runtimeExecutionPolicy" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="threadOrFunctioncall" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -29,9 +29,9 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "CodeGenerationType")
 public class CodeGenerationType {
 
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "runtimeExecutionPolicy", required = true)
     protected String runtimeExecutionPolicy;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "threadOrFunctioncall", required = true)
     protected String threadOrFunctioncall;
 
     /**

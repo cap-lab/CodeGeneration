@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -14,14 +15,14 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="TaskRateType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="mode" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="rate" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="TaskRateType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;attribute name="mode" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="rate" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -30,9 +31,10 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "TaskRateType")
 public class TaskRateType {
 
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "mode", required = true)
     protected String mode;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "rate", required = true)
+    @XmlSchemaType(name = "nonNegativeInteger")
     protected BigInteger rate;
 
     /**

@@ -13,15 +13,15 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="LibraryLibraryConnectionType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="masterLibrary" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="masterPort" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="slaveLibrary" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="LibraryLibraryConnectionType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;attribute name="masterLibrary" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="masterPort" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="slaveLibrary" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -30,11 +30,11 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "LibraryLibraryConnectionType")
 public class LibraryLibraryConnectionType {
 
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "masterLibrary", required = true)
     protected String masterLibrary;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "masterPort", required = true)
     protected String masterPort;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "slaveLibrary", required = true)
     protected String slaveLibrary;
 
     /**

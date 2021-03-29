@@ -3,6 +3,7 @@ package hopes.cic.xml;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
+import javax.xml.bind.annotation.XmlType;
 
 
 /**
@@ -11,16 +12,17 @@ import javax.xml.bind.annotation.XmlEnumValue;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
- * &lt;simpleType name="RunConditionType">
- *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
- *     &lt;enumeration value="time-driven"/>
- *     &lt;enumeration value="data-driven"/>
- *     &lt;enumeration value="control-driven"/>
- *   &lt;/restriction>
- * &lt;/simpleType>
+ * &lt;simpleType name="RunConditionType"&gt;
+ *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string"&gt;
+ *     &lt;enumeration value="time-driven"/&gt;
+ *     &lt;enumeration value="data-driven"/&gt;
+ *     &lt;enumeration value="control-driven"/&gt;
+ *   &lt;/restriction&gt;
+ * &lt;/simpleType&gt;
  * </pre>
  * 
  */
+@XmlType(name = "RunConditionType")
 @XmlEnum
 public enum RunConditionType {
 
@@ -46,7 +48,7 @@ public enum RunConditionType {
                 return c;
             }
         }
-        throw new IllegalArgumentException(v.toString());
+        throw new IllegalArgumentException(v);
     }
 
 }

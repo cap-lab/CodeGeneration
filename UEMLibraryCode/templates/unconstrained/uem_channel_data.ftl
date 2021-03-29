@@ -6,6 +6,7 @@
 
 #include <uem_common.h>
 
+
 <#if communication_used == true>
 #include <UCSocket.h>
 #include <UCDynamicSocket.h>
@@ -18,6 +19,9 @@
 	</#if>
 	<#if used_communication_list?seq_contains("serial")>
 #include <UCSerialPort.h>
+	</#if>
+	<#if used_communication_list?seq_contains("secure_tcp")>
+#include <UCSecureTCPSocket.h>
 	</#if>
 </#if>
 
@@ -50,6 +54,11 @@
 #include <UKSerialModule.h>
 #include <UKSerialCommunication.h>
 #include <uem_serial_data.h>
+	</#if>
+	<#if used_communication_list?seq_contains("secure_tcp")>
+#include <UKSecureTCPServerManager.h>
+#include <UKSecureTCPCommunication.h>
+#include <uem_secure_tcp_data.h>
 	</#if>
 </#if>
 <#if gpu_used == true>
@@ -165,7 +174,40 @@ SVirtualCommunicationAPI g_stSerialCommunication = {
 };
 
 </#if>
+<#if used_communication_list?seq_contains("secure_tcp")>
+SVirtualCommunicationAPI g_stSecureTCPCommunication = {
+	UKSecureTCPCommunication_Create,
+	UKSecureTCPCommunication_Destroy,
+	UKSecureTCPCommunication_Connect,
+	UKSecureTCPCommunication_Disconnect,
+	UKSecureTCPCommunication_Listen,	
+	UKSecureTCPCommunication_Accept,
+	UKSecureTCPCommunication_Send,
+	UKSecureTCPCommunication_Receive,
+};
 
+SSecurityKeyInfo g_astSSLKeyInfoList[] = {
+	<#list ssl_key_info_list as key_info>
+	{
+		<#if key_info.caPublicKey?has_content == false>
+		NULL,
+		<#else>
+		"${key_info.caPublicKey}",
+		</#if>		
+		<#if key_info.publicKey?has_content == false>
+		NULL,
+		<#else>
+		"${key_info.publicKey}",
+		</#if>		
+		<#if key_info.privateKey?has_content == false>
+		NULL,
+		<#else>
+		"${key_info.privateKey}",
+		</#if>
+	},
+	</#list>
+};
+</#if>
 
 
 <#if used_communication_list?seq_contains("tcp")>
@@ -258,35 +300,137 @@ STCPAggregatedServiceInfo g_astTCPAggregateServerInfo[] = {
 // ##TCP_COMMUNICATION_GENERATION_TEMPLATE::END
 </#if>
 
+<#if used_communication_list?seq_contains("secure_tcp")>
+// #SECURE_TCP_COMMUNICATION_GENERATION_TEMPLATE::START
+#ifndef AGGREGATE_SECURETCP_CONNECTION
+// ##SECURE_TCP_CLIENT_GENERATION_TEMPLATE::START
+SSecureTCPInfo g_astSecureTCPClientInfo[] = {
+	<#list secure_tcp_client_list as client>
+	{
+		{
+			${client.port?c},
+			"${client.IP}",
+			PAIR_TYPE_CLIENT,
+		},
+		&g_astSSLKeyInfoList[${client.keyInfoIndex}],
+	},
+	</#list>
+	<#if platform == "windows" && (secure_tcp_client_list?size == 0)>
+	0, 
+	</#if>
+};
+// ##SECURE_TCP_CLIENT_GENERATION_TEMPLATE::END
+
+// ##SECURE_TCP_SERVER_GENERATION_TEMPLATE::START
+SSecureTCPServerInfo g_astSecureTCPServerInfo[] = {
+	<#list secure_tcp_server_list as server>
+	{
+		{
+			{
+				${server.port?c},
+				(char *) NULL,
+				PAIR_TYPE_SERVER,
+			},
+			&g_astSSLKeyInfoList[${server.keyInfoIndex}],
+		},
+		{
+			(HVirtualSocket) NULL,
+			(HThread) NULL,
+			&g_stSecureTCPCommunication,
+		},		
+	},
+	</#list>
+	<#if platform == "windows" && (secure_tcp_server_list?size == 0)>
+	0, 
+	</#if>
+};
+// ##SECURE_TCP_SERVER_GENERATION_TEMPLATE::END
+
+#else
+SSecureTCPAggregatedServiceInfo g_astSecureTCPAggregateClientInfo[] = {
+	<#list secure_tcp_client_list as client>
+	{
+		{
+			{
+				${client.port?c},
+				"${client.IP}",
+				PAIR_TYPE_CLIENT,
+			},
+			&g_astSSLKeyInfoList[${client.keyInfoIndex}],
+		},
+		{
+			(HThread) NULL, // thread handle
+			${client.channelAccessNum}, // max channel access number
+			(HVirtualSocket) NULL, // socket handle
+			&g_stSecureTCPCommunication, // bluetooth communication API
+			(HSerialCommunicationManager) NULL, // Serial communication manager handle
+			FALSE, // initialized or not
+		},
+	},
+	</#list>
+	<#if platform == "windows" && (secure_tcp_client_list?size == 0)>
+	0, 
+	</#if>
+};
+
+SSecureTCPAggregatedServiceInfo g_astSecureTCPAggregateServerInfo[] = {
+	<#list secure_tcp_server_list as server>
+	{
+		{
+			{
+				${server.port?c},
+				(char *) NULL,
+				PAIR_TYPE_SERVER,
+			},
+			&g_astSSLKeyInfoList[${server.keyInfoIndex}],
+		},
+		{
+			(HThread) NULL, // thread handle
+			${server.channelAccessNum}, // max channel access number
+			(HVirtualSocket) NULL, // socket handle
+			&g_stSecureTCPCommunication, // bluetooth communication API
+			(HSerialCommunicationManager) NULL, // Serial communication manager handle
+			FALSE, // initialized or not
+		},
+	},
+	</#list>
+	<#if platform == "windows" && (secure_tcp_server_list?size == 0)>
+	0, 
+	</#if>
+};
+#endif
+// ##SECURE_TCP_COMMUNICATION_GENERATION_TEMPLATE::END
+</#if>
 
 <#if communication_used == true>
 // ##INDIVIDUAL_CONNECTION_GENERATION_TEMPLATE::START
 SIndividualConnectionInfo g_astIndividualConnectionInfo[] = {
-#ifndef AGGREGATE_TCP_CONNECTION
 	<#list channel_list as channel>
 		<#switch channel.remoteMethodType>
 			<#case "TCP">
+			<#case "SecureTCP">
+#ifndef AGGREGATE_${channel.remoteMethodType?upper_case}_CONNECTION
 	{
 		${channel.index},
-		COMMUNICATION_METHOD_${channel.remoteMethodType},
-			<#switch channel.connectionRoleType>
-				<#case "CLIENT">
-		(STCPInfo *) &g_astTCPClientInfo[${channel.socketInfoIndex}],
+		COMMUNICATION_METHOD_${channel.remoteMethodType?upper_case},
+		<#switch channel.connectionRoleType>
+			<#case "CLIENT">
+		(S${channel.remoteMethodType}Info *) &g_ast${channel.remoteMethodType}ClientInfo[${channel.socketInfoIndex}],
 		PAIR_TYPE_CLIENT,
-					<#break>
-				<#case "SERVER">
+			<#break>
+			<#case "SERVER">
 		(void *) NULL,
 		PAIR_TYPE_SERVER,
-					<#break>
-			</#switch>
-		&g_stTCPCommunication,
+			<#break>
+		</#switch>
+		&g_st${channel.remoteMethodType}Communication,
 		(HVirtualSocket) NULL,
 		(HUEMProtocol) NULL,
 	},
-				<#break>
+#endif
+			<#break>
 		</#switch>
 	</#list>
-#endif
 };
 // ##INDIVIDUAL_CONNECTION_GENERATION_TEMPLATE::END
 </#if>
@@ -488,7 +632,8 @@ SGenericMemoryAccess g_stDeviceToDeviceMemory = {
 	{ 
 			<#switch channel.remoteMethodType>
 				<#case "TCP">
-#ifndef AGGREGATE_TCP_CONNECTION
+				<#case "SecureTCP">
+#ifndef AGGREGATE_${channel.remoteMethodType?upper_case}_CONNECTION
 		CONNECTION_METHOD_INDIVIDUAL,
 #else
 		CONNECTION_METHOD_AGGREGATE,
@@ -718,6 +863,9 @@ FnChannelAPIInitialize g_aFnRemoteCommunicationModuleIntializeList[] = {
 	<#if used_communication_list?seq_contains("serial")>
 	UKSerialModule_Initialize,
 	</#if>
+	<#if used_communication_list?seq_contains("secure_tcp")>
+	UKSecureTCPServerManager_Initialize,
+	</#if>
 };
 
 FnChannelAPIFinalize g_aFnRemoteCommunicationModuleFinalizeList[] = {
@@ -729,6 +877,9 @@ FnChannelAPIFinalize g_aFnRemoteCommunicationModuleFinalizeList[] = {
 	</#if>
 	<#if used_communication_list?seq_contains("serial")>
 	UKSerialModule_Finalize,
+	</#if>
+	<#if used_communication_list?seq_contains("secure_tcp")>
+	UKSecureTCPServerManager_Finalize,
 	</#if>
 	UCSocket_Finalize, 
 };
@@ -745,7 +896,7 @@ SSocketAPI stBluetoothAPI = {
 </#if>
 
 
-<#if used_communication_list?seq_contains("tcp")>
+<#if used_communication_list?seq_contains("tcp") || used_communication_list?seq_contains("secure_tcp")>
 SSocketAPI stTCPAPI = {
 	UCTCPSocket_Bind,
 	UCTCPSocket_Accept,
@@ -754,7 +905,6 @@ SSocketAPI stTCPAPI = {
 	(FnSocketDestroy) NULL,
 };		
 </#if>
-
 
 /*
 SSocketAPI stUnixDomainSocketAPI = {
@@ -781,7 +931,7 @@ uem_result ChannelAPI_SetSocketAPIs()
 	ERRIFGOTO(result, _EXIT);
 	<#assign printed=true />
 </#if>
-<#if used_communication_list?seq_contains("tcp")>
+<#if used_communication_list?seq_contains("tcp") || used_communication_list?seq_contains("secure_tcp")>
 	result = UCDynamicSocket_SetAPIList(SOCKET_TYPE_TCP, &stTCPAPI);
 	ERRIFGOTO(result, _EXIT);
 	<#assign printed=true />
@@ -855,6 +1005,7 @@ int g_nAggregateConnectionInfoNum = 0;
 	</#if>
 #endif
 	
+
 #ifndef AGGREGATE_TCP_CONNECTION
 	<#if (tcp_server_list?size > 0) >
 int g_nTCPServerInfoNum = ARRAYLEN(g_astTCPServerInfo);
@@ -872,6 +1023,26 @@ int g_nTCPAggregateServerInfoNum = 0;
 int g_nTCPAggregateClientInfoNum = ARRAYLEN(g_astTCPAggregateClientInfo);
 	<#else>
 int g_nTCPAggregateClientInfoNum = 0;
+	</#if>
+#endif
+	
+#ifndef AGGREGATE_SECURETCP_CONNECTION
+	<#if (secure_tcp_server_list?size > 0) >
+int g_nSecureTCPServerInfoNum = ARRAYLEN(g_astSecureTCPServerInfo);
+	<#else>
+int g_nSecureTCPServerInfoNum = 0;
+	</#if>
+#else
+	<#if (secure_tcp_server_list?size > 0) >
+int g_nSecureTCPAggregateServerInfoNum = ARRAYLEN(g_astSecureTCPAggregateServerInfo);
+	<#else>
+int g_nSecureTCPAggregateServerInfoNum = 0;
+	</#if>
+	
+	<#if (secure_tcp_client_list?size > 0) >
+int g_nSecureTCPAggregateClientInfoNum = ARRAYLEN(g_astSecureTCPAggregateClientInfo);
+	<#else>
+int g_nSecureTCPAggregateClientInfoNum = 0;
 	</#if>
 #endif
 	

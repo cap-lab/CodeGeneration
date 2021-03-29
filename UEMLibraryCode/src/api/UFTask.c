@@ -152,6 +152,31 @@ uem_result UFTask_UpdateMode (IN int nCallerTaskId, IN char *pszTaskName)
 _EXIT:
 	return result;
 }
+
+uem_result UFTask_SetPeriod (IN int nCallerTaskId, IN char *pszTaskName, IN int nValue, IN char *pszTimeUnit)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	result = UKTask_SetPeriod (nCallerTaskId, pszTaskName, nValue, pszTimeUnit);
+
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+uem_result UFTask_ChangeMappedCore (IN int nCallerTaskId, IN char *pszTaskName, IN int nNewLocalId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	result = UKTask_ChangeMappedCore(nCallerTaskId, pszTaskName, nNewLocalId);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
 #endif
 
 

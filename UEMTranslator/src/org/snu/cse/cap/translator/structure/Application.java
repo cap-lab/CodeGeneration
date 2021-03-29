@@ -37,6 +37,7 @@ import org.snu.cse.cap.translator.structure.device.connection.ConstrainedSerialC
 import org.snu.cse.cap.translator.structure.device.connection.DeviceConnection;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
 import org.snu.cse.cap.translator.structure.device.connection.ProtocolType;
+import org.snu.cse.cap.translator.structure.device.connection.SSLTCPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.SerialConnection;
 import org.snu.cse.cap.translator.structure.device.connection.TCPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.UDPConnection;
@@ -314,10 +315,29 @@ public class Application {
 		}		
 		for(TCPConnectionType connectionType : connectionList.getTCPConnection())
 		{
-			TCPConnection connection = null;
-			connection = new TCPConnection(connectionType.getName(), connectionType.getRole().toString(),
+			if (!connectionType.isSecure()) {
+				TCPConnection connection = null;
+				connection = new TCPConnection(connectionType.getName(), connectionType.getRole()
+						.toString(),
 					connectionType.getIp(), connectionType.getPort().intValue());
-			device.putConnection(connection);
+				device.putConnection(connection);
+			}
+		}
+	}
+
+	private void putSSLTCPConnectionsOnDevice(Device device, DeviceConnectionListType connectionList) {
+		if (connectionList.getTCPConnection() == null) {
+			return;
+		}
+		for (TCPConnectionType connectionType : connectionList.getTCPConnection()) {
+			if (connectionType.isSecure()) {
+				SSLTCPConnection connection = null;
+				connection = new SSLTCPConnection(connectionType.getName(), connectionType.getRole()
+						.toString(),
+					connectionType.getIp(), connectionType.getPort().intValue(), connectionType.getCaPublicKey(),
+					connectionType.getPublicKey(), connectionType.getPrivateKey());
+				device.putConnection(connection);
+			}
 		}
 	}
 	
@@ -341,6 +361,12 @@ public class Application {
 		if(connectionList.getTCPConnection() != null && connectionList.getTCPConnection().size() > 0)
 		{
 			device.putSupportedConnectionType(DeviceCommunicationType.TCP);
+			for (TCPConnectionType connectionType : connectionList.getTCPConnection()) {
+				if (connectionType.isSecure()) {
+					device.putSupportedConnectionType(DeviceCommunicationType.SECURE_TCP);
+					break;
+				}
+			}
 		}
 		if(connectionList.getUDPConnection() != null && connectionList.getUDPConnection().size() > 0)
 		{
@@ -353,6 +379,7 @@ public class Application {
 		putSerialConnectionsOnDevice(device, connectionList);
 		putTCPConnectionsOnDevice(device, connectionList);
 		putSupportedConnectionTypeListOnDevice(device, connectionList);
+		putSSLTCPConnectionsOnDevice(device, connectionList);
 	}
 
 	private Connection findConnection(String deviceName, String connectionName) throws InvalidDeviceConnectionException
@@ -394,6 +421,8 @@ public class Application {
 						slave = findConnection(slaveType.getDevice(), slaveType.getConnection());
 						deviceConnection.putMasterToSlaveConnection(master, slaveType.getDevice(), slave);
 						deviceConnection.putSlaveToMasterConnection(slaveType.getDevice(), slave, master);
+
+
 					}
 				} catch (InvalidDeviceConnectionException e) {
 					// TODO Auto-generated catch block
@@ -456,6 +485,7 @@ public class Application {
 				if(device_metadata.getConnections() != null)
 				{
 					putConnectionsOnDevice(device, device_metadata.getConnections());
+
 				}
 
 				if(device_metadata.getModules() != null)
@@ -534,7 +564,9 @@ public class Application {
 			break;
 		case TCP:
 			channel.setRemoteMethodType(RemoteCommunicationType.TCP);
-
+			break;
+		case SECURE_TCP:
+			channel.setRemoteMethodType(RemoteCommunicationType.SECURE_TCP);
 			break;
 		default:
 			throw new UnsupportedOperationException();
@@ -543,7 +575,8 @@ public class Application {
 
 	private void setChannelConnectionRoleType(Channel channel, ConnectionPair connectionPair, String taskName)
 	{
-		if(connectionPair.getMasterConnection().getProtocol() == ProtocolType.TCP) {
+		if (connectionPair.getMasterConnection().getProtocol() == ProtocolType.TCP
+				|| connectionPair.getMasterConnection().getProtocol() == ProtocolType.SECURE_TCP) {
 			if(connectionPair.getMasterDeviceName().equals(taskName) == true) {
 				channel.setConnectionRoleType(ConnectionRoleType.SERVER);
 			}
@@ -746,7 +779,7 @@ public class Application {
 			key = currentPort.getPortKey();
 			if(device.getPortKeyToIndex().containsKey(key) == false)
 			{
-				device.getPortKeyToIndex().put(key, new Integer(device.getPortList().size()));
+				device.getPortKeyToIndex().put(key, Integer.valueOf(device.getPortList().size()));
 				device.getPortList().add(currentPort);
 
 			}
@@ -782,42 +815,66 @@ public class Application {
 	private void setSocketIndexFromTCPConnection(Channel channel, Device targetDevice, ConnectionPair connectionPair) throws InvalidDeviceConnectionException
 	{
 		int index = 0;
-		TCPConnection connection = null;
-		ArrayList<TCPConnection> connectionList = null;
+		TCPConnection tcpConnection = null;
+		ArrayList<TCPConnection> tcpConnectionList = null;
+		SSLTCPConnection sslTcpconnection = null;
+		ArrayList<SSLTCPConnection> sslTcpConnectionList = null;
 
-		switch(channel.getRemoteMethodType())
-		{
+		switch (channel.getRemoteMethodType()) {
 		case TCP:
-			switch(channel.getConnectionRoleType())
-			{
+			switch (channel.getConnectionRoleType()) {
 			case SERVER:
-				connectionList = targetDevice.getTcpServerList();
-				connection = (TCPConnection) connectionPair.getMasterConnection();
+				tcpConnectionList = targetDevice.getTcpServerList();
+				tcpConnection = (TCPConnection) connectionPair.getMasterConnection();
 				break;
 			case CLIENT:
-				connectionList = targetDevice.getTcpClientList();
-				connection = (TCPConnection) connectionPair.getSlaveConnection();
+				tcpConnectionList = targetDevice.getTcpClientList();
+				tcpConnection = (TCPConnection) connectionPair.getSlaveConnection();
 				break;
 			default:
 				throw new InvalidDeviceConnectionException();
 			}
+
+			tcpConnection.incrementChannelAccessNum();
+
+			for (index = 0; index < tcpConnectionList.size(); index++) {
+				TCPConnection curConnection = tcpConnectionList.get(index);
+
+				if (curConnection.getName().equals(tcpConnection.getName()) == true) {
+					// same connection name
+					channel.setSocketInfoIndex(index);
+					break;
+				}
+			}
+			break;
+		case SECURE_TCP:
+			switch (channel.getConnectionRoleType()) {
+			case SERVER:
+				sslTcpConnectionList = targetDevice.getSecureTcpServerList();
+				sslTcpconnection = (SSLTCPConnection) connectionPair.getMasterConnection();
+				break;
+			case CLIENT:
+				sslTcpConnectionList = targetDevice.getSecureTcpClientList();
+				sslTcpconnection = (SSLTCPConnection) connectionPair.getSlaveConnection();
+				break;
+			default:
+				throw new InvalidDeviceConnectionException();
+			}
+
+			sslTcpconnection.incrementChannelAccessNum();
+
+			for (index = 0; index < sslTcpConnectionList.size(); index++) {
+				SSLTCPConnection curConnection = sslTcpConnectionList.get(index);
+
+				if (curConnection.getName().equals(sslTcpconnection.getName()) == true) {
+					// same connection name
+					channel.setSocketInfoIndex(index);
+					break;
+				}
+			}
 			break;
 		default:
 			throw new InvalidDeviceConnectionException();
-		}
-
-		connection.incrementChannelAccessNum();
-
-		for(index = 0 ; index < connectionList.size(); index++)
-		{
-			TCPConnection tcpConnection = connectionList.get(index);
-
-			if(tcpConnection.getName().equals(connection.getName()) == true)
-			{
-				// same connection name
-				channel.setSocketInfoIndex(index);
-				break;
-			}
 		}
 	}
 
@@ -968,7 +1025,8 @@ public class Application {
 			setSocketIndexFromConstrainedSerialConnection(channel, targetDevice, connectionPair);
 			break;
 		case LINUX:
-			if(connectionPair.getMasterConnection().getProtocol() == ProtocolType.TCP) {
+			if (connectionPair.getMasterConnection().getProtocol() == ProtocolType.TCP
+					|| connectionPair.getMasterConnection().getProtocol() == ProtocolType.SECURE_TCP) {
 				setSocketIndexFromTCPConnection(channel, targetDevice, connectionPair);
 			}
 			else {

@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -14,18 +15,18 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="FaultToleranceType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="validationTaskCIC" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *       &lt;/sequence>
- *       &lt;attribute name="number" use="required" type="{http://www.w3.org/2001/XMLSchema}positiveInteger" />
- *       &lt;attribute name="type" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}FaultToleranceTypeType" />
- *       &lt;attribute name="validationTaskType" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}ValidationTaskType" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="FaultToleranceType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="validationTaskCIC" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+ *       &lt;/sequence&gt;
+ *       &lt;attribute name="validationTaskType" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}ValidationTaskType" /&gt;
+ *       &lt;attribute name="type" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}FaultToleranceTypeType" /&gt;
+ *       &lt;attribute name="number" use="required" type="{http://www.w3.org/2001/XMLSchema}positiveInteger" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -37,12 +38,13 @@ import javax.xml.bind.annotation.XmlType;
 public class FaultToleranceType {
 
     protected String validationTaskCIC;
-    @XmlAttribute(required = true)
-    protected BigInteger number;
-    @XmlAttribute(required = true)
-    protected FaultToleranceTypeType type;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "validationTaskType", required = true)
     protected ValidationTaskType validationTaskType;
+    @XmlAttribute(name = "type", required = true)
+    protected FaultToleranceTypeType type;
+    @XmlAttribute(name = "number", required = true)
+    @XmlSchemaType(name = "positiveInteger")
+    protected BigInteger number;
 
     /**
      * Gets the value of the validationTaskCIC property.
@@ -69,27 +71,27 @@ public class FaultToleranceType {
     }
 
     /**
-     * Gets the value of the number property.
+     * Gets the value of the validationTaskType property.
      * 
      * @return
      *     possible object is
-     *     {@link BigInteger }
+     *     {@link ValidationTaskType }
      *     
      */
-    public BigInteger getNumber() {
-        return number;
+    public ValidationTaskType getValidationTaskType() {
+        return validationTaskType;
     }
 
     /**
-     * Sets the value of the number property.
+     * Sets the value of the validationTaskType property.
      * 
      * @param value
      *     allowed object is
-     *     {@link BigInteger }
+     *     {@link ValidationTaskType }
      *     
      */
-    public void setNumber(BigInteger value) {
-        this.number = value;
+    public void setValidationTaskType(ValidationTaskType value) {
+        this.validationTaskType = value;
     }
 
     /**
@@ -117,27 +119,27 @@ public class FaultToleranceType {
     }
 
     /**
-     * Gets the value of the validationTaskType property.
+     * Gets the value of the number property.
      * 
      * @return
      *     possible object is
-     *     {@link ValidationTaskType }
+     *     {@link BigInteger }
      *     
      */
-    public ValidationTaskType getValidationTaskType() {
-        return validationTaskType;
+    public BigInteger getNumber() {
+        return number;
     }
 
     /**
-     * Sets the value of the validationTaskType property.
+     * Sets the value of the number property.
      * 
      * @param value
      *     allowed object is
-     *     {@link ValidationTaskType }
+     *     {@link BigInteger }
      *     
      */
-    public void setValidationTaskType(ValidationTaskType value) {
-        this.validationTaskType = value;
+    public void setNumber(BigInteger value) {
+        this.number = value;
     }
 
 }

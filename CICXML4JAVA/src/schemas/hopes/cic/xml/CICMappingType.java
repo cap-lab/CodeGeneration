@@ -15,18 +15,18 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="CICMappingType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="task" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingTaskType" maxOccurs="unbounded"/>
- *         &lt;element name="externalTask" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingExternalTaskType" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="library" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingLibraryType" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="multicast" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingMulticastType" maxOccurs="unbounded" minOccurs="0"/>
- *       &lt;/sequence>
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="CICMappingType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="task" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingTaskType" maxOccurs="unbounded"/&gt;
+ *         &lt;element name="externalTask" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingExternalTaskType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="library" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingLibraryType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="multicast" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingMulticastType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *       &lt;/sequence&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 

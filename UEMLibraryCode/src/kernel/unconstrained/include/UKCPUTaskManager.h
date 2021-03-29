@@ -214,6 +214,21 @@ uem_result UKCPUTaskManager_GetTaskState(HCPUTaskManager hCPUTaskManager, int nT
 uem_result UKCPUTaskManager_IsAllTaskStopped(HCPUTaskManager hCPUTaskManager, OUT uem_bool *pbStopped);
 
 /**
+ * @brief Update the mapping info of the task.
+ *
+ * This function updates the mapping info of the task.
+ *
+ * @param hCPUTaskManager a task manager handle.
+ * @param nTaskId an id of task to update the mapping info.
+ * @param nNewLocalId a new core id to assign.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_ILLEGAL_CONTROL. \n
+ *         @ref ERR_UEM_ILLEGAL_CONTROL is occurred when the task is not computational or control type, and the task is statically scheduled.
+ */
+uem_result UKCPUTaskManager_ChangeMappedCore(HCPUTaskManager hCPUTaskManager, int nTaskId, int nNewLocalId);
+
+/**
  * @brief Destroy a task manager.
  *
  * This function a task manager.

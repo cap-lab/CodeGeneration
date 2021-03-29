@@ -258,7 +258,7 @@ static uem_result createCompositeTaskStruct(HCPUCompositeTaskManager hCPUTaskMan
 	if(pstMappedInfo->pstScheduledTasks->pstParentTaskGraph->pstParentTask == NULL)
 	{
 		pstCompositeTask->enTaskState = TASK_STATE_RUNNING;
-		result = UKTime_GetProgramExecutionTime(&nTimeValue, &enTimeMetric);
+		result = UKProgram_GetExecutionTime(&nTimeValue, &enTimeMetric);
 		ERRIFGOTO(result, _EXIT);
 
 		// If iteration count is set, run only a specific number
@@ -360,7 +360,7 @@ static uem_result waitRunSignal(SCompositeTask *pstCompositeTask, SCompositeTask
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstCurrentTask = NULL;
-	long long llCurTime = 0;
+	uem_time tCurTime = 0;
 
 	pstCurrentTask = pstCompositeTask->pstParentTask;
 
@@ -379,10 +379,10 @@ static uem_result waitRunSignal(SCompositeTask *pstCompositeTask, SCompositeTask
 
 		if(pstCurrentTask != NULL && pstCurrentTask->enRunCondition == RUN_CONDITION_TIME_DRIVEN)
 		{
-			result = UCTime_GetCurTickInMilliSeconds(&llCurTime);
+			result = UCTime_GetCurTickInMilliSeconds(&tCurTime);
 			ERRIFGOTO(result, _EXIT);
 
-			result = UKTime_GetNextTimeByPeriod(llCurTime, pstCurrentTask->nPeriod, pstCurrentTask->enPeriodMetric,
+			result = UKTime_GetNextTimeByPeriod(tCurTime, pstCurrentTask->nPeriod, pstCurrentTask->enPeriodMetric,
 																pllNextTime, pnNextMaxRunCount);
 			ERRIFGOTO(result, _EXIT);
 		}

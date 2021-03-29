@@ -21,10 +21,12 @@ import org.snu.cse.cap.translator.structure.device.connection.Connection;
 import org.snu.cse.cap.translator.structure.device.connection.ConstrainedSerialConnection;
 import org.snu.cse.cap.translator.structure.device.connection.IPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
+import org.snu.cse.cap.translator.structure.device.connection.SSLKeyInfo;
 import org.snu.cse.cap.translator.structure.device.connection.SerialConnection;
 import org.snu.cse.cap.translator.structure.device.connection.TCPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.UDPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.UnconstrainedSerialConnection;
+import org.snu.cse.cap.translator.structure.device.connection.SSLTCPConnection;
 import org.snu.cse.cap.translator.structure.gpu.TaskGPUSetupInfo;
 import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.library.LibraryConnection;
@@ -94,6 +96,9 @@ public class Device {
 	private ArrayList<ConstrainedSerialConnection> serialConstrainedSlaveList;
 	private ArrayList<UnconstrainedSerialConnection> serialMasterList;
 	private ArrayList<UnconstrainedSerialConnection> serialUnconstrainedSlaveList;
+	private ArrayList<SSLTCPConnection> secureTcpServerList;
+	private ArrayList<SSLTCPConnection> secureTcpClientList;
+	private ArrayList<SSLKeyInfo> sslKeyInfoList;
 	
 	private HashSet<DeviceCommunicationType> supportedConnectionTypeList;
 
@@ -130,7 +135,11 @@ public class Device {
 		this.serialConstrainedSlaveList = new ArrayList<ConstrainedSerialConnection>();
 		this.serialMasterList = new ArrayList<UnconstrainedSerialConnection>();
 		this.serialUnconstrainedSlaveList = new ArrayList<UnconstrainedSerialConnection>();
+		this.secureTcpServerList = new ArrayList<SSLTCPConnection>();
+		this.secureTcpClientList = new ArrayList<SSLTCPConnection>();
+		this.sslKeyInfoList = new ArrayList<SSLKeyInfo>();
 		
+
 		this.supportedConnectionTypeList = new HashSet<DeviceCommunicationType>();
 	}
 	
@@ -766,7 +775,7 @@ public class Device {
 				
 				if(taskSet.containsKey(taskName) == false)
 				{
-					taskSet.put(taskName, new Integer(1));					
+					taskSet.put(taskName, Integer.valueOf(1));
 				}
 				else // key exists
 				{
@@ -1156,6 +1165,23 @@ public class Device {
 		return this.udpList.containsKey(connectionId);
 	}
 	
+	private int putKeyInfo(SSLTCPConnection connection) {
+		int index = -1;
+
+		for (SSLKeyInfo keyInfo : sslKeyInfoList) {
+			if (keyInfo.equals(connection.getSSLKeyInfo())) {
+				index = sslKeyInfoList.indexOf(keyInfo);
+			}
+		}
+
+		if (index == -1) {
+			sslKeyInfoList.add(connection.getSSLKeyInfo());
+			index = sslKeyInfoList.indexOf(connection.getSSLKeyInfo());
+		}
+		
+		return index;
+	}
+
 	public void putConnection(Connection connection) 
 	{
 		this.connectionList.put(connection.getName(), connection);
@@ -1184,7 +1210,7 @@ public class Device {
 						this.bluetoothMasterList.add((UnconstrainedSerialConnection) connection);	
 					}
 					else {
-						this.bluetoothUnconstrainedSlaveList.add((UnconstrainedSerialConnection) connection);	
+						this.bluetoothUnconstrainedSlaveList.add((UnconstrainedSerialConnection) connection);
 					}					
 					break;
 				case USB:
@@ -1206,6 +1232,16 @@ public class Device {
 			case WINDOWS:
 			default:
 				break;
+			}
+			break;
+		case SECURE_TCP:
+			int index = putKeyInfo((SSLTCPConnection) connection);
+			((SSLTCPConnection) connection).setKeyInfoIndex(index);
+
+			if (connection.getRole().equalsIgnoreCase(IPConnection.ROLE_SERVER) == true) {
+				this.secureTcpServerList.add((SSLTCPConnection) connection);
+			} else {
+				this.secureTcpClientList.add((SSLTCPConnection) connection);
 			}
 			break;
 		default:
@@ -1361,4 +1397,15 @@ public class Device {
 		return serialUnconstrainedSlaveList;
 	}
 	
+	public ArrayList<SSLTCPConnection> getSecureTcpServerList() {
+		return secureTcpServerList;
+	}
+
+	public ArrayList<SSLTCPConnection> getSecureTcpClientList() {
+		return secureTcpClientList;
+	}
+
+	public ArrayList<SSLKeyInfo> getKeyInfoList() {
+		return sslKeyInfoList;
+	}
 }

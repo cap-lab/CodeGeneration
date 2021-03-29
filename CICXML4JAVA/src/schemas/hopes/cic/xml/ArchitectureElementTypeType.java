@@ -8,6 +8,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -17,29 +18,29 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="ArchitectureElementTypeType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="slavePort" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureElementSlavePortType" maxOccurs="unbounded" minOccurs="0"/>
- *       &lt;/sequence>
- *       &lt;attribute name="OS" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="activePower" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *       &lt;attribute name="archiType" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="category" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureElementCategoryType" />
- *       &lt;attribute name="clock" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *       &lt;attribute name="memorySize" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *       &lt;attribute name="model" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="nInterruptPorts" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *       &lt;attribute name="nMasterPorts" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="relativeCost" type="{http://www.w3.org/2001/XMLSchema}decimal" />
- *       &lt;attribute name="scheduler" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureSchedulerType" />
- *       &lt;attribute name="sleepPower" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *       &lt;attribute name="subcategory" type="{http://www.w3.org/2001/XMLSchema}string" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="ArchitectureElementTypeType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="slavePort" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureElementSlavePortType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *       &lt;/sequence&gt;
+ *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="category" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureElementCategoryType" /&gt;
+ *       &lt;attribute name="subcategory" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="model" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="OS" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="scheduler" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureSchedulerType" /&gt;
+ *       &lt;attribute name="clock" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *       &lt;attribute name="relativeCost" type="{http://www.w3.org/2001/XMLSchema}decimal" /&gt;
+ *       &lt;attribute name="archiType" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="activePower" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *       &lt;attribute name="sleepPower" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *       &lt;attribute name="nMasterPorts" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *       &lt;attribute name="nInterruptPorts" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *       &lt;attribute name="memorySize" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -51,34 +52,40 @@ import javax.xml.bind.annotation.XmlType;
 public class ArchitectureElementTypeType {
 
     protected List<ArchitectureElementSlavePortType> slavePort;
+    @XmlAttribute(name = "name", required = true)
+    protected String name;
+    @XmlAttribute(name = "category", required = true)
+    protected ArchitectureElementCategoryType category;
+    @XmlAttribute(name = "subcategory")
+    protected String subcategory;
+    @XmlAttribute(name = "model")
+    protected String model;
     @XmlAttribute(name = "OS")
     protected String os;
-    @XmlAttribute
-    protected BigInteger activePower;
-    @XmlAttribute
-    protected String archiType;
-    @XmlAttribute(required = true)
-    protected ArchitectureElementCategoryType category;
-    @XmlAttribute
-    protected BigInteger clock;
-    @XmlAttribute
-    protected BigInteger memorySize;
-    @XmlAttribute
-    protected String model;
-    @XmlAttribute
-    protected BigInteger nInterruptPorts;
-    @XmlAttribute
-    protected BigInteger nMasterPorts;
-    @XmlAttribute(required = true)
-    protected String name;
-    @XmlAttribute
-    protected BigDecimal relativeCost;
-    @XmlAttribute
+    @XmlAttribute(name = "scheduler")
     protected ArchitectureSchedulerType scheduler;
-    @XmlAttribute
+    @XmlAttribute(name = "clock")
+    @XmlSchemaType(name = "nonNegativeInteger")
+    protected BigInteger clock;
+    @XmlAttribute(name = "relativeCost")
+    protected BigDecimal relativeCost;
+    @XmlAttribute(name = "archiType")
+    protected String archiType;
+    @XmlAttribute(name = "activePower")
+    @XmlSchemaType(name = "nonNegativeInteger")
+    protected BigInteger activePower;
+    @XmlAttribute(name = "sleepPower")
+    @XmlSchemaType(name = "nonNegativeInteger")
     protected BigInteger sleepPower;
-    @XmlAttribute
-    protected String subcategory;
+    @XmlAttribute(name = "nMasterPorts")
+    @XmlSchemaType(name = "nonNegativeInteger")
+    protected BigInteger nMasterPorts;
+    @XmlAttribute(name = "nInterruptPorts")
+    @XmlSchemaType(name = "nonNegativeInteger")
+    protected BigInteger nInterruptPorts;
+    @XmlAttribute(name = "memorySize")
+    @XmlSchemaType(name = "nonNegativeInteger")
+    protected BigInteger memorySize;
 
     /**
      * Gets the value of the slavePort property.
@@ -110,75 +117,27 @@ public class ArchitectureElementTypeType {
     }
 
     /**
-     * Gets the value of the os property.
+     * Gets the value of the name property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getOS() {
-        return os;
+    public String getName() {
+        return name;
     }
 
     /**
-     * Sets the value of the os property.
+     * Sets the value of the name property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setOS(String value) {
-        this.os = value;
-    }
-
-    /**
-     * Gets the value of the activePower property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link BigInteger }
-     *     
-     */
-    public BigInteger getActivePower() {
-        return activePower;
-    }
-
-    /**
-     * Sets the value of the activePower property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link BigInteger }
-     *     
-     */
-    public void setActivePower(BigInteger value) {
-        this.activePower = value;
-    }
-
-    /**
-     * Gets the value of the archiType property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getArchiType() {
-        return archiType;
-    }
-
-    /**
-     * Sets the value of the archiType property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setArchiType(String value) {
-        this.archiType = value;
+    public void setName(String value) {
+        this.name = value;
     }
 
     /**
@@ -206,51 +165,27 @@ public class ArchitectureElementTypeType {
     }
 
     /**
-     * Gets the value of the clock property.
+     * Gets the value of the subcategory property.
      * 
      * @return
      *     possible object is
-     *     {@link BigInteger }
+     *     {@link String }
      *     
      */
-    public BigInteger getClock() {
-        return clock;
+    public String getSubcategory() {
+        return subcategory;
     }
 
     /**
-     * Sets the value of the clock property.
+     * Sets the value of the subcategory property.
      * 
      * @param value
      *     allowed object is
-     *     {@link BigInteger }
+     *     {@link String }
      *     
      */
-    public void setClock(BigInteger value) {
-        this.clock = value;
-    }
-
-    /**
-     * Gets the value of the memorySize property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link BigInteger }
-     *     
-     */
-    public BigInteger getMemorySize() {
-        return memorySize;
-    }
-
-    /**
-     * Sets the value of the memorySize property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link BigInteger }
-     *     
-     */
-    public void setMemorySize(BigInteger value) {
-        this.memorySize = value;
+    public void setSubcategory(String value) {
+        this.subcategory = value;
     }
 
     /**
@@ -278,99 +213,27 @@ public class ArchitectureElementTypeType {
     }
 
     /**
-     * Gets the value of the nInterruptPorts property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link BigInteger }
-     *     
-     */
-    public BigInteger getNInterruptPorts() {
-        return nInterruptPorts;
-    }
-
-    /**
-     * Sets the value of the nInterruptPorts property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link BigInteger }
-     *     
-     */
-    public void setNInterruptPorts(BigInteger value) {
-        this.nInterruptPorts = value;
-    }
-
-    /**
-     * Gets the value of the nMasterPorts property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link BigInteger }
-     *     
-     */
-    public BigInteger getNMasterPorts() {
-        return nMasterPorts;
-    }
-
-    /**
-     * Sets the value of the nMasterPorts property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link BigInteger }
-     *     
-     */
-    public void setNMasterPorts(BigInteger value) {
-        this.nMasterPorts = value;
-    }
-
-    /**
-     * Gets the value of the name property.
+     * Gets the value of the os property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getName() {
-        return name;
+    public String getOS() {
+        return os;
     }
 
     /**
-     * Sets the value of the name property.
+     * Sets the value of the os property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setName(String value) {
-        this.name = value;
-    }
-
-    /**
-     * Gets the value of the relativeCost property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link BigDecimal }
-     *     
-     */
-    public BigDecimal getRelativeCost() {
-        return relativeCost;
-    }
-
-    /**
-     * Sets the value of the relativeCost property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link BigDecimal }
-     *     
-     */
-    public void setRelativeCost(BigDecimal value) {
-        this.relativeCost = value;
+    public void setOS(String value) {
+        this.os = value;
     }
 
     /**
@@ -398,6 +261,102 @@ public class ArchitectureElementTypeType {
     }
 
     /**
+     * Gets the value of the clock property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link BigInteger }
+     *     
+     */
+    public BigInteger getClock() {
+        return clock;
+    }
+
+    /**
+     * Sets the value of the clock property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link BigInteger }
+     *     
+     */
+    public void setClock(BigInteger value) {
+        this.clock = value;
+    }
+
+    /**
+     * Gets the value of the relativeCost property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link BigDecimal }
+     *     
+     */
+    public BigDecimal getRelativeCost() {
+        return relativeCost;
+    }
+
+    /**
+     * Sets the value of the relativeCost property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link BigDecimal }
+     *     
+     */
+    public void setRelativeCost(BigDecimal value) {
+        this.relativeCost = value;
+    }
+
+    /**
+     * Gets the value of the archiType property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getArchiType() {
+        return archiType;
+    }
+
+    /**
+     * Sets the value of the archiType property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setArchiType(String value) {
+        this.archiType = value;
+    }
+
+    /**
+     * Gets the value of the activePower property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link BigInteger }
+     *     
+     */
+    public BigInteger getActivePower() {
+        return activePower;
+    }
+
+    /**
+     * Sets the value of the activePower property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link BigInteger }
+     *     
+     */
+    public void setActivePower(BigInteger value) {
+        this.activePower = value;
+    }
+
+    /**
      * Gets the value of the sleepPower property.
      * 
      * @return
@@ -422,27 +381,75 @@ public class ArchitectureElementTypeType {
     }
 
     /**
-     * Gets the value of the subcategory property.
+     * Gets the value of the nMasterPorts property.
      * 
      * @return
      *     possible object is
-     *     {@link String }
+     *     {@link BigInteger }
      *     
      */
-    public String getSubcategory() {
-        return subcategory;
+    public BigInteger getNMasterPorts() {
+        return nMasterPorts;
     }
 
     /**
-     * Sets the value of the subcategory property.
+     * Sets the value of the nMasterPorts property.
      * 
      * @param value
      *     allowed object is
-     *     {@link String }
+     *     {@link BigInteger }
      *     
      */
-    public void setSubcategory(String value) {
-        this.subcategory = value;
+    public void setNMasterPorts(BigInteger value) {
+        this.nMasterPorts = value;
+    }
+
+    /**
+     * Gets the value of the nInterruptPorts property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link BigInteger }
+     *     
+     */
+    public BigInteger getNInterruptPorts() {
+        return nInterruptPorts;
+    }
+
+    /**
+     * Sets the value of the nInterruptPorts property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link BigInteger }
+     *     
+     */
+    public void setNInterruptPorts(BigInteger value) {
+        this.nInterruptPorts = value;
+    }
+
+    /**
+     * Gets the value of the memorySize property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link BigInteger }
+     *     
+     */
+    public BigInteger getMemorySize() {
+        return memorySize;
+    }
+
+    /**
+     * Sets the value of the memorySize property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link BigInteger }
+     *     
+     */
+    public void setMemorySize(BigInteger value) {
+        this.memorySize = value;
     }
 
 }

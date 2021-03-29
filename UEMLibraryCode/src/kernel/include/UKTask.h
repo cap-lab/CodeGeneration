@@ -34,7 +34,7 @@ typedef enum _EInternalTaskState {
  *
  * @return
  *  @ref ERR_UEM_NOERROR is returned if there is no error. \n
- *  Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_OUT_OF_MEMORY, @ref ERR_UEM_MUTEX_ERROR when creating mutex and event handler. \n
+ *  Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_OUT_OF_MEMORY, @ref ERR_UEM_MUTEX_ERROR when creating mutex and event handler.
  */
 uem_result UKTask_Initialize();
 
@@ -47,7 +47,7 @@ uem_result UKTask_Initialize();
  *
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
- * Errors to be returned - @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_MUTEX_ERROR when destroying mutex and event handler. \n
+ * Errors to be returned - @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_MUTEX_ERROR when destroying mutex and event handler.
  */
 void UKTask_Finalize();
 
@@ -118,7 +118,7 @@ uem_result UKTask_StopTask (IN int nCallerTaskId, IN char *pszTaskName, IN uem_b
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
  * @ref ERR_UEM_INVALID_PARAM for invalid @a nCallerTaskId or @a pszTaskName.\n
  * (constrained device) \n
- * @ref ERR_UEM_ILLEGAL_CONTROL if Caller task is not control Task. \n
+ * @ref ERR_UEM_ILLEGAL_CONTROL if Caller task is not control Task.
  */
 uem_result UKTask_CallTask (IN int nCallerTaskId, IN char *pszTaskName);
 
@@ -169,7 +169,7 @@ uem_result UKTask_GetTaskState(IN int nCallerTaskId, char *pszTaskName, OUT EInt
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
  * @ref ERR_UEM_INVALID_PARAM for invalid @a nCallerTaskId or @a pszTaskName. \n
- * @ref ERR_UEM_ILLEGAL_CONTROL when Caller task is not Control Task. \n
+ * @ref ERR_UEM_ILLEGAL_CONTROL when Caller task is not Control Task.
  */
 uem_result UKTask_SuspendTask (IN int nCallerTaskId, IN char *pszTaskName);
 
@@ -184,7 +184,7 @@ uem_result UKTask_SuspendTask (IN int nCallerTaskId, IN char *pszTaskName);
  * @return
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
  * @ref ERR_UEM_INVALID_PARAM for invalid @a nCallerTaskId or @a pszTaskName. \n
- * @ref ERR_UEM_ILLEGAL_CONTROL when Caller task is not Control Task. \n
+ * @ref ERR_UEM_ILLEGAL_CONTROL when Caller task is not Control Task.
 
  * \n
  *  Functions that may propagate error results \n
@@ -208,7 +208,7 @@ uem_result UKTask_ResumeTask (IN int nCallerTaskId, IN char *pszTaskName);
  * @ref ERR_UEM_NOERROR is returned if there is no error. \n
  * @ref ERR_UEM_INVALID_PARAM for invalid @a nCallerTaskId, @a pszTaskName, @a pszValue, @a pszUnit. \n
  * @ref ERR_UEM_ILLEGAL_CONTROL if task is not Control task. \n
- * @ref ERR_UEM_NO_DATA if caller task id does not match to any task or target task name does not match to any. \n
+ * @ref ERR_UEM_NO_DATA if caller task id does not match to any task or target task name does not match to any.
  *
  */
 uem_result UKTask_SetThroughputConstraint (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszValue, IN char *pszUnit);
@@ -269,6 +269,43 @@ uem_result UKTask_GetTaskByTaskNameAndCallerTask(STask *pstCallerTask, char *psz
  * @return TRUE if one is a parent task of another task, FALSE otherwise.
  */
 uem_bool UKTask_isParentTask(int nTaskId, int nParentTaskId);
+
+/**
+ * @brief Set a period.
+ *
+ * This function sets a period of the task.
+ *
+ * @param nCallerTaskId id of caller task.
+ * @param pszTaskName task name to set period.
+ * @param nValue integer containing value.
+ * @param pszTimeUnit time unit for the period.
+ *
+ * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid @a nCallerTaskId, @a pszTaskName, @a pszValue. \n
+ * @ref ERR_UEM_ILLEGAL_CONTROL if task is not Control task. \n
+ * @ref ERR_UEM_NO_DATA if caller task id does not match to any task or target task name does not match to any.
+ *
+ */
+uem_result UKTask_SetPeriod (IN int nCallerTaskId, IN char *pszTaskName, IN int nValue, IN char *pszTimeUnit);
+
+/**
+ * @brief Update a mapping info of the task.
+ *
+ * This function updates a mapping info of the task.
+ *
+ * @param nCallerTaskId id of caller task.
+ * @param pszTaskName task name to update the mapping info.
+ * @param nNewLocalId local core id to assign newly.
+ *
+ * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid @a nCallerTaskId, @a pszTaskName, @a pszValue. \n
+ * @ref ERR_UEM_ILLEGAL_CONTROL if task is not Control task. \n
+ * @ref ERR_UEM_NO_DATA if caller task id does not match to any task or target task name does not match to any.
+ *
+ */
+uem_result UKTask_ChangeMappedCore (IN int nCallerTaskId, IN char *pszTaskName, IN int nNewLocalId);
 
 #ifdef __cplusplus
 }

@@ -8,6 +8,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -17,18 +18,18 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="SensorType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="parameter" type="{http://peace.snu.ac.kr/CICXMLSchema}SensorParameterType" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="value" type="{http://peace.snu.ac.kr/CICXMLSchema}SensorValueType" maxOccurs="unbounded"/>
- *       &lt;/sequence>
- *       &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="number" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="SensorType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="parameter" type="{http://peace.snu.ac.kr/CICXMLSchema}SensorParameterType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="value" type="{http://peace.snu.ac.kr/CICXMLSchema}SensorValueType" maxOccurs="unbounded"/&gt;
+ *       &lt;/sequence&gt;
+ *       &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="number" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -43,9 +44,10 @@ public class SensorType {
     protected List<SensorParameterType> parameter;
     @XmlElement(required = true)
     protected List<SensorValueType> value;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "name", required = true)
     protected String name;
-    @XmlAttribute
+    @XmlAttribute(name = "number")
+    @XmlSchemaType(name = "nonNegativeInteger")
     protected BigInteger number;
 
     /**

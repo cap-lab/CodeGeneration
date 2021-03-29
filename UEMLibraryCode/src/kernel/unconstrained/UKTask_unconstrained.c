@@ -17,6 +17,7 @@
 
 #include <UKTask.h>
 #include <UKTask_internal.h>
+#include <UKTime.h>
 #include <UKModeTransition.h>
 
 #include <UKCPUTaskManager.h>
@@ -947,6 +948,62 @@ _EXIT:
 	return result;
 }
 
+uem_result UKTask_SetPeriod (IN int nCallerTaskId, IN char *pszTaskName, IN int nValue, IN char *pszTimeUnit)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask *pstTask = NULL;
+	STask *pstCallerTask = NULL;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(nValue, 0, result, ERR_UEM_INVALID_PARAM, _EXIT);
+#endif
 
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
 
+	if(pstCallerTask->enType != TASK_TYPE_CONTROL)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
 
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadMutex_Lock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	pstTask->nPeriod = nValue;
+	result = UKTime_ConvertTimeUnit(pszTimeUnit, &(pstTask->enPeriodMetric));
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCThreadMutex_Unlock(pstTask->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+uem_result UKTask_ChangeMappedCore (IN int nCallerTaskId, IN char *pszTaskName, IN int nNewLocalId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask *pstTask = NULL;
+	STask *pstCallerTask = NULL;
+
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstCallerTask->enType != TASK_TYPE_CONTROL)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
+
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKCPUTaskManager_ChangeMappedCore(g_hCPUTaskManager, pstTask->nTaskId, nNewLocalId);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}

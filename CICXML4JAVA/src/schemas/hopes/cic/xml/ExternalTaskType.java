@@ -13,20 +13,20 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="ExternalTaskType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="ParentTask" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="architectureFile" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="description" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="mappingFile" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="networkFile" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="profileFile" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="taskType" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="ExternalTaskType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="taskType" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="description" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="ParentTask" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="networkFile" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="architectureFile" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="profileFile" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="mappingFile" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -35,69 +35,69 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "ExternalTaskType")
 public class ExternalTaskType {
 
+    @XmlAttribute(name = "name", required = true)
+    protected String name;
+    @XmlAttribute(name = "taskType", required = true)
+    protected String taskType;
+    @XmlAttribute(name = "description")
+    protected String description;
     @XmlAttribute(name = "ParentTask", required = true)
     protected String parentTask;
-    @XmlAttribute(required = true)
-    protected String architectureFile;
-    @XmlAttribute
-    protected String description;
-    @XmlAttribute(required = true)
-    protected String mappingFile;
-    @XmlAttribute(required = true)
-    protected String name;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "networkFile", required = true)
     protected String networkFile;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "architectureFile", required = true)
+    protected String architectureFile;
+    @XmlAttribute(name = "profileFile", required = true)
     protected String profileFile;
-    @XmlAttribute(required = true)
-    protected String taskType;
+    @XmlAttribute(name = "mappingFile", required = true)
+    protected String mappingFile;
 
     /**
-     * Gets the value of the parentTask property.
+     * Gets the value of the name property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getParentTask() {
-        return parentTask;
+    public String getName() {
+        return name;
     }
 
     /**
-     * Sets the value of the parentTask property.
+     * Sets the value of the name property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setParentTask(String value) {
-        this.parentTask = value;
+    public void setName(String value) {
+        this.name = value;
     }
 
     /**
-     * Gets the value of the architectureFile property.
+     * Gets the value of the taskType property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getArchitectureFile() {
-        return architectureFile;
+    public String getTaskType() {
+        return taskType;
     }
 
     /**
-     * Sets the value of the architectureFile property.
+     * Sets the value of the taskType property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setArchitectureFile(String value) {
-        this.architectureFile = value;
+    public void setTaskType(String value) {
+        this.taskType = value;
     }
 
     /**
@@ -125,51 +125,27 @@ public class ExternalTaskType {
     }
 
     /**
-     * Gets the value of the mappingFile property.
+     * Gets the value of the parentTask property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getMappingFile() {
-        return mappingFile;
+    public String getParentTask() {
+        return parentTask;
     }
 
     /**
-     * Sets the value of the mappingFile property.
+     * Sets the value of the parentTask property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setMappingFile(String value) {
-        this.mappingFile = value;
-    }
-
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setName(String value) {
-        this.name = value;
+    public void setParentTask(String value) {
+        this.parentTask = value;
     }
 
     /**
@@ -197,6 +173,30 @@ public class ExternalTaskType {
     }
 
     /**
+     * Gets the value of the architectureFile property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getArchitectureFile() {
+        return architectureFile;
+    }
+
+    /**
+     * Sets the value of the architectureFile property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setArchitectureFile(String value) {
+        this.architectureFile = value;
+    }
+
+    /**
      * Gets the value of the profileFile property.
      * 
      * @return
@@ -221,27 +221,27 @@ public class ExternalTaskType {
     }
 
     /**
-     * Gets the value of the taskType property.
+     * Gets the value of the mappingFile property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getTaskType() {
-        return taskType;
+    public String getMappingFile() {
+        return mappingFile;
     }
 
     /**
-     * Sets the value of the taskType property.
+     * Sets the value of the mappingFile property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setTaskType(String value) {
-        this.taskType = value;
+    public void setMappingFile(String value) {
+        this.mappingFile = value;
     }
 
 }

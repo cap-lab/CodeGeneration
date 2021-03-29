@@ -16,17 +16,17 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="ArchitectureConnectType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="slave" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureConnectionSlaveType" maxOccurs="unbounded"/>
- *       &lt;/sequence>
- *       &lt;attribute name="connection" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="master" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="ArchitectureConnectType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="slave" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureConnectionSlaveType" maxOccurs="unbounded"/&gt;
+ *       &lt;/sequence&gt;
+ *       &lt;attribute name="master" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="connection" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -39,10 +39,10 @@ public class ArchitectureConnectType {
 
     @XmlElement(required = true)
     protected List<ArchitectureConnectionSlaveType> slave;
-    @XmlAttribute(required = true)
-    protected String connection;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "master", required = true)
     protected String master;
+    @XmlAttribute(name = "connection", required = true)
+    protected String connection;
 
     /**
      * Gets the value of the slave property.
@@ -74,30 +74,6 @@ public class ArchitectureConnectType {
     }
 
     /**
-     * Gets the value of the connection property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getConnection() {
-        return connection;
-    }
-
-    /**
-     * Sets the value of the connection property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setConnection(String value) {
-        this.connection = value;
-    }
-
-    /**
      * Gets the value of the master property.
      * 
      * @return
@@ -119,6 +95,30 @@ public class ArchitectureConnectType {
      */
     public void setMaster(String value) {
         this.master = value;
+    }
+
+    /**
+     * Gets the value of the connection property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getConnection() {
+        return connection;
+    }
+
+    /**
+     * Sets the value of the connection property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setConnection(String value) {
+        this.connection = value;
     }
 
 }

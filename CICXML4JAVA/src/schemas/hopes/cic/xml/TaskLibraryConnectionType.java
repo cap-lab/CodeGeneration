@@ -13,15 +13,15 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="TaskLibraryConnectionType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="masterPort" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="masterTask" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="slaveLibrary" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="TaskLibraryConnectionType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;attribute name="masterTask" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="masterPort" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="slaveLibrary" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -30,36 +30,12 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "TaskLibraryConnectionType")
 public class TaskLibraryConnectionType {
 
-    @XmlAttribute(required = true)
-    protected String masterPort;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "masterTask", required = true)
     protected String masterTask;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "masterPort", required = true)
+    protected String masterPort;
+    @XmlAttribute(name = "slaveLibrary", required = true)
     protected String slaveLibrary;
-
-    /**
-     * Gets the value of the masterPort property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getMasterPort() {
-        return masterPort;
-    }
-
-    /**
-     * Sets the value of the masterPort property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setMasterPort(String value) {
-        this.masterPort = value;
-    }
 
     /**
      * Gets the value of the masterTask property.
@@ -83,6 +59,30 @@ public class TaskLibraryConnectionType {
      */
     public void setMasterTask(String value) {
         this.masterTask = value;
+    }
+
+    /**
+     * Gets the value of the masterPort property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getMasterPort() {
+        return masterPort;
+    }
+
+    /**
+     * Sets the value of the masterPort property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setMasterPort(String value) {
+        this.masterPort = value;
     }
 
     /**

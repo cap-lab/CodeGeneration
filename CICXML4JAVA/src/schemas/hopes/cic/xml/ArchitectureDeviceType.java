@@ -14,22 +14,22 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="ArchitectureDeviceType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="elements" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureElementListType"/>
- *         &lt;element name="connections" type="{http://peace.snu.ac.kr/CICXMLSchema}DeviceConnectionListType" minOccurs="0"/>
- *         &lt;element name="modules" type="{http://peace.snu.ac.kr/CICXMLSchema}ModuleListType" minOccurs="0"/>
- *         &lt;element name="environmentVariables" type="{http://peace.snu.ac.kr/CICXMLSchema}EnvironmentVariableListType" minOccurs="0"/>
- *       &lt;/sequence>
- *       &lt;attribute name="architecture" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="platform" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="runtime" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="ArchitectureDeviceType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="elements" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureElementListType"/&gt;
+ *         &lt;element name="connections" type="{http://peace.snu.ac.kr/CICXMLSchema}DeviceConnectionListType" minOccurs="0"/&gt;
+ *         &lt;element name="modules" type="{http://peace.snu.ac.kr/CICXMLSchema}ModuleListType" minOccurs="0"/&gt;
+ *         &lt;element name="environmentVariables" type="{http://peace.snu.ac.kr/CICXMLSchema}EnvironmentVariableListType" minOccurs="0"/&gt;
+ *       &lt;/sequence&gt;
+ *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="architecture" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="platform" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="runtime" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -48,13 +48,13 @@ public class ArchitectureDeviceType {
     protected DeviceConnectionListType connections;
     protected ModuleListType modules;
     protected EnvironmentVariableListType environmentVariables;
-    @XmlAttribute(required = true)
-    protected String architecture;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "name", required = true)
     protected String name;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "architecture", required = true)
+    protected String architecture;
+    @XmlAttribute(name = "platform", required = true)
     protected String platform;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "runtime", required = true)
     protected String runtime;
 
     /**
@@ -154,30 +154,6 @@ public class ArchitectureDeviceType {
     }
 
     /**
-     * Gets the value of the architecture property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getArchitecture() {
-        return architecture;
-    }
-
-    /**
-     * Sets the value of the architecture property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setArchitecture(String value) {
-        this.architecture = value;
-    }
-
-    /**
      * Gets the value of the name property.
      * 
      * @return
@@ -199,6 +175,30 @@ public class ArchitectureDeviceType {
      */
     public void setName(String value) {
         this.name = value;
+    }
+
+    /**
+     * Gets the value of the architecture property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getArchitecture() {
+        return architecture;
+    }
+
+    /**
+     * Sets the value of the architecture property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setArchitecture(String value) {
+        this.architecture = value;
     }
 
     /**

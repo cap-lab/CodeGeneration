@@ -18,50 +18,6 @@
 
 #include <UKTask.h>
 
-#define TIMER_UNIT_SEC "S"
-#define TIMER_UNIT_MILLSEC "MS"
-#define TIMER_UNIT_MICROSEC "US"
-
-
-#define TIMER_METRIC_GAP (1000)
-
-
-static uem_result convertTimeToMilliSec(IN int nTimeValue, IN char *pszTimeUnit, OUT uem_time *ptMilliSec)
-{
-	uem_result result = ERR_UEM_UNKNOWN;
-
-	// compare also the last NULL string, so size is sizeof(TIMER_UNIT_XXX)
-	if(UC_memcmp(pszTimeUnit, TIMER_UNIT_SEC, sizeof(TIMER_UNIT_SEC)) == 0)
-	{
-		*ptMilliSec = nTimeValue * TIMER_METRIC_GAP;
-	}
-	else if(UC_memcmp(pszTimeUnit, TIMER_UNIT_MILLSEC, sizeof(TIMER_UNIT_MILLSEC)) == 0)
-	{
-		*ptMilliSec = nTimeValue;
-	}
-	else if(UC_memcmp(pszTimeUnit, TIMER_UNIT_MICROSEC, sizeof(TIMER_UNIT_MICROSEC)) == 0)
-	{
-		// Microsecond is not supported because its resolution is too small to wait.
-		if(nTimeValue < TIMER_METRIC_GAP)
-		{
-			*ptMilliSec = 1;
-		}
-		else
-		{
-			*ptMilliSec = nTimeValue / TIMER_METRIC_GAP;
-		}
-	}
-	else
-	{
-		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
-	}
-
-
-	result = ERR_UEM_NOERROR;
-_EXIT:
-	return result;
-}
-
 static uem_result findEmptyTimerSlot(STimer *pstTimer, int *pnTimerIndex)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
@@ -122,6 +78,7 @@ uem_result UKTimer_SetAlarm (IN int nCallerTaskId, IN int nTimeValue, IN char *p
 	STask *pstCallerTask = NULL;
 	uem_time tMilliSec = 0;
 	uem_time tCurTime = 0;
+	ETimeMetric enTimeMetric;
 	int nTimerIndex = INVALID_TIMER_SLOT_ID;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(pszTimeUnit, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
@@ -140,7 +97,10 @@ uem_result UKTimer_SetAlarm (IN int nCallerTaskId, IN int nTimeValue, IN char *p
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 	}
 
-	result = convertTimeToMilliSec(nTimeValue, pszTimeUnit, &tMilliSec);
+	result = UKTime_ConvertTimeUnit(pszTimeUnit, &enTimeMetric);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKTime_ConvertToMilliSec(nTimeValue, enTimeMetric, &tMilliSec);
 	ERRIFGOTO(result, _EXIT);
 
 	result = UCTime_GetCurTickInMilliSeconds(&tCurTime);

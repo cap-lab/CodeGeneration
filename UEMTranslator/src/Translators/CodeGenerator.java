@@ -261,6 +261,9 @@ public class CodeGenerator {
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_BLUETOOTH_MASTER_LIST, device.getBluetoothMasterList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_BLUETOOTH_SLAVE_LIST, device.getBluetoothUnconstrainedSlaveList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_MASTER_LIST, device.getSerialMasterList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_SECURE_TCP_CLIENT_LIST, device.getSecureTcpClientList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_SECURE_TCP_SERVER_LIST, device.getSecureTcpServerList());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_SSL_KEY_INFO_LIST, device.getKeyInfoList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_ENVIRONMENT_VARIABLE_INFO, envVarList);
 
 		if (codeOrganizer.getDeviceRestriction().equals(TranslatorProperties.PROPERTY_VALUE_CONSTRAINED)) {
@@ -333,7 +336,7 @@ public class CodeGenerator {
 						taskCodeRootHash.remove(Constants.TEMPLATE_TAG_TASK_FUNC_ID);
 					}
 
-					taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_FUNC_ID, new Integer(loop));
+					taskCodeRootHash.put(Constants.TEMPLATE_TAG_TASK_FUNC_ID, Integer.valueOf(loop));
 
 					Writer out = new OutputStreamWriter(new PrintStream(new File(outputFilePath)));
 					taskCodeTemplate.process(taskCodeRootHash, out);

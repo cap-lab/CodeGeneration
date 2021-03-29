@@ -196,6 +196,22 @@ uem_result UKCPUGeneralTaskManager_CheckTaskStarted(HCPUGeneralTaskManager hMana
 uem_result UKCPUGeneralTaskManager_DestroyThread(HCPUGeneralTaskManager hManager, STask *pstTargetTask);
 
 /**
+ * @brief Update the mapping info in the task.
+ *
+ * This function updates the mapping info in the task. \n
+ *
+ * @param hManager a general task manager handle.
+ * @param pstTargetTask target task to update the mapping info.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_NOT_FOUND, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, \n
+ *         @ref ERR_UEM_ILLEGAL_CONTROL. \n
+ *         @ref ERR_UEM_NOT_FOUND is occurred when the target task is not found in the general task manager.
+ *         @ref ERR_UEM_ILLEGAL_CONTROL is occurred when the processor of the task is not a CPU.
+ */
+uem_result UKCPUGeneralTaskManager_ChangeMappedCore(HCPUGeneralTaskManager hManager, STask *pstTargetTask, int nNewLocalId);
+
+/**
  * @brief Check all the general tasks are stopped.
  *
  * This function destroys a general task manager.

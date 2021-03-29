@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -14,15 +15,15 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="WorkSizeType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="depth" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *       &lt;attribute name="height" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *       &lt;attribute name="width" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="WorkSizeType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;attribute name="height" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *       &lt;attribute name="width" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *       &lt;attribute name="depth" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -31,36 +32,15 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "WorkSizeType")
 public class WorkSizeType {
 
-    @XmlAttribute(required = true)
-    protected BigInteger depth;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "height", required = true)
+    @XmlSchemaType(name = "nonNegativeInteger")
     protected BigInteger height;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "width", required = true)
+    @XmlSchemaType(name = "nonNegativeInteger")
     protected BigInteger width;
-
-    /**
-     * Gets the value of the depth property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link BigInteger }
-     *     
-     */
-    public BigInteger getDepth() {
-        return depth;
-    }
-
-    /**
-     * Sets the value of the depth property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link BigInteger }
-     *     
-     */
-    public void setDepth(BigInteger value) {
-        this.depth = value;
-    }
+    @XmlAttribute(name = "depth", required = true)
+    @XmlSchemaType(name = "nonNegativeInteger")
+    protected BigInteger depth;
 
     /**
      * Gets the value of the height property.
@@ -108,6 +88,30 @@ public class WorkSizeType {
      */
     public void setWidth(BigInteger value) {
         this.width = value;
+    }
+
+    /**
+     * Gets the value of the depth property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link BigInteger }
+     *     
+     */
+    public BigInteger getDepth() {
+        return depth;
+    }
+
+    /**
+     * Sets the value of the depth property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link BigInteger }
+     *     
+     */
+    public void setDepth(BigInteger value) {
+        this.depth = value;
     }
 
 }

@@ -13,17 +13,17 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="MTMType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="mode_list" type="{http://peace.snu.ac.kr/CICXMLSchema}MTMModeListType"/>
- *         &lt;element name="variable_list" type="{http://peace.snu.ac.kr/CICXMLSchema}MTMVariableListType"/>
- *         &lt;element name="transition_list" type="{http://peace.snu.ac.kr/CICXMLSchema}MTMTransitionListType"/>
- *       &lt;/sequence>
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="MTMType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="mode_list" type="{http://peace.snu.ac.kr/CICXMLSchema}MTMModeListType"/&gt;
+ *         &lt;element name="variable_list" type="{http://peace.snu.ac.kr/CICXMLSchema}MTMVariableListType"/&gt;
+ *         &lt;element name="transition_list" type="{http://peace.snu.ac.kr/CICXMLSchema}MTMTransitionListType"/&gt;
+ *       &lt;/sequence&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 

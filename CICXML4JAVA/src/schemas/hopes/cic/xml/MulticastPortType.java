@@ -13,15 +13,15 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="MulticastPortType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="direction" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}PortDirectionType" />
- *       &lt;attribute name="group" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="MulticastPortType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="group" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="direction" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}PortDirectionType" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -30,35 +30,35 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "MulticastPortType")
 public class MulticastPortType {
 
-    @XmlAttribute(required = true)
-    protected PortDirectionType direction;
-    @XmlAttribute(required = true)
-    protected String group;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "name", required = true)
     protected String name;
+    @XmlAttribute(name = "group", required = true)
+    protected String group;
+    @XmlAttribute(name = "direction", required = true)
+    protected PortDirectionType direction;
 
     /**
-     * Gets the value of the direction property.
+     * Gets the value of the name property.
      * 
      * @return
      *     possible object is
-     *     {@link PortDirectionType }
+     *     {@link String }
      *     
      */
-    public PortDirectionType getDirection() {
-        return direction;
+    public String getName() {
+        return name;
     }
 
     /**
-     * Sets the value of the direction property.
+     * Sets the value of the name property.
      * 
      * @param value
      *     allowed object is
-     *     {@link PortDirectionType }
+     *     {@link String }
      *     
      */
-    public void setDirection(PortDirectionType value) {
-        this.direction = value;
+    public void setName(String value) {
+        this.name = value;
     }
 
     /**
@@ -86,27 +86,27 @@ public class MulticastPortType {
     }
 
     /**
-     * Gets the value of the name property.
+     * Gets the value of the direction property.
      * 
      * @return
      *     possible object is
-     *     {@link String }
+     *     {@link PortDirectionType }
      *     
      */
-    public String getName() {
-        return name;
+    public PortDirectionType getDirection() {
+        return direction;
     }
 
     /**
-     * Sets the value of the name property.
+     * Sets the value of the direction property.
      * 
      * @param value
      *     allowed object is
-     *     {@link String }
+     *     {@link PortDirectionType }
      *     
      */
-    public void setName(String value) {
-        this.name = value;
+    public void setDirection(PortDirectionType value) {
+        this.direction = value;
     }
 
 }

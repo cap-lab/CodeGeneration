@@ -14,24 +14,24 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="CICAlgorithmType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="tasks" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskListType"/>
- *         &lt;element name="libraries" type="{http://peace.snu.ac.kr/CICXMLSchema}LibraryListType" minOccurs="0"/>
- *         &lt;element name="channels" type="{http://peace.snu.ac.kr/CICXMLSchema}ChannelListType" minOccurs="0"/>
- *         &lt;element name="multicastGroups" type="{http://peace.snu.ac.kr/CICXMLSchema}MulticastGroupListType" minOccurs="0"/>
- *         &lt;element name="portMaps" type="{http://peace.snu.ac.kr/CICXMLSchema}PortMapListType" minOccurs="0"/>
- *         &lt;element name="libraryConnections" type="{http://peace.snu.ac.kr/CICXMLSchema}LibraryConnectionListType" minOccurs="0"/>
- *         &lt;element name="taskGroups" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskGroupListType" minOccurs="0"/>
- *         &lt;element name="modes" type="{http://peace.snu.ac.kr/CICXMLSchema}ModeListType"/>
- *         &lt;element name="headers" type="{http://peace.snu.ac.kr/CICXMLSchema}HeaderListType" minOccurs="0"/>
- *       &lt;/sequence>
- *       &lt;attribute name="property" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="CICAlgorithmType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="tasks" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskListType"/&gt;
+ *         &lt;element name="libraries" type="{http://peace.snu.ac.kr/CICXMLSchema}LibraryListType" minOccurs="0"/&gt;
+ *         &lt;element name="channels" type="{http://peace.snu.ac.kr/CICXMLSchema}ChannelListType" minOccurs="0"/&gt;
+ *         &lt;element name="multicastGroups" type="{http://peace.snu.ac.kr/CICXMLSchema}MulticastGroupListType" minOccurs="0"/&gt;
+ *         &lt;element name="portMaps" type="{http://peace.snu.ac.kr/CICXMLSchema}PortMapListType" minOccurs="0"/&gt;
+ *         &lt;element name="libraryConnections" type="{http://peace.snu.ac.kr/CICXMLSchema}LibraryConnectionListType" minOccurs="0"/&gt;
+ *         &lt;element name="taskGroups" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskGroupListType" minOccurs="0"/&gt;
+ *         &lt;element name="modes" type="{http://peace.snu.ac.kr/CICXMLSchema}ModeListType"/&gt;
+ *         &lt;element name="headers" type="{http://peace.snu.ac.kr/CICXMLSchema}HeaderListType" minOccurs="0"/&gt;
+ *       &lt;/sequence&gt;
+ *       &lt;attribute name="property" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -61,7 +61,7 @@ public class CICAlgorithmType {
     @XmlElement(required = true)
     protected ModeListType modes;
     protected HeaderListType headers;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "property", required = true)
     protected String property;
 
     /**

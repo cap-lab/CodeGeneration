@@ -15,19 +15,18 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="MappingTaskType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="processor" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingProcessorIdType" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="device" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingDeviceType" maxOccurs="unbounded" minOccurs="0"/>
- *       &lt;/sequence>
- *       &lt;attribute name="dataParallel" type="{http://peace.snu.ac.kr/CICXMLSchema}DataParallelType" />
- *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="remappable" type="{http://www.w3.org/2001/XMLSchema}boolean" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="MappingTaskType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="processor" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingProcessorIdType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="device" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingDeviceType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *       &lt;/sequence&gt;
+ *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="dataParallel" type="{http://peace.snu.ac.kr/CICXMLSchema}DataParallelType" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -41,12 +40,10 @@ public class MappingTaskType {
 
     protected List<MappingProcessorIdType> processor;
     protected List<MappingDeviceType> device;
-    @XmlAttribute
-    protected DataParallelType dataParallel;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "name", required = true)
     protected String name;
-    @XmlAttribute
-    protected Boolean remappable;
+    @XmlAttribute(name = "dataParallel")
+    protected DataParallelType dataParallel;
 
     /**
      * Gets the value of the processor property.
@@ -107,30 +104,6 @@ public class MappingTaskType {
     }
 
     /**
-     * Gets the value of the dataParallel property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link DataParallelType }
-     *     
-     */
-    public DataParallelType getDataParallel() {
-        return dataParallel;
-    }
-
-    /**
-     * Sets the value of the dataParallel property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link DataParallelType }
-     *     
-     */
-    public void setDataParallel(DataParallelType value) {
-        this.dataParallel = value;
-    }
-
-    /**
      * Gets the value of the name property.
      * 
      * @return
@@ -155,27 +128,27 @@ public class MappingTaskType {
     }
 
     /**
-     * Gets the value of the remappable property.
+     * Gets the value of the dataParallel property.
      * 
      * @return
      *     possible object is
-     *     {@link Boolean }
+     *     {@link DataParallelType }
      *     
      */
-    public Boolean isRemappable() {
-        return remappable;
+    public DataParallelType getDataParallel() {
+        return dataParallel;
     }
 
     /**
-     * Sets the value of the remappable property.
+     * Sets the value of the dataParallel property.
      * 
      * @param value
      *     allowed object is
-     *     {@link Boolean }
+     *     {@link DataParallelType }
      *     
      */
-    public void setRemappable(Boolean value) {
-        this.remappable = value;
+    public void setDataParallel(DataParallelType value) {
+        this.dataParallel = value;
     }
 
 }

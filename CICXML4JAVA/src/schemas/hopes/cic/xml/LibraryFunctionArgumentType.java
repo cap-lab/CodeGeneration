@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -14,18 +15,18 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="LibraryFunctionArgumentType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="description" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="output" type="{http://peace.snu.ac.kr/CICXMLSchema}YesNoType" />
- *       &lt;attribute name="pointer" type="{http://peace.snu.ac.kr/CICXMLSchema}YesNoType" />
- *       &lt;attribute name="size" type="{http://www.w3.org/2001/XMLSchema}positiveInteger" />
- *       &lt;attribute name="type" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="LibraryFunctionArgumentType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;attribute name="type" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="size" type="{http://www.w3.org/2001/XMLSchema}positiveInteger" /&gt;
+ *       &lt;attribute name="pointer" type="{http://peace.snu.ac.kr/CICXMLSchema}YesNoType" /&gt;
+ *       &lt;attribute name="output" type="{http://peace.snu.ac.kr/CICXMLSchema}YesNoType" /&gt;
+ *       &lt;attribute name="description" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -34,41 +35,42 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "LibraryFunctionArgumentType")
 public class LibraryFunctionArgumentType {
 
-    @XmlAttribute
-    protected String description;
-    @XmlAttribute(required = true)
-    protected String name;
-    @XmlAttribute
-    protected YesNoType output;
-    @XmlAttribute
-    protected YesNoType pointer;
-    @XmlAttribute
-    protected BigInteger size;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "type", required = true)
     protected String type;
+    @XmlAttribute(name = "name", required = true)
+    protected String name;
+    @XmlAttribute(name = "size")
+    @XmlSchemaType(name = "positiveInteger")
+    protected BigInteger size;
+    @XmlAttribute(name = "pointer")
+    protected YesNoType pointer;
+    @XmlAttribute(name = "output")
+    protected YesNoType output;
+    @XmlAttribute(name = "description")
+    protected String description;
 
     /**
-     * Gets the value of the description property.
+     * Gets the value of the type property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getDescription() {
-        return description;
+    public String getType() {
+        return type;
     }
 
     /**
-     * Sets the value of the description property.
+     * Sets the value of the type property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setDescription(String value) {
-        this.description = value;
+    public void setType(String value) {
+        this.type = value;
     }
 
     /**
@@ -96,27 +98,27 @@ public class LibraryFunctionArgumentType {
     }
 
     /**
-     * Gets the value of the output property.
+     * Gets the value of the size property.
      * 
      * @return
      *     possible object is
-     *     {@link YesNoType }
+     *     {@link BigInteger }
      *     
      */
-    public YesNoType getOutput() {
-        return output;
+    public BigInteger getSize() {
+        return size;
     }
 
     /**
-     * Sets the value of the output property.
+     * Sets the value of the size property.
      * 
      * @param value
      *     allowed object is
-     *     {@link YesNoType }
+     *     {@link BigInteger }
      *     
      */
-    public void setOutput(YesNoType value) {
-        this.output = value;
+    public void setSize(BigInteger value) {
+        this.size = value;
     }
 
     /**
@@ -144,51 +146,51 @@ public class LibraryFunctionArgumentType {
     }
 
     /**
-     * Gets the value of the size property.
+     * Gets the value of the output property.
      * 
      * @return
      *     possible object is
-     *     {@link BigInteger }
+     *     {@link YesNoType }
      *     
      */
-    public BigInteger getSize() {
-        return size;
+    public YesNoType getOutput() {
+        return output;
     }
 
     /**
-     * Sets the value of the size property.
+     * Sets the value of the output property.
      * 
      * @param value
      *     allowed object is
-     *     {@link BigInteger }
+     *     {@link YesNoType }
      *     
      */
-    public void setSize(BigInteger value) {
-        this.size = value;
+    public void setOutput(YesNoType value) {
+        this.output = value;
     }
 
     /**
-     * Gets the value of the type property.
+     * Gets the value of the description property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getType() {
-        return type;
+    public String getDescription() {
+        return description;
     }
 
     /**
-     * Sets the value of the type property.
+     * Sets the value of the description property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setType(String value) {
-        this.type = value;
+    public void setDescription(String value) {
+        this.description = value;
     }
 
 }

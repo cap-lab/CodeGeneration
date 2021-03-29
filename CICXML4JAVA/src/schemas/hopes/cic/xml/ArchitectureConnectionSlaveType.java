@@ -13,14 +13,14 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="ArchitectureConnectionSlaveType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="connection" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="device" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="ArchitectureConnectionSlaveType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;attribute name="device" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="connection" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -29,34 +29,10 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "ArchitectureConnectionSlaveType")
 public class ArchitectureConnectionSlaveType {
 
-    @XmlAttribute(required = true)
-    protected String connection;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "device", required = true)
     protected String device;
-
-    /**
-     * Gets the value of the connection property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getConnection() {
-        return connection;
-    }
-
-    /**
-     * Sets the value of the connection property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setConnection(String value) {
-        this.connection = value;
-    }
+    @XmlAttribute(name = "connection", required = true)
+    protected String connection;
 
     /**
      * Gets the value of the device property.
@@ -80,6 +56,30 @@ public class ArchitectureConnectionSlaveType {
      */
     public void setDevice(String value) {
         this.device = value;
+    }
+
+    /**
+     * Gets the value of the connection property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getConnection() {
+        return connection;
+    }
+
+    /**
+     * Sets the value of the connection property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setConnection(String value) {
+        this.connection = value;
     }
 
 }

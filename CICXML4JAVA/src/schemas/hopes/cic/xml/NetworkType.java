@@ -3,6 +3,7 @@ package hopes.cic.xml;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
+import javax.xml.bind.annotation.XmlType;
 
 
 /**
@@ -11,17 +12,18 @@ import javax.xml.bind.annotation.XmlEnumValue;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
- * &lt;simpleType name="NetworkType">
- *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
- *     &lt;enumeration value="Ethernet/Wi-Fi"/>
- *     &lt;enumeration value="Bluetooth"/>
- *     &lt;enumeration value="USB"/>
- *     &lt;enumeration value="Wire"/>
- *   &lt;/restriction>
- * &lt;/simpleType>
+ * &lt;simpleType name="NetworkType"&gt;
+ *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string"&gt;
+ *     &lt;enumeration value="Ethernet/Wi-Fi"/&gt;
+ *     &lt;enumeration value="Bluetooth"/&gt;
+ *     &lt;enumeration value="USB"/&gt;
+ *     &lt;enumeration value="Wire"/&gt;
+ *   &lt;/restriction&gt;
+ * &lt;/simpleType&gt;
  * </pre>
  * 
  */
+@XmlType(name = "NetworkType")
 @XmlEnum
 public enum NetworkType {
 
@@ -48,7 +50,7 @@ public enum NetworkType {
                 return c;
             }
         }
-        throw new IllegalArgumentException(v.toString());
+        throw new IllegalArgumentException(v);
     }
 
 }

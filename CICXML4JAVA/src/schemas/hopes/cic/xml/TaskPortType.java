@@ -7,6 +7,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -16,23 +17,23 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="TaskPortType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="rate" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskRateType" maxOccurs="unbounded" minOccurs="0"/>
- *       &lt;/sequence>
- *       &lt;attribute name="description" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="direction" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}PortDirectionType" />
- *       &lt;attribute name="isFeedback" type="{http://www.w3.org/2001/XMLSchema}boolean" />
- *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" />
- *       &lt;attribute name="period" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *       &lt;attribute name="sampleSize" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" />
- *       &lt;attribute name="sampleType" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="type" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}PortTypeType" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="TaskPortType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="rate" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskRateType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *       &lt;/sequence&gt;
+ *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="direction" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}PortDirectionType" /&gt;
+ *       &lt;attribute name="description" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="type" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}PortTypeType" /&gt;
+ *       &lt;attribute name="period" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *       &lt;attribute name="sampleType" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="sampleSize" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *       &lt;attribute name="isFeedback" type="{http://www.w3.org/2001/XMLSchema}boolean" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -44,22 +45,24 @@ import javax.xml.bind.annotation.XmlType;
 public class TaskPortType {
 
     protected List<TaskRateType> rate;
-    @XmlAttribute
-    protected String description;
-    @XmlAttribute(required = true)
-    protected PortDirectionType direction;
-    @XmlAttribute
-    protected Boolean isFeedback;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "name", required = true)
     protected String name;
-    @XmlAttribute
-    protected BigInteger period;
-    @XmlAttribute
-    protected BigInteger sampleSize;
-    @XmlAttribute
-    protected String sampleType;
-    @XmlAttribute(required = true)
+    @XmlAttribute(name = "direction", required = true)
+    protected PortDirectionType direction;
+    @XmlAttribute(name = "description")
+    protected String description;
+    @XmlAttribute(name = "type", required = true)
     protected PortTypeType type;
+    @XmlAttribute(name = "period")
+    @XmlSchemaType(name = "nonNegativeInteger")
+    protected BigInteger period;
+    @XmlAttribute(name = "sampleType")
+    protected String sampleType;
+    @XmlAttribute(name = "sampleSize")
+    @XmlSchemaType(name = "nonNegativeInteger")
+    protected BigInteger sampleSize;
+    @XmlAttribute(name = "isFeedback")
+    protected Boolean isFeedback;
 
     /**
      * Gets the value of the rate property.
@@ -91,27 +94,27 @@ public class TaskPortType {
     }
 
     /**
-     * Gets the value of the description property.
+     * Gets the value of the name property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getDescription() {
-        return description;
+    public String getName() {
+        return name;
     }
 
     /**
-     * Sets the value of the description property.
+     * Sets the value of the name property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setDescription(String value) {
-        this.description = value;
+    public void setName(String value) {
+        this.name = value;
     }
 
     /**
@@ -139,51 +142,51 @@ public class TaskPortType {
     }
 
     /**
-     * Gets the value of the isFeedback property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
-     */
-    public Boolean isIsFeedback() {
-        return isFeedback;
-    }
-
-    /**
-     * Sets the value of the isFeedback property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
-     */
-    public void setIsFeedback(Boolean value) {
-        this.isFeedback = value;
-    }
-
-    /**
-     * Gets the value of the name property.
+     * Gets the value of the description property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getName() {
-        return name;
+    public String getDescription() {
+        return description;
     }
 
     /**
-     * Sets the value of the name property.
+     * Sets the value of the description property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setName(String value) {
-        this.name = value;
+    public void setDescription(String value) {
+        this.description = value;
+    }
+
+    /**
+     * Gets the value of the type property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link PortTypeType }
+     *     
+     */
+    public PortTypeType getType() {
+        return type;
+    }
+
+    /**
+     * Sets the value of the type property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link PortTypeType }
+     *     
+     */
+    public void setType(PortTypeType value) {
+        this.type = value;
     }
 
     /**
@@ -211,30 +214,6 @@ public class TaskPortType {
     }
 
     /**
-     * Gets the value of the sampleSize property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link BigInteger }
-     *     
-     */
-    public BigInteger getSampleSize() {
-        return sampleSize;
-    }
-
-    /**
-     * Sets the value of the sampleSize property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link BigInteger }
-     *     
-     */
-    public void setSampleSize(BigInteger value) {
-        this.sampleSize = value;
-    }
-
-    /**
      * Gets the value of the sampleType property.
      * 
      * @return
@@ -259,27 +238,51 @@ public class TaskPortType {
     }
 
     /**
-     * Gets the value of the type property.
+     * Gets the value of the sampleSize property.
      * 
      * @return
      *     possible object is
-     *     {@link PortTypeType }
+     *     {@link BigInteger }
      *     
      */
-    public PortTypeType getType() {
-        return type;
+    public BigInteger getSampleSize() {
+        return sampleSize;
     }
 
     /**
-     * Sets the value of the type property.
+     * Sets the value of the sampleSize property.
      * 
      * @param value
      *     allowed object is
-     *     {@link PortTypeType }
+     *     {@link BigInteger }
      *     
      */
-    public void setType(PortTypeType value) {
-        this.type = value;
+    public void setSampleSize(BigInteger value) {
+        this.sampleSize = value;
+    }
+
+    /**
+     * Gets the value of the isFeedback property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link Boolean }
+     *     
+     */
+    public Boolean isIsFeedback() {
+        return isFeedback;
+    }
+
+    /**
+     * Sets the value of the isFeedback property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link Boolean }
+     *     
+     */
+    public void setIsFeedback(Boolean value) {
+        this.isFeedback = value;
     }
 
 }

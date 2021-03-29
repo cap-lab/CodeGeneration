@@ -74,6 +74,9 @@ public class Constants {
 	public static final String TEMPLATE_TAG_BLUETOOTH_SLAVE_LIST = "bluetooth_slave_list";
 	public static final String TEMPLATE_TAG_SERIAL_MASTER_LIST = "serial_master_list";
 	public static final String TEMPLATE_TAG_SERIAL_SLAVE_LIST = "serial_slave_list";
+	public static final String TEMPLATE_TAG_SECURE_TCP_SERVER_LIST = "secure_tcp_server_list";
+	public static final String TEMPLATE_TAG_SECURE_TCP_CLIENT_LIST = "secure_tcp_client_list";
+	public static final String TEMPLATE_TAG_SSL_KEY_INFO_LIST = "ssl_key_info_list";
 	
 	// tags for Makefile.ftl and Doxyfile.ftl
 	public static final String TEMPLATE_TAG_BUILD_INFO = "build_info";
