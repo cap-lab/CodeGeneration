@@ -846,6 +846,7 @@ INPUT_ENCODING         = UTF-8
 # *.f, *.for, *.tcl, *.vhd, *.vhdl, *.ucf, *.qsf and *.ice.
 
 FILE_PATTERNS          = *.c \
+                         *.cu \
                          *.cic \
                          *.cicl \
                          *.cc \
