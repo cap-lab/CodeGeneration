@@ -98,7 +98,10 @@ uem_result UKTaskParameter_SetInteger (IN int nCallerTaskId, IN char *pszTaskNam
 	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstCallerTask->enType != TASK_TYPE_CONTROL)
+    result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstCallerTask->enType != TASK_TYPE_CONTROL && pstTask->nTaskId != nCallerTaskId)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 	}
@@ -168,7 +171,10 @@ uem_result UKTaskParameter_SetFloat (IN int nCallerTaskId, IN char *pszTaskName,
 	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
 	ERRIFGOTO(result, _EXIT);
 
-	if(pstCallerTask->enType != TASK_TYPE_CONTROL)
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstCallerTask->enType != TASK_TYPE_CONTROL && pstTask->nTaskId != nCallerTaskId)
 	{
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 	}
