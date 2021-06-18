@@ -30,6 +30,7 @@ Build file for CIC XML - for use with Jakarta Ant-->
    
     <property name="main.src.dir" value="${src.dir}/main" />
     <property name="schemas.src.dir" value="${src.dir}/schemas" />
+	<property name="xsd.src.dir" value="${src.dir}/xsd" />
     <property name="jar.name" value="cicxml.jar" />
     <property name="version.class" value="about.hopes.cic.xml.BuildNumber" />
     
@@ -60,7 +61,10 @@ Build file for CIC XML - for use with Jakarta Ant-->
             </classpath>
         </javac>
         <copy todir="${target.dir}">
-            <fileset dir="${schemas.src.dir}" includes="**/*.gif,**/*.jpg,**/*.png,**/*.xml,**/*.dtd,**/*.tks,**/*.xsd" />
+            <fileset dir="${schemas.src.dir}" includes="**/*.gif,**/*.jpg,**/*.png,**/*.xml,**/*.dtd,**/*.tks" />
+        </copy>
+        <copy todir="${target.dir}/xsd">
+        	<fileset dir="${xsd.src.dir}" includes="**/*.xsd" />
         </copy>
     </target>
 
