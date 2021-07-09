@@ -435,7 +435,15 @@ public class Device {
 		currentTask = globalTaskMap.get(taskName);
 		while(this.taskMap.containsKey(currentTask.getName()) == false)
 		{
-			this.taskMap.put(currentTask.getName(), currentTask);
+			try {
+				Task clonedTask = currentTask.clone();
+				clonedTask.fillTasks(currentTask);
+				this.taskMap.put(currentTask.getName(), clonedTask);
+				currentTask = clonedTask;
+			} catch (CloneNotSupportedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
 			if(this.taskGraphMap.containsKey(currentTask.getParentTaskGraphName()))
 			{
@@ -458,10 +466,11 @@ public class Device {
 			}
 
 			inGraphIndex = taskGraph.getNumOfTasks();
+			System.out.println("Task name: " + currentTask.getName() + ", Parent task name: "
+					+ currentTask.getParentTaskGraphName() + ",  inGraphIndex: " + inGraphIndex);
 			currentTask.setInGraphIndex(inGraphIndex);
-			
 			taskGraph.putTask(currentTask);
-			
+
 			if(currentTask.getParentTaskGraphName().equals(Constants.TOP_TASKGRAPH_NAME) == true)
 				break;
 			
@@ -613,9 +622,10 @@ public class Device {
 					Task task = globalTaskMap.get(mappedTask.getName());
 					
 					putTaskHierarchicallyToTaskMap(task.getName(), globalTaskMap);
+					Task taskInDevice = this.taskMap.get(task.getName());
 					
 					GeneralTaskMappingInfo mappingInfo = new GeneralTaskMappingInfo(mappedTask.getName(), getTaskType(mappedTask.getName()), 
-							task.getParentTaskGraphName(), task.getInGraphIndex());
+							task.getParentTaskGraphName(), taskInDevice.getInGraphIndex());
 					
 					mappingInfo.setMappedDeviceName(device.getName());
 					

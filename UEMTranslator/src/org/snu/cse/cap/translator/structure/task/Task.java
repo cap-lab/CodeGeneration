@@ -46,9 +46,18 @@ enum TaskRunCondition {
 		 }
 		 throw new IllegalArgumentException(value.toString());
 	}
+
+	public static TaskRunCondition fromKey(String name) {
+		for (TaskRunCondition c : TaskRunCondition.values()) {
+			if (c.name().equals(name)) {
+				return c;
+			}
+		}
+		throw new IllegalArgumentException(name.toString());
+	}
 }
 
-public class Task {
+public class Task implements Cloneable {
 	private int id;
 	private String name;
 	private String shortName;
@@ -76,7 +85,12 @@ public class Task {
 	private String taskGraphProperty;
 	private HashMap<String, Integer> iterationCountList;  // mode ID : iteration count
 	private String description;
-	
+	private TaskType xmlTaskData;
+
+	public Task(Task task) {
+
+	}
+
 	public Task(int id, TaskType xmlTaskData)
 	{
 		this.taskParamList = new ArrayList<TaskParameter>();
@@ -94,7 +108,7 @@ public class Task {
 		
 		// mode 0 with single iteration is the default iteration count for all tasks
 		this.iterationCountList.put(0+"", 0);
-	
+
 		setId(id);
 		setName(xmlTaskData.getName());
 		this.shortName = this.name;
@@ -114,13 +128,33 @@ public class Task {
 		{
 			this.ldFlags = xmlTaskData.getLdflags();
 		}
-		
+
 		if(xmlTaskData.getCflags() != null)
 		{
 			this.cFlags = xmlTaskData.getCflags();
 		}
 	}
-	
+
+	@Override
+	public Task clone() throws CloneNotSupportedException {
+		Task task = (Task) super.clone();
+		return task;
+	}
+
+	public void fillTasks(Task task) {
+		this.type = task.getType();
+		this.periodMetric = task.getPeriodMetric();
+		this.modeTransition = task.getModeTransition();
+		this.loopStruct = task.getLoopStruct();
+		this.taskParamList = task.getTaskParamList();
+		this.runCondition = TaskRunCondition.fromKey(task.getRunCondition());
+		this.masterPortToLibraryMap = task.getMasterPortToLibraryMap();
+		this.extraHeaderSet = task.getExtraHeaderSet();
+		this.extraSourceSet = task.getExtraSourceSet();
+		this.language = task.getLanguage();
+		this.iterationCountList = task.getIterationCountList();
+	}
+
 	private void setLanguageAndFileExtension(String language)
 	{
 		if(language.equals(ProgrammingLanguage.CPP.toString()))
