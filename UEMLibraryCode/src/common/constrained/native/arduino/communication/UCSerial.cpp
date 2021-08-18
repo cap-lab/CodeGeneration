@@ -31,8 +31,33 @@ void UCSerial_Initialize(HSerial hSerial)
 
 	pstSerialHandle = (SSerialHandle *) hSerial;
 
-	pstSerialHandle->pclsHandle->begin(DATA_SERIAL_DEFAULT_BAUD_RATE);
+	pstSerialHandle->fnInitialize(pstSerialHandle);
 }
+
+
+void HardwareSerial_Initialize(SSerialHandle *pstSerialHandle)
+{
+	HardwareSerial *pclsHandle = (HardwareSerial *) pstSerialHandle->pclsHandle;
+
+	pclsHandle->begin(DATA_SERIAL_DEFAULT_BAUD_RATE);
+}
+
+
+#ifdef ARDUINO_OpenCR
+void USBSerial_Initialize(SSerialHandle *pstSerialHandle)
+{
+	USBSerial *pclsHandle = (USBSerial *) pstSerialHandle->pclsHandle;
+
+	pclsHandle->begin(DATA_SERIAL_DEFAULT_BAUD_RATE);
+}
+#else
+void SoftwareSerial_Initialize(SSerialHandle *pstSerialHandle)
+{
+	SoftwareSerial *pclsHandle = (SoftwareSerial *) pstSerialHandle->pclsHandle;
+
+	pclsHandle->begin(DATA_SERIAL_DEFAULT_BAUD_RATE);
+}
+#endif
 
 
 uem_result UCSerial_Send(HSerial hSerial, IN char *pData, IN int nDataLen, OUT int *pnSentSize)

@@ -285,6 +285,23 @@ _EXIT:
 	return result;
 }
 
+uem_result UKUEMLiteProtocol_SetHandShakeRequest(unsigned int unDeviceKey)
+{
+    uem_result result = ERR_UEM_UNKNOWN;
+    struct _SUEMLiteProtocol *pstProtocol = NULL;
+
+    pstProtocol = &s_stProtocol;
+
+    result = setBasicSendInfo(&(pstProtocol->stSendData), MESSAGE_TYPE_HANDSHAKE);
+    ERRIFGOTO(result, _EXIT);
+
+    pstProtocol->stSendData.asMessageParam[HANDSHAKE_DEVICE_KEY_LSB_INDEX] = (short) (unDeviceKey & 0xffff);
+    pstProtocol->stSendData.asMessageParam[HANDSHAKE_DEVICE_KEY_MSB_INDEX] = (short) ((unDeviceKey >> 16) & 0xffff);
+
+    result = ERR_UEM_NOERROR;
+_EXIT:
+    return result;
+}
 
 uem_result UKUEMLiteProtocol_SetReadQueueRequest(int nChannelId, int nSizeToRead)
 {

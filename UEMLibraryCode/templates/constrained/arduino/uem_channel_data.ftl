@@ -72,14 +72,43 @@ SPort g_astPortInfo[] = {
 
 
 // ##SOFTWARESERIAL_GENERATION_TEMPLATE::START
-<#if communication_used == true && board_tag != "OpenCR" > //modified(2019.02.18)
-	<#list serial_slave_list as slave>
+<#if communication_used == true && board_tag != "OpenCR" >
+
+<#list serial_slave_list as slave>
+<#switch slave.connectionType>
+	<#case "BLUETOOTH">
+	<#case "WIRE">
 static SoftwareSerial s_clsSerial_${slave.name}(${slave.boardRXPinNumber}, ${slave.boardTXPinNumber});
 
-SSerialHandle g_stSerial_${slave.name}  = { &s_clsSerial_${slave.name} };
+SSerialHandle g_stSerial_${slave.name}  = { &s_clsSerial_${slave.name}, SoftwareSerial_Initialize };
+		<#break>
+	<#case "USB">
+SSerialHandle g_stSerial_${slave.name}  = { &Serial, HardwareSerial_Initialize };	
+		<#break>
+</#switch>
+</#list>
 
+<#list serial_master_list as master>
+<#switch master.connectionType>
+	<#case "BLUETOOTH">
+	<#case "WIRE">
+static SoftwareSerial s_clsSerial_${master.name}(${master.boardRXPinNumber}, ${master.boardTXPinNumber});
+
+SSerialHandle g_stSerial_${master.name}  = { &s_clsSerial_${master.name}, SoftwareSerial_Initialize };
+		<#break>
+	<#case "USB">
+SSerialHandle g_stSerial_${master.name}  = { &Serial, HardwareSerial_Initialize };
+		<#break>
+</#switch>
+</#list>
+
+<#list serial_slave_list as slave>
 SChannel *g_pastAccessChannel_${slave.name}[${slave.channelAccessNum}];
-	</#list>
+</#list>
+	
+<#list serial_master_list as master>
+SChannel *g_pastAccessChannel_${master.name}[${master.channelAccessNum}];
+</#list>
 	
 SSerialInfo g_astSerialSlaveInfo[] = {
 	<#list serial_slave_list as slave>
@@ -91,13 +120,24 @@ SSerialInfo g_astSerialSlaveInfo[] = {
 	},
 	</#list>
 };
+
+SSerialInfo g_astSerialMasterInfo[] = {
+	<#list serial_master_list as master>
+	{
+		&g_stSerial_${master.name},
+		${master.channelAccessNum},
+		0,
+		g_pastAccessChannel_${master.name},
+	},
+	</#list>
+};
 </#if>
 // ##SOFTWARESERIAL_GENERATION_TEMPLATE::END
 
 //OPENCRSERIAL_GENERATION_TEMPLATE::START
-<#if communication_used == true && board_tag == "OpenCR" > //modified(2019.02.18)
+<#if communication_used == true && board_tag == "OpenCR" >
 	<#list serial_slave_list as slave> //suppose only one Serial used.
-SSerialHandle g_stSerial_${slave.name}  = { &Serial };
+SSerialHandle g_stSerial_${slave.name}  = { &Serial, USBSerial_Initialize };
 
 SChannel *g_pastAccessChannel_${slave.name}[${slave.channelAccessNum}];
 	</#list>
@@ -131,17 +171,20 @@ SSharedMemoryChannel g_stSharedMemoryChannel_${channel.index} = {
 			<#switch channel.remoteMethodType>
 				<#case "BLUETOOTH">
 				<#case "SERIAL">
-					<#switch channel.connectionRoleType>
-						<#case "SLAVE">
 SSerialChannel g_stSerialChannel_${channel.index} = {
+					<#switch channel.connectionRoleType>
+						<#case "MASTER">
+	&g_astSerialMasterInfo[${channel.socketInfoIndex}],
+							<#break>
+						<#case "SLAVE">
 	&g_astSerialSlaveInfo[${channel.socketInfoIndex}],
+							<#break>
+				 	</#switch>
 	{
 		MESSAGE_TYPE_NONE,
 		0,
 	},
 	&g_stSharedMemoryChannel_${channel.index},
-							<#break>
-				 	</#switch> 	
 					<#break>
 		 	</#switch>
 };
@@ -173,11 +216,7 @@ SChannel g_astChannels[] = {
 			<#switch channel.remoteMethodType>
 				<#case "BLUETOOTH">
 				<#case "SERIAL">
-					<#switch channel.connectionRoleType>
-						<#case "SLAVE">
 		&g_stSerialChannel_${channel.index}, // specific serial channel structure pointer
-							<#break>
-					</#switch> 	
 					<#break>
 			</#switch>
 		   <#break>
@@ -292,6 +331,12 @@ int g_nChannelNum = ARRAYLEN(g_astChannels);
 <#if communication_used == true>
 int g_nAddOnNum = ARRAYLEN(g_astAddOns);
 
+	<#if (serial_master_list?size > 0) >
+int g_nSerialMasterNum = ARRAYLEN(g_astSerialMasterInfo);
+	<#else>
+int g_nSerialMasterNum = 0;
+	</#if>
+	
 	<#if (serial_slave_list?size > 0) >
 int g_nSerialSlaveNum = ARRAYLEN(g_astSerialSlaveInfo);
 	<#else>

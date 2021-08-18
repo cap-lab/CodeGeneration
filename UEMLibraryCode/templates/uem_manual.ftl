@@ -152,7 +152,7 @@ digraph application_task_graph  {
   <#list device_connection_map as master_device_name, device_connection>
     <#list device_connection.connectionToSlaveMap as master_name, master_to_slave_connection>
       <@compress single_line=true>| ${master_to_slave_connection.master.network} / ${master_to_slave_connection.master.protocol} | ${master_to_slave_connection.master.role} |
-        <#if master_to_slave_connection.master.protocol == "TCP" || master_to_slave_connection.master.protocol == "SECURE_TCP">:${master_to_slave_connection.master.port?c}<#else>${master_to_slave_connection.master.portAddress}</#if> | ${master_device_name} |
+        <#if master_to_slave_connection.master.protocol == "TCP" || master_to_slave_connection.master.protocol == "SECURE_TCP">:${master_to_slave_connection.master.port?c}<#else><#if master_to_slave_connection.master.portAddress??>${master_to_slave_connection.master.portAddress}<#else>Board TX: ${master_to_slave_connection.master.boardTXPinNumber}, Board RX: ${master_to_slave_connection.master.boardRXPinNumber}</#if></#if> | ${master_device_name} |
       </@compress>
       <#list master_to_slave_connection.slaveDeviceToConnectionMap as slave_device_name, slave_connection_list>
         <#list slave_connection_list as slave_connection>

@@ -890,6 +890,10 @@ public class Application {
 		case SERIAL:
 			switch(channel.getConnectionRoleType())
 			{
+			case MASTER:
+				connectionList = targetDevice.getSerialConstrainedMasterList();
+				connection = (ConstrainedSerialConnection) connectionPair.getMasterConnection();
+				break;
 			case SLAVE:
 				connectionList = targetDevice.getSerialConstrainedSlaveList();
 				connection = (ConstrainedSerialConnection) connectionPair.getSlaveConnection();

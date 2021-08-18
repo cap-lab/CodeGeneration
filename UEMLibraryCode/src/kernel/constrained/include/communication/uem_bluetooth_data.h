@@ -54,6 +54,9 @@ typedef struct _SSerialChannel {
 } SSerialChannel;
 
 
+extern SSerialInfo g_astSerialMasterInfo[];
+extern int g_nSerialMasterNum;
+
 extern SSerialInfo g_astSerialSlaveInfo[];
 extern int g_nSerialSlaveNum;
 

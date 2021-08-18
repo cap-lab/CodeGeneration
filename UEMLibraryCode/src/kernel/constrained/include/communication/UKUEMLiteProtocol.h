@@ -34,6 +34,18 @@ extern "C"
 uem_result UKUEMLiteProtocol_Receive(HSerial hSerial);
 
 /**
+ * @brief Set hanshake request.
+ *
+ * This function sets handshake request to begin a communication.
+ *
+ * @param unDeviceKey authentication key for handshaking.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
+ */
+uem_result UKUEMLiteProtocol_SetHandShakeRequest(unsigned int unDeviceKey);
+
+/**
  * @brief Set read queue request.
  *
  * This function sets channel read queue request.

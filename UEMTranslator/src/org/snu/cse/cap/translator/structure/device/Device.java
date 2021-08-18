@@ -93,6 +93,7 @@ public class Device {
 	private HashMap<String, UDPConnection> udpList;
 	private ArrayList<UnconstrainedSerialConnection> bluetoothMasterList;
 	private ArrayList<UnconstrainedSerialConnection> bluetoothUnconstrainedSlaveList;
+	private ArrayList<ConstrainedSerialConnection> serialConstrainedMasterList;
 	private ArrayList<ConstrainedSerialConnection> serialConstrainedSlaveList;
 	private ArrayList<UnconstrainedSerialConnection> serialMasterList;
 	private ArrayList<UnconstrainedSerialConnection> serialUnconstrainedSlaveList;
@@ -132,6 +133,7 @@ public class Device {
 		this.udpList = new HashMap<String, UDPConnection>();
 		this.bluetoothMasterList = new ArrayList<UnconstrainedSerialConnection>();
 		this.bluetoothUnconstrainedSlaveList = new ArrayList<UnconstrainedSerialConnection>();
+		this.serialConstrainedMasterList = new ArrayList<ConstrainedSerialConnection>();
 		this.serialConstrainedSlaveList = new ArrayList<ConstrainedSerialConnection>();
 		this.serialMasterList = new ArrayList<UnconstrainedSerialConnection>();
 		this.serialUnconstrainedSlaveList = new ArrayList<UnconstrainedSerialConnection>();
@@ -435,15 +437,7 @@ public class Device {
 		currentTask = globalTaskMap.get(taskName);
 		while(this.taskMap.containsKey(currentTask.getName()) == false)
 		{
-			try {
-				Task clonedTask = currentTask.clone();
-				clonedTask.fillTasks(currentTask);
-				this.taskMap.put(currentTask.getName(), clonedTask);
-				currentTask = clonedTask;
-			} catch (CloneNotSupportedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			this.taskMap.put(currentTask.getName(), currentTask);
 			
 			if(this.taskGraphMap.containsKey(currentTask.getParentTaskGraphName()))
 			{
@@ -466,11 +460,10 @@ public class Device {
 			}
 
 			inGraphIndex = taskGraph.getNumOfTasks();
-			System.out.println("Task name: " + currentTask.getName() + ", Parent task name: "
-					+ currentTask.getParentTaskGraphName() + ",  inGraphIndex: " + inGraphIndex);
 			currentTask.setInGraphIndex(inGraphIndex);
+			
 			taskGraph.putTask(currentTask);
-
+			
 			if(currentTask.getParentTaskGraphName().equals(Constants.TOP_TASKGRAPH_NAME) == true)
 				break;
 			
@@ -622,10 +615,9 @@ public class Device {
 					Task task = globalTaskMap.get(mappedTask.getName());
 					
 					putTaskHierarchicallyToTaskMap(task.getName(), globalTaskMap);
-					Task taskInDevice = this.taskMap.get(task.getName());
 					
 					GeneralTaskMappingInfo mappingInfo = new GeneralTaskMappingInfo(mappedTask.getName(), getTaskType(mappedTask.getName()), 
-							task.getParentTaskGraphName(), taskInDevice.getInGraphIndex());
+							task.getParentTaskGraphName(), task.getInGraphIndex());
 					
 					mappingInfo.setMappedDeviceName(device.getName());
 					
@@ -1210,7 +1202,11 @@ public class Device {
 			switch(this.platform)
 			{
 			case ARDUINO:
-				this.serialConstrainedSlaveList.add((ConstrainedSerialConnection) connection);
+				if (connection.getRole().equalsIgnoreCase(SerialConnection.ROLE_MASTER) == true) {
+					this.serialConstrainedMasterList.add((ConstrainedSerialConnection) connection);
+				} else {
+					this.serialConstrainedSlaveList.add((ConstrainedSerialConnection) connection);
+				}
 				break;
 			case LINUX:
 				switch(connection.getNetwork())
@@ -1393,6 +1389,10 @@ public class Device {
 
 	public ArrayList<UnconstrainedSerialConnection> getBluetoothUnconstrainedSlaveList() {
 		return bluetoothUnconstrainedSlaveList;
+	}
+
+	public ArrayList<ConstrainedSerialConnection> getSerialConstrainedMasterList() {
+		return serialConstrainedMasterList;
 	}
 
 	public ArrayList<ConstrainedSerialConnection> getSerialConstrainedSlaveList() {
