@@ -132,7 +132,7 @@ uem_result UCSecureTCPSocket_Listen(HSSLSocket hServerSocket);
  * @param[in,out] hSocket a retrieved client socket.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
- *         Errors to be returned - @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_SOCKET, @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_SSL_ERROR\n
+ *         Errors to be returned - @ref ERR_UEM_SELECT_ERROR, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_SOCKET, @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_SELECT_ERROR, @ref ERR_UEM_NET_TIMEOUT, @ref ERR_UEM_SSL_ERROR\n
  *         @ref ERR_UEM_SELECT_ERROR, @ref ERR_UEM_NET_TIMEOUT, and corresponding errors from @ref SSocketAPI fnAccept() function. \n
  *         @ref ERR_UEM_INVALID_HANDLE can be occurred if the handle is not a socket handle.\n
  *         @ref ERR_UEM_INVALID_SOCKET can be occurred if the @a hServerSocket is a client socket. \n
@@ -154,7 +154,7 @@ uem_result UCSecureTCPSocket_Accept(HSSLSocket hServerSocket, IN int nTimeout, I
  * @param nTimeout a maximum time to wait for connection.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
- *         Errors to be returned -  @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_SOCKET, @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_SSL_ERROR\n
+ *         Errors to be returned -  @ref ERR_UEM_CONNECT_ERROR, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_SOCKET, @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_CONNECT_ERROR, @ref ERR_UEM_SSL_ERROR\n
  *         @ref ERR_UEM_CONNECT_ERROR, and corresponding errors from @ref SSocketAPI fnConnect() function. \n
  *         @ref ERR_UEM_INVALID_HANDLE can be occurred if the handle is not a socket handle.\n
  *         @ref ERR_UEM_INVALID_SOCKET can be occurred if the @a hClientSocket is a server socket. \n
