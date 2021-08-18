@@ -948,7 +948,7 @@ public class Application {
 			switch(channel.getConnectionRoleType())
 			{
 			case MASTER:
-				connectionList = targetDevice.getSerialMasterList();
+				connectionList = targetDevice.getSerialUnconstrainedMasterList();
 				connection = (UnconstrainedSerialConnection) connectionPair.getMasterConnection();
 				break;
 			case SLAVE:

@@ -95,7 +95,7 @@ public class Device {
 	private ArrayList<UnconstrainedSerialConnection> bluetoothUnconstrainedSlaveList;
 	private ArrayList<ConstrainedSerialConnection> serialConstrainedMasterList;
 	private ArrayList<ConstrainedSerialConnection> serialConstrainedSlaveList;
-	private ArrayList<UnconstrainedSerialConnection> serialMasterList;
+	private ArrayList<UnconstrainedSerialConnection> serialUnconstrainedMasterList;
 	private ArrayList<UnconstrainedSerialConnection> serialUnconstrainedSlaveList;
 	private ArrayList<SSLTCPConnection> secureTcpServerList;
 	private ArrayList<SSLTCPConnection> secureTcpClientList;
@@ -135,7 +135,7 @@ public class Device {
 		this.bluetoothUnconstrainedSlaveList = new ArrayList<UnconstrainedSerialConnection>();
 		this.serialConstrainedMasterList = new ArrayList<ConstrainedSerialConnection>();
 		this.serialConstrainedSlaveList = new ArrayList<ConstrainedSerialConnection>();
-		this.serialMasterList = new ArrayList<UnconstrainedSerialConnection>();
+		this.serialUnconstrainedMasterList = new ArrayList<UnconstrainedSerialConnection>();
 		this.serialUnconstrainedSlaveList = new ArrayList<UnconstrainedSerialConnection>();
 		this.secureTcpServerList = new ArrayList<SSLTCPConnection>();
 		this.secureTcpClientList = new ArrayList<SSLTCPConnection>();
@@ -1222,7 +1222,7 @@ public class Device {
 				case USB:
 				case WIRE:
 					if(connection.getRole().equalsIgnoreCase(SerialConnection.ROLE_MASTER) == true) {
-						this.serialMasterList.add((UnconstrainedSerialConnection) connection);	
+						this.serialUnconstrainedMasterList.add((UnconstrainedSerialConnection) connection);	
 					}
 					else {
 						this.serialUnconstrainedSlaveList.add((UnconstrainedSerialConnection) connection);	
@@ -1399,8 +1399,8 @@ public class Device {
 		return serialConstrainedSlaveList;
 	}
 
-	public ArrayList<UnconstrainedSerialConnection> getSerialMasterList() {
-		return serialMasterList;
+	public ArrayList<UnconstrainedSerialConnection> getSerialUnconstrainedMasterList() {
+		return serialUnconstrainedMasterList;
 	}
 
 	public ArrayList<UnconstrainedSerialConnection> getSerialUnconstrainedSlaveList() {

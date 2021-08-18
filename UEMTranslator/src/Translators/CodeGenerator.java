@@ -268,7 +268,7 @@ public class CodeGenerator {
 		if (codeOrganizer.getDeviceRestriction().equals(TranslatorProperties.PROPERTY_VALUE_CONSTRAINED)) {
 			uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_MASTER_LIST, device.getSerialConstrainedMasterList());
 		} else if (codeOrganizer.getDeviceRestriction().equals(TranslatorProperties.PROPERTY_VALUE_UNCONSTRAINED)) {
-			uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_MASTER_LIST, device.getSerialMasterList());
+			uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_MASTER_LIST, device.getSerialUnconstrainedMasterList());
 		}
 
 		if (codeOrganizer.getDeviceRestriction().equals(TranslatorProperties.PROPERTY_VALUE_CONSTRAINED)) {
