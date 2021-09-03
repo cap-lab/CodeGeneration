@@ -39,13 +39,13 @@ ${comma_val}fillcolor="#cce5ff"
 </#macro>
 
 <#macro printSingleTaskNode task space>
-${space}${task.name} [label="${task.shortName}<#if device_info.taskMap[task.name]??>*</#if> (${task.id})"<@printFillColor task true/><#if device_info.taskMap[task.name]??>,peripheries=2,penwidth=2</#if>];
+${space}${task.name} [label="${task.name}<#if device_info.taskMap[task.name]??>*</#if> (${task.id})"<@printFillColor task true/><#if device_info.taskMap[task.name]??>,peripheries=2,penwidth=2</#if>];
 </#macro>
 
 <#macro printRecursiveNode task space>
 <#assign innerspace="${space}  " />
 ${space}subgraph cluster_${task.name} {
-${space}  label = "${task.shortName}";
+${space}  label = "${task.name}";
 ${space}  style=filled;
 ${space}  color=black;
 ${space}  <@printFillColor task false/>;

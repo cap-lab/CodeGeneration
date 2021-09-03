@@ -70,7 +70,6 @@ public class CodeGenerator {
 		this.templateConfig.setWrapUncheckedExceptions(true);
 
 		this.translatorProperties = new Properties();
-
 		try {
 			translatorRootDir = getCanonicalPath(
 					getClass().getProtectionDomain().getCodeSource().getLocation().getFile() + "..");
@@ -377,12 +376,14 @@ public class CodeGenerator {
 	}
 
 	public void generateCode() {
+		System.out.println("Generating");
 		try {
 			for (Device device : this.uemDatamodel.getApplication().getDeviceInfo().values()) {
 				CodeOrganizer codeOrganizer = new CodeOrganizer(device.getArchitecture().toString(),
 						device.getPlatform().toString(), device.getRuntime().toString(), device.isGPUMapped(),
 						device.getRequiredCommunicationSet());
 				String topSrcDir = this.mOutputPath + File.separator + device.getName();
+				System.out.println(topSrcDir);
 
 				codeOrganizer.fillSourceCodeListFromTaskAndLibraryMap(device.getTaskMap(), device.getLibraryMap());
 				codeOrganizer.extraInfoFromTaskAndLibraryMap(device.getTaskMap(), device.getLibraryMap());
@@ -435,6 +436,10 @@ public class CodeGenerator {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
+		System.out.println("Testing for input");
+		for (String s : args) {
+			System.out.println(s);
+		}
 		CodeGenerator codeGenerator = new CodeGenerator(args);
 		codeGenerator.generateCode();
 	}

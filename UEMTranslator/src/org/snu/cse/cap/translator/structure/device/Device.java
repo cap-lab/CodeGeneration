@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.structure.ExecutionPolicy;
@@ -199,8 +200,8 @@ public class Device {
 	}
 	
 	// recursive function
-	private int recursiveScheduleLoopInsert(ArrayList<ScheduleItem> scheduleItemList, List<ScheduleElementType> scheduleElementList, 
-										int depth, int maxDepth, HashMap<String, Task> globalTaskMap)
+	private int recursiveScheduleLoopInsert(List<ScheduleItem> scheduleItemList,
+			List<ScheduleElementType> scheduleElementList, int depth, int maxDepth, Map<String, Task> globalTaskMap)
 	{
 		ScheduleLoop scheduleInloop;
 		ScheduleTask scheduleTask;
@@ -235,7 +236,7 @@ public class Device {
 	}
 	
 	private CompositeTaskSchedule fillCompositeTaskSchedule(CompositeTaskSchedule taskSchedule, ScheduleGroupType scheduleGroup, 
-															HashMap<String, Task> globalTaskMap) 
+			Map<String, Task> globalTaskMap) 
 	{ 	
 		int maxDepth = 0;
 		
@@ -263,7 +264,8 @@ public class Device {
 		return processorId; 
 	}
 	
-	private int getModeIdByName(String taskName, String modeName, HashMap<String, Task> globalTaskMap) throws InvalidDataInMetadataFileException
+	private int getModeIdByName(String taskName, String modeName, Map<String, Task> globalTaskMap)
+			throws InvalidDataInMetadataFileException
 	{
 		int modeId;
 		Task task;
@@ -426,7 +428,7 @@ public class Device {
 		}
 	}
 	
-	private void putTaskHierarchicallyToTaskMap(String taskName, HashMap<String, Task> globalTaskMap)
+	private void putTaskHierarchicallyToTaskMap(String taskName, Map<String, Task> globalTaskMap)
 	{
 		Task currentTask;
 		Task parentTask;
@@ -469,7 +471,8 @@ public class Device {
 		}
 	}
 	
-	private void makeMultipleCompositeTaskMapping(String[] splitedFileName, File scheduleFile, HashMap<String, Task> globalTaskMap)
+	private void makeMultipleCompositeTaskMapping(String[] splitedFileName, File scheduleFile,
+			Map<String, Task> globalTaskMap)
 										throws CICXMLException, InvalidDataInMetadataFileException 
 	{
 		int numOfUsableCPU;
@@ -544,7 +547,8 @@ public class Device {
 		}
 	}
 	
-	private void setCompositeTaskMappingInfo(HashMap<String, Task> globalTaskMap, String scheduleFolderPath) throws FileNotFoundException, InvalidScheduleFileNameException, InvalidDataInMetadataFileException {
+	private void setCompositeTaskMappingInfo(Map<String, Task> globalTaskMap, String scheduleFolderPath)
+			throws FileNotFoundException, InvalidScheduleFileNameException, InvalidDataInMetadataFileException {
 		ScheduleFileFilter scheduleXMLFilefilter = new ScheduleFileFilter(); 
 		String[] splitedFileName = null;
 		File scheduleFolder = new File(scheduleFolderPath);
@@ -578,7 +582,7 @@ public class Device {
 		return this.taskMap.get(taskName).getType();
 	}
 	
-	private boolean checkTaskIsIncludedInCompositeTask(String taskName, HashMap<String, Task> globalTaskMap)
+	private boolean checkTaskIsIncludedInCompositeTask(String taskName, Map<String, Task> globalTaskMap)
 	{
 		boolean isInsideCompositeTask = false;
 		Task task;
@@ -601,7 +605,8 @@ public class Device {
 	}
 	
 
-	private void setGeneralTaskMappingInfo(CICMappingType mapping_metadata, HashMap<String, Task> globalTaskMap) throws InvalidDataInMetadataFileException, NoProcessorFoundException
+	private void setGeneralTaskMappingInfo(CICMappingType mapping_metadata, Map<String, Task> globalTaskMap)
+			throws InvalidDataInMetadataFileException, NoProcessorFoundException
 	{		
 		for(MappingTaskType mappedTask: mapping_metadata.getTask())
 		{
@@ -639,7 +644,8 @@ public class Device {
 		}
 	}
 	
-	private void setupGPUInfoPerTask(CICGPUSetupType gpusetup_metadata, HashMap<String, Task> globalTaskMap) throws InvalidDataInMetadataFileException, NoProcessorFoundException
+	private void setupGPUInfoPerTask(CICGPUSetupType gpusetup_metadata, Map<String, Task> globalTaskMap)
+			throws InvalidDataInMetadataFileException, NoProcessorFoundException
 	{
 		for(GPUTaskType mappedTask: gpusetup_metadata.getTasks().getTask())
 		{
@@ -1019,7 +1025,7 @@ public class Device {
 		
 	}
 	
-	public void putInDeviceTaskInformation(HashMap<String, Task> globalTaskMap, 
+	public void putInDeviceTaskInformation(Map<String, Task> globalTaskMap,
 									String scheduleFolderPath, CICMappingType mapping_metadata, ExecutionPolicy executionPolicy, 
 									TaskGraphType topTaskGraphType, CICGPUSetupType gpusetup_metadata)
 	throws FileNotFoundException, InvalidScheduleFileNameException, InvalidDataInMetadataFileException, NoProcessorFoundException
@@ -1061,7 +1067,8 @@ public class Device {
 			taskGraph.setTaskGraphType(topTaskGraphType);
 	}
 
-	private boolean recursiveIsLibraryUsedInDevice(ArrayList<LibraryConnection> libraryConnection, HashMap<String, Library> globalLibraryMap)
+	private boolean recursiveIsLibraryUsedInDevice(List<LibraryConnection> libraryConnection,
+			Map<String, Library> globalLibraryMap)
 	{
 		boolean isUsed = false;
 		
@@ -1088,7 +1095,7 @@ public class Device {
 		return isUsed;
 	}
 	
-	public void putInDeviceLibraryInformation(HashMap<String, Library> globalLibraryMap)
+	public void putInDeviceLibraryInformation(Map<String, Library> globalLibraryMap)
 	{
 		for(Library library: globalLibraryMap.values())
 		{

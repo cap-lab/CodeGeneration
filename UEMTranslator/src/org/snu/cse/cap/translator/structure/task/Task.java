@@ -51,7 +51,6 @@ enum TaskRunCondition {
 public class Task {
 	private int id;
 	private String name;
-	private String shortName;
 	private TaskShapeType type;
 	private int taskFuncNum;
 	private int runRate;
@@ -95,9 +94,8 @@ public class Task {
 		// mode 0 with single iteration is the default iteration count for all tasks
 		this.iterationCountList.put(0+"", 0);
 	
-		setId(id);
+		this.id = id;
 		setName(xmlTaskData.getName());
-		this.shortName = this.name;
 		setType(xmlTaskData.getTaskType(), xmlTaskData.getLoopStructure());
 		setParentTaskGraphName(xmlTaskData.getParentTask());
 		setRunCondition(xmlTaskData.getRunCondition().value());
@@ -252,10 +250,6 @@ public class Task {
 		return id;
 	}
 	
-	public void setId(int taskId) {
-		this.id = taskId;
-	}
-	
 	public String getName() {
 		return name;
 	}
@@ -328,7 +322,6 @@ public class Task {
 		else
 		{
 			this.parentTaskGraphName = parentTaskGraphName;	
-			this.shortName = this.name.substring(parentTaskGraphName.length()+1);
 		}
 	}
 	
@@ -444,7 +437,11 @@ public class Task {
 		}
 	}
 
-	public String getShortName() {
-		return shortName;
+	public TaskLoopType getLoopType() {
+		if (getLoopStruct() != null) {
+			return null;
+		} else {
+			return getLoopStruct().getLoopType();
+		}
 	}
 }
