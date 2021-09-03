@@ -51,6 +51,7 @@ enum TaskRunCondition {
 public class Task {
 	private int id;
 	private String name;
+	private String shortName;
 	private TaskShapeType type;
 	private int taskFuncNum;
 	private int runRate;
@@ -96,6 +97,7 @@ public class Task {
 	
 		this.id = id;
 		setName(xmlTaskData.getName());
+		this.shortName = this.name;
 		setType(xmlTaskData.getTaskType(), xmlTaskData.getLoopStructure());
 		setParentTaskGraphName(xmlTaskData.getParentTask());
 		setRunCondition(xmlTaskData.getRunCondition().value());
@@ -322,6 +324,7 @@ public class Task {
 		else
 		{
 			this.parentTaskGraphName = parentTaskGraphName;	
+			this.shortName = this.name.substring(parentTaskGraphName.length()+1);
 		}
 	}
 	
@@ -443,5 +446,9 @@ public class Task {
 		} else {
 			return getLoopStruct().getLoopType();
 		}
+	}
+	
+	public String getShortName() {
+		return shortName;
 	}
 }
