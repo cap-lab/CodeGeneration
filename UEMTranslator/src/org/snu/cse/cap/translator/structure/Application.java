@@ -96,6 +96,7 @@ public class Application {
 			gatherMulticastPortInfo(taskMetadata, taskId);
 			taskId++;
 		}
+		setLoopDesignatedTaskIdFromTaskName();
 		if (algorithmMetadata.getPortMaps() != null) {
 			setPortMapInformation(algorithmMetadata);
 		}
@@ -1136,6 +1137,17 @@ public class Application {
 		}
 
 		return isSDF;
+	}
+
+	private void setLoopDesignatedTaskIdFromTaskName() {
+		for (Task task : this.taskMap.values()) {
+			Task designatedTask;
+			if (task.getLoopStruct() != null && task.getLoopStruct().getLoopType() == TaskLoopType.CONVERGENT) {
+				designatedTask = this.taskMap.get(task.getLoopStruct().getDesignatedTaskName());
+				task.getLoopStruct().setDesignatedTaskId(designatedTask.getId());
+			}
+
+		}
 	}
 
 	private SDFGraph makeSDFGraph(ArrayList<Task> taskList, ArrayList<Channel> channelList, TaskMode mode)
