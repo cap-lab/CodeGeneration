@@ -92,14 +92,6 @@ uem_result UKTime_ConvertTimeUnit(char *pszTimeUnit, OUT ETimeMetric *penTimeMet
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
-	if (UC_memcmp(pszTimeUnit, TIMER_UNIT_HOUR, sizeof(TIMER_UNIT_HOUR)) == 0)
-	{
-		*penTimeMetric = TIME_METRIC_SEC;
-	}
-	if (UC_memcmp(pszTimeUnit, TIMER_UNIT_MINUTE, sizeof(TIMER_UNIT_MINUTE)) == 0)
-	{
-		*penTimeMetric = TIME_METRIC_SEC;
-	}
 	if (UC_memcmp(pszTimeUnit, TIMER_UNIT_SEC, sizeof(TIMER_UNIT_SEC)) == 0)
 	{
 		*penTimeMetric = TIME_METRIC_SEC;
@@ -111,6 +103,14 @@ uem_result UKTime_ConvertTimeUnit(char *pszTimeUnit, OUT ETimeMetric *penTimeMet
 	else if (UC_memcmp(pszTimeUnit, TIMER_UNIT_MICROSEC, sizeof(TIMER_UNIT_MICROSEC)) == 0)
 	{
 		*penTimeMetric = TIME_METRIC_MICROSEC;
+	}
+	else if (UC_memcmp(pszTimeUnit, TIMER_UNIT_HOUR, sizeof(TIMER_UNIT_HOUR)) == 0)
+	{
+		*penTimeMetric = TIME_METRIC_HOUR;
+	}
+	else if (UC_memcmp(pszTimeUnit, TIMER_UNIT_MINUTE, sizeof(TIMER_UNIT_MINUTE)) == 0)
+	{
+		*penTimeMetric = TIME_METRIC_MINUTE;
 	}
 	else
 	{

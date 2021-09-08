@@ -100,7 +100,7 @@ uem_result UKTimer_SetAlarm (IN int nCallerTaskId, IN int nTimeValue, IN char *p
 	result = UKTime_ConvertTimeUnit(pszTimeUnit, &enTimeMetric);
 	ERRIFGOTO(result, _EXIT);
 
-	result = UKTime_ConvertToMilliSec(nTimeValue, enTimeMetric, &tMilliSec);
+	result = UKTime_ConvertToMilliSec((long long) nTimeValue, enTimeMetric, &tMilliSec);
 	ERRIFGOTO(result, _EXIT);
 
 	result = UCTime_GetCurTickInMilliSeconds(&tCurTime);
