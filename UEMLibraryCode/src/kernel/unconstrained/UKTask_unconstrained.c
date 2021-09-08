@@ -166,8 +166,15 @@ uem_result UKTask_StopTask (IN int nCallerTaskId, IN char *pszTaskName, IN uem_b
 	}
 	else // bDelayedStop == TRUE
 	{
-		result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
-		ERRIFGOTO(result, _EXIT);
+		if (pszTaskName == NULL)
+		{
+			pstTask = pstCallerTask;
+		}
+		else // pstCallerTask != NULL
+		{
+			result = UKTask_GetTaskFromTaskName(pszTaskName, &pstTask);
+			ERRIFGOTO(result, _EXIT);
+		}
 
 		if(pstCallerTask->enType == TASK_TYPE_COMPUTATIONAL &&
 						pstCallerTask->pstParentGraph->pstParentTask == NULL && pstCallerTask->nTaskId != pstTask->nTaskId)
