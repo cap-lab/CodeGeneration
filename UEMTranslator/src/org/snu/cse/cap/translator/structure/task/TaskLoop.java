@@ -42,7 +42,7 @@ public class TaskLoop {
 	public String getDesignatedTaskName() {
 		return designatedTaskName;
 	}
-	
+
 	public void setDesignatedTaskName(String designatedTaskName) {
 		this.designatedTaskName = designatedTaskName;
 	}

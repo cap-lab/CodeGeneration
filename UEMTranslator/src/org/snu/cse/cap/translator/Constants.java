@@ -1,17 +1,14 @@
 package org.snu.cse.cap.translator;
 
 import java.io.File;
+import java.util.function.Supplier;
+
+import hopes.cic.exception.CICXMLException;
+import hopes.cic.xml.*;
 
 public class Constants {
-	
-	public static final String UEMXML_ALGORITHM_PREFIX = "_algorithm.xml";
-	public static final String UEMXML_ARCHITECTURE_PREFIX = "_architecture.xml";
-	public static final String UEMXML_MAPPING_PREFIX = "_mapping.xml";
-	public static final String UEMXML_CONFIGURATION_PREFIX = "_configuration.xml";
-	public static final String UEMXML_CONTROL_PREFIX = "_control.xml";
-	public static final String UEMXML_PROFILE_PREFIX = "_profile.xml";
+
 	public static final String UEMXML_SCHEDULE_PREFIX = ",schedule.xml";
-	public static final String UEMXML_GPUSETUP_PREFIX = "_gpusetup.xml";
 	
 	public static final String TOP_TASKGRAPH_NAME = "top";
 	public static final String XML_PREFIX = ".xml";
@@ -30,9 +27,8 @@ public class Constants {
 	public static final String TEMPLATE_PATH_SEPARATOR = "/";
 	
 	public static final String DEFAULT_PROPERTIES_FILE_NAME = "translator.properties";
-	public static final String DEFAULT_MODULE_XML_FILE_NAME = "module.xml";
 	public static final String DEFAULT_PROPERTIES_FILE_PATH = "config" + File.separator + DEFAULT_PROPERTIES_FILE_NAME;
-	public static final String DEFAULT_MODULE_XML_PATH = "config" + File.separator + DEFAULT_MODULE_XML_FILE_NAME;
+	public static final String DEFAULT_MODULE_XML_PATH = "config" + File.separator + "module.xml";
 	public static final String DEFAULT_TEMPLATE_DIR = "templates";
 	public static final String DEFAULT_TRANSLATED_CODE_TEMPLATE_DIR = ".." + File.separator + "UEMLibraryCode";
 	public static final String DEFAULT_DOXYFILE = "Doxyfile";
@@ -118,4 +114,33 @@ public class Constants {
 	public static final String FLAG_SEPARATOR = " ";
 	
 	public static final String FILE_EXTENSION_SEPARATOR = ".";
+
+	public enum UEMXML {
+		ALGORITHM("_algorithm.xml", CICAlgorithmTypeLoader::new),
+		ARCHITECTURE("_architecture.xml", CICArchitectureTypeLoader::new),
+		MAPPING("_mapping.xml", CICMappingTypeLoader::new),
+		CONFIGURATION("_configuration.xml", CICConfigurationTypeLoader::new),
+		CONTROL("_control.xml", CICControlTypeLoader::new), PROFILE("_profile.xml", CICProfileTypeLoader::new),
+		GPUSETUP("_gpusetup.xml", CICGPUSetupTypeLoader::new);
+
+		public String prefix;
+		private Supplier<ResourceLoader<?>> loader;
+
+		private UEMXML(String prefix, Supplier<ResourceLoader<?>> loader) {
+			this.prefix = prefix;
+			this.loader = loader;
+		}
+
+		@SuppressWarnings("unchecked")
+		public <T> T load(String basePath) throws CICXMLException {
+			if (!fileExists(basePath)) {
+				return null;
+			}
+			return (T) loader.get().loadResource(basePath + prefix);
+		}
+
+		public boolean fileExists(String basePath) {
+			return new File(basePath + prefix).isFile();
+		}
+	}
 }

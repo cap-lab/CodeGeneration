@@ -85,6 +85,7 @@ public class Task implements Cloneable {
 	private String taskGraphProperty;
 	private HashMap<String, Integer> iterationCountList;  // mode ID : iteration count
 	private String description;
+
 	private TaskType xmlTaskData;
 
 	public Task(Task task) {
@@ -109,7 +110,7 @@ public class Task implements Cloneable {
 		// mode 0 with single iteration is the default iteration count for all tasks
 		this.iterationCountList.put(0+"", 0);
 
-		setId(id);
+		this.id = id;
 		setName(xmlTaskData.getName());
 		this.shortName = this.name;
 		setType(xmlTaskData.getTaskType(), xmlTaskData.getLoopStructure());
@@ -286,10 +287,7 @@ public class Task implements Cloneable {
 		return id;
 	}
 	
-	public void setId(int taskId) {
-		this.id = taskId;
-	}
-	
+
 	public String getName() {
 		return name;
 	}
@@ -478,6 +476,14 @@ public class Task implements Cloneable {
 		}
 	}
 
+	public TaskLoopType getLoopType() {
+		if (getLoopStruct() != null) {
+			return null;
+		} else {
+			return getLoopStruct().getLoopType();
+		}
+	}
+	
 	public String getShortName() {
 		return shortName;
 	}

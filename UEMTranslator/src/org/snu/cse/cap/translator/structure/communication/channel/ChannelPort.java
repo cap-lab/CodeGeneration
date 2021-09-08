@@ -1,13 +1,17 @@
 package org.snu.cse.cap.translator.structure.communication.channel;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.snu.cse.cap.translator.structure.communication.Port;
 import org.snu.cse.cap.translator.structure.communication.PortDirection;
 import org.snu.cse.cap.translator.structure.mapping.MappingInfo;
 import org.snu.cse.cap.translator.structure.task.Task;
 import org.snu.cse.cap.translator.structure.task.TaskLoopType;
+
+import hopes.cic.xml.TaskPortType;
+import hopes.cic.xml.TaskRateType;
 
 
 public class ChannelPort extends Port {
@@ -18,19 +22,18 @@ public class ChannelPort extends Port {
 	private ChannelPort subgraphPort;
 	private ChannelPort upperGraphPort;
 	private LoopPortType loopPortType;
-	private int maximumChunkNum;
-	private String description;
+	private int maximumChunkNum = 1;
+	private String description = "";
 	
 	public enum PortSampleRateType {
 		FIXED,
 		VARIABLE,
-		MULTIPLE,
+		MULTIPLE;
 	}
 	
 	public enum PortType {
 		QUEUE("fifo"),
-		BUFFER("overwritable"),
-		;
+		BUFFER("overwritable");
 		
 		private final String value;
 		
@@ -48,19 +51,28 @@ public class ChannelPort extends Port {
 		}	
 	}
 	
-	public ChannelPort(int taskId, String taskName, String portName, int sampleSize, String portType, PortDirection direction) {
-		super(taskId, taskName, portName, direction);
-		this.sampleSize = sampleSize;
-		this.portType = PortType.fromValue(portType);
+	public ChannelPort(int taskId, String taskName, TaskPortType portType) {
+		super(taskId, taskName, portType);
+		this.sampleSize = portType.getSampleSize().intValue();
+		this.portType = PortType.fromValue(portType.getType().value());
 		this.portSampleRateType = PortSampleRateType.VARIABLE;
 		this.portSampleRateList = new ArrayList<PortSampleRate>();
-		this.subgraphPort = null;
-		this.upperGraphPort = null;
-		this.loopPortType = null;
-		this.maximumChunkNum = 1;
-		this.description = "";
+		if (portType.getDescription() != null && portType.getDescription().trim().length() > 0) {
+			this.description = portType.getDescription();
+		}
+		if (portType.getRate() != null) {
+			initializeSampleRate(portType.getRate());
+		}
 	}
-	
+
+	private void initializeSampleRate(List<TaskRateType> taskRates) {
+		for (TaskRateType taskRate : taskRates) {
+			PortSampleRate sampleRate = new PortSampleRate(taskRate.getMode(), taskRate.getRate().intValue());
+			portSampleRateList.add(sampleRate);
+			portSampleRateType = portSampleRateList.size() > 1 ? PortSampleRateType.MULTIPLE : PortSampleRateType.FIXED;
+		}
+	}
+
 	public ChannelPort getMostUpperPort()
 	{
 		ChannelPort upperPort = this;
@@ -85,7 +97,8 @@ public class ChannelPort extends Port {
 		return innerPort;
 	}
 	
-	public void setMaximumParallelNumberInDTypeLoopTask(HashMap<String, Task> taskMap, String taskName, MappingInfo taskMappingInfo) {
+	public void setMaximumParallelNumberInDTypeLoopTask(Map<String, Task> taskMap, String taskName,
+			MappingInfo taskMappingInfo) {
 		//maxParallel : tasks' coreNum.
 		int maxParallel = 1;						
 		Task task = null;
@@ -115,7 +128,7 @@ public class ChannelPort extends Port {
 	}
 	
 	
-	public void setMaximumParallelNumberInBorderLine(HashMap<String, Task> taskMap) {
+	public void setMaximumParallelNumberInBorderLine(Map<String, Task> taskMap) {
 		//set maxParallel value of channel connecting one : DTypeLoopTask, other : non-DTypeLoopTask.
 		//maxParallel : multiple of all parent DTypeLoopTasks' nLoopCount.
 		int maxParallel = 1;						
@@ -185,18 +198,6 @@ public class ChannelPort extends Port {
 		return isBroadcastingPort;
 	}
 	
-	public void putSampleRate(PortSampleRate portSampleRate) {
-		this.portSampleRateList.add(portSampleRate);
-		if( this.portSampleRateList.size() > 1)
-		{
-			this.portSampleRateType = PortSampleRateType.MULTIPLE;
-		}
-		else // this.portSampleRateList.size() == 1
-		{
-			this.portSampleRateType = PortSampleRateType.FIXED;
-		}
-	}
-	
 	public PortSampleRateType getPortSampleRateType() {
 		return portSampleRateType;
 	}
@@ -222,7 +223,7 @@ public class ChannelPort extends Port {
 	}
 	
 	public ChannelPort getSubgraphPort() {
-		return (ChannelPort) subgraphPort;
+		return subgraphPort;
 	}
 
 	public void setSubgraphPort(ChannelPort subgraphPort) {
@@ -234,7 +235,7 @@ public class ChannelPort extends Port {
 	}
 
 	public ChannelPort getUpperGraphPort() {
-		return (ChannelPort) upperGraphPort;
+		return upperGraphPort;
 	}
 
 	public void setUpperGraphPort(ChannelPort uppergraphPort) {
