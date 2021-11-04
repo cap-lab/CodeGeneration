@@ -957,8 +957,14 @@ public class Application {
 				setSocketIndexFromUnconstrainedSerialConnection(channel, targetDevice, connectionPair);
 			}
 			break;
-		case UCOS3:
 		case WINDOWS:
+			if (connectionPair.getMasterConnection().getProtocol() == ProtocolType.TCP) {
+				setSocketIndexFromTCPConnection(channel, targetDevice, connectionPair);
+			} else {
+				setSocketIndexFromUnconstrainedSerialConnection(channel, targetDevice, connectionPair);
+			}
+			break;
+		case UCOS3:
 		default:
 			break;
 
@@ -1566,8 +1572,9 @@ public class Application {
 			MappingInfo srcTaskMappingInfo;
 			MappingInfo dstTaskMappingInfo;
 
-			System.out.println(channelSrcPort.getTask() + Constants.NAME_SPLITER + channelSrcPort.getPort()
-					+ Constants.NAME_SPLITER + PortDirection.OUTPUT);
+			// System.out.println(channelSrcPort.getTask() + Constants.NAME_SPLITER +
+			// channelSrcPort.getPort()
+			// + Constants.NAME_SPLITER + PortDirection.OUTPUT);
 			portInfo.keySet().forEach(System.out::println);
 			ChannelPort srcPort = this.portInfo.get(channelSrcPort.getTask() + Constants.NAME_SPLITER + channelSrcPort.getPort() + Constants.NAME_SPLITER + PortDirection.OUTPUT);
 			ChannelPort dstPort = this.portInfo.get(channelDstPort.getTask() + Constants.NAME_SPLITER + channelDstPort.getPort() + Constants.NAME_SPLITER + PortDirection.INPUT);
@@ -1582,8 +1589,10 @@ public class Application {
 			channel.setOutputPort(srcPort.getMostUpperPort());
 			channel.setInputPort(dstPort.getMostUpperPort());
 
-			System.out.println("ChannelSrcPort: " + channelSrcPort.getTask() + "/" + channelSrcPort.getPort());
-			System.out.println("ChannelDstPort: " + channelDstPort.getTask() + "/" + channelDstPort.getPort());
+			// System.out.println("ChannelSrcPort: " + channelSrcPort.getTask() + "/" +
+			// channelSrcPort.getPort());
+			// System.out.println("ChannelDstPort: " + channelDstPort.getTask() + "/" +
+			// channelDstPort.getPort());
 			srcTaskMappingInfo = findMappingInfoByTaskName(channelSrcPort.getTask());
 			dstTaskMappingInfo = findMappingInfoByTaskName(channelDstPort.getTask());
 
@@ -1798,7 +1807,7 @@ public class Application {
 
 	public void makeLibraryInformation(CICAlgorithmType algorithm_metadata)
 	{
-		System.out.println("Libraries " + algorithm_metadata.getLibraries());
+		// System.out.println("Libraries " + algorithm_metadata.getLibraries());
 		if(algorithm_metadata.getLibraries() != null && algorithm_metadata.getLibraries().getLibrary() != null)
 		{
 			for(LibraryType libraryType: algorithm_metadata.getLibraries().getLibrary())
