@@ -16,6 +16,7 @@
 #include <UCEndian.h>
 
 #include <UKVirtualCommunication.h>
+#include <UKVirtualEncryption.h>
 #include <UKUEMProtocol.h>
 
 #define MAX_MESSAGE_PARAMETER (3)
@@ -55,6 +56,8 @@ typedef struct _SUEMProtocol {
 	SVirtualCommunicationAPI *pstAPI;
 	int nChannelId;
 	int unKey;
+	HVirtualKey hKey;
+	SVirtualEncryptionAPI *pstEncAPI;
 } SUEMProtocol;
 
 
@@ -101,6 +104,8 @@ uem_result UKUEMProtocol_Create(OUT HUEMProtocol *phProtocol)
 	pstProtocol->bReceived = FALSE;
 	pstProtocol->nChannelId = INVALID_CHANNEL_ID;
 	pstProtocol->unKey = 0; // not used now
+	pstProtocol->pstEncAPI = NULL;
+	pstProtocol->hKey = NULL;
 
 	pstProtocol->stReceivedData.unKey = 0;
 	pstProtocol->stReceivedData.pBodyData = NULL;
@@ -139,6 +144,30 @@ _EXIT:
 	return result;
 }
 
+uem_result UKUEMProtocol_SetEncryptionKey(HUEMProtocol hProtocol, SEncryptionKeyInfo *pstEncKeyInfo)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	struct _SUEMProtocol *pstProtocol = NULL;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(hProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+#endif
+	pstProtocol = hProtocol;
+
+	if(pstEncKeyInfo != NULL)
+	{
+		pstProtocol->pstEncAPI = pstEncKeyInfo->pstEncAPI;
+
+		if(pstProtocol->pstEncAPI != NULL)
+		{
+			result = pstProtocol->pstEncAPI->fnInitialize(&(pstProtocol->hKey), pstEncKeyInfo);
+			ERRIFGOTO(result, _EXIT);
+		}
+	}
+	
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
 
 static uem_result makeFullMessage(SUEMProtocolData *pstProtocolData, short sHeaderLength, int nTotalDataSize)
 {
@@ -499,9 +528,15 @@ uem_result UKUEMProtocol_Send(HUEMProtocol hProtocol)
 		ERRASSIGNGOTO(result, ERR_UEM_ALREADY_DONE, _EXIT);
 	}
 
+	if(pstProtocol->pstEncAPI != NULL)
+	{
+		result = pstProtocol->pstEncAPI->fnEncode(pstProtocol->hKey, pstProtocol->stDataToSend.pBodyData, pstProtocol->stDataToSend.nBodyLen);
+		ERRIFGOTO(result, _EXIT);
+	}
+		
 	result = makeSendingData(&(pstProtocol->stDataToSend));
 	ERRIFGOTO(result, _EXIT);
-
+	
 	result = sendData(pstProtocol->hSocket, pstProtocol->pstAPI, &(pstProtocol->stDataToSend));
 	ERRIFGOTO(result, _EXIT);
 
@@ -680,6 +715,12 @@ uem_result UKUEMProtocol_Receive(HUEMProtocol hProtocol)
 	{
 		result = receiveBody(pstProtocol->hSocket, pstProtocol->pstAPI, &(pstProtocol->stReceivedData));
 		ERRIFGOTO(result, _EXIT);
+
+		if(pstProtocol->pstEncAPI != NULL)
+		{
+			result = pstProtocol->pstEncAPI->fnDecode(pstProtocol->hKey, pstProtocol->stReceivedData.pBodyData, pstProtocol->stReceivedData.nBodyLen);
+			ERRIFGOTO(result, _EXIT);
+		}
 	}
 
 	//UEM_DEBUG_PRINT("pstProtocol receive: %d\n", pstProtocol->stReceivedData.sMessagePacket);
@@ -805,7 +846,7 @@ _EXIT:
 
 uem_result UKUEMProtocol_Destroy(IN OUT HUEMProtocol *phProtocol)
 {
-	uem_result result = ERR_UEM_UNKNOWN;
+	uem_result result = ERR_UEM_NOERROR;
 	struct _SUEMProtocol *pstProtocol = NULL;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(phProtocol, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
@@ -817,11 +858,15 @@ uem_result UKUEMProtocol_Destroy(IN OUT HUEMProtocol *phProtocol)
 	SAFEMEMFREE(pstProtocol->stReceivedData.pFullMessage);
 	SAFEMEMFREE(pstProtocol->stReceivedData.pBodyData);
 
+	if(pstProtocol->pstEncAPI != NULL)
+	{
+		result = pstProtocol->pstEncAPI->fnFinalize(&(pstProtocol->hKey));
+	}
+
 	SAFEMEMFREE(pstProtocol);
 
 	*phProtocol = NULL;
 
-	result = ERR_UEM_NOERROR;
 _EXIT:
 	return result;
 }

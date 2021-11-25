@@ -14,6 +14,8 @@
 
 #include <UCSerial.h>
 
+#include <UKVirtualEncryption.h>
+
 #include <uem_channel_data.h>
 #include <uem_protocol_data.h>
 
@@ -44,6 +46,7 @@ typedef struct _SSerialInfo {
 	int nMaxChannelAccessNum;
 	int nSetChannelAccessNum;
 	SChannel **ppastAccessChannelList;
+	SEncryptionKeyInfo *pstEncKeyInfo;
 } SSerialInfo;
 
 

@@ -11,6 +11,7 @@
 #include <uem_common.h>
 
 #include <UKVirtualCommunication.h>
+#include <UKVirtualEncryption.h>
 #include <uem_protocol_data.h>
 
 #include <uem_lite_protocol_data.h>
@@ -49,6 +50,20 @@ uem_result UKUEMLiteProtocol_Create(OUT HUEMLiteProtocol *phProtocol);
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  */
 uem_result UKUEMLiteProtocol_SetVirtualSocket(HUEMLiteProtocol hProtocol, HVirtualSocket hSocket, SVirtualCommunicationAPI *pstAPI);
+
+/**
+ * @brief Set encryption key.
+ *
+ * This function sets encryption key.
+ *
+ * @param hProtocol a protocol handle.
+ * @param pstEncKeyInfo a encryption key info.
+ *
+ * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
+ */
+uem_result UKUEMLiteProtocol_SetEncryptionKey(HUEMLiteProtocol hProtocol, SEncryptionKeyInfo *pstEncKeyInfo);
 
 /**
  * @brief Request handshake and get result from remote device.

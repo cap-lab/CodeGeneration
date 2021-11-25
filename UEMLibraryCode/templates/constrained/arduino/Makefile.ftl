@@ -111,15 +111,23 @@ MAIN_CFLAGS=-I$(MAIN_DIR)/include
 API_CFLAGS=-I$(API_DIR)/include
 
 KERNEL_CFLAGS=-I$(KERNEL_DIR)/include\
+				-I$(KERNEL_DIR)/include/encryption\
 				-I$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/include<#if (build_info.usedPeripheralList?size > 0) >\
-				<#list build_info.usedPeripheralList as peripheralName>-I$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/include/${peripheralName}<#if (peripheralName?index < build_info.usedPeripheralList?size - 1)>\</#if></#list></#if>
+				<#list build_info.usedPeripheralList as peripheralName>
+				-I$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/include/${peripheralName}\
+				<#if (peripheralName?index < build_info.usedPeripheralList?size - 1)>
+				</#if></#list></#if>
 
 TOP_CFLAGS=-I$(top_srcdir)
 
 COMMON_CFLAGS=-I$(COMMON_DIR)/include\
 				-I$(COMMON_DIR)/$(DEVICE_RESTRICTION)/include<#if (build_info.usedPeripheralList?size > 0) >\
-				<#list build_info.usedPeripheralList as peripheralName>-I$(COMMON_DIR)/include/${peripheralName}\
-				-I$(COMMON_DIR)/$(DEVICE_RESTRICTION)/include/${peripheralName}<#if (peripheralName?index < build_info.usedPeripheralList?size - 1)>\</#if></#list></#if>
+				<#list build_info.usedPeripheralList as peripheralName>
+				-I$(COMMON_DIR)/include/${peripheralName}\
+				-I$(COMMON_DIR)/$(DEVICE_RESTRICTION)/include/${peripheralName}\
+				<#if (peripheralName?index < build_info.usedPeripheralList?size - 1)>
+				</#if>
+				</#list></#if>
 
 
 MODULE_CFLAGS=-I$(MODULE_DIR)/include

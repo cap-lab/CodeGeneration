@@ -15,6 +15,7 @@
 #include <UCEndian.h>
 
 #include <UKUEMLiteProtocol.h>
+#include <UKVirtualEncryption.h>
 
 #include <uem_lite_protocol_data.h>
 
@@ -36,7 +37,6 @@ typedef struct _SUEMLiteProtocol {
 	unsigned long unKey;
 } SUEMLiteProtocol;
 
-
 static SUEMLiteProtocol s_stProtocol = {
 	{
 		MESSAGE_TYPE_NONE,
@@ -55,6 +55,8 @@ static SUEMLiteProtocol s_stProtocol = {
 	0,
 };
 
+static HVirtualKey s_hKey = NULL;
+static SVirtualEncryptionAPI *s_pstEncAPI = NULL;
 
 static uem_result getMessageParamNumByMessageType(EMessageType enMessageType, int *pnParamNum)
 {
@@ -84,8 +86,25 @@ _EXIT:
 	return result;
 }
 
+uem_result UKUEMLiteProtocol_SetEncryptionKey(SEncryptionKeyInfo *pstEncKeyInfo)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
 
+	if(pstEncKeyInfo != NULL)
+	{
+		s_pstEncAPI = pstEncKeyInfo->pstEncAPI;
 
+		if(s_pstEncAPI != NULL)
+		{
+			result = s_pstEncAPI->fnInitialize(&(s_hKey), pstEncKeyInfo);
+			ERRIFGOTO(result, _EXIT);
+		}
+	}
+	
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
 
 static uem_result receiveHeader(HSerial hSerial, char *pHeaderBuffer, int nBufferLen, OUT int *pnHeaderLength)
 {
@@ -242,6 +261,12 @@ uem_result UKUEMLiteProtocol_Receive(HSerial hSerial)
 	{
 		result = receiveBody(hSerial, &(pstProtocol->stReceiveData));
 		ERRIFGOTO(result, _EXIT);
+
+		if(s_pstEncAPI != NULL)
+		{
+			result = s_pstEncAPI->fnDecode(s_hKey, pstProtocol->stReceiveData.abyBodyData, (int)pstProtocol->stReceiveData.byBodyLen);
+			ERRIFGOTO(result, _EXIT);
+		}
 	}
 
 	result = ERR_UEM_NOERROR;
@@ -537,6 +562,12 @@ uem_result UKUEMLiteProtocol_Send(HSerial hSerial)
 	struct _SUEMLiteProtocol *pstProtocol = NULL;
 
 	pstProtocol = &s_stProtocol;
+
+	if(s_pstEncAPI != NULL)
+	{
+		result = s_pstEncAPI->fnEncode(s_hKey, pstProtocol->stSendData.abyBodyData, pstProtocol->stSendData.byBodyLen);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	result = sendData(hSerial, &(pstProtocol->stSendData));
 	ERRIFGOTO(result, _EXIT);

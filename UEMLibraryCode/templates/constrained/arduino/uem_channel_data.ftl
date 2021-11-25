@@ -40,6 +40,19 @@
 #include <uem_bluetooth_data.h>
 #include <UKSerialChannel.h>
 #include <UKSerialModule.h>
+#include <UKVirtualEncryption.h>
+</#if>
+
+<#if encryption_used == true>
+<#if used_encryption_list?seq_contains("LEA")>
+#include <UKEncryptionLEA.h>
+</#if>
+<#if used_encryption_list?seq_contains("HIGHT")>
+#include <UKEncryptionHIGHT.h>
+</#if>
+<#if used_encryption_list?seq_contains("SEED")>
+#include <UKEncryptionSEED.h>
+</#if>
 </#if>
 
 #include <UKAddOnHandler.h>
@@ -110,6 +123,46 @@ SChannel *g_pastAccessChannel_${slave.name}[${slave.channelAccessNum}];
 SChannel *g_pastAccessChannel_${master.name}[${master.channelAccessNum}];
 </#list>
 	
+<#if encryption_used == true>
+<#if used_encryption_list?seq_contains("LEA")>
+SVirtualEncryptionAPI g_stEncryptionLEA = {
+	UKEncryptionLEA_Initialize,
+	UKEncryptionLEA_EncodeOnCTRMode,
+	UKEncryptionLEA_EncodeOnCTRMode,
+	//NULL
+};
+</#if>
+
+<#if used_encryption_list?seq_contains("HIGHT")>
+SVirtualEncryptionAPI g_stEncryptionHIGHT = {
+	UKEncryptionHIGHT_Initialize,
+	UKEncryptionHIGHT_EncodeOnCTRMode,
+	UKEncryptionHIGHT_EncodeOnCTRMode,
+	//NULL
+};
+</#if>
+
+<#if used_encryption_list?seq_contains("SEED")>
+SVirtualEncryptionAPI g_stEncryptionSEED = {
+	UKEncryptionSEED_Initialize,
+	UKEncryptionSEED_EncodeOnCTRMode,
+	UKEncryptionSEED_EncodeOnCTRMode,
+	//NULL
+};
+</#if>
+
+SEncryptionKeyInfo g_astEncryptionKeyInfoList[] = {
+	<#list encryption_list as encryption>
+	{
+		(unsigned char*)"${encryption.userKey}", // User Key
+		(unsigned char*)"${encryption.initializationVector}", // Initialization vector
+		${encryption.userKeyLen}, // User Key len
+		&(g_stEncryption${encryption.encryptionType}),
+	},
+	</#list>
+};
+</#if>
+
 SSerialInfo g_astSerialSlaveInfo[] = {
 	<#list serial_slave_list as slave>
 	{
@@ -117,6 +170,13 @@ SSerialInfo g_astSerialSlaveInfo[] = {
 		${slave.channelAccessNum},
 		0,
 		g_pastAccessChannel_${slave.name},
+		<#if encryption_used == true>
+		<#if slave.usedEncryption == true>
+		&(g_astEncryptionKeyInfoList[${slave.encryptionListIndex}])
+		<#else>
+		(SEncryptionKeyInfo *) NULL
+		</#if>
+		</#if>
 	},
 	</#list>
 };
@@ -128,6 +188,13 @@ SSerialInfo g_astSerialMasterInfo[] = {
 		${master.channelAccessNum},
 		0,
 		g_pastAccessChannel_${master.name},
+		<#if encryption_used == true>
+		<#if master.usedEncryption == true>
+		&(g_astEncryptionKeyInfoList[${master.encryptionListIndex}])
+		<#else>
+		(SEncryptionKeyInfo *) NULL
+		</#if>
+		</#if>		
 	},
 	</#list>
 };
@@ -149,6 +216,13 @@ SSerialInfo g_astSerialSlaveInfo[] = {
 		${slave.channelAccessNum},
 		0,
 		g_pastAccessChannel_${slave.name},
+		<#if encryption_used == true>
+		<#if slave.usedEncryption == true>
+		&(g_astEncryptionKeyInfoList[${slave.encryptionListIndex}])
+		<#else>
+		(SEncryptionKeyInfo *) NULL
+		</#if>
+		</#if>		
 	},
 	</#list>
 };

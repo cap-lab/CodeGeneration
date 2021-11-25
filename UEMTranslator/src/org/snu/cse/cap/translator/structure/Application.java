@@ -18,6 +18,7 @@ import org.snu.cse.cap.translator.structure.communication.multicast.MulticastGro
 import org.snu.cse.cap.translator.structure.communication.multicast.MulticastPort;
 import org.snu.cse.cap.translator.structure.device.Device;
 import org.snu.cse.cap.translator.structure.device.DeviceCommunicationType;
+import org.snu.cse.cap.translator.structure.device.DeviceEncryptionType;
 import org.snu.cse.cap.translator.structure.device.EnvironmentVariable;
 import org.snu.cse.cap.translator.structure.device.HWCategory;
 import org.snu.cse.cap.translator.structure.device.HWElementType;
@@ -28,6 +29,7 @@ import org.snu.cse.cap.translator.structure.device.connection.Connection;
 import org.snu.cse.cap.translator.structure.device.connection.ConnectionPair;
 import org.snu.cse.cap.translator.structure.device.connection.ConstrainedSerialConnection;
 import org.snu.cse.cap.translator.structure.device.connection.DeviceConnection;
+import org.snu.cse.cap.translator.structure.device.connection.EncryptionInfo;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
 import org.snu.cse.cap.translator.structure.device.connection.ProtocolType;
 import org.snu.cse.cap.translator.structure.device.connection.SSLTCPConnection;
@@ -261,6 +263,7 @@ public class Application {
 		}
 	}
 	
+
 	private void putSupportedConnectionTypeListOnDevice(Device device, DeviceConnectionListType connectionList) 
 	{
 		if(connectionList.getSerialConnection() != null)
@@ -294,6 +297,9 @@ public class Application {
 		}
 	}
 
+
+
+
 	private void putConnectionsOnDevice(Device device, DeviceConnectionListType connectionList)
 	{
 		putSerialConnectionsOnDevice(device, connectionList);
@@ -302,15 +308,87 @@ public class Application {
 		putSSLTCPConnectionsOnDevice(device, connectionList);
 	}
 
-	private Connection findConnection(String deviceName, String connectionName) throws InvalidDeviceConnectionException
+	private Connection findConnection(String deviceName, String connectionName)
+			throws InvalidDeviceConnectionException
 	{
 		Device device;
 		Connection connection;
 
 		device = this.deviceInfo.get(deviceName);
 		connection = device.getConnection(connectionName);
-
+	
 		return connection;
+	}
+	
+	private void putSupportedEncryptionTypeListOnDevice(Device device, EncryptionInfo encryption) {
+		if (encryption.getEncryptionType().contentEquals(DeviceEncryptionType.LEA.toString())) {
+			device.putSupportedEncryptionType(DeviceEncryptionType.LEA);
+		}
+		else if (encryption.getEncryptionType().contentEquals(DeviceEncryptionType.HIGHT.toString())) {
+			device.putSupportedEncryptionType(DeviceEncryptionType.HIGHT);
+		}
+		else if (encryption.getEncryptionType().contentEquals(DeviceEncryptionType.SEED.toString())) {
+			device.putSupportedEncryptionType(DeviceEncryptionType.SEED);
+		}
+	}
+
+	private String setInitializationVectorLen(String initializationVector, EncryptionInfo encryption) {
+		String iv;
+		int index = 0;
+		
+		if (encryption.getEncryptionType().contentEquals(DeviceEncryptionType.LEA.toString())) {
+			index = DeviceEncryptionType.LEA.getBlockSize();
+		} else if (encryption.getEncryptionType().contentEquals(DeviceEncryptionType.HIGHT.toString())) {
+			index = DeviceEncryptionType.HIGHT.getBlockSize();
+		} else if (encryption.getEncryptionType().contentEquals(DeviceEncryptionType.SEED.toString())) {
+			index = DeviceEncryptionType.SEED.getBlockSize();
+		}
+		
+		iv = initializationVector.substring(0, index);
+		
+		return iv;
+	}
+
+	private void setEncryption(String deviceName, String connectionName, String encryptionType, String userKey,
+			String initializationVector)
+			throws InvalidDeviceConnectionException {
+		Device device;
+		Connection connection;
+		String iv;
+		int index = -1;
+
+		device = this.deviceInfo.get(deviceName);
+
+		connection = device.getConnection(connectionName);
+
+		index = device.getEncryptionIndex(encryptionType, userKey);
+
+		if (index == -1) {
+			EncryptionInfo encryption = new EncryptionInfo(encryptionType, userKey);
+
+			iv = setInitializationVectorLen(initializationVector, encryption);
+
+			encryption.setEncryptionType(encryptionType);
+			encryption.setUserKey(userKey);
+			encryption.setUserKeyLen(userKey.length());
+			encryption.setInitializationVector(iv);
+
+			putSupportedEncryptionTypeListOnDevice(device, encryption);
+
+			device.putEncryptionList(encryption);
+			index = device.getEncryptionList().size() - 1;
+		}
+
+		connection.setEncryptionListIndex(index);
+	}
+
+
+	private String generateInitializationVector(int n) {
+		String str = "";
+		for(int i = 0; i < n; i++) {
+			str += (int) Math.floor(Math.random() * 10);
+		}
+		return str;
 	}
 
 	private void makeDeviceConnectionInformation(CICArchitectureType architecture_metadata)
@@ -321,6 +399,7 @@ public class Application {
 			{
 				DeviceConnection deviceConnection;
 				Connection master;
+				
 				if(this.deviceConnectionMap.containsKey(connectType.getMaster()))
 				{
 					deviceConnection = this.deviceConnectionMap.get(connectType.getMaster());
@@ -334,15 +413,28 @@ public class Application {
 				try {
 					master = findConnection(connectType.getMaster(), connectType.getConnection());
 
+					String initializationVector = generateInitializationVector(DeviceEncryptionType.MAX_BLOCK_SIZE);
+
 					for(ArchitectureConnectionSlaveType slaveType: connectType.getSlave())
 					{
 						Connection slave;
 
 						slave = findConnection(slaveType.getDevice(), slaveType.getConnection());
+
+
+						if (!slaveType.getEncryption().toString().contentEquals(EncryptionType.NO.toString()))
+						{
+							setEncryption(slaveType.getDevice(), slaveType.getConnection(),
+									slaveType.getEncryption().toString(),
+									slaveType.getUserkey(), initializationVector);
+							setEncryption(connectType.getMaster(), master.getName(),
+									slaveType.getEncryption().toString(),
+									slaveType.getUserkey(), initializationVector);
+						}
+
 						deviceConnection.putMasterToSlaveConnection(master, slaveType.getDevice(), slave);
-						deviceConnection.putSlaveToMasterConnection(slaveType.getDevice(), slave, master);
-
-
+						deviceConnection.putSlaveToMasterConnection(slaveType.getDevice(), slave, master,
+								slaveType.getEncryption().toString(), slaveType.getUserkey());
 					}
 				} catch (InvalidDeviceConnectionException e) {
 					// TODO Auto-generated catch block
@@ -419,12 +511,14 @@ public class Application {
 				}
 
 				this.deviceInfo.put(device_metadata.getName(), device);
+				
 			}
 
 			makeDeviceConnectionInformation(architecture_metadata);
 		}
 	}
-
+	
+	
 	private MappingInfo findMappingInfoByTaskName(String taskName) throws InvalidDataInMetadataFileException
 	{
 		Task task;
@@ -536,6 +630,15 @@ public class Application {
 
 		setRemoteCommunicationMethodType(channel, connectionPair);
 		setChannelConnectionRoleType(channel, connectionPair, srcTaskDevice);
+
+		setEncryptionIndexInfo(channel, connectionPair);
+	}
+
+	private void setEncryptionIndexInfo(Channel channel, ConnectionPair connectionPair) {
+
+		int encryptionListIndex = connectionPair.getSlaveConnection().getEncryptionListIndex();
+
+		channel.setEncryptionListIndex(encryptionListIndex);
 	}
 
 	private void setInMemoryAccessTypeOfRemoteChannel(Channel channel, MappingInfo taskMappingInfo, boolean isSrcTask)
@@ -1228,7 +1331,6 @@ public class Application {
 	private void setIndividualIterationCount(ArrayList<Task> taskList, SDFGraph graph, int modeId)
 	{
 		mocgraph.sched.Schedule schedule;
-
 		if(taskList.size() <= 2)
 		{
 			TwoNodeStrategy st = new TwoNodeStrategy(graph);
@@ -1239,7 +1341,6 @@ public class Application {
 			MinBufferStrategy st = new MinBufferStrategy(graph);
 			schedule = st.schedule();
 		}
-
 		handleScheduleElement(graph, schedule, modeId);
 	}
 
@@ -1328,7 +1429,6 @@ public class Application {
 			{
 				SDFGraph graph = null;
 				ArrayList<Channel> channelList = new ArrayList<Channel>();
-
 				for(Channel channel : this.channelList)
 				{
 					boolean findSrcTask = false;
@@ -1594,7 +1694,6 @@ public class Application {
 			// communication type (device information)
 			setChannelCommunicationType(channel, srcTaskMappingInfo, dstTaskMappingInfo);
 			addChannelAndPortInfoToDevice(channel, srcTaskMappingInfo, dstTaskMappingInfo);
-
 			this.channelList.add(channel);
 			index++;
 		}

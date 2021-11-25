@@ -285,7 +285,7 @@ _EXIT:
 
 
 
-uem_result UKSerialCommunicationManager_Create(HVirtualSocket hSocket, SVirtualCommunicationAPI *pstAPI, int nMaxChannelNum, OUT HSerialCommunicationManager *phManager)
+uem_result UKSerialCommunicationManager_Create(HVirtualSocket hSocket, SVirtualCommunicationAPI *pstAPI, int nMaxChannelNum, void *pstEncKeyInfo, OUT HSerialCommunicationManager *phManager)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SSerialCommunicationManager *pstManager = NULL;
@@ -332,10 +332,16 @@ uem_result UKSerialCommunicationManager_Create(HVirtualSocket hSocket, SVirtualC
 	result = UKUEMLiteProtocol_SetVirtualSocket(pstManager->hReceiveData, hSocket, pstAPI);
 	ERRIFGOTO(result, _EXIT);
 
+	result = UKUEMLiteProtocol_SetEncryptionKey(pstManager->hReceiveData, pstEncKeyInfo);
+	ERRIFGOTO(result, _EXIT);
+
 	result = UKUEMLiteProtocol_Create(&(pstManager->hSendData));
 	ERRIFGOTO(result, _EXIT);
 
 	result = UKUEMLiteProtocol_SetVirtualSocket(pstManager->hSendData, hSocket, pstAPI);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKUEMLiteProtocol_SetEncryptionKey(pstManager->hSendData, pstEncKeyInfo);
 	ERRIFGOTO(result, _EXIT);
 
 	result = UCThreadMutex_Create(&(pstManager->hMutex));

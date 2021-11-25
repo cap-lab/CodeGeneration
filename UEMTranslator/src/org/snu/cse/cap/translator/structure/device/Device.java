@@ -20,6 +20,7 @@ import org.snu.cse.cap.translator.structure.communication.multicast.MulticastGro
 import org.snu.cse.cap.translator.structure.communication.multicast.MulticastPort;
 import org.snu.cse.cap.translator.structure.device.connection.Connection;
 import org.snu.cse.cap.translator.structure.device.connection.ConstrainedSerialConnection;
+import org.snu.cse.cap.translator.structure.device.connection.EncryptionInfo;
 import org.snu.cse.cap.translator.structure.device.connection.IPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
 import org.snu.cse.cap.translator.structure.device.connection.SSLKeyInfo;
@@ -70,6 +71,7 @@ public class Device {
 	private int id;
 	private ArrayList<Processor> processorList;
 	private HashMap<String, Connection> connectionList;
+
 	private ArchitectureType architecture;
 	private SoftwarePlatformType platform;
 	private RuntimeType runtime;
@@ -101,10 +103,11 @@ public class Device {
 	private ArrayList<SSLTCPConnection> secureTcpServerList;
 	private ArrayList<SSLTCPConnection> secureTcpClientList;
 	private ArrayList<SSLKeyInfo> sslKeyInfoList;
+	private ArrayList<EncryptionInfo> encryptionList;
 	
 	private HashSet<DeviceCommunicationType> supportedConnectionTypeList;
+	private HashSet<DeviceEncryptionType> supportedEncryptionTypeSet;
 
-	
 	public Device(String name, int id, String architecture, String platform, String runtime) 
 	{
 		this.name = name;
@@ -141,9 +144,11 @@ public class Device {
 		this.secureTcpServerList = new ArrayList<SSLTCPConnection>();
 		this.secureTcpClientList = new ArrayList<SSLTCPConnection>();
 		this.sslKeyInfoList = new ArrayList<SSLKeyInfo>();
+		this.encryptionList = new ArrayList<EncryptionInfo>();
 		
 
 		this.supportedConnectionTypeList = new HashSet<DeviceCommunicationType>();
+		this.supportedEncryptionTypeSet = new HashSet<DeviceEncryptionType>();
 	}
 	
 	private class TaskFuncIdChecker 
@@ -191,7 +196,6 @@ public class Device {
 		return true;
 	}
 	
-	
 	public boolean useCommunication()
 	{
 		if (this.connectionList.size() == 0 && this.supportedConnectionTypeList.size() == 0)
@@ -200,7 +204,18 @@ public class Device {
 		}
 		return true;
 	}
-	
+
+	public boolean useEncryption() 
+	{
+		if (this.encryptionList.size() == 0) 
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+
 	// recursive function
 	private int recursiveScheduleLoopInsert(List<ScheduleItem> scheduleItemList,
 			List<ScheduleElementType> scheduleElementList, int depth, int maxDepth, Map<String, Task> globalTaskMap)
@@ -696,7 +711,7 @@ public class Device {
 			channel.setPortIndexByPortList(this.portList);	
 		}
 	}
-	
+
 	private void setTaskExtraInformationFromMappingInfo()
 	{
 		Task task;
@@ -1145,17 +1160,45 @@ public class Device {
 			
 		this.processorList.add(processor);
 	}
-	
+
 	public void putSupportedConnectionType(DeviceCommunicationType connectionType)
 	{
 		this.supportedConnectionTypeList.add(connectionType);
+	}
+	
+	public void putSupportedEncryptionType(DeviceEncryptionType encryptionType)
+	{
+		this.supportedEncryptionTypeSet.add(encryptionType);
 	}
 	
 	public HashSet<DeviceCommunicationType> getRequiredCommunicationSet()
 	{
 		return this.supportedConnectionTypeList;
 	}
-	
+
+	public HashSet<DeviceEncryptionType> getRequiredEncryptionSet()
+	{
+		return this.supportedEncryptionTypeSet;
+	}
+
+	public void putEncryptionList(EncryptionInfo encryption)
+	{
+		this.encryptionList.add(encryption);
+	}
+
+	public int getEncryptionIndex(String encryptionType, String userKey) {
+		int index = -1;
+
+		for (EncryptionInfo e : this.encryptionList) {
+			if (e.getEncryptionType().contentEquals(encryptionType) && e.getUserKey().contentEquals(userKey)) {
+				index = this.encryptionList.indexOf(e);
+				break;
+			}
+		}
+
+		return index;
+	}
+
 	public void putUDPConnection(String connectionId, UDPConnection udpConnection) 
 	{
 		this.udpList.put(connectionId, udpConnection);
@@ -1194,7 +1237,6 @@ public class Device {
 	public void putConnection(Connection connection) 
 	{
 		this.connectionList.put(connection.getName(), connection);
-		
 		switch(connection.getProtocol())
 		{
 		case TCP:
@@ -1266,6 +1308,7 @@ public class Device {
 	{
 		Connection connection;
 		
+
 		if(this.connectionList.containsKey(connectionName))
 		{
 			connection = this.connectionList.get(connectionName);	
@@ -1277,6 +1320,7 @@ public class Device {
 		
 		return connection;
 	}
+
 
 	public ArchitectureType getArchitecture() {
 		return architecture;
@@ -1366,6 +1410,7 @@ public class Device {
 		return portKeyToIndex;
 	}
 
+
 	public HashMap<String, TaskGPUSetupInfo> getGpuSetupInfo() {
 		return gpuSetupInfo;
 	}
@@ -1425,4 +1470,9 @@ public class Device {
 	public ArrayList<SSLKeyInfo> getKeyInfoList() {
 		return sslKeyInfoList;
 	}
+
+	public ArrayList<EncryptionInfo> getEncryptionList() {
+		return encryptionList;
+	}
+
 }

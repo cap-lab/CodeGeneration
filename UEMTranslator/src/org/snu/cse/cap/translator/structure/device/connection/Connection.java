@@ -3,24 +3,32 @@ package org.snu.cse.cap.translator.structure.device.connection;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.snu.cse.cap.translator.Constants;
+import org.snu.cse.cap.translator.structure.device.DeviceCommunicationType;
+
 import hopes.cic.xml.NetworkType;
 
 public abstract class Connection {
 	protected NetworkType network;
 	protected ProtocolType protocol;
+	protected DeviceCommunicationType communication;
 	protected String name;
 	protected String role;
+	protected Boolean usedEncryption;
+	protected int encryptionListIndex;
 	protected HashMap<String, ArrayList<Integer>> user;
 	
-	public Connection(String name, String role, NetworkType network, ProtocolType protocol) 
-	{
+	public Connection(String name, String role, NetworkType network, ProtocolType protocol) {
 		this.name = name;
 		this.role = role;
 		this.network = network;
 		this.protocol = protocol;
+		this.usedEncryption = false;
+		this.encryptionListIndex = Constants.INVALID_VALUE;
+
 		userListInit();
 	}
-	
+
 	public String getName() {
 		return name;
 	}
@@ -43,6 +51,25 @@ public abstract class Connection {
 
 	public ProtocolType getProtocol() {
 		return protocol;
+	}
+
+	public Boolean getUsedEncryption() {
+		return usedEncryption;
+	}
+
+	public void setUsedEncryption(Boolean usedEncryption) {
+		this.usedEncryption = usedEncryption;
+	}
+
+	public int getEncryptionListIndex() {
+		return encryptionListIndex;
+	}
+
+	public void setEncryptionListIndex(int index) {
+		if (index != Constants.INVALID_VALUE) {
+			this.setUsedEncryption(true);
+		}
+		encryptionListIndex = index;
 	}
 	
 	public void putMulticastReceiver(Integer groupId) {

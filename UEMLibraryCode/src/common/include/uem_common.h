@@ -136,13 +136,16 @@ typedef enum _EUemResult {
 
 
 typedef int uem_size;
+typedef unsigned char uem_uint8;
 
 #ifdef ARDUINO
 	typedef unsigned long uem_time;
 	typedef signed char uem_bool;
+	typedef unsigned long uem_uint32;
 #else
 	typedef long long uem_time;
 	typedef int uem_bool;
+	typedef unsigned int uem_uint32;
 #endif
 
 typedef enum _EUemModuleId {
@@ -183,8 +186,8 @@ typedef enum _EUemModuleId {
 }
 #endif
 
-//#define _DEBUG
-//#define DEBUG_PRINT
+// #define _DEBUG
+// #define DEBUG_PRINT
 
 
 #ifdef DEBUG_PRINT

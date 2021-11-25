@@ -59,7 +59,7 @@ typedef struct _SItemToSend {
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_OUT_OF_MEMORY, @ref ERR_UEM_INVALID_PARAM.
  */
-uem_result UKSerialCommunicationManager_Create(HVirtualSocket hSocket, SVirtualCommunicationAPI *pstAPI, int nMaxChannelNum, OUT HSerialCommunicationManager *phManager);
+uem_result UKSerialCommunicationManager_Create(HVirtualSocket hSocket, SVirtualCommunicationAPI *pstAPI, int nMaxChannelNum, void *pstEncKeyInfo, OUT HSerialCommunicationManager *phManager);
 
 /**
  * @brief Destroy a serial communication manager.

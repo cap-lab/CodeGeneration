@@ -6,7 +6,6 @@
 
 #include <uem_common.h>
 
-
 <#if communication_used == true>
 #include <UCSocket.h>
 #include <UCDynamicSocket.h>
@@ -34,9 +33,9 @@
 <#if communication_used == true>
 #include <UKUEMProtocol.h>
 #include <UKVirtualCommunication.h>
+#include <UKVirtualEncryption.h>
 #include <UKRemoteChannel.h>
 #include <uem_remote_data.h>
-
 #include <UKSocketCommunication.h>
 
 	<#if used_communication_list?seq_contains("tcp")>
@@ -44,7 +43,6 @@
 #include <UKTCPCommunication.h>
 #include <uem_tcp_data.h>
 	</#if>
-	
 	<#if used_communication_list?seq_contains("bluetooth")>
 #include <UKBluetoothModule.h>
 #include <UKBluetoothCommunication.h>
@@ -65,6 +63,17 @@
 #include <UKGPUSystem.h>
 </#if>
 
+<#if encryption_used == true>
+<#if used_encryption_list?seq_contains("LEA")>
+#include <UKEncryptionLEA.h>
+</#if>
+<#if used_encryption_list?seq_contains("HIGHT")>
+#include <UKEncryptionHIGHT.h>
+</#if>
+<#if used_encryption_list?seq_contains("SEED")>
+#include <UKEncryptionSEED.h>
+</#if>
+</#if>
 
 // ##CHANNEL_SIZE_DEFINITION_TEMPLATE::START
 <#list channel_list as channel>
@@ -209,6 +218,45 @@ SSecurityKeyInfo g_astSSLKeyInfoList[] = {
 };
 </#if>
 
+<#if encryption_used == true>
+<#if used_encryption_list?seq_contains("LEA")>
+SVirtualEncryptionAPI g_stEncryptionLEA = {
+	UKEncryptionLEA_Initialize,
+	UKEncryptionLEA_EncodeOnCTRMode,
+	UKEncryptionLEA_EncodeOnCTRMode,
+	UKEncryptionLEA_Finalize
+};
+</#if>
+
+<#if used_encryption_list?seq_contains("HIGHT")>
+SVirtualEncryptionAPI g_stEncryptionHIGHT = {
+	UKEncryptionHIGHT_Initialize,
+	UKEncryptionHIGHT_EncodeOnCTRMode,
+	UKEncryptionHIGHT_EncodeOnCTRMode,
+	UKEncryptionHIGHT_Finalize
+};
+</#if>
+
+<#if used_encryption_list?seq_contains("SEED")>
+SVirtualEncryptionAPI g_stEncryptionSEED = {
+	UKEncryptionSEED_Initialize,
+	UKEncryptionSEED_EncodeOnCTRMode,
+	UKEncryptionSEED_EncodeOnCTRMode,
+	UKEncryptionSEED_Finalize
+};
+</#if>
+
+SEncryptionKeyInfo g_astEncryptionKeyInfoList[] = {
+	<#list encryption_list as encryption>
+	{
+		(unsigned char*)"${encryption.userKey}", // User Key
+		(unsigned char*)"${encryption.initializationVector}", // Initialization vector
+		${encryption.userKeyLen}, // User Key len
+		&(g_stEncryption${encryption.encryptionType}),
+	},
+	</#list>
+};
+</#if>
 
 <#if used_communication_list?seq_contains("tcp")>
 // #TCP_COMMUNICATION_GENERATION_TEMPLATE::START
@@ -241,6 +289,13 @@ STCPServerInfo g_astTCPServerInfo[] = {
 			(HVirtualSocket) NULL,
 			(HThread) NULL,
 			&g_stTCPCommunication,
+			<#if encryption_used == true>
+			<#if server.usedEncryption == true>
+			&(g_astEncryptionKeyInfoList[${server.encryptionListIndex}])
+			<#else>
+			(SEncryptionKeyInfo *) NULL
+			</#if>
+			</#if>
 		},		
 	},
 	</#list>
@@ -266,6 +321,13 @@ STCPAggregatedServiceInfo g_astTCPAggregateClientInfo[] = {
 			&g_stTCPCommunication, // bluetooth communication API
 			(HSerialCommunicationManager) NULL, // Serial communication manager handle
 			FALSE, // initialized or not
+			<#if encryption_used == true>
+			<#if client.usedEncryption == true>
+			&(g_astEncryptionKeyInfoList[${client.encryptionListIndex}])
+			<#else>
+			(SEncryptionKeyInfo *) NULL
+			</#if>
+			</#if>
 		},
 	},
 	</#list>
@@ -289,6 +351,13 @@ STCPAggregatedServiceInfo g_astTCPAggregateServerInfo[] = {
 			&g_stTCPCommunication, // bluetooth communication API
 			(HSerialCommunicationManager) NULL, // Serial communication manager handle
 			FALSE, // initialized or not
+			<#if encryption_used == true>
+			<#if server.usedEncryption == true>
+			&(g_astEncryptionKeyInfoList[${server.encryptionListIndex}])
+			<#else>
+			(SEncryptionKeyInfo *) NULL
+			</#if>
+			</#if>
 		},
 	},
 	</#list>
@@ -365,6 +434,13 @@ SSecureTCPAggregatedServiceInfo g_astSecureTCPAggregateClientInfo[] = {
 			&g_stSecureTCPCommunication, // bluetooth communication API
 			(HSerialCommunicationManager) NULL, // Serial communication manager handle
 			FALSE, // initialized or not
+			<#if encryption_used == true>
+			<#if client.usedEncryption == true>
+			&(g_astEncryptionKeyInfoList[${client.encryptionListIndex}])
+			<#else>
+			(SEncryptionKeyInfo *) NULL
+			</#if>
+			</#if>
 		},
 	},
 	</#list>
@@ -391,6 +467,13 @@ SSecureTCPAggregatedServiceInfo g_astSecureTCPAggregateServerInfo[] = {
 			&g_stSecureTCPCommunication, // bluetooth communication API
 			(HSerialCommunicationManager) NULL, // Serial communication manager handle
 			FALSE, // initialized or not
+			<#if encryption_used == true>
+			<#if server.usedEncryption == true>
+			&(g_astEncryptionKeyInfoList[${server.encryptionListIndex}])
+			<#else>
+			(SEncryptionKeyInfo *) NULL
+			</#if>
+			</#if>
 		},
 	},
 	</#list>
@@ -426,6 +509,13 @@ SIndividualConnectionInfo g_astIndividualConnectionInfo[] = {
 		&g_st${channel.remoteMethodType}Communication,
 		(HVirtualSocket) NULL,
 		(HUEMProtocol) NULL,
+		<#if encryption_used == true>
+		<#if channel.usedEncryption == true>
+		&(g_astEncryptionKeyInfoList[${channel.encryptionListIndex}])
+		<#else>
+		(SEncryptionKeyInfo *) NULL
+		</#if>
+		</#if>		
 	},
 #endif
 			<#break>
@@ -447,6 +537,13 @@ SBluetoothInfo g_astBluetoothMasterInfo[] = {
 			&g_stBluetoothCommunication, // bluetooth communication API
 			(HSerialCommunicationManager) NULL, // Serial communication manager handle
 			FALSE, // initialized or not
+			<#if encryption_used == true>
+			<#if master.usedEncryption == true>
+			&(g_astEncryptionKeyInfoList[${master.encryptionListIndex}])
+			<#else>
+			(SEncryptionKeyInfo *) NULL
+			</#if>
+			</#if>
 		},
 		{
 			"${master.portAddress}", // target mac address
@@ -466,6 +563,13 @@ SBluetoothInfo g_astBluetoothSlaveInfo[] = {
 			&g_stBluetoothCommunication, // bluetooth communication API
 			(HSerialCommunicationManager) NULL, // Serial communication manager handle
 			FALSE, // initialized or not
+			<#if encryption_used == true>
+			<#if slave.usedEncryption == true>
+			&(g_astEncryptionKeyInfoList[${slave.encryptionListIndex}])
+			<#else>
+			(SEncryptionKeyInfo *) NULL
+			</#if>
+			</#if>
 		},
 		{
 			"${slave.portAddress}", // slave mac address
@@ -489,6 +593,13 @@ SSerialInfo g_astSerialMasterInfo[] = {
 			&g_stSerialCommunication, // bluetooth communication API
 			(HSerialCommunicationManager) NULL, // Serial communication manager handle
 			FALSE, // initialized or not
+			<#if encryption_used == true>
+			<#if master.usedEncryption == true>
+			&(g_astEncryptionKeyInfoList[${master.encryptionListIndex}])
+			<#else>
+			(SEncryptionKeyInfo *) NULL
+			</#if>
+			</#if>
 		},
 		{
 			"${master.portAddress}", // serial port path
@@ -509,6 +620,13 @@ SSerialInfo g_astSerialSlaveInfo[] = {
 			&g_stSerialCommunication, // bluetooth communication API
 			(HSerialCommunicationManager) NULL, // Serial communication manager handle
 			FALSE, // initialized or not
+			<#if encryption_used == true>
+			<#if slave.usedEncryption == true>
+			&(g_astEncryptionKeyInfoList[${slave.encryptionListIndex}])
+			<#else>
+			(SEncryptionKeyInfo *) NULL
+			</#if>
+			</#if>
 		},
 		{
 			"${slave.portAddress}", // serial port path

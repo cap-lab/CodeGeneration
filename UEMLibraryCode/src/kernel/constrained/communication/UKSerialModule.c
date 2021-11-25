@@ -56,25 +56,31 @@ uem_result UKSerialModule_Initialize()
 		clearChannelList(&(g_astSerialSlaveInfo[nLoop]));
 	}
 
-    for(nLoop = 0 ; nLoop < g_nSerialMasterNum ; nLoop++)
-    {
-        clearChannelList(&(g_astSerialMasterInfo[nLoop]));
-    }
+	for(nLoop = 0 ; nLoop < g_nSerialMasterNum ; nLoop++)
+	{
+		clearChannelList(&(g_astSerialMasterInfo[nLoop]));
+	}
 
-    for(nLoop = 0; nLoop < g_nSerialMasterNum ; nLoop++)
-    {
-        UCSerial_Initialize(g_astSerialMasterInfo[nLoop].hSerial);
+	for(nLoop = 0; nLoop < g_nSerialMasterNum ; nLoop++)
+	{
+		UCSerial_Initialize(g_astSerialMasterInfo[nLoop].hSerial);
 
-        result = UKUEMLiteProtocol_SetHandShakeRequest(0);
-        ERRIFGOTO(result, _EXIT);
+		result = UKUEMLiteProtocol_SetEncryptionKey(g_astSerialMasterInfo[nLoop].pstEncKeyInfo);
+		ERRIFGOTO(result, _EXIT);
 
-        result = UKUEMLiteProtocol_Send(g_astSerialMasterInfo[nLoop].hSerial);
-        ERRIFGOTO(result, _EXIT);
-    }
+		result = UKUEMLiteProtocol_SetHandShakeRequest(0);
+		ERRIFGOTO(result, _EXIT);
+
+		result = UKUEMLiteProtocol_Send(g_astSerialMasterInfo[nLoop].hSerial);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	for(nLoop = 0 ; nLoop < g_nSerialSlaveNum ; nLoop++)
 	{
 		UCSerial_Initialize(g_astSerialSlaveInfo[nLoop].hSerial);
+
+		result = UKUEMLiteProtocol_SetEncryptionKey(g_astSerialSlaveInfo[nLoop].pstEncKeyInfo);
+		ERRIFGOTO(result, _EXIT);
 
 		nAvailableSize = 0;
 
@@ -104,29 +110,29 @@ uem_result UKSerialModule_Initialize()
 		ERRIFGOTO(result, _EXIT);
 	}
 
-    for(nLoop = 0; nLoop < g_nSerialMasterNum ; nLoop++)
-    {
-        nAvailableSize = 0;
+	for(nLoop = 0; nLoop < g_nSerialMasterNum ; nLoop++)
+	{
+		nAvailableSize = 0;
 
-        while(nAvailableSize == 0)
-        {
-            result = UCSerial_Available(g_astSerialMasterInfo[nLoop].hSerial, &nAvailableSize);
-            ERRIFGOTO(result, _EXIT);
+		while(nAvailableSize == 0)
+		{
+			result = UCSerial_Available(g_astSerialMasterInfo[nLoop].hSerial, &nAvailableSize);
+			ERRIFGOTO(result, _EXIT);
 
-            UCTime_Sleep(WAIT_SLEEP_TIME);
-        }
+			UCTime_Sleep(WAIT_SLEEP_TIME);
+		}
 
-        result = UKUEMLiteProtocol_Receive(g_astSerialMasterInfo[nLoop].hSerial);
-        ERRIFGOTO(result, _EXIT);
+		result = UKUEMLiteProtocol_Receive(g_astSerialMasterInfo[nLoop].hSerial);
+		ERRIFGOTO(result, _EXIT);
 
-        result = UKUEMLiteProtocol_GetHeaderFromReceivedData(&nChannelId, &enMessageType, &nParamNum, &pasParam);
-        ERRIFGOTO(result, _EXIT);
+		result = UKUEMLiteProtocol_GetHeaderFromReceivedData(&nChannelId, &enMessageType, &nParamNum, &pasParam);
+		ERRIFGOTO(result, _EXIT);
 
-        if(enMessageType != MESSAGE_TYPE_RESULT || MESSAGE_TYPE_HANDSHAKE != (EMessageType) pasParam[RESULT_REQUEST_PACKET_INDEX])
-        {
-            ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
-        }
-    }
+		if(enMessageType != MESSAGE_TYPE_RESULT || MESSAGE_TYPE_HANDSHAKE != (EMessageType) pasParam[RESULT_REQUEST_PACKET_INDEX])
+		{
+			ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_DATA, _EXIT);
+		}
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:
@@ -363,30 +369,30 @@ uem_result UKSerialModule_Run()
 	int nLoop = 0;
 	int nAvailableSize = 0;
 
-    for(nLoop = 0 ; nLoop < g_nSerialMasterNum ; nLoop++)
-    {
-        nAvailableSize = 0;
+	for(nLoop = 0 ; nLoop < g_nSerialMasterNum ; nLoop++)
+	{
+		nAvailableSize = 0;
 
-        result = UCSerial_Available(g_astSerialMasterInfo[nLoop].hSerial, &nAvailableSize);
-        ERRIFGOTO(result, _EXIT);
+		result = UCSerial_Available(g_astSerialMasterInfo[nLoop].hSerial, &nAvailableSize);
+		ERRIFGOTO(result, _EXIT);
 
-        while(nAvailableSize > 0)
-        {
-            UCTime_Sleep(SERIAL_COMMUNICATION_DELAY_TIME);
-            result = UKUEMLiteProtocol_Receive(g_astSerialMasterInfo[nLoop].hSerial);
-            ERRIFGOTO(result, _EXIT);
+		while(nAvailableSize > 0)
+		{
+			UCTime_Sleep(SERIAL_COMMUNICATION_DELAY_TIME);
+			result = UKUEMLiteProtocol_Receive(g_astSerialMasterInfo[nLoop].hSerial);
+			ERRIFGOTO(result, _EXIT);
 
-            result = handleReceivedData(&(g_astSerialMasterInfo[nLoop]));
-            ERRIFGOTO(result, _EXIT);
+			result = handleReceivedData(&(g_astSerialMasterInfo[nLoop]));
+			ERRIFGOTO(result, _EXIT);
 
-            result = UCSerial_Available(g_astSerialMasterInfo[nLoop].hSerial, &nAvailableSize);
-            ERRIFGOTO(result, _EXIT);
-        }
+			result = UCSerial_Available(g_astSerialMasterInfo[nLoop].hSerial, &nAvailableSize);
+			ERRIFGOTO(result, _EXIT);
+		}
 
-        result = handleRequests(&(g_astSerialMasterInfo[nLoop]));
-        //UEM_DEBUG_PRINT("result check: %d\n", result);
-        ERRIFGOTO(result, _EXIT);
-    }
+		result = handleRequests(&(g_astSerialMasterInfo[nLoop]));
+		//UEM_DEBUG_PRINT("result check: %d\n", result);
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	for(nLoop = 0 ; nLoop < g_nSerialSlaveNum ; nLoop++)
 	{

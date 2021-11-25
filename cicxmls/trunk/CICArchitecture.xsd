@@ -186,9 +186,20 @@
 
   <xs:complexType name="ArchitectureConnectionSlaveType">
 	<xs:attribute name="device" type="NameType" use="required" />
-    <xs:attribute name="connection" type="NameType" use="required" />	
+    <xs:attribute name="connection" type="NameType" use="required" />
+    <xs:attribute name="encryption" type="EncryptionType" use="optional" />
+    <xs:attribute name="userkey" type="xs:string" use="optional" />
   </xs:complexType>
-
+  
+   <xs:simpleType name="EncryptionType">
+  	<xs:restriction base="xs:string">
+  	 <xs:enumeration value="NO" />
+     <xs:enumeration value="LEA" />
+     <xs:enumeration value="HIGHT" />
+     <xs:enumeration value="SEED" />
+    </xs:restriction>
+  </xs:simpleType>
+  
   <xs:simpleType name="ServerClientRoleType">
     <xs:restriction base="xs:string">
       <xs:enumeration value="server" />

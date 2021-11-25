@@ -14,11 +14,26 @@
 
 #include <uem_protocol_data.h>
 
+#include <UKVirtualEncryption.h>
+
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+/**
+ * @brief Set encryption key.
+ *
+ * This function sets encryption key.
+ *
+ * @param pstEncKeyInfo a encryption key info.
+ *
+ * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
+ */
+uem_result UKUEMLiteProtocol_SetEncryptionKey(SEncryptionKeyInfo *pstEncKeyInfo);
 
 /**
  * @brief Receive data.

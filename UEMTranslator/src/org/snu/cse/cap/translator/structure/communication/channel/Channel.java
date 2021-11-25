@@ -1,7 +1,6 @@
 package org.snu.cse.cap.translator.structure.communication.channel;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.snu.cse.cap.translator.Constants;
@@ -27,6 +26,8 @@ public class Channel implements Cloneable {
 	private int channelSampleSize;
 	private int socketInfoIndex;
 	private int processerId;
+	private int encryptionListIndex;
+	private Boolean usedEncryption;
 
 	public int getProcesserId() {
 		return processerId;
@@ -48,7 +49,8 @@ public class Channel implements Cloneable {
 		this.outputPortIndex = Constants.INVALID_VALUE;
 		this.remoteMethodType = RemoteCommunicationType.NONE;
 		this.connectionRoleType = ConnectionRoleType.NONE;
-
+		this.usedEncryption = false;
+		this.encryptionListIndex = Constants.INVALID_VALUE;
 	}
 
 	// Does not need to clone inputPort and outputPort
@@ -318,5 +320,24 @@ public class Channel implements Cloneable {
 
 	public void setRemoteMethodType(RemoteCommunicationType remoteMethodType) {
 		this.remoteMethodType = remoteMethodType;
+	}
+
+	public void setUsedEncryption(Boolean usedEncryption) {
+		this.usedEncryption = usedEncryption;
+	}
+
+	public int getEncryptionListIndex() {
+		return encryptionListIndex;
+	}
+
+	public Boolean getUsedEncryption() {
+		return usedEncryption;
+	}
+
+	public void setEncryptionListIndex(int index) {
+		if (index != Constants.INVALID_VALUE) {
+			this.setUsedEncryption(true);
+		}
+		encryptionListIndex = index;
 	}
 }
