@@ -187,7 +187,7 @@
   <xs:complexType name="ArchitectureConnectionSlaveType">
 	<xs:attribute name="device" type="NameType" use="required" />
     <xs:attribute name="connection" type="NameType" use="required" />
-    <xs:attribute name="encryption" type="EncryptionType" use="optional" />
+    <xs:attribute name="encryption" type="EncryptionType" use="required" />
     <xs:attribute name="userkey" type="xs:string" use="optional" />
   </xs:complexType>
   
