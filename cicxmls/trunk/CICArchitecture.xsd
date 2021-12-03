@@ -181,14 +181,14 @@
       <xs:element name="slave" type="ArchitectureConnectionSlaveType" minOccurs="1" maxOccurs="unbounded" />
     </xs:sequence>    
 	<xs:attribute name="master" type="NameType" use="required" />
-    <xs:attribute name="connection" type="NameType" use="required" />	
+    <xs:attribute name="connection" type="NameType" use="required" />
+    <xs:attribute name="encryption" type="EncryptionType" use="required" />
+    <xs:attribute name="userkey" type="xs:string" use="optional" />	
   </xs:complexType>
 
   <xs:complexType name="ArchitectureConnectionSlaveType">
 	<xs:attribute name="device" type="NameType" use="required" />
     <xs:attribute name="connection" type="NameType" use="required" />
-    <xs:attribute name="encryption" type="EncryptionType" use="required" />
-    <xs:attribute name="userkey" type="xs:string" use="optional" />
   </xs:complexType>
   
    <xs:simpleType name="EncryptionType">

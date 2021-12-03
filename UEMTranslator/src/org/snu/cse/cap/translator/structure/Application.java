@@ -349,6 +349,27 @@ public class Application {
 		return iv;
 	}
 
+	private boolean checkEncryptionKeySize(String encryptionType, int keyLen) {
+		boolean result = true;
+		
+		if (encryptionType.contentEquals(DeviceEncryptionType.LEA.toString())) {
+			if (keyLen != DeviceEncryptionType.KEY128_BYTE_SIZE && keyLen != DeviceEncryptionType.KEY192_BYTE_SIZE
+					&& keyLen != DeviceEncryptionType.KEY256_BYTE_SIZE) {
+				result = false;
+			}
+		} else if (encryptionType.contentEquals(DeviceEncryptionType.HIGHT.toString())) {
+			if (keyLen != DeviceEncryptionType.KEY64_BYTE_SIZE) {
+				result = false;
+			}
+		} else if (encryptionType.contentEquals(DeviceEncryptionType.SEED.toString())) {
+			if (keyLen != DeviceEncryptionType.KEY128_BYTE_SIZE) {
+				result = false;
+			}
+		}
+
+		return result;
+	}
+
 	private void setEncryption(String deviceName, String connectionName, String encryptionType, String userKey,
 			String initializationVector)
 			throws InvalidDeviceConnectionException {
@@ -356,6 +377,15 @@ public class Application {
 		Connection connection;
 		String iv;
 		int index = -1;
+
+		try {
+			if (!checkEncryptionKeySize(encryptionType, userKey.length())) {
+				throw new InvalidDeviceConnectionException();
+			}
+		} catch (InvalidDeviceConnectionException e) {
+			System.out.println("ERROR key length is wrong, key length: " + userKey.length());
+			return;
+		}
 
 		device = this.deviceInfo.get(deviceName);
 
@@ -422,19 +452,19 @@ public class Application {
 						slave = findConnection(slaveType.getDevice(), slaveType.getConnection());
 
 
-						if (!slaveType.getEncryption().toString().contentEquals(EncryptionType.NO.toString()))
+						if (!connectType.getEncryption().toString().contentEquals(EncryptionType.NO.toString()))
 						{
 							setEncryption(slaveType.getDevice(), slaveType.getConnection(),
-									slaveType.getEncryption().toString(),
-									slaveType.getUserkey(), initializationVector);
+									connectType.getEncryption().toString(), connectType.getUserkey(),
+									initializationVector);
 							setEncryption(connectType.getMaster(), master.getName(),
-									slaveType.getEncryption().toString(),
-									slaveType.getUserkey(), initializationVector);
+									connectType.getEncryption().toString(), connectType.getUserkey(),
+									initializationVector);
 						}
 
 						deviceConnection.putMasterToSlaveConnection(master, slaveType.getDevice(), slave);
 						deviceConnection.putSlaveToMasterConnection(slaveType.getDevice(), slave, master,
-								slaveType.getEncryption().toString(), slaveType.getUserkey());
+								connectType.getEncryption().toString(), connectType.getUserkey());
 					}
 				} catch (InvalidDeviceConnectionException e) {
 					// TODO Auto-generated catch block

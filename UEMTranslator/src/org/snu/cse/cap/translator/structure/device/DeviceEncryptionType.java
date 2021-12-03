@@ -9,6 +9,11 @@ public enum DeviceEncryptionType {
 
 	public static final int MAX_BLOCK_SIZE = 16;
 
+	public static final int KEY64_BYTE_SIZE = 8;
+	public static final int KEY128_BYTE_SIZE = 16;
+	public static final int KEY192_BYTE_SIZE = 24;
+	public static final int KEY256_BYTE_SIZE = 32;
+
 	private final String value;
 	private int blockSize;
 	
