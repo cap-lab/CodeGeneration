@@ -13,7 +13,6 @@
     </Filter>
     <Filter Include="$(COMMON_DIR)">
     </Filter>
-    </Filter>
     <Filter Include="$(COMMON_DIR)\$(ENCRYPTION)">
     </Filter>
     <Filter Include="$(COMMON_DIR)\$(DEVICE_RESTRICTION)">
@@ -48,6 +47,8 @@
     </Filter>
     <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(COMMUNICATION_DIR)\$(TCP_DIR)">
     </Filter>
+    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION)">
+    </Filter>
     <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION)\$(LEA)">
     </Filter>
     <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION)\$(HIGHT)">
@@ -60,7 +61,7 @@
   </ItemGroup>  
   <ItemGroup>
   	<#list build_info.mainSourceList as source_file>
-  	<ClCompile Include="$(MAIN_DIR)\${source_file}">
+ 	<ClCompile Include="$(MAIN_DIR)\${source_file}">
 		<Filter>$(MAIN_DIR)<#if (source_file?last_index_of("\\") >= 0)>\${source_file[0..<source_file?last_index_of("\\")]}</#if></Filter>
 	</ClCompile>
 	</#list>
