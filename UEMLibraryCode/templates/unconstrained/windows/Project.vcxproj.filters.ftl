@@ -13,7 +13,7 @@
     </Filter>
     <Filter Include="$(COMMON_DIR)">
     </Filter>
-    <Filter Include="$(COMMON_DIR)\$(ENCRYPTION)">
+    <Filter Include="$(COMMON_DIR)\$(ENCRYPTION_DIR)">
     </Filter>
     <Filter Include="$(COMMON_DIR)\$(DEVICE_RESTRICTION)">
     </Filter>
@@ -47,13 +47,13 @@
     </Filter>
     <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(COMMUNICATION_DIR)\$(TCP_DIR)">
     </Filter>
-    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION)">
+    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION_DIR)">
     </Filter>
-    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION)\$(LEA)">
+    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION_DIR)\$(LEA)">
     </Filter>
-    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION)\$(HIGHT)">
+    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION_DIR)\$(HIGHT)">
     </Filter>
-    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION)\$(SEED)">
+    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION_DIR)\$(SEED)">
     </Filter>
 	<Filter Include="Header Files">
 		<Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
