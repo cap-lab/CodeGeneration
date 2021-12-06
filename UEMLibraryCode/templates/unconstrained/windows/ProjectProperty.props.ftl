@@ -10,7 +10,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)$(MAIN_DIR)\include;$(ProjectDir)$(API_DIR)\include;$(ProjectDir)$(KERNEL_DIR)\include;$(ProjectDir)$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\include;$(ProjectDir);$(ProjectDir)$(COMMON_DIR)\include;$(ProjectDir)$(COMMON_DIR)\$(DEVICE_RESTRICTION)\include;$(ProjectDir)$(COMMON_DIR)\$(DEVICE_RESTRICTION)\include\communication;$(ProjectDir)$(MODULE_DIR)\include;$(ProjectDir)$(MAIN_DIR)\$(DEVICE_RESTRICTION);$(ProjectDir)$(MAIN_DIR)\$(DEVICE_RESTRICTION)\$(NATIVE_DIR);$(ProjectDir)$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\include\communication;$(ProjectDir)$(COMMON_DIR)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)$(MAIN_DIR)\include;$(ProjectDir)$(API_DIR)\include;$(ProjectDir)$(KERNEL_DIR)\include;$(ProjectDir)$(KERNEL_DIR)\include\$(ENCRYPTION_DIR);$(ProjectDir)$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\include;$(ProjectDir);$(ProjectDir)$(COMMON_DIR)\include;$(ProjectDir)$(COMMON_DIR)\include\$(ENCRYPTION_DIR);$(ProjectDir)$(COMMON_DIR)\$(DEVICE_RESTRICTION)\include;$(ProjectDir)$(COMMON_DIR)\$(DEVICE_RESTRICTION)\include\communication;$(ProjectDir)$(MODULE_DIR)\include;$(ProjectDir)$(MAIN_DIR)\$(DEVICE_RESTRICTION);$(ProjectDir)$(MAIN_DIR)\$(DEVICE_RESTRICTION)\$(NATIVE_DIR);$(ProjectDir)$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\include\communication;$(ProjectDir)$(COMMON_DIR)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>HAVE_CONFIG_H</PreprocessorDefinitions>
       <AdditionalOptions>${build_info.cflags} %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -70,6 +70,22 @@
     </BuildMacro>
 	<BuildMacro Include="TCP_DIR">
       <Value>$(TCP_DIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="ENCRYPTION_DIR">
+      <Value>$(ENCRYPTION_DIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LEA_DIR">
+      <Value>$(LEA_DIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="HIGHT_DIR">
+      <Value>$(HIGHT_DIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="SEED_DIR">
+      <Value>$(SEED_DIR)</Value>
       <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
   </ItemGroup>

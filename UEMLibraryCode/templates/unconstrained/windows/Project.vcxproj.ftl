@@ -164,6 +164,7 @@
 	<ClInclude Include="$(MAIN_DIR)\$(DEVICE_RESTRICTION)\*.h"/>
 	<ClInclude Include="$(API_DIR)\$(INCLUDE_DIR)\*.h"/>
 	<ClInclude Include="$(COMMON_DIR)\$(INCLUDE_DIR)\*.h"/>
+	<ClInclude Include="$(COMMON_DIR)\$(INCLUDE_DIR)\$(ENCRYPTION_DIR)\*.h"/>
 	<ClInclude Include="$(COMMON_DIR)\$(DEVICE_RESTRICTION)\$(INCLUDE_DIR)\*.h"/>
 	<#if (build_info.usedPeripheralList?size > 0) >
 	<#list build_info.usedPeripheralList as peripheralName>
@@ -171,13 +172,14 @@
 	</#list>
 	</#if>	
 	<ClInclude Include="$(KERNEL_DIR)\$(INCLUDE_DIR)\*.h"/>
+	<ClInclude Include="$(KERNEL_DIR)\$(INCLUDE_DIR)\$(ENCRYPTION_DIR)\*.h"/>
 	<ClInclude Include="$(KERNEL_DIR)\$(GENERATED_DIR)\*.h"/>
 	<ClInclude Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(INCLUDE_DIR)\*.h"/>
 	<#if (build_info.usedPeripheralList?size > 0) >
 	<#list build_info.usedPeripheralList as peripheralName>
 	<ClInclude Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(INCLUDE_DIR)\${peripheralName}\*.h"/>
 	</#list>
-	</#if>	
+	</#if>
 	<ClInclude Include="$(MODULE_DIR)\$(INCLUDE_DIR)\*.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

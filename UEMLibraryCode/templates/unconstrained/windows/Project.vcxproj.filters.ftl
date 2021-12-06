@@ -13,6 +13,9 @@
     </Filter>
     <Filter Include="$(COMMON_DIR)">
     </Filter>
+    </Filter>
+    <Filter Include="$(COMMON_DIR)\$(ENCRYPTION)">
+    </Filter>
     <Filter Include="$(COMMON_DIR)\$(DEVICE_RESTRICTION)">
     </Filter>
     <Filter Include="$(COMMON_DIR)\$(DEVICE_RESTRICTION)\$(NATIVE_DIR)">
@@ -44,6 +47,12 @@
     <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(COMMUNICATION_DIR)">
     </Filter>
     <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(COMMUNICATION_DIR)\$(TCP_DIR)">
+    </Filter>
+    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION)\$(LEA)">
+    </Filter>
+    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION)\$(HIGHT)">
+    </Filter>
+    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION)\$(SEED)">
     </Filter>
 	<Filter Include="Header Files">
 		<Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
