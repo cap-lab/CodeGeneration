@@ -17,6 +17,7 @@
 
 #include <UKUEMProtocol.h>
 #include <UKVirtualCommunication.h>
+#include <UKVirtualEncryption.h>
 
 #include <uem_remote_data.h>
 
@@ -66,7 +67,7 @@ static void *aggregateClientThread(void *pData)
 		break;
 	}
 
-	result = UKSerialCommunicationManager_Create(pstServiceInfo->hSocket, pstServiceInfo->pstAPI, pstServiceInfo->nMaxChannelAccessNum, &(pstServiceInfo->hManager));
+	result = UKSerialCommunicationManager_Create(pstServiceInfo->hSocket, pstServiceInfo->pstAPI, pstServiceInfo->nMaxChannelAccessNum, pstServiceInfo->pstEncKeyInfo, &(pstServiceInfo->hManager));
 	ERRIFGOTO(result, _EXIT);
 
 	// handshake first
@@ -162,7 +163,7 @@ static void *aggregateServiceThread(void *pData)
 		// do nothing (use pstServiceInfo->hSocket)
 	}
 
-	result = UKSerialCommunicationManager_Create(pstServiceInfo->hSocket, pstServiceInfo->pstAPI, pstServiceInfo->nMaxChannelAccessNum, &(pstServiceInfo->hManager));
+	result = UKSerialCommunicationManager_Create(pstServiceInfo->hSocket, pstServiceInfo->pstAPI, pstServiceInfo->nMaxChannelAccessNum, pstServiceInfo->pstEncKeyInfo, &(pstServiceInfo->hManager));
 	ERRIFGOTO(result, _EXIT);
 
 	result = UKSerialCommunicationManager_AcceptHandshake(pstServiceInfo->hManager);
@@ -341,7 +342,7 @@ _EXIT:
 }
 
 
-static uem_result handleHandshakeFromClient(HVirtualSocket hClientSocket, SVirtualCommunicationAPI *pstAPI)
+static uem_result handleHandshakeFromClient(HVirtualSocket hClientSocket, SVirtualCommunicationAPI *pstAPI, SEncryptionKeyInfo *pstEncKeyInfo)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	HUEMProtocol hProtocol = NULL;
@@ -356,6 +357,9 @@ static uem_result handleHandshakeFromClient(HVirtualSocket hClientSocket, SVirtu
 	ERRIFGOTO(result, _EXIT);
 
 	result = UKUEMProtocol_SetSocket(hProtocol, hClientSocket, pstAPI);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKUEMProtocol_SetEncryptionKey(hProtocol, pstEncKeyInfo);
 	ERRIFGOTO(result, _EXIT);
 
 	// if it cannot receive anything until timeout, handle as an error
@@ -433,9 +437,11 @@ static void *individualServiceThread(void *pData)
 	SIndividualServiceInfo *pstServiceInfo = (HVirtualSocket) pData;
 	HVirtualSocket hClientSocket = NULL;
 	SVirtualCommunicationAPI *pstAPI = NULL;
+	SEncryptionKeyInfo *pstEncKeyInfo = NULL;
 	uem_result result = ERR_UEM_UNKNOWN;
 
 	pstAPI = pstServiceInfo->pstAPI;
+	pstEncKeyInfo = pstServiceInfo->pstEncKeyInfo;
 
 	while(g_bSystemExit == FALSE)
 	{
@@ -453,7 +459,7 @@ static void *individualServiceThread(void *pData)
 		ERRIFGOTO(result, _EXIT);
 
 		// do something (handshake)
-		result = handleHandshakeFromClient(hClientSocket, pstAPI);
+		result = handleHandshakeFromClient(hClientSocket, pstAPI, pstEncKeyInfo);
 		// skip error to preserve TCP server accept
 
 		hClientSocket = NULL;

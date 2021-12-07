@@ -66,7 +66,7 @@ uem_result UKSecureTCPCommunication_Destroy(HVirtualSocket *phSocket);
  * @param nTimeout a maximum time to wait for connection.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
- *         Errors to be returned -  @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_SOCKET, @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_SSL_ERROR\n
+ *         Errors to be returned -  @ref ERR_UEM_CONNECT_ERROR, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_SOCKET, @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_CONNECT_ERROR, @ref ERR_UEM_SSL_ERROR\n
  *         @ref ERR_UEM_CONNECT_ERROR, and corresponding errors from @ref SSocketAPI fnConnect() function. \n
  *         @ref ERR_UEM_INVALID_HANDLE can be occurred if the handle is not a socket handle.\n
  *         @ref ERR_UEM_INVALID_SOCKET can be occurred if the @a hClientSocket is a server socket. \n
@@ -115,12 +115,12 @@ uem_result UKSecureTCPCommunication_Listen(HVirtualSocket hSocket);
  * This function accepts a client connection from different process/system. \n
  * This is an implementation function of SVirtualCommunicationAPI's fnAccept().
  *
- * @param hServerSocket a socket handle to accept client connection.
- * @param nTimeout a maximum time to wait for client connection.
  * @param[in,out] hSocket a retrieved client socket.
+ * @param nTimeout a maximum time to wait for client connection.
+ * @param hAcceptedSocket a socket handle to accept client connection.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
- *         Errors to be returned - @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_SOCKET, @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_SSL_ERROR\n
+ *         Errors to be returned - @ref ERR_UEM_SELECT_ERROR, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_SOCKET, @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_SELECT_ERROR, @ref ERR_UEM_NET_TIMEOUT, @ref ERR_UEM_SSL_ERROR\n
  *         @ref ERR_UEM_SELECT_ERROR, @ref ERR_UEM_NET_TIMEOUT, and corresponding errors from @ref SSocketAPI fnAccept() function. \n
  *         @ref ERR_UEM_INVALID_HANDLE can be occurred if the handle is not a socket handle.\n
  *         @ref ERR_UEM_INVALID_SOCKET can be occurred if the @a hServerSocket is a client socket. \n

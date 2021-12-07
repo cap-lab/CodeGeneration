@@ -988,6 +988,7 @@ static uem_result handleTaskMainRoutine(SGeneralTask *pstGeneralTask, SGeneralTa
 			}
 			if(enRunCondition == RUN_CONDITION_CONTROL_DRIVEN) // run once for control-driven leaf task
 			{
+				pstGeneralTask->enTaskState = TASK_STATE_STOP;
 				UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);
 			}
 			break;

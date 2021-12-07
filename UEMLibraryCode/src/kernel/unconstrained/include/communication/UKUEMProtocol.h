@@ -17,6 +17,7 @@
 #include <uem_protocol_data.h>
 
 #include <UKVirtualCommunication.h>
+#include <UKVirtualEncryption.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -85,6 +86,20 @@ uem_result UKUEMProtocol_GetMessageParamNumByMessageType(EMessageType enMessageT
  *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
  */
 uem_result UKUEMProtocol_SetSocket(HUEMProtocol hProtocol, HVirtualSocket hSocket, SVirtualCommunicationAPI *pstAPI);
+
+/**
+ * @brief Set encryption key.
+ *
+ * This function sets encryption key.
+ *
+ * @param hProtocol a protocol handle.
+ * @param pstEncKeyInfo a encryption key info.
+ *
+ * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * Errors to be returned - @ref ERR_UEM_INVALID_PARAM.
+ */
+uem_result UKUEMProtocol_SetEncryptionKey(HUEMProtocol hProtocol, SEncryptionKeyInfo *pstEncKeyInfo);
 
 /**
  * @brief Request handshake and get result from remote device.

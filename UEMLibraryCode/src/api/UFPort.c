@@ -45,7 +45,7 @@ uem_result UFPort_ReadFromQueue (IN int nChannelId, IN OUT unsigned char *pBuffe
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
 	}
 
-	IFVARERRASSIGNGOTO(pBuffer, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+	// IFVARERRASSIGNGOTO(pBuffer, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 	IFVARERRASSIGNGOTO(pnDataRead, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
 	result = UKChannel_ReadFromQueue(nChannelId, pBuffer, nDataToRead, nChunkIndex, pnDataRead);

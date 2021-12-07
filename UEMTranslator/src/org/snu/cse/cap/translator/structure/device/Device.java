@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.structure.ExecutionPolicy;
@@ -19,6 +20,7 @@ import org.snu.cse.cap.translator.structure.communication.multicast.MulticastGro
 import org.snu.cse.cap.translator.structure.communication.multicast.MulticastPort;
 import org.snu.cse.cap.translator.structure.device.connection.Connection;
 import org.snu.cse.cap.translator.structure.device.connection.ConstrainedSerialConnection;
+import org.snu.cse.cap.translator.structure.device.connection.EncryptionInfo;
 import org.snu.cse.cap.translator.structure.device.connection.IPConnection;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
 import org.snu.cse.cap.translator.structure.device.connection.SSLKeyInfo;
@@ -69,6 +71,7 @@ public class Device {
 	private int id;
 	private ArrayList<Processor> processorList;
 	private HashMap<String, Connection> connectionList;
+
 	private ArchitectureType architecture;
 	private SoftwarePlatformType platform;
 	private RuntimeType runtime;
@@ -93,16 +96,18 @@ public class Device {
 	private HashMap<String, UDPConnection> udpList;
 	private ArrayList<UnconstrainedSerialConnection> bluetoothMasterList;
 	private ArrayList<UnconstrainedSerialConnection> bluetoothUnconstrainedSlaveList;
+	private ArrayList<ConstrainedSerialConnection> serialConstrainedMasterList;
 	private ArrayList<ConstrainedSerialConnection> serialConstrainedSlaveList;
-	private ArrayList<UnconstrainedSerialConnection> serialMasterList;
+	private ArrayList<UnconstrainedSerialConnection> serialUnconstrainedMasterList;
 	private ArrayList<UnconstrainedSerialConnection> serialUnconstrainedSlaveList;
 	private ArrayList<SSLTCPConnection> secureTcpServerList;
 	private ArrayList<SSLTCPConnection> secureTcpClientList;
 	private ArrayList<SSLKeyInfo> sslKeyInfoList;
+	private ArrayList<EncryptionInfo> encryptionList;
 	
 	private HashSet<DeviceCommunicationType> supportedConnectionTypeList;
+	private HashSet<DeviceEncryptionType> supportedEncryptionTypeSet;
 
-	
 	public Device(String name, int id, String architecture, String platform, String runtime) 
 	{
 		this.name = name;
@@ -132,15 +137,18 @@ public class Device {
 		this.udpList = new HashMap<String, UDPConnection>();
 		this.bluetoothMasterList = new ArrayList<UnconstrainedSerialConnection>();
 		this.bluetoothUnconstrainedSlaveList = new ArrayList<UnconstrainedSerialConnection>();
+		this.serialConstrainedMasterList = new ArrayList<ConstrainedSerialConnection>();
 		this.serialConstrainedSlaveList = new ArrayList<ConstrainedSerialConnection>();
-		this.serialMasterList = new ArrayList<UnconstrainedSerialConnection>();
+		this.serialUnconstrainedMasterList = new ArrayList<UnconstrainedSerialConnection>();
 		this.serialUnconstrainedSlaveList = new ArrayList<UnconstrainedSerialConnection>();
 		this.secureTcpServerList = new ArrayList<SSLTCPConnection>();
 		this.secureTcpClientList = new ArrayList<SSLTCPConnection>();
 		this.sslKeyInfoList = new ArrayList<SSLKeyInfo>();
+		this.encryptionList = new ArrayList<EncryptionInfo>();
 		
 
 		this.supportedConnectionTypeList = new HashSet<DeviceCommunicationType>();
+		this.supportedEncryptionTypeSet = new HashSet<DeviceEncryptionType>();
 	}
 	
 	private class TaskFuncIdChecker 
@@ -188,7 +196,6 @@ public class Device {
 		return true;
 	}
 	
-	
 	public boolean useCommunication()
 	{
 		if (this.connectionList.size() == 0 && this.supportedConnectionTypeList.size() == 0)
@@ -197,10 +204,21 @@ public class Device {
 		}
 		return true;
 	}
-	
+
+	public boolean useEncryption() 
+	{
+		if (this.encryptionList.size() == 0) 
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+
 	// recursive function
-	private int recursiveScheduleLoopInsert(ArrayList<ScheduleItem> scheduleItemList, List<ScheduleElementType> scheduleElementList, 
-										int depth, int maxDepth, HashMap<String, Task> globalTaskMap)
+	private int recursiveScheduleLoopInsert(List<ScheduleItem> scheduleItemList,
+			List<ScheduleElementType> scheduleElementList, int depth, int maxDepth, Map<String, Task> globalTaskMap)
 	{
 		ScheduleLoop scheduleInloop;
 		ScheduleTask scheduleTask;
@@ -235,7 +253,7 @@ public class Device {
 	}
 	
 	private CompositeTaskSchedule fillCompositeTaskSchedule(CompositeTaskSchedule taskSchedule, ScheduleGroupType scheduleGroup, 
-															HashMap<String, Task> globalTaskMap) 
+			Map<String, Task> globalTaskMap) 
 	{ 	
 		int maxDepth = 0;
 		
@@ -263,7 +281,8 @@ public class Device {
 		return processorId; 
 	}
 	
-	private int getModeIdByName(String taskName, String modeName, HashMap<String, Task> globalTaskMap) throws InvalidDataInMetadataFileException
+	private int getModeIdByName(String taskName, String modeName, Map<String, Task> globalTaskMap)
+			throws InvalidDataInMetadataFileException
 	{
 		int modeId;
 		Task task;
@@ -426,7 +445,7 @@ public class Device {
 		}
 	}
 	
-	private void putTaskHierarchicallyToTaskMap(String taskName, HashMap<String, Task> globalTaskMap)
+	private void putTaskHierarchicallyToTaskMap(String taskName, Map<String, Task> globalTaskMap)
 	{
 		Task currentTask;
 		Task parentTask;
@@ -469,7 +488,8 @@ public class Device {
 		}
 	}
 	
-	private void makeMultipleCompositeTaskMapping(String[] splitedFileName, File scheduleFile, HashMap<String, Task> globalTaskMap)
+	private void makeMultipleCompositeTaskMapping(String[] splitedFileName, File scheduleFile,
+			Map<String, Task> globalTaskMap)
 										throws CICXMLException, InvalidDataInMetadataFileException 
 	{
 		int numOfUsableCPU;
@@ -544,7 +564,8 @@ public class Device {
 		}
 	}
 	
-	private void setCompositeTaskMappingInfo(HashMap<String, Task> globalTaskMap, String scheduleFolderPath) throws FileNotFoundException, InvalidScheduleFileNameException, InvalidDataInMetadataFileException {
+	private void setCompositeTaskMappingInfo(Map<String, Task> globalTaskMap, String scheduleFolderPath)
+			throws FileNotFoundException, InvalidScheduleFileNameException, InvalidDataInMetadataFileException {
 		ScheduleFileFilter scheduleXMLFilefilter = new ScheduleFileFilter(); 
 		String[] splitedFileName = null;
 		File scheduleFolder = new File(scheduleFolderPath);
@@ -578,7 +599,7 @@ public class Device {
 		return this.taskMap.get(taskName).getType();
 	}
 	
-	private boolean checkTaskIsIncludedInCompositeTask(String taskName, HashMap<String, Task> globalTaskMap)
+	private boolean checkTaskIsIncludedInCompositeTask(String taskName, Map<String, Task> globalTaskMap)
 	{
 		boolean isInsideCompositeTask = false;
 		Task task;
@@ -601,7 +622,8 @@ public class Device {
 	}
 	
 
-	private void setGeneralTaskMappingInfo(CICMappingType mapping_metadata, HashMap<String, Task> globalTaskMap) throws InvalidDataInMetadataFileException, NoProcessorFoundException
+	private void setGeneralTaskMappingInfo(CICMappingType mapping_metadata, Map<String, Task> globalTaskMap)
+			throws InvalidDataInMetadataFileException, NoProcessorFoundException
 	{		
 		for(MappingTaskType mappedTask: mapping_metadata.getTask())
 		{
@@ -639,7 +661,8 @@ public class Device {
 		}
 	}
 	
-	private void setupGPUInfoPerTask(CICGPUSetupType gpusetup_metadata, HashMap<String, Task> globalTaskMap) throws InvalidDataInMetadataFileException, NoProcessorFoundException
+	private void setupGPUInfoPerTask(CICGPUSetupType gpusetup_metadata, Map<String, Task> globalTaskMap)
+			throws InvalidDataInMetadataFileException, NoProcessorFoundException
 	{
 		for(GPUTaskType mappedTask: gpusetup_metadata.getTasks().getTask())
 		{
@@ -688,7 +711,7 @@ public class Device {
 			channel.setPortIndexByPortList(this.portList);	
 		}
 	}
-	
+
 	private void setTaskExtraInformationFromMappingInfo()
 	{
 		Task task;
@@ -1019,7 +1042,7 @@ public class Device {
 		
 	}
 	
-	public void putInDeviceTaskInformation(HashMap<String, Task> globalTaskMap, 
+	public void putInDeviceTaskInformation(Map<String, Task> globalTaskMap,
 									String scheduleFolderPath, CICMappingType mapping_metadata, ExecutionPolicy executionPolicy, 
 									TaskGraphType topTaskGraphType, CICGPUSetupType gpusetup_metadata)
 	throws FileNotFoundException, InvalidScheduleFileNameException, InvalidDataInMetadataFileException, NoProcessorFoundException
@@ -1061,7 +1084,8 @@ public class Device {
 			taskGraph.setTaskGraphType(topTaskGraphType);
 	}
 
-	private boolean recursiveIsLibraryUsedInDevice(ArrayList<LibraryConnection> libraryConnection, HashMap<String, Library> globalLibraryMap)
+	private boolean recursiveIsLibraryUsedInDevice(List<LibraryConnection> libraryConnection,
+			Map<String, Library> globalLibraryMap)
 	{
 		boolean isUsed = false;
 		
@@ -1088,7 +1112,7 @@ public class Device {
 		return isUsed;
 	}
 	
-	public void putInDeviceLibraryInformation(HashMap<String, Library> globalLibraryMap)
+	public void putInDeviceLibraryInformation(Map<String, Library> globalLibraryMap)
 	{
 		for(Library library: globalLibraryMap.values())
 		{
@@ -1136,17 +1160,45 @@ public class Device {
 			
 		this.processorList.add(processor);
 	}
-	
+
 	public void putSupportedConnectionType(DeviceCommunicationType connectionType)
 	{
 		this.supportedConnectionTypeList.add(connectionType);
+	}
+	
+	public void putSupportedEncryptionType(DeviceEncryptionType encryptionType)
+	{
+		this.supportedEncryptionTypeSet.add(encryptionType);
 	}
 	
 	public HashSet<DeviceCommunicationType> getRequiredCommunicationSet()
 	{
 		return this.supportedConnectionTypeList;
 	}
-	
+
+	public HashSet<DeviceEncryptionType> getRequiredEncryptionSet()
+	{
+		return this.supportedEncryptionTypeSet;
+	}
+
+	public void putEncryptionList(EncryptionInfo encryption)
+	{
+		this.encryptionList.add(encryption);
+	}
+
+	public int getEncryptionIndex(String encryptionType, String userKey) {
+		int index = -1;
+
+		for (EncryptionInfo e : this.encryptionList) {
+			if (e.getEncryptionType().contentEquals(encryptionType) && e.getUserKey().contentEquals(userKey)) {
+				index = this.encryptionList.indexOf(e);
+				break;
+			}
+		}
+
+		return index;
+	}
+
 	public void putUDPConnection(String connectionId, UDPConnection udpConnection) 
 	{
 		this.udpList.put(connectionId, udpConnection);
@@ -1185,7 +1237,6 @@ public class Device {
 	public void putConnection(Connection connection) 
 	{
 		this.connectionList.put(connection.getName(), connection);
-		
 		switch(connection.getProtocol())
 		{
 		case TCP:
@@ -1200,7 +1251,11 @@ public class Device {
 			switch(this.platform)
 			{
 			case ARDUINO:
-				this.serialConstrainedSlaveList.add((ConstrainedSerialConnection) connection);
+				if (connection.getRole().equalsIgnoreCase(SerialConnection.ROLE_MASTER) == true) {
+					this.serialConstrainedMasterList.add((ConstrainedSerialConnection) connection);
+				} else {
+					this.serialConstrainedSlaveList.add((ConstrainedSerialConnection) connection);
+				}
 				break;
 			case LINUX:
 				switch(connection.getNetwork())
@@ -1216,7 +1271,7 @@ public class Device {
 				case USB:
 				case WIRE:
 					if(connection.getRole().equalsIgnoreCase(SerialConnection.ROLE_MASTER) == true) {
-						this.serialMasterList.add((UnconstrainedSerialConnection) connection);	
+						this.serialUnconstrainedMasterList.add((UnconstrainedSerialConnection) connection);	
 					}
 					else {
 						this.serialUnconstrainedSlaveList.add((UnconstrainedSerialConnection) connection);	
@@ -1253,6 +1308,7 @@ public class Device {
 	{
 		Connection connection;
 		
+
 		if(this.connectionList.containsKey(connectionName))
 		{
 			connection = this.connectionList.get(connectionName);	
@@ -1264,6 +1320,7 @@ public class Device {
 		
 		return connection;
 	}
+
 
 	public ArchitectureType getArchitecture() {
 		return architecture;
@@ -1353,6 +1410,7 @@ public class Device {
 		return portKeyToIndex;
 	}
 
+
 	public HashMap<String, TaskGPUSetupInfo> getGpuSetupInfo() {
 		return gpuSetupInfo;
 	}
@@ -1385,12 +1443,16 @@ public class Device {
 		return bluetoothUnconstrainedSlaveList;
 	}
 
+	public ArrayList<ConstrainedSerialConnection> getSerialConstrainedMasterList() {
+		return serialConstrainedMasterList;
+	}
+
 	public ArrayList<ConstrainedSerialConnection> getSerialConstrainedSlaveList() {
 		return serialConstrainedSlaveList;
 	}
 
-	public ArrayList<UnconstrainedSerialConnection> getSerialMasterList() {
-		return serialMasterList;
+	public ArrayList<UnconstrainedSerialConnection> getSerialUnconstrainedMasterList() {
+		return serialUnconstrainedMasterList;
 	}
 
 	public ArrayList<UnconstrainedSerialConnection> getSerialUnconstrainedSlaveList() {
@@ -1408,4 +1470,9 @@ public class Device {
 	public ArrayList<SSLKeyInfo> getKeyInfoList() {
 		return sslKeyInfoList;
 	}
+
+	public ArrayList<EncryptionInfo> getEncryptionList() {
+		return encryptionList;
+	}
+
 }

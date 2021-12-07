@@ -12,6 +12,7 @@ import static java.nio.file.StandardCopyOption.*;
 
 import org.snu.cse.cap.translator.structure.ProgrammingLanguage;
 import org.snu.cse.cap.translator.structure.device.DeviceCommunicationType;
+import org.snu.cse.cap.translator.structure.device.DeviceEncryptionType;
 import org.snu.cse.cap.translator.structure.device.SoftwarePlatformType;
 import org.snu.cse.cap.translator.structure.library.Library;
 import org.snu.cse.cap.translator.structure.module.Module;
@@ -37,8 +38,10 @@ public class CodeOrganizer {
 	private String ldflags;
 	private boolean isMappedGPU;
 	private boolean useCommunication;
+	private boolean useEncryption;
 	private HashSet<String> usedPeripheralList;
 	private HashSet<DeviceCommunicationType> usedCommunicationSet;
+	private HashSet<DeviceEncryptionType> usedEncryptionSet;
 	private String pathSeparator;
 
 	private ProgrammingLanguage language;
@@ -55,13 +58,14 @@ public class CodeOrganizer {
 
 	public static final String GPU = "gpu";
 	public static final String COMMUNICATION = "communication";
+	public static final String ENCRYPTION = "encryption";
 
 	public static final String STRING_ALL = "*";
 	public static final String DEVICE_RESTRICTION_DIR_VARIABLE = "$(DEVICE_RESTRICTION)";
 	public static final String PLATFORM_DIR_VARIABLE = "$(PLATFORM_DIR)";
 
 	public CodeOrganizer(String architecture, String platform, String runtime, boolean isMappedGPU,
-			HashSet<DeviceCommunicationType> usedCommunicationSet) {
+			HashSet<DeviceCommunicationType> usedCommunicationSet, HashSet<DeviceEncryptionType> usedEncryptionSet) {
 		this.architecture = architecture;
 		this.platform = platform;
 		this.pathSeparator = (this.platform.equals(SoftwarePlatformType.WINDOWS.toString())) ? "\\" : "/";
@@ -85,13 +89,25 @@ public class CodeOrganizer {
 		} else {
 			this.useCommunication = false;
 		}
-
+		
 		this.usedCommunicationSet = new HashSet<DeviceCommunicationType>();
 
 		for (DeviceCommunicationType communicationType : usedCommunicationSet) {
 			this.usedCommunicationSet.add(communicationType);
 		}
+		
+		if (usedEncryptionSet.size() > 0) {
+			this.useEncryption = true;
+		} else {
+			this.useEncryption = false;
+		}
 
+		this.usedEncryptionSet = new HashSet<DeviceEncryptionType>();
+
+		for (DeviceEncryptionType encryptionType : usedEncryptionSet) {
+			this.usedEncryptionSet.add(encryptionType);
+		}
+		
 		this.usedPeripheralList = new HashSet<String>();
 		this.language = ProgrammingLanguage.C;
 
@@ -102,6 +118,11 @@ public class CodeOrganizer {
 		if (this.useCommunication == true) {
 			this.usedPeripheralList.add(COMMUNICATION);
 		}
+		
+		if (this.useEncryption == true) {
+			this.usedPeripheralList.add(ENCRYPTION);
+		}
+
 	}
 
 	private boolean isArchitectureAvailable(String[] architectureList) {
@@ -159,10 +180,40 @@ public class CodeOrganizer {
 
 		peripheralSubTypeList = peripheralSubTypeString.split(TranslatorProperties.PROPERTY_VALUE_DELIMITER);
 
-		for (DeviceCommunicationType commuinicationType : this.usedCommunicationSet) {
+		for (DeviceCommunicationType communicationType : this.usedCommunicationSet) {
 			isAvailable = false;
 			for (String subType : peripheralSubTypeList) {
-				if (subType.equals(commuinicationType.toString())) {
+				if (subType.equals(communicationType.toString())) {
+					isAvailable = true;
+					break;
+				}
+			}
+
+			if (isAvailable == false) {
+				break;
+			}
+		}
+
+		return isAvailable;
+	}
+
+	private boolean isEncryptionAvailable(Properties translatorProperties) {
+		boolean isAvailable = true;
+		String propertyKey = ENCRYPTION + TranslatorProperties.PROPERTY_DELIMITER
+				+ TranslatorProperties.PROPERTIES_PERIPHERAL_SUBTYPE;
+		String[] peripheralSubTypeList;
+		String peripheralSubTypeString = translatorProperties.getProperty(propertyKey);
+
+		if (peripheralSubTypeString == null) {
+			return true;
+		}
+
+		peripheralSubTypeList = peripheralSubTypeString.split(TranslatorProperties.PROPERTY_VALUE_DELIMITER);
+
+		for (DeviceEncryptionType encryptionType : this.usedEncryptionSet) {
+			isAvailable = false;
+			for (String subType : peripheralSubTypeList) {
+				if (subType.equals(encryptionType.toString())) {
 					isAvailable = true;
 					break;
 				}
@@ -185,6 +236,8 @@ public class CodeOrganizer {
 				if (peripheralName.equals(peripheralUsed)) {
 					if (peripheralName.equals(COMMUNICATION)) {
 						isAvailable = isCommunicationAvailable(translatorProperties);
+					} else if (peripheralName.equals(ENCRYPTION)) {
+						isAvailable = isEncryptionAvailable(translatorProperties);
 					} else {
 						isAvailable = true;
 					}
@@ -227,9 +280,24 @@ public class CodeOrganizer {
 		for (DeviceCommunicationType communicationType : this.usedCommunicationSet) {
 			sourceFileKey = key + TranslatorProperties.PROPERTY_DELIMITER + communicationType.toString();
 			sourceFileString = translatorProperties.getProperty(sourceFileKey);
-
 			if (sourceFileString != null) {
 				addSourceFileFromSourceString(prefix + communicationType.toString() + this.pathSeparator,
+						sourceFileString, list);
+			}
+		}
+	}
+	
+	private void addEncryptionSourceFileFromSourceString(String prefix, String key, Properties translatorProperties,
+			ArrayList<String> list) {
+		String sourceFileKey;
+		String sourceFileString;
+
+		for (DeviceEncryptionType encryptionType : this.usedEncryptionSet) {
+			sourceFileKey = key + TranslatorProperties.PROPERTY_DELIMITER + encryptionType.toString().toLowerCase();
+			sourceFileString = translatorProperties.getProperty(sourceFileKey);
+
+			if (sourceFileString != null) {
+				addSourceFileFromSourceString(prefix + encryptionType.toString().toLowerCase() + this.pathSeparator,
 						sourceFileString, list);
 			}
 		}
@@ -239,11 +307,13 @@ public class CodeOrganizer {
 			ArrayList<String> list) {
 		String sourceFileString = translatorProperties.getProperty(key);
 		String peripheralKey;
-
+		
 		addSourceFileFromSourceString(prefix, sourceFileString, list);
 
 		for (String peripheralName : this.usedPeripheralList) {
+
 			peripheralKey = key + TranslatorProperties.PROPERTY_DELIMITER + peripheralName;
+
 			sourceFileString = translatorProperties.getProperty(peripheralKey);
 
 			if (sourceFileString != null) {
@@ -254,6 +324,11 @@ public class CodeOrganizer {
 							peripheralKey, translatorProperties, list);
 				}
 			}
+
+			if (sourceFileString == null && peripheralName.equals(ENCRYPTION)) {
+				addEncryptionSourceFileFromSourceString(prefix + peripheralName + this.pathSeparator,
+							peripheralKey, translatorProperties, list);
+			}
 		}
 	}
 
@@ -262,7 +337,7 @@ public class CodeOrganizer {
 		String subKey;
 
 		// common_source_file
-		addSourceFileFromSourceString("", sourceFileString, list);
+		makeSourceFileList(key, "", translatorProperties, list);
 
 		// common_source_file.[device_restriction]
 		subKey = key + TranslatorProperties.PROPERTY_DELIMITER + this.deviceRestriction;
@@ -274,6 +349,8 @@ public class CodeOrganizer {
 		makeSourceFileList(subKey,
 				DEVICE_RESTRICTION_DIR_VARIABLE + this.pathSeparator + PLATFORM_DIR_VARIABLE + this.pathSeparator,
 				translatorProperties, list);
+
+
 	}
 
 	// API source file is treated differently because it is not target-dependent and
@@ -362,6 +439,7 @@ public class CodeOrganizer {
 		String peripheralKey;
 		String architectureKey;
 		String communicationKey;
+		String encryptionKey;
 		String flag = "";
 
 		if (translatorProperties.getProperty(propertyKey) != null) {
@@ -385,6 +463,15 @@ public class CodeOrganizer {
 							+ communicationType.toString();
 					if (translatorProperties.getProperty(communicationKey) != null) {
 						flag = flag + " " + translatorProperties.getProperty(communicationKey);
+					}
+				}
+			}
+			else if (peripheralName.equals(ENCRYPTION)) {
+				for (DeviceEncryptionType encryptionType : this.usedEncryptionSet) {
+					encryptionKey = peripheralKey + TranslatorProperties.PROPERTY_DELIMITER
+							+ encryptionType.toString();
+					if (translatorProperties.getProperty(encryptionKey) != null) {
+						flag = flag + " " + translatorProperties.getProperty(encryptionKey);
 					}
 				}
 			}
@@ -738,6 +825,10 @@ public class CodeOrganizer {
 
 	public HashSet<DeviceCommunicationType> getUsedCommunicationSet() {
 		return usedCommunicationSet;
+	}
+	
+	public HashSet<DeviceEncryptionType> getUsedEncryptionSet() {
+		return usedEncryptionSet;
 	}
 
 }

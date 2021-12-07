@@ -57,6 +57,7 @@ typedef struct _SAggregateServiceInfo {
 	SVirtualCommunicationAPI *pstAPI;
 	HSerialCommunicationManager hManager;
 	uem_bool bInitialized;
+	SEncryptionKeyInfo *pstEncKeyInfo;
 } SAggregateServiceInfo;
 
 
@@ -64,6 +65,7 @@ typedef struct _SIndividualServiceInfo {
 	HVirtualSocket hSocket;
 	HThread hServiceThread;
 	SVirtualCommunicationAPI *pstAPI;
+	SEncryptionKeyInfo *pstEncKeyInfo;
 } SIndividualServiceInfo;
 
 
@@ -87,6 +89,7 @@ typedef struct _SIndividualConnectionInfo {
 	SVirtualCommunicationAPI *pstCommunicationAPI;
 	HVirtualSocket hSocket;
 	HUEMProtocol hProtocol;
+	SEncryptionKeyInfo *pstEncKeyInfo;
 } SIndividualConnectionInfo;
 
 typedef struct _SRemoteChannel {

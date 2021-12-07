@@ -25,7 +25,6 @@ uem_result UKSerialCommunication_Create(OUT HVirtualSocket *phSocket, void *pSoc
 	HSerialPort hSerialPort = NULL;
 #ifdef ARGUMENT_CHECK
 	IFVARERRASSIGNGOTO(phSocket, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
-	IFVARERRASSIGNGOTO(pSocketInfo, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
 #endif
 	pstSerialInfo = (SSerialAccessInfo *) pSocketInfo;
 

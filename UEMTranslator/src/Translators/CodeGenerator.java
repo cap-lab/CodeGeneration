@@ -70,7 +70,6 @@ public class CodeGenerator {
 		this.templateConfig.setWrapUncheckedExceptions(true);
 
 		this.translatorProperties = new Properties();
-
 		try {
 			translatorRootDir = getCanonicalPath(
 					getClass().getProtectionDomain().getCodeSource().getLocation().getFile() + "..");
@@ -184,6 +183,7 @@ public class CodeGenerator {
 		buildFileRootHash.put(Constants.TEMPLATE_TAG_BUILD_INFO, codeOrganizer);
 		buildFileRootHash.put(Constants.TEMPLATE_TAG_ENVIRONMENT_VARIABLE_INFO, envVarList);
 		buildFileRootHash.put(Constants.TEMPLATE_TAG_USED_COMMUNICATION_LIST, codeOrganizer.getUsedCommunicationSet());
+		buildFileRootHash.put(Constants.TEMPLATE_TAG_USED_ENCRYPTION_LIST, codeOrganizer.getUsedEncryptionSet());
 		buildFileRootHash.put(Constants.TEMPLATE_TAG_DEVICE_ARCHITECTURE_INFO, device.getArchitecture());
 
 		for(String buildTemplate : codeOrganizer.getBuildTemplateList()) {
@@ -250,21 +250,28 @@ public class CodeGenerator {
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_MULTICAST_GROUP_LIST, device.getMulticastGroupMap().values());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_PORT_INFO, device.getPortList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_PORT_KEY_TO_INDEX, device.getPortKeyToIndex());
-		uemDataRootHash.put(Constants.TEMPLATE_TAG_EXECUTION_TIME,
-				this.uemDatamodel.getApplication().getExecutionTime());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_EXECUTION_TIME, this.uemDatamodel.getApplication().getExecutionTime());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_LIBRARY_INFO, device.getLibraryMap());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_GPU_USED, device.isGPUMapped());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_COMMUNICATION_USED, device.useCommunication());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_ENCRYPTION_USED, device.useEncryption());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_ENCRYPTION_LIST, device.getEncryptionList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TCP_CLIENT_LIST, device.getTcpClientList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_TCP_SERVER_LIST, device.getTcpServerList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_UDP_LIST, device.getUDPConnectionList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_BLUETOOTH_MASTER_LIST, device.getBluetoothMasterList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_BLUETOOTH_SLAVE_LIST, device.getBluetoothUnconstrainedSlaveList());
-		uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_MASTER_LIST, device.getSerialMasterList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_SECURE_TCP_CLIENT_LIST, device.getSecureTcpClientList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_SECURE_TCP_SERVER_LIST, device.getSecureTcpServerList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_SSL_KEY_INFO_LIST, device.getKeyInfoList());
+
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_ENVIRONMENT_VARIABLE_INFO, envVarList);
+
+		if (codeOrganizer.getDeviceRestriction().equals(TranslatorProperties.PROPERTY_VALUE_CONSTRAINED)) {
+			uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_MASTER_LIST, device.getSerialConstrainedMasterList());
+		} else if (codeOrganizer.getDeviceRestriction().equals(TranslatorProperties.PROPERTY_VALUE_UNCONSTRAINED)) {
+			uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_MASTER_LIST, device.getSerialUnconstrainedMasterList());
+		}
 
 		if (codeOrganizer.getDeviceRestriction().equals(TranslatorProperties.PROPERTY_VALUE_CONSTRAINED)) {
 			uemDataRootHash.put(Constants.TEMPLATE_TAG_SERIAL_SLAVE_LIST, device.getSerialConstrainedSlaveList());
@@ -275,6 +282,8 @@ public class CodeGenerator {
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_MODULE_LIST, device.getModuleList());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_DEVICE_CONSTRAINED_INFO, codeOrganizer.getDeviceRestriction());
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_USED_COMMUNICATION_LIST, codeOrganizer.getUsedCommunicationSet());
+		uemDataRootHash.put(Constants.TEMPLATE_TAG_USED_ENCRYPTION_LIST, codeOrganizer.getUsedEncryptionSet());
+
 		uemDataRootHash.put(Constants.TEMPLATE_TAG_PLATFORM, device.getPlatform());
 
 		for (String outputFileName : codeOrganizer.getKernelDataSourceList()) {
@@ -377,12 +386,14 @@ public class CodeGenerator {
 	}
 
 	public void generateCode() {
+		System.out.println("Generating");
 		try {
 			for (Device device : this.uemDatamodel.getApplication().getDeviceInfo().values()) {
 				CodeOrganizer codeOrganizer = new CodeOrganizer(device.getArchitecture().toString(),
 						device.getPlatform().toString(), device.getRuntime().toString(), device.isGPUMapped(),
-						device.getRequiredCommunicationSet());
+						device.getRequiredCommunicationSet(), device.getRequiredEncryptionSet());
 				String topSrcDir = this.mOutputPath + File.separator + device.getName();
+				System.out.println(topSrcDir);
 
 				codeOrganizer.fillSourceCodeListFromTaskAndLibraryMap(device.getTaskMap(), device.getLibraryMap());
 				codeOrganizer.extraInfoFromTaskAndLibraryMap(device.getTaskMap(), device.getLibraryMap());
@@ -435,6 +446,10 @@ public class CodeGenerator {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
+		System.out.println("Testing for input");
+		for (String s : args) {
+			System.out.println(s);
+		}
 		CodeGenerator codeGenerator = new CodeGenerator(args);
 		codeGenerator.generateCode();
 	}

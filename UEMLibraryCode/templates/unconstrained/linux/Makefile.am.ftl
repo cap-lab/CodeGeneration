@@ -56,6 +56,7 @@ MAIN_CFLAGS=-I$(MAIN_DIR)/include -I$(MAIN_DIR)/$(DEVICE_RESTRICTION)
 API_CFLAGS=-I$(API_DIR)/include
 
 KERNEL_CFLAGS=-I$(KERNEL_DIR)/include\
+				-I$(KERNEL_DIR)/include/encryption\
 				-I$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/include<#if (build_info.usedPeripheralList?size > 0) >\
 				<#list build_info.usedPeripheralList as peripheralName>-I$(KERNEL_DIR)/$(DEVICE_RESTRICTION)/include/${peripheralName}<#if (peripheralName?index < build_info.usedPeripheralList?size - 1)>\
 				</#if></#list></#if>

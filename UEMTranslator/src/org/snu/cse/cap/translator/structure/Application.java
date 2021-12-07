@@ -7,24 +7,18 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.snu.cse.cap.translator.Constants;
 import org.snu.cse.cap.translator.ExecutionTime;
-import org.snu.cse.cap.translator.structure.communication.InMemoryAccessType;
-import org.snu.cse.cap.translator.structure.communication.PortDirection;
-import org.snu.cse.cap.translator.structure.communication.channel.Channel;
-import org.snu.cse.cap.translator.structure.communication.channel.ChannelArrayType;
-import org.snu.cse.cap.translator.structure.communication.channel.ChannelPort;
-import org.snu.cse.cap.translator.structure.communication.channel.CommunicationType;
-import org.snu.cse.cap.translator.structure.communication.channel.ConnectionRoleType;
-import org.snu.cse.cap.translator.structure.communication.channel.LoopPortType;
-import org.snu.cse.cap.translator.structure.communication.channel.PortSampleRate;
-import org.snu.cse.cap.translator.structure.communication.channel.RemoteCommunicationType;
+import org.snu.cse.cap.translator.structure.communication.*;
+import org.snu.cse.cap.translator.structure.communication.channel.*;
 import org.snu.cse.cap.translator.structure.communication.multicast.MulticastCommunicationType;
 import org.snu.cse.cap.translator.structure.communication.multicast.MulticastGroup;
 import org.snu.cse.cap.translator.structure.communication.multicast.MulticastPort;
 import org.snu.cse.cap.translator.structure.device.Device;
 import org.snu.cse.cap.translator.structure.device.DeviceCommunicationType;
+import org.snu.cse.cap.translator.structure.device.DeviceEncryptionType;
 import org.snu.cse.cap.translator.structure.device.EnvironmentVariable;
 import org.snu.cse.cap.translator.structure.device.HWCategory;
 import org.snu.cse.cap.translator.structure.device.HWElementType;
@@ -35,6 +29,7 @@ import org.snu.cse.cap.translator.structure.device.connection.Connection;
 import org.snu.cse.cap.translator.structure.device.connection.ConnectionPair;
 import org.snu.cse.cap.translator.structure.device.connection.ConstrainedSerialConnection;
 import org.snu.cse.cap.translator.structure.device.connection.DeviceConnection;
+import org.snu.cse.cap.translator.structure.device.connection.EncryptionInfo;
 import org.snu.cse.cap.translator.structure.device.connection.InvalidDeviceConnectionException;
 import org.snu.cse.cap.translator.structure.device.connection.ProtocolType;
 import org.snu.cse.cap.translator.structure.device.connection.SSLTCPConnection;
@@ -54,40 +49,7 @@ import org.snu.cse.cap.translator.structure.task.Task;
 import org.snu.cse.cap.translator.structure.task.TaskLoopType;
 import org.snu.cse.cap.translator.structure.task.TaskMode;
 
-import hopes.cic.xml.ArchitectureConnectType;
-import hopes.cic.xml.ArchitectureConnectionSlaveType;
-import hopes.cic.xml.ArchitectureDeviceType;
-import hopes.cic.xml.ArchitectureElementType;
-import hopes.cic.xml.ArchitectureElementTypeType;
-import hopes.cic.xml.CICAlgorithmType;
-import hopes.cic.xml.CICArchitectureType;
-import hopes.cic.xml.CICConfigurationType;
-import hopes.cic.xml.CICGPUSetupType;
-import hopes.cic.xml.CICMappingType;
-import hopes.cic.xml.CICProfileType;
-import hopes.cic.xml.ChannelPortType;
-import hopes.cic.xml.ChannelType;
-import hopes.cic.xml.DeviceConnectionListType;
-import hopes.cic.xml.EnvironmentVariableType;
-import hopes.cic.xml.LibraryFunctionArgumentType;
-import hopes.cic.xml.LibraryFunctionType;
-import hopes.cic.xml.LibraryLibraryConnectionType;
-import hopes.cic.xml.LibraryType;
-import hopes.cic.xml.MappingMulticastConnectionType;
-import hopes.cic.xml.MappingMulticastType;
-import hopes.cic.xml.ModeTaskType;
-import hopes.cic.xml.ModeType;
-import hopes.cic.xml.ModuleType;
-import hopes.cic.xml.MulticastGroupType;
-import hopes.cic.xml.MulticastPortType;
-import hopes.cic.xml.NetworkType;
-import hopes.cic.xml.PortMapType;
-import hopes.cic.xml.SerialConnectionType;
-import hopes.cic.xml.TCPConnectionType;
-import hopes.cic.xml.TaskLibraryConnectionType;
-import hopes.cic.xml.TaskPortType;
-import hopes.cic.xml.TaskRateType;
-import hopes.cic.xml.TaskType;
+import hopes.cic.xml.*;
 import mapss.dif.csdf.sdf.SDFEdgeWeight;
 import mapss.dif.csdf.sdf.SDFGraph;
 import mapss.dif.csdf.sdf.SDFNodeWeight;
@@ -100,124 +62,70 @@ import mocgraph.sched.ScheduleElement;
 
 public class Application {
 	// Overall metadata information
-	private ArrayList<Channel> channelList;
-	private HashMap<String, Task> taskMap; // Task name : Task class
-	private HashMap<String, TaskGraph> fullTaskGraphMap; // Task name : Task class
-	private HashMap<String, ChannelPort> portInfo; // Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
-	private HashMap<String, MulticastPort> multicastPortInfo; // Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
-	private HashMap<String, Device> deviceInfo; // device name: Device class
-	private HashMap<String, DeviceConnection> deviceConnectionMap;
-	private HashMap<String, HWElementType> elementTypeHash; // element type name : HWElementType class
+	private List<Channel> channelList;
+	private Map<String, Task> taskMap; // Task name : Task class
+	private Map<String, TaskGraph> fullTaskGraphMap; // Task name : Task class
+	private Map<String, ChannelPort> portInfo; // Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
+	private Map<String, MulticastPort> multicastPortInfo; // Key: taskName/portName/direction, ex) MB_Y/inMB_Y/input
+	private Map<String, Device> deviceInfo; // device name: Device class
+	private Map<String, DeviceConnection> deviceConnectionMap;
+	private Map<String, HWElementType> elementTypeHash; // element type name : HWElementType class
 	private TaskGraphType applicationGraphProperty;
-	private HashMap<String, Library> libraryMap; // library name : Library class
+	private Map<String, Library> libraryMap; // library name : Library class
 	private ExecutionTime executionTime;
 
-	public Application()
-	{
+	public Application() {
 		this.channelList = new ArrayList<Channel>();
 		this.taskMap = new HashMap<String, Task>();
 		this.portInfo = new HashMap<String, ChannelPort>();
 		this.multicastPortInfo = new HashMap<String, MulticastPort>();
 		this.deviceInfo = new HashMap<String, Device>();
 		this.elementTypeHash = new HashMap<String, HWElementType>();
-		this.applicationGraphProperty = null;
 		this.deviceConnectionMap = new HashMap<String, DeviceConnection>();
 		this.libraryMap = new HashMap<String, Library>();
 		this.fullTaskGraphMap = new HashMap<String, TaskGraph>();
-		this.executionTime = null;
 	}
 
-	private void putPortInfoFromTask(TaskType task_metadata, int taskId, String taskName) {
-		for(TaskPortType portType: task_metadata.getPort())
-		{
-			PortDirection direction = PortDirection.fromValue(portType.getDirection().value());
-			ChannelPort channelPort = new ChannelPort(taskId, taskName, portType.getName(), portType.getSampleSize().intValue(), portType.getType().value(), direction);
-
-			if(portType.getDescription() != null && portType.getDescription().trim().length() > 0) {
-				channelPort.setDescription(portType.getDescription());
-			}
-
-			this.portInfo.put(channelPort.getPortKey(), channelPort);
-
-			if(portType.getRate() != null) {
-				for(TaskRateType taskRate: portType.getRate()) {
-					PortSampleRate sampleRate = new PortSampleRate(taskRate.getMode(), taskRate.getRate().intValue());
-					channelPort.putSampleRate(sampleRate);
-				}
-			}
-			else {
-				// variable sample rate, do nothing
-			}
+	private void gatherPortInfo(TaskType taskMetadata, int taskId) {
+		for (TaskPortType portType : taskMetadata.getPort()) {
+			ChannelPort channelPort = new ChannelPort(taskId, taskMetadata.getName(), portType);
+			portInfo.put(channelPort.getPortKey(), channelPort);
 		}
 	}
 
-	private void putMulticastPortInfoFromTask(TaskType task_metadata, int taskId, String taskName)
-	{
-		for(MulticastPortType multicastPortType: task_metadata.getMulticastPort())
-		{
-			PortDirection direction = PortDirection.fromValue(multicastPortType.getDirection().value());
-
-			MulticastPort multicastPort = new MulticastPort(taskId, taskName, multicastPortType.getName(), multicastPortType.getGroup(), direction);
+	private void gatherMulticastPortInfo(TaskType taskMetadata, int taskId) {
+		for (MulticastPortType multicastPortType : taskMetadata.getMulticastPort()) {
+			MulticastPort multicastPort = new MulticastPort(taskId, taskMetadata.getName(), multicastPortType);
 			this.multicastPortInfo.put(multicastPort.getPortKey(), multicastPort);
 		}
-
 	}
 
-	private void setLoopDesignatedTaskIdFromTaskName()
-	{
-		for(Task task : this.taskMap.values())
-		{
-			Task designatedTask;
-			if(task.getLoopStruct()!= null && task.getLoopStruct().getLoopType() == TaskLoopType.CONVERGENT)
-			{
-				designatedTask = this.taskMap.get(task.getLoopStruct().getDesignatedTaskName());
-				task.getLoopStruct().setDesignatedTaskId(designatedTask.getId());
-			}
-
-		}
-	}
-
-	private void fillBasicTaskMapAndGraphInfo(CICAlgorithmType algorithm_metadata)
-	{
+	private void gatherTaskGraphInfo(CICAlgorithmType algorithmMetadata) {
 		int taskId = 0;
-		Task task;
-
-		for(TaskType task_metadata: algorithm_metadata.getTasks().getTask())
-		{
-			task = new Task(taskId, task_metadata);
-
-			this.taskMap.put(task.getName(), task);
-
-			putPortInfoFromTask(task_metadata, taskId, task.getName());
-
-			putMulticastPortInfoFromTask(task_metadata, taskId, task.getName());
-
+		for (TaskType taskMetadata : algorithmMetadata.getTasks().getTask()) {
+			taskMap.put(taskMetadata.getName(), new Task(taskId, taskMetadata));
+			gatherPortInfo(taskMetadata, taskId);
+			gatherMulticastPortInfo(taskMetadata, taskId);
 			taskId++;
 		}
-
-		// this function must be called after setting all the task ID information
 		setLoopDesignatedTaskIdFromTaskName();
-
-		if(algorithm_metadata.getPortMaps() != null)
-		{
-			setPortMapInformation(algorithm_metadata);
+		if (algorithmMetadata.getPortMaps() != null) {
+			setPortMapInformation(algorithmMetadata);
 		}
 	}
 
 	// subgraphPort, upperGraphPort, maxAvailableNum
-	private void setPortMapInformation(CICAlgorithmType algorithm_metadata)
+	private void setPortMapInformation(CICAlgorithmType algorithmMetadata)
 	{
-		for(PortMapType portMapType: algorithm_metadata.getPortMaps().getPortMap())
+		for (PortMapType portMapType : algorithmMetadata.getPortMaps().getPortMap())
 		{
 			PortDirection direction = PortDirection.fromValue(portMapType.getDirection().value());
-			Task task = this.taskMap.get(portMapType.getTask());
-			ChannelPort port = this.portInfo.get(portMapType.getTask() + Constants.NAME_SPLITER + portMapType.getPort() +
-										Constants.NAME_SPLITER + direction);
+
+			ChannelPort port = portInfo.get(getPortKey(portMapType));
 
 			if(portMapType.getChildTask() != null && portMapType.getChildTaskPort() != null)
 			{
-				ChannelPort childPort = this.portInfo.get(portMapType.getChildTask() + Constants.NAME_SPLITER + portMapType.getChildTaskPort() +
-						Constants.NAME_SPLITER + direction);
+				ChannelPort childPort = portInfo.get(getChildPortKey(portMapType));
 
 				port.setSubgraphPort(childPort);
 				childPort.setUpperGraphPort(port);
@@ -225,6 +133,7 @@ public class Application {
 
 			port.setLoopPortType(LoopPortType.fromValue(portMapType.getType().value()));
 
+			Task task = taskMap.get(portMapType.getTask());
 			if(task.getLoopStruct() != null && direction == PortDirection.INPUT)
 			{
 				for(PortSampleRate portRate: port.getPortSampleRateList())
@@ -240,17 +149,30 @@ public class Application {
 		}
 	}
 
+	private String getPortKey(PortMapType portMapType) {
+		return getPortKey(portMapType, portMapType.getTask(), portMapType.getPort());
+	}
+
+	private String getChildPortKey(PortMapType portMapType) {
+		return getPortKey(portMapType, portMapType.getChildTask(), portMapType.getChildTaskPort());
+	}
+
+	private String getPortKey(PortMapType portMapType, String taskName, String portName) {
+		PortDirection direction = PortDirection.fromValue(portMapType.getDirection().value());
+		return taskName + Constants.NAME_SPLITER + portName + Constants.NAME_SPLITER + direction;
+	}
+
 	// taskMap, taskGraphList
-	public void makeTaskInformation(CICAlgorithmType algorithm_metadata)
+	public void makeTaskInformation(CICAlgorithmType algorithmMetadata)
 	{
 		Task task;
 
-		this.applicationGraphProperty = TaskGraphType.fromValue(algorithm_metadata.getProperty());
+		this.applicationGraphProperty = TaskGraphType.fromValue(algorithmMetadata.getProperty());
 
-		fillBasicTaskMapAndGraphInfo(algorithm_metadata);
+		gatherTaskGraphInfo(algorithmMetadata);
 
 		// It only uses single modes - mode information in XML
-		ModeType mode = algorithm_metadata.getModes().getMode().get(0);
+		ModeType mode = algorithmMetadata.getModes().getMode().get(0);
 
 		for (ModeTaskType modeTask: mode.getTask())
 		{
@@ -341,6 +263,7 @@ public class Application {
 		}
 	}
 	
+
 	private void putSupportedConnectionTypeListOnDevice(Device device, DeviceConnectionListType connectionList) 
 	{
 		if(connectionList.getSerialConnection() != null)
@@ -374,6 +297,9 @@ public class Application {
 		}
 	}
 
+
+
+
 	private void putConnectionsOnDevice(Device device, DeviceConnectionListType connectionList)
 	{
 		putSerialConnectionsOnDevice(device, connectionList);
@@ -382,15 +308,118 @@ public class Application {
 		putSSLTCPConnectionsOnDevice(device, connectionList);
 	}
 
-	private Connection findConnection(String deviceName, String connectionName) throws InvalidDeviceConnectionException
+	private Connection findConnection(String deviceName, String connectionName)
+			throws InvalidDeviceConnectionException
 	{
 		Device device;
 		Connection connection;
 
 		device = this.deviceInfo.get(deviceName);
 		connection = device.getConnection(connectionName);
-
+	
 		return connection;
+	}
+	
+	private void putSupportedEncryptionTypeListOnDevice(Device device, EncryptionInfo encryption) {
+		if (encryption.getEncryptionType().contentEquals(EncryptionType.LEA.toString())) {
+			device.putSupportedEncryptionType(DeviceEncryptionType.LEA);
+		}
+		else if (encryption.getEncryptionType().contentEquals(EncryptionType.HIGHT.toString())) {
+			device.putSupportedEncryptionType(DeviceEncryptionType.HIGHT);
+		}
+		else if (encryption.getEncryptionType().contentEquals(EncryptionType.SEED.toString())) {
+			device.putSupportedEncryptionType(DeviceEncryptionType.SEED);
+		}
+	}
+
+	private String setInitializationVectorLen(String initializationVector, EncryptionInfo encryption) {
+		String iv;
+		int index = 0;
+		
+		if (encryption.getEncryptionType().contentEquals(EncryptionType.LEA.toString())) {
+			index = DeviceEncryptionType.LEA.getBlockSize();
+		} else if (encryption.getEncryptionType().contentEquals(EncryptionType.HIGHT.toString())) {
+			index = DeviceEncryptionType.HIGHT.getBlockSize();
+		} else if (encryption.getEncryptionType().contentEquals(EncryptionType.SEED.toString())) {
+			index = DeviceEncryptionType.SEED.getBlockSize();
+		}
+		
+		iv = initializationVector.substring(0, index);
+		
+		return iv;
+	}
+
+	private boolean checkEncryptionKeySize(String encryptionType, int keyLen) {
+		boolean result = true;
+
+		if (encryptionType.contentEquals(DeviceEncryptionType.LEA.toString())) {
+			if (keyLen != DeviceEncryptionType.KEY128_BYTE_SIZE && keyLen != DeviceEncryptionType.KEY192_BYTE_SIZE
+					&& keyLen != DeviceEncryptionType.KEY256_BYTE_SIZE) {
+				result = false;
+			}
+		} else if (encryptionType.contentEquals(DeviceEncryptionType.HIGHT.toString())) {
+			if (keyLen != DeviceEncryptionType.KEY64_BYTE_SIZE) {
+				result = false;
+			}
+		} else if (encryptionType.contentEquals(DeviceEncryptionType.SEED.toString())) {
+			if (keyLen != DeviceEncryptionType.KEY128_BYTE_SIZE) {
+				result = false;
+			}
+		}
+
+		return result;
+	}
+
+	private void setEncryption(String deviceName, String connectionName, String encryptionType,
+			String userKey,
+			String initializationVector)
+			throws InvalidDeviceConnectionException {
+		Device device;
+		Connection connection;
+		String iv;
+		int index = -1;
+		
+		try {
+			if (!checkEncryptionKeySize(encryptionType, userKey.length())) {
+				throw new InvalidDeviceConnectionException();
+			}
+		} catch (InvalidDeviceConnectionException e) {
+			System.out.println("ERROR key length is wrong, key length: " + userKey.length());
+			return;
+		}
+
+		device = this.deviceInfo.get(deviceName);
+
+		connection = device.getConnection(connectionName);
+
+		index = device.getEncryptionIndex(encryptionType, userKey);
+
+		if (index == -1) {
+			EncryptionInfo encryption = new EncryptionInfo(encryptionType, userKey);
+
+			iv = setInitializationVectorLen(initializationVector, encryption);
+
+			encryption.setEncryptionType(encryptionType);
+			encryption.setUserKey(userKey);
+			encryption.setUserKeyLen(userKey.length());
+			encryption.setInitializationVector(iv);
+
+			putSupportedEncryptionTypeListOnDevice(device, encryption);
+
+			device.putEncryptionList(encryption);
+			index = device.getEncryptionList().size() - 1;
+		}
+
+		connection.setEncryptionListIndex(index);
+	}
+
+
+	private String generateInitializationVector(int n) {
+		String str = "";
+		for(int i = 0; i < n; i++) {
+			str += (int) Math.floor(Math.random() * 10);
+		}
+		return str;
 	}
 
 	private void makeDeviceConnectionInformation(CICArchitectureType architecture_metadata)
@@ -401,6 +430,7 @@ public class Application {
 			{
 				DeviceConnection deviceConnection;
 				Connection master;
+				
 				if(this.deviceConnectionMap.containsKey(connectType.getMaster()))
 				{
 					deviceConnection = this.deviceConnectionMap.get(connectType.getMaster());
@@ -414,15 +444,27 @@ public class Application {
 				try {
 					master = findConnection(connectType.getMaster(), connectType.getConnection());
 
+					String initializationVector = generateInitializationVector(DeviceEncryptionType.MAX_BLOCK_SIZE);
+
 					for(ArchitectureConnectionSlaveType slaveType: connectType.getSlave())
 					{
 						Connection slave;
 
 						slave = findConnection(slaveType.getDevice(), slaveType.getConnection());
+
+						if (!connectType.getEncryption().toString().contentEquals(EncryptionType.NO.toString()))
+						{
+							setEncryption(slaveType.getDevice(), slaveType.getConnection(),
+									connectType.getEncryption().toString(), connectType.getUserkey(),
+									initializationVector);
+							setEncryption(connectType.getMaster(), master.getName(),
+									connectType.getEncryption().toString(), connectType.getUserkey(),
+									initializationVector);
+						}
+
 						deviceConnection.putMasterToSlaveConnection(master, slaveType.getDevice(), slave);
-						deviceConnection.putSlaveToMasterConnection(slaveType.getDevice(), slave, master);
-
-
+						deviceConnection.putSlaveToMasterConnection(slaveType.getDevice(), slave, master,
+								connectType.getEncryption().toString(), connectType.getUserkey());
 					}
 				} catch (InvalidDeviceConnectionException e) {
 					// TODO Auto-generated catch block
@@ -499,12 +541,14 @@ public class Application {
 				}
 
 				this.deviceInfo.put(device_metadata.getName(), device);
+				
 			}
 
 			makeDeviceConnectionInformation(architecture_metadata);
 		}
 	}
-
+	
+	
 	private MappingInfo findMappingInfoByTaskName(String taskName) throws InvalidDataInMetadataFileException
 	{
 		Task task;
@@ -616,6 +660,15 @@ public class Application {
 
 		setRemoteCommunicationMethodType(channel, connectionPair);
 		setChannelConnectionRoleType(channel, connectionPair, srcTaskDevice);
+
+		setEncryptionIndexInfo(channel, connectionPair);
+	}
+
+	private void setEncryptionIndexInfo(Channel channel, ConnectionPair connectionPair) {
+
+		int encryptionListIndex = connectionPair.getSlaveConnection().getEncryptionListIndex();
+
+		channel.setEncryptionListIndex(encryptionListIndex);
 	}
 
 	private void setInMemoryAccessTypeOfRemoteChannel(Channel channel, MappingInfo taskMappingInfo, boolean isSrcTask)
@@ -890,6 +943,10 @@ public class Application {
 		case SERIAL:
 			switch(channel.getConnectionRoleType())
 			{
+			case MASTER:
+				connectionList = targetDevice.getSerialConstrainedMasterList();
+				connection = (ConstrainedSerialConnection) connectionPair.getMasterConnection();
+				break;
 			case SLAVE:
 				connectionList = targetDevice.getSerialConstrainedSlaveList();
 				connection = (ConstrainedSerialConnection) connectionPair.getSlaveConnection();
@@ -944,7 +1001,7 @@ public class Application {
 			switch(channel.getConnectionRoleType())
 			{
 			case MASTER:
-				connectionList = targetDevice.getSerialMasterList();
+				connectionList = targetDevice.getSerialUnconstrainedMasterList();
 				connection = (UnconstrainedSerialConnection) connectionPair.getMasterConnection();
 				break;
 			case SLAVE:
@@ -1033,8 +1090,14 @@ public class Application {
 				setSocketIndexFromUnconstrainedSerialConnection(channel, targetDevice, connectionPair);
 			}
 			break;
-		case UCOS3:
 		case WINDOWS:
+			if (connectionPair.getMasterConnection().getProtocol() == ProtocolType.TCP) {
+				setSocketIndexFromTCPConnection(channel, targetDevice, connectionPair);
+			} else {
+				setSocketIndexFromUnconstrainedSerialConnection(channel, targetDevice, connectionPair);
+			}
+			break;
+		case UCOS3:
 		default:
 			break;
 
@@ -1229,6 +1292,17 @@ public class Application {
 		return isSDF;
 	}
 
+	private void setLoopDesignatedTaskIdFromTaskName() {
+		for (Task task : this.taskMap.values()) {
+			Task designatedTask;
+			if (task.getLoopStruct() != null && task.getLoopStruct().getLoopType() == TaskLoopType.CONVERGENT) {
+				designatedTask = this.taskMap.get(task.getLoopStruct().getDesignatedTaskName());
+				task.getLoopStruct().setDesignatedTaskId(designatedTask.getId());
+			}
+
+		}
+	}
+
 	private SDFGraph makeSDFGraph(ArrayList<Task> taskList, ArrayList<Channel> channelList, TaskMode mode)
 	{
 		SDFGraph graph = new SDFGraph(taskList.size(), channelList.size());
@@ -1293,7 +1367,6 @@ public class Application {
 	private void setIndividualIterationCount(ArrayList<Task> taskList, SDFGraph graph, int modeId)
 	{
 		mocgraph.sched.Schedule schedule;
-
 		if(taskList.size() <= 2)
 		{
 			TwoNodeStrategy st = new TwoNodeStrategy(graph);
@@ -1304,11 +1377,11 @@ public class Application {
 			MinBufferStrategy st = new MinBufferStrategy(graph);
 			schedule = st.schedule();
 		}
-
 		handleScheduleElement(graph, schedule, modeId);
 	}
 
-	private TaskGraph getTaskGraphCanBeMerged(TaskGraph taskGraph, HashMap<String, TaskGraph> taskGraphMap, HashMap<String, TaskGraph> mergedTaskGraphMap)
+	private TaskGraph getTaskGraphCanBeMerged(TaskGraph taskGraph, Map<String, TaskGraph> taskGraphMap,
+			Map<String, TaskGraph> mergedTaskGraphMap)
 	{
 		TaskGraph mergedParentTaskGraph = null;
 		TaskGraph currentTaskGraph;
@@ -1344,7 +1417,7 @@ public class Application {
 		return mergedParentTaskGraph;
 	}
 
-	private HashMap<String, TaskGraph> mergeTaskGraph(HashMap<String, TaskGraph> taskGraphMap)
+	private HashMap<String, TaskGraph> mergeTaskGraph(Map<String, TaskGraph> taskGraphMap)
 	{
 		HashMap<String, TaskGraph> mergedTaskGraphMap = new HashMap<String, TaskGraph>();
 		Task parentTask = null;
@@ -1380,7 +1453,7 @@ public class Application {
 		return mergedTaskGraphMap;
 	}
 
-	private void setIterationCount(HashMap<String, TaskGraph> taskGraphMap)
+	private void setIterationCount(Map<String, TaskGraph> taskGraphMap)
 	{
 		HashMap<String, TaskGraph> mergedTaskGraphMap;
 
@@ -1392,7 +1465,6 @@ public class Application {
 			{
 				SDFGraph graph = null;
 				ArrayList<Channel> channelList = new ArrayList<Channel>();
-
 				for(Channel channel : this.channelList)
 				{
 					boolean findSrcTask = false;
@@ -1630,6 +1702,10 @@ public class Application {
 			MappingInfo srcTaskMappingInfo;
 			MappingInfo dstTaskMappingInfo;
 
+			// System.out.println(channelSrcPort.getTask() + Constants.NAME_SPLITER +
+			// channelSrcPort.getPort()
+			// + Constants.NAME_SPLITER + PortDirection.OUTPUT);
+			portInfo.keySet().forEach(System.out::println);
 			ChannelPort srcPort = this.portInfo.get(channelSrcPort.getTask() + Constants.NAME_SPLITER + channelSrcPort.getPort() + Constants.NAME_SPLITER + PortDirection.OUTPUT);
 			ChannelPort dstPort = this.portInfo.get(channelDstPort.getTask() + Constants.NAME_SPLITER + channelDstPort.getPort() + Constants.NAME_SPLITER + PortDirection.INPUT);
 
@@ -1643,18 +1719,20 @@ public class Application {
 			channel.setOutputPort(srcPort.getMostUpperPort());
 			channel.setInputPort(dstPort.getMostUpperPort());
 
-			System.out.println("ChannelSrcPort: " + channelSrcPort.getTask() + "/" + channelSrcPort.getPort());
-			System.out.println("ChannelDstPort: " + channelDstPort.getTask() + "/" + channelDstPort.getPort());
+			// System.out.println("ChannelSrcPort: " + channelSrcPort.getTask() + "/" +
+			// channelSrcPort.getPort());
+			// System.out.println("ChannelDstPort: " + channelDstPort.getTask() + "/" +
+			// channelDstPort.getPort());
 			srcTaskMappingInfo = findMappingInfoByTaskName(channelSrcPort.getTask());
 			dstTaskMappingInfo = findMappingInfoByTaskName(channelDstPort.getTask());
 
 			// maximum chunk number
-			channel.setMaximumChunkNum(this.taskMap, channelSrcPort.getTask(), channelDstPort.getTask(), srcTaskMappingInfo, dstTaskMappingInfo);
+			channel.setMaximumChunkNum(taskMap, channelSrcPort.getTask(), channelDstPort.getTask(), srcTaskMappingInfo,
+					dstTaskMappingInfo);
 
 			// communication type (device information)
 			setChannelCommunicationType(channel, srcTaskMappingInfo, dstTaskMappingInfo);
 			addChannelAndPortInfoToDevice(channel, srcTaskMappingInfo, dstTaskMappingInfo);
-
 			this.channelList.add(channel);
 			index++;
 		}
@@ -1755,7 +1833,8 @@ public class Application {
 		{
 			try
 			{
-				device.putInDeviceTaskInformation(this.taskMap, scheduleFolderPath, mapping_metadata, executionPolicy, this.applicationGraphProperty, gpusetup_metadata);
+				device.putInDeviceTaskInformation(taskMap, scheduleFolderPath, mapping_metadata, executionPolicy,
+						applicationGraphProperty, gpusetup_metadata);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -1857,6 +1936,7 @@ public class Application {
 
 	public void makeLibraryInformation(CICAlgorithmType algorithm_metadata)
 	{
+		// System.out.println("Libraries " + algorithm_metadata.getLibraries());
 		if(algorithm_metadata.getLibraries() != null && algorithm_metadata.getLibraries().getLibrary() != null)
 		{
 			for(LibraryType libraryType: algorithm_metadata.getLibraries().getLibrary())
@@ -1895,9 +1975,9 @@ public class Application {
 	}
 
 	private void setLibraryInfoPerDevices() {
-		for(Device device : this.deviceInfo.values())
+		for (Device device : deviceInfo.values())
 		{
-			device.putInDeviceLibraryInformation(this.libraryMap);
+			device.putInDeviceLibraryInformation(libraryMap);
 		}
 
 		//this.libraryMap;
@@ -1911,39 +1991,31 @@ public class Application {
 		this.applicationGraphProperty = applicationGraphProperty;
 	}
 
-	public ArrayList<Channel> getChannelList() {
+	public List<Channel> getChannelList() {
 		return channelList;
 	}
 
-	public HashMap<String, Task> getTaskMap() {
+	public Map<String, Task> getTaskMap() {
 		return taskMap;
 	}
 
-	public HashMap<String, Device> getDeviceInfo() {
+	public Map<String, Device> getDeviceInfo() {
 		return deviceInfo;
-	}
-
-	public HashMap<String, HWElementType> getElementTypeHash() {
-		return elementTypeHash;
-	}
-
-	public HashMap<String, ChannelPort> getPortInfo() {
-		return portInfo;
 	}
 
 	public ExecutionTime getExecutionTime() {
 		return executionTime;
 	}
 
-	public HashMap<String, TaskGraph> getFullTaskGraphMap() {
+	public Map<String, TaskGraph> getFullTaskGraphMap() {
 		return fullTaskGraphMap;
 	}
 
-	public HashMap<String, Library> getLibraryMap() {
+	public Map<String, Library> getLibraryMap() {
 		return libraryMap;
 	}
 
-	public HashMap<String, DeviceConnection> getDeviceConnectionMap() {
+	public Map<String, DeviceConnection> getDeviceConnectionMap() {
 		return deviceConnectionMap;
 	}
 }

@@ -31,7 +31,8 @@ public class DeviceConnection {
 		connection.putSlave(slave, slaveDeviceName);
 	}
 	
-	public void putSlaveToMasterConnection(String slaveDeviceName, Connection slave, Connection master) throws InvalidDeviceConnectionException
+	public void putSlaveToMasterConnection(String slaveDeviceName, Connection slave, Connection master,
+			String encryptionType, String userKey) throws InvalidDeviceConnectionException
 	{
 		SlaveToMasterConnection connection;
 		if(this.connectionToMasterMap.containsKey(slave.getName()))
@@ -40,7 +41,7 @@ public class DeviceConnection {
 		}
 		else
 		{
-			connection = new SlaveToMasterConnection(slaveDeviceName, slave, master);
+			connection = new SlaveToMasterConnection(slaveDeviceName, slave, master, encryptionType, userKey);
 			
 			this.connectionToMasterMap.put(slave.getName(), connection);
 		}

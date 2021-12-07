@@ -1,17 +1,14 @@
 package org.snu.cse.cap.translator;
 
 import java.io.File;
+import java.util.function.Supplier;
+
+import hopes.cic.exception.CICXMLException;
+import hopes.cic.xml.*;
 
 public class Constants {
-	
-	public static final String UEMXML_ALGORITHM_PREFIX = "_algorithm.xml";
-	public static final String UEMXML_ARCHITECTURE_PREFIX = "_architecture.xml";
-	public static final String UEMXML_MAPPING_PREFIX = "_mapping.xml";
-	public static final String UEMXML_CONFIGURATION_PREFIX = "_configuration.xml";
-	public static final String UEMXML_CONTROL_PREFIX = "_control.xml";
-	public static final String UEMXML_PROFILE_PREFIX = "_profile.xml";
+
 	public static final String UEMXML_SCHEDULE_PREFIX = ",schedule.xml";
-	public static final String UEMXML_GPUSETUP_PREFIX = "_gpusetup.xml";
 	
 	public static final String TOP_TASKGRAPH_NAME = "top";
 	public static final String XML_PREFIX = ".xml";
@@ -30,9 +27,8 @@ public class Constants {
 	public static final String TEMPLATE_PATH_SEPARATOR = "/";
 	
 	public static final String DEFAULT_PROPERTIES_FILE_NAME = "translator.properties";
-	public static final String DEFAULT_MODULE_XML_FILE_NAME = "module.xml";
 	public static final String DEFAULT_PROPERTIES_FILE_PATH = "config" + File.separator + DEFAULT_PROPERTIES_FILE_NAME;
-	public static final String DEFAULT_MODULE_XML_PATH = "config" + File.separator + DEFAULT_MODULE_XML_FILE_NAME;
+	public static final String DEFAULT_MODULE_XML_PATH = "config" + File.separator + "module.xml";
 	public static final String DEFAULT_TEMPLATE_DIR = "templates";
 	public static final String DEFAULT_TRANSLATED_CODE_TEMPLATE_DIR = ".." + File.separator + "UEMLibraryCode";
 	public static final String DEFAULT_DOXYFILE = "Doxyfile";
@@ -52,6 +48,7 @@ public class Constants {
 	public static final String TEMPLATE_TAG_MULTICAST_GROUP_LIST = "multicast_group_list";
 	public static final String TEMPLATE_TAG_DEVICE_INFO = "device_info";
 	public static final String TEMPLATE_TAG_DEVICE_ID = "device_id";
+	public static final String TEMPLATE_TAG_ENCRYPTION_INDEX_INFO = "encryption_index";
 	
 	public static final String TEMPLATE_TAG_MAPPING_INFO = "mapping_info";
 	public static final String TEMPLATE_TAG_STATIC_SCHEDULE_INFO = "schedule_info";
@@ -61,11 +58,14 @@ public class Constants {
 	public static final String TEMPLATE_TAG_LIBRARY_INFO = "library_info";
 	public static final String TEMPLATE_TAG_DEVICE_CONSTRAINED_INFO = "device_constrained_info";
 	public static final String TEMPLATE_TAG_USED_COMMUNICATION_LIST = "used_communication_list";
+	public static final String TEMPLATE_TAG_USED_ENCRYPTION_LIST = "used_encryption_list";
 	public static final String TEMPLATE_TAG_SUPPORTED_COMMUNICATION_LIST = "supported_communication_list";
 	public static final String TEMPLATE_TAG_PLATFORM = "platform";
 	
 	public static final String TEMPLATE_TAG_GPU_USED = "gpu_used";
 	public static final String TEMPLATE_TAG_COMMUNICATION_USED = "communication_used";
+	public static final String TEMPLATE_TAG_ENCRYPTION_USED = "encryption_used";
+	public static final String TEMPLATE_TAG_ENCRYPTION_LIST = "encryption_list";
 	public static final String TEMPLATE_TAG_TCP_SERVER_LIST = "tcp_server_list";
 	public static final String TEMPLATE_TAG_TCP_CLIENT_LIST = "tcp_client_list";
 	public static final String TEMPLATE_TAG_UDP_LIST = "udp_list";
@@ -77,7 +77,7 @@ public class Constants {
 	public static final String TEMPLATE_TAG_SECURE_TCP_SERVER_LIST = "secure_tcp_server_list";
 	public static final String TEMPLATE_TAG_SECURE_TCP_CLIENT_LIST = "secure_tcp_client_list";
 	public static final String TEMPLATE_TAG_SSL_KEY_INFO_LIST = "ssl_key_info_list";
-	
+
 	// tags for Makefile.ftl and Doxyfile.ftl
 	public static final String TEMPLATE_TAG_BUILD_INFO = "build_info";
 	public static final String TEMPLATE_TAG_ENVIRONMENT_VARIABLE_INFO = "env_var_info";
@@ -118,4 +118,33 @@ public class Constants {
 	public static final String FLAG_SEPARATOR = " ";
 	
 	public static final String FILE_EXTENSION_SEPARATOR = ".";
+
+	public enum UEMXML {
+		ALGORITHM("_algorithm.xml", CICAlgorithmTypeLoader::new),
+		ARCHITECTURE("_architecture.xml", CICArchitectureTypeLoader::new),
+		MAPPING("_mapping.xml", CICMappingTypeLoader::new),
+		CONFIGURATION("_configuration.xml", CICConfigurationTypeLoader::new),
+		CONTROL("_control.xml", CICControlTypeLoader::new), PROFILE("_profile.xml", CICProfileTypeLoader::new),
+		GPUSETUP("_gpusetup.xml", CICGPUSetupTypeLoader::new);
+
+		public String prefix;
+		private Supplier<ResourceLoader<?>> loader;
+
+		private UEMXML(String prefix, Supplier<ResourceLoader<?>> loader) {
+			this.prefix = prefix;
+			this.loader = loader;
+		}
+
+		@SuppressWarnings("unchecked")
+		public <T> T load(String basePath) throws CICXMLException {
+			if (!fileExists(basePath)) {
+				return null;
+			}
+			return (T) loader.get().loadResource(basePath + prefix);
+		}
+
+		public boolean fileExists(String basePath) {
+			return new File(basePath + prefix).isFile();
+		}
+	}
 }

@@ -640,6 +640,9 @@ static uem_result connectToServer(uem_bool *pbExitFlag, SIndividualConnectionInf
 	result = UKUEMProtocol_SetSocket(hProtocol, hSocket, pstAPI);
 	ERRIFGOTO(result, _EXIT);
 
+	result = UKUEMProtocol_SetEncryptionKey(hProtocol, pstConnectionInfo->pstEncKeyInfo);
+	ERRIFGOTO(result, _EXIT);
+
 	result = UKUEMProtocol_HandShake(hProtocol, 0, pstConnectionInfo->nChannelId);
 	ERRIFGOTO(result, _EXIT);
 

@@ -202,6 +202,7 @@ uem_result UKCPUGeneralTaskManager_DestroyThread(HCPUGeneralTaskManager hManager
  *
  * @param hManager a general task manager handle.
  * @param pstTargetTask target task to update the mapping info.
+ * @param nNewLocalId new local id to be mapped.
  *
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_NOT_FOUND, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, \n
