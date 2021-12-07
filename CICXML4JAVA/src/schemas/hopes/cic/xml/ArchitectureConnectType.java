@@ -24,6 +24,8 @@ import javax.xml.bind.annotation.XmlType;
  *       &lt;/sequence&gt;
  *       &lt;attribute name="master" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
  *       &lt;attribute name="connection" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="encryption" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}EncryptionType" /&gt;
+ *       &lt;attribute name="userkey" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
@@ -43,6 +45,10 @@ public class ArchitectureConnectType {
     protected String master;
     @XmlAttribute(name = "connection", required = true)
     protected String connection;
+    @XmlAttribute(name = "encryption", required = true)
+    protected EncryptionType encryption;
+    @XmlAttribute(name = "userkey")
+    protected String userkey;
 
     /**
      * Gets the value of the slave property.
@@ -119,6 +125,54 @@ public class ArchitectureConnectType {
      */
     public void setConnection(String value) {
         this.connection = value;
+    }
+
+    /**
+     * Gets the value of the encryption property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link EncryptionType }
+     *     
+     */
+    public EncryptionType getEncryption() {
+        return encryption;
+    }
+
+    /**
+     * Sets the value of the encryption property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link EncryptionType }
+     *     
+     */
+    public void setEncryption(EncryptionType value) {
+        this.encryption = value;
+    }
+
+    /**
+     * Gets the value of the userkey property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getUserkey() {
+        return userkey;
+    }
+
+    /**
+     * Sets the value of the userkey property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setUserkey(String value) {
+        this.userkey = value;
     }
 
 }
