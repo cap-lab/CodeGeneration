@@ -321,13 +321,13 @@ public class Application {
 	}
 	
 	private void putSupportedEncryptionTypeListOnDevice(Device device, EncryptionInfo encryption) {
-		if (encryption.getEncryptionType().contentEquals(DeviceEncryptionType.LEA.toString())) {
+		if (encryption.getEncryptionType().contentEquals(EncryptionType.LEA.toString())) {
 			device.putSupportedEncryptionType(DeviceEncryptionType.LEA);
 		}
-		else if (encryption.getEncryptionType().contentEquals(DeviceEncryptionType.HIGHT.toString())) {
+		else if (encryption.getEncryptionType().contentEquals(EncryptionType.HIGHT.toString())) {
 			device.putSupportedEncryptionType(DeviceEncryptionType.HIGHT);
 		}
-		else if (encryption.getEncryptionType().contentEquals(DeviceEncryptionType.SEED.toString())) {
+		else if (encryption.getEncryptionType().contentEquals(EncryptionType.SEED.toString())) {
 			device.putSupportedEncryptionType(DeviceEncryptionType.SEED);
 		}
 	}
@@ -336,11 +336,11 @@ public class Application {
 		String iv;
 		int index = 0;
 		
-		if (encryption.getEncryptionType().contentEquals(DeviceEncryptionType.LEA.toString())) {
+		if (encryption.getEncryptionType().contentEquals(EncryptionType.LEA.toString())) {
 			index = DeviceEncryptionType.LEA.getBlockSize();
-		} else if (encryption.getEncryptionType().contentEquals(DeviceEncryptionType.HIGHT.toString())) {
+		} else if (encryption.getEncryptionType().contentEquals(EncryptionType.HIGHT.toString())) {
 			index = DeviceEncryptionType.HIGHT.getBlockSize();
-		} else if (encryption.getEncryptionType().contentEquals(DeviceEncryptionType.SEED.toString())) {
+		} else if (encryption.getEncryptionType().contentEquals(EncryptionType.SEED.toString())) {
 			index = DeviceEncryptionType.SEED.getBlockSize();
 		}
 		
@@ -351,7 +351,7 @@ public class Application {
 
 	private boolean checkEncryptionKeySize(String encryptionType, int keyLen) {
 		boolean result = true;
-		
+
 		if (encryptionType.contentEquals(DeviceEncryptionType.LEA.toString())) {
 			if (keyLen != DeviceEncryptionType.KEY128_BYTE_SIZE && keyLen != DeviceEncryptionType.KEY192_BYTE_SIZE
 					&& keyLen != DeviceEncryptionType.KEY256_BYTE_SIZE) {
@@ -370,14 +370,15 @@ public class Application {
 		return result;
 	}
 
-	private void setEncryption(String deviceName, String connectionName, String encryptionType, String userKey,
+	private void setEncryption(String deviceName, String connectionName, String encryptionType,
+			String userKey,
 			String initializationVector)
 			throws InvalidDeviceConnectionException {
 		Device device;
 		Connection connection;
 		String iv;
 		int index = -1;
-
+		
 		try {
 			if (!checkEncryptionKeySize(encryptionType, userKey.length())) {
 				throw new InvalidDeviceConnectionException();
@@ -450,7 +451,6 @@ public class Application {
 						Connection slave;
 
 						slave = findConnection(slaveType.getDevice(), slaveType.getConnection());
-
 
 						if (!connectType.getEncryption().toString().contentEquals(EncryptionType.NO.toString()))
 						{

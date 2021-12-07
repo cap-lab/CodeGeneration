@@ -49,11 +49,11 @@
     </Filter>
     <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION_DIR)">
     </Filter>
-    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION_DIR)\$(LEA)">
+    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION_DIR)\$(LEA_DIR)">
     </Filter>
-    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION_DIR)\$(HIGHT)">
+    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION_DIR)\$(HIGHT_DIR)">
     </Filter>
-    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION_DIR)\$(SEED)">
+    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION_DIR)\$(SEED_DIR)">
     </Filter>
 	<Filter Include="Header Files">
 		<Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>

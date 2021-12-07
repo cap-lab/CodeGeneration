@@ -1,10 +1,7 @@
 package org.snu.cse.cap.translator.structure.device;
 
 public enum DeviceEncryptionType {
-	NO("NO"),
-	LEA("LEA"),
-	HIGHT("HIGHT"),
-	SEED("SEED"),
+	NO("no"), LEA("lea"), HIGHT("hight"), SEED("seed"),
 	;
 
 	public static final int MAX_BLOCK_SIZE = 16;
@@ -21,9 +18,9 @@ public enum DeviceEncryptionType {
 		this.value = value;
 		setBlockSize(0);
 
-		if (value.contentEquals("LEA") || value.contentEquals("SEED")) {
+		if (value.contentEquals("lea") || value.contentEquals("seed")) {
 			setBlockSize(16);
-		} else if (value.equals("HIGHT")) {
+		} else if (value.equals("hight")) {
 			setBlockSize(8);
 		}
 	}

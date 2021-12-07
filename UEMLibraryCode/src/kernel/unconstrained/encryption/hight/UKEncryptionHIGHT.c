@@ -40,6 +40,9 @@ uem_result UKEncryptionHIGHT_Initialize(HVirtualKey *phKey, void *pstEncKeyInfo)
 	pstKey = UCAlloc_malloc(sizeof(SHIGHTKey));	
 	ERRMEMGOTO(pstKey, result, _EXIT);
 
+	pstKey->pszInitVec = NULL;
+	pstKey->pszRoundKey = NULL;
+
 	if(pstKey->pszInitVec == NULL) {
 		pstKey->pszInitVec = UCAlloc_malloc(sizeof(unsigned char) * BLOCK_SIZE);		
 		ERRMEMGOTO(pstKey->pszInitVec, result, _EXIT);

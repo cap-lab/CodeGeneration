@@ -64,13 +64,13 @@
 </#if>
 
 <#if encryption_used == true>
-<#if used_encryption_list?seq_contains("LEA")>
+<#if used_encryption_list?seq_contains("lea")>
 #include <UKEncryptionLEA.h>
 </#if>
-<#if used_encryption_list?seq_contains("HIGHT")>
+<#if used_encryption_list?seq_contains("hight")>
 #include <UKEncryptionHIGHT.h>
 </#if>
-<#if used_encryption_list?seq_contains("SEED")>
+<#if used_encryption_list?seq_contains("seed")>
 #include <UKEncryptionSEED.h>
 </#if>
 </#if>
@@ -219,7 +219,7 @@ SSecurityKeyInfo g_astSSLKeyInfoList[] = {
 </#if>
 
 <#if encryption_used == true>
-<#if used_encryption_list?seq_contains("LEA")>
+<#if used_encryption_list?seq_contains("lea")>
 SVirtualEncryptionAPI g_stEncryptionLEA = {
 	UKEncryptionLEA_Initialize,
 	UKEncryptionLEA_EncodeOnCTRMode,
@@ -228,7 +228,7 @@ SVirtualEncryptionAPI g_stEncryptionLEA = {
 };
 </#if>
 
-<#if used_encryption_list?seq_contains("HIGHT")>
+<#if used_encryption_list?seq_contains("hight")>
 SVirtualEncryptionAPI g_stEncryptionHIGHT = {
 	UKEncryptionHIGHT_Initialize,
 	UKEncryptionHIGHT_EncodeOnCTRMode,
@@ -237,7 +237,7 @@ SVirtualEncryptionAPI g_stEncryptionHIGHT = {
 };
 </#if>
 
-<#if used_encryption_list?seq_contains("SEED")>
+<#if used_encryption_list?seq_contains("seed")>
 SVirtualEncryptionAPI g_stEncryptionSEED = {
 	UKEncryptionSEED_Initialize,
 	UKEncryptionSEED_EncodeOnCTRMode,

@@ -70,6 +70,9 @@ uem_result UKEncryptionLEA_Initialize(HVirtualKey *phKey, void *pstEncKeyInfo)
 	pstKey = UCAlloc_malloc(sizeof(SLEAKey));	
 	ERRMEMGOTO(pstKey, result, _EXIT);
 
+	pstKey->pszInitVec = NULL;
+	pstKey->pszRoundKey = NULL;
+
 	nRoundNum = getRoundNum(pstKeyInfo->nKeyLen);
 
 	if(pstKey->pszInitVec == NULL) {
