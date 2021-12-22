@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>hopes.cic.xml</groupId>
   <artifactId>CICXML4JAVA</artifactId>
-  <version>1.3.0-SNAPSHOT</version>
+  <version>1.3.1-SNAPSHOT</version>
   <build>
     <sourceDirectory>src/main</sourceDirectory>
     <testSourceDirectory>src/test</testSourceDirectory>
