@@ -35,6 +35,7 @@
 
 typedef struct _SGeneralTaskThread {
 	int nProcId;
+	int nPriority;
 	int nTaskFuncId;
 	HThread hThread; // modified
 	uem_bool bIsThreadFinished; // modified
@@ -357,6 +358,7 @@ static uem_result createGeneralTaskThreadStructs(SMappedGeneralTaskInfo *pstMapp
 	ERRMEMGOTO(pstGeneralTaskThread, result, _EXIT);
 
 	pstGeneralTaskThread->nProcId = pstMappedInfo->nLocalId;
+	pstGeneralTaskThread->nPriority = pstMappedInfo->nPriority;
 	pstGeneralTaskThread->hThread = NULL;
 	pstGeneralTaskThread->bIsThreadFinished = TRUE;
 	pstGeneralTaskThread->hEvent = NULL;
@@ -1158,6 +1160,11 @@ static uem_result createGeneralTaskThread(IN int nOffset, IN void *pData, IN voi
 	{
 		result = pstGeneralTask->pstMapProcessorAPI->fnMapProcessor(pstTaskThread->hThread, pstGeneralTask->nProcessorId, pstTaskThread->nProcId);
 		ERRIFGOTO(result, _EXIT);
+
+		if(g_nScheduler != SCHEDULER_OTHER) {
+			result = pstGeneralTask->pstMapProcessorAPI->fnMapPriority(pstTaskThread->hThread, g_nScheduler, pstTaskThread->nPriority);
+			ERRIFGOTO(result, _EXIT);
+		}
 	}
 
 	pstTaskThreadData = NULL;

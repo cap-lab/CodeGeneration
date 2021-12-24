@@ -34,6 +34,7 @@ typedef struct _SCompositeTaskThread {
 	int nModeId;
 	int nThroughputConstraint;
 	int nProcId;
+	int nPriority;
 	FnUemTaskGo fnCompositeGo;
 	ECPUTaskState enTaskState; // modified
 	HThread hThread; // modified
@@ -61,6 +62,8 @@ typedef struct _SCompositeTask {
 	ECPUTaskState enNewTaskState; // modified
 	uem_bool bNewStateRequest; // modified
 	HThreadMutex hTaskGraphLock;
+	int nProcessorId;
+	SGenericMapProcessor *pstMapProcessorAPI;
 } SCompositeTask;
 
 
@@ -185,6 +188,7 @@ static uem_result createCompositeTaskThreadStructPerSchedule(SMappedCompositeTas
 	pstCompositeTaskThread->hManager = NULL;
 	pstCompositeTaskThread->nModeId = pstMappedInfo->pstScheduledTasks->nModeId;
 	pstCompositeTaskThread->nProcId = pstMappedInfo->nLocalId;
+	pstCompositeTaskThread->nPriority = pstMappedInfo->nPriority;
 	pstCompositeTaskThread->hThread = NULL;
 	pstCompositeTaskThread->bIsThreadFinished = TRUE;
 	pstCompositeTaskThread->hEvent = NULL;
@@ -250,6 +254,8 @@ static uem_result createCompositeTaskStruct(HCPUCompositeTaskManager hCPUTaskMan
 	pstCompositeTask->bIterationCountFixed = FALSE;
 	pstCompositeTask->enNewTaskState = TASK_STATE_STOP;
 	pstCompositeTask->bNewStateRequest = FALSE;
+	pstCompositeTask->nProcessorId = pstMappedInfo->nProcessorId;
+	pstCompositeTask->pstMapProcessorAPI = pstMappedInfo->pstMapProcessorAPI;
 
 	result = UKModelController_GetTopLevelLockHandle(pstMappedInfo->pstScheduledTasks->pstParentTaskGraph,
 													&(pstCompositeTask->hTaskGraphLock));
@@ -1229,9 +1235,11 @@ static uem_result createCompositeTaskThread(IN int nOffset, IN void *pData, IN v
 
 		pstTaskThreadData = NULL;
 
-		if(pstTaskThread->nProcId != MAPPING_NOT_SPECIFIED)
-		{
-			result = UCThread_SetMappedCPU(pstTaskThread->hThread, pstTaskThread->nProcId);
+		result = pstCompositeTask->pstMapProcessorAPI->fnMapProcessor(pstTaskThread->hThread, pstCompositeTask->nProcessorId, pstTaskThread->nProcId);
+		ERRIFGOTO(result, _EXIT);
+
+		if(g_nScheduler != SCHEDULER_OTHER) {
+			result = pstCompositeTask->pstMapProcessorAPI->fnMapPriority(pstTaskThread->hThread, g_nScheduler, pstTaskThread->nPriority);
 			ERRIFGOTO(result, _EXIT);
 		}
 	}

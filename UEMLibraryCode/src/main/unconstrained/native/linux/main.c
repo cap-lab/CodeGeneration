@@ -14,6 +14,9 @@
 
 #include <stdio.h>
 #include <signal.h>
+#include <sched.h>
+#include <errno.h>
+#include <string.h>
 
 #include <uem_common.h>
 
@@ -26,6 +29,26 @@
 
 #include <UEMMainCommon.h>
 
+uem_result setScheduler() {
+	uem_result result = ERR_UEM_NOERROR;
+
+	if(g_nScheduler != SCHEDULER_OTHER) {
+		int nMaxPriority = sched_get_priority_max(g_nScheduler);
+
+		struct sched_param schedparam = {
+			.sched_priority = nMaxPriority,
+		};
+
+		int ret = sched_setscheduler(0, g_nScheduler, &schedparam);
+		if (ret == -1) {
+			printf("Scheduler configuration failed: %d %s\n", errno, strerror(errno));
+			result = ERR_UEM_ILLEGAL_CONTROL;
+		}
+	}
+
+	return result;
+}
+
 int main(int argc, char *argv[])
 {
 	uem_result result;
@@ -37,6 +60,10 @@ int main(int argc, char *argv[])
 #endif
 
 	printf("Program start\n");
+
+	// set scheduler
+	result = setScheduler();
+	ERRIFGOTO(result, _EXIT);
 
 	// module initialization
 	result = UKModule_Initialize();

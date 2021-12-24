@@ -57,6 +57,7 @@
 	<xs:attribute name="architecture" type="NameType" use="required" />
 	<xs:attribute name="platform" type="NameType" use="required" />
 	<xs:attribute name="runtime" type="NameType" use="required" />
+	<xs:attribute name="scheduler" type="NameType" use="optional" />
   </xs:complexType>
 
   <xs:complexType name="DeviceConnectionListType">
@@ -125,7 +126,6 @@
     <xs:attribute name="subcategory" type="xs:string" use="optional" />
     <xs:attribute name="model" type="xs:string" use="optional" />
     <xs:attribute name="OS" type="xs:string" use="optional" />
-    <xs:attribute name="scheduler" type="ArchitectureSchedulerType" use="optional" />
     <xs:attribute name="clock" type="xs:nonNegativeInteger" use="optional" />
     <!-- Relative cost -->
     <xs:attribute name="relativeCost" type="xs:decimal" use="optional" />
@@ -154,7 +154,6 @@
       <xs:enumeration value="hwip" />
     </xs:restriction>
   </xs:simpleType>
-
   <xs:simpleType name="ArchitectureSchedulerType">
     <xs:restriction base="xs:string">
       <xs:enumeration value="RM" />
@@ -163,7 +162,6 @@
       <xs:enumeration value="FPFCFS" />
     </xs:restriction>
   </xs:simpleType>
-
 
   <!-- Type definitions for architecture elements -->
   <xs:complexType name="ArchitectureElementType">

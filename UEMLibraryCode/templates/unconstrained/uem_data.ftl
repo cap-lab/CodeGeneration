@@ -426,11 +426,13 @@ SScheduledTasks g_astScheduledTaskList[] = {
 
 SGenericMapProcessor g_stCPUProcessor = {
 	UKHostSystem_MapCPU,
+	UKHostSystem_MapPriority,
 };
 
 <#if gpu_used == true>
 SGenericMapProcessor g_stGPUProcessor = {
 	UKGPUSystem_MapGPU,
+	NULL,
 };
 </#if>
 
@@ -443,6 +445,7 @@ SMappedGeneralTaskInfo g_astGeneralTaskMappingInfo[] = {
 		&g_astTasks_${mapped_task.parentTaskGraphName}[${mapped_task.inGraphIndex}], // Task ID or composite task information
 		${mappedProcessor.processorId}, // Processor ID
 		${mappedProcessor.processorLocalId}, // Processor local ID
+		${mapped_task.priority}, // Priority
 		<#list device_info as device_name, device>
 			<#if device_name == mapped_task.mappedDeviceName>
 				<#list device.processorList as processor>
@@ -471,7 +474,7 @@ SMappedCompositeTaskInfo g_astCompositeTaskMappingInfo[] = {
 	{
 		&g_astScheduledTaskList[${scheduledProcessor.inArrayIndex}],
 		${scheduledProcessor.processorId}, // Processor ID
-		${scheduledProcessor.processorLocalId}, // Processor local ID		
+		${scheduledProcessor.processorLocalId}, // Processor local ID
 	},
 	</#list>
 </#list>
@@ -497,4 +500,5 @@ int g_nProcessorInfoNum = ARRAYLEN(g_astProcessorInfo);
 int g_nLibraryInfoNum = <#if (library_info?size > 0)>ARRAYLEN(g_stLibraryInfo)<#else>0</#if>;
 int g_nTimerSlotNum = MAX_TIMER_SLOT_SIZE;
 int g_nDeviceId = ${device_id};
+int g_nScheduler = SCHEDULER_${device_scheduler?upper_case}; // 0: SCHED_OTHER, 1: SCHED_FIFO, 2: SCHED_RR
 

@@ -507,9 +507,8 @@ public class Application {
 		{
 			for(ArchitectureDeviceType device_metadata: architecture_metadata.getDevices().getDevice())
 			{
-
 				Device device = new Device(device_metadata.getName(), deviceId, device_metadata.getArchitecture(),
-											device_metadata.getPlatform(), device_metadata.getRuntime());
+						device_metadata.getPlatform(), device_metadata.getRuntime(), device_metadata.getScheduler());
 
 				deviceId++;
 

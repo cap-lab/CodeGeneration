@@ -76,6 +76,21 @@ void UCThread_Yield();
  */
 uem_result UCThread_SetMappedCPU(HThread hThread, int nCoreId);
 
+/**
+ * @brief Pin a thread to the specific priority.
+ *
+ * This function pins a thread to the priority which is used for running a thread. \n
+ * @a nPriority can be set from 0 to 99 in Linux and 1 to 5 in Windows.
+ *
+ * @param hThread a thread handle.
+ * @param nScheduler a scheduling policy.
+ * @param nPriority a priority starting from 1.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INTERNAL_FAIL. \n
+ *         @ref ERR_UEM_INTERNAL_FAIL can be occurred when priority-related operations are failed.
+ */
+uem_result UCThread_SetPriority(HThread hThread, int nScheduler, int nPriority);
 
 #ifdef __cplusplus
 }

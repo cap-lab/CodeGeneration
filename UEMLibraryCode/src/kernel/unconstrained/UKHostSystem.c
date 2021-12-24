@@ -85,3 +85,16 @@ _EXIT:
 	return result;
 }
 
+uem_result UKHostSystem_MapPriority(HThread hThread, int nScheduler, int nPriority)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	if(nPriority != PRIORITY_NOT_SPECIFIED) {
+		result = UCThread_SetPriority(hThread, nScheduler, nPriority);
+		ERRIFGOTO(result, _EXIT);	
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}

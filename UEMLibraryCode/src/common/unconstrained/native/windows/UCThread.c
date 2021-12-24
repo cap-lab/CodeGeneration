@@ -207,4 +207,34 @@ _EXIT:
 	return result;
 }
 
+uem_result UCThread_SetPriority(HThread hThread, int nScheduler, int nPriority)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SUCThread* pstThread = NULL;
+	DWORD_PTR dwResult = 0;	
+	int nWindowsPriority = nPriority - 3; // priority range: (user) 1 ~ 5 -> (system) -2 ~ 2
+#ifdef ARGUMENT_CHECK
+	if (IS_VALID_HANDLE(hThread, ID_UEM_THREAD) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
 
+	if (nWindowsPriority != THREAD_PRIORITY_IDLE && nWindowsPriority != THREAD_PRIORITY_LOWEST 
+		&& nWindowsPriority != THREAD_PRIORITY_BELOW_NORMAL && nWindowsPriority != THREAD_PRIORITY_NORMAL
+		&& nWindowsPriority != THREAD_PRIORITY_ABOVE_NORMAL && nWindowsPriority != THREAD_PRIORITY_HIGHEST
+		&& nWindowsPriority != THREAD_PRIORITY_TIME_CRITICAL) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+#endif
+	pstThread = (SUCThread*)hThread;
+	
+	// priority range: (user) 1 ~ 5 -> (system) -2 ~ 2
+	dwResult = SetThreadPriority(pstThread->hNativeThread, -3 + nPriority);
+	if (dwResult == 0) {
+		dwResult = GetLastError();
+		ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}

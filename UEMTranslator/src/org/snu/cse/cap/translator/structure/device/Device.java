@@ -75,7 +75,8 @@ public class Device {
 	private ArchitectureType architecture;
 	private SoftwarePlatformType platform;
 	private RuntimeType runtime;
-	
+	private SchedulingMethod scheduler;
+
 	// in-device metadata information
 	private ArrayList<Channel> channelList;
 	private HashMap<String, MulticastGroup> multicastGroupList; // Group name : MulticastGroup class
@@ -108,13 +109,14 @@ public class Device {
 	private HashSet<DeviceCommunicationType> supportedConnectionTypeList;
 	private HashSet<DeviceEncryptionType> supportedEncryptionTypeSet;
 
-	public Device(String name, int id, String architecture, String platform, String runtime) 
+	public Device(String name, int id, String architecture, String platform, String runtime, String scheduler) 
 	{
 		this.name = name;
 		this.id = id;
 		this.architecture = ArchitectureType.fromValue(architecture);
 		this.platform = SoftwarePlatformType.fromValue(platform);
 		this.runtime = RuntimeType.fromValue(runtime);
+		this.scheduler = SchedulingMethod.fromValue(scheduler);
 		this.processorList = new ArrayList<Processor>();
 		this.environmentVariableList = new ArrayList<EnvironmentVariable>();
 		this.connectionList = new HashMap<String, Connection>();
@@ -637,7 +639,7 @@ public class Device {
 					putTaskHierarchicallyToTaskMap(task.getName(), globalTaskMap);
 					
 					GeneralTaskMappingInfo mappingInfo = new GeneralTaskMappingInfo(mappedTask.getName(), getTaskType(mappedTask.getName()), 
-							task.getParentTaskGraphName(), task.getInGraphIndex());
+							task.getParentTaskGraphName(), task.getInGraphIndex(), task.getPriority());
 					
 					mappingInfo.setMappedDeviceName(device.getName());
 					
@@ -1334,6 +1336,14 @@ public class Device {
 		return runtime;
 	}
 	
+	public SchedulingMethod getScheduler() {
+		return scheduler;
+	}
+
+	public void setScheduler(SchedulingMethod scheduler) {
+		this.scheduler = scheduler;
+	}
+
 	public void setArchitecture(ArchitectureType architecture) {
 		this.architecture = architecture;
 	}

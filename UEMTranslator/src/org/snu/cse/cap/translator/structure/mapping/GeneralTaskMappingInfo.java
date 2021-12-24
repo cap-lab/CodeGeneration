@@ -6,12 +6,15 @@ public class GeneralTaskMappingInfo extends MappingInfo {
 	private String taskName;
 	private int inGraphIndex;
 	private String parentTaskGraphName;
+	private int priority;
 	
-	public GeneralTaskMappingInfo(String taskName, TaskShapeType mappedTaskType, String parentTaskGraphName, int inGraphIndex) {
+	public GeneralTaskMappingInfo(String taskName, TaskShapeType mappedTaskType, String parentTaskGraphName,
+			int inGraphIndex, int priority) {
 		super(mappedTaskType);
 		this.taskName = taskName;
 		this.inGraphIndex = inGraphIndex;
 		this.parentTaskGraphName = parentTaskGraphName;
+		this.priority = priority;
 	}
 
 	public String getTaskName() {
@@ -36,5 +39,13 @@ public class GeneralTaskMappingInfo extends MappingInfo {
 
 	public void setParentTaskGraphName(String parentTaskName) {
 		this.parentTaskGraphName = parentTaskName;
+	}
+
+	public int getPriority() {
+		return priority;
+	}
+
+	public void setPriority(int priority) {
+		this.priority = priority;
 	}
 }

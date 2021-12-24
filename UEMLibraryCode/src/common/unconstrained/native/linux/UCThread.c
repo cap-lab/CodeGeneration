@@ -331,6 +331,39 @@ _EXIT:
 }
 #endif
 
+// Setting CPU is not portable in POSIX
+#ifndef WIN32
+static uem_result setPriorityInLinux(SUCThread *pstThread, int nPriority)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nError = 0;
+
+	nError = pthread_setschedprio(pstThread->hNativeThread, nPriority);
+	if(nError != 0) {
+		ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+#else
+static uem_result setPriorityInMinGW(SUCThread *pstThread, int nPriority)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	DWORD_PTR dwResult = 0;
+
+	dwResult = SetThreadPriority(pstThread->hNativeThread, nPriority);
+	if(dwResult == 0) {
+		ERRASSIGNGOTO(result, ERR_UEM_INTERNAL_FAIL, _EXIT);
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+#endif
+
 void UCThread_Yield()
 {
 #ifndef WIN32
@@ -394,6 +427,29 @@ _EXIT:
 	return result;
 }*/
 
+uem_result UCThread_SetPriority(HThread hThread, int nScheduler, int nPriority)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SUCThread *pstThread = NULL;
+#ifdef ARGUMENT_CHECK
+	if(IS_VALID_HANDLE(hThread, ID_UEM_THREAD) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
 
+	if(nPriority < sched_get_priority_min(nScheduler) || nPriority > sched_get_priority_max(nScheduler)) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+#endif
+	pstThread = (SUCThread *) hThread;
 
+#ifndef WIN32
+	result = setPriorityInLinux(pstThread, nPriority);
+#else
+	result = setPriorityInMinGW(pstThread, nPriority);
+#endif
+	ERRIFGOTO(result, _EXIT);
 
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}

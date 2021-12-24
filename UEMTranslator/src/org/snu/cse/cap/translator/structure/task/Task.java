@@ -65,6 +65,7 @@ public class Task implements Cloneable {
 	private int taskFuncNum;
 	private int runRate;
 	private int period;
+	private int priority;
 	private TimeMetric periodMetric;
 	private String parentTaskGraphName;
 	private int inGraphIndex;
@@ -280,7 +281,16 @@ public class Task implements Cloneable {
 			this.period = 1;
 			this.periodMetric = TimeMetric.MILLISEC;
 		}
-			
+		
+		if(modeTaskInfo.getPriority() != null)
+		{
+			this.setPriority(modeTaskInfo.getPriority().intValue());
+		}
+		else
+		{
+			this.setPriority(1);
+		}
+		
 	}
 	
 	public int getId() {
@@ -487,4 +497,13 @@ public class Task implements Cloneable {
 	public String getShortName() {
 		return shortName;
 	}
+
+	public int getPriority() {
+		return priority;
+	}
+
+	public void setPriority(int priority) {
+		this.priority = priority;
+	}
+
 }

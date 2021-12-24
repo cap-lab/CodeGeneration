@@ -49,6 +49,7 @@ public class Constants {
 	public static final String TEMPLATE_TAG_DEVICE_INFO = "device_info";
 	public static final String TEMPLATE_TAG_DEVICE_ID = "device_id";
 	public static final String TEMPLATE_TAG_ENCRYPTION_INDEX_INFO = "encryption_index";
+	public static final String TEMPLATE_TAG_DEVICE_SCHEDULER = "device_scheduler";
 	
 	public static final String TEMPLATE_TAG_MAPPING_INFO = "mapping_info";
 	public static final String TEMPLATE_TAG_STATIC_SCHEDULE_INFO = "schedule_info";
