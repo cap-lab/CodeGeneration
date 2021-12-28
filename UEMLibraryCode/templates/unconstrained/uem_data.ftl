@@ -432,7 +432,7 @@ SGenericMapProcessor g_stCPUProcessor = {
 <#if gpu_used == true>
 SGenericMapProcessor g_stGPUProcessor = {
 	UKGPUSystem_MapGPU,
-	NULL,
+	(FnMapPriority) NULL,
 };
 </#if>
 
