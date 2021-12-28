@@ -25,6 +25,7 @@ import org.snu.cse.cap.translator.structure.device.HWElementType;
 import org.snu.cse.cap.translator.structure.device.NoProcessorFoundException;
 import org.snu.cse.cap.translator.structure.device.Processor;
 import org.snu.cse.cap.translator.structure.device.ProcessorElementType;
+import org.snu.cse.cap.translator.structure.device.SchedulingMethod;
 import org.snu.cse.cap.translator.structure.device.connection.Connection;
 import org.snu.cse.cap.translator.structure.device.connection.ConnectionPair;
 import org.snu.cse.cap.translator.structure.device.connection.ConstrainedSerialConnection;
@@ -508,7 +509,9 @@ public class Application {
 			for(ArchitectureDeviceType device_metadata: architecture_metadata.getDevices().getDevice())
 			{
 				Device device = new Device(device_metadata.getName(), deviceId, device_metadata.getArchitecture(),
-						device_metadata.getPlatform(), device_metadata.getRuntime(), device_metadata.getScheduler());
+						device_metadata.getPlatform(), device_metadata.getRuntime(),
+						((device_metadata.getScheduler() == null) ? SchedulingMethod.OTHER.toString()
+								: device_metadata.getScheduler()));
 
 				deviceId++;
 

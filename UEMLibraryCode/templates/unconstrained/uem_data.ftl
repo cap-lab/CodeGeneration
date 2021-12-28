@@ -475,6 +475,20 @@ SMappedCompositeTaskInfo g_astCompositeTaskMappingInfo[] = {
 		&g_astScheduledTaskList[${scheduledProcessor.inArrayIndex}],
 		${scheduledProcessor.processorId}, // Processor ID
 		${scheduledProcessor.processorLocalId}, // Processor local ID
+		${scheduled_task.priority},
+		<#list device_info as device_name, device>
+			<#if device_name == scheduled_task.mappedDeviceName>
+				<#list device.processorList as processor>
+					<#if processor.id == scheduledProcessor.processorId>
+						<#if processor.isCPU == true>
+		&g_stCPUProcessor, // CPU Processor API
+						<#else>
+		&g_stGPUProcessor, // GPU Processor API
+						</#if>
+					</#if>
+				</#list>
+			</#if>
+		</#list>
 	},
 	</#list>
 </#list>
