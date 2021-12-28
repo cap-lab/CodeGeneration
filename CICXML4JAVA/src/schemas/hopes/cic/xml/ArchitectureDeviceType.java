@@ -27,6 +27,7 @@ import javax.xml.bind.annotation.XmlType;
  *       &lt;attribute name="architecture" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
  *       &lt;attribute name="platform" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
  *       &lt;attribute name="runtime" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="scheduler" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
@@ -56,6 +57,8 @@ public class ArchitectureDeviceType {
     protected String platform;
     @XmlAttribute(name = "runtime", required = true)
     protected String runtime;
+    @XmlAttribute(name = "scheduler")
+    protected String scheduler;
 
     /**
      * Gets the value of the elements property.
@@ -247,6 +250,30 @@ public class ArchitectureDeviceType {
      */
     public void setRuntime(String value) {
         this.runtime = value;
+    }
+
+    /**
+     * Gets the value of the scheduler property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getScheduler() {
+        return scheduler;
+    }
+
+    /**
+     * Sets the value of the scheduler property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setScheduler(String value) {
+        this.scheduler = value;
     }
 
 }

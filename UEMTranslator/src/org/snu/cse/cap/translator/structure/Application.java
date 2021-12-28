@@ -453,7 +453,8 @@ public class Application {
 
 						slave = findConnection(slaveType.getDevice(), slaveType.getConnection());
 
-						if (!connectType.getEncryption().toString().contentEquals(EncryptionType.NO.toString()))
+						if (connectType.getEncryption() != null && !connectType.getEncryption().toString()
+								.contentEquals(EncryptionType.NO.toString()))
 						{
 							setEncryption(slaveType.getDevice(), slaveType.getConnection(),
 									connectType.getEncryption().toString(), connectType.getUserkey(),
@@ -465,7 +466,9 @@ public class Application {
 
 						deviceConnection.putMasterToSlaveConnection(master, slaveType.getDevice(), slave);
 						deviceConnection.putSlaveToMasterConnection(slaveType.getDevice(), slave, master,
-								connectType.getEncryption().toString(), connectType.getUserkey());
+								((connectType.getEncryption() == null) ? EncryptionType.NO.toString()
+										: connectType.getEncryption().toString()),
+								connectType.getUserkey());
 					}
 				} catch (InvalidDeviceConnectionException e) {
 					// TODO Auto-generated catch block
