@@ -43,9 +43,13 @@
     </Filter>
     <Filter Include="$(COMMON_DIR)\$(DEVICE_RESTRICTION)\$(PLATFORM_DIR)\$(COMMUNICATION_DIR)\$(TCP_DIR)">
     </Filter>
+    <Filter Include="$(COMMON_DIR)\$(DEVICE_RESTRICTION)\$(PLATFORM_DIR)\$(COMMUNICATION_DIR)\$(SECURE_TCP_DIR)">
+    </Filter>
     <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(COMMUNICATION_DIR)">
     </Filter>
     <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(COMMUNICATION_DIR)\$(TCP_DIR)">
+    </Filter>
+    <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(COMMUNICATION_DIR)\$(SECURE_TCP_DIR)">
     </Filter>
     <Filter Include="$(KERNEL_DIR)\$(DEVICE_RESTRICTION)\$(ENCRYPTION_DIR)">
     </Filter>

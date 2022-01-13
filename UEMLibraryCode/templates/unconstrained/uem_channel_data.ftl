@@ -697,6 +697,28 @@ SAggregateConnectionInfo g_astAggregateConnectionInfo[] = {
 	</#if>
 #endif				
 				<#break>
+			<#case "SecureTCP">
+#ifdef AGGREGATE_SECURETCP_CONNECTION
+	{
+		${channel.index},
+		{
+			(HFixedSizeQueue) NULL,
+		},
+				<#switch channel.connectionRoleType>
+					<#case "CLIENT">
+		&(g_astSecureTCPAggregateClientInfo[${channel.socketInfoIndex}].stServiceInfo),
+						<#break>
+					<#case "SERVER">
+		&(g_astSecureTCPAggregateServerInfo[${channel.socketInfoIndex}].stServiceInfo),
+						<#break>
+				</#switch>	
+	},
+#else
+	<#if platform == "windows">
+	0,
+	</#if>
+#endif				
+				<#break>
 		</#switch>
 	</#list>
 };

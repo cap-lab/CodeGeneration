@@ -1096,7 +1096,8 @@ public class Application {
 			}
 			break;
 		case WINDOWS:
-			if (connectionPair.getMasterConnection().getProtocol() == ProtocolType.TCP) {
+			if (connectionPair.getMasterConnection().getProtocol() == ProtocolType.TCP
+					|| connectionPair.getMasterConnection().getProtocol() == ProtocolType.SECURE_TCP) {
 				setSocketIndexFromTCPConnection(channel, targetDevice, connectionPair);
 			} else {
 				setSocketIndexFromUnconstrainedSerialConnection(channel, targetDevice, connectionPair);
