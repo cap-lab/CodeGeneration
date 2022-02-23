@@ -6,6 +6,15 @@
   <build>
     <sourceDirectory>src/main</sourceDirectory>
     <testSourceDirectory>src/test</testSourceDirectory>
+    <resources>
+		<resource>
+			<directory>src/xsd</directory>
+			 <targetPath>/xsd</targetPath>
+			 <includes>
+			 	<include>*.xsd</include>
+			 </includes>
+		</resource>
+	</resources>
     <plugins>
         <plugin>
 		    <groupId>org.apache.maven.plugins</groupId>

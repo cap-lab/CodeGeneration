@@ -514,7 +514,7 @@ public class Application {
 				Device device = new Device(device_metadata.getName(), deviceId, device_metadata.getArchitecture(),
 						device_metadata.getPlatform(), device_metadata.getRuntime(),
 						((device_metadata.getScheduler() == null) ? SchedulingMethod.OTHER.toString()
-								: device_metadata.getScheduler()));
+								: device_metadata.getScheduler().toString()));
 
 				deviceId++;
 

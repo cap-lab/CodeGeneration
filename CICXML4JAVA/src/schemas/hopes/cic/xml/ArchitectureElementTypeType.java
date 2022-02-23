@@ -29,6 +29,7 @@ import javax.xml.bind.annotation.XmlType;
  *       &lt;attribute name="subcategory" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *       &lt;attribute name="model" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *       &lt;attribute name="OS" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="scheduler" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *       &lt;attribute name="clock" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
  *       &lt;attribute name="relativeCost" type="{http://www.w3.org/2001/XMLSchema}decimal" /&gt;
  *       &lt;attribute name="archiType" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
@@ -61,6 +62,8 @@ public class ArchitectureElementTypeType {
     protected String model;
     @XmlAttribute(name = "OS")
     protected String os;
+    @XmlAttribute(name = "scheduler")
+    protected String scheduler;
     @XmlAttribute(name = "clock")
     @XmlSchemaType(name = "nonNegativeInteger")
     protected BigInteger clock;
@@ -231,6 +234,30 @@ public class ArchitectureElementTypeType {
      */
     public void setOS(String value) {
         this.os = value;
+    }
+
+    /**
+     * Gets the value of the scheduler property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getScheduler() {
+        return scheduler;
+    }
+
+    /**
+     * Sets the value of the scheduler property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setScheduler(String value) {
+        this.scheduler = value;
     }
 
     /**

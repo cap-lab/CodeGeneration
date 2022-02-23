@@ -27,7 +27,7 @@ import javax.xml.bind.annotation.XmlType;
  *       &lt;attribute name="architecture" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
  *       &lt;attribute name="platform" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
  *       &lt;attribute name="runtime" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
- *       &lt;attribute name="scheduler" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
+ *       &lt;attribute name="scheduler" type="{http://peace.snu.ac.kr/CICXMLSchema}DeviceSchedulerType" /&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
@@ -58,7 +58,7 @@ public class ArchitectureDeviceType {
     @XmlAttribute(name = "runtime", required = true)
     protected String runtime;
     @XmlAttribute(name = "scheduler")
-    protected String scheduler;
+    protected DeviceSchedulerType scheduler;
 
     /**
      * Gets the value of the elements property.
@@ -257,10 +257,10 @@ public class ArchitectureDeviceType {
      * 
      * @return
      *     possible object is
-     *     {@link String }
+     *     {@link DeviceSchedulerType }
      *     
      */
-    public String getScheduler() {
+    public DeviceSchedulerType getScheduler() {
         return scheduler;
     }
 
@@ -269,10 +269,10 @@ public class ArchitectureDeviceType {
      * 
      * @param value
      *     allowed object is
-     *     {@link String }
+     *     {@link DeviceSchedulerType }
      *     
      */
-    public void setScheduler(String value) {
+    public void setScheduler(DeviceSchedulerType value) {
         this.scheduler = value;
     }
 
