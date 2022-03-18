@@ -9,7 +9,7 @@
     <resources>
 		<resource>
 			<directory>src/xsd</directory>
-			 <targetPath>/xsd</targetPath>
+			 <targetPath>xsd</targetPath>
 			 <includes>
 			 	<include>*.xsd</include>
 			 </includes>
