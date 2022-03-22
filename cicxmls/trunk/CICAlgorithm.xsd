@@ -135,6 +135,7 @@
     <xs:attribute name="isHardwareDependent" type="YesNoType" use="optional" />
     <xs:attribute name="subGraphProperty" type="NameType" use="optional" />
     <xs:attribute name="language" type="LanguageType" use="optional" />
+    <xs:attribute name="fsmFile" type="xs:string" use="optional" />
   </xs:complexType>
   
   <xs:complexType name="ExternalTaskType">

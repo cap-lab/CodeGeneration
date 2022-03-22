@@ -51,6 +51,7 @@ import javax.xml.bind.annotation.XmlType;
  *       &lt;attribute name="isHardwareDependent" type="{http://peace.snu.ac.kr/CICXMLSchema}YesNoType" /&gt;
  *       &lt;attribute name="subGraphProperty" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
  *       &lt;attribute name="language" type="{http://peace.snu.ac.kr/CICXMLSchema}LanguageType" /&gt;
+ *       &lt;attribute name="fsmFile" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
@@ -122,6 +123,8 @@ public class TaskType {
     protected String subGraphProperty;
     @XmlAttribute(name = "language")
     protected String language;
+    @XmlAttribute(name = "fsmFile")
+    protected String fsmFile;
 
     /**
      * Gets the value of the dataParallel property.
@@ -862,6 +865,30 @@ public class TaskType {
      */
     public void setLanguage(String value) {
         this.language = value;
+    }
+
+    /**
+     * Gets the value of the fsmFile property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getFsmFile() {
+        return fsmFile;
+    }
+
+    /**
+     * Sets the value of the fsmFile property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setFsmFile(String value) {
+        this.fsmFile = value;
     }
 
 }
