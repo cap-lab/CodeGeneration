@@ -35,13 +35,14 @@ import javax.xml.bind.annotation.XmlType;
  *         &lt;element name="loopStructure" type="{http://peace.snu.ac.kr/CICXMLSchema}LoopStructureType" minOccurs="0"/&gt;
  *         &lt;element name="hardwareDependency" type="{http://peace.snu.ac.kr/CICXMLSchema}HardwareDependencyType" minOccurs="0"/&gt;
  *         &lt;element name="faultTolerance" type="{http://peace.snu.ac.kr/CICXMLSchema}FaultToleranceType" minOccurs="0"/&gt;
+ *         &lt;element name="externalConfig" type="{http://peace.snu.ac.kr/CICXMLSchema}ExternalConfigType" minOccurs="0"/&gt;
  *       &lt;/sequence&gt;
  *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
  *       &lt;attribute name="id" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
  *       &lt;attribute name="hasInternalStates" type="{http://peace.snu.ac.kr/CICXMLSchema}YesNoType" /&gt;
  *       &lt;attribute name="description" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
- *       &lt;attribute name="runCondition" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}RunConditionType" /&gt;
- *       &lt;attribute name="file" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="runCondition" type="{http://peace.snu.ac.kr/CICXMLSchema}RunConditionType" /&gt;
+ *       &lt;attribute name="file" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *       &lt;attribute name="cflags" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *       &lt;attribute name="ldflags" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *       &lt;attribute name="hasSubGraph" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
@@ -74,7 +75,8 @@ import javax.xml.bind.annotation.XmlType;
     "mtm",
     "loopStructure",
     "hardwareDependency",
-    "faultTolerance"
+    "faultTolerance",
+    "externalConfig"
 })
 public class TaskType {
 
@@ -92,6 +94,7 @@ public class TaskType {
     protected LoopStructureType loopStructure;
     protected HardwareDependencyType hardwareDependency;
     protected FaultToleranceType faultTolerance;
+    protected ExternalConfigType externalConfig;
     @XmlAttribute(name = "name", required = true)
     protected String name;
     @XmlAttribute(name = "id", required = true)
@@ -101,9 +104,9 @@ public class TaskType {
     protected YesNoType hasInternalStates;
     @XmlAttribute(name = "description")
     protected String description;
-    @XmlAttribute(name = "runCondition", required = true)
+    @XmlAttribute(name = "runCondition")
     protected RunConditionType runCondition;
-    @XmlAttribute(name = "file", required = true)
+    @XmlAttribute(name = "file")
     protected String file;
     @XmlAttribute(name = "cflags")
     protected String cflags;
@@ -505,6 +508,30 @@ public class TaskType {
      */
     public void setFaultTolerance(FaultToleranceType value) {
         this.faultTolerance = value;
+    }
+
+    /**
+     * Gets the value of the externalConfig property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link ExternalConfigType }
+     *     
+     */
+    public ExternalConfigType getExternalConfig() {
+        return externalConfig;
+    }
+
+    /**
+     * Sets the value of the externalConfig property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link ExternalConfigType }
+     *     
+     */
+    public void setExternalConfig(ExternalConfigType value) {
+        this.externalConfig = value;
     }
 
     /**

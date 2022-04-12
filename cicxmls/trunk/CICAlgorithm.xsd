@@ -30,7 +30,6 @@
   <xs:complexType name="TaskListType">
     <xs:sequence>
       <xs:element name="task" type="TaskType" minOccurs="1" maxOccurs="unbounded" />
-      <xs:element name="externalTask" type="ExternalTaskType" minOccurs="0" maxOccurs="unbounded" />
     </xs:sequence>
   </xs:complexType>
 
@@ -119,13 +118,14 @@
 	  <xs:element name="loopStructure" type="LoopStructureType" minOccurs="0" maxOccurs="1" />
 	  <xs:element name="hardwareDependency" type="HardwareDependencyType" minOccurs="0" maxOccurs="1" />
       <xs:element name="faultTolerance" type="FaultToleranceType" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="externalConfig" type="ExternalConfigType" minOccurs="0" maxOccurs="1" />
     </xs:sequence>
 	<xs:attribute name="name" type="NameType" use="required" />
     <xs:attribute name="id" type="xs:nonNegativeInteger" use="required" />	
     <xs:attribute name="hasInternalStates" type="YesNoType" use="optional" />
     <xs:attribute name="description" type="xs:string" use="optional" />
-    <xs:attribute name="runCondition" type="RunConditionType" use="required" />
-    <xs:attribute name="file" type="xs:string" use="required" />
+    <xs:attribute name="runCondition" type="RunConditionType" use="optional" />
+    <xs:attribute name="file" type="xs:string" use="optional" />
     <xs:attribute name="cflags" type="xs:string" use="optional" />
     <xs:attribute name="ldflags" type="xs:string" use="optional" />
     <xs:attribute name="hasSubGraph" type="xs:string" use="optional" />
@@ -136,17 +136,6 @@
     <xs:attribute name="subGraphProperty" type="NameType" use="optional" />
     <xs:attribute name="language" type="LanguageType" use="optional" />
     <xs:attribute name="fsmFile" type="xs:string" use="optional" />
-  </xs:complexType>
-  
-  <xs:complexType name="ExternalTaskType">
-    <xs:attribute name="name" type="NameType" use="required" />
-    <xs:attribute name="taskType" type="xs:string" use="required" />
-    <xs:attribute name="description" type="xs:string" use="optional" />
-    <xs:attribute name="ParentTask" type="xs:string" use="required" />
-	<xs:attribute name="networkFile" type="xs:string" use="required"/>
-	<xs:attribute name="architectureFile" type="xs:string" use="required"/>
-	<xs:attribute name="profileFile" type="xs:string" use="required"/>
-	<xs:attribute name="mappingFile" type="xs:string" use="required"/>
   </xs:complexType>
   
   <xs:complexType name="TaskDataParallelType">
@@ -364,6 +353,14 @@
     <xs:attribute name="validationTaskType" type="ValidationTaskType" use="required" />
     <xs:attribute name="type" type="FaultToleranceTypeType" use="required" />
     <xs:attribute name="number" type="xs:positiveInteger" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="ExternalConfigType">
+	<xs:attribute name="networkFile" type="xs:string" use="required"/>
+	<xs:attribute name="architectureFile" type="xs:string" use="required"/>
+	<xs:attribute name="profileFile" type="xs:string" use="required"/>
+	<xs:attribute name="mappingFile" type="xs:string" use="required"/>
+	<xs:attribute name="useCICFile" type="xs:string" use="required"/>
   </xs:complexType>
 
   <xs:complexType name="HardwareDependencyType">

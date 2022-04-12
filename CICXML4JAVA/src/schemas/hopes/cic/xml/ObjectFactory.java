@@ -235,14 +235,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ExternalTaskType }
-     * 
-     */
-    public ExternalTaskType createExternalTaskType() {
-        return new ExternalTaskType();
-    }
-
-    /**
      * Create an instance of {@link TaskDataParallelType }
      * 
      */
@@ -456,6 +448,14 @@ public class ObjectFactory {
      */
     public FaultToleranceType createFaultToleranceType() {
         return new FaultToleranceType();
+    }
+
+    /**
+     * Create an instance of {@link ExternalConfigType }
+     * 
+     */
+    public ExternalConfigType createExternalConfigType() {
+        return new ExternalConfigType();
     }
 
     /**
