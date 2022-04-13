@@ -320,7 +320,8 @@ public class Task implements Cloneable {
 		{
 			this.type = TaskShapeType.CONTROL;
 		}
-		else if(TaskShapeType.fromValue(taskType) == TaskShapeType.COMPUTATIONAL)
+		else if (TaskShapeType.fromValue(taskType) == TaskShapeType.COMPUTATIONAL
+				|| TaskShapeType.fromValue(taskType) == TaskShapeType.EXTERNAL)
 		{
 			this.type = TaskShapeType.COMPUTATIONAL;
 		}
