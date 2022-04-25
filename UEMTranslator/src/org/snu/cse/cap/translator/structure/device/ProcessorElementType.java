@@ -3,6 +3,7 @@ package org.snu.cse.cap.translator.structure.device;
 enum ProcessorCategory {
 	CPU("CPU"),
 	GPU("GPU"),
+	VIRTUAL("VIRTUAL"),
 	;
 
 	private final String value;

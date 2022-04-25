@@ -707,11 +707,11 @@ public class Application {
 		}
 	}
 
-	// TODO: Only support CPU and GPU cases
+	// TODO: Only support CPU, GPU, and VIRTUAL cases
 	private void setInDeviceCommunicationType(Channel channel, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo)
 	{
-		boolean srcCPU = false;
-		boolean dstCPU = false;
+		boolean srcCPU = false, dstCPU = false;
+		boolean srcVirtual = false, dstVirtual = false;
 		int srcProcId, dstProcId;
 		int srcProcLocalId, dstProcLocalId;
 
@@ -724,10 +724,12 @@ public class Application {
 		for(Processor processor : device.getProcessorList()) {
 			if(srcProcId == processor.getId()) {
 				srcCPU = processor.getIsCPU();
+				srcVirtual = processor.getIsVirtual();
 			}
 
 			if(dstProcId == processor.getId()) {
 				dstCPU = processor.getIsCPU();
+				dstVirtual = processor.getIsVirtual();
 			}
 		}
 
@@ -748,12 +750,15 @@ public class Application {
 		else if(dstCPU == true) { // && srcCPU == true
 			if(srcProcId == dstProcId) {
 				channel.setAccessType(InMemoryAccessType.CPU_ONLY);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               			}
+			}
+			else if (srcVirtual || dstVirtual) {
+				channel.setAccessType(InMemoryAccessType.CPU_ONLY);
+			}
 			else {
 				throw new UnsupportedOperationException();
 			}
 		}
-		else { // dstCPU == true && srcCPU == true
+		else { // dstCPU == false && srcCPU == true
 			channel.setAccessType(InMemoryAccessType.CPU_GPU);
 		}
 	}
