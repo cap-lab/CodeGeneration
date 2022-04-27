@@ -444,7 +444,19 @@ SMappedGeneralTaskInfo g_astGeneralTaskMappingInfo[] = {
 	{	TASK_TYPE_${mapped_task.mappedTaskType}, // Task type
 		&g_astTasks_${mapped_task.parentTaskGraphName}[${mapped_task.inGraphIndex}], // Task ID or composite task information
 		${mappedProcessor.processorId}, // Processor ID
+		<#list device_info as device_name, device>
+			<#if device_name == mapped_task.mappedDeviceName>
+				<#list device.processorList as processor>
+					<#if processor.id == mappedProcessor.processorId>
+						<#if processor.isCPU == true && processor.isVirtual == false>
 		${mappedProcessor.processorLocalId}, // Processor local ID
+						<#else>
+		MAPPING_NOT_SPECIFIED,				
+						</#if>
+					</#if>
+				</#list>
+			</#if>
+		</#list>					
 		${mapped_task.priority}, // Priority
 		<#list device_info as device_name, device>
 			<#if device_name == mapped_task.mappedDeviceName>
