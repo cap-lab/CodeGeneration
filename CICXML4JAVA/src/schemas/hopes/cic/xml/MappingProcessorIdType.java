@@ -5,7 +5,6 @@ import java.math.BigInteger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -19,7 +18,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent&gt;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
  *       &lt;attribute name="pool" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
- *       &lt;attribute name="localId" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
+ *       &lt;attribute name="localId" use="required" type="{http://www.w3.org/2001/XMLSchema}integer" /&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
@@ -34,7 +33,6 @@ public class MappingProcessorIdType {
     @XmlAttribute(name = "pool", required = true)
     protected String pool;
     @XmlAttribute(name = "localId", required = true)
-    @XmlSchemaType(name = "nonNegativeInteger")
     protected BigInteger localId;
 
     /**

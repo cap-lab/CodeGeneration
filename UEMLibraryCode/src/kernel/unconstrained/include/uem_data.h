@@ -251,6 +251,7 @@ typedef struct _SMappedGeneralTaskInfo {
 	int nLocalId;
 	int nPriority;
 	SGenericMapProcessor *pstMapProcessorAPI;
+	const char *pszMappingSet;
 } SMappedGeneralTaskInfo;
 
 typedef struct _SMappedCompositeTaskInfo {

@@ -103,7 +103,11 @@ SChunk g_astChunk_channel_${channel.index}_in[${channel.inputPort.maximumChunkNu
 <#list port_info as port>
 SPortSampleRate g_astPortSampleRate_${port.taskName}_${port.portName}[] = {
 	<#list port.portSampleRateList as sample_rate>
-	{ 	"${sample_rate.modeName}", // Mode name
+		<#if sample_rate.modeName == "Default">
+	{	DEFAULT_STRING_NAME, // Mode name
+		<#else>
+	{	"${sample_rate.modeName}", // Mode name
+		</#if>
 		${sample_rate.sampleRate?c}, // Sample rate
 		${sample_rate.maxAvailableNum}, // Available number of data
 	},

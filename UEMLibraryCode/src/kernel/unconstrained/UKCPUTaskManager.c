@@ -11,6 +11,7 @@
 #include <uem_common.h>
 
 #include <UCBasic.h>
+#include <UCString.h>
 #include <UCAlloc.h>
 #include <UCDynamicLinkedList.h>
 #include <UCThreadMutex.h>
@@ -53,6 +54,11 @@ typedef struct _SMaxIterationSetCallback {
 	int nMaxIteration;
 	int nBaseTaskId;
 } SMaxIterationSetCallback;
+
+typedef struct _SMappingSetUserData {
+	HCPUGeneralTaskManager hGeneralTaskManager;
+	char *pszMappingSet;
+} SMappingSetUserData;
 
 uem_result UKCPUTaskManager_Create(OUT HCPUTaskManager *phCPUTaskManager)
 {
@@ -97,11 +103,30 @@ struct _SCompositeTaskTraverseUserData {
 	int nCPUId;
 };
 
+static uem_result checkMappingSetIsEqaul(SMappedGeneralTaskInfo *pstMappedTask, const char *pszMappingName, OUT uem_bool *pbIsEqual)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	uem_string_struct stCurrentMappingSet;
+	uem_string_struct stTargetMappingSet;
+
+	result = UCString_New(&stCurrentMappingSet, (char *)pstMappedTask->pszMappingSet, UEMSTRING_CONST);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UCString_New(&stTargetMappingSet, (char *)pszMappingName, UEMSTRING_CONST);
+	ERRIFGOTO(result, _EXIT);
+
+	*pbIsEqual = UCString_IsEqual(&stCurrentMappingSet, &stTargetMappingSet);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
 
 uem_result UKCPUTaskManager_RegisterTask(HCPUTaskManager hCPUTaskManager, SMappedGeneralTaskInfo *pstMappedTask)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
+	uem_bool bIsDefaultMapping = FALSE;
 
 #ifdef ARGUMENT_CHECK
 	if (IS_VALID_HANDLE(hCPUTaskManager, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
@@ -115,6 +140,14 @@ uem_result UKCPUTaskManager_RegisterTask(HCPUTaskManager hCPUTaskManager, SMappe
 	}
 #endif
 	pstManager = hCPUTaskManager;
+
+	result = checkMappingSetIsEqaul(pstMappedTask, DEFAULT_STRING_NAME, &bIsDefaultMapping);
+	ERRIFGOTO(result, _EXIT);
+
+	if(bIsDefaultMapping == FALSE)
+	{
+		UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT);	
+	}
 
 	if(pstManager->hGeneralManager == NULL)
 	{
@@ -1152,7 +1185,6 @@ uem_result UKCPUTaskManager_ChangeMappedCore(HCPUTaskManager hCPUTaskManager, in
 	uem_result result = ERR_UEM_UNKNOWN;
 	SCPUTaskManager *pstManager = NULL;
 	STask *pstTask = NULL;
-	ECPUTaskState enTaskState;
 #ifdef ARGUMENT_CHECK
 	if (IS_VALID_HANDLE(hCPUTaskManager, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
 		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
@@ -1183,8 +1215,98 @@ uem_result UKCPUTaskManager_ChangeMappedCore(HCPUTaskManager hCPUTaskManager, in
 		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
 	}
 
-	result = UKCPUGeneralTaskManager_ChangeMappedCore(hCPUTaskManager->hGeneralManager, pstTask, nNewLocalId);
+	result = UKCPUGeneralTaskManager_ChangeMappedCore(pstManager->hGeneralManager, pstTask, nNewLocalId);
 	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+static uem_result changeMappedCoreByMappingSet(STask *pstTask, void *pUserData)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	int nLoop = 0;
+	HCPUGeneralTaskManager hGeneralTaskManager = NULL;
+	char *pszMappingSet = NULL;
+	uem_string_struct stCurrentMappingName;
+	uem_string_struct stTargetMappingName;
+	SMappedGeneralTaskInfo *pstGeneralTaskMappingInfo = NULL;
+	int nNewLocalId = MAPPING_NOT_SPECIFIED;
+
+	hGeneralTaskManager = ((SMappingSetUserData *)pUserData)->hGeneralTaskManager;
+	pszMappingSet = ((SMappingSetUserData *)pUserData)->pszMappingSet;
+	pstGeneralTaskMappingInfo = g_stMappingInfo.pstGeneralTaskMappingInfo;
+
+	result = UCString_New(&stTargetMappingName, (char *)pszMappingSet, UEMSTRING_CONST);
+	ERRIFGOTO(result, _EXIT);
+
+	for(nLoop = 0; nLoop < g_stMappingInfo.nMappedGeneralTaskNum; nLoop++)
+	{
+		if(pstTask->nTaskId == pstGeneralTaskMappingInfo[nLoop].pstTask->nTaskId)
+		{
+			result = UCString_New(&stCurrentMappingName, (char *)pstGeneralTaskMappingInfo[nLoop].pszMappingSet, UEMSTRING_CONST);
+			ERRIFGOTO(result, _EXIT);
+
+			if(UCString_IsEqual(&stCurrentMappingName, &stTargetMappingName) == TRUE)
+			{
+				nNewLocalId = pstGeneralTaskMappingInfo[nLoop].nLocalId;
+
+				result = UKCPUGeneralTaskManager_ChangeMappedCore(hGeneralTaskManager, pstGeneralTaskMappingInfo[nLoop].pstTask, nNewLocalId);	
+				ERRIFGOTO(result, _EXIT);
+			}
+		}
+	}
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+uem_result UKCPUTaskManager_ChangeMappingSet(HCPUTaskManager hCPUTaskManager, int nTaskId, char *pszMappingSet)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCPUTaskManager *pstManager = NULL;
+	STask *pstTask = NULL;
+	SMappingSetUserData stMappingSetUserData;
+#ifdef ARGUMENT_CHECK
+	if (IS_VALID_HANDLE(hCPUTaskManager, ID_UEM_CPU_TASK_MANAGER) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+
+	if(nTaskId < 0) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_PARAM, _EXIT);
+	}
+#endif
+
+	pstManager = hCPUTaskManager;
+
+	result = UKTask_GetTaskFromTaskId(nTaskId, &pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstTask->enType != TASK_TYPE_COMPUTATIONAL && pstTask->enType != TASK_TYPE_CONTROL)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
+
+	if(pstTask->bStaticScheduled == TRUE)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
+
+	stMappingSetUserData.hGeneralTaskManager = pstManager->hGeneralManager;
+	stMappingSetUserData.pszMappingSet = pszMappingSet;
+
+	if(pstTask->pstSubGraph != NULL)
+	{
+		result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, changeMappedCoreByMappingSet, (void *)&stMappingSetUserData);
+		ERRIFGOTO(result, _EXIT);
+	}
+	else
+	{
+		result = changeMappedCoreByMappingSet(pstTask, (void *)&stMappingSetUserData);	
+		ERRIFGOTO(result, _EXIT);
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT:

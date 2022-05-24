@@ -1014,3 +1014,28 @@ uem_result UKTask_ChangeMappedCore (IN int nCallerTaskId, IN char *pszTaskName, 
 _EXIT:
 	return result;
 }
+
+uem_result UKTask_ChangeMappingSet(IN int nCallerTaskId, IN char *pszTaskName, IN char *pszMappingSet)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask *pstTask = NULL;
+	STask *pstCallerTask = NULL;
+
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
+
+	if(pstCallerTask->enType != TASK_TYPE_CONTROL)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT);
+	}
+
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKCPUTaskManager_ChangeMappingSet(g_hCPUTaskManager, pstTask->nTaskId, pszMappingSet);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}

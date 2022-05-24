@@ -471,6 +471,11 @@ SMappedGeneralTaskInfo g_astGeneralTaskMappingInfo[] = {
 				</#list>
 			</#if>
 		</#list>
+		<#if mappedProcessor.mappingSet == "Default">
+		DEFAULT_STRING_NAME, // Mapping set
+		<#else>
+		"${mappedProcessor.mappingSet}", // Mapping set
+		</#if>
 	},
 	</#list>
 </#list>

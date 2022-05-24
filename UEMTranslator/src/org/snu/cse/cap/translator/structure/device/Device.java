@@ -35,6 +35,7 @@ import org.snu.cse.cap.translator.structure.library.LibraryConnection;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskMappedProcessor;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskMappingInfo;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskSchedule;
+import org.snu.cse.cap.translator.structure.mapping.GeneralMappedProcessor;
 import org.snu.cse.cap.translator.structure.mapping.GeneralTaskMappingInfo;
 import org.snu.cse.cap.translator.structure.mapping.InvalidScheduleFileNameException;
 import org.snu.cse.cap.translator.structure.mapping.MappedProcessor;
@@ -60,6 +61,7 @@ import hopes.cic.xml.CICScheduleType;
 import hopes.cic.xml.CICScheduleTypeLoader;
 import hopes.cic.xml.GPUTaskType;
 import hopes.cic.xml.MappingDeviceType;
+import hopes.cic.xml.MappingSetType;
 import hopes.cic.xml.MappingProcessorIdType;
 import hopes.cic.xml.MappingTaskType;
 import hopes.cic.xml.ScheduleElementType;
@@ -648,12 +650,13 @@ public class Device {
 							task.getParentTaskGraphName(), task.getInGraphIndex(), task.getPriority());
 					
 					mappingInfo.setMappedDeviceName(device.getName());
-					
-					for(MappingProcessorIdType proc: device.getProcessor())
-					{
-						MappedProcessor processor = new MappedProcessor(getProcessorIdByName(proc.getPool()),
-								proc.getLocalId().intValue());
-						mappingInfo.putProcessor(processor);
+
+					for (MappingSetType setType : device.getMappingSet()) {
+						for (MappingProcessorIdType proc : setType.getProcessor()) {
+							MappedProcessor processor = new GeneralMappedProcessor(getProcessorIdByName(proc.getPool()),
+									proc.getLocalId().intValue(), setType.getName());
+							mappingInfo.putProcessor(processor);
+						}
 					}
 					
 					if(this.generalMappingInfo.containsKey(mappedTask.getName()) == false)

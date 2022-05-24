@@ -19,7 +19,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent&gt;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
  *       &lt;sequence&gt;
- *         &lt;element name="processor" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingProcessorIdType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="mappingSet" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingSetType" maxOccurs="unbounded" minOccurs="0"/&gt;
  *         &lt;element name="device" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingDeviceType" maxOccurs="unbounded" minOccurs="0"/&gt;
  *       &lt;/sequence&gt;
  *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
@@ -33,12 +33,12 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "MappingTaskType", propOrder = {
-    "processor",
+    "mappingSet",
     "device"
 })
 public class MappingTaskType {
 
-    protected List<MappingProcessorIdType> processor;
+    protected List<MappingSetType> mappingSet;
     protected List<MappingDeviceType> device;
     @XmlAttribute(name = "name", required = true)
     protected String name;
@@ -46,32 +46,32 @@ public class MappingTaskType {
     protected DataParallelType dataParallel;
 
     /**
-     * Gets the value of the processor property.
+     * Gets the value of the mappingSet property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the processor property.
+     * This is why there is not a <CODE>set</CODE> method for the mappingSet property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getProcessor().add(newItem);
+     *    getMappingSet().add(newItem);
      * </pre>
      * 
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link MappingProcessorIdType }
+     * {@link MappingSetType }
      * 
      * 
      */
-    public List<MappingProcessorIdType> getProcessor() {
-        if (processor == null) {
-            processor = new ArrayList<MappingProcessorIdType>();
+    public List<MappingSetType> getMappingSet() {
+        if (mappingSet == null) {
+            mappingSet = new ArrayList<MappingSetType>();
         }
-        return this.processor;
+        return this.mappingSet;
     }
 
     /**

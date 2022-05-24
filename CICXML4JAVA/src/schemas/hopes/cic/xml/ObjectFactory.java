@@ -859,6 +859,14 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link MappingSetType }
+     * 
+     */
+    public MappingSetType createMappingSetType() {
+        return new MappingSetType();
+    }
+
+    /**
      * Create an instance of {@link MappingProcessorIdType }
      * 
      */

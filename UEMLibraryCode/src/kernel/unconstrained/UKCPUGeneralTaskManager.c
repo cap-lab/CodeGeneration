@@ -1830,7 +1830,7 @@ static uem_result changeMappedCore(IN int nOffset, IN void *pData, IN void *pUse
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
 	UCThreadMutex_Unlock(pstGeneralTask->hMutex);
-_EXIT:
+
 	return result;
 }
 

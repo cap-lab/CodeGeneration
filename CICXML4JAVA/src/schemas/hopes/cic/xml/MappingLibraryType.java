@@ -19,7 +19,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent&gt;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
  *       &lt;sequence&gt;
- *         &lt;element name="processor" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingProcessorIdType" minOccurs="0"/&gt;
+ *         &lt;element name="mappingSet" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingSetType" minOccurs="0"/&gt;
  *         &lt;element name="device" type="{http://peace.snu.ac.kr/CICXMLSchema}MappingDeviceType" maxOccurs="unbounded" minOccurs="0"/&gt;
  *         &lt;element name="task" type="{http://peace.snu.ac.kr/CICXMLSchema}LibraryAccessItemType" maxOccurs="unbounded" minOccurs="0"/&gt;
  *         &lt;element name="library" type="{http://peace.snu.ac.kr/CICXMLSchema}LibraryAccessItemType" maxOccurs="unbounded" minOccurs="0"/&gt;
@@ -34,14 +34,14 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "MappingLibraryType", propOrder = {
-    "processor",
+    "mappingSet",
     "device",
     "task",
     "library"
 })
 public class MappingLibraryType {
 
-    protected MappingProcessorIdType processor;
+    protected MappingSetType mappingSet;
     protected List<MappingDeviceType> device;
     protected List<LibraryAccessItemType> task;
     protected List<LibraryAccessItemType> library;
@@ -49,27 +49,27 @@ public class MappingLibraryType {
     protected String name;
 
     /**
-     * Gets the value of the processor property.
+     * Gets the value of the mappingSet property.
      * 
      * @return
      *     possible object is
-     *     {@link MappingProcessorIdType }
+     *     {@link MappingSetType }
      *     
      */
-    public MappingProcessorIdType getProcessor() {
-        return processor;
+    public MappingSetType getMappingSet() {
+        return mappingSet;
     }
 
     /**
-     * Sets the value of the processor property.
+     * Sets the value of the mappingSet property.
      * 
      * @param value
      *     allowed object is
-     *     {@link MappingProcessorIdType }
+     *     {@link MappingSetType }
      *     
      */
-    public void setProcessor(MappingProcessorIdType value) {
-        this.processor = value;
+    public void setMappingSet(MappingSetType value) {
+        this.mappingSet = value;
     }
 
     /**
