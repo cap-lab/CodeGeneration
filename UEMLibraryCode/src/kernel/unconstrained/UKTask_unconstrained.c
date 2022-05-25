@@ -1015,7 +1015,7 @@ _EXIT:
 	return result;
 }
 
-uem_result UKTask_ChangeMappingSet(IN int nCallerTaskId, IN char *pszTaskName, IN char *pszMappingSet)
+uem_result UKTask_ChangeMappingSet(IN int nCallerTaskId, IN char *pszTaskName, IN const char *pszMappingSet)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 	STask *pstTask = NULL;
@@ -1033,6 +1033,26 @@ uem_result UKTask_ChangeMappingSet(IN int nCallerTaskId, IN char *pszTaskName, I
 	ERRIFGOTO(result, _EXIT);
 
 	result = UKCPUTaskManager_ChangeMappingSet(g_hCPUTaskManager, pstTask->nTaskId, pszMappingSet);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+uem_result UKTask_GetCurrentMappingSet(IN int nCallerTaskId, IN char *pszTaskName, IN int nBufferLen, OUT char **ppszMappingSet)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	STask *pstTask = NULL;
+	STask *pstCallerTask = NULL;
+
+	result = UKTask_GetTaskFromTaskId(nCallerTaskId, &pstCallerTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKTask_GetTaskByTaskNameAndCallerTask(pstCallerTask, pszTaskName, &pstTask);
+	ERRIFGOTO(result, _EXIT);
+
+	result = UKCPUTaskManager_GetCurrentMappingSet(g_hCPUTaskManager, pstTask->nTaskId, nBufferLen, ppszMappingSet);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;

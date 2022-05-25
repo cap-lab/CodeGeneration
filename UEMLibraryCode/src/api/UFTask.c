@@ -178,11 +178,23 @@ _EXIT:
 	return result;
 }
 
-uem_result UFTask_ChangeMappingSet (IN int nCallerTaskId, IN char *pszTaskName, IN char *pszMappingSet)
+uem_result UFTask_ChangeMappingSet (IN int nCallerTaskId, IN char *pszTaskName, IN const char *pszMappingSet)
 {
 	uem_result result = ERR_UEM_UNKNOWN;
 
 	result = UKTask_ChangeMappingSet(nCallerTaskId, pszTaskName, pszMappingSet);
+	ERRIFGOTO(result, _EXIT);
+
+	result = ERR_UEM_NOERROR;
+_EXIT:
+	return result;
+}
+
+uem_result UFTask_GetCurrentMappingSet (IN int nCallerTaskId, IN char *pszTaskName, IN int nBufferLen, OUT char **ppszMappingSet)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+
+	result = UKTask_GetCurrentMappingSet(nCallerTaskId, pszTaskName, nBufferLen, ppszMappingSet);
 	ERRIFGOTO(result, _EXIT);
 
 	result = ERR_UEM_NOERROR;
