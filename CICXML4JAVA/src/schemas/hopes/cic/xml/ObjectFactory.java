@@ -627,6 +627,14 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link ArchitectureElementClockType }
+     * 
+     */
+    public ArchitectureElementClockType createArchitectureElementClockType() {
+        return new ArchitectureElementClockType();
+    }
+
+    /**
      * Create an instance of {@link ArchitectureElementType }
      * 
      */

@@ -120,6 +120,7 @@
   <xs:complexType name="ArchitectureElementTypeType">
     <xs:sequence>
       <xs:element name="slavePort" type="ArchitectureElementSlavePortType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="clockType" type="ArchitectureElementClockType" minOccurs="0" maxOccurs="unbounded" />
     </xs:sequence>
     <xs:attribute name="name" type="NameType" use="required" />
     <xs:attribute name="category" type="ArchitectureElementCategoryType" use="required" />
@@ -145,6 +146,13 @@
     <xs:attribute name="name" type="NameType" use="required" />
     <xs:attribute name="size" type="xs:nonNegativeInteger" use="required" />
     <xs:attribute name="metric" type="SizeMetricType" use="required" />
+  </xs:complexType>
+  
+  <xs:complexType name="ArchitectureElementClockType">
+    <xs:attribute name="clock" type="xs:nonNegativeInteger" use="required" />
+    <xs:attribute name="activePower" type="xs:nonNegativeInteger" use="required" />
+    <xs:attribute name="sleepPower" type="xs:nonNegativeInteger" use="required" />
+    <xs:attribute name="relativeCost" type="xs:decimal" use="required" />
   </xs:complexType>
 
   <xs:simpleType name="ArchitectureElementCategoryType">

@@ -23,6 +23,7 @@ import javax.xml.bind.annotation.XmlType;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
  *       &lt;sequence&gt;
  *         &lt;element name="slavePort" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureElementSlavePortType" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="clockType" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureElementClockType" maxOccurs="unbounded" minOccurs="0"/&gt;
  *       &lt;/sequence&gt;
  *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
  *       &lt;attribute name="category" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}ArchitectureElementCategoryType" /&gt;
@@ -47,11 +48,13 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ArchitectureElementTypeType", propOrder = {
-    "slavePort"
+    "slavePort",
+    "clockType"
 })
 public class ArchitectureElementTypeType {
 
     protected List<ArchitectureElementSlavePortType> slavePort;
+    protected List<ArchitectureElementClockType> clockType;
     @XmlAttribute(name = "name", required = true)
     protected String name;
     @XmlAttribute(name = "category", required = true)
@@ -114,6 +117,35 @@ public class ArchitectureElementTypeType {
             slavePort = new ArrayList<ArchitectureElementSlavePortType>();
         }
         return this.slavePort;
+    }
+
+    /**
+     * Gets the value of the clockType property.
+     * 
+     * <p>
+     * This accessor method returns a reference to the live list,
+     * not a snapshot. Therefore any modification you make to the
+     * returned list will be present inside the JAXB object.
+     * This is why there is not a <CODE>set</CODE> method for the clockType property.
+     * 
+     * <p>
+     * For example, to add a new item, do as follows:
+     * <pre>
+     *    getClockType().add(newItem);
+     * </pre>
+     * 
+     * 
+     * <p>
+     * Objects of the following type(s) are allowed in the list
+     * {@link ArchitectureElementClockType }
+     * 
+     * 
+     */
+    public List<ArchitectureElementClockType> getClockType() {
+        if (clockType == null) {
+            clockType = new ArrayList<ArchitectureElementClockType>();
+        }
+        return this.clockType;
     }
 
     /**
