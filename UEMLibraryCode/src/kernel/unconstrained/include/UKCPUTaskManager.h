@@ -242,7 +242,7 @@ uem_result UKCPUTaskManager_ChangeMappedCore(HCPUTaskManager hCPUTaskManager, in
  *         Errors to be returned - @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_ILLEGAL_CONTROL. \n
  *         @ref ERR_UEM_ILLEGAL_CONTROL is occurred when the task is not computational or control type, and the task is statically scheduled.
  */
-uem_result UKCPUTaskManager_ChangeMappingSet(HCPUTaskManager hCPUTaskManager, int nTaskId, char *pszMappingSet);
+uem_result UKCPUTaskManager_ChangeMappingSet(HCPUTaskManager hCPUTaskManager, int nTaskId, const char *pszMappingSet);
 
 /**
  * @brief Destroy a task manager.
