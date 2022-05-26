@@ -152,7 +152,6 @@
     <xs:attribute name="clock" type="xs:nonNegativeInteger" use="required" />
     <xs:attribute name="activePower" type="xs:nonNegativeInteger" use="required" />
     <xs:attribute name="sleepPower" type="xs:nonNegativeInteger" use="required" />
-    <xs:attribute name="relativeCost" type="xs:decimal" use="required" />
   </xs:complexType>
 
   <xs:simpleType name="ArchitectureElementCategoryType">

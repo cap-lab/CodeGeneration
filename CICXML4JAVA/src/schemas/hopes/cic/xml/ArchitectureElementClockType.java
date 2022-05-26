@@ -1,7 +1,6 @@
 
 package hopes.cic.xml;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -22,7 +21,6 @@ import javax.xml.bind.annotation.XmlType;
  *       &lt;attribute name="clock" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
  *       &lt;attribute name="activePower" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
  *       &lt;attribute name="sleepPower" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
- *       &lt;attribute name="relativeCost" use="required" type="{http://www.w3.org/2001/XMLSchema}decimal" /&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
@@ -43,8 +41,6 @@ public class ArchitectureElementClockType {
     @XmlAttribute(name = "sleepPower", required = true)
     @XmlSchemaType(name = "nonNegativeInteger")
     protected BigInteger sleepPower;
-    @XmlAttribute(name = "relativeCost", required = true)
-    protected BigDecimal relativeCost;
 
     /**
      * Gets the value of the clock property.
@@ -116,30 +112,6 @@ public class ArchitectureElementClockType {
      */
     public void setSleepPower(BigInteger value) {
         this.sleepPower = value;
-    }
-
-    /**
-     * Gets the value of the relativeCost property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link BigDecimal }
-     *     
-     */
-    public BigDecimal getRelativeCost() {
-        return relativeCost;
-    }
-
-    /**
-     * Sets the value of the relativeCost property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link BigDecimal }
-     *     
-     */
-    public void setRelativeCost(BigDecimal value) {
-        this.relativeCost = value;
     }
 
 }
