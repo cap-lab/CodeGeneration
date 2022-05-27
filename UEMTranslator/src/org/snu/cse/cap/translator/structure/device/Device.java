@@ -656,6 +656,10 @@ public class Device {
 							MappedProcessor processor = new GeneralMappedProcessor(getProcessorIdByName(proc.getPool()),
 									proc.getLocalId().intValue(), setType.getName());
 							mappingInfo.putProcessor(processor);
+
+							if (setType.getName().equals(Constants.DEFAULT_STRING_NAME)) {
+								mappingInfo.putDefaultGeneralMappedProcessor((GeneralMappedProcessor) processor);
+							}
 						}
 					}
 					
@@ -860,7 +864,7 @@ public class Device {
 		for(GeneralTaskMappingInfo generalMappingInfo: this.generalMappingInfo.values())
 		{
 			task = this.taskMap.get(generalMappingInfo.getTaskName());
-			task.setTaskFuncNum(generalMappingInfo.getMappedProcessorList().size());			
+			task.setTaskFuncNum(generalMappingInfo.getDefaultGeneralMappedProcessorList().size());
 		}
 	}
 	
