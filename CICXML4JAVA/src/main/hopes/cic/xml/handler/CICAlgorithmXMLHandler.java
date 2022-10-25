@@ -34,7 +34,7 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 	private List<ExternalTaskType> externalTaskList = new ArrayList<ExternalTaskType>();
 	private List<LibraryType> libraryList = new ArrayList<LibraryType>();
 	private List<TaskType> mtmtaskList = new ArrayList<TaskType>();
-	
+
 	public CICAlgorithmXMLHandler() {
 		loader = new CICAlgorithmTypeLoader();
 		algorithm = new CICAlgorithmType();
@@ -69,6 +69,10 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 		}
 	}
 
+	public void setAlgorithm(CICAlgorithmType algorithm) {
+		this.algorithm = algorithm;
+	}
+
 	public List<TaskType> getTaskList() {
 		return taskList;
 	}
@@ -101,14 +105,14 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 		return algorithm.getProperty();
 	}
 
-	public CICAlgorithmType getAlgorithm()
-	{
+	public CICAlgorithmType getAlgorithm() {
 		return algorithm;
 	}
 
 	public boolean isInDataTypeLoop(TaskType task) {
 		while (true) {
-			if(task.getLoopStructure() != null && task.getLoopStructure().getType().equals(LoopStructureTypeType.DATA)){
+			if (task.getLoopStructure() != null
+					&& task.getLoopStructure().getType().equals(LoopStructureTypeType.DATA)) {
 				return true;
 			} else if (task.getName().equals(task.getParentTask())) {
 				return false;
@@ -117,20 +121,21 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 			}
 		}
 	}
-	
+
 	public int getTotalDataTypeLoopCountNum(TaskType task) {
 		int loopCountMul = 1;
 		while (true) {
 			if (task.getName().equals(task.getParentTask())) {
 				return loopCountMul;
 			}
-			if(task.getLoopStructure() != null && task.getLoopStructure().getType().equals(LoopStructureTypeType.DATA)){
+			if (task.getLoopStructure() != null
+					&& task.getLoopStructure().getType().equals(LoopStructureTypeType.DATA)) {
 				loopCountMul *= task.getLoopStructure().getLoopCount().intValueExact();
 			}
 			task = findTaskByName(task.getParentTask());
 		}
 	}
-	
+
 	public Map<String, DataParallelType> getMapParallelType() {
 		return taskList.stream().filter(t -> t.getDataParallel() != null)
 				.collect(Collectors.toMap(TaskType::getName, task -> task.getDataParallel().getType()));
@@ -175,7 +180,7 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 	}
 
 	public ModeTaskType findModeTaskTypeByTaskName(String taskName) {
-		for(ModeType mode : algorithm.getModes().getMode()) {
+		for (ModeType mode : algorithm.getModes().getMode()) {
 			for (ModeTaskType modeTask : mode.getTask()) {
 				if (modeTask.getName().equals(taskName)) {
 					return modeTask;
@@ -195,8 +200,7 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 	}
 
 	public List<ModeTaskType> findModeTaskTypeListByTaskNameInFirstIndex(String taskName) {
-		return algorithm.getModes().getMode().get(0).getTask().stream()
-				.filter(mt -> mt.getName().equals(taskName))
+		return algorithm.getModes().getMode().get(0).getTask().stream().filter(mt -> mt.getName().equals(taskName))
 				.collect(Collectors.toList());
 	}
 
@@ -213,4 +217,3 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 		return taskList.stream().collect(Collectors.toMap(TaskType::getName, Function.identity()));
 	}
 }
-	
