@@ -8,10 +8,12 @@ public class MappingInfo {
 	protected String mappedDeviceName;
 	protected TaskShapeType mappedTaskType; 
 	protected ArrayList<MappedProcessor> mappedProcessorList;
+	protected int priority;
 	
-	public MappingInfo(TaskShapeType mappedTaskType) {
+	public MappingInfo(TaskShapeType mappedTaskType, int priority) {
 		this.mappedTaskType = mappedTaskType;
 		this.mappedProcessorList = new ArrayList<MappedProcessor>();
+		this.priority = priority;
 	}
 	
 	public void putProcessor(MappedProcessor proc) {
@@ -36,5 +38,13 @@ public class MappingInfo {
 
 	public ArrayList<MappedProcessor> getMappedProcessorList() {
 		return mappedProcessorList;
+	}
+
+	public int getPriority() {
+		return priority;
+	}
+
+	public void setPriority(int priority) {
+		this.priority = priority;
 	}
 }

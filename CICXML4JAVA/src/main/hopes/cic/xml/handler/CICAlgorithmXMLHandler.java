@@ -14,16 +14,12 @@ import hopes.cic.exception.CICXMLException;
 import hopes.cic.xml.CICAlgorithmType;
 import hopes.cic.xml.CICAlgorithmTypeLoader;
 import hopes.cic.xml.ChannelListType;
-import hopes.cic.xml.ChannelPortType;
-import hopes.cic.xml.ChannelType;
 import hopes.cic.xml.DataParallelType;
-import hopes.cic.xml.ExternalTaskType;
 import hopes.cic.xml.LibraryType;
 import hopes.cic.xml.LoopStructureTypeType;
 import hopes.cic.xml.ModeTaskType;
 import hopes.cic.xml.ModeType;
 import hopes.cic.xml.PortMapListType;
-import hopes.cic.xml.PortMapType;
 import hopes.cic.xml.TaskPortType;
 import hopes.cic.xml.TaskType;
 
@@ -31,7 +27,6 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 	private CICAlgorithmTypeLoader loader;
 	private CICAlgorithmType algorithm;
 	private List<TaskType> taskList = new ArrayList<TaskType>();
-	private List<ExternalTaskType> externalTaskList = new ArrayList<ExternalTaskType>();
 	private List<LibraryType> libraryList = new ArrayList<LibraryType>();
 	private List<TaskType> mtmtaskList = new ArrayList<TaskType>();
 	
@@ -50,7 +45,6 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 
 	public void init() {
 		taskList.clear();
-		externalTaskList.clear();
 		libraryList.clear();
 		mtmtaskList.clear();
 		for (TaskType task : algorithm.getTasks().getTask()) {
@@ -58,9 +52,6 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 			if (task.getHasSubGraph().equalsIgnoreCase("Yes")) {
 				mtmtaskList.add(task);
 			}
-		}
-		for (ExternalTaskType externalTask : algorithm.getTasks().getExternalTask()) {
-			externalTaskList.add(externalTask);
 		}
 		if (algorithm.getLibraries() != null) {
 			for (LibraryType library : algorithm.getLibraries().getLibrary()) {
@@ -75,10 +66,6 @@ public class CICAlgorithmXMLHandler extends CICXMLHandler {
 
 	public List<TaskType> getNonHierarchicalTaskList() {
 		return taskList.stream().filter(t -> !t.getHasSubGraph().equalsIgnoreCase("Yes")).collect(Collectors.toList());
-	}
-
-	public List<ExternalTaskType> getExternalTaskList() {
-		return externalTaskList;
 	}
 
 	public List<LibraryType> getLibraryList() {

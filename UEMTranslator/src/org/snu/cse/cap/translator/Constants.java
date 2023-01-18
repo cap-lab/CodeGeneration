@@ -12,6 +12,7 @@ public class Constants {
 	
 	public static final String TOP_TASKGRAPH_NAME = "top";
 	public static final String XML_PREFIX = ".xml";
+	public static final String DEFAULT_STRING_NAME = "Default";
 	
 	public static final String XML_YES = "Yes";
 	public static final String XML_NO = "No";
@@ -49,6 +50,7 @@ public class Constants {
 	public static final String TEMPLATE_TAG_DEVICE_INFO = "device_info";
 	public static final String TEMPLATE_TAG_DEVICE_ID = "device_id";
 	public static final String TEMPLATE_TAG_ENCRYPTION_INDEX_INFO = "encryption_index";
+	public static final String TEMPLATE_TAG_DEVICE_SCHEDULER = "device_scheduler";
 	
 	public static final String TEMPLATE_TAG_MAPPING_INFO = "mapping_info";
 	public static final String TEMPLATE_TAG_STATIC_SCHEDULE_INFO = "schedule_info";

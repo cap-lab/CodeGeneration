@@ -8,22 +8,19 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for ExternalTaskType complex type.
+ * <p>Java class for ExternalConfigType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="ExternalTaskType"&gt;
+ * &lt;complexType name="ExternalConfigType"&gt;
  *   &lt;complexContent&gt;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
- *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
- *       &lt;attribute name="taskType" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
- *       &lt;attribute name="description" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
- *       &lt;attribute name="ParentTask" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *       &lt;attribute name="networkFile" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *       &lt;attribute name="architectureFile" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *       &lt;attribute name="profileFile" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *       &lt;attribute name="mappingFile" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="useCICFile" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
@@ -32,17 +29,9 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "ExternalTaskType")
-public class ExternalTaskType {
+@XmlType(name = "ExternalConfigType")
+public class ExternalConfigType {
 
-    @XmlAttribute(name = "name", required = true)
-    protected String name;
-    @XmlAttribute(name = "taskType", required = true)
-    protected String taskType;
-    @XmlAttribute(name = "description")
-    protected String description;
-    @XmlAttribute(name = "ParentTask", required = true)
-    protected String parentTask;
     @XmlAttribute(name = "networkFile", required = true)
     protected String networkFile;
     @XmlAttribute(name = "architectureFile", required = true)
@@ -51,102 +40,8 @@ public class ExternalTaskType {
     protected String profileFile;
     @XmlAttribute(name = "mappingFile", required = true)
     protected String mappingFile;
-
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setName(String value) {
-        this.name = value;
-    }
-
-    /**
-     * Gets the value of the taskType property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getTaskType() {
-        return taskType;
-    }
-
-    /**
-     * Sets the value of the taskType property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setTaskType(String value) {
-        this.taskType = value;
-    }
-
-    /**
-     * Gets the value of the description property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDescription() {
-        return description;
-    }
-
-    /**
-     * Sets the value of the description property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDescription(String value) {
-        this.description = value;
-    }
-
-    /**
-     * Gets the value of the parentTask property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getParentTask() {
-        return parentTask;
-    }
-
-    /**
-     * Sets the value of the parentTask property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setParentTask(String value) {
-        this.parentTask = value;
-    }
+    @XmlAttribute(name = "useCICFile", required = true)
+    protected String useCICFile;
 
     /**
      * Gets the value of the networkFile property.
@@ -242,6 +137,30 @@ public class ExternalTaskType {
      */
     public void setMappingFile(String value) {
         this.mappingFile = value;
+    }
+
+    /**
+     * Gets the value of the useCICFile property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getUseCICFile() {
+        return useCICFile;
+    }
+
+    /**
+     * Sets the value of the useCICFile property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setUseCICFile(String value) {
+        this.useCICFile = value;
     }
 
 }

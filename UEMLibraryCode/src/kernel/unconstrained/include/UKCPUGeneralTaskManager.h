@@ -9,6 +9,7 @@
 #define SRC_KERNEL_UNCONSTRAINED_INCLUDE_UKCPUGENERALTASKMANAGER_H_
 
 #include <uem_common.h>
+#include <UCString.h>
 
 #include <uem_data.h>
 
@@ -207,10 +208,47 @@ uem_result UKCPUGeneralTaskManager_DestroyThread(HCPUGeneralTaskManager hManager
  * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
  *         Errors to be returned - @ref ERR_UEM_NOT_FOUND, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, \n
  *         @ref ERR_UEM_ILLEGAL_CONTROL. \n
- *         @ref ERR_UEM_NOT_FOUND is occurred when the target task is not found in the general task manager.
- *         @ref ERR_UEM_ILLEGAL_CONTROL is occurred when the processor of the task is not a CPU.
+ *         @ref ERR_UEM_NOT_FOUND is occurred when the target task is not found in the general task manager. \n
+ *         @ref ERR_UEM_ILLEGAL_CONTROL is occurred when the processor of the task is not a CPU. \n
  */
 uem_result UKCPUGeneralTaskManager_ChangeMappedCore(HCPUGeneralTaskManager hManager, STask *pstTargetTask, int nNewLocalId);
+
+/**
+ * @brief Update the mapping set in the task.
+ *
+ * This function updates the mapping set in the task. \n
+ *
+ * @param hManager a general task manager handle.
+ * @param pstTargetTask target task to update the mapping info.
+ * @param strMappingSet new mapping set.
+ * @param nNewLocalId new local id to be mapped.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_NOT_FOUND, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, \n
+ *         @ref ERR_UEM_ILLEGAL_CONTROL. \n
+ *         @ref ERR_UEM_NOT_FOUND is occurred when the target task is not found in the general task manager. \n
+ *         @ref ERR_UEM_ILLEGAL_CONTROL is occurred when the processor of the task is not a CPU. \n
+ */
+uem_result UKCPUGeneralTaskManager_ChangeMappingSet(HCPUGeneralTaskManager hManager, STask *pstTargetTask, const char *pszMappingSet, int nNewLocalId);
+
+/**
+ * @brief Get the current mapping set in the task.
+ *
+ * This function get the current mapping set in the task. \n
+ *
+ * @param hManager a general task manager handle.
+ * @param pstTargetTask target task to get the mapping info.
+ * @param nBufferLen Buffer length.
+ * @param ppszMappingSet characters to get mapping set.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_NOT_FOUND, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_REALLOCATE_BUFFER. \n
+ *         @ref ERR_UEM_ILLEGAL_CONTROL. \n
+ *         @ref ERR_UEM_NOT_FOUND is occurred when the target task is not found in the general task manager. \n
+ *         @ref ERR_UEM_ILLEGAL_CONTROL is occurred when the processor of the task is not a CPU. \n
+ *         @ref ERR_UEM_REALLOCATE_BUFFER is occurred when the buffer length is not enough. \n
+ */
+uem_result UKCPUGeneralTaskManager_GetCurrentMappingSet(HCPUGeneralTaskManager hManager, STask *pstTargetTask, int nBufferLen, char **ppszMappingSet);
 
 /**
  * @brief Check all the general tasks are stopped.

@@ -24,7 +24,7 @@ import javax.xml.bind.annotation.XmlType;
  *       &lt;/sequence&gt;
  *       &lt;attribute name="master" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
  *       &lt;attribute name="connection" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
- *       &lt;attribute name="encryption" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}EncryptionType" /&gt;
+ *       &lt;attribute name="encryption" type="{http://peace.snu.ac.kr/CICXMLSchema}EncryptionType" /&gt;
  *       &lt;attribute name="userkey" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
@@ -45,7 +45,7 @@ public class ArchitectureConnectType {
     protected String master;
     @XmlAttribute(name = "connection", required = true)
     protected String connection;
-    @XmlAttribute(name = "encryption", required = true)
+    @XmlAttribute(name = "encryption")
     protected EncryptionType encryption;
     @XmlAttribute(name = "userkey")
     protected String userkey;

@@ -235,14 +235,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ExternalTaskType }
-     * 
-     */
-    public ExternalTaskType createExternalTaskType() {
-        return new ExternalTaskType();
-    }
-
-    /**
      * Create an instance of {@link TaskDataParallelType }
      * 
      */
@@ -459,6 +451,14 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link ExternalConfigType }
+     * 
+     */
+    public ExternalConfigType createExternalConfigType() {
+        return new ExternalConfigType();
+    }
+
+    /**
      * Create an instance of {@link HardwareDependencyType }
      * 
      */
@@ -624,6 +624,14 @@ public class ObjectFactory {
      */
     public ArchitectureElementSlavePortType createArchitectureElementSlavePortType() {
         return new ArchitectureElementSlavePortType();
+    }
+
+    /**
+     * Create an instance of {@link ArchitectureElementClockType }
+     * 
+     */
+    public ArchitectureElementClockType createArchitectureElementClockType() {
+        return new ArchitectureElementClockType();
     }
 
     /**
@@ -856,6 +864,14 @@ public class ObjectFactory {
      */
     public LibraryAccessItemType createLibraryAccessItemType() {
         return new LibraryAccessItemType();
+    }
+
+    /**
+     * Create an instance of {@link MappingSetType }
+     * 
+     */
+    public MappingSetType createMappingSetType() {
+        return new MappingSetType();
     }
 
     /**

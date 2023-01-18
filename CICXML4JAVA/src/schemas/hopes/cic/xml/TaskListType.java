@@ -20,7 +20,6 @@ import javax.xml.bind.annotation.XmlType;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
  *       &lt;sequence&gt;
  *         &lt;element name="task" type="{http://peace.snu.ac.kr/CICXMLSchema}TaskType" maxOccurs="unbounded"/&gt;
- *         &lt;element name="externalTask" type="{http://peace.snu.ac.kr/CICXMLSchema}ExternalTaskType" maxOccurs="unbounded" minOccurs="0"/&gt;
  *       &lt;/sequence&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
@@ -31,14 +30,12 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "TaskListType", propOrder = {
-    "task",
-    "externalTask"
+    "task"
 })
 public class TaskListType {
 
     @XmlElement(required = true)
     protected List<TaskType> task;
-    protected List<ExternalTaskType> externalTask;
 
     /**
      * Gets the value of the task property.
@@ -67,35 +64,6 @@ public class TaskListType {
             task = new ArrayList<TaskType>();
         }
         return this.task;
-    }
-
-    /**
-     * Gets the value of the externalTask property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the externalTask property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getExternalTask().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link ExternalTaskType }
-     * 
-     * 
-     */
-    public List<ExternalTaskType> getExternalTask() {
-        if (externalTask == null) {
-            externalTask = new ArrayList<ExternalTaskType>();
-        }
-        return this.externalTask;
     }
 
 }

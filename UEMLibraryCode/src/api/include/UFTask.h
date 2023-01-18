@@ -222,7 +222,7 @@ uem_result UFTask_SetPeriod (IN int nCallerTaskId, IN char *pszTaskName, IN int 
  * @sa UFTask_ChangeMappedCore.
  *
  * @param nCallerTaskId id of caller task.
- * @param pszTaskName task name to set period.
+ * @param pszTaskName task name to change core.
  * @param nNewLocalId core id to assign.
  *
  * @return
@@ -234,6 +234,43 @@ uem_result UFTask_SetPeriod (IN int nCallerTaskId, IN char *pszTaskName, IN int 
  */
 uem_result UFTask_ChangeMappedCore (IN int nCallerTaskId, IN char *pszTaskName, IN int nNewLocalId);
 
+/**
+ * @brief Update a mapping set.
+ *
+ * @sa UFTask_ChangeMappingSet.
+ *
+ * @param nCallerTaskId id of caller task.
+ * @param pszTaskName task name to change mapping set.
+ * @param pszMappingSet name of a mapping set to assign.
+ *
+ * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * @ref ERR_UEM_ILLEGAL_CONTROL if task is not Control task. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid caller task id, task name, time unit. \n
+ * @ref ERR_UEM_NO_DATA if caller task id does not match to any task or target task name does not match to any. \n
+ *
+ */
+uem_result UFTask_ChangeMappingSet (IN int nCallerTaskId, IN char *pszTaskName, const char *pszMappingSet);
+
+/**
+ * @brief Update a mapping set.
+ *
+ * @sa UFTask_ChangeMappingSet.
+ *
+ * @param nCallerTaskId id of caller task.
+ * @param pszTaskName task name to change mapping set.
+ * @param nBufferLen Buffer length.
+ * @param pszMappingSet name of a mapping set to assign.
+ *
+ * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * @ref ERR_UEM_ILLEGAL_CONTROL if task is not Control task. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid caller task id, task name, time unit. \n
+ * @ref ERR_UEM_NO_DATA if caller task id does not match to any task or target task name does not match to any. \n
+ * @ref ERR_UEM_REALLOCATE_BUFFER is occurred when the buffer length is not enough. \n
+ *
+ */
+uem_result UFTask_GetCurrentMappingSet (IN int nCallerTaskId, IN char *pszTaskName, IN int nBufferLen, OUT char **ppszMappingSet);
 #endif
 
 #ifdef __cplusplus

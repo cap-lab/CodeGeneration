@@ -103,7 +103,11 @@ SChunk g_astChunk_channel_${channel.index}_in[${channel.inputPort.maximumChunkNu
 <#list port_info as port>
 SPortSampleRate g_astPortSampleRate_${port.taskName}_${port.portName}[] = {
 	<#list port.portSampleRateList as sample_rate>
-	{ 	"${sample_rate.modeName}", // Mode name
+		<#if sample_rate.modeName == "Default">
+	{	DEFAULT_STRING_NAME, // Mode name
+		<#else>
+	{	"${sample_rate.modeName}", // Mode name
+		</#if>
 		${sample_rate.sampleRate?c}, // Sample rate
 		${sample_rate.maxAvailableNum}, // Available number of data
 	},
@@ -688,6 +692,28 @@ SAggregateConnectionInfo g_astAggregateConnectionInfo[] = {
 						<#break>
 					<#case "SERVER">
 		&(g_astTCPAggregateServerInfo[${channel.socketInfoIndex}].stServiceInfo),
+						<#break>
+				</#switch>	
+	},
+#else
+	<#if platform == "windows">
+	0,
+	</#if>
+#endif				
+				<#break>
+			<#case "SecureTCP">
+#ifdef AGGREGATE_SECURETCP_CONNECTION
+	{
+		${channel.index},
+		{
+			(HFixedSizeQueue) NULL,
+		},
+				<#switch channel.connectionRoleType>
+					<#case "CLIENT">
+		&(g_astSecureTCPAggregateClientInfo[${channel.socketInfoIndex}].stServiceInfo),
+						<#break>
+					<#case "SERVER">
+		&(g_astSecureTCPAggregateServerInfo[${channel.socketInfoIndex}].stServiceInfo),
 						<#break>
 				</#switch>	
 	},

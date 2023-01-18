@@ -18,7 +18,6 @@
 #include <winsock2.h>
 #endif
 
-#include <openssl/ssl.h>
 #include <uem_common.h>
 
 #ifdef DEBUG_PRINT

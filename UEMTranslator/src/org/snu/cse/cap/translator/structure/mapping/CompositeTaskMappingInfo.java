@@ -6,8 +6,8 @@ public class CompositeTaskMappingInfo extends MappingInfo {
 	private String parentTaskName;
 	private int parentTaskId;
 	
-	public CompositeTaskMappingInfo(String taskName, int taskId) {
-		super(TaskShapeType.COMPOSITE);
+	public CompositeTaskMappingInfo(String taskName, int taskId, int priority) {
+		super(TaskShapeType.COMPOSITE, priority);
 		this.parentTaskName = taskName;
 		this.parentTaskId = taskId;
 	}

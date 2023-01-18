@@ -4,6 +4,7 @@ public enum TaskShapeType {
 	COMPUTATIONAL("computational"),
 	CONTROL("control"),
 	LOOP("loop"),
+	EXTERNAL("external"),
 	COMPOSITE("composite"), // Composite is not used by task type which is used for mapping and scheduling information
 	;
 
