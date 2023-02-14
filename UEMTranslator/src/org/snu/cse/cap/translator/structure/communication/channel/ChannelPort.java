@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.snu.cse.cap.translator.structure.communication.Port;
 import org.snu.cse.cap.translator.structure.communication.PortDirection;
+import org.snu.cse.cap.translator.structure.mapping.GeneralTaskMappingInfo;
 import org.snu.cse.cap.translator.structure.mapping.MappingInfo;
 import org.snu.cse.cap.translator.structure.task.Task;
 import org.snu.cse.cap.translator.structure.task.TaskLoopType;
@@ -122,7 +123,7 @@ public class ChannelPort extends Port {
 		//if task of this port is SubTaskofDTypeLoopTask.
 		if(isSubTaskofDTypeLoopTask) 
 		{			
-			maxParallel = taskMappingInfo.getMappedProcessorList().size();									
+			maxParallel = ((GeneralTaskMappingInfo) taskMappingInfo).getDefaultGeneralMappedProcessorList().size();
 		}				
 		this.maximumChunkNum = maxParallel;		
 	}

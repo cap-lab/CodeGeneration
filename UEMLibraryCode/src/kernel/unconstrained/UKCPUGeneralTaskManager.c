@@ -13,6 +13,7 @@
 
 #include <UCBasic.h>
 #include <UCAlloc.h>
+#include <UCString.h>
 #include <UCThreadMutex.h>
 #include <UCThread.h>
 #include <UCDynamicLinkedList.h>
@@ -35,6 +36,7 @@
 
 typedef struct _SGeneralTaskThread {
 	int nProcId;
+	int nPriority;
 	int nTaskFuncId;
 	HThread hThread; // modified
 	uem_bool bIsThreadFinished; // modified
@@ -59,6 +61,7 @@ typedef struct _SGeneralTask {
 	STaskGraph *pstTaskGraphLockGraph;
 	ECPUTaskState enRequestState;
 	uem_bool bResumedByControl;
+	uem_string_struct stMappingSet;
 } SGeneralTask;
 
 typedef struct _SCPUGeneralTaskManager {
@@ -309,6 +312,9 @@ static uem_result createGeneralTaskStruct(HCPUGeneralTaskManager hCPUTaskManager
 	pstGeneralTask->nCurLoopIndex = 0;
 	pstGeneralTask->enRequestState = TASK_STATE_NONE;
 	pstGeneralTask->bResumedByControl = FALSE;
+	
+	result = UCString_New(&(pstGeneralTask->stMappingSet), (char *)DEFAULT_STRING_NAME, UEMSTRING_CONST);
+	ERRIFGOTO(result, _EXIT);
 
 	result = UKModelController_GetTopLevelGraph(pstMappedInfo->pstTask->pstParentGraph, &(pstGeneralTask->pstTaskGraphLockGraph));
 	ERRIFGOTO(result, _EXIT);
@@ -357,6 +363,7 @@ static uem_result createGeneralTaskThreadStructs(SMappedGeneralTaskInfo *pstMapp
 	ERRMEMGOTO(pstGeneralTaskThread, result, _EXIT);
 
 	pstGeneralTaskThread->nProcId = pstMappedInfo->nLocalId;
+	pstGeneralTaskThread->nPriority = pstMappedInfo->nPriority;
 	pstGeneralTaskThread->hThread = NULL;
 	pstGeneralTaskThread->bIsThreadFinished = TRUE;
 	pstGeneralTaskThread->hEvent = NULL;
@@ -1158,6 +1165,11 @@ static uem_result createGeneralTaskThread(IN int nOffset, IN void *pData, IN voi
 	{
 		result = pstGeneralTask->pstMapProcessorAPI->fnMapProcessor(pstTaskThread->hThread, pstGeneralTask->nProcessorId, pstTaskThread->nProcId);
 		ERRIFGOTO(result, _EXIT);
+
+		if(g_nScheduler != SCHEDULER_OTHER) {
+			result = pstGeneralTask->pstMapProcessorAPI->fnMapPriority(pstTaskThread->hThread, g_nScheduler, pstTaskThread->nPriority);
+			ERRIFGOTO(result, _EXIT);
+		}
 	}
 
 	pstTaskThreadData = NULL;
@@ -1823,7 +1835,7 @@ static uem_result changeMappedCore(IN int nOffset, IN void *pData, IN void *pUse
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:
 	UCThreadMutex_Unlock(pstGeneralTask->hMutex);
-_EXIT:
+
 	return result;
 }
 
@@ -1863,6 +1875,91 @@ uem_result UKCPUGeneralTaskManager_ChangeMappedCore(HCPUGeneralTaskManager hMana
 
 	result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, changeMappedCore, &stUserData);
 	ERRIFGOTO(result, _EXIT_LOCK);
+
+	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstTaskManager->hMutex);
+_EXIT:
+	return result;
+}
+
+uem_result UKCPUGeneralTaskManager_ChangeMappingSet(HCPUGeneralTaskManager hManager, STask *pstTargetTask, const char *pszMappingSet, int nNewLocalId)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCPUGeneralTaskManager *pstTaskManager = NULL;
+	SGeneralTask *pstGeneralTask = NULL;
+	struct _STraverseChangeMappedCore stUserData;
+	uem_bool bIsCPU = FALSE;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(pstTargetTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	if (IS_VALID_HANDLE(hManager, ID_UEM_CPU_GENERAL_TASK_MANAGER) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+#endif
+
+	pstTaskManager = hManager;
+
+	result = UCThreadMutex_Lock(pstTaskManager->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	result = UKProcessor_IsCPUByProcessorId(pstGeneralTask->nProcessorId, &bIsCPU);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	if(bIsCPU == FALSE)
+	{
+		ERRASSIGNGOTO(result, ERR_UEM_ILLEGAL_CONTROL, _EXIT_LOCK);
+	}
+
+	stUserData.pstGeneralTask = pstGeneralTask;
+	stUserData.nNewLocalId = nNewLocalId;
+
+	result = UCDynamicLinkedList_Traverse(pstGeneralTask->hThreadList, changeMappedCore, &stUserData);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	result = UCString_New(&(pstGeneralTask->stMappingSet), (char *)pszMappingSet, UEMSTRING_CONST);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	result = ERR_UEM_NOERROR;
+_EXIT_LOCK:
+	UCThreadMutex_Unlock(pstTaskManager->hMutex);
+_EXIT:
+	return result;
+}
+
+uem_result UKCPUGeneralTaskManager_GetCurrentMappingSet(HCPUGeneralTaskManager hManager, STask *pstTargetTask, int nBufferLen, char **ppszMappingSet)
+{
+	uem_result result = ERR_UEM_UNKNOWN;
+	SCPUGeneralTaskManager *pstTaskManager = NULL;
+	SGeneralTask *pstGeneralTask = NULL;
+	int nLength = 0;
+#ifdef ARGUMENT_CHECK
+	IFVARERRASSIGNGOTO(pstTargetTask, NULL, result, ERR_UEM_INVALID_PARAM, _EXIT);
+
+	if (IS_VALID_HANDLE(hManager, ID_UEM_CPU_GENERAL_TASK_MANAGER) == FALSE) {
+		ERRASSIGNGOTO(result, ERR_UEM_INVALID_HANDLE, _EXIT);
+	}
+#endif
+
+	pstTaskManager = hManager;
+
+	result = UCThreadMutex_Lock(pstTaskManager->hMutex);
+	ERRIFGOTO(result, _EXIT);
+
+	result = findMatchingGeneralTask(pstTaskManager, pstTargetTask->nTaskId, &pstGeneralTask);
+	ERRIFGOTO(result, _EXIT_LOCK);
+
+	nLength = UCString_Length(&(pstGeneralTask->stMappingSet));
+	if(nBufferLen > nLength) {
+		UC_memcpy(*ppszMappingSet, pstGeneralTask->stMappingSet.pszStr, nLength);
+		(*ppszMappingSet)[nLength] = '\0';
+	}
+	else {
+		ERRASSIGNGOTO(result, ERR_UEM_REALLOCATE_BUFFER, _EXIT);
+	}
 
 	result = ERR_UEM_NOERROR;
 _EXIT_LOCK:

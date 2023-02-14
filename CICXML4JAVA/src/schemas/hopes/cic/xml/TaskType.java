@@ -35,13 +35,14 @@ import javax.xml.bind.annotation.XmlType;
  *         &lt;element name="loopStructure" type="{http://peace.snu.ac.kr/CICXMLSchema}LoopStructureType" minOccurs="0"/&gt;
  *         &lt;element name="hardwareDependency" type="{http://peace.snu.ac.kr/CICXMLSchema}HardwareDependencyType" minOccurs="0"/&gt;
  *         &lt;element name="faultTolerance" type="{http://peace.snu.ac.kr/CICXMLSchema}FaultToleranceType" minOccurs="0"/&gt;
+ *         &lt;element name="externalConfig" type="{http://peace.snu.ac.kr/CICXMLSchema}ExternalConfigType" minOccurs="0"/&gt;
  *       &lt;/sequence&gt;
  *       &lt;attribute name="name" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
  *       &lt;attribute name="id" use="required" type="{http://www.w3.org/2001/XMLSchema}nonNegativeInteger" /&gt;
  *       &lt;attribute name="hasInternalStates" type="{http://peace.snu.ac.kr/CICXMLSchema}YesNoType" /&gt;
  *       &lt;attribute name="description" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
- *       &lt;attribute name="runCondition" use="required" type="{http://peace.snu.ac.kr/CICXMLSchema}RunConditionType" /&gt;
- *       &lt;attribute name="file" use="required" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="runCondition" type="{http://peace.snu.ac.kr/CICXMLSchema}RunConditionType" /&gt;
+ *       &lt;attribute name="file" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *       &lt;attribute name="cflags" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *       &lt;attribute name="ldflags" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *       &lt;attribute name="hasSubGraph" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
@@ -51,6 +52,7 @@ import javax.xml.bind.annotation.XmlType;
  *       &lt;attribute name="isHardwareDependent" type="{http://peace.snu.ac.kr/CICXMLSchema}YesNoType" /&gt;
  *       &lt;attribute name="subGraphProperty" type="{http://peace.snu.ac.kr/CICXMLSchema}NameType" /&gt;
  *       &lt;attribute name="language" type="{http://peace.snu.ac.kr/CICXMLSchema}LanguageType" /&gt;
+ *       &lt;attribute name="fsmFile" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
@@ -73,7 +75,8 @@ import javax.xml.bind.annotation.XmlType;
     "mtm",
     "loopStructure",
     "hardwareDependency",
-    "faultTolerance"
+    "faultTolerance",
+    "externalConfig"
 })
 public class TaskType {
 
@@ -91,6 +94,7 @@ public class TaskType {
     protected LoopStructureType loopStructure;
     protected HardwareDependencyType hardwareDependency;
     protected FaultToleranceType faultTolerance;
+    protected ExternalConfigType externalConfig;
     @XmlAttribute(name = "name", required = true)
     protected String name;
     @XmlAttribute(name = "id", required = true)
@@ -100,9 +104,9 @@ public class TaskType {
     protected YesNoType hasInternalStates;
     @XmlAttribute(name = "description")
     protected String description;
-    @XmlAttribute(name = "runCondition", required = true)
+    @XmlAttribute(name = "runCondition")
     protected RunConditionType runCondition;
-    @XmlAttribute(name = "file", required = true)
+    @XmlAttribute(name = "file")
     protected String file;
     @XmlAttribute(name = "cflags")
     protected String cflags;
@@ -122,6 +126,8 @@ public class TaskType {
     protected String subGraphProperty;
     @XmlAttribute(name = "language")
     protected String language;
+    @XmlAttribute(name = "fsmFile")
+    protected String fsmFile;
 
     /**
      * Gets the value of the dataParallel property.
@@ -505,6 +511,30 @@ public class TaskType {
     }
 
     /**
+     * Gets the value of the externalConfig property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link ExternalConfigType }
+     *     
+     */
+    public ExternalConfigType getExternalConfig() {
+        return externalConfig;
+    }
+
+    /**
+     * Sets the value of the externalConfig property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link ExternalConfigType }
+     *     
+     */
+    public void setExternalConfig(ExternalConfigType value) {
+        this.externalConfig = value;
+    }
+
+    /**
      * Gets the value of the name property.
      * 
      * @return
@@ -862,6 +892,30 @@ public class TaskType {
      */
     public void setLanguage(String value) {
         this.language = value;
+    }
+
+    /**
+     * Gets the value of the fsmFile property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getFsmFile() {
+        return fsmFile;
+    }
+
+    /**
+     * Sets the value of the fsmFile property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setFsmFile(String value) {
+        this.fsmFile = value;
     }
 
 }

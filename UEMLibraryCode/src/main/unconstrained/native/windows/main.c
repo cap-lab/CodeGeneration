@@ -23,6 +23,24 @@
 #include <UFSystem.h>
 
 #include <UEMMainCommon.h>
+#include <Windows.h>
+
+uem_result setScheduler() {
+	uem_result result = ERR_UEM_NOERROR;
+
+	if (g_nScheduler != REALTIME_PRIORITY_CLASS) {
+		if (!SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS))
+		{
+			DWORD dwError = GetLastError();
+			if (dwError == 0) {
+				printf("Scheduler configuration failed (%d)\n", dwError);
+			}
+			result = ERR_UEM_ILLEGAL_CONTROL;
+		}
+	}
+
+	return result;
+}
 
 int main(int argc, char *argv[])
 {

@@ -15,6 +15,7 @@ import hopes.cic.xml.MappingLibraryType;
 import hopes.cic.xml.MappingMulticastType;
 import hopes.cic.xml.MappingMulticastUDPType;
 import hopes.cic.xml.MappingProcessorIdType;
+import hopes.cic.xml.MappingSetType;
 import hopes.cic.xml.MappingTaskType;
 
 public class CICMappingXMLHandler extends CICXMLHandler {
@@ -82,31 +83,37 @@ public class CICMappingXMLHandler extends CICXMLHandler {
 
 	public void clearMap() {
 		for (MappingTaskType task : taskList) {
-			task.getDevice().get(0).getProcessor().clear();
+			for (MappingSetType setType : task.getDevice().get(0).getMappingSet()) {
+				setType.getProcessor().clear();
+			}
+			task.getDevice().get(0).getMappingSet().clear();
 		}
 		for (MappingExternalTaskType externalTask : externalTaskList) {
 			for (MappingTaskType task : externalTask.getChildTask()) {
-				task.getDevice().get(0).getProcessor().clear();
+				for (MappingSetType setType : task.getDevice().get(0).getMappingSet()) {
+					setType.getProcessor().clear();
+				}
+				task.getDevice().get(0).getMappingSet().clear();
 			}
 		}
 	}
-
-	public List<MappingProcessorIdType> getProcessIdList(String taskName) {
+	
+	public List<MappingSetType> getMappingNameList(String taskName) {
 		for (MappingTaskType task : taskList) {
 			if (taskName.equals(task.getName())) {
-				return task.getDevice().get(0).getProcessor();
+				return task.getDevice().get(0).getMappingSet();
 			}
 		}
 		for (MappingExternalTaskType externalTask : externalTaskList) {
 			for (MappingTaskType task : externalTask.getChildTask()) {
 				if (taskName.equals(task.getName())) {
-					return task.getDevice().get(0).getProcessor();
+					return task.getDevice().get(0).getMappingSet();
 				}
 			}
 		}
 		return null;
 	}
-	
+
 	public List<MappingDeviceType> getDeviceType(String taskName) {
 		for (MappingTaskType task : taskList) {
 			if (!taskName.equals(task.getName()))

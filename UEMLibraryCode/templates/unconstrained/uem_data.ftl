@@ -426,11 +426,13 @@ SScheduledTasks g_astScheduledTaskList[] = {
 
 SGenericMapProcessor g_stCPUProcessor = {
 	UKHostSystem_MapCPU,
+	UKHostSystem_MapPriority,
 };
 
 <#if gpu_used == true>
 SGenericMapProcessor g_stGPUProcessor = {
 	UKGPUSystem_MapGPU,
+	(FnMapPriority) NULL,
 };
 </#if>
 
@@ -442,7 +444,20 @@ SMappedGeneralTaskInfo g_astGeneralTaskMappingInfo[] = {
 	{	TASK_TYPE_${mapped_task.mappedTaskType}, // Task type
 		&g_astTasks_${mapped_task.parentTaskGraphName}[${mapped_task.inGraphIndex}], // Task ID or composite task information
 		${mappedProcessor.processorId}, // Processor ID
+		<#list device_info as device_name, device>
+			<#if device_name == mapped_task.mappedDeviceName>
+				<#list device.processorList as processor>
+					<#if processor.id == mappedProcessor.processorId>
+						<#if processor.isCPU == true && processor.isVirtual == false>
 		${mappedProcessor.processorLocalId}, // Processor local ID
+						<#else>
+		MAPPING_NOT_SPECIFIED,				
+						</#if>
+					</#if>
+				</#list>
+			</#if>
+		</#list>					
+		${mapped_task.priority}, // Priority
 		<#list device_info as device_name, device>
 			<#if device_name == mapped_task.mappedDeviceName>
 				<#list device.processorList as processor>
@@ -456,6 +471,11 @@ SMappedGeneralTaskInfo g_astGeneralTaskMappingInfo[] = {
 				</#list>
 			</#if>
 		</#list>
+		<#if mappedProcessor.mappingSet == "Default">
+		DEFAULT_STRING_NAME, // Mapping set
+		<#else>
+		"${mappedProcessor.mappingSet}", // Mapping set
+		</#if>
 	},
 	</#list>
 </#list>
@@ -471,7 +491,21 @@ SMappedCompositeTaskInfo g_astCompositeTaskMappingInfo[] = {
 	{
 		&g_astScheduledTaskList[${scheduledProcessor.inArrayIndex}],
 		${scheduledProcessor.processorId}, // Processor ID
-		${scheduledProcessor.processorLocalId}, // Processor local ID		
+		${scheduledProcessor.processorLocalId}, // Processor local ID
+		${scheduled_task.priority},
+		<#list device_info as device_name, device>
+			<#if device_name == scheduled_task.mappedDeviceName>
+				<#list device.processorList as processor>
+					<#if processor.id == scheduledProcessor.processorId>
+						<#if processor.isCPU == true>
+		&g_stCPUProcessor, // CPU Processor API
+						<#else>
+		&g_stGPUProcessor, // GPU Processor API
+						</#if>
+					</#if>
+				</#list>
+			</#if>
+		</#list>
 	},
 	</#list>
 </#list>
@@ -497,4 +531,5 @@ int g_nProcessorInfoNum = ARRAYLEN(g_astProcessorInfo);
 int g_nLibraryInfoNum = <#if (library_info?size > 0)>ARRAYLEN(g_stLibraryInfo)<#else>0</#if>;
 int g_nTimerSlotNum = MAX_TIMER_SLOT_SIZE;
 int g_nDeviceId = ${device_id};
+int g_nScheduler = SCHEDULER_${device_scheduler?upper_case}; // 0: SCHED_OTHER, 1: SCHED_FIFO, 2: SCHED_RR
 

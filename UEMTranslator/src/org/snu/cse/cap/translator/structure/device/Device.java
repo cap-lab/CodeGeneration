@@ -35,6 +35,7 @@ import org.snu.cse.cap.translator.structure.library.LibraryConnection;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskMappedProcessor;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskMappingInfo;
 import org.snu.cse.cap.translator.structure.mapping.CompositeTaskSchedule;
+import org.snu.cse.cap.translator.structure.mapping.GeneralMappedProcessor;
 import org.snu.cse.cap.translator.structure.mapping.GeneralTaskMappingInfo;
 import org.snu.cse.cap.translator.structure.mapping.InvalidScheduleFileNameException;
 import org.snu.cse.cap.translator.structure.mapping.MappedProcessor;
@@ -60,6 +61,7 @@ import hopes.cic.xml.CICScheduleType;
 import hopes.cic.xml.CICScheduleTypeLoader;
 import hopes.cic.xml.GPUTaskType;
 import hopes.cic.xml.MappingDeviceType;
+import hopes.cic.xml.MappingSetType;
 import hopes.cic.xml.MappingProcessorIdType;
 import hopes.cic.xml.MappingTaskType;
 import hopes.cic.xml.ScheduleElementType;
@@ -75,7 +77,8 @@ public class Device {
 	private ArchitectureType architecture;
 	private SoftwarePlatformType platform;
 	private RuntimeType runtime;
-	
+	private SchedulingMethod scheduler;
+
 	// in-device metadata information
 	private ArrayList<Channel> channelList;
 	private HashMap<String, MulticastGroup> multicastGroupList; // Group name : MulticastGroup class
@@ -108,13 +111,14 @@ public class Device {
 	private HashSet<DeviceCommunicationType> supportedConnectionTypeList;
 	private HashSet<DeviceEncryptionType> supportedEncryptionTypeSet;
 
-	public Device(String name, int id, String architecture, String platform, String runtime) 
+	public Device(String name, int id, String architecture, String platform, String runtime, String scheduler) 
 	{
 		this.name = name;
 		this.id = id;
 		this.architecture = ArchitectureType.fromValue(architecture);
 		this.platform = SoftwarePlatformType.fromValue(platform);
 		this.runtime = RuntimeType.fromValue(runtime);
+		this.scheduler = SchedulingMethod.fromValue(scheduler);
 		this.processorList = new ArrayList<Processor>();
 		this.environmentVariableList = new ArrayList<EnvironmentVariable>();
 		this.connectionList = new HashMap<String, Connection>();
@@ -328,13 +332,15 @@ public class Device {
 		return throughputConstraint;
 	}
 	
-	private CompositeTaskMappingInfo getCompositeMappingInfo(String taskName, int taskId) throws InvalidDataInMetadataFileException
+	private CompositeTaskMappingInfo getCompositeMappingInfo(String taskName, int taskId, int priority)
+			throws InvalidDataInMetadataFileException
 	{
 		CompositeTaskMappingInfo compositeMappingInfo;
-		
+
 		if(this.staticScheduleMappingInfo.containsKey(taskName) == false)
 		{//modeId 
-			compositeMappingInfo = new CompositeTaskMappingInfo(taskName, taskId);
+			compositeMappingInfo = new CompositeTaskMappingInfo(taskName, taskId, priority);
+
 			this.staticScheduleMappingInfo.put(taskName, compositeMappingInfo);
 		}
 		else
@@ -345,7 +351,7 @@ public class Device {
 				throw new InvalidDataInMetadataFileException();
 			}
 		}
-		
+
 		return compositeMappingInfo;
 	}
 	
@@ -488,7 +494,8 @@ public class Device {
 		}
 	}
 	
-	private void makeMultipleCompositeTaskMapping(String[] splitedFileName, File scheduleFile,
+	private void makeMultipleCompositeTaskMapping(String[] splitedFileName,
+			File scheduleFile,
 			Map<String, Task> globalTaskMap)
 										throws CICXMLException, InvalidDataInMetadataFileException 
 	{
@@ -518,7 +525,7 @@ public class Device {
 		modeId = getModeIdByName(taskName, modeName, globalTaskMap);
 		throughputConstraint = getThroughputConstraintFromScheduleFileName(splitedFileName);
 		task = globalTaskMap.get(taskName);
-		
+
 		for(TaskGroupForScheduleType taskGroup: scheduleDOM.getTaskGroups().getTaskGroup())
 		{
 			for(ScheduleGroupType scheduleGroup : taskGroup.getScheduleGroup())
@@ -537,10 +544,11 @@ public class Device {
 				{
 					if(taskName.equals(Constants.TOP_TASKGRAPH_NAME))
 					{
-						compositeMappingInfo = getCompositeMappingInfo(taskName, Constants.INVALID_ID_VALUE);
+						compositeMappingInfo = getCompositeMappingInfo(taskName, Constants.INVALID_ID_VALUE,
+								Constants.INVALID_ID_VALUE);
 					}
 					else
-						compositeMappingInfo = getCompositeMappingInfo(taskName, task.getId());
+						compositeMappingInfo = getCompositeMappingInfo(taskName, task.getId(), task.getPriority());
 					
 					CompositeTaskSchedule taskSchedule = new CompositeTaskSchedule(numOfUsableCPU, throughputConstraint);
 					
@@ -557,19 +565,20 @@ public class Device {
 					
 					mappedProcessor.putCompositeTaskSchedule(taskSchedule);
 					compositeMappingInfo.setMappedDeviceName(this.name);
-					
+
 					sequenceId++;
 				}
 			}
 		}
 	}
 	
-	private void setCompositeTaskMappingInfo(Map<String, Task> globalTaskMap, String scheduleFolderPath)
+	private void setCompositeTaskMappingInfo(Map<String, Task> globalTaskMap,
+			String scheduleFolderPath)
 			throws FileNotFoundException, InvalidScheduleFileNameException, InvalidDataInMetadataFileException {
 		ScheduleFileFilter scheduleXMLFilefilter = new ScheduleFileFilter(); 
 		String[] splitedFileName = null;
 		File scheduleFolder = new File(scheduleFolderPath);
-		
+
 		if(scheduleFolder.exists() == false || scheduleFolder.isDirectory() == false)
 		{
 			throw new FileNotFoundException();
@@ -577,8 +586,9 @@ public class Device {
 		
 		for(File file : scheduleFolder.listFiles(scheduleXMLFilefilter)) 
 		{
+
 			splitedFileName = file.getName().split(Constants.SCHEDULE_FILE_SPLITER);
-			
+
 			if(splitedFileName.length != ScheduleFileNameOffset.values().length && 
 				splitedFileName.length != ScheduleFileNameOffset.values().length - 1)
 			{
@@ -637,14 +647,20 @@ public class Device {
 					putTaskHierarchicallyToTaskMap(task.getName(), globalTaskMap);
 					
 					GeneralTaskMappingInfo mappingInfo = new GeneralTaskMappingInfo(mappedTask.getName(), getTaskType(mappedTask.getName()), 
-							task.getParentTaskGraphName(), task.getInGraphIndex());
+							task.getParentTaskGraphName(), task.getInGraphIndex(), task.getPriority());
 					
 					mappingInfo.setMappedDeviceName(device.getName());
-					
-					for(MappingProcessorIdType proc: device.getProcessor())
-					{
-						MappedProcessor processor = new MappedProcessor(getProcessorIdByName(proc.getPool()), proc.getLocalId().intValue());
-						mappingInfo.putProcessor(processor);
+
+					for (MappingSetType setType : device.getMappingSet()) {
+						for (MappingProcessorIdType proc : setType.getProcessor()) {
+							MappedProcessor processor = new GeneralMappedProcessor(getProcessorIdByName(proc.getPool()),
+									proc.getLocalId().intValue(), setType.getName());
+							mappingInfo.putProcessor(processor);
+
+							if (setType.getName().equals(Constants.DEFAULT_STRING_NAME)) {
+								mappingInfo.putDefaultGeneralMappedProcessor((GeneralMappedProcessor) processor);
+							}
+						}
 					}
 					
 					if(this.generalMappingInfo.containsKey(mappedTask.getName()) == false)
@@ -848,7 +864,7 @@ public class Device {
 		for(GeneralTaskMappingInfo generalMappingInfo: this.generalMappingInfo.values())
 		{
 			task = this.taskMap.get(generalMappingInfo.getTaskName());
-			task.setTaskFuncNum(generalMappingInfo.getMappedProcessorList().size());			
+			task.setTaskFuncNum(generalMappingInfo.getDefaultGeneralMappedProcessorList().size());
 		}
 	}
 	
@@ -1334,6 +1350,14 @@ public class Device {
 		return runtime;
 	}
 	
+	public SchedulingMethod getScheduler() {
+		return scheduler;
+	}
+
+	public void setScheduler(SchedulingMethod scheduler) {
+		this.scheduler = scheduler;
+	}
+
 	public void setArchitecture(ArchitectureType architecture) {
 		this.architecture = architecture;
 	}

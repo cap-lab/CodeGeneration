@@ -3,6 +3,7 @@ package org.snu.cse.cap.translator.structure.device;
 public class Processor {
 	private int id;
 	private boolean isCPU;
+	private boolean isVirtual;
 	private String name;
 	private int poolSize;
 	
@@ -10,13 +11,18 @@ public class Processor {
 	{
 		this.id = id;
 		this.name = name;
-		if(type == ProcessorCategory.CPU)
+		this.isVirtual = false;
+		if (type == ProcessorCategory.CPU)
 		{
 			isCPU = true;
 		}
-		else
+		else if (type == ProcessorCategory.GPU)
 		{
 			isCPU = false;
+		}
+		else {
+			isCPU = true;
+			isVirtual = true;
 		}
 		this.poolSize = poolSize;
 	}
@@ -27,6 +33,10 @@ public class Processor {
 	
 	public boolean getIsCPU() {
 		return isCPU;
+	}
+
+	public boolean getIsVirtual() {
+		return isVirtual;
 	}
 	
 	public String getName() {

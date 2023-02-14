@@ -116,6 +116,14 @@ typedef enum _EModelControllerFunction {
 	FUNC_CHANGE_THREAD_STATE,
 } EModelControllerFunction;
 
+typedef enum _EScheduler {
+	SCHEDULER_OTHER = 0, 
+	SCHEDULER_FIFO = 1, // for Linux
+	SCHEDULER_RR = 2,
+	SCHEDULER_HIGH = 0x80, // for Windows
+	SCHEDULER_REALTIME = 0x100, 
+} EScheduler;
+
 
 typedef uem_result (*FnHandleModel)(STaskGraph *pstGraph, void *pCurrentTaskHandle, void *pCurrentThreadHandle);
 typedef uem_result (*FnControllerClear)(STaskGraph *pstTaskGraph);
@@ -229,9 +237,11 @@ typedef struct _SAddOnModule {
 } SAddOnModule;
 
 typedef uem_result (*FnMapProcessor)(HThread hThread, int nProcessorId, int nLocalId);
+typedef uem_result (*FnMapPriority)(HThread hThread, int nScheduler, int nPriority);
 
 typedef struct _SGenericMapProcessor {
 	FnMapProcessor fnMapProcessor;
+	FnMapPriority fnMapPriority;
 } SGenericMapProcessor;
 
 typedef struct _SMappedGeneralTaskInfo {
@@ -239,13 +249,17 @@ typedef struct _SMappedGeneralTaskInfo {
 	STask *pstTask;
 	int nProcessorId;
 	int nLocalId;
+	int nPriority;
 	SGenericMapProcessor *pstMapProcessorAPI;
+	const char *pszMappingSet;
 } SMappedGeneralTaskInfo;
 
 typedef struct _SMappedCompositeTaskInfo {
 	SScheduledTasks *pstScheduledTasks;
 	int nProcessorId;
 	int nLocalId;
+	int nPriority;
+	SGenericMapProcessor *pstMapProcessorAPI;
 } SMappedCompositeTaskInfo;
 
 typedef struct _SMappedTaskInfo {
@@ -283,6 +297,8 @@ extern int g_nTimerSlotNum;
 extern uem_bool g_bSystemExit;
 
 extern int g_nDeviceId;
+
+extern int g_nScheduler;
 
 #ifdef __cplusplus
 }

@@ -100,6 +100,21 @@ uem_result UKHostSystem_DestroyMemory(IN OUT void **ppMemory);
  */
 uem_result UKHostSystem_MapCPU(HThread hThread, int nProcessorId, int nLocalId);
 
+/**
+ * @brief Map a thread to the specific priority.
+ *
+ * This function maps a thread to the specific priority.
+ *
+ * @param hThread a thread handle.
+ * @param nScheduler a used scheduling policy.
+ * @param nLocalId a priority.
+ *
+ * @return @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ *         Errors to be returned - @ref ERR_UEM_INVALID_PARAM, @ref ERR_UEM_INVALID_HANDLE, @ref ERR_UEM_INTERNAL_FAIL. \n
+ *         @ref ERR_UEM_INTERNAL_FAIL can be occurred when priority-related operations are failed.
+ */
+uem_result UKHostSystem_MapPriority(HThread hThread, int nScheduler, int nPriority);
+
 #ifdef __cplusplus
 }
 #endif

@@ -233,7 +233,7 @@ static int open_port(char str[])
 	  cfsetispeed(&options, setBaudRate(DEFAULT_BAUD_RATE)); //input baudrate
 	  cfsetospeed(&options, setBaudRate(DEFAULT_BAUD_RATE)); // output baudrate
 	  options.c_cflag = (options.c_cflag & ~CSIZE) | CS8;     // 8-bit chars
-	  options.c_iflag &= ~IGNBRK;         // disable break processing
+	  options.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
 	  options.c_lflag = 0;                // no signaling chars, no echo,
 	  // no canonical processing
 	  options.c_oflag = 0;                // no remapping, no delays

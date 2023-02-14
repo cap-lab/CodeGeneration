@@ -307,6 +307,44 @@ uem_result UKTask_SetPeriod (IN int nCallerTaskId, IN char *pszTaskName, IN int 
  */
 uem_result UKTask_ChangeMappedCore (IN int nCallerTaskId, IN char *pszTaskName, IN int nNewLocalId);
 
+/**
+ * @brief Update a mapping set of the task and and its subtasks.
+ *
+ * This function updates a mapping set of the task and and its subtasks.
+ *
+ * @param nCallerTaskId id of caller task.
+ * @param pszTaskName task name to update the mapping set.
+ * @param pszMappingSet mapping set name to update.
+ *
+ * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid @a nCallerTaskId, @a pszTaskName, @a pszValue. \n
+ * @ref ERR_UEM_ILLEGAL_CONTROL if task is not Control task. \n
+ * @ref ERR_UEM_NO_DATA if caller task id does not match to any task or target task name does not match to any.
+ *
+ */
+uem_result UKTask_ChangeMappingSet(IN int nCallerTaskId, IN char *pszTaskName, IN const char *pszMappingSet);
+
+/**
+ * @brief Get the current mapping set of the task.
+ *
+ * This function gets a mapping set of the task.
+ *
+ * @param nCallerTaskId id of caller task.
+ * @param pszTaskName task name to update the mapping set.
+ * @param nBufferLen Buffer length.
+ * @param ppszMappingSet mapping set name.
+ *
+ * @return
+ * @ref ERR_UEM_NOERROR is returned if there is no error. \n
+ * @ref ERR_UEM_INVALID_PARAM for invalid @a nCallerTaskId, @a pszTaskName, @a pszValue. \n
+ * @ref ERR_UEM_ILLEGAL_CONTROL if task is not Control task. \n
+ * @ref ERR_UEM_NO_DATA if caller task id does not match to any task or target task name does not match to any.
+ * @ref ERR_UEM_REALLOCATE_BUFFER is occurred when the buffer length is not enough. \n
+ *
+ */
+uem_result UKTask_GetCurrentMappingSet(IN int nCallerTaskId, IN char *pszTaskName, IN int nBufferLen, OUT char **ppszMappingSet);
+
 #ifdef __cplusplus
 }
 #endif

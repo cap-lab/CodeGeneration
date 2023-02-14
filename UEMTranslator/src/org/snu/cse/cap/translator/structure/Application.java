@@ -25,6 +25,7 @@ import org.snu.cse.cap.translator.structure.device.HWElementType;
 import org.snu.cse.cap.translator.structure.device.NoProcessorFoundException;
 import org.snu.cse.cap.translator.structure.device.Processor;
 import org.snu.cse.cap.translator.structure.device.ProcessorElementType;
+import org.snu.cse.cap.translator.structure.device.SchedulingMethod;
 import org.snu.cse.cap.translator.structure.device.connection.Connection;
 import org.snu.cse.cap.translator.structure.device.connection.ConnectionPair;
 import org.snu.cse.cap.translator.structure.device.connection.ConstrainedSerialConnection;
@@ -452,7 +453,8 @@ public class Application {
 
 						slave = findConnection(slaveType.getDevice(), slaveType.getConnection());
 
-						if (!connectType.getEncryption().toString().contentEquals(EncryptionType.NO.toString()))
+						if (connectType.getEncryption() != null && !connectType.getEncryption().toString()
+								.contentEquals(EncryptionType.NO.toString()))
 						{
 							setEncryption(slaveType.getDevice(), slaveType.getConnection(),
 									connectType.getEncryption().toString(), connectType.getUserkey(),
@@ -464,7 +466,9 @@ public class Application {
 
 						deviceConnection.putMasterToSlaveConnection(master, slaveType.getDevice(), slave);
 						deviceConnection.putSlaveToMasterConnection(slaveType.getDevice(), slave, master,
-								connectType.getEncryption().toString(), connectType.getUserkey());
+								((connectType.getEncryption() == null) ? EncryptionType.NO.toString()
+										: connectType.getEncryption().toString()),
+								connectType.getUserkey());
 					}
 				} catch (InvalidDeviceConnectionException e) {
 					// TODO Auto-generated catch block
@@ -507,9 +511,10 @@ public class Application {
 		{
 			for(ArchitectureDeviceType device_metadata: architecture_metadata.getDevices().getDevice())
 			{
-
 				Device device = new Device(device_metadata.getName(), deviceId, device_metadata.getArchitecture(),
-											device_metadata.getPlatform(), device_metadata.getRuntime());
+						device_metadata.getPlatform(), device_metadata.getRuntime(),
+						((device_metadata.getScheduler() == null) ? SchedulingMethod.OTHER.toString()
+								: device_metadata.getScheduler().toString()));
 
 				deviceId++;
 
@@ -702,11 +707,11 @@ public class Application {
 		}
 	}
 
-	// TODO: Only support CPU and GPU cases
+	// TODO: Only support CPU, GPU, and VIRTUAL cases
 	private void setInDeviceCommunicationType(Channel channel, MappingInfo srcTaskMappingInfo, MappingInfo dstTaskMappingInfo)
 	{
-		boolean srcCPU = false;
-		boolean dstCPU = false;
+		boolean srcCPU = false, dstCPU = false;
+		boolean srcVirtual = false, dstVirtual = false;
 		int srcProcId, dstProcId;
 		int srcProcLocalId, dstProcLocalId;
 
@@ -719,10 +724,12 @@ public class Application {
 		for(Processor processor : device.getProcessorList()) {
 			if(srcProcId == processor.getId()) {
 				srcCPU = processor.getIsCPU();
+				srcVirtual = processor.getIsVirtual();
 			}
 
 			if(dstProcId == processor.getId()) {
 				dstCPU = processor.getIsCPU();
+				dstVirtual = processor.getIsVirtual();
 			}
 		}
 
@@ -743,12 +750,15 @@ public class Application {
 		else if(dstCPU == true) { // && srcCPU == true
 			if(srcProcId == dstProcId) {
 				channel.setAccessType(InMemoryAccessType.CPU_ONLY);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               			}
+			}
+			else if (srcVirtual || dstVirtual) {
+				channel.setAccessType(InMemoryAccessType.CPU_ONLY);
+			}
 			else {
 				throw new UnsupportedOperationException();
 			}
 		}
-		else { // dstCPU == true && srcCPU == true
+		else { // dstCPU == false && srcCPU == true
 			channel.setAccessType(InMemoryAccessType.CPU_GPU);
 		}
 	}
@@ -1091,7 +1101,8 @@ public class Application {
 			}
 			break;
 		case WINDOWS:
-			if (connectionPair.getMasterConnection().getProtocol() == ProtocolType.TCP) {
+			if (connectionPair.getMasterConnection().getProtocol() == ProtocolType.TCP
+					|| connectionPair.getMasterConnection().getProtocol() == ProtocolType.SECURE_TCP) {
 				setSocketIndexFromTCPConnection(channel, targetDevice, connectionPair);
 			} else {
 				setSocketIndexFromUnconstrainedSerialConnection(channel, targetDevice, connectionPair);
