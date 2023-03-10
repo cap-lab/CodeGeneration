@@ -1716,7 +1716,7 @@ public class Application {
 			// System.out.println(channelSrcPort.getTask() + Constants.NAME_SPLITER +
 			// channelSrcPort.getPort()
 			// + Constants.NAME_SPLITER + PortDirection.OUTPUT);
-			portInfo.keySet().forEach(System.out::println);
+			//portInfo.keySet().forEach(System.out::println);
 			ChannelPort srcPort = this.portInfo.get(channelSrcPort.getTask() + Constants.NAME_SPLITER + channelSrcPort.getPort() + Constants.NAME_SPLITER + PortDirection.OUTPUT);
 			ChannelPort dstPort = this.portInfo.get(channelDstPort.getTask() + Constants.NAME_SPLITER + channelDstPort.getPort() + Constants.NAME_SPLITER + PortDirection.INPUT);
 
