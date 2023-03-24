@@ -168,7 +168,9 @@ static void *multicastHandlingThread(void *pData)
 		result = UCDynamicSocket_RecvFrom(pstUDPMulticastReceiver->stReceiverSocket.hSocket,
 				pstUDPMulticastReceiver->pstUDPMulticast->stUDPInfo.pszIP, 3, UDP_MAX, pstUDPMulticastReceiver->stReceiverSocket.pHeader,
 				&pstUDPMulticastReceiver->stReceiverSocket.nDataLen);
-		IFVARERRASSIGNGOTO(result, ERR_UEM_NET_TIMEOUT, result, ERR_UEM_NOERROR, _EXIT_CONTINUE);
+		if(result == ERR_UEM_NET_TIMEOUT) {
+			UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT_CONTINUE);
+		}
 		ERRIFGOTO(result, _EXIT);
 		if(pstUDPMulticastReceiver->stReceiverSocket.nDataLen < MULTICAST_UDP_HEADER_SIZE)
 		{
@@ -176,19 +178,27 @@ static void *multicastHandlingThread(void *pData)
 		}
 
 		result = checkDeviceId(pstUDPMulticastReceiver);
-		IFVARERRASSIGNGOTO(result, ERR_UEM_SKIP_THIS, result, ERR_UEM_NOERROR, _EXIT_CONTINUE);
+		if(result == ERR_UEM_SKIP_THIS) {
+			UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT_CONTINUE);
+		}
 		ERRIFGOTO(result, _EXIT);
 
 		result = checkMessageOwner(pstUDPMulticastReceiver, &nGroupId);
-		IFVARERRASSIGNGOTO(result, ERR_UEM_SKIP_THIS, result, ERR_UEM_NOERROR, _EXIT_CONTINUE);
+		if(result == ERR_UEM_SKIP_THIS) {
+			UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT_CONTINUE);
+		}
 		ERRIFGOTO(result, _EXIT);
 
 		result = getMessageOwnerIndex(pstUDPMulticastReceiver, nGroupId, &nGroupIndex);
-		IFVARERRASSIGNGOTO(result, ERR_UEM_SKIP_THIS, result, ERR_UEM_NOERROR, _EXIT_CONTINUE);
+		if(result == ERR_UEM_SKIP_THIS) {
+			UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT_CONTINUE);
+		}
 		ERRIFGOTO(result, _EXIT);
 
 		result = getMessageChunkIndex(pstUDPMulticastReceiver, &nChunkIndex);
-		IFVARERRASSIGNGOTO(result, ERR_UEM_SKIP_THIS, result, ERR_UEM_NOERROR, _EXIT_CONTINUE);
+		if(result == ERR_UEM_SKIP_THIS) {
+			UEMASSIGNGOTO(result, ERR_UEM_NOERROR, _EXIT_CONTINUE);
+		}
 		ERRIFGOTO(result, _EXIT);
 
 		if(nChunkIndex*(UDP_MAX-MULTICAST_UDP_HEADER_SIZE) + (pstUDPMulticastReceiver->stReceiverSocket.nDataLen-MULTICAST_UDP_HEADER_SIZE) > g_astMulticastGroups[nGroupIndex].nBufSize)

@@ -828,6 +828,9 @@ uem_result UKCPUTaskManager_StopTask(HCPUTaskManager hCPUTaskManager, int nTaskI
 			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, stoppingDataflowSubgraphTask, pstManager->hGeneralManager);
 			ERRIFGOTO(result, _EXIT);
 
+			result = UKCPUTaskCommon_TraverseSubGraphTasks(pstTask, activateDataflowSubgraphTask, pstManager->hGeneralManager);
+			ERRIFGOTO(result, _EXIT);
+
 			do // wait for the tasks are going to be stopped
 			{
 				UCThread_Yield();
